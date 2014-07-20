@@ -1,68 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:39350 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755543AbaGRDQW (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3379 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751010AbaGTCp3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 23:16:22 -0400
-Message-ID: <53C89161.4080405@atmel.com>
-Date: Fri, 18 Jul 2014 11:15:45 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<m.chehab@samsung.com>, <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <grant.likely@linaro.org>,
-	<galak@codeaurora.org>, <rob@landley.net>, <mark.rutland@arm.com>,
-	<robh+dt@kernel.org>, <ijc+devicetree@hellion.org.uk>,
-	<pawel.moll@arm.com>, <devicetree@vger.kernel.org>,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1403302313290.12008@axis700.grange> <53392FC9.9070706@atmel.com> <2360323.ktzTJnrmOX@avalon>
-In-Reply-To: <2360323.ktzTJnrmOX@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 19 Jul 2014 22:45:29 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6K2jPUb091255
+	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 04:45:27 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C3B972A1FD1
+	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 04:45:22 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140720024522.C3B972A1FD1@tschai.lan>
+Date: Sun, 20 Jul 2014 04:45:22 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Laurent
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 7/17/2014 7:00 PM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> What's the status of this patch set ? Do you plan to rebase and resubmit it ?
+Results of the daily build of media_tree:
 
-Thanks for the reminding.
-yes,  I will rebase it and resubmit the new version for this patch set 
-with the data bus width support.
-Thanks.
+date:		Sun Jul 20 04:00:19 CEST 2014
+git branch:	test
+git hash:	0ca1ba2aac5f6b26672099b13040c5b40db93486
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Best Regards,
-Josh Wu
->
-> On Monday 31 March 2014 17:05:13 Josh Wu wrote:
->> Dear Guennadi
->>
->> On 3/31/2014 5:20 AM, Guennadi Liakhovetski wrote:
->>> Hi Josh,
->>>
->>> Please correct me if I'm wrong, but I don't see how this is going to work
->>> without the central part - building asynchronous V4L2 data structures from
->>> the DT, something that your earlier patch
->> Here you mean Bryan Wu not me, right?   ;-)
->> Bryan write the patch "[v2] media: soc-camera: OF cameras" in:
->> https://patchwork.linuxtv.org/patch/22288/.
->> And I saw Ben Dooks already sent out his patch to support soc-camera OF
->> now (https://patchwork.linuxtv.org/patch/23304/) which is simpler than
->> Bryan's.
->>
->>> "media: soc-camera: OF cameras"
->>> was doing, but which you stopped developing after a discussion with Ben
->>> (added to Cc).
->> And yes, atmel-isi dt patch should not work without above SoC-Camera of
->> support patch.
->> But as the atmel-isi dt binding document and port node can be finalized.
->> So I think this patch is ready for the mainline.
->>
->> BTW: I will test Ben's patch with atmel-isi.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
