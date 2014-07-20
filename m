@@ -1,98 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:58140 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbaGIVIu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 17:08:50 -0400
-From: Marek Vasut <marex@denx.de>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
-Date: Wed, 9 Jul 2014 22:39:30 +0200
-Cc: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com> <1404919470-26668-2-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1404919470-26668-2-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53790 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751774AbaGTQlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jul 2014 12:41:10 -0400
+Message-ID: <53CBF123.5090204@iki.fi>
+Date: Sun, 20 Jul 2014 19:41:07 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] SDR stuff
+References: <53C874F8.3020300@iki.fi>
+In-Reply-To: <53C874F8.3020300@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201407092239.30561.marex@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, July 09, 2014 at 05:24:26 PM, Andy Shevchenko wrote:
-> The new seq_hex_dump() is a complete analogue of print_hex_dump().
-> 
-> We have few users of this functionality already. It allows to reduce their
-> codebase.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  fs/seq_file.c            | 35 +++++++++++++++++++++++++++++++++++
->  include/linux/seq_file.h |  4 ++++
->  2 files changed, 39 insertions(+)
-> 
-> diff --git a/fs/seq_file.c b/fs/seq_file.c
-> index 3857b72..fec4a6b 100644
-> --- a/fs/seq_file.c
-> +++ b/fs/seq_file.c
-> @@ -12,6 +12,7 @@
->  #include <linux/slab.h>
->  #include <linux/cred.h>
->  #include <linux/mm.h>
-> +#include <linux/printk.h>
-> 
->  #include <asm/uaccess.h>
->  #include <asm/page.h>
-> @@ -794,6 +795,40 @@ void seq_pad(struct seq_file *m, char c)
->  }
->  EXPORT_SYMBOL(seq_pad);
-> 
-> +/* Analogue of print_hex_dump() */
-> +void seq_hex_dump(struct seq_file *m, const char *prefix_str, int
-> prefix_type, +		  int rowsize, int groupsize, const void *buf, 
-size_t len,
-> +		  bool ascii)
-> +{
-> +	const u8 *ptr = buf;
-> +	int i, linelen, remaining = len;
-> +	unsigned char linebuf[32 * 3 + 2 + 32 + 1];
-> +
-> +	if (rowsize != 16 && rowsize != 32)
-> +		rowsize = 16;
-> +
-> +	for (i = 0; i < len; i += rowsize) {
-> +		linelen = min(remaining, rowsize);
-> +		remaining -= rowsize;
-> +
-> +		hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
-> +				   linebuf, sizeof(linebuf), ascii);
-> +
-> +		switch (prefix_type) {
-> +		case DUMP_PREFIX_ADDRESS:
-> +			seq_printf(m, "%s%p: %s\n", prefix_str, ptr + i, 
-linebuf);
-> +			break;
-> +		case DUMP_PREFIX_OFFSET:
-> +			seq_printf(m, "%s%.8x: %s\n", prefix_str, i, linebuf);
-> +			break;
-> +		default:
-> +			seq_printf(m, "%s%s\n", prefix_str, linebuf);
-> +			break;
-> +		}
-> +	}
-> +}
-> +EXPORT_SYMBOL(seq_hex_dump);
+On 07/18/2014 04:14 AM, Antti Palosaari wrote:
+> * AirSpy SDR driver
+> * all SDR drivers moved out of staging
+> * few new SDR stream formats
 
-The above function looks like almost verbatim copy of print_hex_dump(). The only 
-difference I can spot is that it's calling seq_printf() instead of printk(). Can 
-you not instead generalize print_hex_dump() and based on it's invocation, make 
-it call either seq_printf() or printk() ?
+Added few patches more.
 
-Best regards,
+Antti
+
+The following changes since commit 3445857b22eafb70a6ac258979e955b116bfd2c6:
+
+   [media] hdpvr: fix two audio bugs (2014-07-04 15:13:02 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git sdr_pull
+
+for you to fetch changes up to 57c6d1bcea459f50bfe1b8a47f575655deca888a:
+
+   airspy: fill FMT buffer size (2014-07-20 19:37:34 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (28):
+       v4l: uapi: add SDR format RU12LE
+       DocBook: V4L: add V4L2_SDR_FMT_RU12LE - 'RU12'
+       airspy: AirSpy SDR driver
+       v4l: uapi: add SDR format CS8
+       DocBook: V4L: add V4L2_SDR_FMT_CS8 - 'CS08'
+       v4l: uapi: add SDR format CS14
+       DocBook: V4L: add V4L2_SDR_FMT_CS14LE - 'CS14'
+       msi001: move out of staging
+       MAINTAINERS: update MSI001 driver location
+       Kconfig: add SDR support
+       Kconfig: sub-driver auto-select SPI bus
+       msi2500: move msi3101 out of staging and rename
+       MAINTAINERS: update MSI3101 / MSI2500 driver location
+       msi2500: change supported formats
+       msi2500: print notice to point SDR API is not 100% stable yet
+       rtl2832_sdr: move from staging to media
+       rtl2832_sdr: put complex U16 format behind module parameter
+       rtl2832_sdr: print notice to point SDR API is not 100% stable yet
+       MAINTAINERS: update RTL2832_SDR location
+       airspy: remove v4l2-compliance workaround
+       airspy: move out of staging into drivers/media/usb
+       airspy: print notice to point SDR API is not 100% stable yet
+       MAINTAINERS: add airspy driver
+       v4l: videodev2: add buffer size to SDR format
+       rtl2832_sdr: fill FMT buffer size
+       DocBook media: v4l2_sdr_format buffersize field
+       msi2500: fill FMT buffer size
+       airspy: fill FMT buffer size
+
+  Documentation/DocBook/media/v4l/dev-sdr.xml 
+        |   18 +-
+  Documentation/DocBook/media/v4l/pixfmt-sdr-cs08.xml 
+        |   44 ++++
+  Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml 
+        |   47 +++++
+  Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml 
+        |   40 ++++
+  Documentation/DocBook/media/v4l/pixfmt.xml 
+        |    3 +
+  MAINTAINERS 
+        |   18 +-
+  drivers/media/Kconfig 
+        |   12 +-
+  drivers/media/dvb-frontends/Kconfig 
+        |    9 +
+  drivers/media/dvb-frontends/Makefile 
+        |    6 +
+  drivers/{staging/media/rtl2832u_sdr => 
+media/dvb-frontends}/rtl2832_sdr.c    |   48 +++--
+  drivers/{staging/media/rtl2832u_sdr => 
+media/dvb-frontends}/rtl2832_sdr.h    |    0
+  drivers/media/tuners/Kconfig 
+        |    6 +
+  drivers/media/tuners/Makefile 
+        |    1 +
+  drivers/{staging/media/msi3101 => media/tuners}/msi001.c 
+        |    0
+  drivers/media/usb/Kconfig 
+        |    6 +
+  drivers/media/usb/Makefile 
+        |    2 +
+  drivers/media/usb/airspy/Kconfig 
+        |   10 +
+  drivers/media/usb/airspy/Makefile 
+        |    1 +
+  drivers/media/usb/airspy/airspy.c 
+        | 1134 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  drivers/media/usb/dvb-usb-v2/Kconfig 
+        |    1 +
+  drivers/media/usb/msi2500/Kconfig 
+        |    5 +
+  drivers/media/usb/msi2500/Makefile 
+        |    1 +
+  drivers/{staging/media/msi3101/sdr-msi3101.c => 
+media/usb/msi2500/msi2500.c} |   78 ++++---
+  drivers/staging/media/Kconfig 
+        |    4 -
+  drivers/staging/media/Makefile 
+        |    2 -
+  drivers/staging/media/msi3101/Kconfig 
+        |   10 -
+  drivers/staging/media/msi3101/Makefile 
+        |    2 -
+  drivers/staging/media/rtl2832u_sdr/Kconfig 
+        |    7 -
+  drivers/staging/media/rtl2832u_sdr/Makefile 
+        |    6 -
+  include/uapi/linux/videodev2.h 
+        |    7 +-
+  30 files changed, 1444 insertions(+), 84 deletions(-)
+  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cs08.xml
+  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml
+  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml
+  rename drivers/{staging/media/rtl2832u_sdr => 
+media/dvb-frontends}/rtl2832_sdr.c (96%)
+  rename drivers/{staging/media/rtl2832u_sdr => 
+media/dvb-frontends}/rtl2832_sdr.h (100%)
+  rename drivers/{staging/media/msi3101 => media/tuners}/msi001.c (100%)
+  create mode 100644 drivers/media/usb/airspy/Kconfig
+  create mode 100644 drivers/media/usb/airspy/Makefile
+  create mode 100644 drivers/media/usb/airspy/airspy.c
+  create mode 100644 drivers/media/usb/msi2500/Kconfig
+  create mode 100644 drivers/media/usb/msi2500/Makefile
+  rename drivers/{staging/media/msi3101/sdr-msi3101.c => 
+media/usb/msi2500/msi2500.c} (96%)
+  delete mode 100644 drivers/staging/media/msi3101/Kconfig
+  delete mode 100644 drivers/staging/media/msi3101/Makefile
+  delete mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
+  delete mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
+
+
+-- 
+http://palosaari.fi/
