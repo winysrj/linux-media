@@ -1,55 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45756 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760244AbaGSCit (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:49 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/10] si2157: Add get_if_frequency callback
-Date: Sat, 19 Jul 2014 05:38:26 +0300
-Message-Id: <1405737506-13186-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
-References: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4554 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbaGTUQq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jul 2014 16:16:46 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6KKGgrl041741
+	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 22:16:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5AAC82A0463
+	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 22:16:41 +0200 (CEST)
+Message-ID: <53CC23A9.4020704@xs4all.nl>
+Date: Sun, 20 Jul 2014 22:16:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media typo
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Matthias Schwarzott <zzam@gentoo.org>
+V4L2_CID_BASE_LASTP1 should be V4L2_CID_LASTP1. This has probably been wrong
+since the earliest days of this documentation until I did a copy-and-paste
+and found out that V4L2_CID_BASE_LASTP1 doesn't actually exist :-)
 
-This is needed for PCTV 522e support.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/si2157.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index f619983..6c53edb 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -279,6 +279,12 @@ err:
- 	return ret;
- }
- 
-+static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	*frequency = 5000000; /* default value of property 0x0706 */
-+	return 0;
-+}
-+
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2157/Si2158",
-@@ -289,6 +295,7 @@ static const struct dvb_tuner_ops si2157_ops = {
- 	.init = si2157_init,
- 	.sleep = si2157_sleep,
- 	.set_params = si2157_set_params,
-+	.get_if_frequency = si2157_get_if_frequency,
- };
- 
- static int si2157_probe(struct i2c_client *client,
--- 
-1.9.3
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 62163d9..2bd98fd 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -76,7 +76,7 @@ structure. The driver fills the rest of the structure or returns an
+ <constant>VIDIOC_QUERYCTRL</constant> with successive
+ <structfield>id</structfield> values starting from
+ <constant>V4L2_CID_BASE</constant> up to and exclusive
+-<constant>V4L2_CID_BASE_LASTP1</constant>. Drivers may return
++<constant>V4L2_CID_LASTP1</constant>. Drivers may return
+ <errorcode>EINVAL</errorcode> if a control in this range is not
+ supported. Further applications can enumerate private controls, which
+ are not defined in this specification, by starting at
