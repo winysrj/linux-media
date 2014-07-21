@@ -1,320 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45486 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706AbaGVAIW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 20:08:22 -0400
-Message-ID: <53CDAB73.8050108@iki.fi>
-Date: Tue, 22 Jul 2014 03:08:19 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1364 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754246AbaGUJoL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 05:44:11 -0400
+Message-ID: <53CCE0E2.8020903@xs4all.nl>
+Date: Mon, 21 Jul 2014 11:44:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL] SDR stuff
-References: <53C874F8.3020300@iki.fi> <20140721205005.28e2e784.m.chehab@samsung.com>
-In-Reply-To: <20140721205005.28e2e784.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 for v3.17] v4l2-ioctl: don't set PRIV_MAGIC unconditionally
+ in g_fmt()
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So what. Those were mostly WARNING only and all but long lines were some 
-new checks added to checkpatch recently. chekcpatch gets all the time 
-new and new checks, these were added after I have made that driver. I 
-will surely clean those later when I do some new changes to driver and 
-my checkpatch updates.
+Regression fix:
 
+V4L2_PIX_FMT_PRIV_MAGIC should only be set for the VIDEO_CAPTURE and
+VIDEO_OUTPUT buffer types, and not for any others. In the case of
+the win format this overwrote a pointer value that is passed in from
+userspace.
 
-regards
-Antti
+Just set it for V4L2_BUF_TYPE_VIDEO_CAPTURE and OUTPUT only. Also set
+it before the callback is called, just as is done for try/s_fmt.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-
-On 07/22/2014 02:50 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 18 Jul 2014 04:14:32 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> * AirSpy SDR driver
->> * all SDR drivers moved out of staging
->> * few new SDR stream formats
->>
->> regards
->> Antti
->>
->>
->> The following changes since commit 3445857b22eafb70a6ac258979e955b116bfd2c6:
->>
->>     [media] hdpvr: fix two audio bugs (2014-07-04 15:13:02 -0300)
->>
->> are available in the git repository at:
->>
->>     git://linuxtv.org/anttip/media_tree.git sdr_pull
->>
->> for you to fetch changes up to 1c3378e1c17d6acd9b6d392ff75addad4c63cc6c:
->>
->>     MAINTAINERS: add airspy driver (2014-07-18 04:12:27 +0300)
->>
->> ----------------------------------------------------------------
->> Antti Palosaari (23):
->>         v4l: uapi: add SDR format RU12LE
->>         DocBook: V4L: add V4L2_SDR_FMT_RU12LE - 'RU12'
->>         airspy: AirSpy SDR driver
->>         v4l: uapi: add SDR format CS8
->>         DocBook: V4L: add V4L2_SDR_FMT_CS8 - 'CS08'
->>         v4l: uapi: add SDR format CS14
->>         DocBook: V4L: add V4L2_SDR_FMT_CS14LE - 'CS14'
->>         msi001: move out of staging
->>         MAINTAINERS: update MSI001 driver location
->>         Kconfig: add SDR support
->>         Kconfig: sub-driver auto-select SPI bus
->>         msi2500: move msi3101 out of staging and rename
->
-> There are several issues pointed by checkpath on this driver:
->
-> WARNING: line over 80 characters
-> #55: FILE: drivers/media/usb/msi2500/msi2500.c:55:
-> +#define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
->
-> WARNING: line over 80 characters
-> #56: FILE: drivers/media/usb/msi2500/msi2500.c:56:
-> +#define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
->
-> WARNING: line over 80 characters
-> #57: FILE: drivers/media/usb/msi2500/msi2500.c:57:
-> +#define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
->
-> WARNING: line over 80 characters
-> #58: FILE: drivers/media/usb/msi2500/msi2500.c:58:
-> +#define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
->
-> The above are OK, however those formats should be moved to videodev2.h,
-> where those API bits belong.
->
-> There are several warnings, not all are mandatory for moving it out of
-> staging. I'll point the critical ones below:
->
-> WARNING: Missing a blank line after declarations
-> #135: FILE: drivers/media/usb/msi2500/msi2500.c:135:
-> +	struct urb *urbs[MAX_ISO_BUFS];
-> +	int (*convert_stream)(struct msi3101_state *s, u8 *dst, u8 *src,
->
-> WARNING: line over 80 characters
-> #188: FILE: drivers/media/usb/msi2500/msi2500.c:188:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-> #211: FILE: drivers/media/usb/msi2500/msi2500.c:211:
-> +	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
->
-> This one is a real bug, as jiffies may reset to zero. you should, instead,
-> use the time macros, like time_is_before_jiffies() and
-> time_is_after_jiffies().
->
-> WARNING: line over 80 characters
-> #213: FILE: drivers/media/usb/msi2500/msi2500.c:213:
-> +		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->
-> This also seems wrong for the same reasons.
->
-> WARNING: Missing a blank line after declarations
-> #215: FILE: drivers/media/usb/msi2500/msi2500.c:215:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies_now;
->
-> WARNING: line over 80 characters
-> #242: FILE: drivers/media/usb/msi2500/msi2500.c:242:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Missing a blank line after declarations
-> #272: FILE: drivers/media/usb/msi2500/msi2500.c:272:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
->
-> WARNING: line over 80 characters
-> #339: FILE: drivers/media/usb/msi2500/msi2500.c:339:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-> #363: FILE: drivers/media/usb/msi2500/msi2500.c:363:
-> +	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
->
-> Same here.
->
-> WARNING: line over 80 characters
-> #365: FILE: drivers/media/usb/msi2500/msi2500.c:365:
-> +		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->
-> Same here.
->
-> WARNING: Missing a blank line after declarations
-> #367: FILE: drivers/media/usb/msi2500/msi2500.c:367:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies_now;
->
-> WARNING: line over 80 characters
-> #405: FILE: drivers/media/usb/msi2500/msi2500.c:405:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-> #428: FILE: drivers/media/usb/msi2500/msi2500.c:428:
-> +	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
->
-> Same here.
->
-> WARNING: line over 80 characters
-> #430: FILE: drivers/media/usb/msi2500/msi2500.c:430:
-> +		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->
-> WARNING: Missing a blank line after declarations
-> #432: FILE: drivers/media/usb/msi2500/msi2500.c:432:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies_now;
->
-> WARNING: line over 80 characters
-> #468: FILE: drivers/media/usb/msi2500/msi2500.c:468:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-> #491: FILE: drivers/media/usb/msi2500/msi2500.c:491:
-> +	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
->
-> Same here.
->
-> WARNING: line over 80 characters
-> #493: FILE: drivers/media/usb/msi2500/msi2500.c:493:
-> +		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->
-> Same here.
->
-> WARNING: Missing a blank line after declarations
-> #495: FILE: drivers/media/usb/msi2500/msi2500.c:495:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies_now;
->
-> ERROR: space required after that ';' (ctx:VxV)
-> #515: FILE: drivers/media/usb/msi2500/msi2500.c:515:
-> +	struct {signed int x:14;} se;
->   	                       ^
->
-> Better to declare it as:
-> 	struct {
-> 		signed int x:14;
-> 	} se;
->
-> That makes easier to read, IMHO, and follows Kernel CodingStyle.
->
-> WARNING: line over 80 characters
-> #521: FILE: drivers/media/usb/msi2500/msi2500.c:521:
-> +		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
->
-> WARNING: Missing a blank line after declarations
-> #567: FILE: drivers/media/usb/msi2500/msi2500.c:567:
-> +		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> +		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
->
-> WARNING: Missing a blank line after declarations
-> #661: FILE: drivers/media/usb/msi2500/msi2500.c:661:
-> +	int i;
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #676: FILE: drivers/media/usb/msi2500/msi2500.c:676:
-> +	int i;
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #709: FILE: drivers/media/usb/msi2500/msi2500.c:709:
-> +	int i, j, ret;
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #775: FILE: drivers/media/usb/msi2500/msi2500.c:775:
-> +	unsigned long flags = 0;
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #814: FILE: drivers/media/usb/msi2500/msi2500.c:814:
-> +	struct msi3101_state *s = video_drvdata(file);
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #831: FILE: drivers/media/usb/msi2500/msi2500.c:831:
-> +	struct msi3101_state *s = vb2_get_drv_priv(vq);
-> +	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
->
-> WARNING: line over 80 characters
-> #879: FILE: drivers/media/usb/msi2500/msi2500.c:879:
-> +			_i & 0xff, _i >> 8, l & 0xff, l >> 8, direction, l, b); \
->
-> WARNING: line over 80 characters
-> #915: FILE: drivers/media/usb/msi2500/msi2500.c:915:
-> +	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
->
-> WARNING: line over 80 characters
-> #917: FILE: drivers/media/usb/msi2500/msi2500.c:917:
-> +		bandwidth = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH);
->
-> WARNING: line over 80 characters
-> #1012: FILE: drivers/media/usb/msi2500/msi2500.c:1012:
-> +			__func__, f_sr, f_vco, div_n, div_m, div_r_out, reg3, reg4);
->
-> WARNING: Missing a blank line after declarations
-> #1053: FILE: drivers/media/usb/msi2500/msi2500.c:1053:
-> +	int ret;
-> +	dev_dbg(&s->udev->dev, "%s:\n", __func__);
->
-> WARNING: Missing a blank line after declarations
-> #1116: FILE: drivers/media/usb/msi2500/msi2500.c:1116:
-> +	struct msi3101_state *s = video_drvdata(file);
-> +	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, f->index);
->
-> WARNING: Missing a blank line after declarations
-> #1131: FILE: drivers/media/usb/msi2500/msi2500.c:1131:
-> +	struct msi3101_state *s = video_drvdata(file);
-> +	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
->
-> WARNING: Missing a blank line after declarations
-> #1146: FILE: drivers/media/usb/msi2500/msi2500.c:1146:
-> +	int i;
-> +	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
->
-> WARNING: Missing a blank line after declarations
-> #1171: FILE: drivers/media/usb/msi2500/msi2500.c:1171:
-> +	int i;
-> +	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
->
-> WARNING: Missing a blank line after declarations
-> #1190: FILE: drivers/media/usb/msi2500/msi2500.c:1190:
-> +	int ret;
-> +	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, v->index);
->
-> WARNING: Missing a blank line after declarations
-> #1206: FILE: drivers/media/usb/msi2500/msi2500.c:1206:
-> +	int ret;
-> +	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, v->index);
->
-> WARNING: Missing a blank line after declarations
-> #1229: FILE: drivers/media/usb/msi2500/msi2500.c:1229:
-> +	int ret  = 0;
-> +	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
->
-> WARNING: Missing a blank line after declarations
-> #1250: FILE: drivers/media/usb/msi2500/msi2500.c:1250:
-> +	int ret;
-> +	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
->
-> WARNING: Missing a blank line after declarations
-> #1274: FILE: drivers/media/usb/msi2500/msi2500.c:1274:
-> +	int ret;
-> +	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
->
-> total: 1 errors, 45 warnings, 1517 lines checked
->
-> drivers/media/usb/msi2500/msi2500.c has style problems, please review.
->
-> Regards,
-> Mauro
->
-
--- 
-http://palosaari.fi/
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index e620387..22c8d48 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1143,8 +1143,6 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 	int ret;
+ 
+-	p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+-
+ 	/*
+ 	 * fmt can't be cleared for these overlay types due to the 'clips'
+ 	 * 'clipcount' and 'bitmap' pointers in struct v4l2_window.
+@@ -1164,6 +1162,15 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		p->fmt.win.bitmap = bitmap;
+ 		break;
+ 	}
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		memset(&p->fmt, 0, sizeof(p->fmt));
++		/*
++		 * Fill in the priv field to signal that the extended
++		 * v4l2_pix_format fields are valid.
++		 */
++		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
++		break;
+ 	default:
+ 		memset(&p->fmt, 0, sizeof(p->fmt));
+ 		break;
+@@ -1174,6 +1181,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
+ 			break;
+ 		ret = ops->vidioc_g_fmt_vid_cap(file, fh, arg);
++		/* just in case the driver zeroed it again */
+ 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+ 		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+@@ -1196,6 +1204,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out))
+ 			break;
+ 		ret = ops->vidioc_g_fmt_vid_out(file, fh, arg);
++		/* just in case the driver zeroed it again */
+ 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+ 		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
