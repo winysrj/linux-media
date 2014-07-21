@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46706 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758292AbaGWP31 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37774 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbaGUWqi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 11:29:27 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 0/8] Split CODA driver into multiple files
-Date: Wed, 23 Jul 2014 17:28:37 +0200
-Message-Id: <1406129325-10771-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 21 Jul 2014 18:46:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Fix ARGB32 fourcc value in the documentation
+Date: Tue, 22 Jul 2014 00:46:50 +0200
+Message-ID: <1562821.gYWjTNHcTz@avalon>
+In-Reply-To: <53CD97F1.8070206@xs4all.nl>
+References: <1405982482-11456-1-git-send-email-laurent.pinchart@ideasonboard.com> <53CD97F1.8070206@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 22 July 2014 00:45:05 Hans Verkuil wrote:
+> On 07/22/2014 12:41 AM, Laurent Pinchart wrote:
+> > The ARGB32 pixel format's fourcc value is defined to 'BA24' in the
+> > videodev2.h header, but documented as 'AX24'. Fix the documentation.
+> > 
+> > Reported-by: Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Reported-by or Acked-by? :-)
+> 
+> Anyway:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hans suggested to split the CODA driver, so this series moves it into
-its own subdirectory and splits it roughly in half by moving the BIT
-processor handling and H.264 specific helper function out into their
-own files.
-The coda-bit.c will get its coda-jpeg.c counterpart in the future
-for JPEG encoding and decoding on i.MX6.
+See ? git was predicting the future :-)
 
-regards
-Philipp
+Linus is getting grumpy about the amount of 3.16-rc fixes. I'm thus 
+considering delaying this patch to 3.17. Any objection ?
 
-Philipp Zabel (8):
-  [media] coda: move coda driver into its own directory
-  [media] coda: move defines, enums, and structs into shared header
-  [media] coda: add context ops
-  [media] coda: move BIT processor command execution out of pic_run_work
-  [media] coda: add coda_bit_stream_set_flag helper
-  [media] coda: move per-instance buffer allocation and cleanup
-  [media] coda: move H.264 helper function into separate file
-  [media] coda: move BIT specific functions into separate file
-
- drivers/media/platform/Makefile                    |    2 +-
- drivers/media/platform/coda.c                      | 4000 --------------------
- drivers/media/platform/coda/Makefile               |    3 +
- drivers/media/platform/coda/coda-bit.c             | 1810 +++++++++
- drivers/media/platform/coda/coda-common.c          | 2003 ++++++++++
- drivers/media/platform/coda/coda-h264.c            |   36 +
- drivers/media/platform/coda/coda.h                 |  287 ++
- .../media/platform/{coda.h => coda/coda_regs.h}    |    0
- 8 files changed, 4140 insertions(+), 4001 deletions(-)
- delete mode 100644 drivers/media/platform/coda.c
- create mode 100644 drivers/media/platform/coda/Makefile
- create mode 100644 drivers/media/platform/coda/coda-bit.c
- create mode 100644 drivers/media/platform/coda/coda-common.c
- create mode 100644 drivers/media/platform/coda/coda-h264.c
- create mode 100644 drivers/media/platform/coda/coda.h
- rename drivers/media/platform/{coda.h => coda/coda_regs.h} (100%)
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+> > 32feac9..4209542 100644
+> > --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > @@ -489,7 +489,7 @@ colorspace
+> > <constant>V4L2_COLORSPACE_SRGB</constant>.</para>> 
+> >  	  </row>
+> >  	  <row id="V4L2-PIX-FMT-ARGB32">
+> >  	    <entry><constant>V4L2_PIX_FMT_ARGB32</constant></entry>
+> > -	    <entry>'AX24'</entry>
+> > +	    <entry>'BA24'</entry>
+> >  	    <entry></entry>
+> >  	    <entry>a<subscript>7</subscript></entry>
+> >  	    <entry>a<subscript>6</subscript></entry>
 
 -- 
-2.0.1
+Regards,
+
+Laurent Pinchart
 
