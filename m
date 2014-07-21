@@ -1,54 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.198]:59350 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752277AbaGMNwg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jul 2014 09:52:36 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4310 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932236AbaGUNp5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 09:45:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 0/6] [0b48:3014] TechnoTrend TVStick CT2-4400
-Date: Sun, 13 Jul 2014 16:52:16 +0300
-Message-Id: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+Cc: Eduardo Valentin <edubezval@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/7] v4l2-ctrls: add RX RDS controls.
+Date: Mon, 21 Jul 2014 15:45:40 +0200
+Message-Id: <1405950343-26892-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
+References: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TechnoTrend TVStick CT2-4400 is a USB 2.0 DVB C/T/T2 tuner with the
-following components.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-USB bridge: Cypress FX2
-Demodulator: Silicon Labs Si2168-A30
-Tuner: Silicon Labs Si2158-A20
+The radio-miropcm20 driver has firmware that decodes the RDS signals. So in that
+case the RDS data becomes available in the form of controls.
 
-Both the demodulator and the tuner need a firmware. These can be
-extracted from TT drivers.
+Add support for these controls to the control framework, allowing the miro driver
+to use them.
 
-Download: http://www.tt-downloads.de/bda-treiber_4.2.0.0.zip
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 19 +++++++++++++++++--
+ include/uapi/linux/v4l2-controls.h   |  6 ++++++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-Extract firmware from file ttTVStick4400_64.sys in the zip (MD5 sum below):
-0276023ce027bab05c2e7053033e2182  ttTVStick4400_64.sys
-
-dd if=ttTVStick4400_64.sys ibs=1 skip=211216 count=17576 of=dvb-demod-si2168-30-01.fw
-dd if=ttTVStick4400_64.sys ibs=1 skip=200816 count=3944 of=dvb-tuner-si2158-20-01.fw
-
-Olli Salonen (6):
-  si2168: Small typo fix (SI2157 -> SI2168)
-  si2168: Add handling for different chip revisions and firmwares
-  si2157: Move chip initialization to si2157_init
-  si2157: Add support for Si2158 chip
-  si2157: Set delivery system and bandwidth before tuning
-  cxusb: TechnoTrend CT2-4400 USB DVB-T2/C tuner support
-
- drivers/media/dvb-core/dvb-usb-ids.h      |   1 +
- drivers/media/dvb-frontends/si2168.c      |  34 +++++-
- drivers/media/dvb-frontends/si2168_priv.h |   8 +-
- drivers/media/tuners/si2157.c             | 161 +++++++++++++++++++------
- drivers/media/tuners/si2157.h             |   2 +-
- drivers/media/tuners/si2157_priv.h        |   5 +-
- drivers/media/usb/dvb-usb/Kconfig         |   3 +
- drivers/media/usb/dvb-usb/cxusb.c         | 191 +++++++++++++++++++++++++++++-
- drivers/media/usb/dvb-usb/cxusb.h         |   2 +
- 9 files changed, 357 insertions(+), 50 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 9a22f2c..a7b4d4c 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -881,7 +881,6 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+-
+ 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
+@@ -892,6 +891,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:	return "Bandwidth, Auto";
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH:	return "Bandwidth";
+ 	case V4L2_CID_RF_TUNER_PLL_LOCK:	return "PLL Lock";
++	case V4L2_CID_RDS_RX_PTY:		return "RDS Program Type";
++	case V4L2_CID_RDS_RX_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_RX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:	return "RDS Music";
+ 
+ 	/* Detection controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+@@ -900,7 +905,6 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD: return "MD Global Threshold";
+ 	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:	return "MD Threshold Grid";
+ 	case V4L2_CID_DETECT_MD_REGION_GRID:	return "MD Region Grid";
+-
+ 	default:
+ 		return NULL;
+ 	}
+@@ -963,6 +967,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
+ 	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
+ 	case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT:
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -1035,6 +1042,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:
++	case V4L2_CID_RDS_RX_PS_NAME:
++	case V4L2_CID_RDS_RX_RADIO_TEXT:
+ 		*type = V4L2_CTRL_TYPE_STRING;
+ 		break;
+ 	case V4L2_CID_ISO_SENSITIVITY:
+@@ -1166,6 +1175,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_TX_RXSENSE:
+ 	case V4L2_CID_DV_TX_EDID_PRESENT:
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:
++	case V4L2_CID_RDS_RX_PTY:
++	case V4L2_CID_RDS_RX_PS_NAME:
++	case V4L2_CID_RDS_RX_RADIO_TEXT:
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT:
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
+ 	case V4L2_CID_RF_TUNER_PLL_LOCK:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index a13e6fe..e946e43 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -910,6 +910,12 @@ enum v4l2_deemphasis {
+ };
+ 
+ #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_RX_PTY			(V4L2_CID_FM_RX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_RX_PS_NAME			(V4L2_CID_FM_RX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_RX_RADIO_TEXT		(V4L2_CID_FM_RX_CLASS_BASE + 5)
++#define V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_RX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_RX_TRAFFIC_PROGRAM		(V4L2_CID_FM_RX_CLASS_BASE + 7)
++#define V4L2_CID_RDS_RX_MUSIC_SPEECH		(V4L2_CID_FM_RX_CLASS_BASE + 8)
+ 
+ #define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+ #define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
 -- 
-1.9.1
+2.0.1
 
