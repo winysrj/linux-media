@@ -1,71 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:59748 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbaGYUrS convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:14233 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752472AbaGUE5r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 16:47:18 -0400
-Received: by mail-we0-f175.google.com with SMTP id t60so4856943wes.34
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 13:47:17 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>,
-	linux-media@vger.kernel.org,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
-Date: Fri, 25 Jul 2014 21:46:58 +0100
-Message-ID: <1572764.UGr4uaq7NC@radagast>
-In-Reply-To: <20140723163936.164aa577.m.chehab@samsung.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com> <20140723163936.164aa577.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Mon, 21 Jul 2014 00:57:47 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0N91001BBPS91TA0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Jul 2014 13:57:45 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, pawel@osciak.com, shaik.samsung@gmail.com,
+	joshi@samsung.com, Shaik Ameer Basha <shaik.ameer@samsung.com>
+Subject: [PATCH] [media] exynos-gsc: Remove PM_RUNTIME dependency
+Date: Mon, 21 Jul 2014 10:24:48 +0530
+Message-id: <1405918488-26142-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+1] Currently Gscaler clock is enabled only inside pm_runtime callbacks.
+   If PM_RUNTIME is disabled, driver hangs. This patch removes the
+   PM_RUNTIME dependency by keeping the clock enable/disable functions
+   in m2m start/stop streaming callbacks.
 
-On Wednesday 23 July 2014 16:39:36 Mauro Carvalho Chehab wrote:
-> Em Fri, 14 Mar 2014 23:04:10 +0000
-> 
-> James Hogan <james@albanarts.com> escreveu:
-> > A recent discussion about proposed interfaces for setting up the
-> > hardware wakeup filter lead to the conclusion that it could help to have
-> > the generic capability to encode and modulate scancodes into raw IR
-> > events so that drivers for hardware with a low level wake filter (on the
-> > level of pulse/space durations) can still easily implement the higher
-> > level scancode interface that is proposed.
-> > 
-> > I posted an RFC patchset showing how this could work, and Antti Seppälä
-> > posted additional patches to support rc5-sz and nuvoton-cir. This
-> > patchset improves the original RFC patches and combines & updates
-> > Antti's patches.
-> > 
-> > I'm happy these patches are a good start at tackling the problem, as
-> > long as Antti is happy with them and they work for him of course.
-> > 
-> > Future work could include:
-> >  - Encoders for more protocols.
-> >  - Carrier signal events (no use unless a driver makes use of it).
-> > 
-> > Patch 1 adds the new encode API.
-> > Patches 2-3 adds some modulation helpers.
-> > Patches 4-6 adds some raw encode implementations.
-> > Patch 7 adds some rc-core support for encode based wakeup filtering.
-> > Patch 8 adds debug loopback of encoded scancode when filter set.
-> > Patch 9 (untested) adds encode based wakeup filtering to nuvoton-cir.
-> 
-> > Changes in v2:
-> Any news about this patch series? There are some comments about them,
-> so I'll be tagging it as "changes requested" at patchwork, waiting
-> for a v3 (or is it already there in the middle of the 49 patches from
-> David?).
+2] For Exynos5420/5800, Gscaler clock has to be Turned ON before powering
+   on/off the Gscaler power domain. This dependency is taken care by
+   this patch at driver level.
 
-This patch series seems to have been forgotten. I do have a few changes on top 
-of v2 to address the review comments, so as you say I should probably rebase 
-and do a v3 at some point.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   10 ++--------
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |   13 +++++++++++++
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
-Cheers
-James
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9d0cc04..39c0953 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1132,23 +1132,17 @@ static int gsc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gsc);
+ 	pm_runtime_enable(dev);
+-	ret = pm_runtime_get_sync(&pdev->dev);
+-	if (ret < 0)
+-		goto err_m2m;
+ 
+ 	/* Initialize continious memory allocator */
+ 	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(gsc->alloc_ctx)) {
+ 		ret = PTR_ERR(gsc->alloc_ctx);
+-		goto err_pm;
++		goto err_m2m;
+ 	}
+ 
+ 	dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
+-
+-	pm_runtime_put(dev);
+ 	return 0;
+-err_pm:
+-	pm_runtime_put(dev);
++
+ err_m2m:
+ 	gsc_unregister_m2m_device(gsc);
+ err_v4l2:
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index e434f1f0..a98462c 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -60,19 +60,32 @@ static void __gsc_m2m_job_abort(struct gsc_ctx *ctx)
+ static int gsc_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct gsc_ctx *ctx = q->drv_priv;
++	struct gsc_dev *gsc = ctx->gsc_dev;
+ 	int ret;
+ 
++	ret = clk_enable(gsc->clock);
++	if (ret)
++		return ret;
++
+ 	ret = pm_runtime_get_sync(&ctx->gsc_dev->pdev->dev);
++
++	if (!pm_runtime_enabled(&gsc->pdev->dev)) {
++		gsc_hw_set_sw_reset(gsc);
++		gsc_wait_reset(gsc);
++	}
++
+ 	return ret > 0 ? 0 : ret;
+ }
+ 
+ static void gsc_m2m_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct gsc_ctx *ctx = q->drv_priv;
++	struct gsc_dev *gsc = ctx->gsc_dev;
+ 
+ 	__gsc_m2m_job_abort(ctx);
+ 
+ 	pm_runtime_put(&ctx->gsc_dev->pdev->dev);
++	clk_disable(gsc->clock);
+ }
+ 
+ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
+-- 
+1.7.9.5
+
