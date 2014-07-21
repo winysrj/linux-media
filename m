@@ -1,56 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:32948 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754184AbaGVMXy (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:55245 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755184AbaGUQ2X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 08:23:54 -0400
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: [PATCH 4/5] drm: panel: simple-panel: add support for bus_format retrieval
-Date: Tue, 22 Jul 2014 14:23:46 +0200
-Message-Id: <1406031827-12432-5-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+	Mon, 21 Jul 2014 12:28:23 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/3] xc4000: add module meta-tag with the firmware names
+Date: Mon, 21 Jul 2014 13:28:14 -0300
+Message-Id: <1405960095-29408-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
+References: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide a way to specify panel requirement in terms of supported media bus
-format (particularly useful for panels connected to an RGB or LVDS bus).
+This meta-tag is used by some distros to help them package
+the firmware and generate proper initrd images.
 
-Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+So, add the firmware names there.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/gpu/drm/panel/panel-simple.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/tuners/xc4000.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 3f76944..42fd6d1 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -41,6 +41,8 @@ struct panel_desc {
- 		unsigned int width;
- 		unsigned int height;
- 	} size;
-+
-+	enum video_bus_format bus_format;
- };
- 
- struct panel_simple {
-@@ -89,6 +91,9 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
- 
- 	connector->display_info.width_mm = panel->desc->size.width;
- 	connector->display_info.height_mm = panel->desc->size.height;
-+	if (panel->desc->bus_format)
-+		drm_display_info_set_bus_formats(&connector->display_info,
-+						 &panel->desc->bus_format, 1);
- 
- 	return num;
- }
+diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
+index 44df271a78f8..7d008b4d3595 100644
+--- a/drivers/media/tuners/xc4000.c
++++ b/drivers/media/tuners/xc4000.c
+@@ -1770,3 +1770,5 @@ EXPORT_SYMBOL(xc4000_attach);
+ MODULE_AUTHOR("Steven Toth, Davide Ferri");
+ MODULE_DESCRIPTION("Xceive xc4000 silicon tuner driver");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(XC4000_DEFAULT_FIRMWARE_NEW);
++MODULE_FIRMWARE(XC4000_DEFAULT_FIRMWARE);
 -- 
-1.8.3.2
+1.9.3
 
