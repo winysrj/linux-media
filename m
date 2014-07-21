@@ -1,67 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:62737 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754090AbaGHVjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 17:39:15 -0400
-Received: from uscpsbgex1.samsung.com
- (u122.gpu85.samsung.co.kr [203.254.195.122]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8E00EFHXHEVK00@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Jul 2014 17:39:14 -0400 (EDT)
-Message-id: <53BC64FF.1050901@samsung.com>
-Date: Tue, 08 Jul 2014 15:39:11 -0600
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
-MIME-version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: fix PCTV 461e tuner I2C binding
-References: <53BB2E7D.30300@samsung.com> <53BB6947.2090409@iki.fi>
- <53BBF858.30408@samsung.com> <53BC3DC9.7010606@iki.fi>
-In-reply-to: <53BC3DC9.7010606@iki.fi>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33871 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753991AbaGUJeH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 05:34:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv2 for v3.17] v4l2-ioctl: don't set PRIV_MAGIC unconditionally in g_fmt()
+Date: Mon, 21 Jul 2014 11:34:17 +0200
+Message-ID: <2742966.rkmSKnr5zD@avalon>
+In-Reply-To: <53CCDE02.2050402@xs4all.nl>
+References: <53CCDE02.2050402@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/08/2014 12:51 PM, Antti Palosaari wrote:
-> On 07/08/2014 04:55 PM, Shuah Khan wrote:
->> Moikka Antti,
->>
->> On 07/07/2014 09:45 PM, Antti Palosaari wrote:
->>> Moikka Shuah
->>>
->>
->>>> Why are we unregistering i2c devices and dvb in this resume path?
->>>> Looks incorrect to me.
->>>
->>> I don't know. Original patch I send was a bit different and tuner was
->>> removed only during em28xx_dvb_fini()
->>>
->>> https://patchwork.linuxtv.org/patch/22275/
->>>
->>
->> Yes. That's what I suspected. My patch and yours got munged somehow.
->> I will send a fix in.
->
-> There has been merge conflict and that is end result. None has reported
-> that bug so far. Likely it is very rare users suspend/resume these
-> devices as DVB suspend/resume has been largely broken always...
->
+Hi Hans,
 
-Somebody reported last week on v4l2 irc that suspend/resume not
-working starting 3.15. That's what got me started on looking at
-the code closely.
+Thank you for the patch.
 
-It should be fixed anyways. :)
+On Monday 21 July 2014 11:31:46 Hans Verkuil wrote:
+> Regression fix:
+> 
+> V4L2_PIX_FMT_PRIV_MAGIC should only be set for the VIDEO_CAPTURE and
+> VIDEO_OUTPUT buffer types, and not for any others. In the case of
+> the win format this overwrote a pointer value that is passed in from
+> userspace.
+> 
+> Just set it for V4L2_BUF_TYPE_VIDEO_CAPTURE and OUTPUT and not anywhere
+> else. Also set it before the callback is called rather than after it,
+> just as is done for try/s_fmt.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index e620387..e876bb9 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1141,9 +1141,6 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+>  	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+>  	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+> -	int ret;
+> -
+> -	p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> 
+>  	/*
+>  	 * fmt can't be cleared for these overlay types due to the 'clips'
+> @@ -1164,6 +1161,15 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops
+> *ops, p->fmt.win.bitmap = bitmap;
+>  		break;
+>  	}
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> +		memset(&p->fmt, 0, sizeof(p->fmt));
+> +		/*
+> +		 * Fill in the priv field to signal that the extended
+> +		 * v4l2_pix_format fields are valid.
+> +		 */
+> +		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> +		break;
+>  	default:
+>  		memset(&p->fmt, 0, sizeof(p->fmt));
+>  		break;
+> @@ -1173,9 +1179,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
+>  			break;
+> -		ret = ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+> -		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> -		return ret;
+> +		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
 
--- Shuah
+If a driver zeroes the priv field in vidioc_g_fmt_vid_cap or 
+(vidioc_g_fmt_vid_out below) this will break. We should really set the field 
+before and after calling the operation.
 
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>  		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap_mplane))
+>  			break;
+> @@ -1195,9 +1199,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+>  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out))
+>  			break;
+> -		ret = ops->vidioc_g_fmt_vid_out(file, fh, arg);
+> -		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> -		return ret;
+> +		return ops->vidioc_g_fmt_vid_out(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>  		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_mplane))
+>  			break;
 
 -- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
+Regards,
+
+Laurent Pinchart
+
