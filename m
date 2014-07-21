@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44529 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760102AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/10] si2168: Fix i2c_add_mux_adapter return value
-Date: Sat, 19 Jul 2014 05:38:19 +0300
-Message-Id: <1405737506-13186-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
-References: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:51860 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932153AbaGUNbD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 09:31:03 -0400
+Message-ID: <1405949458.2258.4.camel@mpb-nicolas>
+Subject: Re: [RFC PATCH] Docbook/media: improve data_offset/bytesused
+ documentation
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Date: Mon, 21 Jul 2014 09:30:58 -0400
+In-Reply-To: <53CD12BF.9050202@xs4all.nl>
+References: <53CD12BF.9050202@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Luis Alves <ljalvs@gmail.com>
+Le lundi 21 juillet 2014 à 15:16 +0200, Hans Verkuil a écrit :
+> +             Note that data_offset is included in <structfield>bytesused</structfield>.
+> +             So the size of the image in the plane is
+> +             <structfield>bytesused</structfield>-<structfield>data_offset</structfield> at
+> +             offset <structfield>data_offset</structfield> from the start of the plane.
 
-In case of failure the return value was always 0. Return proper
-error code (ENODEV) instead.
+This seem like messing applications a lot. Let's say you have a well
+known format, NV12, but your driver add some customer header at the
+beginning. Pretty much all the application in the world would work just
+fine ignoring that header, but in fact most of them will not work,
+because bytesused is including the header. Considering this wasn't
+documented before, I would strongly suggest to keep the bytesused as
+being the size for the format know by everyone.
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 767dada..7659764 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -626,8 +626,10 @@ static int si2168_probe(struct i2c_client *client,
- 	/* create mux i2c adapter for tuner */
- 	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
- 			0, 0, 0, si2168_select, si2168_deselect);
--	if (s->adapter == NULL)
-+	if (s->adapter == NULL) {
-+		ret = -ENODEV;
- 		goto err;
-+	}
- 
- 	/* create dvb_frontend */
- 	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
--- 
-1.9.3
 
