@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:41965 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750914AbaG1HYR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36084 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753379AbaGULPH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 03:24:17 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 1/3] media: atmel-isi: add v4l2 async probe support
-Date: Mon, 28 Jul 2014 15:22:46 +0800
-Message-ID: <1406532167-32655-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
-References: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
+	Mon, 21 Jul 2014 07:15:07 -0400
+Date: Mon, 21 Jul 2014 14:14:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Julien BERAUD <julien.beraud@parrot.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Configurable Video Controller Driver
+Message-ID: <20140721111432.GQ16460@valkosipuli.retiisi.org.uk>
+References: <53BEA0DA.9000706@parrot.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53BEA0DA.9000706@parrot.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
-v3 -> v4:
-  no change.
+Hi Julien,
 
- drivers/media/platform/soc_camera/atmel-isi.c | 5 +++++
- include/media/atmel-isi.h                     | 4 ++++
- 2 files changed, 9 insertions(+)
+On Thu, Jul 10, 2014 at 04:19:06PM +0200, Julien BERAUD wrote:
+> We are developing a driver for our video controller which has the
+> particularity of being very reconfigurable.
+> 
+> We have reached a point at which the complexity and variety of the
+> applications we need to implement forces us to
+> design an api/library that allows us to configure the
+> interconnection of the different video processing units(Camera
+> interfaces,
+> LCD interfaces, scalers, rotators, demosaicing, dead pixel
+> correction, etc...) from userland.
+> 
+> The media controller api has the limitation of not being able to
+> create links but just browsing and activating/deactivating them.
+> If we just allowed a user to activate/deactivate links, then we
+> would have to declare all the possible connections between
+> the different blocks, which would make it very confusing from a
+> userland point of view. Moreover, the interconnection constraints
+> would have to be dealt with very generically, which would make it
+> very difficult in the kernel too.
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 14bc886..802c203 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -987,6 +987,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	soc_host->v4l2_dev.dev	= &pdev->dev;
- 	soc_host->nr		= pdev->id;
- 
-+	if (isi->pdata.asd_sizes) {
-+		soc_host->asd = isi->pdata.asd;
-+		soc_host->asd_sizes = isi->pdata.asd_sizes;
-+	}
-+
- 	ret = soc_camera_host_register(soc_host);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Unable to register soc camera host\n");
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 2b02347..c2e5703 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -106,6 +106,8 @@
- #define ISI_DATAWIDTH_8				0x01
- #define ISI_DATAWIDTH_10			0x02
- 
-+struct v4l2_async_subdev;
-+
- struct isi_platform_data {
- 	u8 has_emb_sync;
- 	u8 emb_crc_sync;
-@@ -118,6 +120,8 @@ struct isi_platform_data {
- 	u32 frate;
- 	/* Using for ISI_MCK */
- 	u32 mck_hz;
-+	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-+	int *asd_sizes;		/* 0-terminated array of asd group sizes */
- };
- 
- #endif /* __ATMEL_ISI_H__ */
+How many different blocks do you have? Can they be connected in arbitrary
+ways? If not, what kind of limitations do you have?
+
+The Media controller is originally intended for modelling complex devices
+with hardware data paths between the sub-blocks. The question is: does your
+device fit into that group, even if could be a little more complex than the
+devices that are currently supported?
+
+> The conclusion we have reached yet is that we have to design an API
+> that allows us to create v4l2 subdevices that have certain
+> capabilities(scaling,rotating, demosaicing, etc...) and then to
+> create links between them from a userland library.
+
+Can you create arbitrary devices at will, or do these devices exist on
+hardware all the time?
+
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
