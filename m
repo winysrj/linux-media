@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43285 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756573AbaGVUMp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 16:12:45 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: crope@iki.fi, m.chehab@samsung.com, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 8/8] cx231xx: Add [2013:025e] PCTV QuatroStick 522e
-Date: Tue, 22 Jul 2014 22:12:18 +0200
-Message-Id: <1406059938-21141-9-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
-References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:62552 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448AbaGUHLl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 03:11:41 -0400
+Received: by mail-oa0-f47.google.com with SMTP id g18so6792989oah.20
+        for <linux-media@vger.kernel.org>; Mon, 21 Jul 2014 00:11:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
+References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl> <536A0709.5090605@xs4all.nl>
+ <BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl> <536A1A45.6080201@xs4all.nl>
+ <BAY176-W960662BE81D5920B94F97A9350@phx.gbl> <53B65C2E.9040503@xs4all.nl>
+ <BAY176-W19A194B095C32CE30B0B8DA90D0@phx.gbl> <53C78FEA.1050600@xs4all.nl> <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 21 Jul 2014 09:11:20 +0200
+Message-ID: <CAPybu_3+ExVufmenXMh0ypt=oCZE78XsmW2sJqc5pG_EPXWrrQ@mail.gmail.com>
+Subject: Re: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
+To: Divneil Wadhawan <divneil@outlook.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware is identical to Hauppauge WinTV 930C-HD (model 1114xx)
+Why dont you use git send-email ?
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+On Mon, Jul 21, 2014 at 8:03 AM, Divneil Wadhawan <divneil@outlook.com> wrote:
+>
+> Hi Hans,
+>
+>> This patch is all messed up and doesn't apply.
+>>
+>> Check your mailer settings: it clearly replaced hard tabs by a space.
+>>
+>> Can you repost?
+>
+> I tried to find out if I can change the mailer settings. Seems, that is the problem.
+>
+>
+> I tried using mutt, but, seems the configuration is missing.
+>
+> If you have a simple method, on using mutt, I will send it from there, as, mutt is respecting the TAB spaces.
+>
+> I didn't spend much time with it for time being.
+>
+>
+> Regards,
+>
+> Divneil                                           --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 0085ccd..b2fa05d 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -744,7 +744,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		} },
- 	},
- 	[CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx] = {
--		.name = "Hauppauge WinTV 930C-HD (1114xx)",
-+		.name = "Hauppauge WinTV 930C-HD (1114xx) / PCTV QuatroStick 522e",
- 		.tuner_type = TUNER_ABSENT,
- 		.tuner_addr = 0x60,
- 		.tuner_gpio = RDE250_XCV_TUNER,
-@@ -822,6 +822,9 @@ struct usb_device_id cx231xx_id_table[] = {
- 	/* PCTV QuatroStick 521e */
- 	{USB_DEVICE(0x2013, 0x0259),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
-+	/* PCTV QuatroStick 522e */
-+	{USB_DEVICE(0x2013, 0x025e),
-+	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx},
- 	{USB_DEVICE_VER(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD, 0x4000, 0x4001),
- 	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
- 	{USB_DEVICE(USB_VID_PIXELVIEW, 0x5014),
+
+
 -- 
-2.0.0
-
+Ricardo Ribalda
