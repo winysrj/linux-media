@@ -1,44 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49532 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751006AbaGHQ7D (ORCPT
+Received: from mail-we0-f179.google.com ([74.125.82.179]:63743 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755135AbaGUOxl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 12:59:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/8] v4l2-ioctl: remove pointless INFO_FL_CLEAR.
-Date: Tue,  8 Jul 2014 18:31:14 +0200
-Message-Id: <1404837078-15608-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
-References: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 21 Jul 2014 10:53:41 -0400
+Received: by mail-we0-f179.google.com with SMTP id u57so7608068wes.24
+        for <linux-media@vger.kernel.org>; Mon, 21 Jul 2014 07:53:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <13027564.FRBYDsomnf@avalon>
+References: <6639318.OE0dlORGdR@avalon>
+	<CAFqH_50BgmxuW1Q_4ofdDB7t=O2jw=jTGmBm+NWn1tBMtFWRjQ@mail.gmail.com>
+	<13027564.FRBYDsomnf@avalon>
+Date: Mon, 21 Jul 2014 16:53:38 +0200
+Message-ID: <CAFqH_51vmVrAt5OJrcKRTLB2J_8MJfiFn33c24L_c8ZBNcYMbQ@mail.gmail.com>
+Subject: Re: [GIT PULL FOR v3.16] mt9p031 fixes
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-The edid field is the last field of the struct, so there is nothing to clear.
+2014-07-10 0:29 GMT+02:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Enric,
+>
+> On Wednesday 09 July 2014 17:56:59 Enric Balletbo Serra wrote:
+>> 2014-05-16 2:45 GMT+02:00 Laurent Pinchart wrote:
+>> > Hi Mauro,
+>> >
+>> > The following changes since commit
+>> > ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b:
+>> >   saa7134-alsa: include vmalloc.h (2014-05-13 23:05:15 -0300)
+>> >
+>> > are available in the git repository at:
+>> >   git://linuxtv.org/pinchartl/media.git sensors/next
+>> >
+>> > for you to fetch changes up to a3a7145c6cecbd9752311b8ae1e431f6755ad5f3:
+>> >   mt9p031: Fix BLC configuration restore when disabling test pattern
+>> >
+>> > (2014-05-16 02:43:50 +0200)
+>> >
+>> > ----------------------------------------------------------------
+>> >
+>> > Laurent Pinchart (2):
+>> >       mt9p031: Really disable Black Level Calibration in test pattern mode
+>> >       mt9p031: Fix BLC configuration restore when disabling test pattern
+>> >
+>> >  drivers/media/i2c/mt9p031.c | 53 ++++++++++++++++++++++++++++++----------
+>> >
+>> >  1 file changed, 39 insertions(+), 14 deletions(-)
+>>
+>> I'm trying to test omap3-isp and a board with mt9p031 sensor with
+>> current mainline. For now I'm using tag version 3.15 (which is close
+>> to current mainline). First, when I tried to use the test patterns I
+>> only saw a black screen, but after applying these two patches I saw an
+>> improvement, although I can see the test pattern correctly.
+>>
+>> After some modifications the subdevs_group for my board is as follows:
+>>
+>> +static struct isp_v4l2_subdevs_group igep00x0_camera_subdevs[] = {
+>> +       {
+>> +               .subdevs = cam0020_primary_subdevs,
+>> +               .interface = ISP_INTERFACE_PARALLEL,
+>> +               .bus = {
+>> +                       .parallel = {
+>> +                               /* CAM[11:0] */
+>> +                               .data_lane_shift = ISP_LANE_SHIFT_2,
+>> +                               /* Sample on falling edge */
+>> +                               .clk_pol = 1,
+>> +                       }
+>> +               },
+>> +       },
+>> +       { },
+>> +};
+>>
+>> As I have some problems I would ask some questions, maybe you can help me.
+>>
+>> In the past in the data_lane_shift was ISP_LANE_SHIFT_0, but now, it
+>> seems I should to use ISP_LANE_SHIFT_2 (CAM[11:0] - as I saw in the
+>> include file). ISP_LANE_SHIFT_0 is for CAM[13:0] but OMAP3 has only 12
+>> data bus signals. Is that right ?
+>
+> Not really. The CCDC input is actually 16 bits wide. The ISP parallel bus is
+> limited to 12 bits, the CSI2 receivers output up to 14 bits, and the bridge
+> can merge two 8-bit samples into a 16-bit sample for YUV formats.
+>
+> When using a 12 bit parallel sensor, unless you want to restrict the dynamic
+> of the input image, you should use a data lane shift value of 0. This will
+> cause the CAMEXT[13:0] signal to be mapped to CAM[13:0]. As the parallel bus
+> is limited to 12 bits, the CAM[13:12] bits will be set to zero. When capturing
+> from the CCDC output to memory each pixel will be stored on 16 bits, with bits
+> [15:12] set to zero, and bits [11:0] containing image data. When forwarding
+> data to the preview engine, which has an input width of 10 bits, the ISP
+> driver will configure the CCDC video port to output bits [11:2] to the preview
+> engine, dropping the two LSBs.
+>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Clear now, thank you for the explanations ...
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ede9b03..45e2ffa 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2098,8 +2098,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
- 	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
--	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, INFO_FL_CLEAR(v4l2_edid, edid)),
--	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_edid, edid)),
-+	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
-+	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
--- 
-2.0.0
+>> Another thing is I'm not able to capture the image correctly, also if
+>> if configure to ouput a test pattern, doesn't looks good. See as
+>> example [1] and [2]. Do you know what could be the problem ?
+>>
+>> For your information these are the pipeline that I'm using :
+>>
+>>   media-ctl -v -r -l '"mt9p031 1-005d":0->"OMAP3 ISP CCDC":0[1],
+>> "OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP
+>> preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3
+>> ISP resizer output":0[1]'
+>>
+>>   media-ctl -v -f '"mt9p031 1-005d":0[SGRBG12 720x480], "OMAP3 ISP
+>> CCDC":2[SGRBG8 720x480], "OMAP3 ISP preview":1[UYVY 720x480], "OMAP3
+>> ISP resizer":1[UYVY 720x480]'
+>
+> I would configure the pipeline with SGRBG10 at the output of the CCDC. The
+> resolutions you request through the pipeline can't be achieved exactly, as the
+> sensor can only perform binning/skipping to downscale. The resizer will take
+> care to scale the image to the requested 720x480, but it will get distorted.
+> You should use media-ctl -p to see what resolutions the above command actually
+> sets, and fix the configuration with appropriate cropping if you want to keep
+> the sensor aspect ratio intact.
+>
 
+Right. with configuration fixed works as expected. Thanks :)
+
+>> # Set Vertical Color Bars as test pattern
+>>   yavta -w '0x009f0903 9' /dev/v4l-subdev8
+>>
+>> # Capture data with
+>>   yavta  -f UYVY -s 720x480 --capture=5 --skip=1 --file=image-# /dev/video6
+>>
+>> # And convert with
+>>   raw2rgbpnm -s 720x480 image-00000.uyuv image-00000.pnm
+>>
+>> Thanks in advance and any help will be appreciate.
+>>
+>> Regards,
+>>   Enric
+>>
+>> [1] http://downloads.isee.biz/pub/files/tmp/9-Vertical Color Bars.pnm
+>> [2] http://downloads.isee.biz/pub/files/tmp/9-Vertical Color Bars.uyvy
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+Best regards,
+   Enric
