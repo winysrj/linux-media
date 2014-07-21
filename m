@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51561 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbaGKJhB (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44958 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932320AbaGURzO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:01 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
+	Mon, 21 Jul 2014 13:55:14 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 19/32] [media] coda: try to schedule a decode run after a stop command
-Date: Fri, 11 Jul 2014 11:36:30 +0200
-Message-Id: <1405071403-1859-20-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] mb86a20s: fix ISDB-T mode handling
+Date: Mon, 21 Jul 2014 14:55:05 -0300
+Message-Id: <1405965305-22074-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michael Olbrich <m.olbrich@pengutronix.de>
+The driver was reporting an incorrect mode, when mode 2
+is selected.
 
-In case no further buffers are queued after the stop command, restart
-job scheduling explicitly.
+While testing it, noticed that neither mode 1 or guard
+interval 1/32 is supported by this device. Document it,
+and ensure that it will report _AUTO when it doesn't lock,
+in order to not report a wrong detection to userspace.
 
-Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/coda.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb-frontends/mb86a20s.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 2e94d95..8194260 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -909,6 +909,8 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 		/* If this context is currently running, update the hardware flag */
- 		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 227a420f7069..b931179c70a4 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -711,11 +711,10 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 	rc = mb86a20s_readreg(state, 0x07);
+ 	if (rc < 0)
+ 		return rc;
++	c->transmission_mode = TRANSMISSION_MODE_AUTO;
+ 	if ((rc & 0x60) == 0x20) {
+-		switch (rc & 0x0c >> 2) {
+-		case 0:
+-			c->transmission_mode = TRANSMISSION_MODE_2K;
+-			break;
++		/* Only modes 2 and 3 are supported */
++		switch ((rc >> 2) & 0x03) {
+ 		case 1:
+ 			c->transmission_mode = TRANSMISSION_MODE_4K;
+ 			break;
+@@ -724,7 +723,9 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 			break;
+ 		}
  	}
-+	ctx->prescan_failed = false;
-+	v4l2_m2m_try_schedule(ctx->fh.m2m_ctx);
- 
- 	return 0;
- }
++	c->guard_interval = GUARD_INTERVAL_AUTO;
+ 	if (!(rc & 0x10)) {
++		/* Guard interval 1/32 is not supported */
+ 		switch (rc & 0x3) {
+ 		case 0:
+ 			c->guard_interval = GUARD_INTERVAL_1_4;
 -- 
-2.0.0
+1.9.3
 
