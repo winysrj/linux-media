@@ -1,54 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36338 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbaG1SH2 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37151 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821AbaGUUhz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 14:07:28 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/4] rc-main: allow raw protocol drivers to restrict the allowed protos
-Date: Mon, 28 Jul 2014 15:07:20 -0300
-Message-Id: <1406570842-26316-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
-References: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 21 Jul 2014 16:37:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: Add ARGB555X and XRGB555X pixel formats
+Date: Mon, 21 Jul 2014 22:37:45 +0200
+Message-Id: <1405975065-9190-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On some hardware (au0828/au8522), the hardware is broken with
-regards to the initial pulse detection. So, the driver needs to
-produce a fake start pulse. That limits the acceptable protocols,
-as it is not possible to produce a fake pulse that would cover
-all supported protocols.
+The existing RGB555X pixel format is ill-defined in respect to its alpha
+bit and its meaning is driver dependent. Create new standard ARGB555X
+and XRGB555X variants with clearly defined meanings and make the
+existing variant deprecated.
 
-So, allow the driver to explicitly set the allowed protocols.
+The new pixel formats 4CC values have been selected to match the DRM
+4CCs for the same in-memory formats.
 
-If the driver doesn't specify, keep the old behavior.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/rc/rc-main.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 50 ++++++++++++++++++++--
+ include/uapi/linux/videodev2.h                     |  3 ++
+ 2 files changed, 50 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index dfceeb4e34a8..a7991c7d010a 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -859,10 +859,9 @@ static ssize_t show_protocols(struct device *device,
+Hello,
+
+These two formats where missing from commit 977ff0e4fb3460df ("v4l: Add ARGB
+and XRGB pixel formats"). By popular request, here they are.
+
+I've decided to reuse the DRM 4CC values to ease future compatibility, but as
+DRM makes big-endian 4CCs by OR'ing the little-endian 4CC with (1 << 31), I'll
+be flexible if values are frowned upon.
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 5f1602f..32feac9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -240,9 +240,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>g<subscript>4</subscript></entry>
+ 	    <entry>g<subscript>3</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-RGB555X">
+-	    <entry><constant>V4L2_PIX_FMT_RGB555X</constant></entry>
+-	    <entry>'RGBQ'</entry>
++	  <row id="V4L2-PIX-FMT-ARGB555X">
++	    <entry><constant>V4L2_PIX_FMT_ARGB555X</constant></entry>
++	    <entry>'AR15' | (1 &lt;&lt; 31)</entry>
+ 	    <entry></entry>
+ 	    <entry>a</entry>
+ 	    <entry>r<subscript>4</subscript></entry>
+@@ -262,6 +262,28 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-XRGB555X">
++	    <entry><constant>V4L2_PIX_FMT_XRGB555X</constant></entry>
++	    <entry>'XR15' | (1 &lt;&lt; 31)</entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-RGB565X">
+ 	    <entry><constant>V4L2_PIX_FMT_RGB565X</constant></entry>
+ 	    <entry>'RGBR'</entry>
+@@ -803,6 +825,28 @@ image</title>
+ 	    <entry>g<subscript>4</subscript></entry>
+ 	    <entry>g<subscript>3</subscript></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB555X">
++	    <entry><constant>V4L2_PIX_FMT_RGB555X</constant></entry>
++	    <entry>'RGBQ'</entry>
++	    <entry></entry>
++	    <entry>a</entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR32">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
+ 	    <entry>'BGR4'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1f1a65c..8ccaa0a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -79,6 +79,7 @@
+ /*  Four-character-code (FOURCC) */
+ #define v4l2_fourcc(a, b, c, d)\
+ 	((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 24))
++#define v4l2_fourcc_be(a, b, c, d)	(v4l2_fourcc(a, b, c, d) | (1 << 31))
  
- 	if (fattr->type == RC_FILTER_NORMAL) {
- 		enabled = dev->enabled_protocols;
--		if (dev->raw)
-+		allowed = dev->allowed_protocols;
-+		if (dev->raw && !allowed)
- 			allowed = ir_raw_get_allowed_protocols();
--		else
--			allowed = dev->allowed_protocols;
- 	} else {
- 		enabled = dev->enabled_wakeup_protocols;
- 		allowed = dev->allowed_wakeup_protocols;
+ /*
+  *	E N U M S
+@@ -307,6 +308,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
+ #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
++#define V4L2_PIX_FMT_ARGB555X v4l2_fourcc_be('A', 'R', '1', '5') /* 16  ARGB-5-5-5 BE */
++#define V4L2_PIX_FMT_XRGB555X v4l2_fourcc_be('X', 'R', '1', '5') /* 16  XRGB-5-5-5 BE */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
