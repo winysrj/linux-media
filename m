@@ -1,69 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59500 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926AbaGKOFx (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2857 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713AbaGUWot (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:05:53 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Subject: [PATCH/RFC v4 21/21] ARM: dts: add aat1290 current regulator device
- node
-Date: Fri, 11 Jul 2014 16:04:24 +0200
-Message-id: <1405087464-13762-22-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 21 Jul 2014 18:44:49 -0400
+Message-ID: <53CD97D2.1010408@xs4all.nl>
+Date: Tue, 22 Jul 2014 00:44:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
+References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com> <53CD8974.20109@xs4all.nl> <1479223.veAhoGoXLY@avalon>
+In-Reply-To: <1479223.veAhoGoXLY@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device node for AAT1290 1.5A Step-Up Current Regulator
-for Flash LEDs along with flash_muxes node containing
-information about a multiplexer that is used for switching
-between software and external strobe signal source.
+On 07/22/2014 12:30 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 21 July 2014 23:43:16 Hans Verkuil wrote:
+>> On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
+>>> The RGB666 pixel format doesn't include an alpha channel. Document it as
+>>> such.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20 +++++----------
+>>> 1 file changed, 6 insertions(+), 14 deletions(-)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+>>> 32feac9..c47692a 100644
+>>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>> @@ -330,20 +330,12 @@ colorspace
+>>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>> 
+>>>  	    <entry></entry>
+>>>  	    <entry>r<subscript>1</subscript></entry>
+>>>  	    <entry>r<subscript>0</subscript></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> -	    <entry></entry>
+>>> +	    <entry>-</entry>
+>>> +	    <entry>-</entry>
+>>> +	    <entry>-</entry>
+>>> +	    <entry>-</entry>
+>>> +	    <entry>-</entry>
+>>> +	    <entry>-</entry>
+>>
+>> Just to clarify: BGR666 is a three byte format, not a four byte format?
+> 
+> Well... :-)
+> 
+> Three drivers seem to support the BGR666 in mainline : sh_veu, s3c-camif and 
+> exynos4-is. Further investigation shows that the sh_veu driver lists the 
+> BGR666 format internally but doesn't expose it to userspace and doesn't 
+> actually support it, so we're down to two drivers.
+> 
+> Looking at the S3C6410 datasheet, it's unclear how the hardware stores RGB666 
+> pixels in memory. It could be either
+> 
+> Byte 0   Byte 1   Byte 2   Byte 3
+> 
+> -------- ------RR RRRRGGGG GGBBBBBB
+> 
+> or
+> 
+> GGBBBBBB RRRRGGGG ------RR --------
+> 
+> None of those correspond to the RGB666 format defined in the spec.
+> 
+> The Exynos4 FIMC isn't documented in the public datasheet, so I can't check 
+> how the format is defined.
+> 
+> Furthermore, various Renesas video-related IP cores support many different 
+> RGB666 variants, on either 32 or 24 bits per pixel, with and without alpha.
+> 
+> Beside a loud *sigh*, any comment ? :-)
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
----
- arch/arm/boot/dts/exynos4412-trats2.dts |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+You'll have to check with Samsung then. Sylwester, can you shed any light on
+what this format *really* is?
 
-diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
-index 7787844..cbb76ba 100644
---- a/arch/arm/boot/dts/exynos4412-trats2.dts
-+++ b/arch/arm/boot/dts/exynos4412-trats2.dts
-@@ -785,4 +785,28 @@
- 		pulldown-ohm = <100000>; /* 100K */
- 		io-channels = <&adc 2>;  /* Battery temperature */
- 	};
-+
-+	flash_muxes {
-+		flash_mux1: mux1 {
-+			gpios = <&gpj1 0 0>;
-+		};
-+	};
-+
-+	aat1290 {
-+		compatible = "skyworks,aat1290";
-+		gpios = <&gpj1 1 0>, <&gpj1 2 0>;
-+		flash-timeout = <1940000>;
-+		status = "okay";
-+
-+		gate-software-strobe {
-+			mux = <&flash_mux1>;
-+			mux-line-id = <0>;
-+		};
-+
-+		gate-external-strobe {
-+			strobe-provider = <&s5c73m3_spi>;
-+			mux = <&flash_mux1>;
-+			mux-line-id = <1>;
-+		};
-+	};
- };
--- 
-1.7.9.5
+Regards,
+
+	Hans
+
+> 
+>>>  	  </row>
+>>>  	  <row id="V4L2-PIX-FMT-BGR24">
+>>>  	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+> 
 
