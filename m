@@ -1,153 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:63743 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755135AbaGUOxl (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1840 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbaGUWSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 10:53:41 -0400
-Received: by mail-we0-f179.google.com with SMTP id u57so7608068wes.24
-        for <linux-media@vger.kernel.org>; Mon, 21 Jul 2014 07:53:39 -0700 (PDT)
+	Mon, 21 Jul 2014 18:18:10 -0400
+Message-ID: <53CD9197.1020307@xs4all.nl>
+Date: Tue, 22 Jul 2014 00:17:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <13027564.FRBYDsomnf@avalon>
-References: <6639318.OE0dlORGdR@avalon>
-	<CAFqH_50BgmxuW1Q_4ofdDB7t=O2jw=jTGmBm+NWn1tBMtFWRjQ@mail.gmail.com>
-	<13027564.FRBYDsomnf@avalon>
-Date: Mon, 21 Jul 2014 16:53:38 +0200
-Message-ID: <CAFqH_51vmVrAt5OJrcKRTLB2J_8MJfiFn33c24L_c8ZBNcYMbQ@mail.gmail.com>
-Subject: Re: [GIT PULL FOR v3.16] mt9p031 fixes
-From: Enric Balletbo Serra <eballetbo@gmail.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2 03/23] v4l: Support extending the v4l2_pix_format structure
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53C83A49.7060501@xs4all.nl> <1941629.cBcif0Vq2p@avalon>
+In-Reply-To: <1941629.cBcif0Vq2p@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 07/21/2014 10:56 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 17 July 2014 23:04:09 Hans Verkuil wrote:
+>> Hi Laurent,
+>>
+>> Something that just caught my eye:
+>>
+>> On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
+>>> The v4l2_pix_format structure has no reserved field. It is embedded in
+>>> the v4l2_framebuffer structure which has no reserved fields either, and
+>>> in the v4l2_format structure which has reserved fields that were not
+>>> previously required to be zeroed out by applications.
+>>>
+>>> To allow extending v4l2_pix_format, inline it in the v4l2_framebuffer
+>>> structure, and use the priv field as a magic value to indicate that the
+>>> application has set all v4l2_pix_format extended fields and zeroed all
+>>> reserved fields following the v4l2_pix_format field in the v4l2_format
+>>> structure.
+>>>
+>>> The availability of this API extension is reported to userspace through
+>>> the new V4L2_CAP_EXT_PIX_FORMAT capability flag. Just checking that the
+>>> priv field is still set to the magic value at [GS]_FMT return wouldn't
+>>> be enough, as older kernels don't zero the priv field on return.
+>>>
+>>> To simplify the internal API towards drivers zero the extended fields
+>>> and set the priv field to the magic value for applications not aware of
+>>> the extensions.
+>>>
+>>> Signed-off-by: Laurent Pinchart
+>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>> ---
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+>>> b/Documentation/DocBook/media/v4l/pixfmt.xml index 91dcbc8..8c56cacd
+>>> 100644
+>>> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+>>> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> 
+> [snip]
+> 
+>>> +<para>To use the extended fields, applications must set the
+>>> +<structfield>priv</structfield> field to
+>>> +<constant>V4L2_PIX_FMT_PRIV_MAGIC</constant>, initialize all the extended
+>>> fields
+>>> +and zero the unused bytes of the <structname>v4l2_format</structname>
+>>> +<structfield>raw_data</structfield> field.</para>
+>>
+>> Easy to write, much harder to implement. You would end up with something
+>> like:
+>>
+>> memset(&fmt.fmt.pix.flags + sizeof(fmt.fmt.pix.flags), 0,
+>> 	sizeof(fmt.fmt.raw_data) - sizeof(fmt.fmt.pix));
+>>
+>> Not user-friendly and error-prone.
+> 
+> Or, rather, memset the whole v4l2_format structure to 0 and then fill it.
+> 
+>> I would suggest adding a reserved array to pix_format instead, of at least
+>> size (10 + 2 * 7) / 4 = 6 __u32. So: __u32 reserved[6]. Better would be to
+>> go with 10 + 17 = 27 elements (same as the number of reserved elements in
+>> v4l2_pix_format_mplane and one struct v4l2_plane_pix_format).
+> 
+> Maybe it's a bit late, but I'm not sure to see where you got those values.
 
-2014-07-10 0:29 GMT+02:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Wednesday 09 July 2014 17:56:59 Enric Balletbo Serra wrote:
->> 2014-05-16 2:45 GMT+02:00 Laurent Pinchart wrote:
->> > Hi Mauro,
->> >
->> > The following changes since commit
->> > ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b:
->> >   saa7134-alsa: include vmalloc.h (2014-05-13 23:05:15 -0300)
->> >
->> > are available in the git repository at:
->> >   git://linuxtv.org/pinchartl/media.git sensors/next
->> >
->> > for you to fetch changes up to a3a7145c6cecbd9752311b8ae1e431f6755ad5f3:
->> >   mt9p031: Fix BLC configuration restore when disabling test pattern
->> >
->> > (2014-05-16 02:43:50 +0200)
->> >
->> > ----------------------------------------------------------------
->> >
->> > Laurent Pinchart (2):
->> >       mt9p031: Really disable Black Level Calibration in test pattern mode
->> >       mt9p031: Fix BLC configuration restore when disabling test pattern
->> >
->> >  drivers/media/i2c/mt9p031.c | 53 ++++++++++++++++++++++++++++++----------
->> >
->> >  1 file changed, 39 insertions(+), 14 deletions(-)
->>
->> I'm trying to test omap3-isp and a board with mt9p031 sensor with
->> current mainline. For now I'm using tag version 3.15 (which is close
->> to current mainline). First, when I tried to use the test patterns I
->> only saw a black screen, but after applying these two patches I saw an
->> improvement, although I can see the test pattern correctly.
->>
->> After some modifications the subdevs_group for my board is as follows:
->>
->> +static struct isp_v4l2_subdevs_group igep00x0_camera_subdevs[] = {
->> +       {
->> +               .subdevs = cam0020_primary_subdevs,
->> +               .interface = ISP_INTERFACE_PARALLEL,
->> +               .bus = {
->> +                       .parallel = {
->> +                               /* CAM[11:0] */
->> +                               .data_lane_shift = ISP_LANE_SHIFT_2,
->> +                               /* Sample on falling edge */
->> +                               .clk_pol = 1,
->> +                       }
->> +               },
->> +       },
->> +       { },
->> +};
->>
->> As I have some problems I would ask some questions, maybe you can help me.
->>
->> In the past in the data_lane_shift was ISP_LANE_SHIFT_0, but now, it
->> seems I should to use ISP_LANE_SHIFT_2 (CAM[11:0] - as I saw in the
->> include file). ISP_LANE_SHIFT_0 is for CAM[13:0] but OMAP3 has only 12
->> data bus signals. Is that right ?
->
-> Not really. The CCDC input is actually 16 bits wide. The ISP parallel bus is
-> limited to 12 bits, the CSI2 receivers output up to 14 bits, and the bridge
-> can merge two 8-bit samples into a 16-bit sample for YUV formats.
->
-> When using a 12 bit parallel sensor, unless you want to restrict the dynamic
-> of the input image, you should use a data lane shift value of 0. This will
-> cause the CAMEXT[13:0] signal to be mapped to CAM[13:0]. As the parallel bus
-> is limited to 12 bits, the CAM[13:12] bits will be set to zero. When capturing
-> from the CCDC output to memory each pixel will be stored on 16 bits, with bits
-> [15:12] set to zero, and bits [11:0] containing image data. When forwarding
-> data to the preview engine, which has an input width of 10 bits, the ISP
-> driver will configure the CCDC video port to output bits [11:2] to the preview
-> engine, dropping the two LSBs.
->
+I'm making the assumption that anything we might want to add to pix_format, we
+also want to add to pix_format_mplane. And the latter has 10 reserved bytes in
+the pix_format_mplane struct and another 7 __u16's in each plane_pix_format.
+So for a single plane format that means that there are 10 + 2 * 7 bytes reserved
+space available in the multiplanar case (for the main struct + one plane struct).
 
-Clear now, thank you for the explanations ...
+We could add a __u8 reserved[24] to pix_format. Then the amount of reserved fields
+in pix_format is identical to that in pix_format_mplane. That makes it easy to
+keep in sync. The alignment looks to be OK too (no holes in the struct).
+(BTW, when I wrote '10 + 17' in my earlier email I meant '10 + 14'. Sorry about
+that confusion.)
 
->> Another thing is I'm not able to capture the image correctly, also if
->> if configure to ouput a test pattern, doesn't looks good. See as
->> example [1] and [2]. Do you know what could be the problem ?
->>
->> For your information these are the pipeline that I'm using :
->>
->>   media-ctl -v -r -l '"mt9p031 1-005d":0->"OMAP3 ISP CCDC":0[1],
->> "OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP
->> preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3
->> ISP resizer output":0[1]'
->>
->>   media-ctl -v -f '"mt9p031 1-005d":0[SGRBG12 720x480], "OMAP3 ISP
->> CCDC":2[SGRBG8 720x480], "OMAP3 ISP preview":1[UYVY 720x480], "OMAP3
->> ISP resizer":1[UYVY 720x480]'
->
-> I would configure the pipeline with SGRBG10 at the output of the CCDC. The
-> resolutions you request through the pipeline can't be achieved exactly, as the
-> sensor can only perform binning/skipping to downscale. The resizer will take
-> care to scale the image to the requested 720x480, but it will get distorted.
-> You should use media-ctl -p to see what resolutions the above command actually
-> sets, and fix the configuration with appropriate cropping if you want to keep
-> the sensor aspect ratio intact.
->
+But perhaps I am just over-analyzing and the real problem is the text in the spec
+'initialize all the extended fields and zero the unused bytes of the v4l2_format
+raw_data field.'. It might be better to add something along the lines of:
 
-Right. with configuration fixed works as expected. Thanks :)
+"It is good practice to either call VIDIOC_G_FMT first, and then modify any fields,
+or to memset to 0 the whole v4l2_format structure before filling in fields."
 
->> # Set Vertical Color Bars as test pattern
->>   yavta -w '0x009f0903 9' /dev/v4l-subdev8
->>
->> # Capture data with
->>   yavta  -f UYVY -s 720x480 --capture=5 --skip=1 --file=image-# /dev/video6
->>
->> # And convert with
->>   raw2rgbpnm -s 720x480 image-00000.uyuv image-00000.pnm
->>
->> Thanks in advance and any help will be appreciate.
->>
->> Regards,
->>   Enric
->>
->> [1] http://downloads.isee.biz/pub/files/tmp/9-Vertical Color Bars.pnm
->> [2] http://downloads.isee.biz/pub/files/tmp/9-Vertical Color Bars.uyvy
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> If we want to use a reserved array, it would make more sense to make it cover the 
+> whole raw_data array, otherwise future extensions could require an API change. 
+> On the other hand this would result in the v4l2_pix_format structure suddenly 
+> consuming 200 bytes instead of 36 today. That wouldn't be good when allocated 
+> on the stack.
 
-Best regards,
-   Enric
+I think the amount of available space in the multiplanar structs puts an upper
+limit to what can be done with pix_format anyway. So reserving more space seems
+unnecessary. It's not as if we'll see a huge number of new fields appearing.
+I know of one flag that might be needed to signal alternate quantization ranges
+to enhance the colorspace information, but that's all I know about.
+
+Regards,
+
+	Hans
+
+> 
+>> That will allow you to just say that the app should zero the reserved array.
+> 
+
