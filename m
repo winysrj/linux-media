@@ -1,71 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2422 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbaGZQDJ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37215 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755206AbaGUTTu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 12:03:09 -0400
-Message-ID: <53D3D133.7000103@xs4all.nl>
-Date: Sat, 26 Jul 2014 18:02:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 21 Jul 2014 15:19:50 -0400
+Date: Mon, 21 Jul 2014 21:19:44 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v3 06/32] [media] coda: Add encoder/decoder support for
+ CODA960
+Message-ID: <20140721191944.GK13730@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+ <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
+ <20140721160128.27eb7428.m.chehab@samsung.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH for v3.17] v4l2-ctrls: fix rounding calculation
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140721160128.27eb7428.m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 958c7c7e65 ("[media] v4l2-ctrls: fix corner case in round-to-range code") broke
-controls that use a negative range.
+Hi Mauro,
 
-The cause was a s32/u32 mixup: ctrl->step is unsigned while all others are signed. So
-the result type of the expression '(ctrl)->maximum - ((ctrl)->step / 2)' became unsigned,
-making 'val >= (ctrl)->maximum - ((ctrl)->step / 2)' true, since '((u32)-128) > 128'
-(if val = -128, maximum = 128 and step = 1).
+On Mon, Jul 21, 2014 at 04:01:28PM -0300, Mauro Carvalho Chehab wrote:
+> > This patch adds support for the CODA960 VPU in Freescale i.MX6 SoCs.
+> > 
+> > It enables h.264 and MPEG4 encoding and decoding support. Besides the usual
+> > register shifting, the CODA960 gains frame memory control and GDI registers
+> > that are set up for linear mapping right now, needs ENC_PIC_SRC_INDEX to be
+> > set beyond the number of internal buffers for some reason, and has subsampling
+> > buffers that need to be set up. Also, the work buffer size is increased to
+> > 80 KiB.
+> > 
+> > The CODA960 firmware spins if there is not enough input data in the bitstream
+> > buffer. To make it continue, buffers need to be copied into the bitstream as
+> > soon as they are queued. As the bitstream fifo is written into from two places,
+> > it must be protected with a mutex. For that, using a threaded interrupt handler
+> > is necessary.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> 
+> ...
+> 
+> > +	[CODA_IMX6Q] = {
+> > +		.firmware   = "v4l-coda960-imx6q.bin",
+> > +		.product    = CODA_960,
+> > +		.codecs     = coda9_codecs,
+> > +		.num_codecs = ARRAY_SIZE(coda9_codecs),
+> > +	},
+> > +	[CODA_IMX6DL] = {
+> > +		.firmware   = "v4l-coda960-imx6dl.bin",
+> > +		.product    = CODA_960,
+> > +		.codecs     = coda9_codecs,
+> > +		.num_codecs = ARRAY_SIZE(coda9_codecs),
+> > +	},
+> 
+> Where are those firmware files available?
 
-So carefully cast (step / 2) to s32.
+Freescale currently distributes the firmware with their multimedia
+packages, but in header hex array form; we are trying to find a proper
+solution (hopefully by using the linux firmware repository) for
+mainline.
 
-There was one cast of step to s32 where it should have been u32 because both offset and
-step are unsigned, so casting to signed makes no sense there. You do need a cast to u32
-there, because otherwise architectures that have no 64-bit division start complaining
-(step is a u64).
+The Freescale kernel people are currently discussing this internally
+with their legal folks, see this discussion:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+http://www.spinics.net/lists/linux-media/msg78273.html
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 2d8ced8..9d0c7a1 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1347,14 +1347,14 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- ({								\
- 	offset_type offset;					\
- 	if ((ctrl)->maximum >= 0 &&				\
--	    val >= (ctrl)->maximum - ((ctrl)->step / 2))	\
-+	    val >= (ctrl)->maximum - (s32)((ctrl)->step / 2))	\
- 		val = (ctrl)->maximum;				\
- 	else							\
--		val += (ctrl)->step / 2;			\
-+		val += (s32)((ctrl)->step / 2);			\
- 	val = clamp_t(typeof(val), val,				\
- 		      (ctrl)->minimum, (ctrl)->maximum);	\
- 	offset = (val) - (ctrl)->minimum;			\
--	offset = (ctrl)->step * (offset / (s32)(ctrl)->step);	\
-+	offset = (ctrl)->step * (offset / (u32)(ctrl)->step);	\
- 	val = (ctrl)->minimum + offset;				\
- 	0;							\
- })
-@@ -1376,10 +1376,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		 * the u64 divide that needs special care.
- 		 */
- 		val = ptr.p_s64[idx];
--		if (ctrl->maximum >= 0 && val >= ctrl->maximum - ctrl->step / 2)
-+		if (ctrl->maximum >= 0 && val >= ctrl->maximum - (s64)(ctrl->step / 2))
- 			val = ctrl->maximum;
- 		else
--			val += ctrl->step / 2;
-+			val += (s64)(ctrl->step / 2);
- 		val = clamp_t(s64, val, ctrl->minimum, ctrl->maximum);
- 		offset = val - ctrl->minimum;
- 		do_div(offset, ctrl->step);
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
