@@ -1,50 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51469 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbaGKJgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:36:53 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 03/32] [media] coda: fix h.264 quantization parameter range
-Date: Fri, 11 Jul 2014 11:36:14 +0200
-Message-Id: <1405071403-1859-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+Received: from [65.54.190.90] ([65.54.190.90]:58911 "EHLO
+	BAY004-OMC2S15.hotmail.com" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752134AbaGUGDW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 02:03:22 -0400
+Message-ID: <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
+From: Divneil Wadhawan <divneil@outlook.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
+Date: Mon, 21 Jul 2014 11:33:02 +0530
+In-Reply-To: <53C78FEA.1050600@xs4all.nl>
+References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>,<BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>,<536A1A45.6080201@xs4all.nl>
+ <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>,<53B65C2E.9040503@xs4all.nl>
+ <BAY176-W19A194B095C32CE30B0B8DA90D0@phx.gbl>,<53C78FEA.1050600@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If bitrate is not set, the encoder is running in VBR mode, with the
-I- and P-frame quantization parameters configured from userspace.
-For the quantization parameters, 0 is a valid value.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Hi Hans,
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 1770fc2..10e1d98 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -2385,9 +2385,9 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 1, 51, 1, 25);
-+		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 1, 51, 1, 25);
-+		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 0, 51, 1, 25);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--- 
-2.0.0
+> This patch is all messed up and doesn't apply.
+>
+> Check your mailer settings: it clearly replaced hard tabs by a space.
+>
+> Can you repost?
 
+I tried to find out if I can change the mailer settings. Seems, that is the problem.
+
+
+I tried using mutt, but, seems the configuration is missing.
+
+If you have a simple method, on using mutt, I will send it from there, as, mutt is respecting the TAB spaces.
+
+I didn't spend much time with it for time being.
+
+
+Regards,
+
+Divneil 		 	   		  
