@@ -1,56 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:46289 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbaGHPLg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 11:11:36 -0400
-Date: Tue, 8 Jul 2014 18:11:10 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Levente Kurusa <lkurusa@redhat.com>
-Cc: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	Lisa Nguyen <lisa@xenapiadmin.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Josh Triplett <josh@joshtriplett.org>,
-	prabhakar.csengg@gmail.com,
-	Linux Media <linux-media@vger.kernel.org>,
-	Archana Kumari <archanakumari959@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] [media] davinci-vpfe: Fix retcode check
-Message-ID: <20140708151110.GQ25880@mwanda>
-References: <1404828488-7649-1-git-send-email-andrey.krieger.utkin@gmail.com>
- <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1137 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070AbaGUWAY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 18:00:24 -0400
+Message-ID: <53CD8D6F.5030902@xs4all.nl>
+Date: Tue, 22 Jul 2014 00:00:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Add ARGB555X and XRGB555X pixel formats
+References: <1405975065-9190-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1405975065-9190-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 08, 2014 at 04:32:57PM +0200, Levente Kurusa wrote:
-> 2014-07-08 16:08 GMT+02:00 Andrey Utkin <andrey.krieger.utkin@gmail.com>:
-> > Use signed type to check correctly for negative error code. The issue
-> > was reported with static analyser:
-> >
-> > [linux-3.13/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:270]:
-> > (style) A pointer can not be negative so it is either pointless or an
-> > error to check if it is.
-> >
-> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=69071
-> > Reported-by: David Binderman <dcb314@hotmail.com>
-> > Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+On 07/21/2014 10:37 PM, Laurent Pinchart wrote:
+> The existing RGB555X pixel format is ill-defined in respect to its alpha
+> bit and its meaning is driver dependent. Create new standard ARGB555X
+> and XRGB555X variants with clearly defined meanings and make the
+> existing variant deprecated.
 > 
-> Hmm, while it is true that get_ipipe_mode returns an int, but
-> the consequent call to regw_ip takes an u32 as its second
-> argument. Did it cause a build warning for you?
+> The new pixel formats 4CC values have been selected to match the DRM
+> 4CCs for the same in-memory formats.
 
-It won't cause a compile warning.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> (Can't really
-> check since I don't have ARM cross compilers close-by)
+But: I've double-checked your chosen fourcc's for the RGB32 formats, and I see
+you made a mistake in the docbook (the videodev2.h header is OK): the fourcc
+for the ARGB32 should be 'BA24' instead of 'AX24'. You might want to fix that
+up at the same time.
 
-Make a small test program and test.
+Regards,
 
-regards,
-dan carpenter
+	Hans
+
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 50 ++++++++++++++++++++--
+>  include/uapi/linux/videodev2.h                     |  3 ++
+>  2 files changed, 50 insertions(+), 3 deletions(-)
+> 
+> Hello,
+> 
+> These two formats where missing from commit 977ff0e4fb3460df ("v4l: Add ARGB
+> and XRGB pixel formats"). By popular request, here they are.
+> 
+> I've decided to reuse the DRM 4CC values to ease future compatibility, but as
+> DRM makes big-endian 4CCs by OR'ing the little-endian 4CC with (1 << 31), I'll
+> be flexible if values are frowned upon.
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> index 5f1602f..32feac9 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> @@ -240,9 +240,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+>  	    <entry>g<subscript>4</subscript></entry>
+>  	    <entry>g<subscript>3</subscript></entry>
+>  	  </row>
+> -	  <row id="V4L2-PIX-FMT-RGB555X">
+> -	    <entry><constant>V4L2_PIX_FMT_RGB555X</constant></entry>
+> -	    <entry>'RGBQ'</entry>
+> +	  <row id="V4L2-PIX-FMT-ARGB555X">
+> +	    <entry><constant>V4L2_PIX_FMT_ARGB555X</constant></entry>
+> +	    <entry>'AR15' | (1 &lt;&lt; 31)</entry>
+>  	    <entry></entry>
+>  	    <entry>a</entry>
+>  	    <entry>r<subscript>4</subscript></entry>
+> @@ -262,6 +262,28 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+>  	    <entry>b<subscript>1</subscript></entry>
+>  	    <entry>b<subscript>0</subscript></entry>
+>  	  </row>
+> +	  <row id="V4L2-PIX-FMT-XRGB555X">
+> +	    <entry><constant>V4L2_PIX_FMT_XRGB555X</constant></entry>
+> +	    <entry>'XR15' | (1 &lt;&lt; 31)</entry>
+> +	    <entry></entry>
+> +	    <entry>-</entry>
+> +	    <entry>r<subscript>4</subscript></entry>
+> +	    <entry>r<subscript>3</subscript></entry>
+> +	    <entry>r<subscript>2</subscript></entry>
+> +	    <entry>r<subscript>1</subscript></entry>
+> +	    <entry>r<subscript>0</subscript></entry>
+> +	    <entry>g<subscript>4</subscript></entry>
+> +	    <entry>g<subscript>3</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>g<subscript>2</subscript></entry>
+> +	    <entry>g<subscript>1</subscript></entry>
+> +	    <entry>g<subscript>0</subscript></entry>
+> +	    <entry>b<subscript>4</subscript></entry>
+> +	    <entry>b<subscript>3</subscript></entry>
+> +	    <entry>b<subscript>2</subscript></entry>
+> +	    <entry>b<subscript>1</subscript></entry>
+> +	    <entry>b<subscript>0</subscript></entry>
+> +	  </row>
+>  	  <row id="V4L2-PIX-FMT-RGB565X">
+>  	    <entry><constant>V4L2_PIX_FMT_RGB565X</constant></entry>
+>  	    <entry>'RGBR'</entry>
+> @@ -803,6 +825,28 @@ image</title>
+>  	    <entry>g<subscript>4</subscript></entry>
+>  	    <entry>g<subscript>3</subscript></entry>
+>  	  </row>
+> +	  <row id="V4L2-PIX-FMT-RGB555X">
+> +	    <entry><constant>V4L2_PIX_FMT_RGB555X</constant></entry>
+> +	    <entry>'RGBQ'</entry>
+> +	    <entry></entry>
+> +	    <entry>a</entry>
+> +	    <entry>r<subscript>4</subscript></entry>
+> +	    <entry>r<subscript>3</subscript></entry>
+> +	    <entry>r<subscript>2</subscript></entry>
+> +	    <entry>r<subscript>1</subscript></entry>
+> +	    <entry>r<subscript>0</subscript></entry>
+> +	    <entry>g<subscript>4</subscript></entry>
+> +	    <entry>g<subscript>3</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>g<subscript>2</subscript></entry>
+> +	    <entry>g<subscript>1</subscript></entry>
+> +	    <entry>g<subscript>0</subscript></entry>
+> +	    <entry>b<subscript>4</subscript></entry>
+> +	    <entry>b<subscript>3</subscript></entry>
+> +	    <entry>b<subscript>2</subscript></entry>
+> +	    <entry>b<subscript>1</subscript></entry>
+> +	    <entry>b<subscript>0</subscript></entry>
+> +	  </row>
+>  	  <row id="V4L2-PIX-FMT-BGR32">
+>  	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
+>  	    <entry>'BGR4'</entry>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 1f1a65c..8ccaa0a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -79,6 +79,7 @@
+>  /*  Four-character-code (FOURCC) */
+>  #define v4l2_fourcc(a, b, c, d)\
+>  	((__u32)(a) | ((__u32)(b) << 8) | ((__u32)(c) << 16) | ((__u32)(d) << 24))
+> +#define v4l2_fourcc_be(a, b, c, d)	(v4l2_fourcc(a, b, c, d) | (1 << 31))
+>  
+>  /*
+>   *	E N U M S
+> @@ -307,6 +308,8 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
+>  #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
+>  #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+> +#define V4L2_PIX_FMT_ARGB555X v4l2_fourcc_be('A', 'R', '1', '5') /* 16  ARGB-5-5-5 BE */
+> +#define V4L2_PIX_FMT_XRGB555X v4l2_fourcc_be('X', 'R', '1', '5') /* 16  XRGB-5-5-5 BE */
+>  #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+>  #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
+>  #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+> 
 
