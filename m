@@ -1,46 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:56299 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761298AbaGZCqE convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4284 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932527AbaGUOIx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 22:46:04 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9A00LQ5T0NTE00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Jul 2014 22:45:59 -0400 (EDT)
-Date: Fri, 25 Jul 2014 23:45:54 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: George Spelvin <linux@horizon.com>
-Cc: david@hardeman.nu, james.hogan@imgtec.com,
-	linux-media@vger.kernel.org
-Subject: Re: Ping: [PATCH 0/10] drivers/media/rc/ati_remote.c tweaks
-Message-id: <20140725234554.71ad955c.m.chehab@samsung.com>
-In-reply-to: <20140607032622.17914.qmail@ns.horizon.com>
-References: <20140511111113.14427.qmail@ns.horizon.com>
- <20140607032622.17914.qmail@ns.horizon.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Mon, 21 Jul 2014 10:08:53 -0400
+Message-ID: <53CD1EE9.3080402@xs4all.nl>
+Date: Mon, 21 Jul 2014 16:08:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [GIT PULL FOR v3.17] Various fixes and moving solo6x10/go7007 to
+ mainline
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 6 Jun 2014 23:26:22 -0400
-"George Spelvin" <linux@horizon.com> escreveu:
+Hi Mauro,
 
-> Just a ping... has anyone looked at this?
-> (David Härdeman added to recipients list.)
-> 
-> The series can be found in the linux-media archives stating at
-> 
-> mid:20140511111113.14427.qmail@ns.horizon.com
-> http://www.spinics.net/lists/linux-media/msg76435.html
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/77678
-> 
-> or I'm happy to re-mail it.
-
-As nobody replied, I'm assuming that people are ok with those
-changes, so I'll apply.
+Here is a set of various fixes: two important ones in v4l2-ioctl and one
+in vb2. Also some DocBook fixes, a few VBI defines added and documented,
+a davinci bugfix (reported by the new gcc-4.9 compiler I'm now using for the
+daily build) and last but not least the move of the solo6x10 and go7007 out
+of staging into the mainline.
 
 Regards,
-Mauro
+
+	Hans
+
+The following changes since commit 0ca1ba2aac5f6b26672099b13040c5b40db93486:
+
+  [media] zoran: remove duplicate ZR050_MO_COMP define (2014-07-17 20:07:57 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.17d
+
+for you to fetch changes up to f50a1bf86405d8377b245145d3e2d1ef5ced6e32:
+
+  media: davinci: vpif: fix array out of bound warnings (2014-07-21 16:01:32 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (12):
+      vb2: fix bytesused == 0 handling
+      DocBook media: fix incorrect note about packed RGB and colorspace
+      go7007: update the README, fix checkpatch warnings
+      go7007: move out of staging into drivers/media/usb.
+      solo6x10: a few checkpatch fixes
+      solo6x10: move out of staging into drivers/media/pci.
+      videodev2.h: add defines for the VBI field start lines
+      DocBook media: document new VBI defines
+      v4l2-ctrls: fix corner case in round-to-range code
+      DocBook media typo
+      v4l2-ioctl: set V4L2_CAP_EXT_PIX_FORMAT for device_caps
+      v4l2-ioctl: don't set PRIV_MAGIC unconditionally in g_fmt()
+
+Prabhakar Lad (1):
+      media: davinci: vpif: fix array out of bound warnings
+
+ Documentation/DocBook/media/v4l/dev-raw-vbi.xml                   | 12 ++++++---
+ Documentation/DocBook/media/v4l/dev-sliced-vbi.xml                |  9 ++++++-
+ Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml             |  3 ---
+ Documentation/DocBook/media/v4l/vidioc-queryctrl.xml              |  2 +-
+ drivers/media/pci/Kconfig                                         |  1 +
+ drivers/media/pci/Makefile                                        |  1 +
+ drivers/{staging/media => media/pci}/solo6x10/Kconfig             |  2 +-
+ drivers/{staging/media => media/pci}/solo6x10/Makefile            |  2 +-
+ drivers/{staging/media => media/pci}/solo6x10/TODO                |  0
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c     |  6 +----
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c   |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c      |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c      |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h  |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c      |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c     |  5 +---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h     |  4 ---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c |  7 +++---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c     |  8 +++---
+ drivers/{staging/media => media/pci}/solo6x10/solo6x10.h          |  4 ---
+ drivers/media/platform/davinci/vpif_capture.c                     |  2 +-
+ drivers/media/platform/davinci/vpif_display.c                     |  2 +-
+ drivers/media/usb/Kconfig                                         |  1 +
+ drivers/media/usb/Makefile                                        |  1 +
+ drivers/{staging/media => media/usb}/go7007/Kconfig               |  0
+ drivers/{staging/media => media/usb}/go7007/Makefile              |  0
+ drivers/{staging/media => media/usb}/go7007/README                |  1 -
+ drivers/{staging/media => media/usb}/go7007/go7007-driver.c       |  6 +----
+ drivers/{staging/media => media/usb}/go7007/go7007-fw.c           |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007-i2c.c          |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007-loader.c       |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007-priv.h         |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007-usb.c          |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c         |  4 ---
+ drivers/{staging/media => media/usb}/go7007/go7007.txt            |  0
+ drivers/{staging/media => media/usb}/go7007/s2250-board.c         |  9 +++----
+ drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c      | 34 +++++++++++---------------
+ drivers/{staging/media => media/usb}/go7007/snd-go7007.c          |  4 ---
+ drivers/media/v4l2-core/v4l2-ctrls.c                              | 17 ++++++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c                              | 29 +++++++++++++++++-----
+ drivers/media/v4l2-core/videobuf2-core.c                          | 78 +++++++++++++++++++++++++++++------------------------------
+ drivers/staging/media/Kconfig                                     |  4 ---
+ drivers/staging/media/Makefile                                    |  2 --
+ include/uapi/linux/videodev2.h                                    |  6 +++++
+ 49 files changed, 134 insertions(+), 192 deletions(-)
+ rename drivers/{staging/media => media/pci}/solo6x10/Kconfig (96%)
+ rename drivers/{staging/media => media/pci}/solo6x10/Makefile (82%)
+ rename drivers/{staging/media => media/pci}/solo6x10/TODO (100%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-core.c (98%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-disp.c (97%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-eeprom.c (94%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-enc.c (97%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-g723.c (98%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-gpio.c (92%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-i2c.c (97%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-jpeg.h (97%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-offsets.h (93%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-p2m.c (97%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-regs.h (99%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.c (99%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-tw28.h (91%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2-enc.c (99%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10-v4l2.c (98%)
+ rename drivers/{staging/media => media/pci}/solo6x10/solo6x10.h (98%)
+ rename drivers/{staging/media => media/usb}/go7007/Kconfig (100%)
+ rename drivers/{staging/media => media/usb}/go7007/Makefile (100%)
+ rename drivers/{staging/media => media/usb}/go7007/README (99%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-driver.c (98%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-fw.c (99%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-i2c.c (96%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-loader.c (94%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-priv.h (97%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-usb.c (99%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007-v4l2.c (99%)
+ rename drivers/{staging/media => media/usb}/go7007/go7007.txt (100%)
+ rename drivers/{staging/media => media/usb}/go7007/s2250-board.c (98%)
+ rename drivers/{staging/media => media/usb}/go7007/saa7134-go7007.c (93%)
+ rename drivers/{staging/media => media/usb}/go7007/snd-go7007.c (97%)
