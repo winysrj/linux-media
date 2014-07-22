@@ -1,151 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd19416.kasserver.com ([85.13.139.185]:57558 "EHLO
-	dd19416.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932073AbaGaIak (ORCPT
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:41484 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752751AbaGVPOz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 04:30:40 -0400
-Message-ID: <53D9FE71.5080402@herbrechtsmeier.net>
-Date: Thu, 31 Jul 2014 10:29:37 +0200
-From: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+	Tue, 22 Jul 2014 11:14:55 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so9982625oag.16
+        for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 08:14:54 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Problems with the omap3isp
-References: <53C4FC99.9050308@herbrechtsmeier.net> <5912662.x67xxWZ5ks@avalon>
-In-Reply-To: <5912662.x67xxWZ5ks@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1405197014-25225-4-git-send-email-berthe.ab@gmail.com>
+References: <CACRpkda6mzVdaN0cvOxpbsxWyCv2nGyDXOjZg_5aT8u7SSQeUw@mail.gmail.com>
+	<1405197014-25225-1-git-send-email-berthe.ab@gmail.com>
+	<1405197014-25225-4-git-send-email-berthe.ab@gmail.com>
+Date: Tue, 22 Jul 2014 17:08:13 +0200
+Message-ID: <CACRpkdasp9bLULT7NJM9nYX58rRSsQKXFddOLz9Ah6kp-j-3=Q@mail.gmail.com>
+Subject: Re: [PATCH 3/3] driver:gpio remove all usage of gpio_remove retval in driver
+From: Linus Walleij <linus.walleij@linaro.org>
+To: abdoulaye berthe <berthe.ab@gmail.com>,
+	"arm@kernel.org" <arm@kernel.org>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	=?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Matthew Garrett <matthew.garrett@nebula.com>,
+	Michael Buesch <m@bues.ch>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Mark Brown <broonie@kernel.org>,
+	Liam Girdwood <lgirdwood@gmail.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-mips@linux-mips.org,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 31.07.2014 01:10, schrieb Laurent Pinchart:
-> On Tuesday 15 July 2014 12:04:09 Stefan Herbrechtsmeier wrote:
->> Hi Laurent,
->>
->> I have some problems with the omap3isp driver. At the moment I use a
->> linux-stable 3.14.5 with your fixes for omap3xxx-clocks.dtsi.
->>
->> 1. If I change the clock rate to 24 MHz in my camera driver the whole
->> system freeze at the clk_prepare_enable. The first enable and disable
->> works without any problem. The system freeze during a systemd / udev
->> call of media-ctl.
-> I've never seen that before. Where does your sensor get its clock from ? Is it
-> connected to the ISP XCLKA or XCLKB output ?
-XCLKA
+On Sat, Jul 12, 2014 at 10:30 PM, abdoulaye berthe <berthe.ab@gmail.com> wrote:
 
->   What happens if you don't change
-> the clock rate to 24 MHz ? What rate is it set to in that case ?
-It works if I use a clock rate of 12 MHz or 36 MHz.
+Heads up. Requesting ACKs for this patch or I'm atleast warning that it will be
+applied. We're getting rid of the return value from gpiochip_remove().
 
-I use the following lines during power enable in the driver:
-     clk_set_rate(ov5647->clk, 24000000);
-     clk_prepare_enable(ov5647->clk);
+> this remove all reference to gpio_remove retval in all driver
+> except pinctrl and gpio. the same thing is done for gpio and
+> pinctrl in two different patches.
+>
+> Signed-off-by: abdoulaye berthe <berthe.ab@gmail.com>
+(...)
 
-This works during probe, but the second time I try to power up the 
-device the system stall after clk_prepare_enable.
+I think this patch probably needs to be broken down per-subsystem as it
+hits all over the map. But let's start requesting ACKs for the
+individual pieces.
+Actually I think it will be OK to merge because there is likely not much churn
+around these code sites.
 
-I see the following dump:
+I'm a bit torn between just wanting a big patch for this hitting drivers/gpio
+and smaller patches hitting one subsystem at a time. We should be able
+to hammer this in one switch strike.
 
-[  392.148620] INFO: rcu_preempt self-detected stall on CPU { 0} (t=2100 
-jiffies g=1819 c=1818 q=16)
-[  392.158142] CPU: 0 PID: 1853 Comm: v4l2-ctl Tainted: G W    
-3.14.5-yocto-standard #131
-[  392.167144] [<c001518c>] (unwind_backtrace) from [<c00125a0>] 
-(show_stack+0x20/0x24)
-[  392.175323] [<c00125a0>] (show_stack) from [<c069bdcc>] 
-(dump_stack+0x20/0x28)
-[  392.182922] [<c069bdcc>] (dump_stack) from [<c0086974>] 
-(rcu_check_callbacks+0x210/0x694)
-[  392.191558] [<c0086974>] (rcu_check_callbacks) from [<c0045684>] 
-(update_process_times+0x4c/0x6c)
-[  392.200897] [<c0045684>] (update_process_times) from [<c00906b0>] 
-(tick_sched_handle.isra.14+0x58/0x64)
-[  392.210784] [<c00906b0>] (tick_sched_handle.isra.14) from 
-[<c009070c>] (tick_sched_timer+0x50/0x80)
-[  392.220306] [<c009070c>] (tick_sched_timer) from [<c005b8b0>] 
-(__run_hrtimer+0x190/0x2d0)
-[  392.228912] [<c005b8b0>] (__run_hrtimer) from [<c005c20c>] 
-(hrtimer_interrupt+0x118/0x260)
-[  392.237640] [<c005c20c>] (hrtimer_interrupt) from [<c0022e34>] 
-(omap2_gp_timer_interrupt+0x30/0x40)
-[  392.247161] [<c0022e34>] (omap2_gp_timer_interrupt) from [<c007db60>] 
-(handle_irq_event_percpu+0xb4/0x2d0)
-[  392.257324] [<c007db60>] (handle_irq_event_percpu) from [<c007ddc8>] 
-(handle_irq_event+0x4c/0x6c)
-[  392.266662] [<c007ddc8>] (handle_irq_event) from [<c0080668>] 
-(handle_level_irq+0xe0/0xf8)
-[  392.275360] [<c0080668>] (handle_level_irq) from [<c007d314>] 
-(generic_handle_irq+0x30/0x40)
-[  392.284271] [<c007d314>] (generic_handle_irq) from [<c000f32c>] 
-(handle_IRQ+0x70/0x90)
-[  392.292602] [<c000f32c>] (handle_IRQ) from [<c00085f4>] 
-(omap3_intc_handle_irq+0x68/0x90)
-[  392.301208] [<c00085f4>] (omap3_intc_handle_irq) from [<c06a2f44>] 
-(__irq_svc+0x44/0x78)
-[  392.309722] Exception stack(0xdda299f8 to 0xdda29a40)
-[  392.315032] 
-99e0:                                                       00000001 
-00000110
-[  392.323638] 9a00: 00000000 de604600 dda28000 00000202 dda28000 
-c0a73800 de554cc0 de554cc8
-[  392.332244] 9a20: 0000000a dda29a8c dda299d8 dda29a40 c00724fc 
-c003d1b8 60070113 ffffffff
-[  392.340881] [<c06a2f44>] (__irq_svc) from [<c003d1b8>] 
-(__do_softirq+0xd0/0x370)
-[  392.348663] [<c003d1b8>] (__do_softirq) from [<c003d758>] 
-(irq_exit+0x94/0x104)
-[  392.356353] [<c003d758>] (irq_exit) from [<c000f330>] 
-(handle_IRQ+0x74/0x90)
-[  392.363769] [<c000f330>] (handle_IRQ) from [<c00085f4>] 
-(omap3_intc_handle_irq+0x68/0x90)
-[  392.372406] [<c00085f4>] (omap3_intc_handle_irq) from [<c06a2f44>] 
-(__irq_svc+0x44/0x78)
-[  392.380889] Exception stack(0xdda29ae8 to 0xdda29b30)
-[  392.386230] 9ae0:                   00000001 00000110 00000000 
-de604600 60070013 c0a5eb08
-[  392.394836] 9b00: 60070013 fffffdfd de554cc0 de554cc8 de62b400 
-dda29b44 dda29ac8 dda29b30
-[  392.403442] 9b20: c00724fc c06a21b8 20070013 ffffffff
-[  392.408752] [<c06a2f44>] (__irq_svc) from [<c06a21b8>] 
-(_raw_spin_unlock_irqrestore+0x50/0x84)
-[  392.417846] [<c06a21b8>] (_raw_spin_unlock_irqrestore) from 
-[<c056750c>] (clk_enable_unlock+0xb4/0xc8)
-[  392.427642] [<c056750c>] (clk_enable_unlock) from [<c0567bdc>] 
-(clk_enable+0x34/0x3c)
-[  392.435913] [<c0567bdc>] (clk_enable) from [<bf255f50>] 
-(ov5647_set_power.part.2+0x68/0xc4 [ov5647])
-[  392.445800] [<bf255f50>] (ov5647_set_power.part.2 [ov5647]) from 
-[<bf255568>] (ov5647_set_power+0x24/0x58 [ov5647])
-[  392.456787] [<bf255568>] (ov5647_set_power [ov5647]) from 
-[<bf255604>] (ov5647_s_power+0x68/0xb4 [ov5647])
-[  392.467041] [<bf255604>] (ov5647_s_power [ov5647]) from [<bf18812c>] 
-(isp_pipeline_pm_power_one+0x98/0x118 [omap3_isp])
-[  392.478454] [<bf18812c>] (isp_pipeline_pm_power_one [omap3_isp]) from 
-[<bf188c84>] (isp_pipeline_pm_power.part.2+0x54/0xb4 [omap3_isp])
-[  392.491333] [<bf188c84>] (isp_pipeline_pm_power.part.2 [omap3_isp]) 
-from [<bf188d04>] (isp_pipeline_pm_power+0x20/0x2c [omap3_isp])
-[  392.503845] [<bf188d04>] (isp_pipeline_pm_power [omap3_isp]) from 
-[<bf189630>] (omap3isp_pipeline_pm_use+0x60/0x88 [omap3_isp])
-[  392.515991] [<bf189630>] (omap3isp_pipeline_pm_use [omap3_isp]) from 
-[<bf18c85c>] (isp_video_open+0x74/0x1a8 [omap3_isp])
-[  392.527648] [<bf18c85c>] (isp_video_open [omap3_isp]) from 
-[<bf1564f8>] (v4l2_open+0x8c/0xd4 [videodev])
-[  392.537689] [<bf1564f8>] (v4l2_open [videodev]) from [<c0133064>] 
-(chrdev_open+0x14c/0x178)
-[  392.546478] [<c0133064>] (chrdev_open) from [<c012d418>] 
-(do_dentry_open+0x284/0x298)
-[  392.554748] [<c012d418>] (do_dentry_open) from [<c012d854>] 
-(finish_open+0x48/0x5c)
-[  392.562805] [<c012d854>] (finish_open) from [<c013c170>] 
-(do_last.isra.31+0x860/0xac0)
-[  392.571136] [<c013c170>] (do_last.isra.31) from [<c013c5f0>] 
-(path_openat+0x220/0x5c8)
-[  392.579467] [<c013c5f0>] (path_openat) from [<c013d79c>] 
-(do_filp_open+0x3c/0x88)
-[  392.587371] [<c013d79c>] (do_filp_open) from [<c012e538>] 
-(do_sys_open+0x130/0x1d0)
-[  392.595428] [<c012e538>] (do_sys_open) from [<c012e608>] 
-(SyS_open+0x30/0x34)
-[  392.602935] [<c012e608>] (SyS_open) from [<c000e2c0>] 
-(ret_fast_syscall+0x0/0x48)
+>  arch/arm/common/scoop.c                        | 10 ++--------
 
+ARM SoC folks, can you ACK this?
+
+>  arch/mips/txx9/generic/setup.c                 |  4 ++--
+
+Ralf can you ACK this?
+
+>  arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c |  3 ++-
+
+Benji, can you ACK this?
+
+>  arch/sh/boards/mach-x3proto/gpio.c             |  6 ++----
+
+Aha noone can ACK this, whatever...
+
+>  drivers/bcma/driver_gpio.c                     |  3 ++-
+
+Rafał can you ACK this?
+
+>  drivers/hid/hid-cp2112.c                       |  6 ++----
+
+Jiri can you ACK this?
+
+>  drivers/input/keyboard/adp5588-keys.c          |  4 +---
+>  drivers/input/keyboard/adp5589-keys.c          |  4 +---
+>  drivers/input/touchscreen/ad7879.c             | 10 +++-------
+
+Dmitry can you ACK this?
+
+>  drivers/leds/leds-pca9532.c                    | 10 ++--------
+>  drivers/leds/leds-tca6507.c                    |  7 ++-----
+
+Bryan can you ACK this?
+
+>  drivers/media/dvb-frontends/cxd2820r_core.c    | 10 +++-------
+
+Mauro can you ACK this?
+
+(Hm that looks weird. Mental note to look closer at this.)
+
+>  drivers/mfd/asic3.c                            |  3 ++-
+>  drivers/mfd/htc-i2cpld.c                       |  8 +-------
+>  drivers/mfd/sm501.c                            | 17 +++--------------
+>  drivers/mfd/tc6393xb.c                         | 13 ++++---------
+>  drivers/mfd/ucb1x00-core.c                     |  8 ++------
+
+Lee/Sam can either of you ACK this?
+
+>  drivers/pinctrl/pinctrl-abx500.c               | 15 +++------------
+>  drivers/pinctrl/pinctrl-exynos5440.c           |  6 +-----
+>  drivers/pinctrl/pinctrl-msm.c                  | 10 +++-------
+>  drivers/pinctrl/pinctrl-nomadik.c              |  2 +-
+>  drivers/pinctrl/pinctrl-samsung.c              | 14 ++++----------
+
+Abdoulaye: these should be in the other patch for pinctrl.
+
+>  drivers/platform/x86/intel_pmic_gpio.c         |  3 +--
+
+Matthew can you ACK this?
+
+>  drivers/ssb/driver_gpio.c                      |  3 ++-
+
+Michael can you (A) ACK this and
+(B) think of moving this driver to drivers/gpio... Patches welcome.
+
+>  drivers/staging/vme/devices/vme_pio2_gpio.c    |  4 +---
+>  drivers/tty/serial/max310x.c                   | 10 ++++------
+
+Greg can you ACK this?
+
+>  drivers/video/fbdev/via/via-gpio.c             | 10 +++-------
+
+Tomi can you ACK this?
+
+>  sound/soc/codecs/wm5100.c                      |  5 +----
+>  sound/soc/codecs/wm8903.c                      |  6 +-----
+>  sound/soc/codecs/wm8962.c                      |  5 +----
+>  sound/soc/codecs/wm8996.c                      |  6 +-----
+
+Liam || Mark can you ACK this?
+
+Yours,
+Linus Walleij
