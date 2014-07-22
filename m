@@ -1,163 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:50519 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932580AbaGWRR2 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:29311 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548AbaGVLmG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 13:17:28 -0400
-Date: Wed, 23 Jul 2014 19:17:24 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v4 1/2] media: soc_camera: pxa_camera device-tree support
-In-Reply-To: <Pine.LNX.4.64.1407231126210.30243@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1407231915310.1526@axis700.grange>
-References: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
- <Pine.LNX.4.64.1407231126210.30243@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 22 Jul 2014 07:42:06 -0400
+Message-id: <53CE4E08.2030407@samsung.com>
+Date: Tue, 22 Jul 2014 13:42:00 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock
+ for exynos3250 SoC
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+ <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
+ <20140714095640.GC4980@leverpostej>
+In-reply-to: <20140714095640.GC4980@leverpostej>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device-tree support to pxa_camera host driver.
+On 14/07/14 11:56, Mark Rutland wrote:
+>> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+>> > index 937b755..3142745 100644
+>> > --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+>> > +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+>> > @@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
+>> >  Required properties:
+>> >  
+>> >  - compatible	: should be one of:
+>> > -		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
+>> > +		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
+>> > +		  "samsung,exynos3250-jpeg";
+>> >  - reg		: address and length of the JPEG codec IP register set;
+>> >  - interrupts	: specifies the JPEG codec IP interrupt;
+>> > -- clocks	: should contain the JPEG codec IP gate clock specifier, from the
+>> > +- clocks	: should contain the JPEG codec IP gate clock specifier and
+>> > +		  for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
+>> >  		  common clock bindings;
+>> > -- clock-names	: should contain "jpeg" entry.
+>> > +- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
+>> > +		  for Exynos3250 SoC
+>
+> Please turn this into a list for easier reading, e.g.
+> 
+> - clock-names: should contain:
+>   * "jpeg" for the gate clock.
+>   * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
+> 
+> You could also define clocks in terms of clock-names to avoid
+> redundancy.
+> 
+> The SCLK_JPEG name sounds like a global name for the clock. Is there a
+> name for the input line on the JPEG block this is plugged into?
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-[g.liakhovetski@gmx.de: added of_node_put()]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+There is unfortunately no such name for SCLK_JPEG clock in the IP's block
+documentation. For most of the multimedia IPs clocks are documented
+only in the clock controller chapter, hence the names may appear global.
+Probably "gate", "sclk" would be good names, rather than "<IP_NAME>",
+"<IP_NAME>-sclk". But people kept using the latter convention and now
+it's spread all over and it's hard to change it.
+Since now we can't rename "jpeg" and other IPs I'd assume it's best
+to stay with "jpeg", "sclk-jpeg".
 
-Robert, could you review and test this version, please?
-
-Thanks
-Guennadi
-
- drivers/media/platform/soc_camera/pxa_camera.c | 81 +++++++++++++++++++++++++-
- 1 file changed, 79 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index d4df305..64dc80c 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -34,6 +34,7 @@
- #include <media/videobuf-dma-sg.h>
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
-+#include <media/v4l2-of.h>
- 
- #include <linux/videodev2.h>
- 
-@@ -1650,6 +1651,68 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.set_bus_param	= pxa_camera_set_bus_param,
- };
- 
-+static int pxa_camera_pdata_from_dt(struct device *dev,
-+				    struct pxa_camera_dev *pcdev)
-+{
-+	u32 mclk_rate;
-+	struct device_node *np = dev->of_node;
-+	struct v4l2_of_endpoint ep;
-+	int err = of_property_read_u32(np, "clock-frequency",
-+				       &mclk_rate);
-+	if (!err) {
-+		pcdev->platform_flags |= PXA_CAMERA_MCLK_EN;
-+		pcdev->mclk = mclk_rate;
-+	}
-+
-+	np = of_graph_get_next_endpoint(np, NULL);
-+	if (!np) {
-+		dev_err(dev, "could not find endpoint\n");
-+		return -EINVAL;
-+	}
-+
-+	err = v4l2_of_parse_endpoint(np, &ep);
-+	if (err) {
-+		dev_err(dev, "could not parse endpoint\n");
-+		goto out;
-+	}
-+
-+	switch (ep.bus.parallel.bus_width) {
-+	case 4:
-+		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_4;
-+		break;
-+	case 5:
-+		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_5;
-+		break;
-+	case 8:
-+		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_8;
-+		break;
-+	case 9:
-+		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_9;
-+		break;
-+	case 10:
-+		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
-+		break;
-+	default:
-+		break;
-+	};
-+
-+	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
-+		pcdev->platform_flags |= PXA_CAMERA_MASTER;
-+	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pcdev->platform_flags |= PXA_CAMERA_HSP;
-+	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pcdev->platform_flags |= PXA_CAMERA_VSP;
-+	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN | PXA_CAMERA_PCP;
-+	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
-+		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
-+
-+out:
-+	of_node_put(np);
-+
-+	return err;
-+}
-+
- static int pxa_camera_probe(struct platform_device *pdev)
- {
- 	struct pxa_camera_dev *pcdev;
-@@ -1676,7 +1739,15 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	pcdev->res = res;
- 
- 	pcdev->pdata = pdev->dev.platform_data;
--	pcdev->platform_flags = pcdev->pdata->flags;
-+	if (&pdev->dev.of_node && !pcdev->pdata) {
-+		err = pxa_camera_pdata_from_dt(&pdev->dev, pcdev);
-+	} else {
-+		pcdev->platform_flags = pcdev->pdata->flags;
-+		pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
-+	}
-+	if (err < 0)
-+		return err;
-+
- 	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
- 			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
- 		/*
-@@ -1693,7 +1764,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 		pcdev->width_flags |= 1 << 8;
- 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
- 		pcdev->width_flags |= 1 << 9;
--	pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
- 	if (!pcdev->mclk) {
- 		dev_warn(&pdev->dev,
- 			 "mclk == 0! Please, fix your platform data. "
-@@ -1799,10 +1869,17 @@ static const struct dev_pm_ops pxa_camera_pm = {
- 	.resume		= pxa_camera_resume,
- };
- 
-+static const struct of_device_id pxa_camera_of_match[] = {
-+	{ .compatible = "marvell,pxa270-qci", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, pxa_camera_of_match);
-+
- static struct platform_driver pxa_camera_driver = {
- 	.driver		= {
- 		.name	= PXA_CAM_DRV_NAME,
- 		.pm	= &pxa_camera_pm,
-+		.of_match_table = of_match_ptr(pxa_camera_of_match),
- 	},
- 	.probe		= pxa_camera_probe,
- 	.remove		= pxa_camera_remove,
--- 
-1.9.3
-
+--
+Regards,
+Sylwester
