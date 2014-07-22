@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52690 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760072AbaGSCir (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:47 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/10] si2168: improve scanning performance
-Date: Sat, 19 Jul 2014 05:38:18 +0300
-Message-Id: <1405737506-13186-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
-References: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Received: from top.free-electrons.com ([176.31.233.9]:32948 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754184AbaGVMXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 08:23:54 -0400
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH 4/5] drm: panel: simple-panel: add support for bus_format retrieval
+Date: Tue, 22 Jul 2014 14:23:46 +0200
+Message-Id: <1406031827-12432-5-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+Provide a way to specify panel requirement in terms of supported media bus
+format (particularly useful for panels connected to an RGB or LVDS bus).
 
-Improve scanning performance by setting property 0301 with a value
-from Windows driver.
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
 ---
- drivers/media/dvb-frontends/si2168.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/gpu/drm/panel/panel-simple.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 7980741..767dada 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -325,6 +325,13 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 4;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 3f76944..42fd6d1 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -41,6 +41,8 @@ struct panel_desc {
+ 		unsigned int width;
+ 		unsigned int height;
+ 	} size;
 +
- 	memcpy(cmd.args, "\x85", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 1;
++	enum video_bus_format bus_format;
+ };
+ 
+ struct panel_simple {
+@@ -89,6 +91,9 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
+ 
+ 	connector->display_info.width_mm = panel->desc->size.width;
+ 	connector->display_info.height_mm = panel->desc->size.height;
++	if (panel->desc->bus_format)
++		drm_display_info_set_bus_formats(&connector->display_info,
++						 &panel->desc->bus_format, 1);
+ 
+ 	return num;
+ }
 -- 
-1.9.3
+1.8.3.2
 
