@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:41757 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750919AbaG1HXl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 03:23:41 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 0/3] media: atmel-isi: Add DT support for Atmel ISI driver
-Date: Mon, 28 Jul 2014 15:22:45 +0800
-Message-ID: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39333 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750706AbaGVAQ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 20:16:29 -0400
+Message-ID: <53CDAD59.5050709@iki.fi>
+Date: Tue, 22 Jul 2014 03:16:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] SDR stuff
+References: <53C874F8.3020300@iki.fi> <20140721205005.28e2e784.m.chehab@samsung.com> <20140721210510.5980d794.m.chehab@samsung.com>
+In-Reply-To: <20140721210510.5980d794.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add DT support for atmel ISI driver. It can support the
-common v4l2 DT interfaces.
+On 07/22/2014 03:05 AM, Mauro Carvalho Chehab wrote:
 
-v3 -> v4:
-  if bus-width set to 10, then we support both 8 bits and 10 bits.
-  misc fix according to Guennadi.
+>> total: 1 errors, 45 warnings, 1517 lines checked
+>>
+>> drivers/media/usb/msi2500/msi2500.c has style problems, please review.
+>
+> FYI, I applied the rest of this patch series, except for those patches:
+> 	msi2500: move msi3101 out of staging and rename
+> 	MAINTAINERS: update MSI3101 / MSI2500 driver location
+> 	msi2500: change supported formats
+> 	msi2500: print notice to point SDR API is not 100% stable yet
+>
+> Because the latter ones depend on the first patch.
 
-v2 -> v3:
-  support bus-width property for atmel-isi endpoint.
+Hey, just apply these too. As I explained, those are coming from new 
+checkpatch checks added recently, after I have made that MSi3101/MSi2500 
+driver. We should not start begin run new checkpatch tests for old 
+drivers. One reason I really want these out from staging is checkpatch 
+terrorism newbies are doing in staging. There is all kind of people 
+doing some eucalyptys challenge, running very latest checkpatch and 
+sending useless patches for these driver, just wasting only my time.
 
-v1 -> v2:
-  modified the device tree binding document to remove an optonal property.
-
-Josh Wu (3):
-  atmel-isi: add v4l2 async probe support
-  atmel-isi: convert the pdata from pointer to structure
-  atmel-isi: add primary DT support
-
- .../devicetree/bindings/media/atmel-isi.txt        | 51 ++++++++++++
- drivers/media/platform/soc_camera/atmel-isi.c      | 90 +++++++++++++++++++---
- include/media/atmel-isi.h                          |  4 +
- 3 files changed, 133 insertions(+), 12 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+regards
+Antti
 
 -- 
-1.9.1
-
+http://palosaari.fi/
