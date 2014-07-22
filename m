@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22922 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964942AbaGPPrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jul 2014 11:47:33 -0400
-Message-ID: <53C69E64.4030801@iki.fi>
-Date: Wed, 16 Jul 2014 18:46:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42810 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753793AbaGVQ0u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 12:26:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Raymond Jender <rayj00@yahoo.com>
+Cc: Enrico <ebutera@users.sourceforge.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Enric Balletbo Serra <eballetbo@gmail.com>,
+	"stefan@herbrechtsmeier.net" <stefan@herbrechtsmeier.net>
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+Date: Tue, 22 Jul 2014 18:27:01 +0200
+Message-ID: <4615023.UUEphOzoct@avalon>
+In-Reply-To: <1406046034.73192.YahooMailNeo@web162404.mail.bf1.yahoo.com>
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com> <5099401.EbLZaQU31t@avalon> <1406046034.73192.YahooMailNeo@web162404.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-CC: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH/RFC v4 05/21] leds: avoid using deprecated DEVICE_ATTR
- macro
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com> <1405087464-13762-6-git-send-email-j.anaszewski@samsung.com>
-In-Reply-To: <1405087464-13762-6-git-send-email-j.anaszewski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Raymond,
 
-Jacek Anaszewski wrote:
-> Make the sysfs attributes definition consistent in the whole file.
-> The modification entails change of the function name:
-> led_max_brightness_show -> max_brightness_show
+On Tuesday 22 July 2014 09:20:34 Raymond Jender wrote:
+> Please remove me from this mailing list.  It does not provide me with what I
+> thought it would.
 
-I'm not sure whether DEVICE_ATTR() is really deprecated but nevertheless 
-this is cleaner.
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+We can't do that, but you can easily perform the operation yourself. Look at 
+the bottom of any e-mail you receive from the list (but not the e-mails that 
+are explicitly sent to you, like this one, as they don't go through the 
+mailing list manager) for instructions.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
