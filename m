@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39553 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbaGDRPw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:15:52 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [[PATCH v2] 10/14] dib0090: Fix the sleep time at the state machine
-Date: Fri,  4 Jul 2014 14:15:36 -0300
-Message-Id: <1404494140-17777-11-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
-References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+Received: from top.free-electrons.com ([176.31.233.9]:32919 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752361AbaGVMXw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 08:23:52 -0400
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH 0/5] video: describe data bus formats
+Date: Tue, 22 Jul 2014 14:23:42 +0200
+Message-Id: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-msleep() is not too precise: its precision depends on the
-HZ config. As the driver selects precise timings for the
-state machine, change it to usleep_range().
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib0090.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+This patch series is a proposal to describe the different data formats used
+by HW components to connect with each other.
 
-diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
-index 3ee22ff76315..68e2af2650d3 100644
---- a/drivers/media/dvb-frontends/dib0090.c
-+++ b/drivers/media/dvb-frontends/dib0090.c
-@@ -2557,10 +2557,19 @@ static int dib0090_set_params(struct dvb_frontend *fe)
- 
- 	do {
- 		ret = dib0090_tune(fe);
--		if (ret != FE_CALLBACK_TIME_NEVER)
--			msleep(ret / 10);
--		else
-+		if (ret == FE_CALLBACK_TIME_NEVER)
- 			break;
-+
-+		/*
-+		 * Despite dib0090_tune returns time at a 0.1 ms range,
-+		 * the actual sleep time depends on CONFIG_HZ. The worse case
-+		 * is when CONFIG_HZ=100. In such case, the minimum granularity
-+		 * is 10ms. On some real field tests, the tuner sometimes don't
-+		 * lock when this timer is lower than 10ms. So, enforce a 10ms
-+		 * granularity and use usleep_range() instead of msleep().
-+		 */
-+		ret = 10 * (ret + 99)/100;
-+		usleep_range(ret * 1000, (ret + 1) * 1000);
- 	} while (state->tune_state != CT_TUNER_STOP);
- 
- 	return 0;
+This is just a copy of the existing V4L2_MBUS_FMT defintions with a neutral
+name so that it can be used by V4L2 and DRM/KMS subsystem.
+
+This series also makes use of this video_bus_format enum in the DRM/KMS
+subsystem to define the data fomats supported on the connector <-> device
+link.
+
+The video bus formats are not documented yet (and I don't know where this doc
+should be stored), but I'm pretty sure this version won't be the last one ;-).
+
+Best Regards,
+
+Boris
+
+Boris BREZILLON (5):
+  video: move mediabus format definition to a more standard place
+  video: add RGB444_1X12 and RGB565_1X16 bus formats
+  drm: add bus_formats and nbus_formats fields to drm_display_info
+  drm: panel: simple-panel: add support for bus_format retrieval
+  drm: panel: simple-panel: add bus format information for foxlink panel
+
+ drivers/gpu/drm/drm_crtc.c            |  28 +++++
+ drivers/gpu/drm/panel/panel-simple.c  |   6 ++
+ include/drm/drm_crtc.h                |   8 ++
+ include/uapi/linux/Kbuild             |   1 +
+ include/uapi/linux/v4l2-mediabus.h    | 185 +++++++++++++++-------------------
+ include/uapi/linux/video-bus-format.h | 129 ++++++++++++++++++++++++
+ 6 files changed, 251 insertions(+), 106 deletions(-)
+ create mode 100644 include/uapi/linux/video-bus-format.h
+
 -- 
-1.9.3
+1.8.3.2
 
