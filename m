@@ -1,74 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1356 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755225AbaGRF6w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 01:58:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] DocBook media: document new VBI defines
-Date: Fri, 18 Jul 2014 07:58:42 +0200
-Message-Id: <1405663122-12149-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405663122-12149-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405663122-12149-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:43285 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756573AbaGVUMp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 16:12:45 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: crope@iki.fi, m.chehab@samsung.com, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 8/8] cx231xx: Add [2013:025e] PCTV QuatroStick 522e
+Date: Tue, 22 Jul 2014 22:12:18 +0200
+Message-Id: <1406059938-21141-9-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The hardware is identical to Hauppauge WinTV 930C-HD (model 1114xx)
 
-Add defines for the start line numbers of each field for both
-525 and 625 line formats.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- Documentation/DocBook/media/v4l/dev-raw-vbi.xml    | 12 +++++++++---
- Documentation/DocBook/media/v4l/dev-sliced-vbi.xml |  9 ++++++++-
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-raw-vbi.xml b/Documentation/DocBook/media/v4l/dev-raw-vbi.xml
-index b788c72..f4b61b6 100644
---- a/Documentation/DocBook/media/v4l/dev-raw-vbi.xml
-+++ b/Documentation/DocBook/media/v4l/dev-raw-vbi.xml
-@@ -150,9 +150,15 @@ signal. Drivers shall not convert the sample format by software.</para></entry>
- 	      <entry>This is the scanning system line number
- associated with the first line of the VBI image, of the first and the
- second field respectively. See <xref linkend="vbi-525" /> and
--<xref linkend="vbi-625" /> for valid values. VBI input drivers can
--return start values 0 if the hardware cannot reliable identify
--scanning lines, VBI acquisition may not require this
-+<xref linkend="vbi-625" /> for valid values.
-+The <constant>V4L2_VBI_ITU_525_F1_START</constant>,
-+<constant>V4L2_VBI_ITU_525_F2_START</constant>,
-+<constant>V4L2_VBI_ITU_625_F1_START</constant> and
-+<constant>V4L2_VBI_ITU_625_F2_START</constant> defines give the start line
-+numbers for each field for each 525 or 625 line format as a convenience.
-+Don't forget that ITU line numbering starts at 1, not 0.
-+VBI input drivers can return start values 0 if the hardware cannot
-+reliable identify scanning lines, VBI acquisition may not require this
- information.</entry>
- 	    </row>
- 	    <row>
-diff --git a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
-index 548f8ea..7a8bf30 100644
---- a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
-@@ -185,7 +185,14 @@ tables, sigh. --></para></entry>
- 	    <entry></entry>
- 	    <entry spanname="hspan">Drivers must set
- <structfield>service_lines</structfield>[0][0] and
--<structfield>service_lines</structfield>[1][0] to zero.</entry>
-+<structfield>service_lines</structfield>[1][0] to zero.
-+The <constant>V4L2_VBI_ITU_525_F1_START</constant>,
-+<constant>V4L2_VBI_ITU_525_F2_START</constant>,
-+<constant>V4L2_VBI_ITU_625_F1_START</constant> and
-+<constant>V4L2_VBI_ITU_625_F2_START</constant> defines give the start
-+line numbers for each field for each 525 or 625 line format as a
-+convenience.  Don't forget that ITU line numbering starts at 1, not 0.
-+</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 0085ccd..b2fa05d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -744,7 +744,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		} },
+ 	},
+ 	[CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx] = {
+-		.name = "Hauppauge WinTV 930C-HD (1114xx)",
++		.name = "Hauppauge WinTV 930C-HD (1114xx) / PCTV QuatroStick 522e",
+ 		.tuner_type = TUNER_ABSENT,
+ 		.tuner_addr = 0x60,
+ 		.tuner_gpio = RDE250_XCV_TUNER,
+@@ -822,6 +822,9 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	/* PCTV QuatroStick 521e */
+ 	{USB_DEVICE(0x2013, 0x0259),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
++	/* PCTV QuatroStick 522e */
++	{USB_DEVICE(0x2013, 0x025e),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx},
+ 	{USB_DEVICE_VER(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD, 0x4000, 0x4001),
+ 	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
+ 	{USB_DEVICE(USB_VID_PIXELVIEW, 0x5014),
 -- 
 2.0.0
 
