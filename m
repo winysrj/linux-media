@@ -1,66 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay012.isp.belgacom.be ([195.238.6.179]:14824 "EHLO
-	mailrelay012.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932127AbaGHTNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 15:13:38 -0400
-Date: Wed, 9 Jul 2014 04:12:15 +0200
-From: Fabian Frederick <fabf@skynet.be>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] dvb-frontends: remove unnecessary break after goto
-Message-Id: <20140709041215.3e1083201f5a400c37b820b0@skynet.be>
-In-Reply-To: <53BC3A0E.4060505@iki.fi>
-References: <1404840181-29822-1-git-send-email-fabf@skynet.be>
-	<53BC3A0E.4060505@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.gentoo.org ([140.211.166.183]:47506 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751745AbaGVFdf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 01:33:35 -0400
+Received: from [192.168.178.22] (host-188-174-204-36.customer.m-online.net [188.174.204.36])
+	(using TLSv1 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	(Authenticated sender: zzam)
+	by smtp.gentoo.org (Postfix) with ESMTPSA id D31463400A0
+	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 05:33:33 +0000 (UTC)
+Message-ID: <53CDF7A7.8080005@gentoo.org>
+Date: Tue, 22 Jul 2014 07:33:27 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Different Devices identical hardware
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 08 Jul 2014 21:35:58 +0300
-Antti Palosaari <crope@iki.fi> wrote:
+Hi,
 
-> Moikka Fabian!
-> I have no reason to decline that patch (I will apply it) even it has 
-> hardly meaning. But is there now some new tool which warns that kind of 
-> issues?
-Hello Antti,
+I want to add support for Hauppauge WinTV 930C-HD and PCTV QuatroStick 521e.
+The namess and USB-IDs are different, but the hardware is the same.
 
-	Thanks :) AFAIK there's still no automatic detection of those cases.
+Should there be in this case one card entry in cx231xx driver or two?
+Two would have the advantage that the correct name of the device could
+be displayed, but some code related to the card entry would be duplicated.
 
-Regards,
-Fabian
-> 
-> regards
-> Atnti
-> 
-> 
-> On 07/08/2014 08:23 PM, Fabian Frederick wrote:
-> > Cc: Antti Palosaari <crope@iki.fi>
-> > Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > Cc: linux-media@vger.kernel.org
-> > Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> > ---
-> >   drivers/media/dvb-frontends/af9013.c | 1 -
-> >   1 file changed, 1 deletion(-)
-> >
-> > diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-> > index fb504f1..ecf6388 100644
-> > --- a/drivers/media/dvb-frontends/af9013.c
-> > +++ b/drivers/media/dvb-frontends/af9013.c
-> > @@ -470,7 +470,6 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
-> >   		break;
-> >   	default:
-> >   		goto err;
-> > -		break;
-> >   	}
-> >
-> >   	for (i = 0; i < len; i++) {
-> >
-> 
-> -- 
-> http://palosaari.fi/
+Regards
+Matthias
