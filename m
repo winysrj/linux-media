@@ -1,108 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60168 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752804AbaGAK5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 06:57:40 -0400
-Subject: [PATCH v2 0/9] Updated fence patch series
-To: gregkh@linuxfoundation.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Tue, 01 Jul 2014 12:57:02 +0200
-Message-ID: <20140701103432.12718.82795.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:35066 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755936AbaGVRDK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 13:03:10 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9400CANI18A940@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Jul 2014 13:03:08 -0400 (EDT)
+Date: Tue, 22 Jul 2014 14:03:04 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] si2157: Fix DVB-C bandwidth.
+Message-id: <20140722140304.79ba1bcd.m.chehab@samsung.com>
+In-reply-to: <CAGj5WxBiioMVJTgX9zKqMsFTmL3Cjnb3pVkLc6eaCGJHsFf0Zw@mail.gmail.com>
+References: <1406027388-10336-1-git-send-email-ljalvs@gmail.com>
+ <20140722131059.4ad26777.m.chehab@samsung.com>
+ <CAGj5WxBiioMVJTgX9zKqMsFTmL3Cjnb3pVkLc6eaCGJHsFf0Zw@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So after some more hacking I've moved dma-buf to its own subdirectory,
-drivers/dma-buf and applied the fence patches to its new place. I believe that the
-first patch should be applied regardless, and the rest should be ready now.
-:-)
+Em Tue, 22 Jul 2014 17:28:07 +0100
+Luis Alves <ljalvs@gmail.com> escreveu:
 
-Changes to the fence api:
-- release_fence -> fence_release etc.
-- __fence_init -> fence_init
-- __fence_signal -> fence_signal_locked
-- __fence_is_signaled -> fence_is_signaled_locked
-- Changing BUG_ON to WARN_ON in fence_later, and return NULL if it triggers.
+> That's right,
+> A few days ago I also checked that with Antti. I've also had made some
+> debugging and DVB core is in fact passing the correct bandwidth to the
+> driver.
+> 
+> But the true is that it doesn't work...
+> The sample I have is a dvb-c mux using QAM128 @ 6 Mbaud (which results
+> in 7MHz bw) using 7MHz filter value will make the TS stream
+> unwatchable (lots of continuity errors).
+> 
+> Can this be a hardware fault?
+> All closed source drivers I've seen are hardcoding this value to 8MHz
+> when working in dvb-c (easily seen on i2c sniffs).
 
-Android can expose fences to userspace. It's possible to make the new fence
-mechanism expose the same fences to userspace by changing sync_fence_create
-to take a struct fence instead of a struct sync_pt. No other change is needed,
-because only the fence parts of struct sync_pt are used. But because the
-userspace fences are a separate problem and I haven't really looked at it yet
-I feel it should stay in staging, for now.
+Could be. Well, here, the DVB-C channel operators use 6MHz-spaced channels,
+with symbol rate equal to 5,217 Kbaud. I'll see if I can test it latter
+this week with a PCTV 292e.
 
----
-
-Maarten Lankhorst (9):
-      dma-buf: move to drivers/dma-buf
-      fence: dma-buf cross-device synchronization (v18)
-      seqno-fence: Hardware dma-buf implementation of fencing (v6)
-      dma-buf: use reservation objects
-      android: convert sync to fence api, v6
-      reservation: add support for fences to enable cross-device synchronisation
-      dma-buf: add poll support, v3
-      reservation: update api and add some helpers
-      reservation: add suppport for read-only access using rcu
-
-
- Documentation/DocBook/device-drivers.tmpl      |    8 
- MAINTAINERS                                    |    4 
- drivers/Makefile                               |    1 
- drivers/base/Kconfig                           |    9 
- drivers/base/Makefile                          |    1 
- drivers/base/dma-buf.c                         |  743 --------------------
- drivers/base/reservation.c                     |   39 -
- drivers/dma-buf/Makefile                       |    1 
- drivers/dma-buf/dma-buf.c                      |  907 ++++++++++++++++++++++++
- drivers/dma-buf/fence.c                        |  431 +++++++++++
- drivers/dma-buf/reservation.c                  |  477 +++++++++++++
- drivers/dma-buf/seqno-fence.c                  |   73 ++
- drivers/gpu/drm/armada/armada_gem.c            |    2 
- drivers/gpu/drm/drm_prime.c                    |    8 
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 
- drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    3 
- drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 
- drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 
- drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 
- drivers/gpu/drm/radeon/radeon_drv.c            |    2 
- drivers/gpu/drm/radeon/radeon_prime.c          |    8 
- drivers/gpu/drm/tegra/gem.c                    |    2 
- drivers/gpu/drm/ttm/ttm_object.c               |    2 
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 
- drivers/staging/android/Kconfig                |    1 
- drivers/staging/android/Makefile               |    2 
- drivers/staging/android/ion/ion.c              |    3 
- drivers/staging/android/sw_sync.c              |    6 
- drivers/staging/android/sync.c                 |  913 ++++++++----------------
- drivers/staging/android/sync.h                 |   79 +-
- drivers/staging/android/sync_debug.c           |  247 ++++++
- drivers/staging/android/trace/sync.h           |   12 
- include/drm/drmP.h                             |    3 
- include/linux/dma-buf.h                        |   21 -
- include/linux/fence.h                          |  360 +++++++++
- include/linux/reservation.h                    |   82 ++
- include/linux/seqno-fence.h                    |  116 +++
- include/trace/events/fence.h                   |  128 +++
- 39 files changed, 3258 insertions(+), 1451 deletions(-)
- delete mode 100644 drivers/base/dma-buf.c
- delete mode 100644 drivers/base/reservation.c
- create mode 100644 drivers/dma-buf/Makefile
- create mode 100644 drivers/dma-buf/dma-buf.c
- create mode 100644 drivers/dma-buf/fence.c
- create mode 100644 drivers/dma-buf/reservation.c
- create mode 100644 drivers/dma-buf/seqno-fence.c
- create mode 100644 drivers/staging/android/sync_debug.c
- create mode 100644 include/linux/fence.h
- create mode 100644 include/linux/seqno-fence.h
- create mode 100644 include/trace/events/fence.h
-
--- 
-Signature
+Regards,
+Mauro
+> 
+> 
+> On Tue, Jul 22, 2014 at 5:10 PM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+> > Em Tue, 22 Jul 2014 12:09:48 +0100
+> > Luis Alves <ljalvs@gmail.com> escreveu:
+> >
+> >> This patch fixes DVB-C reception.
+> >> Without setting the bandwidth to 8MHz the received stream gets corrupted.
+> >>
+> >> Regards,
+> >> Luis
+> >>
+> >> Signed-off-by: Luis Alves <ljalvs@gmail.com>
+> >> ---
+> >>  drivers/media/tuners/si2157.c | 1 +
+> >>  1 file changed, 1 insertion(+)
+> >>
+> >> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> >> index 6c53edb..e2de428 100644
+> >> --- a/drivers/media/tuners/si2157.c
+> >> +++ b/drivers/media/tuners/si2157.c
+> >> @@ -245,6 +245,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
+> >>                       break;
+> >>       case SYS_DVBC_ANNEX_A:
+> >>                       delivery_system = 0x30;
+> >> +                     bandwidth = 0x08;
+> >
+> > Hmm... this patch looks wrong, as it will break DVB-C support where
+> > the bandwidth is lower than 6MHz.
+> >
+> > The DVB core sets c->bandwidth_hz for DVB-C based on the rolloff and
+> > the symbol rate. If this is not working for you, then something else
+> > is likely wrong.
+> >
+> > I suggest you to add a printk() there to show what's the value set
+> > at c->bandwidth_hz and what's the symbol rate that you're using.
+> >
+> > On DVB-C, the rolloff is fixed (1.15 for annex A and 1.13 for Annex C).
+> > Not sure if DVB-C2 allows selecting a different rolloff factor, nor
+> > if si2157 works with DVB-C2.
+> >
+> >>                       break;
+> >>       default:
+> >>                       ret = -EINVAL;
