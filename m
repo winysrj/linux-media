@@ -1,40 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:54337 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751300AbaG2Fpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 01:45:34 -0400
-Message-ID: <53D734F9.6060201@gentoo.org>
-Date: Tue, 29 Jul 2014 07:45:29 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] mceusb: select default keytable based on vendor
-References: <1406494020-12840-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406494020-12840-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from top.free-electrons.com ([176.31.233.9]:32952 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754761AbaGVMXz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 08:23:55 -0400
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH 5/5] drm: panel: simple-panel: add bus format information for foxlink panel
+Date: Tue, 22 Jul 2014 14:23:47 +0200
+Message-Id: <1406031827-12432-6-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.07.2014 22:47, Mauro Carvalho Chehab wrote:
-> Some vendors have their on keymap table that are used on
-> all (or almost all) models for that vendor.
-> 
-> So, instead of specifying the keymap table per USB ID,
-> let's use the Vendor ID's table by default.
-> 
-> At the end, this will mean less code to be added when newer
-> devices for those vendors are added.
-> 
+Foxlink's fl500wvr00-a0t supports RGB888 format.
 
-I also did prepare something to add mceusb support, but with this only
-vendor dependant rc_map selection, it definitly is less code.
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/drm/panel/panel-simple.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Your mceusb patches work correctly for my 930C-HD (b130) and PCTV 522e
-devices.
-
-Regards
-Matthias
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 42fd6d1..f1e49fd 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -428,6 +428,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t = {
+ 		.width = 108,
+ 		.height = 65,
+ 	},
++	.bus_format = VIDEO_BUS_FMT_RGB888_1X24,
+ };
+ 
+ static const struct drm_display_mode lg_lp129qe_mode = {
+-- 
+1.8.3.2
 
