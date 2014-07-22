@@ -1,86 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55249 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296AbaGUQ2X (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:20057 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130AbaGVCKD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 12:28:23 -0400
+	Mon, 21 Jul 2014 22:10:03 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N930038PCOONOA0@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Jul 2014 22:10:00 -0400 (EDT)
+Date: Mon, 21 Jul 2014 23:09:56 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/3] xc4000: Update firmware name
-Date: Mon, 21 Jul 2014 13:28:13 -0300
-Message-Id: <1405960095-29408-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
-References: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] SDR stuff
+Message-id: <20140721230956.76886a71.m.chehab@samsung.com>
+In-reply-to: <53CDB8C1.8000203@iki.fi>
+References: <53C874F8.3020300@iki.fi>
+ <20140721205005.28e2e784.m.chehab@samsung.com> <53CDAB73.8050108@iki.fi>
+ <20140721215140.35935811.m.chehab@samsung.com> <53CDB8C1.8000203@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The firmware name at:
-   http://www.kernellabs.com/firmware/xc4000/
+Em Tue, 22 Jul 2014 04:05:05 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Is different from the one at the Kernel. Update it
-try first the new name, falling back to the previous one
-if the new name can't be found.
+> On 07/22/2014 03:51 AM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 22 Jul 2014 03:08:19 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> So what. Those were mostly WARNING only and all but long lines were some
+> >> new checks added to checkpatch recently. chekcpatch gets all the time
+> >> new and new checks, these were added after I have made that driver. I
+> >> will surely clean those later when I do some new changes to driver and
+> >> my checkpatch updates.
+> >
+> > Antti,
+> >
+> > I think you didn't read my comments in the middle of the checkpatch stuff.
+> > Please read my email again. I'm not requiring you to fix the newer checkpatch
+> > warning (Missing a blank line after declarations), and not even about the
+> > 80-cols warning. The thing is that there are two issues there:
+> >
+> > 1) you're adding API bits at msi2500 driver, instead of moving them
+> >     to videodev2.h (or reusing the fourcc types you already added there);
+> 
+> If you look inside driver code, you will see those defines are not used 
+> - but commented out. It is simply dead definition compiler optimizes 
+> away. It is code I used on my tests, but finally decided to comment out 
+> to leave some time add those later to API. I later moved 2 of those to 
+> API, that is done in same patch serie.
+> 
+> No issue here.
+> 
+> > 2) you're handling jiffies wrong inside the driver.
+> >
+> > As you may know, adding a driver at staging is easier than at the main
+> > tree, as we don't care much about checkpatch issues (and not even about
+> > some more serious issues). However, when moving stuff out of staging,
+> > we review the entire driver again, to be sure that it is ok.
+> 
+> That jiffie check is also rather new and didn't exists time drive was 
+> done. Jiffie is used to calculate debug sample rate. There is multiple 
+> times very similar code piece, which could be optimized to one. My plan 
+> merge all those ~5 functions to one and use jiffies using macros as 
+> checkpatch now likes. I don't see meaningful fix it now as you are going 
+> to rewrite that stuff in near future in any case.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/tuners/xc4000.c | 25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+Ok, I'll apply the remaining patches.
 
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index 2018befabb5a..44df271a78f8 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -116,6 +116,7 @@ struct xc4000_priv {
- #define XC4000_AUDIO_STD_MONO		32
- 
- #define XC4000_DEFAULT_FIRMWARE "dvb-fe-xc4000-1.4.fw"
-+#define XC4000_DEFAULT_FIRMWARE_NEW "dvb-fe-xc4000-1.4.1.fw"
- 
- /* Misc Defines */
- #define MAX_TV_STANDARD			24
-@@ -730,13 +731,25 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
- 	char		      name[33];
- 	const char	      *fname;
- 
--	if (firmware_name[0] != '\0')
-+	if (firmware_name[0] != '\0') {
- 		fname = firmware_name;
--	else
--		fname = XC4000_DEFAULT_FIRMWARE;
- 
--	dprintk(1, "Reading firmware %s\n", fname);
--	rc = request_firmware(&fw, fname, priv->i2c_props.adap->dev.parent);
-+		dprintk(1, "Reading custom firmware %s\n", fname);
-+		rc = request_firmware(&fw, fname,
-+				      priv->i2c_props.adap->dev.parent);
-+	} else {
-+		fname = XC4000_DEFAULT_FIRMWARE_NEW;
-+		dprintk(1, "Trying to read firmware %s\n", fname);
-+		rc = request_firmware(&fw, fname,
-+				      priv->i2c_props.adap->dev.parent);
-+		if (rc == -ENOENT) {
-+			fname = XC4000_DEFAULT_FIRMWARE;
-+			dprintk(1, "Trying to read firmware %s\n", fname);
-+			rc = request_firmware(&fw, fname,
-+					      priv->i2c_props.adap->dev.parent);
-+		}
-+	}
-+
- 	if (rc < 0) {
- 		if (rc == -ENOENT)
- 			printk(KERN_ERR "Error: firmware %s not found.\n", fname);
-@@ -746,6 +759,8 @@ static int xc4000_fwupload(struct dvb_frontend *fe)
- 
- 		return rc;
- 	}
-+	dprintk(1, "Loading Firmware: %s\n", fname);
-+
- 	p = fw->data;
- 	endp = p + fw->size;
- 
--- 
-1.9.3
+> Silencing all those checkpatch things is not very hard job though. If 
+> you merge that stuff to media/master I can do it right away (I am 
+> running older kernel and older checkpatch currently).
+
+FYI, I always use the checkpatch available on our tree, no matter what
+Kernel I'm running. My scripts just call ./scripts/checkpatch.pl.
+
+Regards,
+Mauro
 
