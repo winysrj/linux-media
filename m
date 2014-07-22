@@ -1,120 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49215 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754110AbaGKOFi (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:57721 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338AbaGVOow (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:05:38 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Tue, 22 Jul 2014 10:44:52 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Mark Rutland <mark.rutland@arm.com>,
 	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
 	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <Pawel.Moll@arm.com>,
 	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v4 17/21] DT: Add documentation for the mfd Maxim max77693
-Date: Fri, 11 Jul 2014 16:04:20 +0200
-Message-id: <1405087464-13762-18-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock for exynos3250 SoC
+Date: Tue, 22 Jul 2014 16:44:38 +0200
+Message-ID: <7786783.sB22HqBgx3@wuerfel>
+In-Reply-To: <53CE72B1.4080706@samsung.com>
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com> <14970063.d648TVkJj8@wuerfel> <53CE72B1.4080706@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+On Tuesday 22 July 2014 16:18:25 Sylwester Nawrocki wrote:
+> 
+> All right, then I would rephrase it to:
+> 
+> - clock-names   : should contain:
+>                    - "jpeg" for the common gate clock,
+>                    - "sclk" for the special clock (only for Exynos3250).
+> - clocks        : should contain the clock specifier and clock ID list
+>                   matching entries in the clock-names property, according
+>                   to the common clock bindings.
+> 
+> I went through documentation of these clocks in various SoCs' datasheets:
+> exynos4210, exynos4212/4412, exynos3250, exynos5250 and I think for all
+> SoCs the "jpeg" clock can be referred as "gating all clocks for the IP".
+> That means there is a single bit in a CMU register masking all the clocks
+> for the IP, I suppose this includes the control bus (APB) clock and the
+> IP functional ("special") clock.
+> 
+> It looks like e.g. exynos4412 also has the SCLK clock, after muxes and
+> a divider, so rate can be configured for this clock.  However there is
+> no separate gate for SCLK as in case of exynos3250. Thus there is no
+> need to to enable/disable the second clock on anything except exynos3250
+> currently.
+> 
+> I think ideally sclk should also be defined for SoCs like exynos4x12,
+> exynos5250, even if now drivers are not touching sclk. All in all the
+> IP functional clock frequency should be normally set to some known value,
+> now we rely on the default divider value which results in divider
+> ratio = 1.
+> It would break backward compatibility though if we now made sclk
+> mandatory. I'm inclined to also specify sclk for exynos4x12, just
+> not sure if it should be optional or mandatory.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   62 ++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+I'd vote for listing it as an optional clock independent of the compatible
+string and changing the driver to just use it when it's provided.
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 11921cc..0c3db3d 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -27,6 +27,55 @@ Optional properties:
- 
- 	[*] refer Documentation/devicetree/bindings/regulator/regulator.txt
- 
-+Optional node:
-+- led-flash : the LED submodule device node
-+
-+Required properties of "led-flash" node:
-+- compatible : must be "maxim,max77693-flash"
-+- maxim,num-leds : number of connected leds
-+	Possible values: 1 or 2.
-+- maxim,fleds : array of current outputs in order: fled1, fled2
-+	Note: both current outputs can be connected to a single led
-+	Possible values:
-+		0 - the output is left disconnected,
-+		1 - a diode is connected to the output.
-+
-+Optional properties of "led-flash" node:
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If maxim,num-leds == <2> boost must be enabled
-+	(it defaults to 1 if not set):
-+	Possible values:
-+		0 - no boost,
-+		1 - adaptive mode,
-+		2 - fixed mode.
-+- iout-torch : Array of maximum intensities in microamperes of the torch
-+	led currents in order: fled1, fled2.
-+		15625 - 250000
-+- iout-flash : Array of maximum intensities in microamperes of the flash
-+	led currents in order: fled1, fled2.
-+	Range:
-+		15625 - 1000000 (max 625000 if boost mode is enabled)
-+- flash-timeout : timeout in microseconds after which flash led
-+		  is turned off
-+	Range:
-+		62500 - 1000000
-+- maxim,trigger : Array of flags indicating which trigger can activate given led
-+	in order: fled1, fled2
-+	Possible flag values (can be combined):
-+		1 - FLASH pin of the chip,
-+		2 - TORCH pin of the chip,
-+		4 - software via I2C command.
-+- maxim,trigger-type : Array of trigger types in order: flash, torch.
-+	Possible trigger types:
-+		0 - Rising edge of the signal triggers the flash/torch,
-+		1 - Signal level controls duration of the flash/torch.
-+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
- Example:
- 	max77693@66 {
- 		compatible = "maxim,max77693";
-@@ -52,4 +101,17 @@ Example:
- 					regulator-boot-on;
- 			};
- 		};
-+		led_flash: led-flash {
-+			compatible = "maxim,max77693-flash";
-+			iout-torch = <500000 0>;
-+			iout-flash = <1250000 0>;
-+			flash-timeout = <1000000 1000000>;
-+			maxim,num-leds = <1>;
-+			maxim,fleds = <1 1>;
-+			maxim,trigger = <7 7>;
-+			maxim,trigger-type = <0 1>;
-+			maxim,boost-mode = <1>;
-+			maxim,boost-vout = <5000>;
-+			maxim,vsys-min = <2400>;
-+		};
- 	};
--- 
-1.7.9.5
-
+	Arnd
