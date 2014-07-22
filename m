@@ -1,107 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:56940 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483AbaGZDdn (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2048 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094AbaGVGjR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 23:33:43 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9A00L2FV86TE10@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Jul 2014 23:33:42 -0400 (EDT)
-Date: Sat, 26 Jul 2014 00:33:38 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tue, 22 Jul 2014 02:39:17 -0400
+Message-ID: <53CE0703.8070203@xs4all.nl>
+Date: Tue, 22 Jul 2014 08:38:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS 32-bit compatibility mode
- data copy-back
-Message-id: <20140726003338.7ff2835d.m.chehab@samsung.com>
-In-reply-to: <1502861.x1mpGJtZG6@avalon>
-References: <Pine.LNX.4.64.1405310125260.17582@axis700.grange>
- <1502861.x1mpGJtZG6@avalon>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Subject: Re: [PATCH 0/3] rc_keymaps: Add 3 keymaps for various allwinner android
+ tv
+References: <1399578087-2365-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1399578087-2365-1-git-send-email-hdegoede@redhat.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 31 May 2014 01:36:16 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Hans,
 
-> Hi Guennadi,
+On 05/08/2014 09:41 PM, Hans de Goede wrote:
+> Hi All,
 > 
-> Thank you for the patch.
+> These patches add keymaps for the remotes found with various allwinner android
+> tv boxes. I've checked that these are not duplicate with existing configs.
 > 
-> On Saturday 31 May 2014 01:26:38 Guennadi Liakhovetski wrote:
-> > Similar to an earlier patch,
+> These tv-boxes can run regular Linux, and that is what these keymaps are
+> intended for.
 > 
-> Could you please mention the commit ID in the commit message ?
-> 
-> > fixing reading user-space data for the
-> > VIDIOC_CREATE_BUFS ioctl() in 32-bit compatibility mode, this patch fixes
-> > writing back of the possibly modified struct to the user. However, unlike
-> > the former bug, this one is much less harmful, because it only results in
-> > the kernel failing to write the .type field back to the user, but in fact
-> > this is likely unneeded, because the kernel will hardly want to change
-> > that field. Therefore this bug is more of a theoretical nature.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> > ---
-> > 
-> > Not tested yet, I'll (try not to forget to) test it next week.
+> If there are no objections I'm going to push these in a couple of days.
 
-What's the status of this patch? The above message is scary...
+These keymaps pose a problem: every time I sync with the latest kernel version
+(make sync-with-kernel) the keymaps are regenerated from the source code and
+you three keymaps are deleted.
 
-Was it tested already?
+I saw it in time and prevented their deletion, but I (or someone else) is going
+to miss it and they are gone.
+
+The gen_keytables.pl is the one that regenerates them, so you'll have to take
+a look at that to see what the correct solution is. I know little about keymaps,
+all I see is that something is guaranteed to go wrong in the near future :-)
 
 Regards,
-Mauro
 
-
-> > 
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 10 ++++++----
-> >  1 file changed, 6 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 7e2411c..c86a7e8
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -222,6 +222,9 @@ static int get_v4l2_create32(struct v4l2_create_buffers
-> > *kp, struct v4l2_create_
-> > 
-> >  static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> > __user *up) {
-> > +	if (put_user(kp->type, &up->type))
-> > +		return -EFAULT;
-> > +
-> >  	switch (kp->type) {
-> >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> > @@ -248,8 +251,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp,
-> > struct v4l2_format32 __us
-> > 
-> >  static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> > __user *up) {
-> > -	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-> > -		put_user(kp->type, &up->type))
-> > +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
-> >  		return -EFAULT;
-> >  	return __put_v4l2_format32(kp, up);
-> >  }
-> > @@ -257,8 +259,8 @@ static int put_v4l2_format32(struct v4l2_format *kp,
-> > struct v4l2_format32 __user static int put_v4l2_create32(struct
-> > v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up) {
-> >  	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-> > -	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
-> > format.fmt)))
-> > -			return -EFAULT;
-> > +	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)))
-> > +		return -EFAULT;
-> >  	return __put_v4l2_format32(&kp->format, &up->format);
-> >  }
-> 
+	Hans
