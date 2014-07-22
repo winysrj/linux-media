@@ -1,115 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59297 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757274AbaGOR5w (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:52088 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbaGVOS3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 13:57:52 -0400
-From: Felipe Balbi <balbi@ti.com>
-To: <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>,
-	Benoit Cousson <bcousson@baylibre.com>, <robh+dt@kernel.org>
-CC: <linux@arm.linux.org.uk>,
-	Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-	Linux ARM Kernel Mailing List
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <archit@ti.com>,
-	<detheridge@ti.com>, <sakari.ailus@iki.fi>,
-	<laurent.pinchart@ideasonboard.com>, <devicetree@vger.kernel.org>,
-	Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 5/5] ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
-Date: Tue, 15 Jul 2014 12:56:52 -0500
-Message-ID: <1405447012-5340-6-git-send-email-balbi@ti.com>
-In-Reply-To: <1405447012-5340-1-git-send-email-balbi@ti.com>
-References: <1405447012-5340-1-git-send-email-balbi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 22 Jul 2014 10:18:29 -0400
+Message-id: <53CE72B1.4080706@samsung.com>
+Date: Tue, 22 Jul 2014 16:18:25 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock
+ for exynos3250 SoC
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+ <20140714095640.GC4980@leverpostej> <53CE4E08.2030407@samsung.com>
+ <14970063.d648TVkJj8@wuerfel>
+In-reply-to: <14970063.d648TVkJj8@wuerfel>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Darren Etheridge <detheridge@ti.com>
+On 22/07/14 13:48, Arnd Bergmann wrote:
+>>>>> -- clocks  : should contain the JPEG codec IP gate clock specifier, from the
+>>>>> > >> > +- clocks  : should contain the JPEG codec IP gate clock specifier and
+>>>>> > >> > +            for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
+>>>>> > >> >              common clock bindings;
+>>>>> > >> > -- clock-names     : should contain "jpeg" entry.
+>>>>> > >> > +- clock-names     : should contain "jpeg" entry and additionally "sclk-jpeg" entry
+>>>>> > >> > +            for Exynos3250 SoC
+>>> > >
+>>> > > Please turn this into a list for easier reading, e.g.
+>>> > > 
+>>> > > - clock-names: should contain:
+>>> > >   * "jpeg" for the gate clock.
+>>> > >   * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
+>>> > > 
+>>> > > You could also define clocks in terms of clock-names to avoid
+>>> > > redundancy.
+>>> > > 
+>>> > > The SCLK_JPEG name sounds like a global name for the clock. Is there a
+>>> > > name for the input line on the JPEG block this is plugged into?
+>> > 
+>> > There is unfortunately no such name for SCLK_JPEG clock in the IP's block
+>> > documentation. For most of the multimedia IPs clocks are documented
+>> > only in the clock controller chapter, hence the names may appear global.
+>> > Probably "gate", "sclk" would be good names, rather than "<IP_NAME>",
+>> > "<IP_NAME>-sclk". But people kept using the latter convention and now
+>> > it's spread all over and it's hard to change it.
+>> > Since now we can't rename "jpeg" and other IPs I'd assume it's best
+>> > to stay with "jpeg", "sclk-jpeg".
+>
+> We just had the exact same discussion about the addition of the sclk for
+> the adc in exynos3250 and ended up calling it just "sclk" instead of "sclk-adc"
+> there. I think it would be best to do the same here and use "sclk" instead
+> of "sclk-jpeg".
 
-Adding necessary dts nodes to enable vpfe and ov2659 sensor on the correct i2c
-bus and correct vpfe instance.
+All right, then I would rephrase it to:
 
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/am437x-sk-evm.dts | 63 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+- clock-names   : should contain:
+  		   - "jpeg" for the common gate clock,
+		   - "sclk" for the special clock (only for Exynos3250).
+- clocks	: should contain the clock specifier and clock ID list
+  		  matching entries in the clock-names property, according
+		  to the common clock bindings.
 
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 859ff3d..ca6b4fe 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -184,6 +184,46 @@
- 		>;
- 	};
- 
-+	vpfe0_pins_default: vpfe0_pins_default {
-+		pinctrl-single,pins = <
-+			0x1b0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_hd mode 0*/
-+			0x1b4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_vd mode 0*/
-+			0x1b8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_field mode 0*/
-+			0x1bc (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_wen mode 0*/
-+			0x1c0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_pclk mode 0*/
-+			0x1c4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data8 mode 0*/
-+			0x1c8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data9 mode 0*/
-+			0x208 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data0 mode 0*/
-+			0x20c (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data1 mode 0*/
-+			0x210 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data2 mode 0*/
-+			0x214 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data3 mode 0*/
-+			0x218 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data4 mode 0*/
-+			0x21c (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data5 mode 0*/
-+			0x220 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data6 mode 0*/
-+			0x224 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data7 mode 0*/
-+		>;
-+	};
-+
-+	vpfe0_pins_sleep: vpfe0_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x1b0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1b4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1b8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1bc (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1c0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1c4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x1c8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x208 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x20c (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x210 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x214 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x218 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x21c (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x220 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+			0x224 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+		>;
-+	};
-+
- 	cpsw_default: cpsw_default {
- 		pinctrl-single,pins = <
- 			/* Slave 1 */
-@@ -611,3 +655,22 @@
- &wdt {
- 	status = "okay";
- };
-+
-+
-+&vpfe0 {
-+	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&vpfe0_pins_default>;
-+	pinctrl-1 = <&vpfe0_pins_sleep>;
-+
-+	/* Camera port */
-+	port {
-+		vpfe0_ep: endpoint {
-+			/* remote-endpoint = <&sensor>; add once we have it */
-+			if_type = <2>;
-+			bus_width = <8>;
-+			hdpol = <0>;
-+			vdpol = <0>;
-+		};
-+	};
-+};
+I went through documentation of these clocks in various SoCs' datasheets:
+exynos4210, exynos4212/4412, exynos3250, exynos5250 and I think for all
+SoCs the "jpeg" clock can be referred as "gating all clocks for the IP".
+That means there is a single bit in a CMU register masking all the clocks
+for the IP, I suppose this includes the control bus (APB) clock and the
+IP functional ("special") clock.
+
+It looks like e.g. exynos4412 also has the SCLK clock, after muxes and
+a divider, so rate can be configured for this clock.  However there is
+no separate gate for SCLK as in case of exynos3250. Thus there is no
+need to to enable/disable the second clock on anything except exynos3250
+currently.
+
+I think ideally sclk should also be defined for SoCs like exynos4x12,
+exynos5250, even if now drivers are not touching sclk. All in all the
+IP functional clock frequency should be normally set to some known value,
+now we rely on the default divider value which results in divider
+ratio = 1.
+It would break backward compatibility though if we now made sclk
+mandatory. I'm inclined to also specify sclk for exynos4x12, just
+not sure if it should be optional or mandatory.
+
 -- 
-2.0.0.390.gcb682f8
-
+Regards,
+Sylwester
