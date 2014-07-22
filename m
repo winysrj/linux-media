@@ -1,217 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35724 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755405AbaGBPwe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 11:52:34 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 1/9] dib0700: better document struct init
-Date: Wed,  2 Jul 2014 12:52:15 -0300
-Message-Id: <1404316343-23856-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
-References: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1604 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbaGVC0Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jul 2014 22:26:25 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6M2QJpC067823
+	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 04:26:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B0DF12A0523
+	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 04:26:16 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140722022616.B0DF12A0523@tschai.lan>
+Date: Tue, 22 Jul 2014 04:26:16 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using anonymous initialization for dib0896 structs,
-identify each field by name. That helps to understand what's
-being initialized.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-No functional changes.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/dvb-usb/dib0700_devices.c | 148 +++++++++++++++-------------
- 1 file changed, 81 insertions(+), 67 deletions(-)
+date:		Tue Jul 22 04:00:38 CEST 2014
+git branch:	test
+git hash:	1b303e1a58599e42f858805285f03ccb5a4e18d2
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.15-5.slh.2-amd64
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index d067bb77534f..501947eaacfe 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -1412,99 +1412,113 @@ static int stk807xpvr_frontend_attach1(struct dvb_usb_adapter *adap)
- /* STK8096GP */
- static struct dibx000_agc_config dib8090_agc_config[2] = {
- 	{
--	BAND_UHF | BAND_VHF | BAND_LBAND | BAND_SBAND,
-+	.band_caps = BAND_UHF | BAND_VHF | BAND_LBAND | BAND_SBAND,
- 	/* P_agc_use_sd_mod1=0, P_agc_use_sd_mod2=0, P_agc_freq_pwm_div=1,
- 	 * P_agc_inv_pwm1=0, P_agc_inv_pwm2=0, P_agc_inh_dc_rv_est=0,
- 	 * P_agc_time_est=3, P_agc_freeze=0, P_agc_nb_est=5, P_agc_write=0 */
--	(0 << 15) | (0 << 14) | (5 << 11) | (0 << 10) | (0 << 9) | (0 << 8)
-+	.setup = (0 << 15) | (0 << 14) | (5 << 11) | (0 << 10) | (0 << 9) | (0 << 8)
- 	| (3 << 5) | (0 << 4) | (5 << 1) | (0 << 0),
- 
--	787,
--	10,
-+	.inv_gain = 787,
-+	.time_stabiliz = 10,
- 
--	0,
--	118,
-+	.alpha_level = 0,
-+	.thlock = 118,
- 
--	0,
--	3530,
--	1,
--	5,
-+	.wbd_inv = 0,
-+	.wbd_ref = 3530,
-+	.wbd_sel = 1,
-+	.wbd_alpha = 5,
- 
--	65535,
--	0,
-+	.agc1_max = 65535,
-+	.agc1_min = 0,
- 
--	65535,
--	0,
--
--	0,
--	32,
--	114,
--	143,
--	144,
--	114,
--	227,
--	116,
--	117,
--
--	28,
--	26,
--	31,
--	51,
-+	.agc2_max = 65535,
-+	.agc2_min = 0,
- 
--	0,
-+	.agc1_pt1 = 0,
-+	.agc1_pt2 = 32,
-+	.agc1_pt3 = 114,
-+	.agc1_slope1 = 143,
-+	.agc1_slope2 = 144,
-+	.agc2_pt1 = 114,
-+	.agc2_pt2 = 227,
-+	.agc2_slope1 = 116,
-+	.agc2_slope2 = 117,
-+
-+	.alpha_mant = 28,
-+	.alpha_exp = 26,
-+	.beta_mant = 31,
-+	.beta_exp = 51,
-+
-+	.perform_agc_softsplit = 0,
- 	},
- 	{
--	BAND_CBAND,
-+	.band_caps = BAND_CBAND,
- 	/* P_agc_use_sd_mod1=0, P_agc_use_sd_mod2=0, P_agc_freq_pwm_div=1,
- 	 * P_agc_inv_pwm1=0, P_agc_inv_pwm2=0, P_agc_inh_dc_rv_est=0,
- 	 * P_agc_time_est=3, P_agc_freeze=0, P_agc_nb_est=5, P_agc_write=0 */
--	(0 << 15) | (0 << 14) | (5 << 11) | (0 << 10) | (0 << 9) | (0 << 8)
-+	.setup = (0 << 15) | (0 << 14) | (5 << 11) | (0 << 10) | (0 << 9) | (0 << 8)
- 	| (3 << 5) | (0 << 4) | (5 << 1) | (0 << 0),
- 
--	787,
--	10,
-+	.inv_gain = 787,
-+	.time_stabiliz = 10,
- 
--	0,
--	118,
-+	.alpha_level = 0,
-+	.thlock = 118,
- 
--	0,
--	3530,
--	1,
--	5,
--
--	0,
--	0,
--
--	65535,
--	0,
-+	.wbd_inv = 0,
-+	.wbd_ref = 3530,
-+	.wbd_sel = 1,
-+	.wbd_alpha = 5,
- 
--	0,
--	32,
--	114,
--	143,
--	144,
--	114,
--	227,
--	116,
--	117,
-+	.agc1_max = 0,
-+	.agc1_min = 0,
- 
--	28,
--	26,
--	31,
--	51,
-+	.agc2_max = 65535,
-+	.agc2_min = 0,
- 
--	0,
-+	.agc1_pt1 = 0,
-+	.agc1_pt2 = 32,
-+	.agc1_pt3 = 114,
-+	.agc1_slope1 = 143,
-+	.agc1_slope2 = 144,
-+	.agc2_pt1 = 114,
-+	.agc2_pt2 = 227,
-+	.agc2_slope1 = 116,
-+	.agc2_slope2 = 117,
-+
-+	.alpha_mant = 28,
-+	.alpha_exp = 26,
-+	.beta_mant = 31,
-+	.beta_exp = 51,
-+
-+	.perform_agc_softsplit = 0,
- 	}
- };
- 
- static struct dibx000_bandwidth_config dib8090_pll_config_12mhz = {
--	54000, 13500,
--	1, 18, 3, 1, 0,
--	0, 0, 1, 1, 2,
--	(3 << 14) | (1 << 12) | (599 << 0),
--	(0 << 25) | 0,
--	20199727,
--	12000000,
-+	.internal = 54000,
-+	.sampling = 13500,
-+
-+	.pll_prediv = 1,
-+	.pll_ratio = 18,
-+	.pll_range = 3,
-+	.pll_reset = 1,
-+	.pll_bypass = 0,
-+
-+	.enable_refdiv = 0,
-+	.bypclk_div = 0,
-+	.IO_CLK_en_core = 1,
-+	.ADClkSrc = 1,
-+	.modulo = 2,
-+
-+	.sad_cfg = (3 << 14) | (1 << 12) | (599 << 0),
-+
-+	.ifreq = (0 << 25) | 0,
-+	.timf = 20199727,
-+
-+	.xtal_hz = 12000000,
- };
- 
- static int dib8090_get_adc_power(struct dvb_frontend *fe)
--- 
-1.9.3
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
