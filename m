@@ -1,99 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57423 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051AbaGRAOo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 20:14:44 -0400
-Message-ID: <53C866F2.9090005@iki.fi>
-Date: Fri, 18 Jul 2014 03:14:42 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:64586 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920AbaGVFBw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 01:01:52 -0400
+Received: by mail-la0-f49.google.com with SMTP id hz20so5421384lab.22
+        for <linux-media@vger.kernel.org>; Mon, 21 Jul 2014 22:01:50 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] airspy: AirSpy SDR driver
-References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi> <53C4A51F.9000500@xs4all.nl>
-In-Reply-To: <53C4A51F.9000500@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1405918488-26142-1-git-send-email-shaik.ameer@samsung.com>
+References: <1405918488-26142-1-git-send-email-shaik.ameer@samsung.com>
+Date: Tue, 22 Jul 2014 10:31:50 +0530
+Message-ID: <CAK5sBcFrb6j5yKyy=SYor-0+YL81feWFuHEyPVg0ZyP4g9bqAw@mail.gmail.com>
+Subject: Re: [PATCH] [media] exynos-gsc: Remove PM_RUNTIME dependency
+From: Sachin Kamat <spk.linux@gmail.com>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	pawel@osciak.com, shaik.samsung@gmail.com,
+	sunil joshi <joshi@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Shaik,
 
-
-On 07/15/2014 06:50 AM, Hans Verkuil wrote:
-> On 07/15/2014 04:35 AM, Antti Palosaari wrote:
->> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
->>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
->>>> I actually ran v4l2-compliance and there was problem with ADC band
->>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
->>>> both upper and lower limit. Due to that I added even small hack to driver,
->>>>
->>>> +		.rangelow   = 20000000,
->>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
->>>
->>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
->>> that? That shouldn't be a problem, and I don't see that here either if I try that
->>> myself.
->>>
->>> If it still fails, can you show me the error message?
->>
->> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
->> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
->> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S
->> /dev/swradio0 -s
->> Driver Info:
->> 	Driver name   : airspy
->> 	Card type     : AirSpy SDR
->> 	Bus info      : usb-0000:00:13.2-2
->> 	Driver version: 3.15.0
->> 	Capabilities  : 0x85110000
->> 		SDR Capture
->> 		Tuner
->> 		Read/Write
->> 		Streaming
->> 		Device Capabilities
->> 	Device Caps   : 0x05110000
->> 		SDR Capture
->> 		Tuner
->> 		Read/Write
->> 		Streaming
->>
->> Compliance test for device /dev/swradio0 (not using libv4l2):
->>
->> Required ioctls:
->> 	test VIDIOC_QUERYCAP: OK
->>
->> Allow for multiple opens:
->> 	test second sdr open: OK
->> 	test VIDIOC_QUERYCAP: OK
->> 	test VIDIOC_G/S_PRIORITY: OK
->>
->> Debug ioctls:
->> 	test VIDIOC_DBG_G/S_REGISTER: OK
->> 	test VIDIOC_LOG_STATUS: OK
->>
->> Input ioctls:
->> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
->> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
->> 	test VIDIOC_G/S_TUNER: FAIL
->> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid
+On Mon, Jul 21, 2014 at 10:24 AM, Shaik Ameer Basha
+<shaik.ameer@samsung.com> wrote:
+> 1] Currently Gscaler clock is enabled only inside pm_runtime callbacks.
+>    If PM_RUNTIME is disabled, driver hangs. This patch removes the
+>    PM_RUNTIME dependency by keeping the clock enable/disable functions
+>    in m2m start/stop streaming callbacks.
 >
-> Try again, it should be fixed now.
+> 2] For Exynos5420/5800, Gscaler clock has to be Turned ON before powering
+>    on/off the Gscaler power domain. This dependency is taken care by
+>    this patch at driver level.
+>
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+> ---
+>  drivers/media/platform/exynos-gsc/gsc-core.c |   10 ++--------
+>  drivers/media/platform/exynos-gsc/gsc-m2m.c  |   13 +++++++++++++
+>  2 files changed, 15 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+> index 9d0cc04..39c0953 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+> @@ -1132,23 +1132,17 @@ static int gsc_probe(struct platform_device *pdev)
+>
+>         platform_set_drvdata(pdev, gsc);
+>         pm_runtime_enable(dev);
+> -       ret = pm_runtime_get_sync(&pdev->dev);
+> -       if (ret < 0)
+> -               goto err_m2m;
+>
+>         /* Initialize continious memory allocator */
+>         gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+>         if (IS_ERR(gsc->alloc_ctx)) {
+>                 ret = PTR_ERR(gsc->alloc_ctx);
+> -               goto err_pm;
+> +               goto err_m2m;
+>         }
+>
+>         dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
+> -
+> -       pm_runtime_put(dev);
+>         return 0;
+> -err_pm:
+> -       pm_runtime_put(dev);
+> +
+>  err_m2m:
+>         gsc_unregister_m2m_device(gsc);
+>  err_v4l2:
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> index e434f1f0..a98462c 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> @@ -60,19 +60,32 @@ static void __gsc_m2m_job_abort(struct gsc_ctx *ctx)
+>  static int gsc_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
+>  {
+>         struct gsc_ctx *ctx = q->drv_priv;
+> +       struct gsc_dev *gsc = ctx->gsc_dev;
+>         int ret;
+>
+> +       ret = clk_enable(gsc->clock);
+> +       if (ret)
+> +               return ret;
+> +
+>         ret = pm_runtime_get_sync(&ctx->gsc_dev->pdev->dev);
+> +
+> +       if (!pm_runtime_enabled(&gsc->pdev->dev)) {
+> +               gsc_hw_set_sw_reset(gsc);
+> +               gsc_wait_reset(gsc);
+> +       }
+> +
+>         return ret > 0 ? 0 : ret;
+>  }
+>
+>  static void gsc_m2m_stop_streaming(struct vb2_queue *q)
+>  {
+>         struct gsc_ctx *ctx = q->drv_priv;
+> +       struct gsc_dev *gsc = ctx->gsc_dev;
+>
+>         __gsc_m2m_job_abort(ctx);
+>
+>         pm_runtime_put(&ctx->gsc_dev->pdev->dev);
+> +       clk_disable(gsc->clock);
+>  }
+>
+>  void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
+> --
+> 1.7.9.5
+>
 
-Old error has gone, but two new comes:
-
-Compliance test for device /dev/swradio0 (not using libv4l2):
-
-Required ioctls:
-		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
-	test VIDIOC_QUERYCAP: FAIL
-
-Allow for multiple opens:
-	test second sdr open: OK
-		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
-	test VIDIOC_QUERYCAP: FAIL
-	test VIDIOC_G/S_PRIORITY: OK
-
-regards
-Antti
+Looks like there is some issue while runtime PM is disabled. The
+conversion operation hangs. Tested on 5420 based Arndale Octa
+board with latest next kernel.
 
 -- 
-http://palosaari.fi/
+Regards,
+Sachin.
