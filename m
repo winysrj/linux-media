@@ -1,134 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2839 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888AbaGBGeW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 02:34:22 -0400
-Message-ID: <53B3A7CB.8020901@xs4all.nl>
-Date: Wed, 02 Jul 2014 08:33:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sasha Levin <sasha.levin@oracle.com>
-CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH v7] media: vb2: Take queue or device lock in mmap-related
- vb2 ioctl handlers
-References: <201308061239.27188.hverkuil@xs4all.nl> <537F5315.8030705@xs4all.nl> <53AAFF9B.5000403@oracle.com> <2051293.PjTd9YAWz0@avalon>
-In-Reply-To: <2051293.PjTd9YAWz0@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44623 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843AbaGVMgK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 08:36:10 -0400
+Message-ID: <1406032564.4496.6.camel@paszta.hi.pengutronix.de>
+Subject: [PATCH v4] [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Tue, 22 Jul 2014 14:36:04 +0200
+In-Reply-To: <20140721160432.12e34653.m.chehab@samsung.com>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	 <1405071403-1859-19-git-send-email-p.zabel@pengutronix.de>
+	 <20140721160432.12e34653.m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For now it is -ENOTIME for me. It's on my TODO list, but there are a number of
-other things I want to finish first.
+From: Michael Olbrich <m.olbrich@pengutronix.de>
 
-Regards,
+Some drivers might allow to decode remaining frames from an internal ringbuffer
+after a decoder stop command. Allow those to call v4l2_m2m_try_schedule
+directly.
 
-	Hans
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v3:
+ - Export v4l2_m2m_try_schedule using EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 3 ++-
+ include/media/v4l2-mem2mem.h           | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-On 07/01/2014 11:08 PM, Laurent Pinchart wrote:
-> On Wednesday 25 June 2014 12:58:03 Sasha Levin wrote:
->> Ping?
-> 
-> Hans, I've replied to your previous e-mail with
-> 
-> I'm of course fine with a different way to solve the race condition, if we can 
-> find a good one. Do you already know how you would like to solve this ?
-> 
->> On 05/23/2014 09:54 AM, Hans Verkuil wrote:
->>> Hi Laurent,
->>>
->>> This patch caused a circular locking dependency as reported by Sasha
->>> Levin:
->>>
->>> https://lkml.org/lkml/2014/5/5/366
->>>
->>> The reason is that copy_to/from_user is called in video_usercopy() with
->>> the
->>> core lock held. The copy functions can fault which takes the mmap_sem. If
->>> it was just video_usercopy() then it would be fairly easy to solve this,
->>> but the copy_to_/from_user functions are also called from read and write
->>> and they can be used in other unexpected places.
->>>
->>> I'm not sure if vb2_fop_get_unmapped_area() is a problem. I suspect (but
->>> I'm not sure) that when that one is called the mmap_sem isn't taken, in
->>> which case taking the lock is fine.
->>>
->>> But taking the lock in vb2_fop_mmap() does cause lockdep problems.
->>>
->>> Ideally I would like to drop taking that lock in vb2_fop_mmap and resolve
->>> the race condition that it intended to fix in a different way.
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>> On 08/06/2013 10:10 PM, Laurent Pinchart wrote:
->>>> The vb2_fop_mmap() and vb2_fop_get_unmapped_area() functions are plug-in
->>>> implementation of the mmap() and get_unmapped_area() file operations
->>>> that calls vb2_mmap() and vb2_get_unmapped_area() on the queue
->>>> associated with the video device. Neither the
->>>> vb2_fop_mmap/vb2_fop_get_unmapped_area nor the
->>>> v4l2_mmap/vb2_get_unmapped_area functions in the V4L2 core take any
->>>> lock, leading to race conditions between mmap/get_unmapped_area and
->>>> other buffer-related ioctls such as VIDIOC_REQBUFS.
->>>>
->>>> Fix it by taking the queue or device lock around the vb2_mmap() and
->>>> vb2_get_unmapped_area() calls.
->>>>
->>>> Signed-off-by: Laurent Pinchart
->>>> <laurent.pinchart+renesas@ideasonboard.com>
->>>> ---
->>>>
->>>>  drivers/media/v4l2-core/videobuf2-core.c | 18 ++++++++++++++++--
->>>>  1 file changed, 16 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->>>> b/drivers/media/v4l2-core/videobuf2-core.c index 9fc4bab..c9b50c7 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>> @@ -2578,8 +2578,15 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_expbuf);
->>>>  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->>>>  {
->>>>  	struct video_device *vdev = video_devdata(file);
->>>> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock :
->>>> vdev->lock;
->>>> +	int err;
->>>>
->>>> -	return vb2_mmap(vdev->queue, vma);
->>>> +	if (lock && mutex_lock_interruptible(lock))
->>>> +		return -ERESTARTSYS;
->>>> +	err = vb2_mmap(vdev->queue, vma);
->>>> +	if (lock)
->>>> +		mutex_unlock(lock);
->>>> +	return err;
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
->>>>
->>>> @@ -2685,8 +2692,15 @@ unsigned long vb2_fop_get_unmapped_area(struct
->>>> file *file, unsigned long addr,>> 
->>>>  		unsigned long len, unsigned long pgoff, unsigned long flags)
->>>>  {
->>>>  	struct video_device *vdev = video_devdata(file);
->>>> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock :
->>>> vdev->lock;
->>>> +	int ret;
->>>>
->>>> -	return vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
->>>> +	if (lock && mutex_lock_interruptible(lock))
->>>> +		return -ERESTARTSYS;
->>>> +	ret = vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
->>>> +	if (lock)
->>>> +		mutex_unlock(lock);
->>>> +	return ret;
->>>>
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
->>>>  #endif
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 178ce96..5f5c175 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -208,7 +208,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+  * An example of the above could be an instance that requires more than one
+  * src/dst buffer per transaction.
+  */
+-static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
++void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+ 	unsigned long flags_job, flags_out, flags_cap;
+@@ -274,6 +274,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 
+ 	v4l2_m2m_try_run(m2m_dev);
+ }
++EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ 
+ /**
+  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 12ea5a6..c5f3914 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -95,6 +95,8 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev);
+ struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
+ 				       enum v4l2_buf_type type);
+ 
++void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
++
+ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 			 struct v4l2_m2m_ctx *m2m_ctx);
+ 
+-- 
+2.0.1
+
 
