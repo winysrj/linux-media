@@ -1,65 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:24420 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757780AbaGODIJ (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3276 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750905AbaGVG0M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 23:08:09 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8Q005OJGPJGS00@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 Jul 2014 12:08:07 +0900 (KST)
-From: panpan liu <panpan1.liu@samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@redhat.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH] s5p-mfc: limit the size of the CPB
-Date: Tue, 15 Jul 2014 11:07:50 +0800
-Message-id: <1405393670-2808-1-git-send-email-panpan1.liu@samsung.com>
+	Tue, 22 Jul 2014 02:26:12 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6M6Q8vl045480
+	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 08:26:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 733A62A0523
+	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 08:26:05 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20140722062605.733A62A0523@tschai.lan>
+Date: Tue, 22 Jul 2014 08:26:05 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CPB size is limited by the hardware. Add this limit to the s_fmt.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: panpan liu <panpan1.liu@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
- mode change 100644 => 100755 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-old mode 100644
-new mode 100755
-index 0bae907..70b9458
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -413,7 +413,8 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	int ret = 0;
- 	struct s5p_mfc_fmt *fmt;
- 	struct v4l2_pix_format_mplane *pix_mp;
--
-+	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
-+
- 	mfc_debug_enter();
- 	ret = vidioc_try_fmt(file, priv, f);
- 	pix_mp = &f->fmt.pix_mp;
-@@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
- 	pix_mp->height = 0;
- 	pix_mp->width = 0;
--	if (pix_mp->plane_fmt[0].sizeimage)
--		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
--	else
-+	if (pix_mp->plane_fmt[0].sizeimage == 0)
- 		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
- 								DEF_CPB_SIZE;
-+	else if(pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
-+		ctx->dec_src_buf_size = buf_size->cpb;
-+	else
-+		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
- 	pix_mp->plane_fmt[0].bytesperline = 0;
- 	ctx->state = MFCINST_INIT;
- out:
---
-1.7.9.5
+date:		Tue 22 Jul 07:45:59 CEST 2014
+git branch:	test
+git hash:	a733291d6934d0663af9e7d9f2266ab87a2946cd
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.15-5.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
