@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36792 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228AbaGLUTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jul 2014 16:19:17 -0400
-Message-ID: <53C19842.8090308@iki.fi>
-Date: Sat, 12 Jul 2014 23:19:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42837 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754402AbaGVQb6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 12:31:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enrico <ebutera@users.sourceforge.net>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Enric Balletbo Serra <eballetbo@gmail.com>,
+	stefan@herbrechtsmeier.net
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+Date: Tue, 22 Jul 2014 18:32:05 +0200
+Message-ID: <2638081.aLalCDHyz1@avalon>
+In-Reply-To: <CA+2YH7vNd4kC3=82M=UhHmNcXFGxBaiLUVbSkoXRvT8tfZkfcA@mail.gmail.com>
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com> <5099401.EbLZaQU31t@avalon> <CA+2YH7vNd4kC3=82M=UhHmNcXFGxBaiLUVbSkoXRvT8tfZkfcA@mail.gmail.com>
 MIME-Version: 1.0
-To: Shuah Khan <shuah.kh@samsung.com>, m.chehab@samsung.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: em28xx - add error handling for KWORLD dvb_attach
- failures
-References: <1404938183-29535-1-git-send-email-shuah.kh@samsung.com>
-In-Reply-To: <1404938183-29535-1-git-send-email-shuah.kh@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks correct!
-All the other devices, excluding those few PCTV ones I have added, has 
-that same bug... Deadlocks if tuner attach fails.
+Hi Enrico,
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+On Tuesday 22 July 2014 18:26:52 Enrico wrote:
+> On Tue, Jul 22, 2014 at 6:04 PM, Laurent Pinchart wrote:
+> > Hi Enrico,
+> > 
+> > You will need to upgrade media-ctl and yavta to versions that support
+> > interlaced formats. media-ctl has been moved to v4l-utils
+> > (http://git.linuxtv.org/cgit.cgi/v4l-utils.git/) and yavta is hosted at
+> > git://git.ideasonboard.org/yavta.git. You want to use the master branch
+> > for both trees.
+> 
+> It seems that in v4l-utils there is no field support in media-ctl, am i
+> wrong?
 
-regards
-Antti
+Oops, my bad, you're absolutely right.
 
+> I forgot to add that i'm using yavta master and media-ctl "field"
+> branch (from ideasonboard).
 
-On 07/09/2014 11:36 PM, Shuah Khan wrote:
-> Add error hanlding when EM2870_BOARD_KWORLD_A340 dvb_attach()
-> for fe and tuner fail in em28xx_dvb_init().
->
-> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-> ---
->   drivers/media/usb/em28xx/em28xx-dvb.c |   14 +++++++++++---
->   1 file changed, 11 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index d381861..8314f51 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1213,9 +1213,17 @@ static int em28xx_dvb_init(struct em28xx *dev)
->   		dvb->fe[0] = dvb_attach(lgdt3305_attach,
->   					   &em2870_lgdt3304_dev,
->   					   &dev->i2c_adap[dev->def_i2c_bus]);
-> -		if (dvb->fe[0] != NULL)
-> -			dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-> -				   &dev->i2c_adap[dev->def_i2c_bus], &kworld_a340_config);
-> +		if (!dvb->fe[0]) {
-> +			result = -EINVAL;
-> +			goto out_free;
-> +		}
-> +		if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-> +			&dev->i2c_adap[dev->def_i2c_bus],
-> +			&kworld_a340_config)) {
-> +				dvb_frontend_detach(dvb->fe[0]);
-> +				result = -EINVAL;
-> +				goto out_free;
-> +		}
->   		break;
->   	case EM28174_BOARD_PCTV_290E:
->   		/* set default GPIO0 for LNA, used if GPIOLIB is undefined */
->
+Could you please try media-ctl from
+
+	git://linuxtv.org/pinchartl/v4l-utils.git field
+
+The IOB repository is deprecated, although the version of media-ctl present 
+there might work, I'd like to rule out that issue.
+
+The media-ctl output you've posted doesn't show field information, so you're 
+probably running either the wrong media-ctl version or the wrong kernel 
+version.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
