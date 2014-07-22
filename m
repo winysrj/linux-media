@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49403 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:56723 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751656AbaGHSv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 14:51:59 -0400
-Message-ID: <53BC3DC9.7010606@iki.fi>
-Date: Tue, 08 Jul 2014 21:51:53 +0300
+	id S1750787AbaGVE2G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 00:28:06 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: shuah.kh@samsung.com,
-	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: fix PCTV 461e tuner I2C binding
-References: <53BB2E7D.30300@samsung.com> <53BB6947.2090409@iki.fi> <53BBF858.30408@samsung.com>
-In-Reply-To: <53BBF858.30408@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] rtl2832_sdr: fix Kconfig dependencies
+Date: Tue, 22 Jul 2014 07:28:00 +0300
+Message-Id: <1406003280-14254-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/08/2014 04:55 PM, Shuah Khan wrote:
-> Moikka Antti,
->
-> On 07/07/2014 09:45 PM, Antti Palosaari wrote:
->> Moikka Shuah
->>
->
->>> Why are we unregistering i2c devices and dvb in this resume path?
->>> Looks incorrect to me.
->>
->> I don't know. Original patch I send was a bit different and tuner was
->> removed only during em28xx_dvb_fini()
->>
->> https://patchwork.linuxtv.org/patch/22275/
->>
->
-> Yes. That's what I suspected. My patch and yours got munged somehow.
-> I will send a fix in.
+MEDIA_SDR_SUPPORT and I2C_MUX are needed for rtl2832_sdr.
 
-There has been merge conflict and that is end result. None has reported 
-that bug so far. Likely it is very rare users suspend/resume these 
-devices as DVB suspend/resume has been largely broken always...
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/Kconfig  | 2 +-
+ drivers/media/usb/dvb-usb-v2/Kconfig | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-> btw: thanks for teaching me how to say hello in Finnish
-
-:=)
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 7225f05..78a95a6 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -448,7 +448,7 @@ config DVB_RTL2832
+ 
+ config DVB_RTL2832_SDR
+ 	tristate "Realtek RTL2832 SDR"
+-	depends on DVB_CORE && I2C && VIDEO_V4L2
++	depends on DVB_CORE && I2C && I2C_MUX && VIDEO_V4L2 && MEDIA_SDR_SUPPORT
+ 	select DVB_RTL2832
+ 	select VIDEOBUF2_VMALLOC
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index 0ea144e..66645b0 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -129,7 +129,7 @@ config DVB_USB_RTL28XXU
+ 	depends on DVB_USB_V2 && I2C_MUX
+ 	select DVB_RTL2830
+ 	select DVB_RTL2832
+-	select DVB_RTL2832_SDR if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_RTL2832_SDR if (MEDIA_SUBDRV_AUTOSELECT && MEDIA_SDR_SUPPORT)
+ 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MXL5005S if MEDIA_SUBDRV_AUTOSELECT
 -- 
 http://palosaari.fi/
+
