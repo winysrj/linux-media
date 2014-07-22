@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:61813 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802AbaGYOVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 10:21:08 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 0/9] Support for Exynos3250 SoC in the s5p-jpeg driver
-Date: Fri, 25 Jul 2014 16:20:44 +0200
-Message-id: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47777 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752625AbaGVTdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 15:33:07 -0400
+Message-ID: <53CEBC6F.4050605@iki.fi>
+Date: Tue, 22 Jul 2014 22:33:03 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] si2168: Fix a badly solved merge conflict
+References: <1406057133-7657-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406057133-7657-1-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for the JPEG codec IP found on the
-Exynos3250 SoCs. Supported raw formats are: YUYV, YVYU, UYVY, VYUY,
-RGB565, RGB565X, RGB32, NV12, NV21. Support for the hardware scaling
-and cropping features is added.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Changes since v2 (only patches 1/9, 2/9, 9/9):
- - the IP function clock renamed from "sclk-jpeg" to "sclk" and made
-   optional regardless of the device compatible string,
- - fixed compilation warning in jpeg-hw-exynos3250.c.
+Could you merge it directly from patchwork.
 
-Changes since v1:
- - added default case to the switch statement in the function
-   exynos3250_jpeg_dec_scaling_ratiofunction
- - removed not supported DT properties
- - improved DT documentation
- - updated Kconfig entry
- - corrected DTS maintainer email in the commit message
+regards
+Antti
 
-Jacek Anaszewski (9):
-  [media] s5p-jpeg: Document sclk-jpeg clock for Exynos3250 SoC
-  s5p-jpeg: Add support for Exynos3250 SoC
-  s5p-jpeg: return error immediately after get_byte fails
-  s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250 needs
-  s5p-jpeg: fix g_selection op
-  s5p-jpeg: Assure proper crop rectangle initialization
-  s5p-jpeg: Prevent erroneous downscaling for Exynos3250 SoC
-  s5p-jpeg: add chroma subsampling adjustment for Exynos3250
-  ARM: dts: exynos3250: add JPEG codec device node
+On 07/22/2014 10:25 PM, Mauro Carvalho Chehab wrote:
+> changeset a733291d6934 didn't merge the fixes well. It ended by
+> restoring some bad logic removed there.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>   drivers/media/dvb-frontends/si2168.c | 14 --------------
+>   1 file changed, 14 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 842c4a555d01..02127613eeff 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -381,20 +381,6 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> -	cmd.args[0] = 0x05;
+> -	cmd.args[1] = 0x00;
+> -	cmd.args[2] = 0xaa;
+> -	cmd.args[3] = 0x4d;
+> -	cmd.args[4] = 0x56;
+> -	cmd.args[5] = 0x40;
+> -	cmd.args[6] = 0x00;
+> -	cmd.args[7] = 0x00;
+> -	cmd.wlen = 8;
+> -	cmd.rlen = 1;
+> -	ret = si2168_cmd_execute(s, &cmd);
+> -	if (ret)
+> -		goto err;
+> -
+>   	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
+>   			cmd.args[4] << 0;
+>
+>
 
- .../bindings/media/exynos-jpeg-codec.txt           |   12 +-
- arch/arm/boot/dts/exynos3250.dtsi                  |    9 +
- drivers/media/platform/Kconfig                     |    5 +-
- drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |  660 ++++++++++++++++++--
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |   32 +-
- .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |  487 +++++++++++++++
- .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.h   |   60 ++
- drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  247 +++++++-
- 9 files changed, 1455 insertions(+), 59 deletions(-)
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
-
---
-1.7.9.5
-
+-- 
+http://palosaari.fi/
