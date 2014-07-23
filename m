@@ -1,80 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44623 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbaGVMgK (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.187]:50519 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932580AbaGWRR2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 08:36:10 -0400
-Message-ID: <1406032564.4496.6.camel@paszta.hi.pengutronix.de>
-Subject: [PATCH v4] [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>
-Date: Tue, 22 Jul 2014 14:36:04 +0200
-In-Reply-To: <20140721160432.12e34653.m.chehab@samsung.com>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-	 <1405071403-1859-19-git-send-email-p.zabel@pengutronix.de>
-	 <20140721160432.12e34653.m.chehab@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 23 Jul 2014 13:17:28 -0400
+Date: Wed, 23 Jul 2014 19:17:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v4 1/2] media: soc_camera: pxa_camera device-tree support
+In-Reply-To: <Pine.LNX.4.64.1407231126210.30243@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1407231915310.1526@axis700.grange>
+References: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.1407231126210.30243@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michael Olbrich <m.olbrich@pengutronix.de>
+Add device-tree support to pxa_camera host driver.
 
-Some drivers might allow to decode remaining frames from an internal ringbuffer
-after a decoder stop command. Allow those to call v4l2_m2m_try_schedule
-directly.
-
-Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+[g.liakhovetski@gmx.de: added of_node_put()]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Changes since v3:
- - Export v4l2_m2m_try_schedule using EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 3 ++-
- include/media/v4l2-mem2mem.h           | 2 ++
- 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 178ce96..5f5c175 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -208,7 +208,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
-  * An example of the above could be an instance that requires more than one
-  * src/dst buffer per transaction.
-  */
--static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
-+void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	struct v4l2_m2m_dev *m2m_dev;
- 	unsigned long flags_job, flags_out, flags_cap;
-@@ -274,6 +274,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+Robert, could you review and test this version, please?
+
+Thanks
+Guennadi
+
+ drivers/media/platform/soc_camera/pxa_camera.c | 81 +++++++++++++++++++++++++-
+ 1 file changed, 79 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index d4df305..64dc80c 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -34,6 +34,7 @@
+ #include <media/videobuf-dma-sg.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
++#include <media/v4l2-of.h>
  
- 	v4l2_m2m_try_run(m2m_dev);
- }
-+EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ #include <linux/videodev2.h>
  
- /**
-  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 12ea5a6..c5f3914 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -95,6 +95,8 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev);
- struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
- 				       enum v4l2_buf_type type);
+@@ -1650,6 +1651,68 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.set_bus_param	= pxa_camera_set_bus_param,
+ };
  
-+void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
++static int pxa_camera_pdata_from_dt(struct device *dev,
++				    struct pxa_camera_dev *pcdev)
++{
++	u32 mclk_rate;
++	struct device_node *np = dev->of_node;
++	struct v4l2_of_endpoint ep;
++	int err = of_property_read_u32(np, "clock-frequency",
++				       &mclk_rate);
++	if (!err) {
++		pcdev->platform_flags |= PXA_CAMERA_MCLK_EN;
++		pcdev->mclk = mclk_rate;
++	}
 +
- void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
- 			 struct v4l2_m2m_ctx *m2m_ctx);
++	np = of_graph_get_next_endpoint(np, NULL);
++	if (!np) {
++		dev_err(dev, "could not find endpoint\n");
++		return -EINVAL;
++	}
++
++	err = v4l2_of_parse_endpoint(np, &ep);
++	if (err) {
++		dev_err(dev, "could not parse endpoint\n");
++		goto out;
++	}
++
++	switch (ep.bus.parallel.bus_width) {
++	case 4:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_4;
++		break;
++	case 5:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_5;
++		break;
++	case 8:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_8;
++		break;
++	case 9:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_9;
++		break;
++	case 10:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
++		break;
++	default:
++		break;
++	};
++
++	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
++		pcdev->platform_flags |= PXA_CAMERA_MASTER;
++	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++		pcdev->platform_flags |= PXA_CAMERA_HSP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++		pcdev->platform_flags |= PXA_CAMERA_VSP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN | PXA_CAMERA_PCP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
++
++out:
++	of_node_put(np);
++
++	return err;
++}
++
+ static int pxa_camera_probe(struct platform_device *pdev)
+ {
+ 	struct pxa_camera_dev *pcdev;
+@@ -1676,7 +1739,15 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->res = res;
  
+ 	pcdev->pdata = pdev->dev.platform_data;
+-	pcdev->platform_flags = pcdev->pdata->flags;
++	if (&pdev->dev.of_node && !pcdev->pdata) {
++		err = pxa_camera_pdata_from_dt(&pdev->dev, pcdev);
++	} else {
++		pcdev->platform_flags = pcdev->pdata->flags;
++		pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
++	}
++	if (err < 0)
++		return err;
++
+ 	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
+ 			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
+ 		/*
+@@ -1693,7 +1764,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		pcdev->width_flags |= 1 << 8;
+ 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
+ 		pcdev->width_flags |= 1 << 9;
+-	pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
+ 	if (!pcdev->mclk) {
+ 		dev_warn(&pdev->dev,
+ 			 "mclk == 0! Please, fix your platform data. "
+@@ -1799,10 +1869,17 @@ static const struct dev_pm_ops pxa_camera_pm = {
+ 	.resume		= pxa_camera_resume,
+ };
+ 
++static const struct of_device_id pxa_camera_of_match[] = {
++	{ .compatible = "marvell,pxa270-qci", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, pxa_camera_of_match);
++
+ static struct platform_driver pxa_camera_driver = {
+ 	.driver		= {
+ 		.name	= PXA_CAM_DRV_NAME,
+ 		.pm	= &pxa_camera_pm,
++		.of_match_table = of_match_ptr(pxa_camera_of_match),
+ 	},
+ 	.probe		= pxa_camera_probe,
+ 	.remove		= pxa_camera_remove,
 -- 
-2.0.1
-
+1.9.3
 
