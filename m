@@ -1,86 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from test.hauke-m.de ([5.39.93.123]:55369 "EHLO test.hauke-m.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932514AbaGWTEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 15:04:40 -0400
-Message-ID: <53D00578.3090906@hauke-m.de>
-Date: Wed, 23 Jul 2014 20:56:56 +0200
-From: Hauke Mehrtens <hauke@hauke-m.de>
+Received: from mout.kundenserver.de ([212.227.126.130]:58856 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347AbaGWIJ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 04:09:57 -0400
+Date: Wed, 23 Jul 2014 10:09:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 5/6] r8a7790.dtsi: add vin[0-3] nodes
+In-Reply-To: <1404599185-12353-6-git-send-email-ben.dooks@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1407231007370.30243@axis700.grange>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1404599185-12353-6-git-send-email-ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: "backports@vger.kernel.org" <backports@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Removal of regulator framework
-References: <53CA9A77.6060409@hauke-m.de> <CAB=NE6WvY1ZnwogYR0YLuiMUOeRvqeEjhhnLHUpeJjteSTwfGA@mail.gmail.com> <20140723145724.3102ae3a.m.chehab@samsung.com> <CAB=NE6W3+fRQkxe-TEKVyPSMXWNVr44TNhCwd6g-7nH+83jx=Q@mail.gmail.com>
-In-Reply-To: <CAB=NE6W3+fRQkxe-TEKVyPSMXWNVr44TNhCwd6g-7nH+83jx=Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2014 08:23 PM, Luis R. Rodriguez wrote:
-> On Wed, Jul 23, 2014 at 10:57 AM, Mauro Carvalho Chehab
-> <m.chehab@samsung.com> wrote:
->> Em Wed, 23 Jul 2014 10:13:28 -0700
->> "Luis R. Rodriguez" <mcgrof@do-not-panic.com> escreveu:
->>
->>> On Sat, Jul 19, 2014 at 9:19 AM, Hauke Mehrtens <hauke@hauke-m.de> wrote:
->>>> Maintaining the regulator drivers in backports costs some time and I do
->>>> not need them. Is anybody using the regulator drivers from backports? I
->>>> would like to remove them.
->>>
->>> That came simply from collateral of backporting media drivers,
->>> eventually I started running into device drivers that used the
->>> regulator framework. Since we have tons of media drivers perhaps the
->>> more sensible thing to do is to white list a set of media divers that
->>> people actually care and then we just nuke both regulator and media
->>> drivers that no one cares for. For that though I'd like to ask media
->>> folks.
->>
->> Hi Luis,
->>
->> The drivers that currently use regulators are mostly the ones at
->> drivers/media/platform, plus the corresponding I2C drivers for their
->> webcam sensors, under drivers/media/i2c.
->>
->> I think that there's one exception though: em28xx. This driver can use
->> some sensor drivers, as it supports a few webcams. This is one of
->> the most used USB media driver, as there are lots of USB supported
->> on it, supporting 4 types of devices on it: analog TV, capture card,
->> digital TV and webcam.
->>
->> The webcam part of em28xx is not that relevant, as there are very few
->> models using it. However, currently, it is not possible to just
->> disable webcam support. It shouldn't be hard to make webcam support
->> optional on it, as it has already sub-drivers for V4L2, DVB, ALSA and
->> remote controller. One additional driver for webcam, that could be
->> disabled at the backport tree shouldn't be hard to do. If you want it,
->> patches are welcome.
+Hi Ben,
+
+Who is going to take this patch? Simon? It can go in independently from 
+the V4L part, right? We just have to be sure, that bindings don't have to 
+change, and this is likely to be the case. Doesn't it have to be Cc'ed to 
+DT maintainers and the list?
+
+Thanks
+Guennadi
+
+On Sat, 5 Jul 2014, Ben Dooks wrote:
+
+> Add nodes for the four video input channels on the R8A7790.
 > 
-> Thanks for the details Mauro, are you aware of current or future uses
-> of backports for media at this point? Adding media drivers was more of
-> an experiment to see how hard or easy it would be to add a new
-> unrelated subsystem, we carry it now and as collateral also carry some
-> regulator drivers but its not clear the value in terms of users, so
-> hence Hauke's question of removal of the regulator drivers. It'd be
-> good to limit the drivers we carry to what folks actually use and care
-> about.
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>  arch/arm/boot/dts/r8a7790.dtsi | 36 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
 > 
->   Luis
+> diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
+> index 7ff2960..a6f083d 100644
+> --- a/arch/arm/boot/dts/r8a7790.dtsi
+> +++ b/arch/arm/boot/dts/r8a7790.dtsi
+> @@ -33,6 +33,10 @@
+>  		spi2 = &msiof1;
+>  		spi3 = &msiof2;
+>  		spi4 = &msiof3;
+> +		vin0 = &vin0;
+> +		vin1 = &vin1;
+> +		vin2 = &vin2;
+> +		vin3 = &vin3;
+>  	};
+>  
+>  	cpus {
+> @@ -462,6 +466,38 @@
+>  		status = "disabled";
+>  	};
+>  
+> +	vin0: vin@e6ef0000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+> +		reg = <0 0xe6ef0000 0 0x1000>;
+> +		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+> +	vin1: vin@e6ef1000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
+> +		reg = <0 0xe6ef1000 0 0x1000>;
+> +		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+> +	vin2: vin@e6ef2000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
+> +		reg = <0 0xe6ef2000 0 0x1000>;
+> +		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+> +	vin3: vin@e6ef3000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
+> +		reg = <0 0xe6ef3000 0 0x1000>;
+> +		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+>  	clocks {
+>  		#address-cells = <2>;
+>  		#size-cells = <2>;
+> -- 
+> 2.0.0
 > 
-
-Hi,
-
-carrying some regularity drivers which are needed for some specific
-media driver does not look like a big problem. The current problem from
-my side is that we carry all regularity drivers by default and that
-causes some problems. Many of these driver are used only on one specific
-SoC product line and uses their often changing interface, so they break
-often.
-
-When all the regulator drivers are only needed for the media driver I
-would add just add the driver which are actually used by a shipped media
-driver and nothing more.
-
-Hauke
