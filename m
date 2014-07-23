@@ -1,129 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43746 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbaGAVH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 17:07:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sasha Levin <sasha.levin@oracle.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH v7] media: vb2: Take queue or device lock in mmap-related vb2 ioctl handlers
-Date: Tue, 01 Jul 2014 23:08:22 +0200
-Message-ID: <2051293.PjTd9YAWz0@avalon>
-In-Reply-To: <53AAFF9B.5000403@oracle.com>
-References: <201308061239.27188.hverkuil@xs4all.nl> <537F5315.8030705@xs4all.nl> <53AAFF9B.5000403@oracle.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54947 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757785AbaGWKqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 06:46:15 -0400
+Date: Wed, 23 Jul 2014 13:46:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sylwester.nawrocki@gmail.com
+Subject: Re: Media bus pixel code and pixel format enumeration (was: )
+Message-ID: <20140723104609.GT16460@valkosipuli.retiisi.org.uk>
+References: <alpine.DEB.2.01.1407211419320.18226@pmeerw.net>
+ <20140723084703.GS16460@valkosipuli.retiisi.org.uk>
+ <alpine.DEB.2.01.1407231142420.6322@pmeerw.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.01.1407231142420.6322@pmeerw.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 25 June 2014 12:58:03 Sasha Levin wrote:
-> Ping?
+Hi Peter,
 
-Hans, I've replied to your previous e-mail with
+On Wed, Jul 23, 2014 at 11:58:24AM +0200, Peter Meerwald wrote:
+> Hello Sakari,
+> 
+> thank you for your reply (and finding a nice subject for this)!
+> 
+> > On Mon, Jul 21, 2014 at 02:35:39PM +0200, Peter Meerwald wrote:
+> > > how can I query the supported pixel format(s) of a sensor connected via 
+> > > media-ctl and exposed via /dev/videoX
+> > > 
+> > > there is 
+> > > VIDIOC_ENUM_FMT (which fails)
+> > > and
+> > > VIDIOC_SUBDEV_ENUM_MBUS_CODE (which works, but on a subdev, not on 
+> > > /dev/videoX)
+> > > 
+> > > v4l2_subdev_video_ops has .enum_mbus_fmt (this is SoC camera stuff?)
+> > > 
+> > > v4l2_subdev_pad_ops has .enum_mbus_code
+> > > 
+> > > 
+> > > the application just sees /dev/videoX and cannot do VIDIOC_ENUM_FMT
+> > > what is the logic behind this?
+> > > shouldn't a compabatibility layer be added turning VIDIOC_ENUM_FMT into 
+> > > VIDIOC_SUBDEV_ENUM_MBUS_CODE?
+> > 
+> > The issue has been that enumerating should not change the state of the
+> > device. Within a single device node things are fine, but in this case the
+> > media bus pixel code at the other end of the link affects the result of the
+> > enumeration.
+> 
+> good to know this has been considered before
+>  
+> > There hasn't been really a solution for this in the past; what has been
+> > discussed as possible options have been (at least to my recollection) but
+> > none has been implemented:
+> > 
+> > 1) Use the media bux pixel code from the other end of the link. As there is
+> > no common file handle to share the state with, the link configuration and
+> > setting the media bus pixel code are necessary state changes before the
+> > enumeration can take place, and the two must not be changed during the it.
+> > This breaks the separation between configuration and enumeration. (There has
+> > been a patch to the omap3isp driver which essentially did this long time ago
+> > AFAIR.)
+> > 
+> > 2) Use a reserved field in struct v4l2_fmtdesc to tell the pixel code. This
+> > way enumeration can stay separate from configuration and is probably easier
+> > for the user space as well. I vote for this: it's clean, simple and gets the
+> > job done.
+> 
+> I not sure if I fully understand your suggestion
+> 
+> let's assume the following setup: 
+> sensor (subdev8) <-> OMAP3 CCDC (subdev2) <-> output (video2)
+> 
+> userspace would query VIDIOC_ENUM_FMT on video2; what is the expected 
+> answer? and how would it be obtained?
 
-I'm of course fine with a different way to solve the race condition, if we can 
-find a good one. Do you already know how you would like to solve this ?
+In addition to the index, the user would also supply the media bus pixel
+code to VIDIOC_ENUM_FMT (see
+<URL:http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-mbus-pixelcode>)
+that corresponds to pixel code at the output pad of the OMAP3 CCDC above.
 
-> On 05/23/2014 09:54 AM, Hans Verkuil wrote:
-> > Hi Laurent,
-> > 
-> > This patch caused a circular locking dependency as reported by Sasha
-> > Levin:
-> > 
-> > https://lkml.org/lkml/2014/5/5/366
-> > 
-> > The reason is that copy_to/from_user is called in video_usercopy() with
-> > the
-> > core lock held. The copy functions can fault which takes the mmap_sem. If
-> > it was just video_usercopy() then it would be fairly easy to solve this,
-> > but the copy_to_/from_user functions are also called from read and write
-> > and they can be used in other unexpected places.
-> > 
-> > I'm not sure if vb2_fop_get_unmapped_area() is a problem. I suspect (but
-> > I'm not sure) that when that one is called the mmap_sem isn't taken, in
-> > which case taking the lock is fine.
-> > 
-> > But taking the lock in vb2_fop_mmap() does cause lockdep problems.
-> > 
-> > Ideally I would like to drop taking that lock in vb2_fop_mmap and resolve
-> > the race condition that it intended to fix in a different way.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > On 08/06/2013 10:10 PM, Laurent Pinchart wrote:
-> >> The vb2_fop_mmap() and vb2_fop_get_unmapped_area() functions are plug-in
-> >> implementation of the mmap() and get_unmapped_area() file operations
-> >> that calls vb2_mmap() and vb2_get_unmapped_area() on the queue
-> >> associated with the video device. Neither the
-> >> vb2_fop_mmap/vb2_fop_get_unmapped_area nor the
-> >> v4l2_mmap/vb2_get_unmapped_area functions in the V4L2 core take any
-> >> lock, leading to race conditions between mmap/get_unmapped_area and
-> >> other buffer-related ioctls such as VIDIOC_REQBUFS.
-> >> 
-> >> Fix it by taking the queue or device lock around the vb2_mmap() and
-> >> vb2_get_unmapped_area() calls.
-> >> 
-> >> Signed-off-by: Laurent Pinchart
-> >> <laurent.pinchart+renesas@ideasonboard.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 18 ++++++++++++++++--
-> >>  1 file changed, 16 insertions(+), 2 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >> b/drivers/media/v4l2-core/videobuf2-core.c index 9fc4bab..c9b50c7 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >> @@ -2578,8 +2578,15 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_expbuf);
-> >>  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
-> >>  {
-> >>  	struct video_device *vdev = video_devdata(file);
-> >> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock :
-> >> vdev->lock;
-> >> +	int err;
-> >> 
-> >> -	return vb2_mmap(vdev->queue, vma);
-> >> +	if (lock && mutex_lock_interruptible(lock))
-> >> +		return -ERESTARTSYS;
-> >> +	err = vb2_mmap(vdev->queue, vma);
-> >> +	if (lock)
-> >> +		mutex_unlock(lock);
-> >> +	return err;
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
-> >> 
-> >> @@ -2685,8 +2692,15 @@ unsigned long vb2_fop_get_unmapped_area(struct
-> >> file *file, unsigned long addr,>> 
-> >>  		unsigned long len, unsigned long pgoff, unsigned long flags)
-> >>  {
-> >>  	struct video_device *vdev = video_devdata(file);
-> >> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock :
-> >> vdev->lock;
-> >> +	int ret;
-> >> 
-> >> -	return vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
-> >> +	if (lock && mutex_lock_interruptible(lock))
-> >> +		return -ERESTARTSYS;
-> >> +	ret = vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
-> >> +	if (lock)
-> >> +		mutex_unlock(lock);
-> >> +	return ret;
-> >> 
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
-> >>  #endif
+This way you can make the connection between media bus pixel codes you have
+on sub-devices and the pixel formats you can use on video devices. Albeit
+there are common connections between the two, the mapping ultimately depends
+on hardware.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
