@@ -1,87 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4541 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755368AbaGQINT (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:64193 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932693AbaGWTYj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 04:13:19 -0400
-Received: from tschai.lan (173-38-208-170.cisco.com [173.38.208.170])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6H8DFEB099706
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 10:13:17 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DB5712A1FD1
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 10:13:13 +0200 (CEST)
-Message-ID: <53C78599.6010101@xs4all.nl>
-Date: Thu, 17 Jul 2014 10:13:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 23 Jul 2014 15:24:39 -0400
+Received: by mail-wi0-f181.google.com with SMTP id bs8so2738269wib.14
+        for <linux-media@vger.kernel.org>; Wed, 23 Jul 2014 12:24:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.17] A bunch of
-References: <53C784C4.2020904@xs4all.nl>
-In-Reply-To: <53C784C4.2020904@xs4all.nl>
+Date: Wed, 23 Jul 2014 22:24:36 +0300
+Message-ID: <CAAZRmGw8W2sLTqQ7cgpB-1Y+DrkHy9d83VrJ_ciQEY5K3H-EFw@mail.gmail.com>
+Subject: cxusb: How to add CI support?
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, so the full subject line should have been:
+Hi everyone,
 
-	A bunch of little v4l2 core fixes
+I'm in need of advice when it comes to the implementation of the
+drivers. I recently added support for TechnoTrend CT2-4400 DVB-T2
+tuner into the dvb-usb-cxusb module. Now I have gotten another
+TechnoTrend device CT2-4650 and it seems this is more or less the same
+device as CT2-4400 but with an added CI slot. The CI is realized using
+a CIMaX SP2HF chip.
 
-:-)
+There seems to be support already for the said CIMaX chip, but only in
+combination with cx23885 (drivers/media/pci/cx23885/
+cimax2.c). This cannot be reused directly in my case. When I look at
+the other dvb-usb devices that have CI slot the support for CI has
+been implemented directly in the code of the USB device (for example,
+pctv452e or az6027).
 
-	Hans
+Of course, an easy way to do it is to reuse a lot of code from the
+existing cimax2 and add it in the cxusb. However, I'm not sure if
+that's an ok approach. As I'm relatively new to linux kernel coding,
+I'd like to ask your recommendation for implementing the CI support
+here before the endeavour. Thanks!
 
-On 07/17/2014 10:09 AM, Hans Verkuil wrote:
-> These are all little fixes for issues I found while working on the vivi
-> replacement +  some docbook fixes.
-> 
-> Usually all for fairly obscure corner cases, but that's what you write a
-> test driver for, after all.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
-> 
->   [media] dib8000: improve the message that reports per-layer locks (2014-07-07 09:59:01 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git core-fixes
-> 
-> for you to fetch changes up to 2eb86fa0840ac281cc5ca0a63f1339fa00245c7d:
-> 
->   v4l2-ioctl.c: check vfl_type in ENUM_FMT. (2014-07-14 14:55:47 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (12):
->       DocBook media: fix wrong spacing
->       DocBook media: add missing dqevent src_change field.
->       DocBook media: fix incorrect header reference
->       v4l2-ioctl: call g_selection before calling cropcap
->       v4l2-ioctl: clips, clipcount and bitmap should not be zeroed.
->       v4l2-ioctl: clear reserved field of G/S_SELECTION.
->       v4l2-ioctl: remove pointless INFO_FL_CLEAR.
->       v4l2-dev: don't debug poll unless the debug level > 2
->       videodev2.h: add V4L2_FIELD_HAS_T_OR_B macro
->       v4l2-dev: streamon/off is only a valid ioctl for video, vbi and sdr
->       v4l2-ioctl.c: fix enum_freq_bands handling
->       v4l2-ioctl.c: check vfl_type in ENUM_FMT.
-> 
->  Documentation/DocBook/media/v4l/pixfmt.xml             |   2 +-
->  Documentation/DocBook/media/v4l/selection-api.xml      |  95 ++++++++++++++++++++++++++++++++-------------------------------
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml     |   6 ++++
->  Documentation/DocBook/media/v4l/vidioc-g-selection.xml |  40 +++++++++++++--------------
->  drivers/media/v4l2-core/v4l2-dev.c                     |   6 ++--
->  drivers/media/v4l2-core/v4l2-ioctl.c                   | 103 +++++++++++++++++++++++++++++++++++++++++++++------------------------
->  include/uapi/linux/videodev2.h                         |   4 +++
->  7 files changed, 148 insertions(+), 108 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Cheers,
+-olli
