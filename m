@@ -1,49 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:12269 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157AbaGNHWp (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:57703 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932797AbaGWSXt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 03:22:45 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8O00BIXXTVCJ50@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Jul 2014 16:22:44 +0900 (KST)
-From: panpan liu <panpan1.liu@samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@redhat.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH] s5p-mfc: limit the size of the CPB
-Date: Mon, 14 Jul 2014 15:22:27 +0800
-Message-id: <1405322547-3216-1-git-send-email-panpan1.liu@samsung.com>
+	Wed, 23 Jul 2014 14:23:49 -0400
+Date: Wed, 23 Jul 2014 20:23:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	linux-kernel@lists.codethink.co.uk
+Subject: [PATCH v6 3/6] rcar_vin: add devicetree support
+In-Reply-To: <Pine.LNX.4.64.1407230944550.30243@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1407232022050.1526@axis700.grange>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1404599185-12353-4-git-send-email-ben.dooks@codethink.co.uk>
+ <Pine.LNX.4.64.1407230944550.30243@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The register of the CPB limits the size. The max size is 4M, so it
-is more reasonable.
+Add support for devicetree probe for the rcar-vin
+driver.
 
-Signed-off-by: panpan liu <panpan1.liu@samsung.com>
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+[g.liakhovetski@gmx.de fix a typo, sort headers alphabetically]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
- mode change 100644 => 100755 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-old mode 100644
-new mode 100755
-index 0bae907..889cb06
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -466,7 +466,8 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
- 	pix_mp->height = 0;
- 	pix_mp->width = 0;
--	if (pix_mp->plane_fmt[0].sizeimage)
-+	if (pix_mp->plane_fmt[0].sizeimage &&
-+			pix_mp->plane_fmt[0].sizeimage <= MAX_CPB_SIZE)
- 		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
- 	else
- 		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
---
-1.7.9.5
+Ben, is this version ok?
+
+ .../devicetree/bindings/media/rcar_vin.txt         | 86 ++++++++++++++++++++++
+ drivers/media/platform/soc_camera/rcar_vin.c       | 72 ++++++++++++++++--
+ 2 files changed, 151 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
+
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+new file mode 100644
+index 0000000..ba61782
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -0,0 +1,86 @@
++Renesas RCar Video Input driver (rcar_vin)
++------------------------------------------
++
++The rcar_vin device provides video input capabilities for the Renesas R-Car
++family of devices. The current blocks are always slaves and suppot one input
++channel which can be either RGB, YUYV or BT656.
++
++ - compatible: Must be one of the following
++   - "renesas,vin-r8a7791" for the R8A7791 device
++   - "renesas,vin-r8a7790" for the R8A7790 device
++   - "renesas,vin-r8a7779" for the R8A7779 device
++   - "renesas,vin-r8a7778" for the R8A7778 device
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++Additionally, an alias named vinX will need to be created to specify
++which video input device this is.
++
++The per-board settings:
++ - port sub-node describing a single endpoint connected to the vin
++   as described in video-interfaces.txt[1]. Only the first one will
++   be considered as each vin interface has one input port.
++
++   These settings are used to work out video input format and widths
++   into the system.
++
++
++Device node example
++-------------------
++
++	aliases {
++	       vin0 = &vin0;
++	};
++
++        vin0: vin@0xe6ef0000 {
++                compatible = "renesas,vin-r8a7790";
++                clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
++                reg = <0 0xe6ef0000 0 0x1000>;
++                interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
++                status = "disabled";
++        };
++
++Board setup example (vin1 composite video input)
++------------------------------------------------
++
++&i2c2   {
++        status = "ok";
++        pinctrl-0 = <&i2c2_pins>;
++        pinctrl-names = "default";
++
++        adv7180@20 {
++                compatible = "adi,adv7180";
++                reg = <0x20>;
++                remote = <&vin1>;
++
++                port {
++                        adv7180: endpoint {
++                                bus-width = <8>;
++                                remote-endpoint = <&vin1ep0>;
++                        };
++                };
++        };
++};
++
++/* composite video input */
++&vin1 {
++        pinctrl-0 = <&vin1_pins>;
++        pinctrl-names = "default";
++
++        status = "ok";
++
++        port {
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                vin1ep0: endpoint {
++                        remote-endpoint = <&adv7180>;
++                        bus-width = <8>;
++                };
++        };
++};
++
++
++
++[1] video-interfaces.txt common video media interface
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 7c4299d..85d579f 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -19,6 +19,8 @@
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/platform_data/camera-rcar.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -31,6 +33,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+@@ -1390,6 +1393,17 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+ 	.init_videobuf2	= rcar_vin_init_videobuf2,
+ };
+ 
++#ifdef CONFIG_OF
++static struct of_device_id rcar_vin_of_table[] = {
++	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
++	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
++	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
++	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
++#endif
++
+ static struct platform_device_id rcar_vin_id_table[] = {
+ 	{ "r8a7791-vin",  RCAR_GEN2 },
+ 	{ "r8a7790-vin",  RCAR_GEN2 },
+@@ -1402,15 +1416,52 @@ MODULE_DEVICE_TABLE(platform, rcar_vin_id_table);
+ 
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
++	const struct of_device_id *match = NULL;
+ 	struct rcar_vin_priv *priv;
+ 	struct resource *mem;
+ 	struct rcar_vin_platform_data *pdata;
++	unsigned int pdata_flags;
+ 	int irq, ret;
+ 
+-	pdata = pdev->dev.platform_data;
+-	if (!pdata || !pdata->flags) {
+-		dev_err(&pdev->dev, "platform data not set\n");
+-		return -EINVAL;
++	if (pdev->dev.of_node) {
++		struct v4l2_of_endpoint ep;
++		struct device_node *np;
++
++		match = of_match_device(of_match_ptr(rcar_vin_of_table),
++					&pdev->dev);
++
++		np = of_graph_get_next_endpoint(pdev->dev.of_node, NULL);
++		if (!np) {
++			dev_err(&pdev->dev, "could not find endpoint\n");
++			return -EINVAL;
++		}
++
++		ret = v4l2_of_parse_endpoint(np, &ep);
++		if (ret) {
++			dev_err(&pdev->dev, "could not parse endpoint\n");
++			return ret;
++		}
++
++		if (ep.bus_type == V4L2_MBUS_BT656)
++			pdata_flags = RCAR_VIN_BT656;
++		else {
++			pdata_flags = 0;
++			if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++				pdata_flags |= RCAR_VIN_HSYNC_ACTIVE_LOW;
++			if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++				pdata_flags |= RCAR_VIN_VSYNC_ACTIVE_LOW;
++		}
++
++		of_node_put(np);
++
++		dev_dbg(&pdev->dev, "pdata_flags = %08x\n", pdata_flags);
++	} else {
++		pdata = pdev->dev.platform_data;
++		if (!pdata || !pdata->flags) {
++			dev_err(&pdev->dev, "platform data not set\n");
++			return -EINVAL;
++		}
++		pdata_flags = pdata->flags;
+ 	}
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1441,12 +1492,18 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 
+ 	priv->ici.priv = priv;
+ 	priv->ici.v4l2_dev.dev = &pdev->dev;
+-	priv->ici.nr = pdev->id;
+ 	priv->ici.drv_name = dev_name(&pdev->dev);
+ 	priv->ici.ops = &rcar_vin_host_ops;
+ 
+-	priv->pdata_flags = pdata->flags;
+-	priv->chip = pdev->id_entry->driver_data;
++	priv->pdata_flags = pdata_flags;
++	if (!match) {
++		priv->ici.nr = pdev->id;
++		priv->chip = pdev->id_entry->driver_data;
++	} else {
++		priv->ici.nr = of_alias_get_id(pdev->dev.of_node, "vin");
++		priv->chip = (enum chip_id)match->data;
++	};
++
+ 	spin_lock_init(&priv->lock);
+ 	INIT_LIST_HEAD(&priv->capture);
+ 
+@@ -1487,6 +1544,7 @@ static struct platform_driver rcar_vin_driver = {
+ 	.driver		= {
+ 		.name		= DRV_NAME,
+ 		.owner		= THIS_MODULE,
++		.of_match_table	= of_match_ptr(rcar_vin_of_table),
+ 	},
+ 	.id_table	= rcar_vin_id_table,
+ };
+-- 
+1.9.3
 
