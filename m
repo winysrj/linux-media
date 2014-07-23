@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:54493 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149AbaG0TmY (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1949 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754661AbaGWGRT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 15:42:24 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9D002SPYQMJ400@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Sun, 27 Jul 2014 15:42:22 -0400 (EDT)
-Date: Sun, 27 Jul 2014 16:42:18 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/8] cx231xx: Add digital support for [2040:b131] Hauppauge
- WinTV 930C-HD (model 1114xx)
-Message-id: <20140727164218.3dd674e7.m.chehab@samsung.com>
-In-reply-to: <20140727115911.0dde3d30.m.chehab@samsung.com>
-References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
- <1406059938-21141-7-git-send-email-zzam@gentoo.org>
- <20140726162718.660cf512.m.chehab@samsung.com> <53D4C72A.4010209@gentoo.org>
- <20140727104453.4578b353.m.chehab@samsung.com>
- <20140727113248.29dccc38.m.chehab@samsung.com>
- <20140727115911.0dde3d30.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 23 Jul 2014 02:17:19 -0400
+Message-ID: <53CF5362.2050003@xs4all.nl>
+Date: Wed, 23 Jul 2014 08:17:06 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH for v3.17] vb2: fix videobuf2-core.h comments
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 27 Jul 2014 11:59:11 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+A lot of work was done in vb2 to regulate how drivers and the vb2 core handle
+buffer ownership, but inexplicably the videobuf2-core.h comments were never
+updated. Do so now. The same was true for the replacement of the -ENOBUFS
+mechanism by the min_buffers_needed field.
 
-> Em Sun, 27 Jul 2014 11:32:48 -0300
-> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-> 
-> > Em Sun, 27 Jul 2014 10:44:53 -0300
-> > Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-> > 
-> > > Em Sun, 27 Jul 2014 11:32:26 +0200
-> > > Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> > > 
-> > > > 
-> > > > Hi Mauro.
-> > > > 
-> > > > On 26.07.2014 21:27, Mauro Carvalho Chehab wrote:
-> > > > > Tried to apply your patch series, but there's something wrong on it.
-> > > > > 
-> > > > > See the enclosed logs. I suspect that you missed a patch adding the
-> > > > > proper tuner for this device.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The hole issue was due to that:
-> [  326.770414] cx231xx #0: New device Hauppauge Hauppauge Device @ 12 Mbps (2040:b131) with 4 interfaces
 
-The root cause seems to be a bad USB cable, causing errors at USB
-detection.
-
-Just send a patch series that avoids the driver to OOPS in such
-case.
-
-Regards,
-Mauro
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 1a262ae..fc910a6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -294,15 +294,19 @@ struct vb2_buffer {
+  *			of already queued buffers in count parameter; driver
+  *			can return an error if hardware fails, in that case all
+  *			buffers that have been already given by the @buf_queue
+- *			callback are invalidated.
+- *			If there were not enough queued buffers to start
+- *			streaming, then this callback returns -ENOBUFS, and the
+- *			vb2 core will retry calling @start_streaming when a new
+- *			buffer is queued.
++ *			callback are to be returned by the driver by calling
++ *			@vb2_buffer_done(VB2_BUF_STATE_DEQUEUED).
++ *			If you need a minimum number of buffers before you can
++ *			start streaming, then set @min_buffers_needed in the
++ *			vb2_queue structure. If that is non-zero then
++ *			start_streaming won't be called until at least that
++ *			many buffers have been queued up by userspace.
+  * @stop_streaming:	called when 'streaming' state must be disabled; driver
+  *			should stop any DMA transactions or wait until they
+  *			finish and give back all buffers it got from buf_queue()
+- *			callback; may use vb2_wait_for_all_buffers() function
++ *			callback by calling @vb2_buffer_done() with either
++ *			VB2_BUF_STATE_DONE or VB2_BUF_STATE_ERROR; may use
++ *			vb2_wait_for_all_buffers() function
+  * @buf_queue:		passes buffer vb to the driver; driver may start
+  *			hardware operation on this buffer; driver should give
+  *			the buffer back by calling vb2_buffer_done() function;
