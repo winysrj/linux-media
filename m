@@ -1,77 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:29311 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbaGVLmG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49117 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757989AbaGWO5C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 07:42:06 -0400
-Message-id: <53CE4E08.2030407@samsung.com>
-Date: Tue, 22 Jul 2014 13:42:00 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock
- for exynos3250 SoC
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
- <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
- <20140714095640.GC4980@leverpostej>
-In-reply-to: <20140714095640.GC4980@leverpostej>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 23 Jul 2014 10:57:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 1/3] omap3isp: resizer: Remove needless variable initializations
+Date: Wed, 23 Jul 2014 16:57:09 +0200
+Message-Id: <1406127431-9503-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1406127431-9503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1406127431-9503-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/07/14 11:56, Mark Rutland wrote:
->> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
->> > index 937b755..3142745 100644
->> > --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
->> > +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
->> > @@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
->> >  Required properties:
->> >  
->> >  - compatible	: should be one of:
->> > -		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
->> > +		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
->> > +		  "samsung,exynos3250-jpeg";
->> >  - reg		: address and length of the JPEG codec IP register set;
->> >  - interrupts	: specifies the JPEG codec IP interrupt;
->> > -- clocks	: should contain the JPEG codec IP gate clock specifier, from the
->> > +- clocks	: should contain the JPEG codec IP gate clock specifier and
->> > +		  for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
->> >  		  common clock bindings;
->> > -- clock-names	: should contain "jpeg" entry.
->> > +- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
->> > +		  for Exynos3250 SoC
->
-> Please turn this into a list for easier reading, e.g.
-> 
-> - clock-names: should contain:
->   * "jpeg" for the gate clock.
->   * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
-> 
-> You could also define clocks in terms of clock-names to avoid
-> redundancy.
-> 
-> The SCLK_JPEG name sounds like a global name for the clock. Is there a
-> name for the input line on the JPEG block this is plugged into?
+There's no need to initialize local variables to zero when they're
+explicitly assigned another value right after. Remove the needless
+initializations.
 
-There is unfortunately no such name for SCLK_JPEG clock in the IP's block
-documentation. For most of the multimedia IPs clocks are documented
-only in the clock controller chapter, hence the names may appear global.
-Probably "gate", "sclk" would be good names, rather than "<IP_NAME>",
-"<IP_NAME>-sclk". But people kept using the latter convention and now
-it's spread all over and it's hard to change it.
-Since now we can't rename "jpeg" and other IPs I'd assume it's best
-to stay with "jpeg", "sclk-jpeg".
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispresizer.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 6f077c2..8515793 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -239,7 +239,7 @@ static void resizer_set_phase(struct isp_res_device *res, u32 h_phase,
+ 			      u32 v_phase)
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	rgval = isp_reg_readl(isp, OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) &
+ 	      ~(ISPRSZ_CNT_HSTPH_MASK | ISPRSZ_CNT_VSTPH_MASK);
+@@ -275,7 +275,7 @@ static void resizer_set_luma(struct isp_res_device *res,
+ 			     struct resizer_luma_yenh *luma)
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	rgval  = (luma->algo << ISPRSZ_YENH_ALGO_SHIFT)
+ 		  & ISPRSZ_YENH_ALGO_MASK;
+@@ -322,7 +322,7 @@ static void resizer_set_ratio(struct isp_res_device *res,
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+ 	const u16 *h_filter, *v_filter;
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	rgval = isp_reg_readl(isp, OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) &
+ 			      ~(ISPRSZ_CNT_HRSZ_MASK | ISPRSZ_CNT_VRSZ_MASK);
+@@ -365,7 +365,7 @@ static void resizer_set_output_size(struct isp_res_device *res,
+ 				    u32 width, u32 height)
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	dev_dbg(isp->dev, "Output size[w/h]: %dx%d\n", width, height);
+ 	rgval  = (width << ISPRSZ_OUT_SIZE_HORZ_SHIFT)
+@@ -409,7 +409,7 @@ static void resizer_set_output_offset(struct isp_res_device *res, u32 offset)
+ static void resizer_set_start(struct isp_res_device *res, u32 left, u32 top)
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	rgval = (left << ISPRSZ_IN_START_HORZ_ST_SHIFT)
+ 		& ISPRSZ_IN_START_HORZ_ST_MASK;
+@@ -429,7 +429,7 @@ static void resizer_set_input_size(struct isp_res_device *res,
+ 				   u32 width, u32 height)
+ {
+ 	struct isp_device *isp = to_isp_device(res);
+-	u32 rgval = 0;
++	u32 rgval;
+ 
+ 	dev_dbg(isp->dev, "Input size[w/h]: %dx%d\n", width, height);
+ 
+-- 
+1.8.5.5
+
