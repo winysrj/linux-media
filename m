@@ -1,154 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2996 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964895AbaGQQX6 (ORCPT
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:54447 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817AbaGWN5w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:23:58 -0400
-Message-ID: <53C7F87D.6050103@xs4all.nl>
-Date: Thu, 17 Jul 2014 18:23:25 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 23 Jul 2014 09:57:52 -0400
+Received: by mail-oa0-f52.google.com with SMTP id o6so1632624oag.39
+        for <linux-media@vger.kernel.org>; Wed, 23 Jul 2014 06:57:51 -0700 (PDT)
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 09/11] [media] coda: split format enumeration for encoder
- end decoder device
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de> <1405613112-22442-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405613112-22442-10-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+2YH7uNcD5v0wvScrJuGXMGe_SS9Vo3nVb75jQVq9R86R4K-Q@mail.gmail.com>
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<5099401.EbLZaQU31t@avalon>
+	<CA+2YH7vNd4kC3=82M=UhHmNcXFGxBaiLUVbSkoXRvT8tfZkfcA@mail.gmail.com>
+	<2638081.aLalCDHyz1@avalon>
+	<CA+2YH7uNcD5v0wvScrJuGXMGe_SS9Vo3nVb75jQVq9R86R4K-Q@mail.gmail.com>
+Date: Wed, 23 Jul 2014 15:57:51 +0200
+Message-ID: <CA+2YH7tqrLLWh2xJT-dSqWnXV4VD+jNf-egn3ea+VoEsmvqOog@mail.gmail.com>
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+From: Enrico <ebutera@users.sourceforge.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Enric Balletbo Serra <eballetbo@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/17/2014 06:05 PM, Philipp Zabel wrote:
-> Let the decoder capture side and encoder output side only list
-> uncompressed formats, and the decoder output and encoder capture
-> side only list compressed formats.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On Wed, Jul 23, 2014 at 3:54 PM, Enrico <ebutera@users.sourceforge.net> wrote:
+> On Tue, Jul 22, 2014 at 6:32 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Enrico,
+>>
+>> On Tuesday 22 July 2014 18:26:52 Enrico wrote:
+>>> On Tue, Jul 22, 2014 at 6:04 PM, Laurent Pinchart wrote:
+>>> > Hi Enrico,
+>>> >
+>>> > You will need to upgrade media-ctl and yavta to versions that support
+>>> > interlaced formats. media-ctl has been moved to v4l-utils
+>>> > (http://git.linuxtv.org/cgit.cgi/v4l-utils.git/) and yavta is hosted at
+>>> > git://git.ideasonboard.org/yavta.git. You want to use the master branch
+>>> > for both trees.
+>>>
+>>> It seems that in v4l-utils there is no field support in media-ctl, am i
+>>> wrong?
+>>
+>> Oops, my bad, you're absolutely right.
+>>
+>>> I forgot to add that i'm using yavta master and media-ctl "field"
+>>> branch (from ideasonboard).
+>>
+>> Could you please try media-ctl from
+>>
+>>         git://linuxtv.org/pinchartl/v4l-utils.git field
+>>
+>> The IOB repository is deprecated, although the version of media-ctl present
+>> there might work, I'd like to rule out that issue.
+>>
+>> The media-ctl output you've posted doesn't show field information, so you're
+>> probably running either the wrong media-ctl version or the wrong kernel
+>> version.
+>
+> You were right i was using the wrong binary, now the output is:
+>
+> ...
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown flags 0
+>             device node name /dev/v4l-subdev2
+>         pad0: Sink
+>                 [fmt:UYVY2X8/720x625 field:interlaced]
+> ...
+>         pad1: Source
+>                 [fmt:UYVY/720x624 field:interlaced
+>                  crop.bounds:(0,0)/720x624
+>                  crop:(0,0)/720x624]
+>
+> ...
+>
+> - entity 16: tvp5150 1-005c (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev8
+>         pad0: Source
+>                 [fmt:UYVY2X8/720x625 field:interlaced]
+>
+>
+> but i still get the same error:
+>
+> root@igep00x0:~/field# ./yavta -f UYVY -n4 -s 720x624 -c100 /dev/video2
+> Device /dev/video2 opened.
+> Device `OMAP3 ISP CCDC output' on `media' is a video output (without
+> mplanes) device.
+> Video format set: UYVY (59565955) 720x624 (stride 1440) field none
+> buffer size 898560
+> Video format: UYVY (59565955) 720x624 (stride 1440) field none buffer
+> size 898560
+> 4 buffers requested.
+> length: 898560 offset: 0 timestamp type/source: mono/EoF
+> Buffer 0/0 mapped at address 0xb6d95000.
+> length: 898560 offset: 901120 timestamp type/source: mono/EoF
+> Buffer 1/0 mapped at address 0xb6cb9000.
+> length: 898560 offset: 1802240 timestamp type/source: mono/EoF
+> Buffer 2/0 mapped at address 0xb6bdd000.
+> length: 898560 offset: 2703360 timestamp type/source: mono/EoF
+> Buffer 3/0 mapped at address 0xb6b01000.
+> Unable to start streaming: Invalid argument (22).
+> 4 buffers released.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Same error adding field parameter to yavta:
+./yavta -f UYVY -n4 -s 720x624 -c100 --field interlaced /dev/video2
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/coda.c | 57 +++++++++++++++----------------------------
->  1 file changed, 19 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 4a159031..e63226b 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -542,8 +542,8 @@ static int coda_querycap(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> -static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
-> -			enum v4l2_buf_type type, int src_fourcc)
-> +static int coda_enum_fmt(struct file *file, void *priv,
-> +			 struct v4l2_fmtdesc *f)
->  {
->  	struct coda_ctx *ctx = fh_to_ctx(priv);
->  	struct coda_codec *codecs = ctx->dev->devtype->codecs;
-> @@ -552,11 +552,19 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
->  	int num_codecs = ctx->dev->devtype->num_codecs;
->  	int num_formats = ARRAY_SIZE(coda_formats);
->  	int i, k, num = 0;
-> +	bool yuv;
-> +
-> +	if (ctx->inst_type == CODA_INST_ENCODER)
-> +		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +	else
-> +		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
->  
->  	for (i = 0; i < num_formats; i++) {
-> -		/* Both uncompressed formats are always supported */
-> -		if (coda_format_is_yuv(formats[i].fourcc) &&
-> -		    !coda_format_is_yuv(src_fourcc)) {
-> +		/* Skip either raw or compressed formats */
-> +		if (yuv != coda_format_is_yuv(formats[i].fourcc))
-> +			continue;
-> +		/* All uncompressed formats are always supported */
-> +		if (yuv) {
->  			if (num == f->index)
->  				break;
->  			++num;
-> @@ -564,12 +572,10 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
->  		}
->  		/* Compressed formats may be supported, check the codec list */
->  		for (k = 0; k < num_codecs; k++) {
-> -			/* if src_fourcc is set, only consider matching codecs */
-> -			if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-> -			    formats[i].fourcc == codecs[k].dst_fourcc &&
-> -			    (!src_fourcc || src_fourcc == codecs[k].src_fourcc))
-> +			if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-> +			    formats[i].fourcc == codecs[k].dst_fourcc)
->  				break;
-> -			if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
-> +			if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
->  			    formats[i].fourcc == codecs[k].src_fourcc)
->  				break;
->  		}
-> @@ -584,7 +590,7 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
->  		fmt = &formats[i];
->  		strlcpy(f->description, fmt->name, sizeof(f->description));
->  		f->pixelformat = fmt->fourcc;
-> -		if (!coda_format_is_yuv(fmt->fourcc))
-> +		if (!yuv)
->  			f->flags |= V4L2_FMT_FLAG_COMPRESSED;
->  		return 0;
->  	}
-> @@ -593,31 +599,6 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
->  	return -EINVAL;
->  }
->  
-> -static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
-> -				 struct v4l2_fmtdesc *f)
-> -{
-> -	struct coda_ctx *ctx = fh_to_ctx(priv);
-> -	struct vb2_queue *src_vq;
-> -	struct coda_q_data *q_data_src;
-> -
-> -	/* If the source format is already fixed, only list matching formats */
-> -	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> -	if (vb2_is_streaming(src_vq)) {
-> -		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> -
-> -		return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> -				q_data_src->fourcc);
-> -	}
-> -
-> -	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0);
-> -}
-> -
-> -static int coda_enum_fmt_vid_out(struct file *file, void *priv,
-> -				 struct v4l2_fmtdesc *f)
-> -{
-> -	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_OUTPUT, 0);
-> -}
-> -
->  static int coda_g_fmt(struct file *file, void *priv,
->  		      struct v4l2_format *f)
->  {
-> @@ -972,12 +953,12 @@ static int coda_subscribe_event(struct v4l2_fh *fh,
->  static const struct v4l2_ioctl_ops coda_ioctl_ops = {
->  	.vidioc_querycap	= coda_querycap,
->  
-> -	.vidioc_enum_fmt_vid_cap = coda_enum_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap = coda_enum_fmt,
->  	.vidioc_g_fmt_vid_cap	= coda_g_fmt,
->  	.vidioc_try_fmt_vid_cap	= coda_try_fmt_vid_cap,
->  	.vidioc_s_fmt_vid_cap	= coda_s_fmt_vid_cap,
->  
-> -	.vidioc_enum_fmt_vid_out = coda_enum_fmt_vid_out,
-> +	.vidioc_enum_fmt_vid_out = coda_enum_fmt,
->  	.vidioc_g_fmt_vid_out	= coda_g_fmt,
->  	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
->  	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
-> 
-
+Enrico
