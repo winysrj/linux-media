@@ -1,66 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:61103 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbaGZOen (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:64774 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757159AbaGWNSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 10:34:43 -0400
-Received: by mail-wg0-f41.google.com with SMTP id z12so5432515wgg.12
-        for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 07:34:42 -0700 (PDT)
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH 3/3] [media] coda: set capture frame size with output S_FMT
-Date: Sat, 26 Jul 2014 16:34:32 +0200
-Message-Id: <1406385272-425-3-git-send-email-philipp.zabel@gmail.com>
-In-Reply-To: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
-References: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
+	Wed, 23 Jul 2014 09:18:09 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9600G0R2A7WE60@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jul 2014 09:18:07 -0400 (EDT)
+Date: Wed, 23 Jul 2014 10:18:02 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] si2168: Fix unknown chip version message
+Message-id: <20140723101802.6bdaa410.m.chehab@samsung.com>
+In-reply-to: <53CF70D0.1060907@iki.fi>
+References: <1406056450-16031-1-git-send-email-m.chehab@samsung.com>
+ <53CF70D0.1060907@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch makes coda_s_fmt_vid_out propagate the output frame size
-to the capture side.
-The GStreamer v4l2videodec only ever calls S_FMT on the output side
-and then expects G_FMT on the capture side to return a valid format.
+Em Wed, 23 Jul 2014 11:22:40 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
----
- drivers/media/platform/coda/coda-common.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+> Moikka!
+> It is single character formatter, not string, => no need to terminate, 
+> so that patch is not valid.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index b542340..789beb1 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -522,6 +522,7 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(priv);
-+	struct v4l2_format f_cap;
- 	int ret;
- 
- 	ret = coda_try_fmt_vid_out(file, priv, f);
-@@ -534,7 +535,16 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 
- 	ctx->colorspace = f->fmt.pix.colorspace;
- 
--	return ret;
-+	f_cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	coda_g_fmt(file, priv, &f_cap);
-+	f_cap.fmt.pix.width = f->fmt.pix.width;
-+	f_cap.fmt.pix.height = f->fmt.pix.height;
-+
-+	ret = coda_try_fmt_vid_cap(file, priv, &f_cap);
-+	if (ret)
-+		return ret;
-+
-+	return coda_s_fmt(ctx, &f_cap);
- }
- 
- static int coda_qbuf(struct file *file, void *priv,
--- 
-2.0.1
+Well, what happened with an invalid firmware is that the first %c was
+a 0x00 character, causing that the \n at the end and the others %c
+to be discarded.
 
+In other words, if you want to print the data with %c, you should be 
+validating that it is a printable character before using %c.
+
+On a separate issue, it is not "unkown" but "unknown".
+
+Regards,
+Mauro
+
+> 
+> regards
+> Antti
+> 
+> 
+> On 07/22/2014 10:14 PM, Mauro Carvalho Chehab wrote:
+> > At least here with my PCTV 292e, it is printing this error:
+> >
+> > 	si2168 10-0064: si2168: unkown chip version Si21170-
+> >
+> > without a \n at the end. Probably because it is doing something
+> > weird or firmware didn't load well. Anyway, better to print it
+> > in hex, instead of using %c.
+> >
+> > While here, fix the typo.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > ---
+> >   drivers/media/dvb-frontends/si2168.c | 5 ++---
+> >   1 file changed, 2 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> > index 41bdbc4d9f6c..842c4a555d01 100644
+> > --- a/drivers/media/dvb-frontends/si2168.c
+> > +++ b/drivers/media/dvb-frontends/si2168.c
+> > @@ -414,9 +414,8 @@ static int si2168_init(struct dvb_frontend *fe)
+> >   		break;
+> >   	default:
+> >   		dev_err(&s->client->dev,
+> > -				"%s: unkown chip version Si21%d-%c%c%c\n",
+> > -				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
+> > -				cmd.args[3], cmd.args[4]);
+> > +				"%s: unknown chip version: 0x%04x\n",
+> > +				KBUILD_MODNAME, chip_id);
+> >   		ret = -EINVAL;
+> >   		goto err;
+> >   	}
+> >
+> 
