@@ -1,146 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta04.emeryville.ca.mail.comcast.net ([76.96.30.40]:59935 "EHLO
-	qmta04.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933720AbaGXQCU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 12:02:20 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, olebowle@gmx.com, dheitmueller@kernellabs.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] media: drx39xyj - add resume support
-Date: Thu, 24 Jul 2014 10:02:15 -0600
-Message-Id: <a5094ff11ea86fc0c4609956fcf7223ea1d308e4.1406215947.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1406215947.git.shuah.kh@samsung.com>
-References: <cover.1406215947.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1406215947.git.shuah.kh@samsung.com>
-References: <cover.1406215947.git.shuah.kh@samsung.com>
+Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:38815
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752986AbaGWJ5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 05:57:03 -0400
+From: Sonic Zhang <sonic.adi@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+CC: <linux-media@vger.kernel.org>,
+	<adi-buildroot-devel@lists.sourceforge.net>,
+	Sonic Zhang <sonic.zhang@analog.com>
+Subject: [PATCH 2/3] v4l2: bfin: Ensure delete and reinit list entry on NOMMU architecture
+Date: Wed, 23 Jul 2014 17:57:15 +0800
+Message-ID: <1406109436-23922-2-git-send-email-sonic.adi@gmail.com>
+In-Reply-To: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drx39xyj driver lacks resume support. Add support by changing
-its fe ops init interface to detect the resume status by checking
-fe exit flag and do the necessary initialization. With this change,
-driver resume correctly in both dvb adapter is not in use and in use
-by an application cases.
+From: Sonic Zhang <sonic.zhang@analog.com>
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+On NOMMU architecture page fault is not triggered if a deleted list entry is
+accessed without reinit.
+
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/drxj.c |   65 +++++++++++++++++----------
- 1 file changed, 42 insertions(+), 23 deletions(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index c3931cc..31fee7b 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -11315,6 +11315,7 @@ rw_error:
- static int drx_ctrl_u_code(struct drx_demod_instance *demod,
- 		       struct drxu_code_info *mc_info,
- 		       enum drxu_code_action action);
-+static int drxj_set_lna_state(struct drx_demod_instance *demod, bool state);
- 
- /**
- * \fn drxj_open()
-@@ -11527,6 +11528,7 @@ static int drxj_open(struct drx_demod_instance *demod)
- 	ext_attr->aud_data = drxj_default_aud_data_g;
- 
- 	demod->my_common_attr->is_opened = true;
-+	drxj_set_lna_state(demod, false);
- 	return 0;
- rw_error:
- 	common_attr->is_opened = false;
-@@ -11890,6 +11892,33 @@ release:
- 	return rc;
- }
- 
-+/* caller is expeced to check if lna is supported before enabling */
-+static int drxj_set_lna_state(struct drx_demod_instance *demod, bool state)
-+{
-+	struct drxuio_cfg uio_cfg;
-+	struct drxuio_data uio_data;
-+	int result;
-+
-+	uio_cfg.uio = DRX_UIO1;
-+	uio_cfg.mode = DRX_UIO_MODE_READWRITE;
-+	/* Configure user-I/O #3: enable read/write */
-+	result = ctrl_set_uio_cfg(demod, &uio_cfg);
-+	if (result) {
-+		pr_err("Failed to setup LNA GPIO!\n");
-+		return result;
-+	}
-+
-+	uio_data.uio = DRX_UIO1;
-+	uio_data.value = state;
-+	result = ctrl_uio_write(demod, &uio_data);
-+	if (result != 0) {
-+		pr_err("Failed to %sable LNA!\n",
-+		       state ? "en" : "dis");
-+		return result;
-+	}
-+	return 0;
-+}
-+
- /*
-  * The Linux DVB Driver for Micronas DRX39xx family (drx3933j)
-  *
-@@ -12180,10 +12209,20 @@ static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- static int drx39xxj_init(struct dvb_frontend *fe)
- {
--	/* Bring the demod out of sleep */
--	drx39xxj_set_powerstate(fe, 1);
-+	struct drx39xxj_state *state = fe->demodulator_priv;
-+	struct drx_demod_instance *demod = state->demod;
-+	int rc = 0;
- 
--	return 0;
-+	if (fe->exit == DVB_FE_DEVICE_RESUME) {
-+		/* so drxj_open() does what it needs to do */
-+		demod->my_common_attr->is_opened = false;
-+		rc = drxj_open(demod);
-+		if (rc != 0)
-+			pr_err("drx39xxj_init(): DRX open failed rc=%d!\n", rc);
-+	} else
-+		drx39xxj_set_powerstate(fe, 1);
-+
-+	return rc;
- }
- 
- static int drx39xxj_set_lna(struct dvb_frontend *fe)
-@@ -12261,8 +12300,6 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	struct drxj_data *demod_ext_attr = NULL;
- 	struct drx_demod_instance *demod = NULL;
- 	struct dtv_frontend_properties *p;
--	struct drxuio_cfg uio_cfg;
--	struct drxuio_data uio_data;
- 	int result;
- 
- 	/* allocate memory for the internal state */
-@@ -12315,24 +12352,6 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 		goto error;
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 2759cb6..4a8c4f0 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -446,7 +446,7 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
+ 	while (!list_empty(&bcap_dev->dma_queue)) {
+ 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 						struct bcap_buffer, list);
+-		list_del(&bcap_dev->cur_frm->list);
++		list_del_init(&bcap_dev->cur_frm->list);
+ 		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
  	}
- 
--	/* Turn off the LNA */
--	uio_cfg.uio = DRX_UIO1;
--	uio_cfg.mode = DRX_UIO_MODE_READWRITE;
--	/* Configure user-I/O #3: enable read/write */
--	result = ctrl_set_uio_cfg(demod, &uio_cfg);
--	if (result) {
--		pr_err("Failed to setup LNA GPIO!\n");
--		goto error;
--	}
--
--	uio_data.uio = DRX_UIO1;
--	uio_data.value = false;
--	result = ctrl_uio_write(demod, &uio_data);
--	if (result != 0) {
--		pr_err("Failed to disable LNA!\n");
--		goto error;
--	}
--
- 	/* create dvb_frontend */
- 	memcpy(&state->frontend.ops, &drx39xxj_ops,
- 	       sizeof(struct dvb_frontend_ops));
+ }
+@@ -533,7 +533,7 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 		}
+ 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 				struct bcap_buffer, list);
+-		list_del(&bcap_dev->cur_frm->list);
++		list_del_init(&bcap_dev->cur_frm->list);
+ 	} else {
+ 		/* clear error flag, we will get a new frame */
+ 		if (ppi->err)
+@@ -583,7 +583,7 @@ static int bcap_streamon(struct file *file, void *priv,
+ 	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 					struct bcap_buffer, list);
+ 	/* remove buffer from the dma queue */
+-	list_del(&bcap_dev->cur_frm->list);
++	list_del_init(&bcap_dev->cur_frm->list);
+ 	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
+ 	/* update DMA address */
+ 	ppi->ops->update_addr(ppi, (unsigned long)addr);
 -- 
-1.7.10.4
+1.8.2.3
 
