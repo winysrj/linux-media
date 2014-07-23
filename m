@@ -1,108 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59423 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857AbaGKOFI (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:63311 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbaGWMVY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:05:08 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v4 10/21] Documentation: leds: add exemplary asynchronous
- mux driver
-Date: Fri, 11 Jul 2014 16:04:13 +0200
-Message-id: <1405087464-13762-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 23 Jul 2014 08:21:24 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9500GEVZNM3350@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jul 2014 08:21:22 -0400 (EDT)
+Date: Wed, 23 Jul 2014 09:21:17 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Fengguang Wu <fengguang.wu@intel.com>, linux-media@vger.kernel.org,
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3"
+ [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+Message-id: <20140723092117.570cfb38.m.chehab@samsung.com>
+In-reply-to: <53CF7BF4.6060205@iki.fi>
+References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
+ <53CF597C.6050708@iki.fi> <20140723082119.GB315@localhost>
+ <53CF7BF4.6060205@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exemplary driver showing usage of the Flash Manager API
-for registering/unregistering asynchronous multiplexers
+Em Wed, 23 Jul 2014 12:10:12 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-async-mux.c |   65 +++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
- create mode 100644 Documentation/leds/leds-async-mux.c
+> Moikka Fengguang
+> OK, lets Mauro decide how to handle that 32-bit(?) build error.
 
-diff --git a/Documentation/leds/leds-async-mux.c b/Documentation/leds/leds-async-mux.c
-new file mode 100644
-index 0000000..ee35d2f
---- /dev/null
-+++ b/Documentation/leds/leds-async-mux.c
-@@ -0,0 +1,65 @@
-+/*
-+ * Exemplary driver showing usage of the Flash Manager API
-+ * for registering/unregistering asynchronous multiplexers.
-+ *
-+ *	Copyright (C) 2014, Samsung Electronics Co., Ltd.
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
-+#include <linux/led-class-flash.h>
-+#include <linux/led-flash-manager.h>
-+#include <linux/leds.h>
-+#include <linux/of.h>
-+
-+static int led_async_mux_select_line(u32 line_id, void *mux)
-+{
-+	pr_info("led_async_mux_select_line line_id: %d\n", line_id);
-+	return 0;
-+}
-+
-+struct led_flash_mux_ops mux_ops = {
-+	.select_line = led_async_mux_select_line,
-+};
-+
-+static int led_async_mux_probe(struct platform_device *pdev)
-+{
-+	struct led_flash_mux mux;
-+
-+	mux.ops = &mux_ops;
-+	mux.owner = THIS_MODULE;
-+	mux.node = pdev->dev->of_node;
-+
-+	return led_flash_manager_bind_async_mux(&mux);
-+}
-+
-+static int led_async_mux_remove(struct platform_device *pdev)
-+{
-+	return led_flash_manager_unbind_async_mux(pdev->dev->of_node);
-+}
-+
-+static struct of_device_id led_async_mux_dt_match[] = {
-+	{.compatible = "led-async-mux"},
-+	{},
-+};
-+
-+static struct platform_driver led_async_mux_driver = {
-+	.probe		= led_async_mux_probe,
-+	.remove		= led_async_mux_remove,
-+	.driver		= {
-+		.name		= "led-async-mux",
-+		.owner		= THIS_MODULE,
-+		.of_match_table = led_async_mux_dt_match,
-+	},
-+};
-+
-+module_platform_driver(led_async_mux_driver);
-+
-+MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
-+MODULE_DESCRIPTION("LED async mux");
-+MODULE_LICENSE("GPL");
--- 
-1.7.9.5
+Once the patch is merged, I don't care anymore about avoiding bisect,
+especially on 32 bits kernels. The harm of rebasing my tree is worse
+than breaking bisectability, specially on 32 bits, as almost all
+developers do git bisect on x86_64 nowadays.
 
+> 
+> Could you change kbuild test robot clock to current time. It seems to 
+> live still in future :)
+> 
+> regards
+> Antti
+> 
+> 
+> On 07/23/2014 11:21 AM, Fengguang Wu wrote:
+> > Hi Antti,
+> >
+> > This is just a notification. It's up to human to decide the impact and
+> > whether or not to do the rebase (which very much depends on the
+> > publicness of the tree and git committer's work style).
+> >
+> > Thanks,
+> > Fengguang
+> >
+> > On Wed, Jul 23, 2014 at 09:43:08AM +0300, Antti Palosaari wrote:
+> >> Moikka!
+> >>
+> >>
+> >> On 07/23/2014 02:20 PM, kbuild test robot wrote:
+> >>> tree:   git://linuxtv.org/media_tree.git master
+> >>> head:   eb9da073bd002f2968c84129a5c49625911a3199
+> >>> commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
+> >>> config: i386-randconfig-ha2-0723 (attached as .config)
+> >>>
+> >>> Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
+> >>>        It only hurts bisectibility.
+> >>>
+> >>> All error/warnings:
+> >>>
+> >>>>> ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+> >>
+> >>
+> >> Could you say what I should do for that? Bug is fixed and solution is merged
+> >> as that patch:
+> >>
+> >> commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
+> >> Author: Antti Palosaari <crope@iki.fi>
+> >> Date:   Tue Jul 22 00:18:19 2014 -0300
+> >>
+> >>      [media] rtl2832_sdr: remove plain 64-bit divisions
+> >>
+> >> Do you want Mauro to rebase whole media/master in order to make
+> >> bisectibility possible in any case?
+> >>
+> >> regards
+> >> Antti
+> >>
+> >> --
+> >> http://palosaari.fi/
+> 
