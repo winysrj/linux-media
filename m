@@ -1,105 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4331 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293AbaGQVWt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 17:22:49 -0400
-Message-ID: <53C83EA0.2010706@xs4all.nl>
-Date: Thu, 17 Jul 2014 23:22:40 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga11.intel.com ([192.55.52.93]:11426 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757478AbaGWJXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 05:23:13 -0400
+Date: Wed, 23 Jul 2014 17:23:09 +0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3"
+ [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+Message-ID: <20140723092309.GB4686@localhost>
+References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
+ <53CF597C.6050708@iki.fi>
+ <20140723082119.GB315@localhost>
+ <53CF7BF4.6060205@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 03/23] v4l: Support extending the v4l2_pix_format structure
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1403567669-18539-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53CF7BF4.6060205@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And another thing that I found while implementing this in v4l2-ctl:
-
-On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
-> The v4l2_pix_format structure has no reserved field. It is embedded in
-> the v4l2_framebuffer structure which has no reserved fields either, and
-> in the v4l2_format structure which has reserved fields that were not
-> previously required to be zeroed out by applications.
+On Wed, Jul 23, 2014 at 12:10:12PM +0300, Antti Palosaari wrote:
+> Moikka Fengguang
+> OK, lets Mauro decide how to handle that 32-bit(?) build error.
 > 
-> To allow extending v4l2_pix_format, inline it in the v4l2_framebuffer
-> structure, and use the priv field as a magic value to indicate that the
-> application has set all v4l2_pix_format extended fields and zeroed all
-> reserved fields following the v4l2_pix_format field in the v4l2_format
-> structure.
+> Could you change kbuild test robot clock to current time. It seems to live
+> still in future :)
+
+It looks like a time zone issue. :)
+
+Thanks,
+Fengguang
+
+> On 07/23/2014 11:21 AM, Fengguang Wu wrote:
+> >Hi Antti,
+> >
+> >This is just a notification. It's up to human to decide the impact and
+> >whether or not to do the rebase (which very much depends on the
+> >publicness of the tree and git committer's work style).
+> >
+> >Thanks,
+> >Fengguang
+> >
+> >On Wed, Jul 23, 2014 at 09:43:08AM +0300, Antti Palosaari wrote:
+> >>Moikka!
+> >>
+> >>
+> >>On 07/23/2014 02:20 PM, kbuild test robot wrote:
+> >>>tree:   git://linuxtv.org/media_tree.git master
+> >>>head:   eb9da073bd002f2968c84129a5c49625911a3199
+> >>>commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
+> >>>config: i386-randconfig-ha2-0723 (attached as .config)
+> >>>
+> >>>Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
+> >>>       It only hurts bisectibility.
+> >>>
+> >>>All error/warnings:
+> >>>
+> >>>>>ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+> >>
+> >>
+> >>Could you say what I should do for that? Bug is fixed and solution is merged
+> >>as that patch:
+> >>
+> >>commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
+> >>Author: Antti Palosaari <crope@iki.fi>
+> >>Date:   Tue Jul 22 00:18:19 2014 -0300
+> >>
+> >>     [media] rtl2832_sdr: remove plain 64-bit divisions
+> >>
+> >>Do you want Mauro to rebase whole media/master in order to make
+> >>bisectibility possible in any case?
+> >>
+> >>regards
+> >>Antti
+> >>
+> >>--
+> >>http://palosaari.fi/
 > 
-> The availability of this API extension is reported to userspace through
-> the new V4L2_CAP_EXT_PIX_FORMAT capability flag. Just checking that the
-> priv field is still set to the magic value at [GS]_FMT return wouldn't
-> be enough, as older kernels don't zero the priv field on return.
-> 
-> To simplify the internal API towards drivers zero the extended fields
-> and set the priv field to the magic value for applications not aware of
-> the extensions.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 16bffd8..01b4588 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -959,13 +959,48 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->  	return -EINVAL;
->  }
->  
-> +static void v4l_sanitize_format(struct v4l2_format *fmt)
-> +{
-> +	unsigned int offset;
-> +
-> +	/*
-> +	 * The v4l2_pix_format structure has been extended with fields that were
-> +	 * not previously required to be set to zero by applications. The priv
-> +	 * field, when set to a magic value, indicates the the extended fields
-> +	 * are valid. Otherwise they will contain undefined values. To simplify
-> +	 * the API towards drivers zero the extended fields and set the priv
-> +	 * field to the magic value when the extended pixel format structure
-> +	 * isn't used by applications.
-> +	 */
-> +
-> +	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-> +	    fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +		return;
-> +
-> +	if (fmt->fmt.pix.priv == V4L2_PIX_FMT_PRIV_MAGIC)
-> +		return;
-> +
-> +	fmt->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
-> +
-> +	offset = offsetof(struct v4l2_pix_format, priv)
-> +	       + sizeof(fmt->fmt.pix.priv);
-> +	memset(((void *)&fmt->fmt.pix) + offset, 0,
-> +	       sizeof(fmt->fmt.pix) - offset);
-> +}
-> +
->  static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
->  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-> +	int ret;
->  
->  	cap->version = LINUX_VERSION_CODE;
-> -	return ops->vidioc_querycap(file, fh, cap);
-> +
-> +	ret = ops->vidioc_querycap(file, fh, cap);
-> +
-> +	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-
-It should be ORed to cap->device_caps as well.
-
-> +
-> +	return ret;
-
-Regards,
-
-	Hans
-
+> -- 
+> http://palosaari.fi/
