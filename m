@@ -1,67 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:33832 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933673AbaGRJcn (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:59864 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932406AbaGWJ2M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 05:32:43 -0400
-Received: by mail-oa0-f42.google.com with SMTP id n16so2761823oag.1
-        for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 02:32:43 -0700 (PDT)
+	Wed, 23 Jul 2014 05:28:12 -0400
+Date: Wed, 23 Jul 2014 11:28:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] media: soc_camera: pxa_camera device-tree support
+In-Reply-To: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.1407231126210.30243@axis700.grange>
+References: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
-References: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
-Date: Fri, 18 Jul 2014 10:32:42 +0100
-Message-ID: <CAGj5WxBEXrWu0BkrCZ=N4qgRDyZqKR7=cZYaNcMSXKdL9wpmdA@mail.gmail.com>
-Subject: Re: [PATCH] si2157: Use name si2157_ops instead of si2157_tuner_ops
- (harmonize with si2168)
-From: Luis Alves <ljalvs@gmail.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This actually fixes a bug.
-The struct prototype is defined at the beginning of the code as
-"si2157_ops" but the real struct is called "si2157_tuner_ops".
+Hi Robert,
 
-This is causing the name to be empty on this info msg: si2157 16-0060:
-si2157: found a '' in cold state
+Thanks for an updated patch. One question:
 
-Luis
+On Sun, 29 Jun 2014, Robert Jarzmik wrote:
 
-
-On Fri, Jul 18, 2014 at 6:41 AM, Olli Salonen <olli.salonen@iki.fi> wrote:
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> Add device-tree support to pxa_camera host driver.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> 
 > ---
->  drivers/media/tuners/si2157.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 329004f..4730f69 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -277,7 +277,7 @@ err:
->         return ret;
->  }
->
-> -static const struct dvb_tuner_ops si2157_tuner_ops = {
-> +static const struct dvb_tuner_ops si2157_ops = {
->         .info = {
->                 .name           = "Silicon Labs Si2157/Si2158",
->                 .frequency_min  = 110000000,
-> @@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
->                 goto err;
->
->         fe->tuner_priv = s;
-> -       memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
-> +       memcpy(&fe->ops.tuner_ops, &si2157_ops,
->                         sizeof(struct dvb_tuner_ops));
->
->         i2c_set_clientdata(client, s);
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Since V1: Mark's review
+>           - tmp u32 to long conversion for clock rate
+>           - use device-tree clock binding for mclk output clock
+>           - wildcard pxa27x becomes pxa270
+> ---
+>  drivers/media/platform/soc_camera/pxa_camera.c | 80 +++++++++++++++++++++++++-
+>  1 file changed, 78 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> index d4df305..e76c2ab 100644
+> --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> @@ -34,6 +34,7 @@
+>  #include <media/videobuf-dma-sg.h>
+>  #include <media/soc_camera.h>
+>  #include <media/soc_mediabus.h>
+> +#include <media/v4l2-of.h>
+>  
+>  #include <linux/videodev2.h>
+>  
+> @@ -1650,6 +1651,67 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+>  	.set_bus_param	= pxa_camera_set_bus_param,
+>  };
+>  
+> +static int pxa_camera_pdata_from_dt(struct device *dev,
+> +				    struct pxa_camera_dev *pcdev)
+> +{
+> +	int err = 0;
+> +	u32 mclk_rate = 0;
+> +	struct device_node *np = dev->of_node;
+> +	struct v4l2_of_endpoint ep;
+> +
+> +	err = of_property_read_u32(np, "clock-frequency",
+> +				   &mclk_rate);
+> +	if (!err) {
+> +		pcdev->platform_flags |= PXA_CAMERA_MCLK_EN;
+> +		pcdev->mclk = mclk_rate;
+> +	}
+> +
+> +	np = of_graph_get_next_endpoint(np, NULL);
+
+Isn't an of_node_put() required after this?
+
+Thanks
+Guennadi
+
+> +	if (!np) {
+> +		dev_err(dev, "could not find endpoint\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	err = v4l2_of_parse_endpoint(np, &ep);
+> +	if (err) {
+> +		dev_err(dev, "could not parse endpoint\n");
+> +		return err;
+> +	}
+> +
+> +	switch (ep.bus.parallel.bus_width) {
+> +	case 4:
+> +		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_4;
+> +		break;
+> +	case 5:
+> +		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_5;
+> +		break;
+> +	case 8:
+> +		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_8;
+> +		break;
+> +	case 9:
+> +		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_9;
+> +		break;
+> +	case 10:
+> +		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
+> +		break;
+> +	default:
+> +		break;
+> +	};
+> +
+> +	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
+> +		pcdev->platform_flags |= PXA_CAMERA_MASTER;
+> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +		pcdev->platform_flags |= PXA_CAMERA_HSP;
+> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +		pcdev->platform_flags |= PXA_CAMERA_VSP;
+> +	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN | PXA_CAMERA_PCP;
+> +	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+> +		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
+> +
+> +	return 0;
+> +}
+> +
+>  static int pxa_camera_probe(struct platform_device *pdev)
+>  {
+>  	struct pxa_camera_dev *pcdev;
+> @@ -1676,7 +1738,15 @@ static int pxa_camera_probe(struct platform_device *pdev)
+>  	pcdev->res = res;
+>  
+>  	pcdev->pdata = pdev->dev.platform_data;
+> -	pcdev->platform_flags = pcdev->pdata->flags;
+> +	if (&pdev->dev.of_node && !pcdev->pdata) {
+> +		err = pxa_camera_pdata_from_dt(&pdev->dev, pcdev);
+> +	} else {
+> +		pcdev->platform_flags = pcdev->pdata->flags;
+> +		pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
+> +	}
+> +	if (err < 0)
+> +		return err;
+> +
+>  	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
+>  			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
+>  		/*
+> @@ -1693,7 +1763,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
+>  		pcdev->width_flags |= 1 << 8;
+>  	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
+>  		pcdev->width_flags |= 1 << 9;
+> -	pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
+>  	if (!pcdev->mclk) {
+>  		dev_warn(&pdev->dev,
+>  			 "mclk == 0! Please, fix your platform data. "
+> @@ -1799,10 +1868,17 @@ static const struct dev_pm_ops pxa_camera_pm = {
+>  	.resume		= pxa_camera_resume,
+>  };
+>  
+> +static const struct of_device_id pxa_camera_of_match[] = {
+> +	{ .compatible = "marvell,pxa270-qci", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, pxa_camera_of_match);
+> +
+>  static struct platform_driver pxa_camera_driver = {
+>  	.driver		= {
+>  		.name	= PXA_CAM_DRV_NAME,
+>  		.pm	= &pxa_camera_pm,
+> +		.of_match_table = of_match_ptr(pxa_camera_of_match),
+>  	},
+>  	.probe		= pxa_camera_probe,
+>  	.remove		= pxa_camera_remove,
+> -- 
+> 2.0.0.rc2
+> 
