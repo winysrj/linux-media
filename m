@@ -1,57 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:51755 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbaGJMc6 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:35282 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757115AbaGWIkm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 08:32:58 -0400
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, isely@pobox.com, dcb314@hotmail.com,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Subject: [PATCH] media: pvrusb2: make logging code sane
-Date: Thu, 10 Jul 2014 15:32:25 +0300
-Message-Id: <1404995545-4286-1-git-send-email-andrey.krieger.utkin@gmail.com>
+	Wed, 23 Jul 2014 04:40:42 -0400
+Date: Wed, 23 Jul 2014 17:40:38 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, magnus.damm@opensource.se,
+	linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 5/6] r8a7790.dtsi: add vin[0-3] nodes
+Message-ID: <20140723084034.GA12177@verge.net.au>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1404599185-12353-6-git-send-email-ben.dooks@codethink.co.uk>
+ <Pine.LNX.4.64.1407231007370.30243@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1407231007370.30243@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The issue was discovered by static analysis. It turns out that code is
-somewhat insane, being
-if (x) {...} else { if (x) {...} }
+On Wed, Jul 23, 2014 at 10:09:46AM +0200, Guennadi Liakhovetski wrote:
+> Hi Ben,
+> 
+> Who is going to take this patch? Simon? It can go in independently from 
+> the V4L part, right? We just have to be sure, that bindings don't have to 
+> change, and this is likely to be the case. Doesn't it have to be Cc'ed to 
+> DT maintainers and the list?
 
-Edited it to do the only reasonable thing, which is to log the
-information about the failed call. The most descriptive logging commands
-set is taken from original code.
+Hi Guennadi,
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=79801
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+my expectation is that I will take this and patch once the bindings have
+been accepted by the subsystem maintainer.
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 7c280f3..1b158f1 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -951,15 +951,9 @@ static long pvr2_v4l2_ioctl(struct file *file,
- 	if (ret < 0) {
- 		if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
- 			pvr2_trace(PVR2_TRACE_V4LIOCTL,
--				   "pvr2_v4l2_do_ioctl failure, ret=%ld", ret);
--		} else {
--			if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
--				pvr2_trace(PVR2_TRACE_V4LIOCTL,
--					   "pvr2_v4l2_do_ioctl failure, ret=%ld"
--					   " command was:", ret);
--				v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw),
--						cmd);
--			}
-+				   "pvr2_v4l2_do_ioctl failure, ret=%ld"
-+				   " command was:", ret);
-+			v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
- 		}
- 	} else {
- 		pvr2_trace(PVR2_TRACE_V4LIOCTL,
--- 
-1.8.3.2
+For the board DT change my expectation is as above plus that
+someone has independently tested that the device is initialised
+and usable (for some definition of usable).
 
+With regards to CCing DT maintainers, I believe that they like to be CCed
+on driver changes that add or update bindings. I'm unsure if they also like
+to be CCed on DT file changes. Its not something I've blocked on in the
+past with regards to DT file changes.
+
+> Thanks
+> Guennadi
+> 
+> On Sat, 5 Jul 2014, Ben Dooks wrote:
+> 
+> > Add nodes for the four video input channels on the R8A7790.
+> > 
+> > Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> > ---
+> >  arch/arm/boot/dts/r8a7790.dtsi | 36 ++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 36 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
+> > index 7ff2960..a6f083d 100644
+> > --- a/arch/arm/boot/dts/r8a7790.dtsi
+> > +++ b/arch/arm/boot/dts/r8a7790.dtsi
+> > @@ -33,6 +33,10 @@
+> >  		spi2 = &msiof1;
+> >  		spi3 = &msiof2;
+> >  		spi4 = &msiof3;
+> > +		vin0 = &vin0;
+> > +		vin1 = &vin1;
+> > +		vin2 = &vin2;
+> > +		vin3 = &vin3;
+> >  	};
+> >  
+> >  	cpus {
+> > @@ -462,6 +466,38 @@
+> >  		status = "disabled";
+> >  	};
+> >  
+> > +	vin0: vin@e6ef0000 {
+> > +		compatible = "renesas,vin-r8a7790";
+> > +		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+> > +		reg = <0 0xe6ef0000 0 0x1000>;
+> > +		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> > +	vin1: vin@e6ef1000 {
+> > +		compatible = "renesas,vin-r8a7790";
+> > +		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
+> > +		reg = <0 0xe6ef1000 0 0x1000>;
+> > +		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> > +	vin2: vin@e6ef2000 {
+> > +		compatible = "renesas,vin-r8a7790";
+> > +		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
+> > +		reg = <0 0xe6ef2000 0 0x1000>;
+> > +		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> > +	vin3: vin@e6ef3000 {
+> > +		compatible = "renesas,vin-r8a7790";
+> > +		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
+> > +		reg = <0 0xe6ef3000 0 0x1000>;
+> > +		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> >  	clocks {
+> >  		#address-cells = <2>;
+> >  		#size-cells = <2>;
+> > -- 
+> > 2.0.0
+> > 
+> 
