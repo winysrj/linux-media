@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:39623 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759908AbaGPBvv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 21:51:51 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8S0004C7UEWA70@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jul 2014 10:51:50 +0900 (KST)
-From: panpan liu <panpan1.liu@samsung.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@redhat.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH] s5p-mfc: limit the size of the CPB
-Date: Wed, 16 Jul 2014 09:51:33 +0800
-Message-id: <1405475493-3200-1-git-send-email-panpan1.liu@samsung.com>
+Received: from mga11.intel.com ([192.55.52.93]:49739 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756554AbaGWIVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 04:21:22 -0400
+Date: Wed, 23 Jul 2014 16:21:19 +0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3"
+ [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+Message-ID: <20140723082119.GB315@localhost>
+References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
+ <53CF597C.6050708@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53CF597C.6050708@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CPB size is limited by the hardware. Add this limit to the s_fmt.
+Hi Antti,
 
-Signed-off-by: panpan liu <panpan1.liu@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+This is just a notification. It's up to human to decide the impact and
+whether or not to do the rebase (which very much depends on the
+publicness of the tree and git committer's work style).
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 0bae907..0621ed8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -413,6 +413,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	int ret = 0;
- 	struct s5p_mfc_fmt *fmt;
- 	struct v4l2_pix_format_mplane *pix_mp;
-+	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
+Thanks,
+Fengguang
 
- 	mfc_debug_enter();
- 	ret = vidioc_try_fmt(file, priv, f);
-@@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
- 	pix_mp->height = 0;
- 	pix_mp->width = 0;
--	if (pix_mp->plane_fmt[0].sizeimage)
--		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
--	else
-+	if (pix_mp->plane_fmt[0].sizeimage == 0)
- 		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
- 								DEF_CPB_SIZE;
-+	else if (pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
-+		ctx->dec_src_buf_size = buf_size->cpb;
-+	else
-+		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
- 	pix_mp->plane_fmt[0].bytesperline = 0;
- 	ctx->state = MFCINST_INIT;
- out:
---
-1.7.9.5
-
+On Wed, Jul 23, 2014 at 09:43:08AM +0300, Antti Palosaari wrote:
+> Moikka!
+> 
+> 
+> On 07/23/2014 02:20 PM, kbuild test robot wrote:
+> >tree:   git://linuxtv.org/media_tree.git master
+> >head:   eb9da073bd002f2968c84129a5c49625911a3199
+> >commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
+> >config: i386-randconfig-ha2-0723 (attached as .config)
+> >
+> >Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
+> >       It only hurts bisectibility.
+> >
+> >All error/warnings:
+> >
+> >>>ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+> 
+> 
+> Could you say what I should do for that? Bug is fixed and solution is merged
+> as that patch:
+> 
+> commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
+> Author: Antti Palosaari <crope@iki.fi>
+> Date:   Tue Jul 22 00:18:19 2014 -0300
+> 
+>     [media] rtl2832_sdr: remove plain 64-bit divisions
+> 
+> Do you want Mauro to rebase whole media/master in order to make
+> bisectibility possible in any case?
+> 
+> regards
+> Antti
+> 
+> -- 
+> http://palosaari.fi/
