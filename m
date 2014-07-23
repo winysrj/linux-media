@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42365 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758296AbaGAQXc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 12:23:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] Update sync-with-kernel to use installed kernel headers
-Date: Tue, 01 Jul 2014 18:24:26 +0200
-Message-ID: <5125392.NizmyE01KQ@avalon>
-In-Reply-To: <20140701143038.GZ2073@valkosipuli.retiisi.org.uk>
-References: <1401792019-20723-1-git-send-email-laurent.pinchart@ideasonboard.com> <20140701143038.GZ2073@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.samsung.com ([203.254.224.24]:50798 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754537AbaGWEJn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 00:09:43 -0400
+From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+To: linux-media@vger.kernel.org, k.debski@samsung.com,
+	m.chehab@samsung.com, kyungmin.park@samsung.com,
+	jtp.park@samsung.com
+Cc: linux-samsung-soc@vger.kernel.org
+Subject: [PATCH] media: s5p_mfc: remove unnecessary calling to function
+ video_devdata()
+Date: Wed, 23 Jul 2014 12:06:12 +0800
+Message-id: <1406088372-5240-1-git-send-email-zhaowei.yuan@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Since we have get vdev by calling video_devdata() at the beginning of
+s5p_mfc_open(), we should just use vdev instead of calling video_devdata()
+again in the following code.
 
-Thank you for the review.
+Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tuesday 01 July 2014 17:30:38 Sakari Ailus wrote:
-> On Tue, Jun 03, 2014 at 12:40:19PM +0200, Laurent Pinchart wrote:
-> > diff --git a/Makefile.am b/Makefile.am
-> > index 11baed1..35d0030 100644
-> > --- a/Makefile.am
-> > +++ b/Makefile.am
-> > @@ -12,31 +12,32 @@ EXTRA_DIST = include COPYING.libv4l README.libv4l
-> > README.lib-multi-threading> 
-> >  # custom targets
-> > 
-> >  sync-with-kernel:
-> > -	@if [ ! -f $(KERNEL_DIR)/include/uapi/linux/videodev2.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/fb.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-controls.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-common.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-subdev.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-mediabus.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/ivtv.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/frontend.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/dmx.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/audio.h -o \
-> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/video.h ]; then \
-> > +	@if [ ! -f $(KERNEL_DIR)/usr/include/linux/videodev2.h -o \
-> 
-> Shouldn't you use $(INSTALL_HDR_PATH) instead of $(KERNEL_DIR)/usr? If the
-> user sets that, the headers won't be installed under usr.
-
-INSTALL_HDR_PATH is only set when running make headers_install in the kernel 
-tree, not when running make sync-with-kernel in the media built tree. If we 
-want to support syncing with kernel headers installed elsewhere we should add 
-a new option to this Makefile. I haven't done so as the need isn't clear to 
-me.
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d57b306..d508cbc 100755
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -709,7 +709,7 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOMEM;
+ 		goto err_alloc;
+ 	}
+-	v4l2_fh_init(&ctx->fh, video_devdata(file));
++	v4l2_fh_init(&ctx->fh, vdev);
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+ 	ctx->dev = dev;
+--
+1.7.9.5
 
