@@ -1,50 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:57251 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425AbaG2PTy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 11:19:54 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kernel-janitors@vger.kernel.org, linux-ia64@vger.kernel.org,
-	ceph-devel@vger.kernel.org, toralf.foerster@gmx.de, hmh@hmh.eng.br,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/9] drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c: use correct structure type name in sizeof
-Date: Tue, 29 Jul 2014 17:16:43 +0200
-Message-Id: <1406647011-8543-2-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1406647011-8543-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1406647011-8543-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail-bl2lp0211.outbound.protection.outlook.com ([207.46.163.211]:33463
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753038AbaGWJ5H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 05:57:07 -0400
+From: Sonic Zhang <sonic.adi@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+CC: <linux-media@vger.kernel.org>,
+	<adi-buildroot-devel@lists.sourceforge.net>,
+	Sonic Zhang <sonic.zhang@analog.com>
+Subject: [PATCH 1/3] media: blackfin: ppi: Pass device pointer to request peripheral pins
+Date: Wed, 23 Jul 2014 17:57:14 +0800
+Message-ID: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+From: Sonic Zhang <sonic.zhang@analog.com>
 
-Correct typo in the name of the type given to sizeof.  Because it is the
-size of a pointer that is wanted, the typo has no impact on compilation or
-execution.
+if the pinctrl driver is enabled.
 
-This problem was found using Coccinelle (http://coccinelle.lip6.fr/).  The
-semantic patch used can be found in message 0 of this patch series.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/blackfin/bfin_capture.c | 2 +-
+ drivers/media/platform/blackfin/ppi.c          | 8 +++++---
+ include/media/blackfin/ppi.h                   | 3 ++-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-index cda8388..255590f 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-@@ -227,7 +227,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
- 		return 0;
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 16e4b1c..2759cb6 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -939,7 +939,7 @@ static int bcap_probe(struct platform_device *pdev)
  
- 	vpfe_dev->clks = kzalloc(vpfe_cfg->num_clocks *
--				   sizeof(struct clock *), GFP_KERNEL);
-+				   sizeof(struct clk *), GFP_KERNEL);
- 	if (vpfe_dev->clks == NULL) {
- 		v4l2_err(vpfe_dev->pdev->driver, "Memory allocation failed\n");
- 		return -ENOMEM;
+ 	bcap_dev->cfg = config;
+ 
+-	bcap_dev->ppi = ppi_create_instance(config->ppi_info);
++	bcap_dev->ppi = ppi_create_instance(pdev, config->ppi_info);
+ 	if (!bcap_dev->ppi) {
+ 		v4l2_err(pdev->dev.driver, "Unable to create ppi\n");
+ 		ret = -ENODEV;
+diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
+index 15e9c2b..90c4a93 100644
+--- a/drivers/media/platform/blackfin/ppi.c
++++ b/drivers/media/platform/blackfin/ppi.c
+@@ -19,6 +19,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/platform_device.h>
+ 
+ #include <asm/bfin_ppi.h>
+ #include <asm/blackfin.h>
+@@ -307,7 +308,8 @@ static void ppi_update_addr(struct ppi_if *ppi, unsigned long addr)
+ 	set_dma_start_addr(ppi->info->dma_ch, addr);
+ }
+ 
+-struct ppi_if *ppi_create_instance(const struct ppi_info *info)
++struct ppi_if *ppi_create_instance(struct platform_device *pdev,
++			const struct ppi_info *info)
+ {
+ 	struct ppi_if *ppi;
+ 
+@@ -315,14 +317,14 @@ struct ppi_if *ppi_create_instance(const struct ppi_info *info)
+ 		return NULL;
+ 
+ 	if (peripheral_request_list(info->pin_req, KBUILD_MODNAME)) {
+-		pr_err("request peripheral failed\n");
++		dev_err(&pdev->dev, "request peripheral failed\n");
+ 		return NULL;
+ 	}
+ 
+ 	ppi = kzalloc(sizeof(*ppi), GFP_KERNEL);
+ 	if (!ppi) {
+ 		peripheral_free_list(info->pin_req);
+-		pr_err("unable to allocate memory for ppi handle\n");
++		dev_err(&pdev->dev, "unable to allocate memory for ppi handle\n");
+ 		return NULL;
+ 	}
+ 	ppi->ops = &ppi_ops;
+diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
+index d0697f4..61a283f 100644
+--- a/include/media/blackfin/ppi.h
++++ b/include/media/blackfin/ppi.h
+@@ -91,6 +91,7 @@ struct ppi_if {
+ 	void *priv;
+ };
+ 
+-struct ppi_if *ppi_create_instance(const struct ppi_info *info);
++struct ppi_if *ppi_create_instance(struct platform_device *pdev,
++			const struct ppi_info *info);
+ void ppi_delete_instance(struct ppi_if *ppi);
+ #endif
+-- 
+1.8.2.3
 
