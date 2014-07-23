@@ -1,58 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64325 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753922AbaGKPT6 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:35659 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754771AbaGWCnz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 11:19:58 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8J00G9ZZX92160@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:19:57 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 2/9] s5p-jpeg: return error immediately after get_byte fails
-Date: Fri, 11 Jul 2014 17:19:43 +0200
-Message-id: <1405091990-28567-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 22 Jul 2014 22:43:55 -0400
+Message-id: <53CF216E.9040209@samsung.com>
+Date: Wed, 23 Jul 2014 11:43:58 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+MIME-version: 1.0
+To: Zhaowei Yuan <zhaowei.yuan@samsung.com>, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH] media: s5p_mfc: remove unnecessary calling to function
+ video_devdata()
+References: <1406076572-5719-1-git-send-email-zhaowei.yuan@samsung.com>
+In-reply-to: <1406076572-5719-1-git-send-email-zhaowei.yuan@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When parsing JPEG header s5p_jpeg_parse_hdr function
-should return immediately in case there was an error
-while reading a byte.
+Hi Zhaowei,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 07/23/2014 09:49 AM, Zhaowei Yuan wrote:
+> Since we have get vdev by calling video_devdata() at the beginning of
+> s5p_mfc_open(), we should just use vdev instead of calling video_devdata()
+> again in the following code.
+> 
+> Change-Id: I869051762d33b50a7c0dbc8149b072e70b89c6b9
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 7d604f2..df3aaa9 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -906,14 +906,14 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 	while (notfound) {
- 		c = get_byte(&jpeg_buffer);
- 		if (c == -1)
--			break;
-+			return false;
- 		if (c != 0xff)
- 			continue;
- 		do
- 			c = get_byte(&jpeg_buffer);
- 		while (c == 0xff);
- 		if (c == -1)
--			break;
-+			return false;
- 		if (c == 0)
- 			continue;
- 		length = 0;
--- 
-1.7.9.5
+Please don't put this in patch when you submit at upstream. Change-Id
+means nothing to us.
+
+> Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index d57b306..d508cbc 100755
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -709,7 +709,7 @@ static int s5p_mfc_open(struct file *file)
+>  		ret = -ENOMEM;
+>  		goto err_alloc;
+>  	}
+> -	v4l2_fh_init(&ctx->fh, video_devdata(file));
+> +	v4l2_fh_init(&ctx->fh, vdev);
+>  	file->private_data = &ctx->fh;
+>  	v4l2_fh_add(&ctx->fh);
+>  	ctx->dev = dev;
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
