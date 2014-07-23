@@ -1,156 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53790 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751774AbaGTQlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jul 2014 12:41:10 -0400
-Message-ID: <53CBF123.5090204@iki.fi>
-Date: Sun, 20 Jul 2014 19:41:07 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mout.kundenserver.de ([212.227.126.187]:50180 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757533AbaGWKUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 06:20:07 -0400
+Date: Wed, 23 Jul 2014 12:20:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 3/6] rcar_vin: add devicetree support
+In-Reply-To: <1404599185-12353-4-git-send-email-ben.dooks@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1407230944550.30243@axis700.grange>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1404599185-12353-4-git-send-email-ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL] SDR stuff
-References: <53C874F8.3020300@iki.fi>
-In-Reply-To: <53C874F8.3020300@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2014 04:14 AM, Antti Palosaari wrote:
-> * AirSpy SDR driver
-> * all SDR drivers moved out of staging
-> * few new SDR stream formats
+Hi Ben,
 
-Added few patches more.
+I'd love to push this for 3.17, but we have to at least show this to DT 
+maintainers... Personally, I have one remark:
 
-Antti
+On Sat, 5 Jul 2014, Ben Dooks wrote:
 
-The following changes since commit 3445857b22eafb70a6ac258979e955b116bfd2c6:
+> Add support for devicetree probe for the rcar-vin
+> driver.
+> 
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         | 86 ++++++++++++++++++++++
+>  drivers/media/platform/soc_camera/rcar_vin.c       | 72 ++++++++++++++++--
+>  2 files changed, 151 insertions(+), 7 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> new file mode 100644
+> index 0000000..10fefa9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -0,0 +1,86 @@
+> +Renesas RCar Video Input driver (rcar_vin)
+> +------------------------------------------
+> +
+> +The rcar_vin device provides video input capabilities for the Renesas R-Car
+> +family of devices. The current blocks are always slaves and suppot one input
+> +channel which can be either RGB, YUYV or BT656.
+> +
+> + - compatible: Must be one of the following
+> +   - "renesas,vin-r8a7791" for the R8A7791 device
+> +   - "renesas,vin-r8a7790" for the R8A7790 device
+> +   - "renesas,vin-r8a7779" for the R8A7779 device
+> +   - "renesas,vin-r8a7778" for the R8A7778 device
+> + - reg: the register base and size for the device registers
+> + - interrupts: the interrupt for the device
+> + - clocks: Reference to the parent clock
+> +
+> +Additionally, an alias named vinX will need to be created to specify
+> +which video input device this is.
+> +
+> +The per-board settings:
+> + - port sub-node describing a single endpoint connected to the vin
+> +   as described in video-interfaces.txt[1]. Only the first one will
+> +   be considered as each vin interface has one input port.
+> +
+> +   These settings are used to work out video input format and widths
+> +   into the system.
+> +
+> +
+> +Device node example
+> +-------------------
+> +
+> +	aliases {
+> +	       vin0 = &vin0;
+> +	};
+> +
+> +        vin0: vin@0xe6ef0000 {
+> +                compatible = "renesas,vin-r8a7790";
+> +                clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+> +                reg = <0 0xe6ef0000 0 0x1000>;
+> +                interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> +                status = "disabled";
+> +        };
+> +
+> +Board setup example (vin1 composite video input)
+> +------------------------------------------------
+> +
+> +&i2c2   {
+> +        status = "ok";
+> +        pinctrl-0 = <&i2c2_pins>;
+> +        pinctrl-names = "default";
+> +
+> +        adv7180@020 {
 
-   [media] hdpvr: fix two audio bugs (2014-07-04 15:13:02 -0300)
+The above should be
 
-are available in the git repository at:
+> +        adv7180@20 {
 
-   git://linuxtv.org/anttip/media_tree.git sdr_pull
+no "0" in the I2C address. 020 looks like an octal number, which it isn't. 
+I'll fix this and try to resubmit today with extended Cc.
 
-for you to fetch changes up to 57c6d1bcea459f50bfe1b8a47f575655deca888a:
+Thanks
+Guennadi
 
-   airspy: fill FMT buffer size (2014-07-20 19:37:34 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (28):
-       v4l: uapi: add SDR format RU12LE
-       DocBook: V4L: add V4L2_SDR_FMT_RU12LE - 'RU12'
-       airspy: AirSpy SDR driver
-       v4l: uapi: add SDR format CS8
-       DocBook: V4L: add V4L2_SDR_FMT_CS8 - 'CS08'
-       v4l: uapi: add SDR format CS14
-       DocBook: V4L: add V4L2_SDR_FMT_CS14LE - 'CS14'
-       msi001: move out of staging
-       MAINTAINERS: update MSI001 driver location
-       Kconfig: add SDR support
-       Kconfig: sub-driver auto-select SPI bus
-       msi2500: move msi3101 out of staging and rename
-       MAINTAINERS: update MSI3101 / MSI2500 driver location
-       msi2500: change supported formats
-       msi2500: print notice to point SDR API is not 100% stable yet
-       rtl2832_sdr: move from staging to media
-       rtl2832_sdr: put complex U16 format behind module parameter
-       rtl2832_sdr: print notice to point SDR API is not 100% stable yet
-       MAINTAINERS: update RTL2832_SDR location
-       airspy: remove v4l2-compliance workaround
-       airspy: move out of staging into drivers/media/usb
-       airspy: print notice to point SDR API is not 100% stable yet
-       MAINTAINERS: add airspy driver
-       v4l: videodev2: add buffer size to SDR format
-       rtl2832_sdr: fill FMT buffer size
-       DocBook media: v4l2_sdr_format buffersize field
-       msi2500: fill FMT buffer size
-       airspy: fill FMT buffer size
-
-  Documentation/DocBook/media/v4l/dev-sdr.xml 
-        |   18 +-
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cs08.xml 
-        |   44 ++++
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml 
-        |   47 +++++
-  Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml 
-        |   40 ++++
-  Documentation/DocBook/media/v4l/pixfmt.xml 
-        |    3 +
-  MAINTAINERS 
-        |   18 +-
-  drivers/media/Kconfig 
-        |   12 +-
-  drivers/media/dvb-frontends/Kconfig 
-        |    9 +
-  drivers/media/dvb-frontends/Makefile 
-        |    6 +
-  drivers/{staging/media/rtl2832u_sdr => 
-media/dvb-frontends}/rtl2832_sdr.c    |   48 +++--
-  drivers/{staging/media/rtl2832u_sdr => 
-media/dvb-frontends}/rtl2832_sdr.h    |    0
-  drivers/media/tuners/Kconfig 
-        |    6 +
-  drivers/media/tuners/Makefile 
-        |    1 +
-  drivers/{staging/media/msi3101 => media/tuners}/msi001.c 
-        |    0
-  drivers/media/usb/Kconfig 
-        |    6 +
-  drivers/media/usb/Makefile 
-        |    2 +
-  drivers/media/usb/airspy/Kconfig 
-        |   10 +
-  drivers/media/usb/airspy/Makefile 
-        |    1 +
-  drivers/media/usb/airspy/airspy.c 
-        | 1134 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/usb/dvb-usb-v2/Kconfig 
-        |    1 +
-  drivers/media/usb/msi2500/Kconfig 
-        |    5 +
-  drivers/media/usb/msi2500/Makefile 
-        |    1 +
-  drivers/{staging/media/msi3101/sdr-msi3101.c => 
-media/usb/msi2500/msi2500.c} |   78 ++++---
-  drivers/staging/media/Kconfig 
-        |    4 -
-  drivers/staging/media/Makefile 
-        |    2 -
-  drivers/staging/media/msi3101/Kconfig 
-        |   10 -
-  drivers/staging/media/msi3101/Makefile 
-        |    2 -
-  drivers/staging/media/rtl2832u_sdr/Kconfig 
-        |    7 -
-  drivers/staging/media/rtl2832u_sdr/Makefile 
-        |    6 -
-  include/uapi/linux/videodev2.h 
-        |    7 +-
-  30 files changed, 1444 insertions(+), 84 deletions(-)
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cs08.xml
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml
-  rename drivers/{staging/media/rtl2832u_sdr => 
-media/dvb-frontends}/rtl2832_sdr.c (96%)
-  rename drivers/{staging/media/rtl2832u_sdr => 
-media/dvb-frontends}/rtl2832_sdr.h (100%)
-  rename drivers/{staging/media/msi3101 => media/tuners}/msi001.c (100%)
-  create mode 100644 drivers/media/usb/airspy/Kconfig
-  create mode 100644 drivers/media/usb/airspy/Makefile
-  create mode 100644 drivers/media/usb/airspy/airspy.c
-  create mode 100644 drivers/media/usb/msi2500/Kconfig
-  create mode 100644 drivers/media/usb/msi2500/Makefile
-  rename drivers/{staging/media/msi3101/sdr-msi3101.c => 
-media/usb/msi2500/msi2500.c} (96%)
-  delete mode 100644 drivers/staging/media/msi3101/Kconfig
-  delete mode 100644 drivers/staging/media/msi3101/Makefile
-  delete mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
-  delete mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
-
-
--- 
-http://palosaari.fi/
+> +                compatible = "adi,adv7180";
+> +                reg = <0x20>;
+> +                remote = <&vin1>;
+> +
+> +                port {
+> +                        adv7180: endpoint {
+> +                                bus-width = <8>;
+> +                                remote-endpoint = <&vin1ep0>;
+> +                        };
+> +                };
+> +        };
+> +};
+> +
+> +/* composite video input */
+> +&vin1 {
+> +        pinctrl-0 = <&vin1_pins>;
+> +        pinctrl-names = "default";
+> +
+> +        status = "ok";
+> +
+> +        port {
+> +                #address-cells = <1>;
+> +                #size-cells = <0>;
+> +
+> +                vin1ep0: endpoint {
+> +                        remote-endpoint = <&adv7180>;
+> +                        bus-width = <8>;
+> +                };
+> +        };
+> +};
+> +
+> +
+> +
+> +[1] video-interfaces.txt common video media interface
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 7c4299d..eb196ef 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -24,6 +24,8 @@
+>  #include <linux/pm_runtime.h>
+>  #include <linux/slab.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+>  
+>  #include <media/soc_camera.h>
+>  #include <media/soc_mediabus.h>
+> @@ -32,6 +34,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-mediabus.h>
+>  #include <media/v4l2-subdev.h>
+> +#include <media/v4l2-of.h>
+>  #include <media/videobuf2-dma-contig.h>
+>  
+>  #include "soc_scale_crop.h"
+> @@ -1390,6 +1393,17 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+>  	.init_videobuf2	= rcar_vin_init_videobuf2,
+>  };
+>  
+> +#ifdef CONFIG_OF
+> +static struct of_device_id rcar_vin_of_table[] = {
+> +	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+> +	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+> +	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+> +	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+> +#endif
+> +
+>  static struct platform_device_id rcar_vin_id_table[] = {
+>  	{ "r8a7791-vin",  RCAR_GEN2 },
+>  	{ "r8a7790-vin",  RCAR_GEN2 },
+> @@ -1402,15 +1416,52 @@ MODULE_DEVICE_TABLE(platform, rcar_vin_id_table);
+>  
+>  static int rcar_vin_probe(struct platform_device *pdev)
+>  {
+> +	const struct of_device_id *match = NULL;
+>  	struct rcar_vin_priv *priv;
+>  	struct resource *mem;
+>  	struct rcar_vin_platform_data *pdata;
+> +	unsigned int pdata_flags;
+>  	int irq, ret;
+>  
+> -	pdata = pdev->dev.platform_data;
+> -	if (!pdata || !pdata->flags) {
+> -		dev_err(&pdev->dev, "platform data not set\n");
+> -		return -EINVAL;
+> +	if (pdev->dev.of_node) {
+> +		struct v4l2_of_endpoint ep;
+> +		struct device_node *np;
+> +
+> +		match = of_match_device(of_match_ptr(rcar_vin_of_table),
+> +					&pdev->dev);
+> +
+> +		np = of_graph_get_next_endpoint(pdev->dev.of_node, NULL);
+> +		if (!np) {
+> +			dev_err(&pdev->dev, "could not find endpoint\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		ret = v4l2_of_parse_endpoint(np, &ep);
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "could not parse endpoint\n");
+> +			return ret;
+> +		}
+> +
+> +		if (ep.bus_type == V4L2_MBUS_BT656)
+> +			pdata_flags = RCAR_VIN_BT656;
+> +		else {
+> +			pdata_flags = 0;
+> +			if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+> +				pdata_flags |= RCAR_VIN_HSYNC_ACTIVE_LOW;
+> +			if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+> +				pdata_flags |= RCAR_VIN_VSYNC_ACTIVE_LOW;
+> +		}
+> +
+> +		of_node_put(np);
+> +
+> +		dev_dbg(&pdev->dev, "pdata_flags = %08x\n", pdata_flags);
+> +	} else {
+> +		pdata = pdev->dev.platform_data;
+> +		if (!pdata || !pdata->flags) {
+> +			dev_err(&pdev->dev, "platform data not set\n");
+> +			return -EINVAL;
+> +		}
+> +		pdata_flags = pdata->flags;
+>  	}
+>  
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> @@ -1441,12 +1492,18 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>  
+>  	priv->ici.priv = priv;
+>  	priv->ici.v4l2_dev.dev = &pdev->dev;
+> -	priv->ici.nr = pdev->id;
+>  	priv->ici.drv_name = dev_name(&pdev->dev);
+>  	priv->ici.ops = &rcar_vin_host_ops;
+>  
+> -	priv->pdata_flags = pdata->flags;
+> -	priv->chip = pdev->id_entry->driver_data;
+> +	priv->pdata_flags = pdata_flags;
+> +	if (!match) {
+> +		priv->ici.nr = pdev->id;
+> +		priv->chip = pdev->id_entry->driver_data;
+> +	} else {
+> +		priv->ici.nr = of_alias_get_id(pdev->dev.of_node, "vin");
+> +		priv->chip = (enum chip_id)match->data;
+> +	};
+> +
+>  	spin_lock_init(&priv->lock);
+>  	INIT_LIST_HEAD(&priv->capture);
+>  
+> @@ -1487,6 +1544,7 @@ static struct platform_driver rcar_vin_driver = {
+>  	.driver		= {
+>  		.name		= DRV_NAME,
+>  		.owner		= THIS_MODULE,
+> +		.of_match_table	= of_match_ptr(rcar_vin_of_table),
+>  	},
+>  	.id_table	= rcar_vin_id_table,
+>  };
+> -- 
+> 2.0.0
+> 
