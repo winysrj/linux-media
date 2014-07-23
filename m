@@ -1,112 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51574 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752970AbaGKJhC (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:39901 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514AbaGWTJp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
+	Wed, 23 Jul 2014 15:09:45 -0400
+MIME-Version: 1.0
+In-Reply-To: <53D00578.3090906@hauke-m.de>
+References: <53CA9A77.6060409@hauke-m.de> <CAB=NE6WvY1ZnwogYR0YLuiMUOeRvqeEjhhnLHUpeJjteSTwfGA@mail.gmail.com>
+ <20140723145724.3102ae3a.m.chehab@samsung.com> <CAB=NE6W3+fRQkxe-TEKVyPSMXWNVr44TNhCwd6g-7nH+83jx=Q@mail.gmail.com>
+ <53D00578.3090906@hauke-m.de>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Wed, 23 Jul 2014 12:09:24 -0700
+Message-ID: <CAB=NE6V+T1H1Eoem_C7RoKU_LYYbd7fXL47QbfJ=E_Ur5J7=SA@mail.gmail.com>
+Subject: Re: Removal of regulator framework
+To: Hauke Mehrtens <hauke@hauke-m.de>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 23/32] [media] coda: rename prescan_failed to hold and stop stream after timeout
-Date: Fri, 11 Jul 2014 11:36:34 +0200
-Message-Id: <1405071403-1859-24-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	"backports@vger.kernel.org" <backports@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the per-context prescan_failed variable to hold, as this is what the
-flag  does: it temporarily keeps the coda from running until new data is fed
-into the bitstream buffer or stop_streaming is called on the input side.
-A prescan failure on i.MX5 is one possible reason to enter this state, another
-one is a picture run timeout on i.MX6.
+On Wed, Jul 23, 2014 at 11:56 AM, Hauke Mehrtens <hauke@hauke-m.de> wrote:
+> carrying some regularity drivers which are needed for some specific
+> media driver does not look like a big problem. The current problem from
+> my side is that we carry all regularity drivers by default and that
+> causes some problems. Many of these driver are used only on one specific
+> SoC product line and uses their often changing interface, so they break
+> often.
+>
+> When all the regulator drivers are only needed for the media driver I
+> would add just add the driver which are actually used by a shipped media
+> driver and nothing more.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+Makes sense. I'm suggesting we can trim even more by only keeping
+media drivers we really should care for and its dependencies. We need
+a white list then, do we want to start off with perhaps the list I
+posted? Media folks, is there anything else we should carry that would
+help the media folks?
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index d7404e9..4f3d535 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -237,7 +237,7 @@ struct coda_ctx {
- 	struct kfifo			bitstream_fifo;
- 	struct mutex			bitstream_mutex;
- 	struct coda_aux_buf		bitstream;
--	bool				prescan_failed;
-+	bool				hold;
- 	struct coda_aux_buf		parabuf;
- 	struct coda_aux_buf		psbuf;
- 	struct coda_aux_buf		slicebuf;
-@@ -920,7 +920,7 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 		/* If this context is currently running, update the hardware flag */
- 		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
- 	}
--	ctx->prescan_failed = false;
-+	ctx->hold = false;
- 	v4l2_m2m_try_schedule(ctx->fh.m2m_ctx);
- 
- 	return 0;
-@@ -1052,7 +1052,7 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- 	if (ctx == v4l2_m2m_get_curr_priv(ctx->dev->m2m_dev))
- 		coda_kfifo_sync_to_device_write(ctx);
- 
--	ctx->prescan_failed = false;
-+	ctx->hold = false;
- 
- 	return true;
- }
-@@ -1423,6 +1423,8 @@ static void coda_pic_run_work(struct work_struct *work)
- 
- 	if (!wait_for_completion_timeout(&ctx->completion, msecs_to_jiffies(1000))) {
- 		dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout\n");
-+
-+		ctx->hold = true;
- 	} else if (!ctx->aborting) {
- 		if (ctx->inst_type == CODA_INST_DECODER)
- 			coda_finish_decode(ctx);
-@@ -1461,7 +1463,7 @@ static int coda_job_ready(void *m2m_priv)
- 		return 0;
- 	}
- 
--	if (ctx->prescan_failed ||
-+	if (ctx->hold ||
- 	    ((ctx->inst_type == CODA_INST_DECODER) &&
- 	     (coda_get_bitstream_payload(ctx) < 512) &&
- 	     !(ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG))) {
-@@ -3102,7 +3104,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			/* not enough bitstream data */
- 			v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 				 "prescan failed: %d\n", val);
--			ctx->prescan_failed = true;
-+			ctx->hold = true;
- 			return;
- 		}
- 	}
-@@ -3133,7 +3135,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
- 			ctx->sequence_offset++;
- 		else if (ctx->display_idx < 0)
--			ctx->prescan_failed = true;
-+			ctx->hold = true;
- 	} else if (decoded_idx == -2) {
- 		/* no frame was decoded, we still return the remaining buffers */
- 	} else if (decoded_idx < 0 || decoded_idx >= ctx->num_internal_frames) {
-@@ -3169,7 +3171,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		 * no more frames to be decoded, but there could still
- 		 * be rotator output to dequeue
- 		 */
--		ctx->prescan_failed = true;
-+		ctx->hold = true;
- 	} else if (display_idx == -3) {
- 		/* possibly prescan failure */
- 	} else if (display_idx < 0 || display_idx >= ctx->num_internal_frames) {
--- 
-2.0.0
-
+  Luis
