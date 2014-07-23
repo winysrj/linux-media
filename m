@@ -1,70 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:32933 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753813AbaGVMXx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 08:23:53 -0400
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+Received: from mail.kapsi.fi ([217.30.184.167]:35821 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753478AbaGWGnO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jul 2014 02:43:14 -0400
+Message-ID: <53CF597C.6050708@iki.fi>
+Date: Wed, 23 Jul 2014 09:43:08 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: kbuild test robot <fengguang.wu@intel.com>
+CC: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: [PATCH 2/5] video: add RGB444_1X12 and RGB565_1X16 bus formats
-Date: Tue, 22 Jul 2014 14:23:44 +0200
-Message-Id: <1406031827-12432-3-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko]
+ undefined!
+References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
+In-Reply-To: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add RGB444 format using a 12 bits bus and RGB565 using a 16 bits bus.
+Moikka!
 
-These formats will later be used by atmel-hlcdc driver.
 
-Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
----
- include/uapi/linux/v4l2-mediabus.h    | 2 ++
- include/uapi/linux/video-bus-format.h | 4 +++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+On 07/23/2014 02:20 PM, kbuild test robot wrote:
+> tree:   git://linuxtv.org/media_tree.git master
+> head:   eb9da073bd002f2968c84129a5c49625911a3199
+> commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
+> config: i386-randconfig-ha2-0723 (attached as .config)
+>
+> Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
+>        It only hurts bisectibility.
+>
+> All error/warnings:
+>
+>>> ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
 
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 8c31f11..319f860 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -30,6 +30,8 @@
- #define V4L2_MBUS_FMT_RGB888_2X12_BE		VIDEO_BUS_FMT_RGB888_2X12_BE
- #define V4L2_MBUS_FMT_RGB888_2X12_LE		VIDEO_BUS_FMT_RGB888_2X12_LE
- #define V4L2_MBUS_FMT_ARGB8888_1X32		VIDEO_BUS_FMT_ARGB8888_1X32
-+#define V4L2_BUS_FMT_RGB444_1X12		VIDEO_BUS_FMT_RGB444_1X12
-+#define V4L2_BUS_FMT_RGB565_1X16		VIDEO_BUS_FMT_RGB565_1X16
- 
- #define V4L2_MBUS_FMT_Y8_1X8			VIDEO_BUS_FMT_Y8_1X8
- #define V4L2_MBUS_FMT_UV8_1X8			VIDEO_BUS_FMT_UV8_1X8
-diff --git a/include/uapi/linux/video-bus-format.h b/include/uapi/linux/video-bus-format.h
-index 4abbd5d..f85f7ee 100644
---- a/include/uapi/linux/video-bus-format.h
-+++ b/include/uapi/linux/video-bus-format.h
-@@ -34,7 +34,7 @@
- enum video_bus_format {
- 	VIDEO_BUS_FMT_FIXED = 0x0001,
- 
--	/* RGB - next is 0x100e */
-+	/* RGB - next is 0x1010 */
- 	VIDEO_BUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
- 	VIDEO_BUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
- 	VIDEO_BUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
-@@ -48,6 +48,8 @@ enum video_bus_format {
- 	VIDEO_BUS_FMT_RGB888_2X12_BE = 0x100b,
- 	VIDEO_BUS_FMT_RGB888_2X12_LE = 0x100c,
- 	VIDEO_BUS_FMT_ARGB8888_1X32 = 0x100d,
-+	VIDEO_BUS_FMT_RGB444_1X12 = 0x100e,
-+	VIDEO_BUS_FMT_RGB565_1X16 = 0x100f,
- 
- 	/* YUV (including grey) - next is 0x2024 */
- 	VIDEO_BUS_FMT_Y8_1X8 = 0x2001,
+
+Could you say what I should do for that? Bug is fixed and solution is 
+merged as that patch:
+
+commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
+Author: Antti Palosaari <crope@iki.fi>
+Date:   Tue Jul 22 00:18:19 2014 -0300
+
+     [media] rtl2832_sdr: remove plain 64-bit divisions
+
+Do you want Mauro to rebase whole media/master in order to make 
+bisectibility possible in any case?
+
+regards
+Antti
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
