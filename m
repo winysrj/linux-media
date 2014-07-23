@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3nlsmtpcp01-02.prod.phx3.secureserver.net ([184.168.200.140]:53121
-	"EHLO p3nlsmtpcp01-02.prod.phx3.secureserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707AbaGCF2U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jul 2014 01:28:20 -0400
-Received: from [202.83.18.165] (port=40656 helo=[192.168.10.194])
-	by p3plcpnl0078.prod.phx3.secureserver.net with esmtpsa (TLSv1:DHE-RSA-CAMELLIA256-SHA:256)
-	(Exim 4.82)
-	(envelope-from <vishwanatha.hattera@itasin.com>)
-	id 1X2ZZD-0000C3-Ou
-	for linux-media@vger.kernel.org; Wed, 02 Jul 2014 22:28:20 -0700
-Message-ID: <53B4E9F0.2060506@itasin.com>
-Date: Thu, 03 Jul 2014 10:58:16 +0530
-From: Vishwanatha Hattera <vishwanatha.hattera@itasin.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Help required
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:64935 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910AbaGWAw0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jul 2014 20:52:26 -0400
+From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+To: linux-media@vger.kernel.org, k.debski@samsung.com,
+	m.chehab@samsung.com, kyungmin.park@samsung.com,
+	jtp.park@samsung.com
+Cc: linux-samsung-soc@vger.kernel.org,
+	Zhaowei Yuan <zhaowei.yuan@samsung.com>
+Subject: [PATCH] media: s5p_mfc: Check the right pointer after allocation
+Date: Wed, 23 Jul 2014 08:48:45 +0800
+Message-id: <1406076525-5683-1-git-send-email-zhaowei.yuan@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
-    While doing some experiment I have done git commit and sent the mail
-with subject "[PATCH] added new files Signed-off-by: Vishwanatha Hatter
-<vishwanatha.hattera@itasin.com>"  Please ignore and remove this from
-the mailing list.
+It should be bank2_virt to be checked after dma allocation
+instead of dev->fw_virt_addr.
 
-Regards,
-Vishwa
+Change-Id: I03ed5603de3ef1d97bf76d7d42097d9489b6b003
+Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-iTAS Innovations Pvt. Ltd.
-#1585, 3rd floor, B-Block, Sahakaranagar,
-Bangalore, Karanataka, India, pin: 560092
-Email:vishwanatha.hattera@itasin.com
-Phone: +91-80-41675006
-Mob: +91-9945089777
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index dc1fc94..55ad881 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -50,7 +50,7 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 		bank2_virt = dma_alloc_coherent(dev->mem_dev_r, 1 << MFC_BASE_ALIGN_ORDER,
+ 					&bank2_dma_addr, GFP_KERNEL);
+
+-		if (IS_ERR(dev->fw_virt_addr)) {
++		if (IS_ERR(bank2_virt)) {
+ 			mfc_err("Allocating bank2 base failed\n");
+ 			dma_free_coherent(dev->mem_dev_l, dev->fw_size,
+ 				dev->fw_virt_addr, dev->bank1);
+--
+1.7.9.5
 
