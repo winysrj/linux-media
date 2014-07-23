@@ -1,66 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:35100 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbaGVQLH (ORCPT
+Received: from mail-bn1lp0142.outbound.protection.outlook.com ([207.46.163.142]:18643
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751570AbaGWFFy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 12:11:07 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9400L7RFMGGK60@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jul 2014 12:11:04 -0400 (EDT)
-Date: Tue, 22 Jul 2014 13:10:59 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: linux-media@vger.kernel.org, crope@iki.fi
-Subject: Re: [PATCH] si2157: Fix DVB-C bandwidth.
-Message-id: <20140722131059.4ad26777.m.chehab@samsung.com>
-In-reply-to: <1406027388-10336-1-git-send-email-ljalvs@gmail.com>
-References: <1406027388-10336-1-git-send-email-ljalvs@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 23 Jul 2014 01:05:54 -0400
+From: "Monica, Agnes" <Agnes.Monica@analog.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"v4l2-library@linuxtv.org" <v4l2-library@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: RE: [V4l2-library] FourCC support
+Date: Wed, 23 Jul 2014 05:04:58 +0000
+Message-ID: <E2B3634EC825DA45A0EB7D5409D69FBE584D1571@NWD2MBX6.ad.analog.com>
+References: <E2B3634EC825DA45A0EB7D5409D69FBE584D03FA@NWD2MBX6.ad.analog.com>
+ <53CE116D.8010404@xs4all.nl> <53CE14CF.9010900@xs4all.nl>
+In-Reply-To: <53CE14CF.9010900@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Jul 2014 12:09:48 +0100
-Luis Alves <ljalvs@gmail.com> escreveu:
+Hi,
 
-> This patch fixes DVB-C reception.
-> Without setting the bandwidth to 8MHz the received stream gets corrupted.
+It would be good if support exists for full and limited range. 
+
+1. So can we re-use(map) the existing  colorspace  for our different color format.
+2. Or is it a good way to use custom control command. 
+
+So in future if we come across some specific features with respect to our chip, is it good to use  custom control or  duplicate the functionality of the existing enums.
+
+Regards,
+Monica
+
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+Sent: Tuesday, July 22, 2014 1:08 PM
+To: Monica, Agnes; v4l2-library@linuxtv.org; linux-media; Lars-Peter Clausen
+Subject: Re: [V4l2-library] FourCC support
+
+On 07/22/14 09:23, Hans Verkuil wrote:
+> Hi Monica,
 > 
-> Regards,
-> Luis
+> The v4l2-library is not the best mailinglist for that so I've added 
+> linux-media as well, which is more appropriate. I've also added 
+> Lars-Peter since he does a lot of adv work as well.
 > 
-> Signed-off-by: Luis Alves <ljalvs@gmail.com>
-> ---
->  drivers/media/tuners/si2157.c | 1 +
->  1 file changed, 1 insertion(+)
+> The short answer is that those colorspaces are not supported at the 
+> moment, but that it is not a problem to add them, provided the driver 
+> you are working on is going to be upstreamed (i.e., we'd like to have 
+> users for the API elements we add).
 > 
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 6c53edb..e2de428 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -245,6 +245,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
->  			break;
->  	case SYS_DVBC_ANNEX_A:
->  			delivery_system = 0x30;
-> +			bandwidth = 0x08;
+> One note of interest: there is currently no API mechanism to tell 
+> userspace if the image data is limited or full range. YCbCr is always 
+> assumed to be limited range and RGB full range. If you need to signal 
+> that, then let me know. A flags field has been added to struct 
+> v4l2_pix_format in the last few days that would allow you to add a 
+> 'ALT_RANGE' flag, telling userspace that the alternate quantization 
+> range is used. This flag doesn't exist yet, but it is no problem to add it.
 
-Hmm... this patch looks wrong, as it will break DVB-C support where
-the bandwidth is lower than 6MHz.
+To prevent any confusion: the colorspace isn't determined by the format fourcc, it's a separate colorspace field using the V4L2_COLORSPACE_* defines. The pixelformat and colorspace are two very different things.
 
-The DVB core sets c->bandwidth_hz for DVB-C based on the rolloff and
-the symbol rate. If this is not working for you, then something else
-is likely wrong.
+Regards,
 
-I suggest you to add a printk() there to show what's the value set
-at c->bandwidth_hz and what's the symbol rate that you're using.
+	Hans
 
-On DVB-C, the rolloff is fixed (1.15 for annex A and 1.13 for Annex C).
-Not sure if DVB-C2 allows selecting a different rolloff factor, nor
-if si2157 works with DVB-C2.
+> 
+> Hope this helps,
+> 
+> 	Hans
+> 
+> On 07/22/14 08:18, Monica, Agnes wrote:
+>> Hi ,
+>>
+>> One of drivers which we are developing supports formats like sYcc , 
+>> AdobeRGB and AdobeYCC601 which was added recently in HDMI spec1.4. So 
+>> can you please tell me how will these formats be supported by fmt.
+>>
+>> Regards,
+>>
+>> Monica
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+> 
 
->  			break;
->  	default:
->  			ret = -EINVAL;
