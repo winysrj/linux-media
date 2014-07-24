@@ -1,48 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:47391 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813AbaGJOYu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 10:24:50 -0400
-Message-ID: <53BEA0DA.9000706@parrot.com>
-Date: Thu, 10 Jul 2014 16:19:06 +0200
-From: Julien BERAUD <julien.beraud@parrot.com>
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:49803 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934045AbaGXHPH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jul 2014 03:15:07 -0400
+Received: by mail-vc0-f172.google.com with SMTP id im17so4095515vcb.31
+        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 00:15:05 -0700 (PDT)
 MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-Subject: Configurable Video Controller Driver
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+Date: Thu, 24 Jul 2014 15:15:05 +0800
+Message-ID: <CAHG8p1DYyKmrFqa35JmUXnAffRo11k35bgemusKX13yGvYx68A@mail.gmail.com>
+Subject: Re: [PATCH 1/3] media: blackfin: ppi: Pass device pointer to request
+ peripheral pins
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Sonic Zhang <sonic.adi@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Sonic Zhang <sonic.zhang@analog.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2014-07-23 17:57 GMT+08:00 Sonic Zhang <sonic.adi@gmail.com>:
+> From: Sonic Zhang <sonic.zhang@analog.com>
+>
+> if the pinctrl driver is enabled.
+>
+> Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 
-We are developing a driver for our video controller which has the 
-particularity of being very reconfigurable.
-
-We have reached a point at which the complexity and variety of the 
-applications we need to implement forces us to
-design an api/library that allows us to configure the interconnection of 
-the different video processing units(Camera interfaces,
-LCD interfaces, scalers, rotators, demosaicing, dead pixel correction, 
-etc...) from userland.
-
-The media controller api has the limitation of not being able to create 
-links but just browsing and activating/deactivating them.
-If we just allowed a user to activate/deactivate links, then we would 
-have to declare all the possible connections between
-the different blocks, which would make it very confusing from a userland 
-point of view. Moreover, the interconnection constraints
-would have to be dealt with very generically, which would make it very 
-difficult in the kernel too.
-
-The conclusion we have reached yet is that we have to design an API that 
-allows us to create v4l2 subdevices that have certain 
-capabilities(scaling,rotating, demosaicing, etc...) and then to create 
-links between them from a userland library.
-I would like to know if anything like this has been implemented yet or 
-if someone has been thinking about such an
-architecture before.
-
-Thanks for your inputs,
-Julien BERAUD
-
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
