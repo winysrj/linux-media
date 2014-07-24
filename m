@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1947 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753063AbaGQSne (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50730 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933282AbaGXTuJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 14:43:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HIhVDe084328
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 20:43:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C03282A1FD1
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 20:43:29 +0200 (CEST)
-Message-ID: <53C81951.8070004@xs4all.nl>
-Date: Thu, 17 Jul 2014 20:43:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.17] saa7146: fix compile warning
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 24 Jul 2014 15:50:09 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: fix build error by making reset control optional
+Date: Thu, 24 Jul 2014 21:50:03 +0200
+Message-Id: <1406231403-17649-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall-out from the recent struct v4l2_framebuffer change.
+make reset control optional for i.MX27
 
-drivers/media/common/saa7146/saa7146_fops.c: In function ‘saa7146_vv_init’:
-drivers/media/common/saa7146/saa7146_fops.c:536:6: warning: assignment from incompatible pointer type [enabled by default]
-  fmt = &vv->ov_fb.fmt;
-        ^
+The patch "[media] coda: add reset control support" introduced a build failure
+if CONFIG_RESET_CONTROLLER is disabled:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    drivers/media/platform/coda.c:3734:2: error: implicit declaration of
+     function 'devm_reset_control_get'
+
+Since not all SoCs containing CODA VPUs do have a system reset controller,
+use devm_reset_control_get_optional to make it optional.
+
+Reported-by: Shawn Guo <shawn.guo@linaro.org>
+Reported-by: Olof's autobuilder <build@lixom.net>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/common/saa7146/saa7146_fops.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/media/platform/coda.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
-index f2cc521..d9e1d63 100644
---- a/drivers/media/common/saa7146/saa7146_fops.c
-+++ b/drivers/media/common/saa7146/saa7146_fops.c
-@@ -533,13 +533,12 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
- 	if (dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE)
- 		saa7146_vbi_uops.init(dev,vv);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 18758e2..ff61bb0 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -3779,10 +3779,10 @@ static int coda_probe(struct platform_device *pdev)
+ 		return -ENOENT;
+ 	}
  
--	fmt = &vv->ov_fb.fmt;
--	fmt->width = vv->standard->h_max_out;
--	fmt->height = vv->standard->v_max_out;
--	fmt->pixelformat = V4L2_PIX_FMT_RGB565;
--	fmt->bytesperline = 2 * fmt->width;
--	fmt->sizeimage = fmt->bytesperline * fmt->height;
--	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-+	vv->ov_fb.fmt.width = vv->standard->h_max_out;
-+	vv->ov_fb.fmt.height = vv->standard->v_max_out;
-+	vv->ov_fb.fmt.pixelformat = V4L2_PIX_FMT_RGB565;
-+	vv->ov_fb.fmt.bytesperline = 2 * vv->ov_fb.fmt.width;
-+	vv->ov_fb.fmt.sizeimage = vv->ov_fb.fmt.bytesperline * vv->ov_fb.fmt.height;
-+	vv->ov_fb.fmt.colorspace = V4L2_COLORSPACE_SRGB;
- 
- 	fmt = &vv->video_fmt;
- 	fmt->width = 384;
+-	dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
++	dev->rstc = devm_reset_control_get_optional(&pdev->dev, NULL);
+ 	if (IS_ERR(dev->rstc)) {
+ 		ret = PTR_ERR(dev->rstc);
+-		if (ret == -ENOENT) {
++		if (ret == -ENOENT || ret == -ENOSYS) {
+ 			dev->rstc = NULL;
+ 		} else {
+ 			dev_err(&pdev->dev, "failed get reset control: %d\n", ret);
 -- 
-2.0.0
+2.0.1
 
