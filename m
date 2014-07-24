@@ -1,41 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:46475 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbaGEBcG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 21:32:06 -0400
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Cc: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Subject: [PATCH] [media] davinci-vpfe: Fix retcode check
-Date: Sat,  5 Jul 2014 04:31:49 +0300
-Message-Id: <1404523909-2058-1-git-send-email-andrey.krieger.utkin@gmail.com>
+Received: from mail-vc0-f179.google.com ([209.85.220.179]:49294 "EHLO
+	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934045AbaGXHPf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jul 2014 03:15:35 -0400
+Received: by mail-vc0-f179.google.com with SMTP id hq11so4074177vcb.24
+        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 00:15:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1406109436-23922-2-git-send-email-sonic.adi@gmail.com>
+References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+	<1406109436-23922-2-git-send-email-sonic.adi@gmail.com>
+Date: Thu, 24 Jul 2014 15:15:34 +0800
+Message-ID: <CAHG8p1CAADwAL0VwRXu4pYGePR_Mf96WMbCKHVZ5MKyW6+W23w@mail.gmail.com>
+Subject: Re: [PATCH 2/3] v4l2: bfin: Ensure delete and reinit list entry on
+ NOMMU architecture
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Sonic Zhang <sonic.adi@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	Sonic Zhang <sonic.zhang@analog.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-See https://bugzilla.kernel.org/show_bug.cgi?id=69071
----8<---
-Use signed type to check correctly for negative error code
+2014-07-23 17:57 GMT+08:00 Sonic Zhang <sonic.adi@gmail.com>:
+> From: Sonic Zhang <sonic.zhang@analog.com>
+>
+> On NOMMU architecture page fault is not triggered if a deleted list entry is
+> accessed without reinit.
+>
+> Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
----
- drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-index b2daf5e..e326032 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-@@ -254,7 +254,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
- 	void __iomem *ipipe_base = ipipe->base_addr;
- 	struct v4l2_mbus_framefmt *outformat;
- 	u32 color_pat;
--	u32 ipipe_mode;
-+	int ipipe_mode;
- 	u32 data_path;
- 
- 	/* enable clock to IPIPE */
--- 
-1.8.3.2
-
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
