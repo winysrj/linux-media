@@ -1,114 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:54137 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbaGCTis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jul 2014 15:38:48 -0400
-Date: Fri, 4 Jul 2014 01:08:40 +0530
-From: Himangi Saraogi <himangi774@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
+Received: from mga09.intel.com ([134.134.136.24]:43843 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759338AbaGXP26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jul 2014 11:28:58 -0400
+Date: Thu, 24 Jul 2014 23:27:59 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
-Subject: [PATCH] staging: lirc: Introduce the use of managed interfaces
-Message-ID: <20140703193840.GA4358@himangi-Dell>
+	kbuild-all@01.org
+Subject: [next:master 7657/8702] drivers/media/platform/coda.c:3734:2:
+ error: implicit declaration of function 'devm_reset_control_get'
+Message-ID: <53d125ff.1T11dzM12ENQarQp%fengguang.wu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces the use of managed interfaces like
-devm_request_mem_region and devm_request_irq and does away with the
-calls to free the allocated memory in the probe and remove functions.
-The remove function is no longer required and is removed completely.
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+head:   1a58d9909611972fd1c081bb04a9f7dc2571e612
+commit: 8f45284c4ed758174d22342aca1bb7299f76b012 [7657/8702] [media] coda: add reset control support
+config: make ARCH=arm imx_v4_v5_defconfig
 
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+All error/warnings:
+
+   drivers/media/platform/coda.c: In function 'coda_probe':
+>> drivers/media/platform/coda.c:3734:2: error: implicit declaration of function 'devm_reset_control_get' [-Werror=implicit-function-declaration]
+     dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
+     ^
+>> drivers/media/platform/coda.c:3734:12: warning: assignment makes pointer from integer without a cast
+     dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
+               ^
+   cc1: some warnings being treated as errors
+
+vim +/devm_reset_control_get +3734 drivers/media/platform/coda.c
+
+  3728		if (devm_request_threaded_irq(&pdev->dev, irq, NULL, coda_irq_handler,
+  3729			IRQF_ONESHOT, dev_name(&pdev->dev), dev) < 0) {
+  3730			dev_err(&pdev->dev, "failed to request irq\n");
+  3731			return -ENOENT;
+  3732		}
+  3733	
+> 3734		dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
+  3735		if (IS_ERR(dev->rstc)) {
+  3736			ret = PTR_ERR(dev->rstc);
+  3737			if (ret == -ENOENT) {
+
 ---
- drivers/staging/media/lirc/lirc_serial.c | 37 ++++++--------------------------
- 1 file changed, 7 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-index efe561c..bae0d46 100644
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ b/drivers/staging/media/lirc/lirc_serial.c
-@@ -782,7 +782,7 @@ static int lirc_serial_probe(struct platform_device *dev)
- {
- 	int i, nlow, nhigh, result;
- 
--	result = request_irq(irq, lirc_irq_handler,
-+	result = devm_request_irq(&dev->dev, irq, lirc_irq_handler,
- 			     (share_irq ? IRQF_SHARED : 0),
- 			     LIRC_DRIVER_NAME, (void *)&hardware);
- 	if (result < 0) {
-@@ -800,22 +800,22 @@ static int lirc_serial_probe(struct platform_device *dev)
- 	 * for the NSLU2 it's done in boot code.
- 	 */
- 	if (((iommap != 0)
--	     && (request_mem_region(iommap, 8 << ioshift,
--				    LIRC_DRIVER_NAME) == NULL))
-+	     && (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
-+					 LIRC_DRIVER_NAME) == NULL))
- 	   || ((iommap == 0)
--	       && (request_region(io, 8, LIRC_DRIVER_NAME) == NULL))) {
-+	       && (devm_request_region(&dev->dev, io, 8,
-+				       LIRC_DRIVER_NAME) == NULL))) {
- 		dev_err(&dev->dev, "port %04x already in use\n", io);
- 		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
- 		dev_warn(&dev->dev,
- 			 "or compile the serial port driver as module and\n");
- 		dev_warn(&dev->dev, "make sure this module is loaded first\n");
--		result = -EBUSY;
--		goto exit_free_irq;
-+		return -EBUSY;
- 	}
- 
- 	result = hardware_init_port();
- 	if (result < 0)
--		goto exit_release_region;
-+		return result;
- 
- 	/* Initialize pulse/space widths */
- 	init_timing_params(duty_cycle, freq);
-@@ -847,28 +847,6 @@ static int lirc_serial_probe(struct platform_device *dev)
- 
- 	dprintk("Interrupt %d, port %04x obtained\n", irq, io);
- 	return 0;
--
--exit_release_region:
--	if (iommap != 0)
--		release_mem_region(iommap, 8 << ioshift);
--	else
--		release_region(io, 8);
--exit_free_irq:
--	free_irq(irq, (void *)&hardware);
--
--	return result;
--}
--
--static int lirc_serial_remove(struct platform_device *dev)
--{
--	free_irq(irq, (void *)&hardware);
--
--	if (iommap != 0)
--		release_mem_region(iommap, 8 << ioshift);
--	else
--		release_region(io, 8);
--
--	return 0;
- }
- 
- static int set_use_inc(void *data)
-@@ -1081,7 +1059,6 @@ static int lirc_serial_resume(struct platform_device *dev)
- 
- static struct platform_driver lirc_serial_driver = {
- 	.probe		= lirc_serial_probe,
--	.remove		= lirc_serial_remove,
- 	.suspend	= lirc_serial_suspend,
- 	.resume		= lirc_serial_resume,
- 	.driver		= {
--- 
-1.9.1
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
