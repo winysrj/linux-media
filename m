@@ -1,121 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55247 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290AbaGUQ2X (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:45148 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935008AbaGXXWO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 12:28:23 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH 3/3] xc4000: Fix get_frequency()
-Date: Mon, 21 Jul 2014 13:28:15 -0300
-Message-Id: <1405960095-29408-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
-References: <1405960095-29408-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 24 Jul 2014 19:22:14 -0400
+Received: by mail-pd0-f174.google.com with SMTP id fp1so4532989pdb.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 16:22:14 -0700 (PDT)
+Date: Thu, 24 Jul 2014 16:20:25 -0700 (PDT)
+From: Hugh Dickins <hughd@google.com>
+To: Martin Kepplinger <martink@posteo.de>
+cc: Daniel Vetter <ffwll.ch@google.com>,
+	Zhang Rui <rui.zhang@intel.com>,
+	"rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+	"lenb@kernel.org" <lenb@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel
+ loading
+In-Reply-To: <53D131E7.2090304@posteo.de>
+Message-ID: <alpine.LSU.2.11.1407241610320.3733@eggly.anvils>
+References: <53A6E72A.9090000@posteo.de>  <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>  <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>  <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>
+  <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>  <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>  <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de> <53B13E4B.2080603@posteo.de>
+ <53D131E7.2090304@posteo.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The programmed frequency on xc4000 is not the middle
-frequency, but the initial frequency on the bandwidth range.
-However, the DVB API works with the middle frequency.
+On Thu, 24 Jul 2014, Martin Kepplinger wrote:
+> Am 2014-06-30 12:39, schrieb Martin Kepplinger:
+> > back to aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+> > commit. why is this not revertable exactly? how can I show a complete
+> > list of commits this merge introduces?
+> > 
+> 
+> It seems that _nobody_ is running a simple 32 bit i915 (acer) laptop.
+> rc6 is still unusable. Black screen directly after kernel-loading. no
+> change since rc1.
+> 
+> Seems like I won't be able to use 3.16. I'm happy to test patches and am
+> happy for any advice what to do, when time permits.
 
-This works fine on set_frontend, as the device calculates
-the needed offset. However, at get_frequency(), the returned
-value is the initial frequency. That's generally not a big
-problem on most drivers, however, starting with changeset
-6fe1099c7aec, the frequency drift is taken into account at
-dib7000p driver.
+Martin, I know nothing about aaeb25543372 and why it should be relevant,
+but if you're having rc1..rc6 32-bit i915 black screens, please try this
+patch that Daniel Vetter put in his fixes queue on Monday, which I'm
+hoping will reach Linus for -rc7.
 
-This broke support for PCTV 340e, with uses dib7000p demod and
-xc4000 tuner.
+Hugh
 
-Cc: stable@vger.kernel.org
+[PATCH] drm/i915: fix freeze with blank screen booting highmem
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+x86_64 boots and displays fine, but booting x86_32 with CONFIG_HIGHMEM
+has frozen with a blank screen throughout 3.16-rc on this ThinkPad T420s,
+with i915 generation 6 graphics.
+
+Fix 9d0a6fa6c5e6 ("drm/i915: add render state initialization"): kunmap()
+takes struct page * argument, not virtual address.  Which the compiler
+kindly points out, if you use the appropriate u32 *batch, instead of
+silencing it with a void *.
+
+Why did bisection lead decisively to nearby 229b0489aa75 ("drm/i915:
+add null render states for gen6, gen7 and gen8")?  Because the u32
+deposited at that virtual address by the previous stub failed the
+PageHighMem test, and so caused no harm.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
 ---
- drivers/media/tuners/xc4000.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index 7d008b4d3595..a19ef1046f89 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -93,7 +93,7 @@ struct xc4000_priv {
- 	struct firmware_description *firm;
- 	int	firm_size;
- 	u32	if_khz;
--	u32	freq_hz;
-+	u32	freq_hz, freq_offset;
- 	u32	bandwidth;
- 	u8	video_standard;
- 	u8	rf_mode;
-@@ -1172,14 +1172,14 @@ static int xc4000_set_params(struct dvb_frontend *fe)
- 	case SYS_ATSC:
- 		dprintk(1, "%s() VSB modulation\n", __func__);
- 		priv->rf_mode = XC_RF_MODE_AIR;
--		priv->freq_hz = c->frequency - 1750000;
-+		priv->freq_offset = 1750000;
- 		priv->video_standard = XC4000_DTV6;
- 		type = DTV6;
- 		break;
- 	case SYS_DVBC_ANNEX_B:
- 		dprintk(1, "%s() QAM modulation\n", __func__);
- 		priv->rf_mode = XC_RF_MODE_CABLE;
--		priv->freq_hz = c->frequency - 1750000;
-+		priv->freq_offset = 1750000;
- 		priv->video_standard = XC4000_DTV6;
- 		type = DTV6;
- 		break;
-@@ -1188,23 +1188,23 @@ static int xc4000_set_params(struct dvb_frontend *fe)
- 		dprintk(1, "%s() OFDM\n", __func__);
- 		if (bw == 0) {
- 			if (c->frequency < 400000000) {
--				priv->freq_hz = c->frequency - 2250000;
-+				priv->freq_offset= 2250000;
- 			} else {
--				priv->freq_hz = c->frequency - 2750000;
-+				priv->freq_offset = 2750000;
- 			}
- 			priv->video_standard = XC4000_DTV7_8;
- 			type = DTV78;
- 		} else if (bw <= 6000000) {
- 			priv->video_standard = XC4000_DTV6;
--			priv->freq_hz = c->frequency - 1750000;
-+			priv->freq_offset = 1750000;
- 			type = DTV6;
- 		} else if (bw <= 7000000) {
- 			priv->video_standard = XC4000_DTV7;
--			priv->freq_hz = c->frequency - 2250000;
-+			priv->freq_offset = 2250000;
- 			type = DTV7;
- 		} else {
- 			priv->video_standard = XC4000_DTV8;
--			priv->freq_hz = c->frequency - 2750000;
-+			priv->freq_offset = 2750000;
- 			type = DTV8;
- 		}
- 		priv->rf_mode = XC_RF_MODE_AIR;
-@@ -1215,6 +1215,8 @@ static int xc4000_set_params(struct dvb_frontend *fe)
- 		goto fail;
- 	}
+ drivers/gpu/drm/i915/i915_gem_render_state.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- 3.16-rc/drivers/gpu/drm/i915/i915_gem_render_state.c	2014-06-16 00:28:52.384076465 -0700
++++ linux/drivers/gpu/drm/i915/i915_gem_render_state.c	2014-07-21 20:10:03.824481521 -0700
+@@ -31,7 +31,7 @@
+ struct i915_render_state {
+ 	struct drm_i915_gem_object *obj;
+ 	unsigned long ggtt_offset;
+-	void *batch;
++	u32 *batch;
+ 	u32 size;
+ 	u32 len;
+ };
+@@ -80,7 +80,7 @@ free:
  
-+	priv->freq_hz = c->frequency - priv->freq_offset;
-+
- 	dprintk(1, "%s() frequency=%d (compensated)\n",
- 		__func__, priv->freq_hz);
- 
-@@ -1535,7 +1537,7 @@ static int xc4000_get_frequency(struct dvb_frontend *fe, u32 *freq)
+ static void render_state_free(struct i915_render_state *so)
  {
- 	struct xc4000_priv *priv = fe->tuner_priv;
- 
--	*freq = priv->freq_hz;
-+	*freq = priv->freq_hz + priv->freq_offset;
- 
- 	if (debug) {
- 		mutex_lock(&priv->lock);
--- 
-1.9.3
-
+-	kunmap(so->batch);
++	kunmap(kmap_to_page(so->batch));
+ 	i915_gem_object_ggtt_unpin(so->obj);
+ 	drm_gem_object_unreference(&so->obj->base);
+ 	kfree(so);
