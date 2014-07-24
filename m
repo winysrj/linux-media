@@ -1,94 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:55221 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932647AbaGURvN (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:59429 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767AbaGXKkp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 13:51:13 -0400
-Date: Mon, 21 Jul 2014 14:51:05 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 3.16-rc7] media fixes for master
-Message-id: <20140721145105.416d098b.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 24 Jul 2014 06:40:45 -0400
+Received: by mail-wg0-f41.google.com with SMTP id z12so2504331wgg.0
+        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 03:40:44 -0700 (PDT)
+From: Austin Lund <austin.lund@gmail.com>
+To: m.chehab@samsung.com
+Cc: Austin Lund <austin.lund@gmail.com>, linux-media@vger.kernel.org
+Subject: [PATCH] media/rc: Send sync space information on the lirc device.
+Date: Thu, 24 Jul 2014 11:40:20 +0100
+Message-Id: <1406198420-22475-1-git-send-email-austin.lund@gmail.com>
+In-Reply-To: <20140723195718.14648780.m.chehab@samsung.com>
+References: <20140723195718.14648780.m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+Userspace expects to see a long space before the first pulse is sent on
+the lirc device.  Currently, if a long time has passed and a new packet
+is started, the lirc codec just returns and doesn't send anything.  This
+makes lircd ignore many perfectly valid signals unless they are sent in
+quick sucession.  When a reset event is delivered, we cannot know
+anything about the duration of the space.  But it should be safe to
+assume it has been a long time and we just set the duration to maximum.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+Signed-off-by: Austin Lund <austin.lund@gmail.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/ir-lirc-codec.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-For a series of driver fixes:
-	- Fix DVB-S tuning with tda1071;
-	- Fix tuner probe on af9035 when the device has a bad eeprom;
-	- Some fixes for the new si2168/2157 drivers;
-	- one Kconfig build fix (for omap4iss);
-	- Fixes at vpif error path;
-	- Don't lock saa7134 ioctl at driver's base core level, as it now
-	  uses V4L2 and VB2 locking schema;
-	- Fix audio at hdpvr driver;
-	- Fix the aspect ratio at the digital timings table;
-	- One new USB ID (at gspca_pac7302): Genius i-Look 317 webcam
-
-Regards,
-Mauro
-
-The following changes since commit a2668e10d7246e782f7708dc47c00f035da23a81:
-
-  [media] au0828-dvb: restore its permission to 644 (2014-06-04 15:19:36 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-for you to fetch changes up to 242841d3d71191348f98310e2d2001e1001d8630:
-
-  [media] gspca_pac7302: Add new usb-id for Genius i-Look 317 (2014-07-14 21:06:35 -0300)
-
-----------------------------------------------------------------
-Antti Palosaari (8):
-      [media] si2168: add one missing parenthesis
-      [media] si2157: add one missing parenthesis
-      [media] si2168: firmware download fix
-      [media] af9035: override tuner id when bad value set into eeprom
-      [media] tda10071: force modulation to QPSK on DVB-S
-      [media] tda10071: add missing DVB-S2/PSK-8 FEC AUTO
-      [media] tda10071: fix spec inversion reporting
-      [media] tda10071: fix returned symbol rate calculation
-
-Arnd Bergmann (1):
-      [media] staging: tighten omap4iss dependencies
-
-Dan Carpenter (1):
-      [media] davinci: vpif: missing unlocks on error
-
-Hans Verkuil (2):
-      [media] saa7134: use unlocked_ioctl instead of ioctl
-      [media] hdpvr: fix two audio bugs
-
-Hans de Goede (1):
-      [media] gspca_pac7302: Add new usb-id for Genius i-Look 317
-
-Rickard Strandqvist (1):
-      [media] media: v4l2-core: v4l2-dv-timings.c: Cleaning up code wrong value used in aspect ratio
-
- drivers/media/dvb-frontends/si2168.c          | 16 +----------
- drivers/media/dvb-frontends/si2168_priv.h     |  2 +-
- drivers/media/dvb-frontends/tda10071.c        | 12 +++++---
- drivers/media/dvb-frontends/tda10071_priv.h   |  1 +
- drivers/media/pci/saa7134/saa7134-empress.c   |  2 +-
- drivers/media/platform/davinci/vpif_capture.c |  1 +
- drivers/media/platform/davinci/vpif_display.c |  1 +
- drivers/media/tuners/si2157.c                 |  2 +-
- drivers/media/usb/dvb-usb-v2/af9035.c         | 40 ++++++++++++++++++++++-----
- drivers/media/usb/gspca/pac7302.c             |  1 +
- drivers/media/usb/hdpvr/hdpvr-video.c         |  6 ++--
- drivers/media/v4l2-core/v4l2-dv-timings.c     |  4 +--
- drivers/staging/media/omap4iss/Kconfig        |  2 +-
- 13 files changed, 55 insertions(+), 35 deletions(-)
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index d731da6..2af2326 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -42,11 +42,17 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		return -EINVAL;
+ 
+ 	/* Packet start */
+-	if (ev.reset)
+-		return 0;
++	if (ev.reset) {
++		/* Userspace expects a long space event before the start of
++		 * the signal to use as a sync.  This may be done with repeat
++		 * packets and normal samples.  But if a reset has been sent
++		 * then we assume that a long time has passed, so we send a
++		 * space with the maximum time value. */
++		sample = LIRC_SPACE(LIRC_VALUE_MASK);
++		IR_dprintk(2, "delivering reset sync space to lirc_dev\n");
+ 
+ 	/* Carrier reports */
+-	if (ev.carrier_report) {
++	} else if (ev.carrier_report) {
+ 		sample = LIRC_FREQUENCY(ev.carrier);
+ 		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
+ 
+-- 
+2.0.2
 
