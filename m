@@ -1,103 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37693 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755175AbaGUWaL (ORCPT
+Received: from qmta07.emeryville.ca.mail.comcast.net ([76.96.30.64]:49568 "EHLO
+	qmta07.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933651AbaGXQCU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 18:30:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
-Date: Tue, 22 Jul 2014 00:30:22 +0200
-Message-ID: <1479223.veAhoGoXLY@avalon>
-In-Reply-To: <53CD8974.20109@xs4all.nl>
-References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com> <53CD8974.20109@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 24 Jul 2014 12:02:20 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, olebowle@gmx.com, dheitmueller@kernellabs.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] dvb-core and drx39xyj - add resume support
+Date: Thu, 24 Jul 2014 10:02:13 -0600
+Message-Id: <cover.1406215947.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Some fe drivers will have to do additional initialization
+in their fe ops.init interfaces when called during resume.
+Without the additional initialization, fe and tuner driver
+resume fails. A new fe exit flag value DVB_FE_DEVICE_RESUME
+is necessary to detect resume case.
 
-On Monday 21 July 2014 23:43:16 Hans Verkuil wrote:
-> On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
-> > The RGB666 pixel format doesn't include an alpha channel. Document it as
-> > such.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20 +++++----------
-> > 1 file changed, 6 insertions(+), 14 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> > b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
-> > 32feac9..c47692a 100644
-> > --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> > +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> > @@ -330,20 +330,12 @@ colorspace
-> > <constant>V4L2_COLORSPACE_SRGB</constant>.</para>> 
-> >  	    <entry></entry>
-> >  	    <entry>r<subscript>1</subscript></entry>
-> >  	    <entry>r<subscript>0</subscript></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > -	    <entry></entry>
-> > +	    <entry>-</entry>
-> > +	    <entry>-</entry>
-> > +	    <entry>-</entry>
-> > +	    <entry>-</entry>
-> > +	    <entry>-</entry>
-> > +	    <entry>-</entry>
-> 
-> Just to clarify: BGR666 is a three byte format, not a four byte format?
+This patch series adds: 
 
-Well... :-)
+- a new define and changes dvb_frontend_resume() to set it
+  prior to calling fe init and tuner init calls and resets
+  it back to DVB_FE_NO_EXIT once fe and tuner init is done.
 
-Three drivers seem to support the BGR666 in mainline : sh_veu, s3c-camif and 
-exynos4-is. Further investigation shows that the sh_veu driver lists the 
-BGR666 format internally but doesn't expose it to userspace and doesn't 
-actually support it, so we're down to two drivers.
+- drx39xyj driver lacks resume support. Add support by changing
+  its fe ops init interface to detect the resume status by checking
+  fe exit flag and do the necessary initialization. With this change,
+  driver resume correctly in both dvb adapter is not in use and in use
+  by an application cases.
 
-Looking at the S3C6410 datasheet, it's unclear how the hardware stores RGB666 
-pixels in memory. It could be either
+- The first patch depends on a previous patch that moved
+  fe exit flag from fepriv to fe for driver access
 
-Byte 0   Byte 1   Byte 2   Byte 3
+https://lkml.org/lkml/2014/7/12/115
 
--------- ------RR RRRRGGGG GGBBBBBB
+Shuah Khan (2):
+  media: dvb-core add new flag exit flag value for resume
+  media: drx39xyj - add resume support
 
-or
-
-GGBBBBBB RRRRGGGG ------RR --------
-
-None of those correspond to the RGB666 format defined in the spec.
-
-The Exynos4 FIMC isn't documented in the public datasheet, so I can't check 
-how the format is defined.
-
-Furthermore, various Renesas video-related IP cores support many different 
-RGB666 variants, on either 32 or 24 bits per pixel, with and without alpha.
-
-Beside a loud *sigh*, any comment ? :-)
-
-> >  	  </row>
-> >  	  <row id="V4L2-PIX-FMT-BGR24">
-> >  	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ drivers/media/dvb-core/dvb_frontend.c       |    2 +
+ drivers/media/dvb-core/dvb_frontend.h       |    1 +
+ drivers/media/dvb-frontends/drx39xyj/drxj.c |   65 +++++++++++++++++----------
+ 3 files changed, 45 insertions(+), 23 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
