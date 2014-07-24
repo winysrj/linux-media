@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:58275 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbaGBNuF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 09:50:05 -0400
-Received: by mail-la0-f48.google.com with SMTP id el20so6913866lab.7
-        for <linux-media@vger.kernel.org>; Wed, 02 Jul 2014 06:50:03 -0700 (PDT)
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH] staging: omap4iss: Fix type of struct iss_device::crashed
-Date: Wed,  2 Jul 2014 15:49:46 +0200
-Message-Id: <1404308986-21761-1-git-send-email-linux@rasmusvillemoes.dk>
+Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:38683 "EHLO
+	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932207AbaGXQCU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jul 2014 12:02:20 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, olebowle@gmx.com, dheitmueller@kernellabs.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] media: dvb-core add new flag exit flag value for resume
+Date: Thu, 24 Jul 2014 10:02:14 -0600
+Message-Id: <e40686f1c07261e606bf5eee3facf3b139e51b6c.1406215947.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1406215947.git.shuah.kh@samsung.com>
+References: <cover.1406215947.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1406215947.git.shuah.kh@samsung.com>
+References: <cover.1406215947.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The crashed member of struct iss_device is documented to be a bitmask,
-but a bool doesn't hold that many (usable) bits. Lines 589 and 659 of
-iss.c strongly suggest that "unsigned int" was meant (the same type as
-struct iss_pipeline::entities). Currently, any crashed entity will be
-blamed on index 0, which is unlikely to be what was intended.
+Some fe drivers will have to do additional initialization
+in their fe ops.init interfaces when called during resume.
+Without the additional initialization, fe and tuner driver
+resume fails. A new fe exit flag value DVB_FE_DEVICE_RESUME
+is necessary to detect resume case. This patch adds a new
+define and changes dvb_frontend_resume() to set it prior to
+calling fe init and tuner init calls and resets it back to
+DVB_FE_NO_EXIT once fe and tuner init is done.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/staging/media/omap4iss/iss.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-core/dvb_frontend.c |    2 ++
+ drivers/media/dvb-core/dvb_frontend.h |    1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
-index 05cd9bf..734cfee 100644
---- a/drivers/staging/media/omap4iss/iss.h
-+++ b/drivers/staging/media/omap4iss/iss.h
-@@ -97,7 +97,7 @@ struct iss_device {
- 	u64 raw_dmamask;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index c833220..7c7f35c 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2568,12 +2568,14 @@ int dvb_frontend_resume(struct dvb_frontend *fe)
+ 	dev_dbg(fe->dvb->device, "%s: adap=%d fe=%d\n", __func__, fe->dvb->num,
+ 			fe->id);
  
- 	struct mutex iss_mutex;	/* For handling ref_count field */
--	bool crashed;
-+	unsigned int crashed;
- 	int has_context;
- 	int ref_count;
++	fe->exit = DVB_FE_DEVICE_RESUME;
+ 	if (fe->ops.init)
+ 		ret = fe->ops.init(fe);
  
+ 	if (fe->ops.tuner_ops.init)
+ 		ret = fe->ops.tuner_ops.init(fe);
+ 
++	fe->exit = DVB_FE_NO_EXIT;
+ 	fepriv->state = FESTATE_RETUNE;
+ 	dvb_frontend_wakeup(fe);
+ 
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 625a340..d398de4 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -408,6 +408,7 @@ struct dtv_frontend_properties {
+ #define DVB_FE_NO_EXIT  0
+ #define DVB_FE_NORMAL_EXIT      1
+ #define DVB_FE_DEVICE_REMOVED   2
++#define DVB_FE_DEVICE_RESUME    3
+ 
+ struct dvb_frontend {
+ 	struct dvb_frontend_ops ops;
 -- 
-1.9.2
+1.7.10.4
 
