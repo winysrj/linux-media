@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:32726 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbaGJI6K (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38039 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932975AbaGYPJH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 04:58:10 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+	Fri, 25 Jul 2014 11:09:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, k.debski@samsung.com, jtp.park@samsung.com,
-	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: [PATCH v2 2/3] ARM: dts: exynos3250 add MFC codec device node
-Date: Thu, 10 Jul 2014 10:57:58 +0200
-Message-id: <1404982678-23435-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 01/11] [media] coda: remove unnecessary peek at next destination buffer from coda_finish_decode
+Date: Fri, 25 Jul 2014 17:08:27 +0200
+Message-Id: <1406300917-18169-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: devicetree@vger.kernel.org
----
- arch/arm/boot/dts/exynos3250.dtsi |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+The return value of this call to v4l2_m2m_next_dst_buf() is never used.
 
-diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
-index 351871a..01bf5fa 100644
---- a/arch/arm/boot/dts/exynos3250.dtsi
-+++ b/arch/arm/boot/dts/exynos3250.dtsi
-@@ -283,6 +283,17 @@
- 			status = "disabled";
- 		};
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 1d2716d..cc9afb7 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1580,8 +1580,6 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	u32 err_mb;
+ 	u32 val;
  
-+		codec@13400000 {
-+			compatible = "samsung,mfc-v7";
-+			reg = <0x13400000 0x10000>;
-+			interrupts = <0 102 0>;
-+			clock-names = "mfc", "sclk-mfc";
-+			clocks = <&cmu CLK_MFC>, <&cmu CLK_SCLK_MFC>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			samsung,power-domain = <&pd_mfc>;
-+		};
-+
- 		serial_0: serial@13800000 {
- 			compatible = "samsung,exynos4210-uart";
- 			reg = <0x13800000 0x100>;
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+-
+ 	/* Update kfifo out pointer from coda bitstream read pointer */
+ 	coda_kfifo_sync_from_device(ctx);
+ 
 -- 
-1.7.9.5
+2.0.1
 
