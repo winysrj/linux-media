@@ -1,34 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f66.google.com ([209.85.216.66]:48982 "EHLO
-	mail-qa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752553AbaG3Xso (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2971 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbaGYS1W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 19:48:44 -0400
-Received: by mail-qa0-f66.google.com with SMTP id cm18so477155qab.1
-        for <linux-media@vger.kernel.org>; Wed, 30 Jul 2014 16:48:44 -0700 (PDT)
+	Fri, 25 Jul 2014 14:27:22 -0400
+Message-ID: <53D2A183.30000@xs4all.nl>
+Date: Fri, 25 Jul 2014 20:27:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Thu, 31 Jul 2014 01:27:03 +0200
-Message-ID: <CABfGM6_nBUSgO_4D4Wi_h67VQOty+jYQXqE0JDvRx0gL-rj_bw@mail.gmail.com>
-Subject: -- Re: Very Urgent............
-From: Fabian Morision <fmorision1@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l2-ctrls: negative integer control values broken
+References: <53D2A115.5010209@googlemail.com>
+In-Reply-To: <53D2A115.5010209@googlemail.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings from gulf region
+On 07/25/2014 08:25 PM, Frank Schäfer wrote:
+> Hans,
+> 
+> sorry for bothering you with another issue on friday evening. :-/
+> But it seems that commit 958c7c7e65 ("[media] v4l2-ctrls: fix corner
+> case in round-to-range code") introduced a regression for controls which
+> are using a negative integer value range.
+> All negative values are mapped to the maximum (positive) value (check
+> em28xx brightness, red and blue balance bridge controls for example).
+> Reverting this commit makes them working again.
+> At a first glance I can't find a mistake...
 
-Thanks for the e-mail. I am very interested on funding lucrative
-business partnership with you acting as the manager and sole
-controller of the investment while i remain a silent investor for a
-period of ten yrs , though I am only looking at investment
-opportunities within the range you specified for a start. You can
-reply me here (fmorision@yahoo.com)
+I'll take a look at this this weekend. Thanks for reporting this!
 
-Let me know your thought asap
+	Hans
 
-Regards
-
-Financial Consultant
-
-Mr.Fabian Morision
