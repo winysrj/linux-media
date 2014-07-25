@@ -1,79 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:41848 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750906AbaGJKPe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 06:15:34 -0400
-Date: Thu, 10 Jul 2014 11:15:23 +0100
-From: Ian Molton <ian.molton@codethink.co.uk>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 3/4] media: rcar_vin: Fix race condition terminating
- stream
-Message-Id: <20140710111523.17ae9078e53001c18bdf6eac@codethink.co.uk>
-In-Reply-To: <53BC17D6.2070607@cogentembedded.com>
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-	<1404812474-7627-4-git-send-email-ian.molton@codethink.co.uk>
-	<53BC17D6.2070607@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:46675 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757734AbaGYJnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 05:43:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] Kconfig: fix tuners build warnings
+Date: Fri, 25 Jul 2014 12:42:43 +0300
+Message-Id: <1406281364-19497-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 08 Jul 2014 20:09:58 +0400
-Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> wrote:
+[next:master 7472/8702] warning: (USB_MSI2500) selects
+MEDIA_TUNER_MSI001 which has unmet direct dependencies
+((MEDIA_ANALOG_TV_SUPPORT || ..) && ..)
 
-> Hello.
+[next:master 7698/8702] warning: (MEDIA_TUNER && ..) selects
+MEDIA_TUNER_XC5000 which has unmet direct dependencies
+((MEDIA_ANALOG_TV_SUPPORT || ..) && ..)
 
-Hi,
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> > Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-> > Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> > ---
-> >   drivers/media/platform/soc_camera/rcar_vin.c | 43 ++++++++++++++++++----------
-> >   1 file changed, 28 insertions(+), 15 deletions(-)
-> 
-> > diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> > index 06ce705..aeda4e2 100644
-> > --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> > +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> [...]
-> > @@ -462,7 +485,6 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
-> >   	struct rcar_vin_priv *priv = ici->priv;
-> >   	unsigned int i;
-> >   	int buf_in_use = 0;
-> > -
-> >   	spin_lock_irq(&priv->lock);
-> 
->     This seems like a random whitespace change. This empty should be present.
-
-Agreed.
-
-> [...]
-> > @@ -517,12 +527,15 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
-> >
-> >   	spin_lock_irq(&priv->lock);
-> >
-> > +	rcar_vin_wait_stop_streaming(priv);
-> > +
-> >   	for (i = 0; i < vq->num_buffers; ++i)
-> >   		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> >   			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
-> >
-> >   	list_for_each_safe(buf_head, tmp, &priv->capture)
-> >   		list_del_init(buf_head);
-> > +
-> 
->     Also quite a random "drove-by" change.
-
-Agreed.
-
-Any further comments? If not, I can re-spin this ready for upstreaming.
-
-
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index 51edd10..d79fd1c 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -16,7 +16,7 @@ config MEDIA_TUNER
+ 
+ menu "Customize TV tuners"
+ 	visible if !MEDIA_SUBDRV_AUTOSELECT
+-	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT
++	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
+ 
+ config MEDIA_TUNER_SIMPLE
+ 	tristate "Simple tuner support"
+@@ -74,6 +74,7 @@ config MEDIA_TUNER_TEA5767
+ config MEDIA_TUNER_MSI001
+ 	tristate "Mirics MSi001"
+ 	depends on MEDIA_SUPPORT && SPI && VIDEO_V4L2
++	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Mirics MSi001 silicon tuner driver.
+ 
 -- 
-Ian Molton <ian.molton@codethink.co.uk>
+http://palosaari.fi/
+
