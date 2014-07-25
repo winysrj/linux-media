@@ -1,107 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1454 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754761AbaGNM7i (ORCPT
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:62484 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287AbaGYMZL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 08:59:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/12] v4l2-ioctl: call g_selection before calling cropcap
-Date: Mon, 14 Jul 2014 14:59:04 +0200
-Message-Id: <1405342752-46998-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 25 Jul 2014 08:25:11 -0400
+Received: by mail-oa0-f48.google.com with SMTP id m1so5417000oag.35
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 05:25:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53D24A74.5060001@xs4all.nl>
+References: <53999849.1090105@xs4all.nl> <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com>
+ <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com>
+ <53D245EA.4070803@xs4all.nl> <CAPybu_2jZ8qCpoJAe9aaBtnr=r8wzgkMn9onEE1L5C=qybQ4dQ@mail.gmail.com>
+ <53D24A74.5060001@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 25 Jul 2014 14:24:50 +0200
+Message-ID: <CAPybu_1-YVmrSyR4q5JHUj44OgGQK8aWkg3qmn64vYBon_vHwA@mail.gmail.com>
+Subject: Re: [ATTN] Please review/check the REVIEWv4 compound control patch series
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans!
 
-If the vidioc_cropcap op is implemented by the driver then the v4l2
-core will call that directly.
+> I was thinking of just the sensor driver, not the other components.
+> That would provide a proper use-case for both the dead pixel array
+> and multi-selection.
+>
+> I assume that the sensor driver is a lot smaller? Does it need fw as well?
+>
 
-If g_selection is available, then the core cropcap implementation
-uses g_selection to fill in the bounds and defrect and it sets the
-pixelaspect to 1x1.
+We support multiple sensors. The one that requires dead-pixel
+correction is: FPA-320x256-C
 
-But if both are available, then I would like to use g_selection to
-fill in defrect and bounds before calling cropcap. That way the
-driver's cropcap implementation doesn't have to set defrect or
-bounds.
+Unfortunately, the chip only outputs the data as an analog output. The
+data is processed by an FPGA. The FPGA requires firmware (the
+bitstream).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 48 +++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 22 deletions(-)
+I guess most of the code is useless for anybody else, if they don't
+have access to the proper hw.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 8d4a25d..f81b9aa 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1751,37 +1751,41 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_cropcap *p = arg;
--	struct v4l2_selection s = { .type = p->type };
--	int ret;
- 
--	if (ops->vidioc_cropcap)
--		return ops->vidioc_cropcap(file, fh, p);
-+	if (ops->vidioc_g_selection) {
-+		struct v4l2_selection s = { .type = p->type };
-+		int ret;
- 
--	/* obtaining bounds */
--	if (V4L2_TYPE_IS_OUTPUT(p->type))
--		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
--	else
--		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
-+		/* obtaining bounds */
-+		if (V4L2_TYPE_IS_OUTPUT(p->type))
-+			s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-+		else
-+			s.target = V4L2_SEL_TGT_CROP_BOUNDS;
- 
--	ret = ops->vidioc_g_selection(file, fh, &s);
--	if (ret)
--		return ret;
--	p->bounds = s.r;
-+		ret = ops->vidioc_g_selection(file, fh, &s);
-+		if (ret)
-+			return ret;
-+		p->bounds = s.r;
- 
--	/* obtaining defrect */
--	if (V4L2_TYPE_IS_OUTPUT(p->type))
--		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
--	else
--		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
-+		/* obtaining defrect */
-+		if (V4L2_TYPE_IS_OUTPUT(p->type))
-+			s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
-+		else
-+			s.target = V4L2_SEL_TGT_CROP_DEFAULT;
- 
--	ret = ops->vidioc_g_selection(file, fh, &s);
--	if (ret)
--		return ret;
--	p->defrect = s.r;
-+		ret = ops->vidioc_g_selection(file, fh, &s);
-+		if (ret)
-+			return ret;
-+		p->defrect = s.r;
-+	}
- 
- 	/* setting trivial pixelaspect */
- 	p->pixelaspect.numerator = 1;
- 	p->pixelaspect.denominator = 1;
-+
-+	if (ops->vidioc_cropcap)
-+		return ops->vidioc_cropcap(file, fh, p);
-+
- 	return 0;
- }
- 
--- 
-2.0.1
+Thanks
 
+Ricardo
