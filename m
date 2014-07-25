@@ -1,61 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4867 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116AbaGaIcd (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:61866 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760508AbaGYOVj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 04:32:33 -0400
-Message-ID: <53D9FEE9.4060902@xs4all.nl>
-Date: Thu, 31 Jul 2014 10:31:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: panpan liu <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com, mchehab@redhat.com
-CC: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] videobuf2-core: simplify and unify the kernel api
-References: <1406795295-3013-1-git-send-email-panpan1.liu@samsung.com>
-In-Reply-To: <1406795295-3013-1-git-send-email-panpan1.liu@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 25 Jul 2014 10:21:39 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 9/9] ARM: dts: exynos3250: add JPEG codec device node
+Date: Fri, 25 Jul 2014 16:20:53 +0200
+Message-id: <1406298053-30184-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2014 10:28 AM, panpan liu wrote:
-> Making the kernel api more simplified and unified.
-> 
-> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 
-Has been fixed already in 3.15. Always check the latest code!
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ arch/arm/boot/dts/exynos3250.dtsi |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Regards,
+diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
+index 3e678fa..46a864d 100644
+--- a/arch/arm/boot/dts/exynos3250.dtsi
++++ b/arch/arm/boot/dts/exynos3250.dtsi
+@@ -206,6 +206,15 @@
+ 			interrupts = <0 240 0>;
+ 		};
 
-	Hans
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->  mode change 100644 => 100755 drivers/media/v4l2-core/videobuf2-core.c
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> old mode 100644
-> new mode 100755
-> index 9abb15e..71ba92c
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1194,7 +1194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->  	for (plane = 0; plane < vb->num_planes; ++plane)
->  		call_memop(q, prepare, vb->planes[plane].mem_priv);
-> 
-> -	q->ops->buf_queue(vb);
-> +	call_qop(q, buf_queue, vb);
->  }
-> 
->  static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> --
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
++		jpeg-codec@11830000 {
++			compatible = "samsung,exynos3250-jpeg";
++			reg = <0x11830000 0x1000>;
++			interrupts = <0 171 0>;
++			clocks = <&cmu CLK_JPEG>, <&cmu CLK_SCLK_JPEG>;
++			clock-names = "jpeg", "sclk";
++			samsung,power-domain = <&pd_cam>;
++		};
++
+ 		mshc_0: mshc@12510000 {
+ 			compatible = "samsung,exynos5250-dw-mshc";
+ 			reg = <0x12510000 0x1000>;
+--
+1.7.9.5
 
