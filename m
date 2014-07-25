@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:34248 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbaGYM1J (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38040 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932839AbaGYPJH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 08:27:09 -0400
-Received: by mail-la0-f44.google.com with SMTP id e16so2990506lan.17
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 05:27:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140721070750.GF13730@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-	<1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
-	<1403626611.10756.11.camel@mpb-nicolas>
-	<1404237187.19382.78.camel@paszta.hi.pengutronix.de>
-	<0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
-	<20140702191642.GM22620@pengutronix.de>
-	<20140711123318.GB5441@pengutronix.de>
-	<20140721070750.GF13730@pengutronix.de>
-Date: Fri, 25 Jul 2014 09:27:07 -0300
-Message-ID: <CAOMZO5ArNG3_FhTe==z6ngqpHnXXNNpA=Xnz3eU-sAZXtFsGag@mail.gmail.com>
-Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for CODA960
-From: Fabio Estevam <festevam@gmail.com>
-To: Robert Schwebel <r.schwebel@pengutronix.de>, b37172@freescale.com
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	Fri, 25 Jul 2014 11:09:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Guo Shawn-R65073 <r65073@freescale.com>,
-	Estevam Fabio-R49496 <r49496@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 00/11] CODA Cleanup & fixes
+Date: Fri, 25 Jul 2014 17:08:26 +0200
+Message-Id: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Hi,
 
-On Mon, Jul 21, 2014 at 4:07 AM, Robert Schwebel
-<r.schwebel@pengutronix.de> wrote:
-> Hi Fabio,
->
-> On Fri, Jul 11, 2014 at 02:33:18PM +0200, Robert Schwebel wrote:
->> On Wed, Jul 02, 2014 at 09:16:42PM +0200, Robert Schwebel wrote:
->> > > It would be really nice if the firmware was available in the
->> > > linux-firmware repository. Do you think this would be possible?
->> > >
->> > > Best wishes,
->> > > --
->> > > Kamil Debski
->> > > Samsung R&D Institute Poland
->> >
->> > I tried to convince Freescale to put the firmware into linux-firmware
->> > for 15 months now, but recently got no reply any more.
->> >
->> > Fabio, Shawn, could you try to discuss this with the responsible folks
->> > inside FSL again? Maybe responsibilities have changed in the meantime
->> > and I might have tried to talk to the wrong people.
->>
->> Any news?
->
-> Did you get some feedback? I didn't.
+the following series applies on top of the previous "Split CODA driver into
+multiple files" series. It contains various accumulated fixes, including
+dequeueing of buffers in stop_streaming and after start_streaming failure,
+a crash fix for the timestamp list handling, better error reporting, and
+the interrupt request by name in preparation for the second JPEG interrupt
+on CODA960.
 
-I am adding Jeff Kudrick on Cc as he was looking into this.
+regards
+Philipp
+
+Fabio Estevam (2):
+  [media] coda: Return the real error on platform_get_irq()
+  [media] coda: Propagate the correct error on
+    devm_request_threaded_irq()
+
+Michael Olbrich (1):
+  [media] coda: fix timestamp list handling
+
+Philipp Zabel (8):
+  [media] coda: remove unnecessary peek at next destination buffer from
+    coda_finish_decode
+  [media] coda: request BIT processor interrupt by name
+  [media] coda: dequeue buffers if start_streaming fails
+  [media] coda: dequeue buffers on streamoff
+  [media] coda: skip calling coda_find_codec in encoder try_fmt_vid_out
+  [media] coda: increase max vertical frame size to 1088
+  [media] coda: add an intermediate debug level
+  [media] coda: improve allocation error messages
+
+ drivers/media/platform/coda/coda-bit.c    | 33 +++++++----
+ drivers/media/platform/coda/coda-common.c | 96 +++++++++++++++++++++----------
+ 2 files changed, 87 insertions(+), 42 deletions(-)
+
+-- 
+2.0.1
+
