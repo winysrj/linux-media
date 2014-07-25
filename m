@@ -1,83 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:34703 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754455AbaGEW0t (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:43741 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935085AbaGYRsL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jul 2014 18:26:49 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@opensource.se, horms@verge.net.au,
-	g.liakhovetski@gmx.de, linux-kernel@lists.codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 5/6] r8a7790.dtsi: add vin[0-3] nodes
-Date: Sat,  5 Jul 2014 23:26:24 +0100
-Message-Id: <1404599185-12353-6-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+	Fri, 25 Jul 2014 13:48:11 -0400
+Received: by mail-wi0-f180.google.com with SMTP id n3so1408841wiv.1
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 10:48:10 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 4/4] em28xx-v4l: get rid of field "users" in struct em28xx_v4l2
+Date: Fri, 25 Jul 2014 19:48:58 +0200
+Message-Id: <1406310538-5001-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add nodes for the four video input channels on the R8A7790.
+Instead of counting the number of opened file handles, use function
+v4l2_fh_is_singular_file() in em28xx_v4l2_open() and em28xx_v4l2_close() to
+determine if the file handle is the first/last opened one.
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- arch/arm/boot/dts/r8a7790.dtsi | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ drivers/media/usb/em28xx/em28xx-video.c | 23 +++++++++++++----------
+ drivers/media/usb/em28xx/em28xx.h       |  1 -
+ 2 files changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
-index 7ff2960..a6f083d 100644
---- a/arch/arm/boot/dts/r8a7790.dtsi
-+++ b/arch/arm/boot/dts/r8a7790.dtsi
-@@ -33,6 +33,10 @@
- 		spi2 = &msiof1;
- 		spi3 = &msiof2;
- 		spi4 = &msiof3;
-+		vin0 = &vin0;
-+		vin1 = &vin1;
-+		vin2 = &vin2;
-+		vin3 = &vin3;
- 	};
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 3a7ec3b..087ccf9 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1883,9 +1883,8 @@ static int em28xx_v4l2_open(struct file *filp)
+ 		return -EINVAL;
+ 	}
  
- 	cpus {
-@@ -462,6 +466,38 @@
- 		status = "disabled";
- 	};
+-	em28xx_videodbg("open dev=%s type=%s users=%d\n",
+-			video_device_node_name(vdev), v4l2_type_names[fh_type],
+-			v4l2->users);
++	em28xx_videodbg("open dev=%s type=%s\n",
++			video_device_node_name(vdev), v4l2_type_names[fh_type]);
  
-+	vin0: vin@e6ef0000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
-+		reg = <0 0xe6ef0000 0 0x1000>;
-+		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+@@ -1898,7 +1897,9 @@ static int em28xx_v4l2_open(struct file *filp)
+ 		return ret;
+ 	}
+ 
+-	if (v4l2->users == 0) {
++	if (v4l2_fh_is_singular_file(filp)) {
++		em28xx_videodbg("first opened filehandle, initializing device\n");
 +
-+	vin1: vin@e6ef1000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
-+		reg = <0 0xe6ef1000 0 0x1000>;
-+		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
+ 		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+ 
+ 		if (vdev->vfl_type != VFL_TYPE_RADIO)
+@@ -1909,6 +1910,8 @@ static int em28xx_v4l2_open(struct file *filp)
+ 		 * of some i2c devices
+ 		 */
+ 		em28xx_wake_i2c(dev);
++	} else {
++		em28xx_videodbg("further filehandles are already opened\n");
+ 	}
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+@@ -1918,7 +1921,6 @@ static int em28xx_v4l2_open(struct file *filp)
+ 
+ 	kref_get(&dev->ref);
+ 	kref_get(&v4l2->ref);
+-	v4l2->users++;
+ 
+ 	mutex_unlock(&dev->lock);
+ 
+@@ -2025,12 +2027,11 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	struct em28xx_v4l2    *v4l2 = dev->v4l2;
+ 	int              errCode;
+ 
+-	em28xx_videodbg("users=%d\n", v4l2->users);
+-
+-	vb2_fop_release(filp);
+ 	mutex_lock(&dev->lock);
+ 
+-	if (v4l2->users == 1) {
++	if (v4l2_fh_is_singular_file(filp)) {
++		em28xx_videodbg("last opened filehandle, shutting down device\n");
 +
-+	vin2: vin@e6ef2000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
-+		reg = <0 0xe6ef2000 0 0x1000>;
-+		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
-+	vin3: vin@e6ef3000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
-+		reg = <0 0xe6ef3000 0 0x1000>;
-+		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
- 	clocks {
- 		#address-cells = <2>;
- 		#size-cells = <2>;
+ 		/* No sense to try to write to the device */
+ 		if (dev->disconnected)
+ 			goto exit;
+@@ -2049,10 +2050,12 @@ static int em28xx_v4l2_close(struct file *filp)
+ 			em28xx_errdev("cannot change alternate number to "
+ 					"0 (error=%i)\n", errCode);
+ 		}
++	} else {
++		em28xx_videodbg("further opened filehandles left\n");
+ 	}
+ 
+ exit:
+-	v4l2->users--;
++	vb2_fop_release(filp);
+ 	kref_put(&v4l2->ref, em28xx_free_v4l2);
+ 	mutex_unlock(&dev->lock);
+ 	kref_put(&dev->ref, em28xx_free_device);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 4360338..84ef8ef 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -524,7 +524,6 @@ struct em28xx_v4l2 {
+ 	int sensor_yres;
+ 	int sensor_xtal;
+ 
+-	int users;		/* user count for exclusive use */
+ 	int streaming_users;    /* number of actively streaming users */
+ 
+ 	u32 frequency;		/* selected tuner frequency */
 -- 
-2.0.0
+1.8.4.5
 
