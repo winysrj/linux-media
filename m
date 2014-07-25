@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47085 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbaGDS0x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 14:26:53 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [[PATCH v2] 01/14] dib8000: Fix handling of interleave bigger than 2
-Date: Fri,  4 Jul 2014 14:15:27 -0300
-Message-Id: <1404494140-17777-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
-References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56223 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699AbaGYJnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 05:43:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] Kconfig: rtl2832_sdr must depends on USB
+Date: Fri, 25 Jul 2014 12:42:44 +0300
+Message-Id: <1406281364-19497-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1406281364-19497-1-git-send-email-crope@iki.fi>
+References: <1406281364-19497-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If interleave is bigger than 2, the code will set it to 0, as
-dib8000 registers use a log2(). So, change the code to handle
-it accordingly.
+Fixes error:
+[next:master 7435/8702] ERROR: "usb_alloc_urb
+[drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+rtl2832_sdr driver implements own USB streaming for SDR data.
+Logically that functionality belongs to USB interface driver, but
+currently it is implemented here.
+
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/dib8000.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 270a58e3e837..cf837158f822 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -2033,10 +2033,10 @@ static u16 dib8000_set_layer(struct dib8000_state *state, u8 layer_index, u16 ma
- 			break;
- 	}
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 78a95a6..5b8b04c 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -448,7 +448,7 @@ config DVB_RTL2832
  
--	if ((c->layer[layer_index].interleaving > 0) && ((c->layer[layer_index].interleaving <= 3) || (c->layer[layer_index].interleaving == 4 && c->isdbt_sb_mode == 1)))
--		time_intlv = c->layer[layer_index].interleaving;
--	else
-+	time_intlv = fls(c->layer[layer_index].interleaving);
-+	if (time_intlv > 3 && !(time_intlv == 4 && c->isdbt_sb_mode == 1))
- 		time_intlv = 0;
-+	dprintk("Time interleave = %d (interleaving=%d)", time_intlv, c->layer[layer_index].interleaving);
- 
- 	dib8000_write_word(state, 2 + layer_index, (constellation << 10) | ((c->layer[layer_index].segment_count & 0xf) << 6) | (cr << 3) | time_intlv);
- 	if (c->layer[layer_index].segment_count > 0) {
+ config DVB_RTL2832_SDR
+ 	tristate "Realtek RTL2832 SDR"
+-	depends on DVB_CORE && I2C && I2C_MUX && VIDEO_V4L2 && MEDIA_SDR_SUPPORT
++	depends on DVB_CORE && I2C && I2C_MUX && VIDEO_V4L2 && MEDIA_SDR_SUPPORT && USB
+ 	select DVB_RTL2832
+ 	select VIDEOBUF2_VMALLOC
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
 -- 
-1.9.3
+http://palosaari.fi/
 
