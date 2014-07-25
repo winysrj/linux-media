@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37971 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753962AbaGYPIn (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2566 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759665AbaGYJKX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 11:08:43 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 02/11] [media] coda: request BIT processor interrupt by name
-Date: Fri, 25 Jul 2014 17:08:28 +0200
-Message-Id: <1406300917-18169-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 25 Jul 2014 05:10:23 -0400
+Message-ID: <53D21ED1.1040003@xs4all.nl>
+Date: Fri, 25 Jul 2014 11:09:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+Subject: [PATCH] vb2: fix multiplanar read() with non-zero data_offset
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Request the main coda interrupt using its name, "bit", if available.
-Fall back to requesting the first interrupt for backwards compatibility.
+If this is a multiplanar buf_type and the plane we want to read has a
+non-zero data_offset, then that data_offset was not taken into account.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Note that read() or write() for formats with more than one plane is currently
+not allowed, hence the use of 'planes[0]' since this is only relevant for a
+single-plane format.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c6ad956..65c7a12 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1835,7 +1835,9 @@ static int coda_probe(struct platform_device *pdev)
- 		return PTR_ERR(dev->regs_base);
- 
- 	/* IRQ */
--	irq = platform_get_irq(pdev, 0);
-+	irq = platform_get_irq_byname(pdev, "bit");
-+	if (irq < 0)
-+		irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(&pdev->dev, "failed to get irq resource\n");
- 		return -ENOENT;
--- 
-2.0.1
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c359006..0e3d927 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2959,6 +2959,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		buf->queued = 0;
+ 		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
+ 				 : vb2_plane_size(q->bufs[index], 0);
++		/* Compensate for data_offset on read in the multiplanar case. */
++		if (is_multiplanar && read &&
++		    fileio->b.m.planes[0].data_offset < buf->size) {
++			buf->pos = fileio->b.m.planes[0].data_offset;
++			buf->size -= buf->pos;
++		}
+ 	} else {
+ 		buf = &fileio->bufs[index];
+ 	}
