@@ -1,52 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43843 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759338AbaGXP26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 11:28:58 -0400
-Date: Thu, 24 Jul 2014 23:27:59 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [next:master 7657/8702] drivers/media/platform/coda.c:3734:2:
- error: implicit declaration of function 'devm_reset_control_get'
-Message-ID: <53d125ff.1T11dzM12ENQarQp%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:28177 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751720AbaGYXNZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 19:13:25 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9A00H9TJ6C9KA0@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Jul 2014 19:13:24 -0400 (EDT)
+Date: Fri, 25 Jul 2014 20:13:20 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 42/49] rc-ir-raw: atomic reads of protocols
+Message-id: <20140725201320.662a2521.m.chehab@samsung.com>
+In-reply-to: <20140403233448.27099.69654.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+ <20140403233448.27099.69654.stgit@zeus.muc.hardeman.nu>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
-head:   1a58d9909611972fd1c081bb04a9f7dc2571e612
-commit: 8f45284c4ed758174d22342aca1bb7299f76b012 [7657/8702] [media] coda: add reset control support
-config: make ARCH=arm imx_v4_v5_defconfig
+Em Fri, 04 Apr 2014 01:34:48 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-All error/warnings:
+> Use atomic reads to avoid having to take a mutex when getting
+> the bitmask of supported protocols.
 
-   drivers/media/platform/coda.c: In function 'coda_probe':
->> drivers/media/platform/coda.c:3734:2: error: implicit declaration of function 'devm_reset_control_get' [-Werror=implicit-function-declaration]
-     dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
-     ^
->> drivers/media/platform/coda.c:3734:12: warning: assignment makes pointer from integer without a cast
-     dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
-               ^
-   cc1: some warnings being treated as errors
+This also belongs to that RCU change series, and doesn't apply.
 
-vim +/devm_reset_control_get +3734 drivers/media/platform/coda.c
-
-  3728		if (devm_request_threaded_irq(&pdev->dev, irq, NULL, coda_irq_handler,
-  3729			IRQF_ONESHOT, dev_name(&pdev->dev), dev) < 0) {
-  3730			dev_err(&pdev->dev, "failed to request irq\n");
-  3731			return -ENOENT;
-  3732		}
-  3733	
-> 3734		dev->rstc = devm_reset_control_get(&pdev->dev, NULL);
-  3735		if (IS_ERR(dev->rstc)) {
-  3736			ret = PTR_ERR(dev->rstc);
-  3737			if (ret == -ENOENT) {
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/rc-core-priv.h |    2 +-
+>  drivers/media/rc/rc-ir-raw.c    |   12 ++++--------
+>  2 files changed, 5 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index c3de26b..04776e8 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -29,7 +29,7 @@ enum rc_driver_type {
+>  struct ir_raw_handler {
+>  	struct list_head list;
+>  
+> -	u64 protocols; /* which are handled by this handler */
+> +	unsigned protocols; /* which are handled by this handler */
+>  	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
+>  
+>  	/* These two should only be used by the lirc decoder */
+> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+> index 9631825..bf5215b 100644
+> --- a/drivers/media/rc/rc-ir-raw.c
+> +++ b/drivers/media/rc/rc-ir-raw.c
+> @@ -27,7 +27,7 @@ static LIST_HEAD(ir_raw_client_list);
+>  static LIST_HEAD(ir_raw_handler_list);
+>  
+>  /* protocols supported by the currently loaded decoders */
+> -static u64 available_protocols;
+> +static atomic_t available_protocols = ATOMIC_INIT(0);
+>  
+>  static int ir_raw_event_thread(void *data)
+>  {
+> @@ -251,11 +251,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
+>  /* used internally by the sysfs interface */
+>  static u64 ir_raw_get_allowed_protocols(struct rc_dev *dev)
+>  {
+> -	u64 protocols;
+> -	mutex_lock(&ir_raw_mutex);
+> -	protocols = available_protocols;
+> -	mutex_unlock(&ir_raw_mutex);
+> -	return protocols;
+> +	return atomic_read(&available_protocols);
+>  }
+>  
+>  static int change_protocol(struct rc_dev *dev, u64 *rc_type) {
+> @@ -353,7 +349,7 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
+>  	if (ir_raw_handler->raw_register)
+>  		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+>  			ir_raw_handler->raw_register(raw->dev);
+> -	available_protocols |= ir_raw_handler->protocols;
+> +	atomic_set_mask(ir_raw_handler->protocols, &available_protocols);
+>  	mutex_unlock(&ir_raw_mutex);
+>  	synchronize_rcu();
+>  
+> @@ -370,7 +366,7 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+>  	if (ir_raw_handler->raw_unregister)
+>  		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+>  			ir_raw_handler->raw_unregister(raw->dev);
+> -	available_protocols &= ~ir_raw_handler->protocols;
+> +	atomic_clear_mask(ir_raw_handler->protocols, &available_protocols);
+>  	mutex_unlock(&ir_raw_mutex);
+>  	synchronize_rcu();
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
