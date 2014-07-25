@@ -1,99 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsec112.isp.belgacom.be ([195.238.20.108]:40237 "EHLO
-	mailsec112.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750900AbaGLM0k convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jul 2014 08:26:40 -0400
-Date: Sat, 12 Jul 2014 14:26:38 +0200 (CEST)
-From: Fabian Frederick <fabf@skynet.be>
-Reply-To: Fabian Frederick <fabf@skynet.be>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-ID: <408123556.600278.1405167998799.open-xchange@webmail.nmp.skynet.be>
-In-Reply-To: <20140710003428.GA22113@kroah.com>
-References: <1403901130-8156-1-git-send-email-fabf@skynet.be> <20140710003428.GA22113@kroah.com>
-Subject: Re: [PATCH 1/1] drivers/base/dma-buf.c: replace
- dma_buf_uninit_debugfs by debugfs_remove_recursive
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:44796 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752914AbaGYSHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 14:07:47 -0400
+Received: by mail-wi0-f170.google.com with SMTP id f8so1495496wiw.3
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 11:07:46 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx-v4l: fix disabling ioctl VIDIOC_S_PARM for vbi devices
+Date: Fri, 25 Jul 2014 20:08:30 +0200
+Message-Id: <1406311710-5914-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fixes an old copy+paste bug that has survived all recent code
+changes in this code area.
 
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> On 10 July 2014 at 02:34 Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> wrote:
->
->
-> On Fri, Jun 27, 2014 at 10:32:10PM +0200, Fabian Frederick wrote:
-> > null test before debugfs_remove_recursive is not needed so one line function
-> > dma_buf_uninit_debugfs can be removed.
-> >
-> > This patch calls debugfs_remove_recursive under CONFIG_DEBUG_FS
-> >
-> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Cc: linux-media@vger.kernel.org
-> > Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> > ---
-> >
-> > This is untested.
-> >
-> >  drivers/base/dma-buf.c | 13 +++----------
-> >  1 file changed, 3 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> > index 840c7fa..184c0cb 100644
-> > --- a/drivers/base/dma-buf.c
-> > +++ b/drivers/base/dma-buf.c
-> > @@ -701,12 +701,6 @@ static int dma_buf_init_debugfs(void)
-> >     return err;
-> >  }
-> > 
-> > -static void dma_buf_uninit_debugfs(void)
-> > -{
-> > -   if (dma_buf_debugfs_dir)
-> > -           debugfs_remove_recursive(dma_buf_debugfs_dir);
-> > -}
-> > -
-> >  int dma_buf_debugfs_create_file(const char *name,
-> >                             int (*write)(struct seq_file *))
-> >  {
-> > @@ -722,9 +716,6 @@ static inline int dma_buf_init_debugfs(void)
-> >  {
-> >     return 0;
-> >  }
-> > -static inline void dma_buf_uninit_debugfs(void)
-> > -{
-> > -}
-> >  #endif
-> > 
-> >  static int __init dma_buf_init(void)
-> > @@ -738,6 +729,8 @@ subsys_initcall(dma_buf_init);
-> > 
-> >  static void __exit dma_buf_deinit(void)
-> >  {
-> > -   dma_buf_uninit_debugfs();
-> > +#ifdef CONFIG_DEBUG_FS
-> > +   debugfs_remove_recursive(dma_buf_debugfs_dir);
-> > +#endif
->
-> That ifdef should not be needed at all, right?  No ifdefs should be
-> needed for debugfs code, if it is written correctly :)
->
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 087ccf9..90dec29 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -2528,7 +2528,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 		v4l2->vbi_dev->queue->lock = &v4l2->vb_vbi_queue_lock;
+ 
+ 		/* disable inapplicable ioctls */
+-		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_PARM);
++		v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_PARM);
+ 		if (dev->tuner_type == TUNER_ABSENT) {
+ 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_TUNER);
+ 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_TUNER);
+-- 
+1.8.4.5
 
-Hello Greg,
-
-        Current dma_buf_init_debugfs and dma_buf_init_uninit_debugfs and
-related functions in drivers/base/dma-buf.c are only defined
-under #ifdef CONFIG_DEBUG_FS ; reason for that #ifdef in the patch.
-I'll send you a fixed version.
-
-Thanks,
-Fabian
-
-> thanks,
->
-> greg k-h
