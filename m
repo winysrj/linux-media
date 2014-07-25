@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:57951 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753429AbaGDHvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 03:51:53 -0400
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	Peter Meerwald <pmeerw@pmeerw.net>
-Subject: [PATCH] media:platform: OMAP3 camera support needs VIDEOBUF2_DMA_CONTIG
-Date: Fri,  4 Jul 2014 09:51:47 +0200
-Message-Id: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37971 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753962AbaGYPIn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 11:08:43 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 02/11] [media] coda: request BIT processor interrupt by name
+Date: Fri, 25 Jul 2014 17:08:28 +0200
+Message-Id: <1406300917-18169-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/built-in.o: In function `isp_video_open':
-/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1253: undefined reference to `vb2_dma_contig_memops'
-drivers/built-in.o: In function `omap3isp_video_init':
-/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1344: undefined reference to `vb2_dma_contig_init_ctx'
-/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1350: undefined reference to `vb2_dma_contig_cleanup_ctx'
-drivers/built-in.o: In function `omap3isp_video_cleanup':
-/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1381: undefined reference to `vb2_dma_contig_cleanup_ctx'
-make: *** [vmlinux] Error 1
+Request the main coda interrupt using its name, "bit", if available.
+Fall back to requesting the first interrupt for backwards compatibility.
 
-Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
+ drivers/media/platform/coda/coda-common.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-not sure if this is the right way to fix, at least my kernel compiles
-
- drivers/media/platform/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 8108c69..e1ff228 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -95,6 +95,7 @@ config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
- 	select ARM_DMA_USE_IOMMU
-+	select VIDEOBUF2_DMA_CONTIG
- 	select OMAP_IOMMU
- 	---help---
- 	  Driver for an OMAP 3 camera controller.
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index c6ad956..65c7a12 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1835,7 +1835,9 @@ static int coda_probe(struct platform_device *pdev)
+ 		return PTR_ERR(dev->regs_base);
+ 
+ 	/* IRQ */
+-	irq = platform_get_irq(pdev, 0);
++	irq = platform_get_irq_byname(pdev, "bit");
++	if (irq < 0)
++		irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		dev_err(&pdev->dev, "failed to get irq resource\n");
+ 		return -ENOENT;
 -- 
-1.9.1
+2.0.1
 
