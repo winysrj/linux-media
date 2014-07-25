@@ -1,159 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51565 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753012AbaGKJhC (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:23269 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793AbaGYKOY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 20/32] [media] coda: add decoder timestamp queue
-Date: Fri, 11 Jul 2014 11:36:31 +0200
-Message-Id: <1405071403-1859-21-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 25 Jul 2014 06:14:24 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v3 1/3] media: atmel-isi: add v4l2 async probe support
+Date: Fri, 25 Jul 2014 18:13:38 +0800
+Message-ID: <1406283219-32015-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
+References: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver advertises timestamp_type V4L2_BUF_FLAG_TIMESTAMP_COPY on
-both queues, so we have to copy timestamps from input v4l2 buffers to the
-corresponding destination v4l2 buffers. Since the h.264 decoder can reorder
-frames, a timestamp queue is needed to keep track of and assign the correct
-timestamp to destination buffers.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/platform/coda.c | 50 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+v2 -> v3:
+  no change.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 8194260..5d06776 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -201,6 +201,13 @@ struct gdi_tiled_map {
- #define GDI_LINEAR_FRAME_MAP 0
+ drivers/media/platform/soc_camera/atmel-isi.c | 5 +++++
+ include/media/atmel-isi.h                     | 4 ++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 14bc886..802c203 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -987,6 +987,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	soc_host->v4l2_dev.dev	= &pdev->dev;
+ 	soc_host->nr		= pdev->id;
+ 
++	if (isi->pdata.asd_sizes) {
++		soc_host->asd = isi->pdata.asd;
++		soc_host->asd_sizes = isi->pdata.asd_sizes;
++	}
++
+ 	ret = soc_camera_host_register(soc_host);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Unable to register soc camera host\n");
+diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+index 2b02347..c2e5703 100644
+--- a/include/media/atmel-isi.h
++++ b/include/media/atmel-isi.h
+@@ -106,6 +106,8 @@
+ #define ISI_DATAWIDTH_8				0x01
+ #define ISI_DATAWIDTH_10			0x02
+ 
++struct v4l2_async_subdev;
++
+ struct isi_platform_data {
+ 	u8 has_emb_sync;
+ 	u8 emb_crc_sync;
+@@ -118,6 +120,8 @@ struct isi_platform_data {
+ 	u32 frate;
+ 	/* Using for ISI_MCK */
+ 	u32 mck_hz;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;		/* 0-terminated array of asd group sizes */
  };
  
-+struct coda_timestamp {
-+	struct list_head	list;
-+	u32			sequence;
-+	struct v4l2_timecode	timecode;
-+	struct timeval		timestamp;
-+};
-+
- struct coda_ctx {
- 	struct coda_dev			*dev;
- 	struct mutex			buffer_mutex;
-@@ -235,6 +242,8 @@ struct coda_ctx {
- 	struct coda_aux_buf		slicebuf;
- 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
- 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
-+	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
-+	struct list_head		timestamp_list;
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
- 	int				idx;
-@@ -1013,7 +1022,7 @@ static int coda_bitstream_queue(struct coda_ctx *ctx, struct vb2_buffer *src_buf
- 	dma_sync_single_for_device(&ctx->dev->plat_dev->dev, ctx->bitstream.paddr,
- 				   ctx->bitstream.size, DMA_TO_DEVICE);
- 
--	ctx->qsequence++;
-+	src_buf->v4l2_buf.sequence = ctx->qsequence++;
- 
- 	return 0;
- }
-@@ -1049,12 +1058,26 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- static void coda_fill_bitstream(struct coda_ctx *ctx)
- {
- 	struct vb2_buffer *src_buf;
-+	struct coda_timestamp *ts;
- 
- 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
- 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 
- 		if (coda_bitstream_try_queue(ctx, src_buf)) {
-+			/*
-+			 * Source buffer is queued in the bitstream ringbuffer;
-+			 * queue the timestamp and mark source buffer as done
-+			 */
- 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+
-+			ts = kmalloc(sizeof(*ts), GFP_KERNEL);
-+			if (ts) {
-+				ts->sequence = src_buf->v4l2_buf.sequence;
-+				ts->timecode = src_buf->v4l2_buf.timecode;
-+				ts->timestamp = src_buf->v4l2_buf.timestamp;
-+				list_add_tail(&ts->list, &ctx->timestamp_list);
-+			}
-+
- 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 		} else {
- 			break;
-@@ -2602,6 +2625,14 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 	}
- 
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
-+		struct coda_timestamp *ts;
-+
-+		while (!list_empty(&ctx->timestamp_list)) {
-+			ts = list_first_entry(&ctx->timestamp_list,
-+					      struct coda_timestamp, list);
-+			list_del(&ts->list);
-+			kfree(ts);
-+		}
- 		kfifo_init(&ctx->bitstream_fifo,
- 			ctx->bitstream.vaddr, ctx->bitstream.size);
- 		ctx->runcounter = 0;
-@@ -2889,6 +2920,7 @@ static int coda_open(struct file *file)
- 		ctx->bitstream.vaddr, ctx->bitstream.size);
- 	mutex_init(&ctx->bitstream_mutex);
- 	mutex_init(&ctx->buffer_mutex);
-+	INIT_LIST_HEAD(&ctx->timestamp_list);
- 
- 	coda_lock(ctx);
- 	list_add(&ctx->list, &dev->instances);
-@@ -2980,6 +3012,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	struct coda_q_data *q_data_src;
- 	struct coda_q_data *q_data_dst;
- 	struct vb2_buffer *dst_buf;
-+	struct coda_timestamp *ts;
- 	int width, height;
- 	int decoded_idx;
- 	int display_idx;
-@@ -3101,6 +3134,18 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		v4l2_err(&dev->v4l2_dev,
- 			 "decoded frame index out of range: %d\n", decoded_idx);
- 	} else {
-+		ts = list_first_entry(&ctx->timestamp_list,
-+				      struct coda_timestamp, list);
-+		list_del(&ts->list);
-+		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
-+		if (val != ts->sequence) {
-+			v4l2_err(&dev->v4l2_dev,
-+				 "sequence number mismatch (%d != %d)\n",
-+				 val, ts->sequence);
-+		}
-+		ctx->frame_timestamps[decoded_idx] = *ts;
-+		kfree(ts);
-+
- 		val = coda_read(dev, CODA_RET_DEC_PIC_TYPE) & 0x7;
- 		if (val == 0)
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_KEYFRAME;
-@@ -3134,6 +3179,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 					     V4L2_BUF_FLAG_PFRAME |
- 					     V4L2_BUF_FLAG_BFRAME);
- 		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
-+		ts = &ctx->frame_timestamps[ctx->display_idx];
-+		dst_buf->v4l2_buf.timecode = ts->timecode;
-+		dst_buf->v4l2_buf.timestamp = ts->timestamp;
- 
- 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
- 
+ #endif /* __ATMEL_ISI_H__ */
 -- 
-2.0.0
+1.9.1
 
