@@ -1,305 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2230 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223AbaGNM7k (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:51163 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbaGYWjn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 08:59:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 01/12] DocBook media: fix wrong spacing
-Date: Mon, 14 Jul 2014 14:59:01 +0200
-Message-Id: <1405342752-46998-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 25 Jul 2014 18:39:43 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9A00249HM53UA0@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Jul 2014 18:39:41 -0400 (EDT)
+Date: Fri, 25 Jul 2014 19:39:37 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 16/49] rc-core: use an IDA rather than a bitmap
+Message-id: <20140725193937.2c45cdea.m.chehab@samsung.com>
+In-reply-to: <20140403233236.27099.65581.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+ <20140403233236.27099.65581.stgit@zeus.muc.hardeman.nu>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As I commented on a private e-mail, based on the patch descriptions:
 
-There shouldn't be any spaces after <constant> or before </constant>.
-This leads to ugly results like: 'image size set by VIDIOC_S_FMT .'
+Patch 17 deserves a bigger explanation. Well, the best is if you
+could send a separate RFC describing what you have in mind with
+patches 16-29, for our discussions, explaining what usage are you
+expecting for a non-LIRC chardev, as its description doesn't help
+at all, and why LIRC's way doesn't fulfill our needs any more.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/selection-api.xml  | 95 +++++++++++-----------
- .../DocBook/media/v4l/vidioc-g-selection.xml       | 40 +++++----
- 2 files changed, 66 insertions(+), 69 deletions(-)
+Patch 18 looks silly... why to replicate evdev on a separate device?
 
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index 4c238ce..28cbded 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -86,47 +86,47 @@ selection targets available for a video capture device.  It is recommended to
- configure the cropping targets before to the composing targets.</para>
- 
- <para>The range of coordinates of the top left corner, width and height of
--areas that can be sampled is given by the <constant> V4L2_SEL_TGT_CROP_BOUNDS
--</constant> target. It is recommended for the driver developers to put the
--top/left corner at position <constant> (0,0) </constant>.  The rectangle's
-+areas that can be sampled is given by the <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>
-+target. It is recommended for the driver developers to put the
-+top/left corner at position <constant>(0,0)</constant>.  The rectangle's
- coordinates are expressed in pixels.</para>
- 
- <para>The top left corner, width and height of the source rectangle, that is
--the area actually sampled, is given by the <constant> V4L2_SEL_TGT_CROP
--</constant> target. It uses the same coordinate system as <constant>
--V4L2_SEL_TGT_CROP_BOUNDS </constant>. The active cropping area must lie
--completely inside the capture boundaries. The driver may further adjust the
--requested size and/or position according to hardware limitations.</para>
-+the area actually sampled, is given by the <constant>V4L2_SEL_TGT_CROP</constant>
-+target. It uses the same coordinate system as <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>.
-+The active cropping area must lie completely inside the capture boundaries. The
-+driver may further adjust the requested size and/or position according to hardware
-+limitations.</para>
- 
- <para>Each capture device has a default source rectangle, given by the
--<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant> target. This rectangle shall
-+<constant>V4L2_SEL_TGT_CROP_DEFAULT</constant> target. This rectangle shall
- over what the driver writer considers the complete picture.  Drivers shall set
- the active crop rectangle to the default when the driver is first loaded, but
- not later.</para>
- 
- <para>The composing targets refer to a memory buffer. The limits of composing
--coordinates are obtained using <constant> V4L2_SEL_TGT_COMPOSE_BOUNDS
--</constant>.  All coordinates are expressed in pixels. The rectangle's top/left
--corner must be located at position <constant> (0,0) </constant>. The width and
--height are equal to the image size set by <constant> VIDIOC_S_FMT </constant>.
-+coordinates are obtained using <constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant>.
-+All coordinates are expressed in pixels. The rectangle's top/left
-+corner must be located at position <constant>(0,0)</constant>. The width and
-+height are equal to the image size set by <constant>VIDIOC_S_FMT</constant>.
- </para>
- 
- <para>The part of a buffer into which the image is inserted by the hardware is
--controlled by the <constant> V4L2_SEL_TGT_COMPOSE </constant> target.
-+controlled by the <constant>V4L2_SEL_TGT_COMPOSE</constant> target.
- The rectangle's coordinates are also expressed in the same coordinate system as
- the bounds rectangle. The composing rectangle must lie completely inside bounds
- rectangle. The driver must adjust the composing rectangle to fit to the
- bounding limits. Moreover, the driver can perform other adjustments according
- to hardware limitations. The application can control rounding behaviour using
--<link linkend="v4l2-selection-flags"> constraint flags </link>.</para>
-+<link linkend="v4l2-selection-flags"> constraint flags</link>.</para>
- 
- <para>For capture devices the default composing rectangle is queried using
--<constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
-+<constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant>. It is usually equal to the
- bounding rectangle.</para>
- 
- <para>The part of a buffer that is modified by the hardware is given by
--<constant> V4L2_SEL_TGT_COMPOSE_PADDED </constant>. It contains all pixels
--defined using <constant> V4L2_SEL_TGT_COMPOSE </constant> plus all
-+<constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant>. It contains all pixels
-+defined using <constant>V4L2_SEL_TGT_COMPOSE</constant> plus all
- padding data modified by hardware during insertion process. All pixels outside
- this rectangle <emphasis>must not</emphasis> be changed by the hardware. The
- content of pixels that lie inside the padded area but outside active area is
-@@ -140,52 +140,51 @@ where the rubbish pixels are located and remove them if needed.</para>
-    <title>Configuration of video output</title>
- 
- <para>For output devices targets and ioctls are used similarly to the video
--capture case. The <emphasis> composing </emphasis> rectangle refers to the
-+capture case. The <emphasis>composing</emphasis> rectangle refers to the
- insertion of an image into a video signal. The cropping rectangles refer to a
- memory buffer. It is recommended to configure the composing targets before to
- the cropping targets.</para>
- 
- <para>The cropping targets refer to the memory buffer that contains an image to
- be inserted into a video signal or graphical screen. The limits of cropping
--coordinates are obtained using <constant> V4L2_SEL_TGT_CROP_BOUNDS </constant>.
-+coordinates are obtained using <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>.
- All coordinates are expressed in pixels. The top/left corner is always point
--<constant> (0,0) </constant>.  The width and height is equal to the image size
--specified using <constant> VIDIOC_S_FMT </constant> ioctl.</para>
-+<constant>(0,0)</constant>.  The width and height is equal to the image size
-+specified using <constant>VIDIOC_S_FMT</constant> ioctl.</para>
- 
- <para>The top left corner, width and height of the source rectangle, that is
- the area from which image date are processed by the hardware, is given by the
--<constant> V4L2_SEL_TGT_CROP </constant>. Its coordinates are expressed
-+<constant>V4L2_SEL_TGT_CROP</constant>. Its coordinates are expressed
- in in the same coordinate system as the bounds rectangle. The active cropping
- area must lie completely inside the crop boundaries and the driver may further
- adjust the requested size and/or position according to hardware
- limitations.</para>
- 
- <para>For output devices the default cropping rectangle is queried using
--<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant>. It is usually equal to the
-+<constant>V4L2_SEL_TGT_CROP_DEFAULT</constant>. It is usually equal to the
- bounding rectangle.</para>
- 
- <para>The part of a video signal or graphics display where the image is
--inserted by the hardware is controlled by <constant>
--V4L2_SEL_TGT_COMPOSE </constant> target.  The rectangle's coordinates
--are expressed in pixels. The composing rectangle must lie completely inside the
--bounds rectangle.  The driver must adjust the area to fit to the bounding
--limits.  Moreover, the driver can perform other adjustments according to
--hardware limitations. </para>
--
--<para>The device has a default composing rectangle, given by the <constant>
--V4L2_SEL_TGT_COMPOSE_DEFAULT </constant> target. This rectangle shall cover what
-+inserted by the hardware is controlled by <constant>V4L2_SEL_TGT_COMPOSE</constant>
-+target.  The rectangle's coordinates are expressed in pixels. The composing
-+rectangle must lie completely inside the bounds rectangle.  The driver must
-+adjust the area to fit to the bounding limits.  Moreover, the driver can
-+perform other adjustments according to hardware limitations.</para>
-+
-+<para>The device has a default composing rectangle, given by the
-+<constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant> target. This rectangle shall cover what
- the driver writer considers the complete picture. It is recommended for the
--driver developers to put the top/left corner at position <constant> (0,0)
--</constant>. Drivers shall set the active composing rectangle to the default
-+driver developers to put the top/left corner at position <constant>(0,0)</constant>.
-+Drivers shall set the active composing rectangle to the default
- one when the driver is first loaded.</para>
- 
- <para>The devices may introduce additional content to video signal other than
- an image from memory buffers.  It includes borders around an image. However,
- such a padded area is driver-dependent feature not covered by this document.
- Driver developers are encouraged to keep padded rectangle equal to active one.
--The padded target is accessed by the <constant> V4L2_SEL_TGT_COMPOSE_PADDED
--</constant> identifier.  It must contain all pixels from the <constant>
--V4L2_SEL_TGT_COMPOSE </constant> target.</para>
-+The padded target is accessed by the <constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant>
-+identifier.  It must contain all pixels from the <constant>V4L2_SEL_TGT_COMPOSE</constant>
-+target.</para>
- 
-    </section>
- 
-@@ -194,8 +193,8 @@ V4L2_SEL_TGT_COMPOSE </constant> target.</para>
-      <title>Scaling control</title>
- 
- <para>An application can detect if scaling is performed by comparing the width
--and the height of rectangles obtained using <constant> V4L2_SEL_TGT_CROP
--</constant> and <constant> V4L2_SEL_TGT_COMPOSE </constant> targets. If
-+and the height of rectangles obtained using <constant>V4L2_SEL_TGT_CROP</constant>
-+and <constant>V4L2_SEL_TGT_COMPOSE</constant> targets. If
- these are not equal then the scaling is applied. The application can compute
- the scaling ratios using these values.</para>
- 
-@@ -208,7 +207,7 @@ the scaling ratios using these values.</para>
-     <title>Comparison with old cropping API</title>
- 
- <para>The selection API was introduced to cope with deficiencies of previous
--<link linkend="crop"> API </link>, that was designed to control simple capture
-+<link linkend="crop"> API</link>, that was designed to control simple capture
- devices. Later the cropping API was adopted by video output drivers. The ioctls
- are used to select a part of the display were the video signal is inserted. It
- should be considered as an API abuse because the described operation is
-@@ -220,7 +219,7 @@ part of an image by abusing V4L2 API.  Cropping a smaller image from a larger
- one is achieved by setting the field
- &v4l2-pix-format;<structfield>::bytesperline</structfield>.  Introducing an image offsets
- could be done by modifying field &v4l2-buffer;<structfield>::m_userptr</structfield>
--before calling <constant> VIDIOC_QBUF </constant>. Those
-+before calling <constant>VIDIOC_QBUF</constant>. Those
- operations should be avoided because they are not portable (endianness), and do
- not work for macroblock and Bayer formats and mmap buffers.  The selection API
- deals with configuration of buffer cropping/composing in a clear, intuitive and
-@@ -229,7 +228,7 @@ and constraints flags are introduced.  Finally, &v4l2-crop; and &v4l2-cropcap;
- have no reserved fields. Therefore there is no way to extend their functionality.
- The new &v4l2-selection; provides a lot of place for future
- extensions.  Driver developers are encouraged to implement only selection API.
--The former cropping API would be simulated using the new one. </para>
-+The former cropping API would be simulated using the new one.</para>
- 
-   </section>
- 
-@@ -238,9 +237,9 @@ The former cropping API would be simulated using the new one. </para>
-       <example>
- 	<title>Resetting the cropping parameters</title>
- 
--	<para>(A video capture device is assumed; change <constant>
--V4L2_BUF_TYPE_VIDEO_CAPTURE </constant> for other devices; change target to
--<constant> V4L2_SEL_TGT_COMPOSE_* </constant> family to configure composing
-+	<para>(A video capture device is assumed; change
-+<constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant> for other devices; change target to
-+<constant>V4L2_SEL_TGT_COMPOSE_*</constant> family to configure composing
- area)</para>
- 
- 	<programlisting>
-@@ -292,8 +291,8 @@ area)</para>
- 
-       <example>
- 	<title>Querying for scaling factors</title>
--	<para>A video output device is assumed; change <constant>
--V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
-+	<para>A video output device is assumed; change
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> for other devices</para>
- 	<programlisting>
- 
- 	&v4l2-selection; compose = {
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index b11ec75..9c04ac8 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -58,17 +58,16 @@
- 
-     <para>The ioctls are used to query and configure selection rectangles.</para>
- 
--<para> To query the cropping (composing) rectangle set &v4l2-selection;
-+<para>To query the cropping (composing) rectangle set &v4l2-selection;
- <structfield> type </structfield> field to the respective buffer type.
--Do not use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
--</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
--</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
--<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
-+Do not use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
-+instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
- setting the value of &v4l2-selection; <structfield>target</structfield> field
--to <constant> V4L2_SEL_TGT_CROP </constant> (<constant>
--V4L2_SEL_TGT_COMPOSE </constant>).  Please refer to table <xref
--linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
--targets.  The <structfield>flags</structfield> and <structfield>reserved
-+to <constant>V4L2_SEL_TGT_CROP</constant> (<constant>V4L2_SEL_TGT_COMPOSE</constant>).
-+Please refer to table <xref linkend="v4l2-selections-common" /> or <xref linkend="selection-api" />
-+for additional targets.  The <structfield>flags</structfield> and <structfield>reserved
- </structfield> fields of &v4l2-selection; are ignored and they must be filled
- with zeros.  The driver fills the rest of the structure or
- returns &EINVAL; if incorrect buffer type or target was used. If cropping
-@@ -77,19 +76,18 @@ always equal to the bounds rectangle.  Finally, the &v4l2-rect;
- <structfield>r</structfield> rectangle is filled with the current cropping
- (composing) coordinates. The coordinates are expressed in driver-dependent
- units. The only exception are rectangles for images in raw formats, whose
--coordinates are always expressed in pixels.  </para>
-+coordinates are always expressed in pixels.</para>
- 
--<para> To change the cropping (composing) rectangle set the &v4l2-selection;
-+<para>To change the cropping (composing) rectangle set the &v4l2-selection;
- <structfield>type</structfield> field to the respective buffer type.  Do not
--use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
--</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
--</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
--<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
-+use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
-+instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
- setting the value of &v4l2-selection; <structfield>target</structfield> to
--<constant>V4L2_SEL_TGT_CROP</constant> (<constant>
--V4L2_SEL_TGT_COMPOSE </constant>). Please refer to table <xref
--linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
--targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
-+<constant>V4L2_SEL_TGT_CROP</constant> (<constant>V4L2_SEL_TGT_COMPOSE</constant>).
-+Please refer to table <xref linkend="v4l2-selections-common" /> or <xref linkend="selection-api" />
-+for additional targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
- set to the desired active area. Field &v4l2-selection; <structfield> reserved
- </structfield> is ignored and must be filled with zeros.  The driver may adjust
- coordinates of the requested rectangle. An application may
-@@ -149,8 +147,8 @@ On success the &v4l2-rect; <structfield>r</structfield> field contains
- the adjusted rectangle. When the parameters are unsuitable the application may
- modify the cropping (composing) or image parameters and repeat the cycle until
- satisfactory parameters have been negotiated. If constraints flags have to be
--violated at then ERANGE is returned. The error indicates that <emphasis> there
--exist no rectangle </emphasis> that satisfies the constraints.</para>
-+violated at then ERANGE is returned. The error indicates that <emphasis>there
-+exist no rectangle</emphasis> that satisfies the constraints.</para>
- 
-   <para>Selection targets and flags are documented in <xref
-   linkend="v4l2-selections-common"/>.</para>
--- 
-2.0.1
+Patches 19 and 20 might make sense, but why not use LIRC instead?
 
+As patch 16 is also part of this change, I'm skipping those patches
+from my review. Please re-submit latter after some RFC discussions
+about the API changes that are being proposed by those patches.
+
+Thanks,
+
+Em Fri, 04 Apr 2014 01:32:36 +0200
+David Härdeman <david@hardeman.nu> escreveu:
+
+> This patch changes rc-core to use an IDA rather than a bitmap to assign
+> unique numbers to each rc device. This is in preparation for introducing
+> rc-core chardevs.
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/rc/ir-raw.c  |    2 +-
+>  drivers/media/rc/rc-main.c |   40 ++++++++++++++++++++--------------------
+>  include/media/rc-core.h    |    4 ++--
+>  3 files changed, 23 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+> index 2a7f858..aed2997 100644
+> --- a/drivers/media/rc/ir-raw.c
+> +++ b/drivers/media/rc/ir-raw.c
+> @@ -271,7 +271,7 @@ int ir_raw_event_register(struct rc_dev *dev)
+>  
+>  	spin_lock_init(&dev->raw->lock);
+>  	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+> -				       "rc%ld", dev->devno);
+> +				       "rc%u", dev->minor);
+>  
+>  	if (IS_ERR(dev->raw->thread)) {
+>  		rc = PTR_ERR(dev->raw->thread);
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 2788102..42268f3 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -18,17 +18,15 @@
+>  #include <linux/input.h>
+>  #include <linux/leds.h>
+>  #include <linux/slab.h>
+> +#include <linux/idr.h>
+>  #include <linux/device.h>
+>  #include <linux/module.h>
+>  #include "rc-core-priv.h"
+>  
+> -/* Bitmap to store allocated device numbers from 0 to IRRCV_NUM_DEVICES - 1 */
+> -#define IRRCV_NUM_DEVICES      256
+> -static DECLARE_BITMAP(ir_core_dev_number, IRRCV_NUM_DEVICES);
+> -
+>  /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
+>  #define IR_TAB_MIN_SIZE	256
+>  #define IR_TAB_MAX_SIZE	8192
+> +#define RC_DEV_MAX	256
+>  
+>  /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
+>  #define IR_KEYPRESS_TIMEOUT 250
+> @@ -38,6 +36,9 @@ static LIST_HEAD(rc_map_list);
+>  static DEFINE_SPINLOCK(rc_map_lock);
+>  static struct led_trigger *led_feedback;
+>  
+> +/* Used to keep track of rc devices */
+> +static DEFINE_IDA(rc_ida);
+> +
+>  static struct rc_map_list *seek_rc_map(const char *name)
+>  {
+>  	struct rc_map_list *map = NULL;
+> @@ -1442,7 +1443,9 @@ int rc_register_device(struct rc_dev *dev)
+>  	static bool raw_init = false; /* raw decoders loaded? */
+>  	struct rc_map *rc_map;
+>  	const char *path;
+> -	int rc, devno, attr = 0;
+> +	int attr = 0;
+> +	int minor;
+> +	int rc;
+>  
+>  	if (!dev || !dev->map_name)
+>  		return -EINVAL;
+> @@ -1462,13 +1465,13 @@ int rc_register_device(struct rc_dev *dev)
+>  	if (dev->close)
+>  		dev->input_dev->close = ir_close;
+>  
+> -	do {
+> -		devno = find_first_zero_bit(ir_core_dev_number,
+> -					    IRRCV_NUM_DEVICES);
+> -		/* No free device slots */
+> -		if (devno >= IRRCV_NUM_DEVICES)
+> -			return -ENOMEM;
+> -	} while (test_and_set_bit(devno, ir_core_dev_number));
+> +	minor = ida_simple_get(&rc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
+> +	if (minor < 0)
+> +		return minor;
+> +
+> +	dev->minor = minor;
+> +	dev_set_name(&dev->dev, "rc%u", dev->minor);
+> +	dev_set_drvdata(&dev->dev, dev);
+>  
+>  	dev->dev.groups = dev->sysfs_groups;
+>  	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
+> @@ -1488,9 +1491,6 @@ int rc_register_device(struct rc_dev *dev)
+>  	 */
+>  	mutex_lock(&dev->lock);
+>  
+> -	dev->devno = devno;
+> -	dev_set_name(&dev->dev, "rc%ld", dev->devno);
+> -	dev_set_drvdata(&dev->dev, dev);
+>  	rc = device_add(&dev->dev);
+>  	if (rc)
+>  		goto out_unlock;
+> @@ -1558,8 +1558,8 @@ int rc_register_device(struct rc_dev *dev)
+>  
+>  	mutex_unlock(&dev->lock);
+>  
+> -	IR_dprintk(1, "Registered rc%ld (driver: %s, remote: %s, mode %s)\n",
+> -		   dev->devno,
+> +	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
+> +		   dev->minor,
+>  		   dev->driver_name ? dev->driver_name : "unknown",
+>  		   rc_map->name ? rc_map->name : "unknown",
+>  		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
+> @@ -1578,7 +1578,7 @@ out_dev:
+>  	device_del(&dev->dev);
+>  out_unlock:
+>  	mutex_unlock(&dev->lock);
+> -	clear_bit(dev->devno, ir_core_dev_number);
+> +	ida_simple_remove(&rc_ida, minor);
+>  	return rc;
+>  }
+>  EXPORT_SYMBOL_GPL(rc_register_device);
+> @@ -1590,8 +1590,6 @@ void rc_unregister_device(struct rc_dev *dev)
+>  
+>  	del_timer_sync(&dev->timer_keyup);
+>  
+> -	clear_bit(dev->devno, ir_core_dev_number);
+> -
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW)
+>  		ir_raw_event_unregister(dev);
+>  
+> @@ -1604,6 +1602,8 @@ void rc_unregister_device(struct rc_dev *dev)
+>  
+>  	device_del(&dev->dev);
+>  
+> +	ida_simple_remove(&rc_ida, dev->minor);
+> +
+>  	rc_free_device(dev);
+>  }
+>  
+> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+> index 5a082e7..ca3d836 100644
+> --- a/include/media/rc-core.h
+> +++ b/include/media/rc-core.h
+> @@ -87,7 +87,7 @@ enum rc_filter_type {
+>   * @rc_map: current scan/key table
+>   * @lock: used to ensure we've filled in all protocol details before
+>   *	anyone can call show_protocols or store_protocols
+> - * @devno: unique remote control device number
+> + * @minor: unique minor remote control device number
+>   * @raw: additional data for raw pulse/space devices
+>   * @input_dev: the input child device used to communicate events to userspace
+>   * @driver_type: specifies if protocol decoding is done in hardware or software
+> @@ -147,7 +147,7 @@ struct rc_dev {
+>  	const char			*map_name;
+>  	struct rc_map			rc_map;
+>  	struct mutex			lock;
+> -	unsigned long			devno;
+> +	unsigned int			minor;
+>  	struct ir_raw_event_ctrl	*raw;
+>  	struct input_dev		*input_dev;
+>  	enum rc_driver_type		driver_type;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
