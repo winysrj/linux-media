@@ -1,363 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2584 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758651AbaGQXkv (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:62828 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935088AbaGYRsL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 19:40:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.17 3/4] solo6x10: a few checkpatch fixes
-Date: Fri, 18 Jul 2014 01:40:22 +0200
-Message-Id: <1405640423-1037-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405640423-1037-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405640423-1037-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 25 Jul 2014 13:48:11 -0400
+Received: by mail-we0-f182.google.com with SMTP id k48so4673828wev.27
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 10:48:09 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/4] em28xx-v4l: simplify em28xx_v4l2_open() by using v4l2_fh_open()
+Date: Fri, 25 Jul 2014 19:48:57 +0200
+Message-Id: <1406310538-5001-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Instead of calling
 
-Added a blank line after variable declarations where checkpatch
-requested that, and removed the 'write to the FSF' paragraph,
-again as requested.
+...
+struct v4l2_fh *fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+filp->private_data = fh;
+v4l2_fh_init(fh, vdev);
+v4l2_fh_add(fh);
+...
 
-This is in preparation of the move out of staging into drivers/media.
+simply use function v4l2_fh_open() which does all of these calls for us.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/staging/media/solo6x10/solo6x10-core.c     | 6 +-----
- drivers/staging/media/solo6x10/solo6x10-disp.c     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-eeprom.c   | 4 ----
- drivers/staging/media/solo6x10/solo6x10-enc.c      | 4 ----
- drivers/staging/media/solo6x10/solo6x10-g723.c     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-gpio.c     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-i2c.c      | 4 ----
- drivers/staging/media/solo6x10/solo6x10-jpeg.h     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-offsets.h  | 4 ----
- drivers/staging/media/solo6x10/solo6x10-p2m.c      | 4 ----
- drivers/staging/media/solo6x10/solo6x10-regs.h     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-tw28.c     | 5 +----
- drivers/staging/media/solo6x10/solo6x10-tw28.h     | 4 ----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 7 +++----
- drivers/staging/media/solo6x10/solo6x10-v4l2.c     | 8 ++++----
- drivers/staging/media/solo6x10/solo6x10.h          | 4 ----
- 16 files changed, 9 insertions(+), 65 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-core.c b/drivers/staging/media/solo6x10/solo6x10-core.c
-index f670469..172583d 100644
---- a/drivers/staging/media/solo6x10/solo6x10-core.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-core.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 4eb4a6a..3a7ec3b 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1868,7 +1868,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	struct em28xx *dev = video_drvdata(filp);
+ 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 	enum v4l2_buf_type fh_type = 0;
+-	struct v4l2_fh *fh;
++	int ret;
  
- #include <linux/kernel.h>
-@@ -307,8 +303,8 @@ static ssize_t p2m_timeout_store(struct device *dev,
- 	struct solo_dev *solo_dev =
- 		container_of(dev, struct solo_dev, dev);
- 	unsigned long ms;
--
- 	int ret = kstrtoul(buf, 10, &ms);
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+@@ -1889,14 +1889,14 @@ static int em28xx_v4l2_open(struct file *filp)
+ 
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+-	fh = kzalloc(sizeof(struct v4l2_fh), GFP_KERNEL);
+-	if (!fh) {
+-		em28xx_errdev("em28xx-video.c: Out of memory?!\n");
 +
- 	if (ret < 0 || ms > 200)
- 		return -EINVAL;
- 	solo_dev->p2m_jiffies = msecs_to_jiffies(ms);
-diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
-index b529a96..ed88ab4 100644
---- a/drivers/staging/media/solo6x10/solo6x10-disp.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-eeprom.c b/drivers/staging/media/solo6x10/solo6x10-eeprom.c
-index 9d1c9bb..af40b3a 100644
---- a/drivers/staging/media/solo6x10/solo6x10-eeprom.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-eeprom.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-enc.c b/drivers/staging/media/solo6x10/solo6x10-enc.c
-index 2db53b6..d19c0ae 100644
---- a/drivers/staging/media/solo6x10/solo6x10-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-enc.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-g723.c b/drivers/staging/media/solo6x10/solo6x10-g723.c
-index 74f037b..c7141f2 100644
---- a/drivers/staging/media/solo6x10/solo6x10-g723.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-g723.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-gpio.c b/drivers/staging/media/solo6x10/solo6x10-gpio.c
-index 73276dc..6d3b4a3 100644
---- a/drivers/staging/media/solo6x10/solo6x10-gpio.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-gpio.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-i2c.c b/drivers/staging/media/solo6x10/solo6x10-i2c.c
-index 01aa417..c908672 100644
---- a/drivers/staging/media/solo6x10/solo6x10-i2c.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-i2c.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- /* XXX: The SOLO6x10 i2c does not have separate interrupts for each i2c
-diff --git a/drivers/staging/media/solo6x10/solo6x10-jpeg.h b/drivers/staging/media/solo6x10/solo6x10-jpeg.h
-index 9e41185..1c66a46 100644
---- a/drivers/staging/media/solo6x10/solo6x10-jpeg.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-jpeg.h
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #ifndef __SOLO6X10_JPEG_H
-diff --git a/drivers/staging/media/solo6x10/solo6x10-offsets.h b/drivers/staging/media/solo6x10/solo6x10-offsets.h
-index 13eeb44..d6aea7c 100644
---- a/drivers/staging/media/solo6x10/solo6x10-offsets.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-offsets.h
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #ifndef __SOLO6X10_OFFSETS_H
-diff --git a/drivers/staging/media/solo6x10/solo6x10-p2m.c b/drivers/staging/media/solo6x10/solo6x10-p2m.c
-index 7f2f247..8c84846 100644
---- a/drivers/staging/media/solo6x10/solo6x10-p2m.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-p2m.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/solo6x10/solo6x10-regs.h b/drivers/staging/media/solo6x10/solo6x10-regs.h
-index 428f6c9..e34ac56 100644
---- a/drivers/staging/media/solo6x10/solo6x10-regs.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-regs.h
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #ifndef __SOLO6X10_REGISTERS_H
-diff --git a/drivers/staging/media/solo6x10/solo6x10-tw28.c b/drivers/staging/media/solo6x10/solo6x10-tw28.c
-index 36daa17..edd0781 100644
---- a/drivers/staging/media/solo6x10/solo6x10-tw28.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-tw28.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-@@ -214,6 +210,7 @@ static void tw_write_and_verify(struct solo_dev *solo_dev, u8 addr, u8 off,
- 
- 	for (i = 0; i < 5; i++) {
- 		u8 rval = solo_i2c_readbyte(solo_dev, SOLO_I2C_TW, addr, off);
-+
- 		if (rval == val)
- 			return;
- 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-tw28.h b/drivers/staging/media/solo6x10/solo6x10-tw28.h
-index 1a02c87..0966b45 100644
---- a/drivers/staging/media/solo6x10/solo6x10-tw28.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-tw28.h
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #ifndef __SOLO6X10_TW28_H
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 1fd6bec..2e07b49 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #include <linux/kernel.h>
-@@ -704,6 +700,7 @@ static int solo_ring_thread(void *data)
- 
- 	for (;;) {
- 		long timeout = schedule_timeout_interruptible(HZ);
-+
- 		if (timeout == -ERESTARTSYS || kthread_should_stop())
- 			break;
- 		solo_irq_off(solo_dev, SOLO_IRQ_ENCODER);
-@@ -750,6 +747,7 @@ static int solo_ring_start(struct solo_dev *solo_dev)
- 					    SOLO6X10_NAME "_ring");
- 	if (IS_ERR(solo_dev->ring_thread)) {
- 		int err = PTR_ERR(solo_dev->ring_thread);
-+
- 		solo_dev->ring_thread = NULL;
- 		return err;
++	ret = v4l2_fh_open(filp);
++	if (ret) {
++		em28xx_errdev("%s: v4l2_fh_open() returned error %d\n",
++			      __func__, ret);
+ 		mutex_unlock(&dev->lock);
+-		return -ENOMEM;
++		return ret;
  	}
-@@ -1402,6 +1400,7 @@ int solo_enc_v4l2_init(struct solo_dev *solo_dev, unsigned nr)
+-	v4l2_fh_init(fh, vdev);
+-	filp->private_data = fh;
  
- 	if (i != solo_dev->nr_chans) {
- 		int ret = PTR_ERR(solo_dev->v4l2_enc[i]);
-+
- 		while (i--)
- 			solo_enc_free(solo_dev->v4l2_enc[i]);
- 		pci_free_consistent(solo_dev->pdev, solo_dev->vh_size,
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2.c b/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-index ba2526c..63ae8a6 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
+ 	if (v4l2->users == 0) {
+ 		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+@@ -1921,7 +1921,6 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	v4l2->users++;
  
- #include <linux/kernel.h>
-@@ -98,6 +94,7 @@ static int solo_v4l2_ch_ext_4up(struct solo_dev *solo_dev, u8 idx, int on)
+ 	mutex_unlock(&dev->lock);
+-	v4l2_fh_add(fh);
  
- 	if (!on) {
- 		u8 i;
-+
- 		for (i = ch; i < ch + 4; i++)
- 			solo_win_setup(solo_dev, i, solo_dev->video_hsize,
- 				       solo_vlines(solo_dev),
-@@ -206,6 +203,7 @@ static void solo_fillbuf(struct solo_dev *solo_dev,
- 	if (erase_off(solo_dev)) {
- 		void *p = vb2_plane_vaddr(vb, 0);
- 		int image_size = solo_image_size(solo_dev);
-+
- 		for (i = 0; i < image_size; i += 2) {
- 			((u8 *)p)[i] = 0x80;
- 			((u8 *)p)[i + 1] = 0x00;
-@@ -275,6 +273,7 @@ static int solo_thread(void *data)
- 
- 	for (;;) {
- 		long timeout = schedule_timeout_interruptible(HZ);
-+
- 		if (timeout == -ERESTARTSYS || kthread_should_stop())
- 			break;
- 		solo_thread_try(solo_dev);
-@@ -414,6 +413,7 @@ static int solo_enum_input(struct file *file, void *priv,
- 
- 	if (input->index >= solo_dev->nr_chans) {
- 		int ret = solo_enum_ext_input(solo_dev, input);
-+
- 		if (ret < 0)
- 			return ret;
- 	} else {
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 35f9486..c6154b0 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -16,10 +16,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
- 
- #ifndef __SOLO6X10_H
+ 	return 0;
+ }
 -- 
-2.0.0
+1.8.4.5
 
