@@ -1,93 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:56524 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756304AbaGaKVK (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:61205 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932241AbaGYOVf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 06:21:10 -0400
-Received: by mail-oa0-f49.google.com with SMTP id eb12so1859743oac.36
-        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 03:21:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2527488.lKHnXpDbSd@avalon>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CA+2YH7uNcD5v0wvScrJuGXMGe_SS9Vo3nVb75jQVq9R86R4K-Q@mail.gmail.com>
-	<CA+2YH7tqrLLWh2xJT-dSqWnXV4VD+jNf-egn3ea+VoEsmvqOog@mail.gmail.com>
-	<2527488.lKHnXpDbSd@avalon>
-Date: Thu, 31 Jul 2014 12:21:09 +0200
-Message-ID: <CA+2YH7vZm3famhSJeCQ0gWr=jAUm24=M40xmXGORSDXXgc-5zQ@mail.gmail.com>
-Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
-From: Enrico <ebutera@users.sourceforge.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Enric Balletbo Serra <eballetbo@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 25 Jul 2014 10:21:35 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 8/9] s5p-jpeg: add chroma subsampling adjustment for
+ Exynos3250
+Date: Fri, 25 Jul 2014 16:20:52 +0200
+Message-id: <1406298053-30184-9-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 30, 2014 at 11:01 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Enrico,
->
-> On Wednesday 23 July 2014 15:57:51 Enrico wrote:
->> On Wed, Jul 23, 2014 at 3:54 PM, Enrico wrote:
->
-> [snip]
->
->> > You were right i was using the wrong binary, now the output is:
->> >
->> > ...
->> > - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->> >             type V4L2 subdev subtype Unknown flags 0
->> >             device node name /dev/v4l-subdev2
->> >         pad0: Sink
->> >                 [fmt:UYVY2X8/720x625 field:interlaced]
->> > ...
->> >         pad1: Source
->> >                 [fmt:UYVY/720x624 field:interlaced
->> >                  crop.bounds:(0,0)/720x624
->> >                  crop:(0,0)/720x624]
->> > ...
->> > - entity 16: tvp5150 1-005c (1 pad, 1 link)
->> >              type V4L2 subdev subtype Unknown flags 0
->> >              device node name /dev/v4l-subdev8
->> >         pad0: Source
->> >                 [fmt:UYVY2X8/720x625 field:interlaced]
->
-> That's surprising. Have you applied the tvp5150 patches from the
-> omap3isp/bt656 branch ? The field should be hardcoded to V4L2_FIELD_ALTERNATE
-> (reported as "alternate" by media-ctl), as the tvp5150 alternates between the
-> top and bottom fields in consecutive frames. The CCDC input should then be
-> configured to V4L2_FIELD_ALTERNATE as well, and the CCDC output to
-> V4L2_FIELD_ALTERNATE ("alternate"), V4L2_FIELD_INTERLACED_TB ("interlaced-tb")
-> or V4L2_FIELD_INTERLACED_BT ("interlaced-bt").
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 
-No, i missed those patches i was using only the omap3isp patches you
-posted here.
-With those patches and configuring the pipleline as you suggested i
-could finally capture some good frames with yavta.
+Take into account limitations specific to the Exynos3250 SoC,
+regarding setting the chroma subsampling control's value.
 
-But i think there is some race, because it's not very "reliable". This
-is what i see:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   59 +++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 21 deletions(-)
 
-(with yavta -c50 -f UYVY -s 720x576 --field interlaced-tb /dev/video2)
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index eb13fdf..e66acbc 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1603,36 +1603,53 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 	return 0;
+ }
 
-1) first run, ok
+-static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
++static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
+ {
+-	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&ctx->jpeg->slock, flags);
+-
+-	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING) {
+-		if (ctx->jpeg->variant->version == SJPEG_S5P)
+-			goto error_free;
++	switch (ctx->jpeg->variant->version) {
++	case SJPEG_S5P:
++		return 0;
++	case SJPEG_EXYNOS3250:
++		/*
++		 * The exynos3250 device can produce JPEG image only
++		 * of 4:4:4 subsampling when given RGB32 source image.
++		 */
++		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
++			*ctrl_val = 0;
++		break;
++	case SJPEG_EXYNOS4:
+ 		/*
+ 		 * The exynos4x12 device requires input raw image fourcc
+ 		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
+ 		 * is to be set.
+ 		 */
+ 		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
+-		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
+-			ret = -EINVAL;
+-			goto error_free;
+-		}
+-		/*
+-		 * The exynos4x12 device requires resulting jpeg subsampling
+-		 * not to be lower than the input raw image subsampling.
+-		 */
+-		if (ctx->out_q.fmt->subsampling > ctrl->val)
+-			ctrl->val = ctx->out_q.fmt->subsampling;
++		    *ctrl_val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY)
++			return -EINVAL;
++		break;
+ 	}
 
-2) if i re-run it soon after it finishes, it just hangs on start (in
-VIDIOC_DQBUF).
-I have to stop it with ctrl+c and after some seconds it exits, and the
-kernel prints the ccdc stop timeout message.
+-error_free:
++	/*
++	 * The exynos4x12 and exynos3250 devices require resulting
++	 * jpeg subsampling not to be lower than the input raw image
++	 * subsampling.
++	 */
++	if (ctx->out_q.fmt->subsampling > *ctrl_val)
++		*ctrl_val = ctx->out_q.fmt->subsampling;
++
++	return 0;
++}
++
++static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&ctx->jpeg->slock, flags);
++
++	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING)
++		ret = s5p_jpeg_adjust_subs_ctrl(ctx, &ctrl->val);
++
+ 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
+ 	return ret;
+ }
+--
+1.7.9.5
 
-in any case when it doesn't hang i can capture 200 frames with no
-errors. And if i wait some seconds before running it again it usually
-works (not always).
-
-3) if i add -F to yavta (saving to a tmpfs in ram), it hangs after
-capturing some frames (usually between 20 and 30).
-yet again, same ctrl+c thing (it exits, ccdc stop timeout...).
-
-Apart from these issues your patches are much better then the old
-ones! Any hints on what i can try to fix these issues?
-
-Thanks,
-
-Enrico
