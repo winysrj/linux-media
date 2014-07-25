@@ -1,71 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:56683 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448AbaGBNhH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 09:37:07 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N83002XC75SZ320@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 02 Jul 2014 14:37:04 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>
-Cc: linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
- <1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
- <1403626611.10756.11.camel@mpb-nicolas>
- <1404237187.19382.78.camel@paszta.hi.pengutronix.de>
-In-reply-to: <1404237187.19382.78.camel@paszta.hi.pengutronix.de>
-Subject: RE: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for
- CODA960
-Date: Wed, 02 Jul 2014 15:37:06 +0200
-Message-id: <0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4659 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbaGYMQX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 08:16:23 -0400
+Message-ID: <53D24A74.5060001@xs4all.nl>
+Date: Fri, 25 Jul 2014 14:15:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [ATTN] Please review/check the REVIEWv4 compound control patch
+ series
+References: <53999849.1090105@xs4all.nl> <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com> <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com> <53D245EA.4070803@xs4all.nl> <CAPybu_2jZ8qCpoJAe9aaBtnr=r8wzgkMn9onEE1L5C=qybQ4dQ@mail.gmail.com>
+In-Reply-To: <CAPybu_2jZ8qCpoJAe9aaBtnr=r8wzgkMn9onEE1L5C=qybQ4dQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 07/25/14 14:09, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+> 
+> I still need the multiselection support first. Right now it is done by
+> a modified g/s_selection ioctl.
+> 
+> I would love to upstream the driver, but maybe it is not the right
+> moment right now. We are selling a mainly to a couple of customers and
+> the total size of the drivers is > 16000 lines of code, plus 200 MB in
+> firmware files.
 
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Tuesday, July 01, 2014 7:53 PM
-> To: Nicolas Dufresne
-> Cc: linux-media@vger.kernel.org; Mauro Carvalho Chehab; Kamil Debski;
-> Fabio Estevam; kernel@pengutronix.de
-> Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support
-> for CODA960
-> 
-> Hi Nicolas,
-> 
-> Am Dienstag, den 24.06.2014, 12:16 -0400 schrieb Nicolas Dufresne:
-> [...]
-> > > @@ -2908,6 +3183,7 @@ static void coda_timeout(struct work_struct
-> > > *work)  static u32 coda_supported_firmwares[] = {
-> > >  	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
-> > >  	CODA_FIRMWARE_VERNUM(CODA_7541, 1, 4, 50),
-> > > +	CODA_FIRMWARE_VERNUM(CODA_960, 2, 1, 5),
-> >
-> > Where can we find these firmwares ?
-> 
-> The firmware images are distributed with an EULA in Freescale's BSPs
-> that can be downloaded from their website. The file you are looking for
-> is vpu_fw_imx6q.bin (for i.MX6Q/D) or vpu_fw_imx6d.bin (for i.MX6DL/S).
-> This has to be stripped of the 16-byte header and must be reordered to
-> fit the CODA memory access pattern by reversing the order of each set
-> of four 16-bit values (imagine little-endian 64-bit values made of four
-> 16-bit wide bytes).
+I was thinking of just the sensor driver, not the other components.
+That would provide a proper use-case for both the dead pixel array
+and multi-selection.
 
-It would be really nice if the firmware was available in the linux-firmware
-repository. Do you think this would be possible?
- 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+I assume that the sensor driver is a lot smaller? Does it need fw as well?
+
+Regards,
+
+	Hans
+
+> 
+> Once we are ready to launch the product to a wider market we will
+> upstream it, now it will just annoy a lot of people.
+> 
+> Thanks
+> 
+> 
+> 
+> On Fri, Jul 25, 2014 at 1:56 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Ricardo,
+>>
+>> On 07/25/14 13:52, Ricardo Ribalda Delgado wrote:
+>>> Hello Hans
+>>>
+>>>
+>>> Guess it is too late, but just so you know. I have successfully uses
+>>> this patches to implement a dead pixel array list.
+>>>
+>>> Tested-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+>>> Thanked-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>  :)
+>>
+>> Nevertheless nice to hear about this!
+>>
+>> BTW, are you planning on upstreaming this driver? Or do you need to
+>> have multi-selection support first? That needs the compound control
+>> support as well, so at least it's closer to becoming a reality.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> Thanks!
+>>>
+>>> On Thu, Jul 17, 2014 at 3:56 PM, Ricardo Ribalda Delgado
+>>> <ricardo.ribalda@gmail.com> wrote:
+>>>> Hello Hans
+>>>>
+>>>> I am planning to test this patchset for dead pixels by the end of this
+>>>> week and the beggining of the next. I am thinking about comparing the
+>>>> performance a list of deadpixels against a list of all pixels with
+>>>> their property (ok pixel, dead pixel, white pixel, slow pixel...)
+>>>>
+>>>> Will write back (hopefully) soon
+>>>>
+>>>> Regards!
+>>>>
+>>>> On Thu, Jun 12, 2014 at 2:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>> Mauro & anyone else with an interest,
+>>>>>
+>>>>> I'd appreciate it if this patch series was reviewed, in particular
+>>>>> with respect to the handling of multi-dimensional arrays:
+>>>>>
+>>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg75929.html
+>>>>>
+>>>>> This patch series incorporates all comments from the REVIEWv3 series
+>>>>> except for two (see the cover letter of the patch series for details),
+>>>>>
+>>>>> If support for arrays with more than 8 dimensions is really needed,
+>>>>> then I would like to know asap so I can implement that in time for
+>>>>> 3.17.
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>>         Hans
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>>
+>>>>
+>>>> --
+>>>> Ricardo Ribalda
+>>>
+>>>
+>>>
+>>
+> 
+> 
+> 
 
