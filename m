@@ -1,38 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:54179 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751443AbaG2Fim (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 01:38:42 -0400
-Message-ID: <53D7335E.2010806@gentoo.org>
-Date: Tue, 29 Jul 2014 07:38:38 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] si2135: Declare the structs even if frontend is not enabled
-References: <1406554705-10296-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406554705-10296-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:45782 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876AbaGYOly (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 10:41:54 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-sh@vger.kernel.org
+Cc: magnus.damm@gmail.com,
+	Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 6/6] media: soc_camera: rcar_vin: Add r8a7794 device support
+Date: Fri, 25 Jul 2014 16:40:50 +0200
+Message-Id: <1406299250-23975-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1406299250-23975-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1406299250-23975-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28.07.2014 15:38, Mauro Carvalho Chehab wrote:
-> As reported by Kbuildtest:
-> 
->    In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
->    drivers/media/dvb-frontends/si2165.h:57:9: warning: 'struct si2165_config' declared inside parameter list [enabled by default]
->      struct i2c_adapter *i2c)
->             ^
->    drivers/media/dvb-frontends/si2165.h:57:9: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
->    drivers/media/usb/cx231xx/cx231xx-dvb.c:157:21: error: variable 'hauppauge_930C_HD_1113xx_si2165_config' has initializer but incomplete type
->     static const struct si2165_config hauppauge_930C_HD_1113xx_si2165_config = {
->                         ^
->    drivers/media/usb/cx231xx/cx231xx-dvb.c:158:2: error: unknown field 'i2c_addr' specified in initializer
->      .i2c_addr = 0x64,
->      ^
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Good catch.
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Cc: linux-media@vger.kernel.org
 
-Matthias
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index e594230..86d98cd 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1391,6 +1391,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+ };
+ 
+ static struct platform_device_id rcar_vin_id_table[] = {
++	{ "r8a7794-vin",  RCAR_GEN2 },
+ 	{ "r8a7791-vin",  RCAR_GEN2 },
+ 	{ "r8a7790-vin",  RCAR_GEN2 },
+ 	{ "r8a7779-vin",  RCAR_H1 },
+-- 
+1.8.4.5
+
