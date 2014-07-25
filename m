@@ -1,42 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3454 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755284AbaGNM7l (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:61188 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760297AbaGYOVV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 08:59:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 25 Jul 2014 10:21:21 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/12] v4l2-ioctl: clear reserved field of G/S_SELECTION.
-Date: Mon, 14 Jul 2014 14:59:06 +0200
-Message-Id: <1405342752-46998-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 4/9] s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250
+ needs
+Date: Fri, 25 Jul 2014 16:20:48 +0200
+Message-id: <1406298053-30184-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The jpeg_bound_align_image function needs to know the context
+in which it is called, as it needs to align image dimensions in
+a slight different manner for Exynos3250, which crops pixels
+for specific values in case the format is RGB.
+
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 0e90349..ede9b03 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2112,8 +2112,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
- 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
--	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, 0),
--	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, INFO_FL_CLEAR(v4l2_selection, r)),
-+	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_selection, r)),
- 	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
--- 
-2.0.1
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index a3f8862..5ef7f5b 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1133,7 +1133,8 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
+ 	return NULL;
+ }
+
+-static void jpeg_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
++static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
++				   u32 *w, unsigned int wmin, unsigned int wmax,
+ 				   unsigned int walign,
+ 				   u32 *h, unsigned int hmin, unsigned int hmax,
+ 				   unsigned int halign)
+@@ -1145,13 +1146,27 @@ static void jpeg_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
+
+ 	w_step = 1 << walign;
+ 	h_step = 1 << halign;
++
++	if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250) {
++		/*
++		 * Rightmost and bottommost pixels are cropped by the
++		 * Exynos3250 JPEG IP for RGB formats, for the specific
++		 * width and height values respectively. This assignment
++		 * will result in v4l_bound_align_image returning dimensions
++		 * reduced by 1 for the aforementioned cases.
++		 */
++		if (w_step == 4 && ((width & 3) == 1)) {
++			wmax = width;
++			hmax = height;
++		}
++	}
++
+ 	v4l_bound_align_image(w, wmin, wmax, walign, h, hmin, hmax, halign, 0);
+
+ 	if (*w < width && (*w + w_step) < wmax)
+ 		*w += w_step;
+ 	if (*h < height && (*h + h_step) < hmax)
+ 		*h += h_step;
+-
+ }
+
+ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
+@@ -1167,12 +1182,12 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
+ 	/* V4L2 specification suggests the driver corrects the format struct
+ 	 * if any of the dimensions is unsupported */
+ 	if (q_type == FMT_TYPE_OUTPUT)
+-		jpeg_bound_align_image(&pix->width, S5P_JPEG_MIN_WIDTH,
++		jpeg_bound_align_image(ctx, &pix->width, S5P_JPEG_MIN_WIDTH,
+ 				       S5P_JPEG_MAX_WIDTH, 0,
+ 				       &pix->height, S5P_JPEG_MIN_HEIGHT,
+ 				       S5P_JPEG_MAX_HEIGHT, 0);
+ 	else
+-		jpeg_bound_align_image(&pix->width, S5P_JPEG_MIN_WIDTH,
++		jpeg_bound_align_image(ctx, &pix->width, S5P_JPEG_MIN_WIDTH,
+ 				       S5P_JPEG_MAX_WIDTH, fmt->h_align,
+ 				       &pix->height, S5P_JPEG_MIN_HEIGHT,
+ 				       S5P_JPEG_MAX_HEIGHT, fmt->v_align);
+@@ -1294,7 +1309,7 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
+ 	else
+ 		wh_align = 1;
+
+-	jpeg_bound_align_image(&w, S5P_JPEG_MIN_WIDTH,
++	jpeg_bound_align_image(ctx, &w, S5P_JPEG_MIN_WIDTH,
+ 			       S5P_JPEG_MAX_WIDTH, wh_align,
+ 			       &h, S5P_JPEG_MIN_HEIGHT,
+ 			       S5P_JPEG_MAX_HEIGHT, wh_align);
+--
+1.7.9.5
 
