@@ -1,65 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:61848 "EHLO
+Received: from mailout4.samsung.com ([203.254.224.34]:61813 "EHLO
 	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760460AbaGYOVZ (ORCPT
+	with ESMTP id S1751802AbaGYOVI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 10:21:25 -0400
+	Fri, 25 Jul 2014 10:21:08 -0400
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
 Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 5/9] s5p-jpeg: fix g_selection op
-Date: Fri, 25 Jul 2014 16:20:49 +0200
-Message-id: <1406298053-30184-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
-References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH v3 0/9] Support for Exynos3250 SoC in the s5p-jpeg driver
+Date: Fri, 25 Jul 2014 16:20:44 +0200
+Message-id: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+This patch series adds support for the JPEG codec IP found on the
+Exynos3250 SoCs. Supported raw formats are: YUYV, YVYU, UYVY, VYUY,
+RGB565, RGB565X, RGB32, NV12, NV21. Support for the hardware scaling
+and cropping features is added.
 
-V4L2_SEL_TGT_COMPOSE_DEFAULT switch case should select whole
-available area of the image and V4L2_SEL_TGT_COMPOSE
-should apply user settings.
+Changes since v2 (only patches 1/9, 2/9, 9/9):
+ - the IP function clock renamed from "sclk-jpeg" to "sclk" and made
+   optional regardless of the device compatible string,
+ - fixed compilation warning in jpeg-hw-exynos3250.c.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+Changes since v1:
+ - added default case to the switch statement in the function
+   exynos3250_jpeg_dec_scaling_ratiofunction
+ - removed not supported DT properties
+ - improved DT documentation
+ - updated Kconfig entry
+ - corrected DTS maintainer email in the commit message
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 5ef7f5b..d11357f 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1505,21 +1505,23 @@ static int s5p_jpeg_g_selection(struct file *file, void *priv,
- 	case V4L2_SEL_TGT_CROP:
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
- 	case V4L2_SEL_TGT_CROP_DEFAULT:
--	case V4L2_SEL_TGT_COMPOSE:
- 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
- 		s->r.width = ctx->out_q.w;
- 		s->r.height = ctx->out_q.h;
-+		s->r.left = 0;
-+		s->r.top = 0;
- 		break;
-+	case V4L2_SEL_TGT_COMPOSE:
- 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
- 	case V4L2_SEL_TGT_COMPOSE_PADDED:
--		s->r.width = ctx->cap_q.w;
--		s->r.height = ctx->cap_q.h;
-+		s->r.width = ctx->crop_rect.width;
-+		s->r.height =  ctx->crop_rect.height;
-+		s->r.left = ctx->crop_rect.left;
-+		s->r.top = ctx->crop_rect.top;
- 		break;
- 	default:
- 		return -EINVAL;
- 	}
--	s->r.left = 0;
--	s->r.top = 0;
- 	return 0;
- }
+Jacek Anaszewski (9):
+  [media] s5p-jpeg: Document sclk-jpeg clock for Exynos3250 SoC
+  s5p-jpeg: Add support for Exynos3250 SoC
+  s5p-jpeg: return error immediately after get_byte fails
+  s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250 needs
+  s5p-jpeg: fix g_selection op
+  s5p-jpeg: Assure proper crop rectangle initialization
+  s5p-jpeg: Prevent erroneous downscaling for Exynos3250 SoC
+  s5p-jpeg: add chroma subsampling adjustment for Exynos3250
+  ARM: dts: exynos3250: add JPEG codec device node
+
+ .../bindings/media/exynos-jpeg-codec.txt           |   12 +-
+ arch/arm/boot/dts/exynos3250.dtsi                  |    9 +
+ drivers/media/platform/Kconfig                     |    5 +-
+ drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  660 ++++++++++++++++++--
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |   32 +-
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |  487 +++++++++++++++
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.h   |   60 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  247 +++++++-
+ 9 files changed, 1455 insertions(+), 59 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
 
 --
 1.7.9.5
