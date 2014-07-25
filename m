@@ -1,48 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay004-omc2s23.hotmail.com ([65.54.190.98]:49985 "EHLO
-	BAY004-OMC2S23.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbaGGE7x convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jul 2014 00:59:53 -0400
-Message-ID: <BAY176-W46A88AA74FC1924DEFE69FA90D0@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: No audio support in struct v4l2_subdev_format
-Date: Mon, 7 Jul 2014 10:29:53 +0530
-In-Reply-To: <53B7BA57.1010003@xs4all.nl>
-References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>,<53B65DCA.6010803@xs4all.nl>
- <BAY176-W23C9AA5FB70F17EDEB68F8A9000@phx.gbl>,<53B679C2.7030002@xs4all.nl>
- <BAY176-W32B9E16B0436D20DF363BEA9000@phx.gbl>,<53B6840A.20102@xs4all.nl>
- <BAY176-W264D5BED6FA556ABDE0763A9000@phx.gbl>,<53B7BA57.1010003@xs4all.nl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37998 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760436AbaGYPIv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 11:08:51 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 06/11] [media] coda: dequeue buffers on streamoff
+Date: Fri, 25 Jul 2014 17:08:32 +0200
+Message-Id: <1406300917-18169-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This is needed to decrease the q->owned_by_drv_count to zero before
+__vb2_queue_cancel is called, to avoid the WARN_ON therein.
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> int my_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-> struct v4l2_event_subscription *sub)
-> {
-> switch (sub->type) {
-> case V4L2_EVENT_CTRL:
-> return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
-> case V4L2_EVENT_SOURCE_CHANGE:
-> return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
-> ...
-> default:
-> return -EINVAL;
-> }
-The state machine is already ON, whether the user does a subdev open or not.
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 126b967..c84634b 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1084,6 +1084,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
+ 	struct coda_dev *dev = ctx->dev;
++	struct vb2_buffer *buf;
+ 
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+@@ -1091,7 +1092,11 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ 		ctx->streamon_out = 0;
+ 
+ 		coda_bit_stream_end_flag(ctx);
++
+ 		ctx->isequence = 0;
++
++		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
+ 	} else {
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+ 			 "%s: capture\n", __func__);
+@@ -1099,6 +1104,9 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ 
+ 		ctx->osequence = 0;
+ 		ctx->sequence_offset = 0;
++
++		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+ 	if (!ctx->streamon_out && !ctx->streamon_cap) {
+-- 
+2.0.1
 
-So, the events are generated anyways.
-
-I guess it's not too weird as the v4l2_event_queue_fh() requires fh, and it seems okay to get hold off fh by using these ops.
-
-
-Regards,
-
-Divneil 		 	   		  
