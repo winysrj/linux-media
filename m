@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35223 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38024 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761409AbaGRKXY (ORCPT
+	with ESMTP id S932508AbaGYPI7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 06:23:24 -0400
+	Fri, 25 Jul 2014 11:08:59 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
@@ -12,42 +12,96 @@ Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
 	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 03/11] [media] coda: remove CAPTURE and OUTPUT caps
-Date: Fri, 18 Jul 2014 12:22:37 +0200
-Message-Id: <1405678965-10473-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCH 05/11] [media] coda: dequeue buffers if start_streaming fails
+Date: Fri, 25 Jul 2014 17:08:31 +0200
+Message-Id: <1406300917-18169-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a mem2mem driver, pure capture or output modes are not
-supported.
+The core warns if we keep queued buffers around in the error case.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/coda.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 34 +++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 10f9278..f52d17c 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -536,13 +536,7 @@ static int coda_querycap(struct file *file, void *priv,
- 	strlcpy(cap->card, coda_product_name(ctx->dev->devtype->product),
- 		sizeof(cap->card));
- 	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
--	/*
--	 * This is only a mem-to-mem video device. The capture and output
--	 * device capability flags are left only for backward compatibility
--	 * and are scheduled for removal.
--	 */
--	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
--			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index ab4b4c3..126b967 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1005,6 +1005,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
+ 	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
+ 	struct coda_q_data *q_data_src, *q_data_dst;
++	struct vb2_buffer *buf;
+ 	u32 dst_fourcc;
+ 	int ret = 0;
  
- 	return 0;
+@@ -1016,17 +1017,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 			coda_fill_bitstream(ctx);
+ 			mutex_unlock(&ctx->bitstream_mutex);
+ 
+-			if (coda_get_bitstream_payload(ctx) < 512)
+-				return -EINVAL;
++			if (coda_get_bitstream_payload(ctx) < 512) {
++				ret = -EINVAL;
++				goto err;
++			}
+ 		} else {
+-			if (count < 1)
+-				return -EINVAL;
++			if (count < 1) {
++				ret = -EINVAL;
++				goto err;
++			}
+ 		}
+ 
+ 		ctx->streamon_out = 1;
+ 	} else {
+-		if (count < 1)
+-			return -EINVAL;
++		if (count < 1) {
++			ret = -EINVAL;
++			goto err;
++		}
+ 
+ 		ctx->streamon_cap = 1;
+ 	}
+@@ -1047,7 +1054,8 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 				     q_data_dst->fourcc);
+ 	if (!ctx->codec) {
+ 		v4l2_err(v4l2_dev, "couldn't tell instance type.\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
+ 
+ 	ret = ctx->ops->start_streaming(ctx);
+@@ -1055,11 +1063,21 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		if (ret == -EAGAIN)
+ 			return 0;
+ 		else if (ret < 0)
+-			return ret;
++			goto err;
+ 	}
+ 
+ 	ctx->initialized = 1;
+ 	return ret;
++
++err:
++	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
++	} else {
++		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
++	}
++	return ret;
+ }
+ 
+ static void coda_stop_streaming(struct vb2_queue *q)
 -- 
 2.0.1
 
