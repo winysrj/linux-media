@@ -1,64 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50972 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbaGQRak (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:21143 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664AbaGYKUz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 13:30:40 -0400
-Message-ID: <1405618233.3611.21.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 06/11] [media] coda: delay coda_fill_bitstream()
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>
-Date: Thu, 17 Jul 2014 19:30:33 +0200
-In-Reply-To: <53C7F72B.6080908@xs4all.nl>
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
-	 <1405613112-22442-7-git-send-email-p.zabel@pengutronix.de>
-	 <53C7F72B.6080908@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 25 Jul 2014 06:20:55 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <grant.likely@linaro.org>,
+	<galak@codeaurora.org>, <rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<ben.dooks@codethink.co.uk>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v3 3/3] media: atmel-isi: add primary DT support
+Date: Fri, 25 Jul 2014 18:20:00 +0800
+Message-ID: <1406283600-32084-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
+References: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch add the DT support for Atmel ISI driver.
+It use the same v4l2 DT interface that defined in video-interfaces.txt.
 
-thank you for the review.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Cc: devicetree@vger.kernel.org
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+v2 -> v3:
+  add bus-width property support.
+  add error handling when calling atmel_isi_probe_dt().
 
-Am Donnerstag, den 17.07.2014, 18:17 +0200 schrieb Hans Verkuil:
-> > @@ -2272,6 +2273,15 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
-> >  	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> >  	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >  		if (q_data_src->fourcc == V4L2_PIX_FMT_H264) {
-> > +			struct vb2_queue *vq;
-> > +			/* start_streaming_called must be set, for v4l2_m2m_buf_done() */
-> > +			vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> > +			vq->start_streaming_called = 1;
-> 
-> Why set start_streaming_called to 1? It is set before calling start_streaming.
-> This is a recent change in videobuf2-core.c though.
+v1 -> v2:
+  refine the binding document.
+  add port node description.
+  removed the optional property.
 
-Because I hadn't seen "[media] v4l: vb2: Fix stream start and buffer
-completion race" yet. I'll update this patch.
+ .../devicetree/bindings/media/atmel-isi.txt        | 51 +++++++++++++++++
+ drivers/media/platform/soc_camera/atmel-isi.c      | 64 +++++++++++++++++++++-
+ 2 files changed, 113 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
 
-> BTW, you should test with CONFIG_VIDEO_ADV_DEBUG on and force start_streaming
-> errors to check whether vb2_buffer_done(buf, VB2_BUF_STATE_DEQUEUED) is called
-> for the queued buffers in case of start_streaming failure.
-> 
-> With that config option vb2 will complain about unbalanced vb2 operations.
->
-> I strongly suspect this code does not play well with this.
-
-Yes, I will fix this.
-
-> BTW, isn't it time to split up the coda driver? Over 3000 lines...
-
-Indeed. This is also on my list.
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+new file mode 100644
+index 0000000..17e71b7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+@@ -0,0 +1,51 @@
++Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
++----------------------------------------------
++
++Required properties:
++- compatible: must be "atmel,at91sam9g45-isi"
++- reg: physical base address and length of the registers set for the device;
++- interrupts: should contain IRQ line for the ISI;
++- clocks: list of clock specifiers, corresponding to entries in
++          the clock-names property;
++- clock-names: must contain "isi_clk", which is the isi peripherial clock.
++
++ISI supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	isi: isi@f0034000 {
++		compatible = "atmel,at91sam9g45-isi";
++		reg = <0xf0034000 0x4000>;
++		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
++
++		clocks = <&isi_clk>;
++		clock-names = "isi_clk";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_isi>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			isi_0: endpoint {
++				remote-endpoint = <&ov2640_0>;
++				bus-width = <8>;
++			};
++		};
++	};
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "omnivision,ov2640";
++			reg = <0x30>;
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 74af560..ca4e43e 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -25,6 +25,7 @@
+ #include <media/atmel-isi.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
++#include <media/v4l2-of.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #define MAX_BUFFER_NUM			32
+@@ -33,6 +34,7 @@
+ #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
+ #define MIN_FRAME_RATE			15
+ #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
++#define ISI_DEFAULT_MCLK_FREQ		25000000
+ 
+ /* Frame buffer descriptor */
+ struct fbd {
+@@ -883,6 +885,50 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int atmel_isi_probe_dt(struct atmel_isi *isi,
++			struct platform_device *pdev)
++{
++	struct device_node *np= pdev->dev.of_node;
++	struct v4l2_of_endpoint ep;
++	int err;
++
++	/* Default settings for ISI */
++	isi->pdata.full_mode = 1;
++	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
++	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
++
++	np = of_graph_get_next_endpoint(np, NULL);
++	if (!np) {
++		dev_err(&pdev->dev, "Could not find the endpoint\n");
++		return -EINVAL;
++	}
++
++	err = v4l2_of_parse_endpoint(np, &ep);
++	if (err) {
++		dev_err(&pdev->dev, "Could not parse the endpoint\n");
++		goto err_probe_dt;
++	}
++
++	switch (ep.bus.parallel.bus_width) {
++	case 8:
++		isi->pdata.data_width_flags = ISI_DATAWIDTH_8;
++		break;
++	case 10:
++		isi->pdata.data_width_flags = ISI_DATAWIDTH_10;
++		break;
++	default:
++		dev_err(&pdev->dev, "Not supported bus width: %d\n",
++				ep.bus.parallel.bus_width);
++		err = -EINVAL;
++		goto err_probe_dt;
++	}
++
++err_probe_dt:
++	of_node_put(np);
++
++	return err;
++}
++
+ static int atmel_isi_probe(struct platform_device *pdev)
+ {
+ 	unsigned int irq;
+@@ -894,7 +940,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	struct isi_platform_data *pdata;
+ 
+ 	pdata = dev->platform_data;
+-	if (!pdata || !pdata->data_width_flags) {
++	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
+ 		dev_err(&pdev->dev,
+ 			"No config available for Atmel ISI\n");
+ 		return -EINVAL;
+@@ -910,7 +956,14 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
++	if (pdata) {
++		memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
++	} else {
++		ret = atmel_isi_probe_dt(isi, pdev);
++		if (ret)
++			return ret;
++	}
++
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+@@ -1012,11 +1065,18 @@ err_alloc_ctx:
+ 	return ret;
+ }
+ 
++static const struct of_device_id atmel_isi_of_match[] = {
++	{ .compatible = "atmel,at91sam9g45-isi" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
++
+ static struct platform_driver atmel_isi_driver = {
+ 	.remove		= atmel_isi_remove,
+ 	.driver		= {
+ 		.name = "atmel_isi",
+ 		.owner = THIS_MODULE,
++		.of_match_table = atmel_isi_of_match,
+ 	},
+ };
+ 
+-- 
+1.9.1
 
