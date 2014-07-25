@@ -1,125 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.inunum.li ([83.169.19.93]:37003 "EHLO
-	lvps83-169-19-93.dedicated.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbaGaMbV (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4142 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758605AbaGYJQU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 08:31:21 -0400
-Message-ID: <53DA371F.9070907@InUnum.com>
-Date: Thu, 31 Jul 2014 14:31:27 +0200
-From: Michael Dietschi <michael.dietschi@InUnum.com>
+	Fri, 25 Jul 2014 05:16:20 -0400
+Message-ID: <53D22046.2000903@xs4all.nl>
+Date: Fri, 25 Jul 2014 11:15:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Enrico <ebutera@users.sourceforge.net>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: omap3isp with DM3730 not working?!
-References: <53D12786.5050906@InUnum.com>	<1915586.ZFV4ecW0Zg@avalon>	<CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>	<2300187.SbcZEE0rv0@avalon>	<53D90786.9090809@InUnum.com>	<CA+2YH7vrD_N32KsksU2G37BhLPBMHJDbizrVb_N+=mnHC3oNmQ@mail.gmail.com>	<53DA1538.90709@InUnum.com> <CA+2YH7sROaGEtVLBs9N7FdWG5mzPZDtGgOaD2sgea--kqLELQA@mail.gmail.com>
-In-Reply-To: <CA+2YH7sROaGEtVLBs9N7FdWG5mzPZDtGgOaD2sgea--kqLELQA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: linux-media <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH] vb2: fix multiplanar read() with non-zero data_offset
+References: <53D21ED1.1040003@xs4all.nl>
+In-Reply-To: <53D21ED1.1040003@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 31.07.2014 12:36, schrieb Enrico:
+On 07/25/14 11:09, Hans Verkuil wrote:
+> If this is a multiplanar buf_type and the plane we want to read has a
+> non-zero data_offset, then that data_offset was not taken into account.
+> 
+> Note that read() or write() for formats with more than one plane is currently
+> not allowed, hence the use of 'planes[0]' since this is only relevant for a
+> single-plane format.
 
->
-> I think you are missing the ccdc sink pad setup, basically you should
-> have something like this:
->
-> ....
-> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev2
->          pad0: Sink
->                  [fmt:UYVY2X8/720x288 field:alternate]
->                  <- "OMAP3 ISP CCP2":1 []
->                  <- "OMAP3 ISP CSI2a":1 []
->                  <- "tvp5150 1-005c":0 [ENABLED]
->          pad1: Source
->                  [fmt:UYVY/720x576 field:interlaced-tb
->                   crop.bounds:(0,0)/720x288
->                   crop:(0,0)/720x288]
->                  -> "OMAP3 ISP CCDC output":0 [ENABLED]
->                  -> "OMAP3 ISP resizer":0 []
->
-> with this setup i can correctly capture deinterlaced frames with
-> yavta, but have a look at the "[PATCH 00/11] OMAP3 ISP BT.656 support"
-> thread, i noticed some problems maybe it's the same for you.
->
-> Enrico
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Enrico,
-the setup looks like:
+Forgot, sorry.
 
-...
-- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-
-             type V4L2 subdev subtype Unknown flags 0
-
-             device node name /dev/v4l-subdev2
-
-     pad0: Sink
-
-         [fmt:UYVY2X8/720x240 field:alternate]
-
-         <- "OMAP3 ISP CCP2":1 []
-
-         <- "OMAP3 ISP CSI2a":1 []
-
-         <- "tvp5150 3-005c":0 [ENABLED]
-
-     pad1: Source
-
-         [fmt:UYVY/720x240 field:alternate
-
-          crop.bounds:(0,0)/720x240
-
-          crop:(0,0)/720x240]
-
-         -> "OMAP3 ISP CCDC output":0 [ENABLED]
-
-         -> "OMAP3 ISP resizer":0 []
-
-     pad2: Source
-
-         [fmt:unknown/720x239 field:alternate]
-
-         -> "OMAP3 ISP preview":0 []
-
-         -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
-
-         -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
-
-         -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
-
-- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
-
-             type Node subtype V4L flags 0
-
-             device node name /dev/video2
-
-     pad0: Sink
-
-         <- "OMAP3 ISP CCDC":1 [ENABLED]
-
-...
-
-- entity 16: tvp5150 3-005c (1 pad, 1 link)
-
-              type V4L2 subdev subtype Unknown flags 0
-
-              device node name /dev/v4l-subdev8
-
-     pad0: Source
-
-         [fmt:UYVY2X8/720x240 field:alternate]
-
-         -> "OMAP3 ISP CCDC":0 [ENABLED]
-
-
-And I could not find any help in"[PATCH 00/11] OMAP3 ISP BT.656 support"
-because it seems that all the mentioned things are already done.
-
-Michael
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index c359006..0e3d927 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2959,6 +2959,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>  		buf->queued = 0;
+>  		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
+>  				 : vb2_plane_size(q->bufs[index], 0);
+> +		/* Compensate for data_offset on read in the multiplanar case. */
+> +		if (is_multiplanar && read &&
+> +		    fileio->b.m.planes[0].data_offset < buf->size) {
+> +			buf->pos = fileio->b.m.planes[0].data_offset;
+> +			buf->size -= buf->pos;
+> +		}
+>  	} else {
+>  		buf = &fileio->bufs[index];
+>  	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
