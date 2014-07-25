@@ -1,65 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59491 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924AbaGKOFu (ORCPT
+Received: from mail-we0-f175.google.com ([74.125.82.175]:59748 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753693AbaGYUrS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:05:50 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v4 20/21] DT: Add documentation for the Skyworks AAT1290
-Date: Fri, 11 Jul 2014 16:04:23 +0200
-Message-id: <1405087464-13762-21-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 25 Jul 2014 16:47:18 -0400
+Received: by mail-we0-f175.google.com with SMTP id t60so4856943wes.34
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 13:47:17 -0700 (PDT)
+From: James Hogan <james@albanarts.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>,
+	linux-media@vger.kernel.org,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
+Date: Fri, 25 Jul 2014 21:46:58 +0100
+Message-ID: <1572764.UGr4uaq7NC@radagast>
+In-Reply-To: <20140723163936.164aa577.m.chehab@samsung.com>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com> <20140723163936.164aa577.m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-1.5A Step-Up Current Regulator for Flash LEDs.
+Hi Mauro,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+On Wednesday 23 July 2014 16:39:36 Mauro Carvalho Chehab wrote:
+> Em Fri, 14 Mar 2014 23:04:10 +0000
+> 
+> James Hogan <james@albanarts.com> escreveu:
+> > A recent discussion about proposed interfaces for setting up the
+> > hardware wakeup filter lead to the conclusion that it could help to have
+> > the generic capability to encode and modulate scancodes into raw IR
+> > events so that drivers for hardware with a low level wake filter (on the
+> > level of pulse/space durations) can still easily implement the higher
+> > level scancode interface that is proposed.
+> > 
+> > I posted an RFC patchset showing how this could work, and Antti Seppälä
+> > posted additional patches to support rc5-sz and nuvoton-cir. This
+> > patchset improves the original RFC patches and combines & updates
+> > Antti's patches.
+> > 
+> > I'm happy these patches are a good start at tackling the problem, as
+> > long as Antti is happy with them and they work for him of course.
+> > 
+> > Future work could include:
+> >  - Encoders for more protocols.
+> >  - Carrier signal events (no use unless a driver makes use of it).
+> > 
+> > Patch 1 adds the new encode API.
+> > Patches 2-3 adds some modulation helpers.
+> > Patches 4-6 adds some raw encode implementations.
+> > Patch 7 adds some rc-core support for encode based wakeup filtering.
+> > Patch 8 adds debug loopback of encoded scancode when filter set.
+> > Patch 9 (untested) adds encode based wakeup filtering to nuvoton-cir.
+> 
+> > Changes in v2:
+> Any news about this patch series? There are some comments about them,
+> so I'll be tagging it as "changes requested" at patchwork, waiting
+> for a v3 (or is it already there in the middle of the 49 patches from
+> David?).
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-new file mode 100644
-index 0000000..9a9ad15
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -0,0 +1,17 @@
-+* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
-+
-+Required properties:
-+
-+- compatible : should be "skyworks,aat1290"
-+- gpios : two gpio pins in order FLEN, EN/SET
-+- skyworks,flash-timeout : maximum flash timeout in microseconds -
-+			   it can be calculated using following formula:
-+			   T = 8.82 * 10^9 * Ct
-+
-+Example:
-+
-+flash_led: flash-led {
-+	compatible = "skyworks,aat1290";
-+	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
-+	flash-timeout = <1940000>;
-+}
--- 
-1.7.9.5
+This patch series seems to have been forgotten. I do have a few changes on top 
+of v2 to address the review comments, so as you say I should probably rebase 
+and do a v3 at some point.
 
+Cheers
+James
