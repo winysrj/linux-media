@@ -1,144 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39235 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934698AbaGQQFT (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:49495 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760181AbaGYVVM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:05:19 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 09/11] [media] coda: split format enumeration for encoder end decoder device
-Date: Thu, 17 Jul 2014 18:05:10 +0200
-Message-Id: <1405613112-22442-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 25 Jul 2014 17:21:12 -0400
+Message-ID: <53D2CA45.6040001@mentor.com>
+Date: Fri, 25 Jul 2014 14:21:09 -0700
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/28] IPUv3 prep for video capture
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com> <53C7AF39.20608@xs4all.nl> <53C8359C.1030005@mentor.com> <351532437.crZknhrhTe@avalon>
+In-Reply-To: <351532437.crZknhrhTe@avalon>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let the decoder capture side and encoder output side only list
-uncompressed formats, and the decoder output and encoder capture
-side only list compressed formats.
+On 07/23/2014 06:17 AM, Laurent Pinchart wrote:
+> Hi Steve,
+>
+> On Thursday 17 July 2014 13:44:12 Steve Longerbeam wrote:
+>> On 07/17/2014 04:10 AM, Hans Verkuil wrote:
+>>> Hi Steve,
+>>>
+>>> I don't know what your plan is, but when you want to mainline this it is
+>>> the gpu subsystem that needs to review it. I noticed it wasn't
+>>> cross-posted
+>>> to the dri-devel mailinglist.
+>> Hi Hans,
+>>
+>> I'm reworking these patches, I've merged in some of the changes
+>> posted by Philip Zabel ("[RFC PATCH 00/26] i.MX5/6 IPUv3 CSI/IC"),
+>> specifically I've decided to use their version of ipu-ic.c, and
+>> also brought in their video-mux subdev driver. So I'm fine with
+>> cancelling this patch set.
+>>
+>> When/if I post the reworked v4l2 drivers that implement the media
+>> entity/device framework I will post the ipu-v3 specific changes
+>> to dri-devel as well.
+>>
+>> The reason I like Philip's version of ipu-ic is that it implements
+>> tiling to allow resizing output frames larger than 1024x1024. We
+>> (Mentor Graphics) did the same IC tiling, but it was done inside
+>> a separate mem2mem driver. By moving the tiling into ipu-ic, it
+>> allows >1024x1024 resizing to be part of an imx-ipuv3-ic media
+>> entity, and this entity can be part of multiple video pipelines
+>> (capture, video output, mem2mem).
+>>
+>>> I am a bit worried about the amount of v4l2-specific stuff that is going
+>>> into drivers/gpu/ipu-v3. Do things like csc and csi really belong there
+>>> instead of under drivers/media?
+>> The current philosophy of the ipu-v3 driver seems to be that it is a
+>> library of IPU register-level primitives, so ipu-csi and ipu-ic follow
+>> that model. There will be nothing v4l2-specific in ipu-csi and ipu-ic,
+>> although the v4l2 subdev's will be the only clients of ipu-csi and
+>> ipu-ic.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 57 +++++++++++++++----------------------------
- 1 file changed, 19 insertions(+), 38 deletions(-)
+Hi Laurent,
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 4a159031..e63226b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -542,8 +542,8 @@ static int coda_querycap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
--			enum v4l2_buf_type type, int src_fourcc)
-+static int coda_enum_fmt(struct file *file, void *priv,
-+			 struct v4l2_fmtdesc *f)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(priv);
- 	struct coda_codec *codecs = ctx->dev->devtype->codecs;
-@@ -552,11 +552,19 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
- 	int num_codecs = ctx->dev->devtype->num_codecs;
- 	int num_formats = ARRAY_SIZE(coda_formats);
- 	int i, k, num = 0;
-+	bool yuv;
-+
-+	if (ctx->inst_type == CODA_INST_ENCODER)
-+		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+	else
-+		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 
- 	for (i = 0; i < num_formats; i++) {
--		/* Both uncompressed formats are always supported */
--		if (coda_format_is_yuv(formats[i].fourcc) &&
--		    !coda_format_is_yuv(src_fourcc)) {
-+		/* Skip either raw or compressed formats */
-+		if (yuv != coda_format_is_yuv(formats[i].fourcc))
-+			continue;
-+		/* All uncompressed formats are always supported */
-+		if (yuv) {
- 			if (num == f->index)
- 				break;
- 			++num;
-@@ -564,12 +572,10 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
- 		}
- 		/* Compressed formats may be supported, check the codec list */
- 		for (k = 0; k < num_codecs; k++) {
--			/* if src_fourcc is set, only consider matching codecs */
--			if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
--			    formats[i].fourcc == codecs[k].dst_fourcc &&
--			    (!src_fourcc || src_fourcc == codecs[k].src_fourcc))
-+			if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+			    formats[i].fourcc == codecs[k].dst_fourcc)
- 				break;
--			if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
-+			if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
- 			    formats[i].fourcc == codecs[k].src_fourcc)
- 				break;
- 		}
-@@ -584,7 +590,7 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
- 		fmt = &formats[i];
- 		strlcpy(f->description, fmt->name, sizeof(f->description));
- 		f->pixelformat = fmt->fourcc;
--		if (!coda_format_is_yuv(fmt->fourcc))
-+		if (!yuv)
- 			f->flags |= V4L2_FMT_FLAG_COMPRESSED;
- 		return 0;
- 	}
-@@ -593,31 +599,6 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
- 	return -EINVAL;
- }
- 
--static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
--				 struct v4l2_fmtdesc *f)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--	struct vb2_queue *src_vq;
--	struct coda_q_data *q_data_src;
--
--	/* If the source format is already fixed, only list matching formats */
--	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
--	if (vb2_is_streaming(src_vq)) {
--		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
--
--		return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE,
--				q_data_src->fourcc);
--	}
--
--	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0);
--}
--
--static int coda_enum_fmt_vid_out(struct file *file, void *priv,
--				 struct v4l2_fmtdesc *f)
--{
--	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_OUTPUT, 0);
--}
--
- static int coda_g_fmt(struct file *file, void *priv,
- 		      struct v4l2_format *f)
- {
-@@ -972,12 +953,12 @@ static int coda_subscribe_event(struct v4l2_fh *fh,
- static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_querycap	= coda_querycap,
- 
--	.vidioc_enum_fmt_vid_cap = coda_enum_fmt_vid_cap,
-+	.vidioc_enum_fmt_vid_cap = coda_enum_fmt,
- 	.vidioc_g_fmt_vid_cap	= coda_g_fmt,
- 	.vidioc_try_fmt_vid_cap	= coda_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap	= coda_s_fmt_vid_cap,
- 
--	.vidioc_enum_fmt_vid_out = coda_enum_fmt_vid_out,
-+	.vidioc_enum_fmt_vid_out = coda_enum_fmt,
- 	.vidioc_g_fmt_vid_out	= coda_g_fmt,
- 	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
- 	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
--- 
-2.0.1
+> I have a bit of trouble following up, due to my lack of knowledge of the 
+> Freescale platforms. It would help if you could explain briefly how the 
+> various IPU modules interact with each other at the hardware and software 
+> level, and what the acronyms stand for (I assume IPU means Image Processing 
+> Unit, CSI means Camera Serial Interface, but I don't know what IC is in this 
+> context).
+
+Yes, IPU and CSI are acronyms as you describe. IC stands for Image
+Converter. The IC carries out scaling, color-space conversion, and
+rotation. The IC has three independent task sub-blocks that can carry
+out those three operations concurrently using some kind of task time-
+sharing mechanism. The three IC tasks are referred to as "pre-processing
+for encode" (PRP ENC), "pre-processing for viewfinder" (PRP VF) and
+"post-processing" (PP). So for example, a video capture pipeline could
+be actively streaming the PRP ENC task while a mem2mem pipeline
+could concurrently be using the PP task.
+
+>
+> Are the CSI receivers linked to the graphics IP cores at the hardware level ?]
+
+Yes, the raw frames from the CSI can be directed to either memory, the
+IC, or to a video deinterlacing controller (VDIC).
+
+The IPU contains a custom DMA controller (the IDMAC). There is a set
+of ~64 IDMAC channels that are dedicated to specific video pipelines.
+IDMAC channels can be linked together in hardware (a frame-completion
+signal from a source channel can trigger start of DMA in a sink channel).
+
+Here is one example hardware video pipeline in i.MX6 (there are many
+more). This example is to send raw interlaced frames from the CSI to
+the VDIC, and then the progressive frames to IC PRP VF task for additional
+scaling/CSC/rotation:
+
+CSI0 --> VDIC --> IC PRP VF --- idmac channel 21 ---> memory
+
+
+If you're interested in knowing more about the i.MX6 you can pick
+up Freescale's TRM at:
+
+http://www.freescale.com/webapp/sps/site/prod_summary.jsp?code=i.MX6Q&fpsp=1&tab=Documentation_Tab
+
+The i.MX6 TRM is of poor quality, not good enough for actual register-level
+programming in many areas, especially the IPU chapter. But good enough for
+getting a general overview.
+
+Steve
 
