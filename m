@@ -1,47 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51621 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758AbaGDJMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 05:12:21 -0400
-Received: from 85-23-164-97.bb.dnainternet.fi ([85.23.164.97] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1X2zXX-0008Og-2W
-	for linux-media@vger.kernel.org; Fri, 04 Jul 2014 12:12:19 +0300
-Message-ID: <53B66FF2.5050201@iki.fi>
-Date: Fri, 04 Jul 2014 12:12:18 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:62197 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935021AbaGYRsG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 13:48:06 -0400
+Received: by mail-wi0-f170.google.com with SMTP id f8so1472014wiw.3
+        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 10:48:05 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 0/4] some em28xx-v4l cleanup patches
+Date: Fri, 25 Jul 2014 19:48:54 +0200
+Message-Id: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] 3.16 af9035 fix
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 13936af3d2f04f173a83cc050dbc4b20d8562b81:
+This patch series consists of 4 cleanup patches for the em28xx-v4l module.
 
-   [media] saa7134: use unlocked_ioctl instead of ioctl (2014-06-19 
-13:14:51 -0300)
+Frank Schäfer (4):
+  em28xx-v4l: simplify some pointers in em28xx_init_camera()
+  em28xx-v4l: get rid of struct em28xx_fh
+  em28xx-v4l: simplify em28xx_v4l2_open() by using v4l2_fh_open()
+  em28xx-v4l: get rid of field "users" in struct em28xx_v4l2
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git fixes
-
-for you to fetch changes up to 14f0db438e16f12c884e7dcc13fe5faa7ebe4554:
-
-   af9035: override tuner id when bad value set into eeprom (2014-06-24 
-16:52:24 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (1):
-       af9035: override tuner id when bad value set into eeprom
-
-  drivers/media/usb/dvb-usb-v2/af9035.c | 40 
-+++++++++++++++++++++++++++++++++-------
-  1 file changed, 33 insertions(+), 7 deletions(-)
-
+ drivers/media/usb/em28xx/em28xx-camera.c |   4 +-
+ drivers/media/usb/em28xx/em28xx-video.c  | 113 ++++++++++++-------------------
+ drivers/media/usb/em28xx/em28xx.h        |   8 ---
+ 3 files changed, 47 insertions(+), 78 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.8.4.5
+
