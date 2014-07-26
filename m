@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49142 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754071AbaGKOEf (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:57447 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508AbaGZCZs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:04:35 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v4 01/21] leds: make brightness type consistent across
- whole subsystem
-Date: Fri, 11 Jul 2014 16:04:04 +0200
-Message-id: <1405087464-13762-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 25 Jul 2014 22:25:48 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] rc-core: don't use dynamic_pr_debug for IR_dprintk()
+Date: Fri, 25 Jul 2014 23:25:36 -0300
+Message-Id: <1406341536-14418-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentations states that brightness units type is enum led_brightness
-and this is the type used by the led API functions. Adjust the type
-of brightness variables in the struct led_classdev accordingly.
+The hole point of IR_dprintk() is that, once a level is
+given at debug parameter, all enabled IR parsers will show their
+debug messages.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+While converting it to dynamic_printk might be a good idea,
+right now it just makes very hard to debug the drivers, as
+one needs to both pass debug=1 or debug=2 to rc-core and
+to use the dynamic printk to enable all the desired lines.
+
+That doesn't make sense!
+
+So, revert to the old way, as a single line is changed,
+and the debug parameter will now work as expected.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- include/linux/leds.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/media/rc-core.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index e436864..995f933 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -31,8 +31,8 @@ enum led_brightness {
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 3047837db1cc..2c7fbca40b69 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -26,7 +26,7 @@ extern int rc_core_debug;
+ #define IR_dprintk(level, fmt, ...)				\
+ do {								\
+ 	if (rc_core_debug >= level)				\
+-		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
++		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ } while (0)
  
- struct led_classdev {
- 	const char		*name;
--	int			 brightness;
--	int			 max_brightness;
-+	enum led_brightness	 brightness;
-+	enum led_brightness	 max_brightness;
- 	int			 flags;
- 
- 	/* Lower 16 bits reflect status */
+ enum rc_driver_type {
 -- 
-1.7.9.5
+1.9.3
 
