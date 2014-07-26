@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:49527 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755539AbaGINVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 09:21:03 -0400
-Received: by mail-qa0-f51.google.com with SMTP id j7so6108134qaq.10
-        for <linux-media@vger.kernel.org>; Wed, 09 Jul 2014 06:21:02 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:58205 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751104AbaGZLIL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jul 2014 07:08:11 -0400
+Message-ID: <53D38C14.40501@iki.fi>
+Date: Sat, 26 Jul 2014 14:08:04 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <DUB123-W379FFAE53D93ACCE359F07ED0F0@phx.gbl>
-References: <DUB123-W379FFAE53D93ACCE359F07ED0F0@phx.gbl>
-Date: Wed, 9 Jul 2014 09:21:02 -0400
-Message-ID: <CAGoCfix6uWem_gXqXH--TisQYmyxjXvwqkz8Ah2m=KVH9O1ifA@mail.gmail.com>
-Subject: Re: Troubleshooting problematic DVB-T reception
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Lukas Tribus <luky-37@hotmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] rc-core: don't use dynamic_pr_debug for IR_dprintk()
+References: <1406341536-14418-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406341536-14418-1-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I am trying to troubleshoot a (non-linux related) DVB-T issue and I basically
-> want to create statistics about both DVB and MPEG framing, errors, corruption,
-> missing frames, etc.
->
-> The reason is that I believe there is a problem on the transmitting radio
-> tower, RF is fine between the tower and me, but the actual payload (MPEG) is
-> somehow bogus, errored or sporadically misses frames (due to backhaul problems
-> or whatever).
->
-> If I would be able to create some statistics confirming that I see all the DVB
-> frames without any errors, but that the actual DVB payload (MPEG) has some
-> problems, I could convince the tower guys to actually fix the issue, instead
-> of blaming my antennas.
->
->
-> So, can anyone suggest a tool or method to troubleshoot this issue further?
->
->
-> tzap output for example confirms not a single BER error and the tuner keeps
-> full LOCK on the channel while the actual stream is stuttering.
 
-I probably wouldn't rely on the BER stats from tzap.  Their
-implementation varies in quality depending on which tuner you have, as
-well as how they are sampled.  Almost all demods will set the TEI bit
-on the MPEG frame if it's determined that there was a decoding error -
-I would be much more inclined to look at that.
 
-Your best bet is to record the whole mux for a few minutes, then run
-it through some different tools to see what class of errors you are
-hitting.  Tools such as tsreader or StreamEye will give you a better
-idea what's going on.  Once you know what class of failure you have
-(e.g. TEI errors, MPEG discontinuities, etc), then you can better
-isolate where in the chain the failure is being introduced.
+On 07/26/2014 05:25 AM, Mauro Carvalho Chehab wrote:
+> The hole point of IR_dprintk() is that, once a level is
+> given at debug parameter, all enabled IR parsers will show their
+> debug messages.
+>
+> While converting it to dynamic_printk might be a good idea,
+> right now it just makes very hard to debug the drivers, as
+> one needs to both pass debug=1 or debug=2 to rc-core and
+> to use the dynamic printk to enable all the desired lines.
 
-Having the recording of the mux will also let you analyze in depth the
-actual nature of the problem, rather than trying to analyze an
-ever-changing stream in real-time, where signal conditions can change
-over time.
+Did you know you could enable debugs as whole module too? Also per 
+function or source file, not only per line you seems to use.
 
-Devin
+That is basic command to enable all debugs for module rc-core
+modprobe rc-core; echo -n 'module rc-core +p' > 
+/sys/kernel/debug/dynamic_debug/control
+
+Look also other flags than '+p' from documentation
+Documentation/dynamic-debug-howto.txt
+
+
+> That doesn't make sense!
+>
+> So, revert to the old way, as a single line is changed,
+> and the debug parameter will now work as expected.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>   include/media/rc-core.h | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+> index 3047837db1cc..2c7fbca40b69 100644
+> --- a/include/media/rc-core.h
+> +++ b/include/media/rc-core.h
+> @@ -26,7 +26,7 @@ extern int rc_core_debug;
+>   #define IR_dprintk(level, fmt, ...)				\
+>   do {								\
+>   	if (rc_core_debug >= level)				\
+> -		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
+> +		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+>   } while (0)
+>
+>   enum rc_driver_type {
+>
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
