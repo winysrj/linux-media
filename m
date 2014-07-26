@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59256 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758068AbaGWP3E (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:43884 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbaGZOel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 11:29:04 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Sat, 26 Jul 2014 10:34:41 -0400
+Received: by mail-wi0-f181.google.com with SMTP id bs8so2327299wib.2
+        for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 07:34:40 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 4/8] [media] coda: move BIT processor command execution out of pic_run_work
-Date: Wed, 23 Jul 2014 17:28:41 +0200
-Message-Id: <1406129325-10771-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406129325-10771-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406129325-10771-1-git-send-email-p.zabel@pengutronix.de>
+	kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH 2/3] [media] coda: fix coda_g_selection
+Date: Sat, 26 Jul 2014 16:34:31 +0200
+Message-Id: <1406385272-425-2-git-send-email-philipp.zabel@gmail.com>
+In-Reply-To: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
+References: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for the split, move the AXI_SRAM_USE register access and the
-PIC_RUN command execution out of pic_run_work into prepare_encode/decode.
+Crop targets are valid on the capture side and compose targets are valid
+on the output side, not the other way around.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- drivers/media/platform/coda/coda-common.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index ecab30a..04a7b12 100644
+index 95d0b04..b542340 100644
 --- a/drivers/media/platform/coda/coda-common.c
 +++ b/drivers/media/platform/coda/coda-common.c
-@@ -1040,6 +1040,13 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 	coda_write(dev, 0, CODA_CMD_DEC_PIC_BB_START);
- 	coda_write(dev, 0, CODA_CMD_DEC_PIC_START_BYTE);
- 
-+	if (dev->devtype->product != CODA_DX6)
-+		coda_write(dev, ctx->iram_info.axi_sram_use,
-+				CODA7_REG_BIT_AXI_SRAM_USE);
-+
-+	coda_kfifo_sync_to_device_full(ctx);
-+	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
-+
- 	return 0;
- }
- 
-@@ -1186,6 +1193,12 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
- 	}
- 
-+	if (dev->devtype->product != CODA_DX6)
-+		coda_write(dev, ctx->iram_info.axi_sram_use,
-+				CODA7_REG_BIT_AXI_SRAM_USE);
-+
-+	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
-+
- 	return 0;
- }
- 
-@@ -1245,14 +1258,6 @@ static void coda_pic_run_work(struct work_struct *work)
- 		return;
- 	}
- 
--	if (dev->devtype->product != CODA_DX6)
--		coda_write(dev, ctx->iram_info.axi_sram_use,
--				CODA7_REG_BIT_AXI_SRAM_USE);
--
--	if (ctx->inst_type == CODA_INST_DECODER)
--		coda_kfifo_sync_to_device_full(ctx);
--	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
--
- 	if (!wait_for_completion_timeout(&ctx->completion, msecs_to_jiffies(1000))) {
- 		dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout\n");
- 
+@@ -600,7 +600,7 @@ static int coda_g_selection(struct file *file, void *fh,
+ 		rsel = &r;
+ 		/* fallthrough */
+ 	case V4L2_SEL_TGT_CROP:
+-		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 			return -EINVAL;
+ 		break;
+ 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+@@ -609,7 +609,7 @@ static int coda_g_selection(struct file *file, void *fh,
+ 		/* fallthrough */
+ 	case V4L2_SEL_TGT_COMPOSE:
+ 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+-		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 			return -EINVAL;
+ 		break;
+ 	default:
 -- 
 2.0.1
 
