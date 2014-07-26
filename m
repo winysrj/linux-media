@@ -1,87 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52512 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753277AbaG2Leb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 07:34:31 -0400
-Message-ID: <53D786BE.3050803@iki.fi>
-Date: Tue, 29 Jul 2014 14:34:22 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>, Matthias Schwarzott <zzam@gentoo.org>
-CC: m.chehab@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/8] get_dvb_firmware: Add firmware extractor for si2165
-References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>	<1406059938-21141-2-git-send-email-zzam@gentoo.org>	<53CF7E6D.20406@iki.fi>	<53D006F2.10300@gentoo.org>	<20140723221012.3c9e8f26aa1ddac47b48cb9e@ao2.it>	<53D73328.6040802@gentoo.org> <20140729105315.e04521b28fe7d27c49bb0665@ao2.it>
-In-Reply-To: <20140729105315.e04521b28fe7d27c49bb0665@ao2.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1096 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858AbaGZC34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jul 2014 22:29:56 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6Q2Trdi047898
+	for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 04:29:55 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0EAF02A037E
+	for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 04:29:51 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140726022951.0EAF02A037E@tschai.lan>
+Date: Sat, 26 Jul 2014 04:29:51 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 07/29/2014 11:53 AM, Antonio Ospite wrote:
-> On Tue, 29 Jul 2014 07:37:44 +0200
-> Matthias Schwarzott <zzam@gentoo.org> wrote:
->
->> On 23.07.2014 22:10, Antonio Ospite wrote:
->>> On Wed, 23 Jul 2014 21:03:14 +0200
->>> Matthias Schwarzott <zzam@gentoo.org> wrote:
->>>
->>> [...]
->>>> The crc value:
->>>> It protects the content of the file until it is in the demod - so
->>>> calculating it on my own would only check if the data is correctly
->>>> transferred from the driver into the chip.
->>>> But for this I needed to know the algorithm and which data is
->>>> checksummed exactly.
->>>>
->>>> Are the different algorithms for CRC values that give 16 bit of output?
->>>>
->>>
->>> You could try jacksum[1] and see if any algorithm it supports
->>> gives you the expected result, there is a handful of 16 bits ones:
->>>
->>>    jacksum -a all -F "#ALGONAME{i} = #CHECKSUM{i}" payload.bin
->>>
->> Hi Antonio,
->>
->> I tried jacksum on the complete firmware and on parts - but it never
->> matched the results from the chip.
->>
->> I now found out, that the crc register changes after every 32bit write
->> to the data register - the fw control registers do not affect it.
->>
->> So I can try what crc results from writing 32bit portions of data.
->> But even that did not help in guessing the algorithm, because I do not
->> want to do 100s of experiments.
->>
->> some of my experiments:
->> crc=0x0000, data=0x00000000 -> crc=0x0000
->> crc=0x0000, data=0x00000001 -> crc=0x1021
->> crc=0x0000, data=0x00000002 -> crc=0x2042
->> crc=0x0000, data=0x00000004 -> crc=0x4084
->> crc=0x0000, data=0x00000008 -> crc=0x8108
->> crc=0x0000, data=0x00000010 -> crc=0x1231
->>
->> Is there some systematic way to get the formula?
->
-> I don't know much about crc, but the values you are getting look like
-> the entries in the table in lib/crc-itu-t.c so maybe compare the crc
-> you are getting with the ones calculated with crc_itu_t() from
-> include/linux/crc-itu-t.h
->
-> I just did a quick test with jacksum, the crc-itu-t parameters can
-> be expressed like this:
->
-> 	jacksum -x -a crc:16,1021,0,false,false,0 -q 00000010
->
-> and the output is the expected 0x1231 for the 0x00000010 sequence.
+date:		Sat Jul 26 04:00:23 CEST 2014
+git branch:	test
+git hash:	488046c237f3b78f91046d45662b318cd2415f64
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.15-5.slh.2-amd64
 
-maybe crc = crc + crc(val)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
 
+Detailed results are available here:
 
-Antti
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
