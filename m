@@ -1,55 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42972 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760125AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/10] si2168: Remove testing for demod presence on probe.
-Date: Sat, 19 Jul 2014 05:38:20 +0300
-Message-Id: <1405737506-13186-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
-References: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:39086 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751748AbaGZO7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jul 2014 10:59:17 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 4/4] [media] remove some new warnings on drxj
+Date: Sat, 26 Jul 2014 11:59:08 -0300
+Message-Id: <1406386748-8874-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
+References: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Luis Alves <ljalvs@gmail.com>
+changeset b601fe5688ae did some cleanup, but didn't remove some
+now unused vars:
+	drivers/media/dvb-frontends/drx39xyj/drxj.c: In function 'drx39xxj_set_frontend':
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:12072:21: warning: unused variable 'uio_data' [-Wunused-variable]
+	drivers/media/dvb-frontends/drx39xyj/drxj.c: In function 'drx39xxj_set_lna':
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:12230:21: warning: unused variable 'uio_data' [-Wunused-variable]
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:12229:20: warning: unused variable 'uio_cfg' [-Wunused-variable]
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:12224:6: warning: unused variable 'result' [-Wunused-variable]
 
-Testing demod presence on probe fails if the demod was sleep mode.
-
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c | 8 --------
- 1 file changed, 8 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 7659764..9925a12 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -602,7 +602,6 @@ static int si2168_probe(struct i2c_client *client,
- 	struct si2168_config *config = client->dev.platform_data;
- 	struct si2168 *s;
- 	int ret;
--	struct si2168_cmd cmd;
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 200554d5f32c..7ca7a21df183 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -12069,7 +12069,6 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	enum drx_standard standard = DRX_STANDARD_8VSB;
+ 	struct drx_channel channel;
+ 	int result;
+-	struct drxuio_data uio_data;
+ 	static const struct drx_channel def_channel = {
+ 		/* frequency      */ 0,
+ 		/* bandwidth      */ DRX_BANDWIDTH_6MHZ,
+@@ -12221,13 +12220,10 @@ static int drx39xxj_init(struct dvb_frontend *fe)
  
- 	dev_dbg(&client->dev, "%s:\n", __func__);
+ static int drx39xxj_set_lna(struct dvb_frontend *fe)
+ {
+-	int result;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct drx39xxj_state *state = fe->demodulator_priv;
+ 	struct drx_demod_instance *demod = state->demod;
+ 	struct drxj_data *ext_attr = demod->my_ext_attr;
+-	struct drxuio_cfg uio_cfg;
+-	struct drxuio_data uio_data;
  
-@@ -616,13 +615,6 @@ static int si2168_probe(struct i2c_client *client,
- 	s->client = client;
- 	mutex_init(&s->i2c_mutex);
- 
--	/* check if the demod is there */
--	cmd.wlen = 0;
--	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
--	if (ret)
--		goto err;
--
- 	/* create mux i2c adapter for tuner */
- 	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
- 			0, 0, 0, si2168_select, si2168_deselect);
+ 	if (c->lna) {
+ 		if (!ext_attr->has_lna) {
 -- 
 1.9.3
 
