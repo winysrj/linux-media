@@ -1,106 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:22124 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932591AbaGIPYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 11:24:45 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
-Date: Wed,  9 Jul 2014 18:24:26 +0300
-Message-Id: <1404919470-26668-2-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:58442 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbaGZOek (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jul 2014 10:34:40 -0400
+Received: by mail-wi0-f181.google.com with SMTP id bs8so2302825wib.8
+        for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 07:34:39 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH 1/3] [media] coda: fix coda_s_fmt_vid_out
+Date: Sat, 26 Jul 2014 16:34:30 +0200
+Message-Id: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new seq_hex_dump() is a complete analogue of print_hex_dump().
+Set the context color space when s_fmt succeeded, not when it failed.
 
-We have few users of this functionality already. It allows to reduce their
-codebase.
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- fs/seq_file.c            | 35 +++++++++++++++++++++++++++++++++++
- include/linux/seq_file.h |  4 ++++
- 2 files changed, 39 insertions(+)
+ drivers/media/platform/coda/coda-common.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/seq_file.c b/fs/seq_file.c
-index 3857b72..fec4a6b 100644
---- a/fs/seq_file.c
-+++ b/fs/seq_file.c
-@@ -12,6 +12,7 @@
- #include <linux/slab.h>
- #include <linux/cred.h>
- #include <linux/mm.h>
-+#include <linux/printk.h>
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index dbd04ee..95d0b04 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -530,7 +530,9 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
  
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -794,6 +795,40 @@ void seq_pad(struct seq_file *m, char c)
+ 	ret = coda_s_fmt(ctx, f);
+ 	if (ret)
+-		ctx->colorspace = f->fmt.pix.colorspace;
++		return ret;
++
++	ctx->colorspace = f->fmt.pix.colorspace;
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL(seq_pad);
- 
-+/* Analogue of print_hex_dump() */
-+void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-+		  int rowsize, int groupsize, const void *buf, size_t len,
-+		  bool ascii)
-+{
-+	const u8 *ptr = buf;
-+	int i, linelen, remaining = len;
-+	unsigned char linebuf[32 * 3 + 2 + 32 + 1];
-+
-+	if (rowsize != 16 && rowsize != 32)
-+		rowsize = 16;
-+
-+	for (i = 0; i < len; i += rowsize) {
-+		linelen = min(remaining, rowsize);
-+		remaining -= rowsize;
-+
-+		hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
-+				   linebuf, sizeof(linebuf), ascii);
-+
-+		switch (prefix_type) {
-+		case DUMP_PREFIX_ADDRESS:
-+			seq_printf(m, "%s%p: %s\n", prefix_str, ptr + i, linebuf);
-+			break;
-+		case DUMP_PREFIX_OFFSET:
-+			seq_printf(m, "%s%.8x: %s\n", prefix_str, i, linebuf);
-+			break;
-+		default:
-+			seq_printf(m, "%s%s\n", prefix_str, linebuf);
-+			break;
-+		}
-+	}
-+}
-+EXPORT_SYMBOL(seq_hex_dump);
-+
- struct list_head *seq_list_start(struct list_head *head, loff_t pos)
- {
- 	struct list_head *lh;
-diff --git a/include/linux/seq_file.h b/include/linux/seq_file.h
-index 52e0097..6a8be4c 100644
---- a/include/linux/seq_file.h
-+++ b/include/linux/seq_file.h
-@@ -107,6 +107,10 @@ int seq_write(struct seq_file *seq, const void *data, size_t len);
- __printf(2, 3) int seq_printf(struct seq_file *, const char *, ...);
- __printf(2, 0) int seq_vprintf(struct seq_file *, const char *, va_list args);
- 
-+void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-+		  int rowsize, int groupsize, const void *buf, size_t len,
-+		  bool ascii);
-+
- int seq_path(struct seq_file *, const struct path *, const char *);
- int seq_dentry(struct seq_file *, struct dentry *, const char *);
- int seq_path_root(struct seq_file *m, const struct path *path,
 -- 
 2.0.1
 
