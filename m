@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from serv03.imset.org ([176.31.106.97]:56552 "EHLO serv03.imset.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514AbaGZREq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 13:04:46 -0400
-Message-ID: <53D3DE39.3060300@dest-unreach.be>
-Date: Sat, 26 Jul 2014 18:58:33 +0200
-From: Niels Laukens <niels@dest-unreach.be>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:57644 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475AbaGZQhT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jul 2014 12:37:19 -0400
+Received: by mail-vc0-f171.google.com with SMTP id hq11so9060404vcb.16
+        for <linux-media@vger.kernel.org>; Sat, 26 Jul 2014 09:37:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/rc/ir-nec-decode : add toggle feature
-References: <53A29E5A.9030304@dest-unreach.be> <53A29E79.2000304@dest-unreach.be> <20140619090540.GC13952@hardeman.nu> <53A2D0B5.4050003@dest-unreach.be> <20140726124739.6c3e25bb.m.chehab@samsung.com>
-In-Reply-To: <20140726124739.6c3e25bb.m.chehab@samsung.com>
+In-Reply-To: <53D3C578.8000802@xs4all.nl>
+References: <1406385272-425-1-git-send-email-philipp.zabel@gmail.com>
+	<1406385272-425-2-git-send-email-philipp.zabel@gmail.com>
+	<53D3C578.8000802@xs4all.nl>
+Date: Sat, 26 Jul 2014 18:37:18 +0200
+Message-ID: <CA+gwMcd2hETKbkqM5yeJiVDzadHyQX=qgPTqobFXTN4JQ-+vdA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] coda: fix coda_g_selection
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sascha Hauer <kernel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-07-26 17:47, Mauro Carvalho Chehab wrote:
-> Em Thu, 19 Jun 2014 13:59:49 +0200
-> Niels Laukens <niels@dest-unreach.be> escreveu:
-> 
->> On 2014-06-19 11:05, David Härdeman wrote:
->>> On Thu, Jun 19, 2014 at 10:25:29AM +0200, Niels Laukens wrote:
->>>> Made the distinction between repeated key presses, and a single long
->>>> press. The NEC-protocol does not have a toggle-bit (cfr RC5/RC6), but
->>>> has specific repeat-codes.
->>>
->>> Not all NEC remotes use repeat codes. Some just transmit the full code
->>> at fixed intervals...IIRC, Pioneer remotes is (was?) one example... 
->>
->> A way to cover this, is to make this mechanism optional, and
->> auto-activate as soon as a repeat code is seen. But that will only work
->> reliably with a single (type of) remote per system. Is this a better
->> solution?
-> 
-> No, auto-activating is a very bad idea, as it means that any NEC remote,
-> if ever pressed in the room, will change the driver behavior. We should be
-> able to support both cases: the one with specific repeat codes and the
-> ones that don't support, at the same time.
+On Sat, Jul 26, 2014 at 5:12 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 07/26/2014 04:34 PM, Philipp Zabel wrote:
+>> Crop targets are valid on the capture side and compose targets are valid
+>> on the output side, not the other way around.
+>
+> Are you sure about this? Usually for m2m devices the capture side supports
+> compose (i.e. the result of the m2m operation can be composed into the capture
+> buffer) and the output side supports crop (i.e. the m2m operates on the cropped
+> part of the output buffer instead of on the full buffer), like the coda driver
+> does today.
 
-I've changed the patch to still auto-activate, but "locally": a new
-key-event will only be forced if the previously received code was a
-repeat-code. This is means that non-compliant remotes will work as
-before, and compliant remotes will work better: key's need to be pressed
-at least for 1 repeat interval (nominally 100ms) for this feature to
-activate.
+You are right, I haven't thought this through. Please ignore this patch.
 
-I've tried this on my setup, and while it's better than the original, it
-is, for me, still unacceptable. The previous version of this patch allowed
-me to do a quick "3 times down". This version (and the original) doesn't.
-So I'm not even posting this one.
+> As a result of that the old G/S_CROP API cannot be used with most m2m devices
+> since it does the opposite operation, which does not apply to m2m devices.
 
-Which makes me wonder: It seems as if it's impossible to differentiate
-between the two types of remotes before the first repeat is sent, and by
-then it's too late.  And it's not acceptable to latch the
-repeat-code-capable flag in to the kernel. Would it be an option to make
-this user-configurable? Either by splitting NEC into two variants, or by
-using a parameter somehow? And if so: what is the preferred way?
+I have tried the GStreamer v4l2videodec element with the coda driver and
+noticed that GStreamer calls VIDIOC_CROPCAP to obtain the pixel aspect
+ratio. This always fails with -EINVAL because of this issue. Currently GStreamer
+throws a warning if the return value is an error other than -ENOTTY.
 
-Niels
+regards
+Philipp
