@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ny01.nytud.hu ([193.6.194.1]:34382 "EHLO ny01.nytud.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751492AbaGFSCO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jul 2014 14:02:14 -0400
-Received: (from oravecz@localhost)
-	by ny01.nytud.hu (8.11.6/8.11.6) id s66HpRN32267
-	for linux-media@vger.kernel.org; Sun, 6 Jul 2014 19:51:27 +0200
-Message-Id: <201407061751.s66HpRN32267@ny01.nytud.hu>
-Subject: HVR 900 (USB ID 2040:6500) loses sound with recent em28xx drivers
-To: linux-media@vger.kernel.org
-Date: Sun, 6 Jul 2014 19:51:27 +0200 (CEST)
-Reply-To: oravecz@nytud.mta.hu
-From: Oravecz Csaba <oravecz@nytud.mta.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:63837 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbaGZPhE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jul 2014 11:37:04 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9B00LM5SPQTE50@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 26 Jul 2014 11:37:02 -0400 (EDT)
+Date: Sat, 26 Jul 2014 12:36:58 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Raymond Jender <rayj00@yahoo.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/4] [media] cx23885 now needs to select dib0070
+Message-id: <20140726123658.69fbfc54.m.chehab@samsung.com>
+In-reply-to: <1406387220.80907.YahooMailNeo@web162402.mail.bf1.yahoo.com>
+References: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
+ <1406387220.80907.YahooMailNeo@web162402.mail.bf1.yahoo.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Sat, 26 Jul 2014 08:07:00 -0700
+Raymond Jender <rayj00@yahoo.com> escreveu:
 
-I see there has been a major rewrite of em28xx (and some related)
-drivers and this card somehow might have fallen victim to it.
-It's been working fairly steadily so far but now sound is gone.
+> Get me off this mailing list!!!
 
-There is some conspicuous difference in logs (see below), however, being
-nothing more just a naive end user I have no idea whether it is relevant or not.
+Only you can do it. You should send an email to mailman at vger.kernel.org,
+asking the daemon to unsubscribe your user.
 
-Working 'old' drivers:
+See the "unsubscribe" link at http://vger.kernel.org/vger-lists.html#linux-media
 
-[357377.630498] em2882/3 #0: Config register raw data: 0x50
-[357377.631455] em2882/3 #0: AC97 vendor ID = 0xffffffff
-[357377.631875] em2882/3 #0: AC97 features = 0x6a90
-[357377.631880] em2882/3 #0: Empia 202 AC97 audio processor detected
+Regards,
+Mauro
 
-Not working current drivers from git:
-
-nothing like the above just this as far as audio is concerned:
-
-[  432.256779] em28xx audio device (2040:6500): interface 1, class 1
-[  432.256809] em28xx audio device (2040:6500): interface 2, class 1
-...
-[  432.291066] usbcore: registered new interface driver snd-usb-audio
-
-Card seems to be present:
-
-arecord -l:
-card 1: HVR900 [WinTV HVR-900], device 0: USB Audio [USB Audio]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-
-but gives only these errors with xawtv (i'm not sure these are of any help):
-ALSA lib pcm.c:7843:(snd_pcm_recover) overrun occurred
-ALSA lib pcm.c:7843:(snd_pcm_recover) underrun occurred
-
-and these with tvtime:
-videoinput: Can't mute card.  Post a bug report with your
-videoinput: driver info to http://tvtime.net/
-videoinput: Include this error: 'Invalid argument'
-
-None of these is present with the older drivers (working well e.g.
-in Fedora stock 3.9.5 kernel), when using e.g.
-arecord -D hw:1,0 -f dat | aplay -
-to play the analog sound.
-
-As an added bonus there are nice kernel oops with most recent drivers now
-losing video as well (this problem is not there yet e.g. with 
-Fedora stock 3.14.8 kernel i'm using, 
-there is only the sound issue there, video is ok)
-
-WARNING: CPU: 1 PID: 0 at /home/oravecz/src/kernel/media_build/v4
-l/videobuf2-core.c:1165 vb2_buffer_done+0x1fa/0x220 [videobuf2_core]()
-...
-
-WARNING: CPU: 0 PID: 4706 at /home/oravecz/src/kernel/media_build/v4l/videobuf2-core.c:2091__vb2_queue_cancel+0x180/0x220 [videobuf2_core]()
-...
-
-I can send full logs if needed but perhaps this can already give some hint if
-something might have gone wrong or else I might be blundering something.
-
-best,
-o.cs.
-
+> 
+> 
+> 
+> On Saturday, July 26, 2014 8:00 AM, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+>  
+> 
+> 
+> Due to DViCO FusionHDTV DVB-T Dual Express2, we also need to
+> autoselect this tuner.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+> drivers/media/pci/cx23885/Kconfig | 1 +
+> 1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
+> index d1dcb1d2e087..5158133c6535 100644
+> --- a/drivers/media/pci/cx23885/Kconfig
+> +++ b/drivers/media/pci/cx23885/Kconfig
+> @@ -37,6 +37,7 @@ config VIDEO_CX23885
+>     select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
+>     select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
+>     select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+> +    select DVB_TUNER_DIB0070 if MEDIA_SUBDRV_AUTOSELECT
+>     ---help---
+>       This is a video4linux driver for Conexant 23885 based
+>       TV cards.
