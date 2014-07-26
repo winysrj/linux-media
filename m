@@ -1,73 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3148 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548AbaGUVnY (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39085 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbaGZO7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 17:43:24 -0400
-Message-ID: <53CD8974.20109@xs4all.nl>
-Date: Mon, 21 Jul 2014 23:43:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
-References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 26 Jul 2014 10:59:17 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	James Harper <james.harper@ejbdigital.com.au>
+Subject: [PATCH 3/4] [media] cx23885-dvb: remove previously overriden value
+Date: Sat, 26 Jul 2014 11:59:07 -0300
+Message-Id: <1406386748-8874-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
+References: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
-> The RGB666 pixel format doesn't include an alpha channel. Document it as
-> such.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20 ++++++--------------
->  1 file changed, 6 insertions(+), 14 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> index 32feac9..c47692a 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> @@ -330,20 +330,12 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
->  	    <entry></entry>
->  	    <entry>r<subscript>1</subscript></entry>
->  	    <entry>r<subscript>0</subscript></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> +	    <entry>-</entry>
-> +	    <entry>-</entry>
-> +	    <entry>-</entry>
-> +	    <entry>-</entry>
-> +	    <entry>-</entry>
-> +	    <entry>-</entry>
+drivers/media/pci/cx23885/cx23885-dvb.c:768:2: warning: initialized field overwritten [-Woverride-init]
+  .freq_offset_khz_vhf = 550,
+  ^
+drivers/media/pci/cx23885/cx23885-dvb.c:768:2: warning: (near initialization for 'dib7070p_dib0070_config.freq_offset_khz_vhf') [-Woverride-init]
 
-Just to clarify: BGR666 is a three byte format, not a four byte format?
+Cc: James Harper <james.harper@ejbdigital.com.au>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-If so, then:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
->  	  </row>
->  	  <row id="V4L2-PIX-FMT-BGR24">
->  	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
-> 
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 9135260f3457..6968706b83b8 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -764,7 +764,6 @@ static struct dib0070_config dib7070p_dib0070_config = {
+ 	.reset = dib7070_tuner_reset,
+ 	.sleep = dib7070_tuner_sleep,
+ 	.clock_khz = 12000,
+-	.freq_offset_khz_vhf = 950,
+ 	.freq_offset_khz_vhf = 550,
+ 	/* .flip_chip = 1, */
+ };
+-- 
+1.9.3
 
