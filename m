@@ -1,114 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1094 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbaG1CWx (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2422 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434AbaGZQDJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 22:22:53 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6S2Mo7m038986
-	for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 04:22:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 76C612A0380
-	for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 04:22:45 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140728022245.76C612A0380@tschai.lan>
-Date: Mon, 28 Jul 2014 04:22:45 +0200 (CEST)
+	Sat, 26 Jul 2014 12:03:09 -0400
+Message-ID: <53D3D133.7000103@xs4all.nl>
+Date: Sat, 26 Jul 2014 18:02:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH for v3.17] v4l2-ctrls: fix rounding calculation
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Commit 958c7c7e65 ("[media] v4l2-ctrls: fix corner case in round-to-range code") broke
+controls that use a negative range.
 
-Results of the daily build of media_tree:
+The cause was a s32/u32 mixup: ctrl->step is unsigned while all others are signed. So
+the result type of the expression '(ctrl)->maximum - ((ctrl)->step / 2)' became unsigned,
+making 'val >= (ctrl)->maximum - ((ctrl)->step / 2)' true, since '((u32)-128) > 128'
+(if val = -128, maximum = 128 and step = 1).
 
-date:		Mon Jul 28 04:00:17 CEST 2014
-git branch:	test
-git hash:	488046c237f3b78f91046d45662b318cd2415f64
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-5.slh.2-amd64
+So carefully cast (step / 2) to s32.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+There was one cast of step to s32 where it should have been u32 because both offset and
+step are unsigned, so casting to signed makes no sense there. You do need a cast to u32
+there, because otherwise architectures that have no 64-bit division start complaining
+(step is a u64).
 
-Detailed results are available here:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2d8ced8..9d0c7a1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1347,14 +1347,14 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ ({								\
+ 	offset_type offset;					\
+ 	if ((ctrl)->maximum >= 0 &&				\
+-	    val >= (ctrl)->maximum - ((ctrl)->step / 2))	\
++	    val >= (ctrl)->maximum - (s32)((ctrl)->step / 2))	\
+ 		val = (ctrl)->maximum;				\
+ 	else							\
+-		val += (ctrl)->step / 2;			\
++		val += (s32)((ctrl)->step / 2);			\
+ 	val = clamp_t(typeof(val), val,				\
+ 		      (ctrl)->minimum, (ctrl)->maximum);	\
+ 	offset = (val) - (ctrl)->minimum;			\
+-	offset = (ctrl)->step * (offset / (s32)(ctrl)->step);	\
++	offset = (ctrl)->step * (offset / (u32)(ctrl)->step);	\
+ 	val = (ctrl)->minimum + offset;				\
+ 	0;							\
+ })
+@@ -1376,10 +1376,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		 * the u64 divide that needs special care.
+ 		 */
+ 		val = ptr.p_s64[idx];
+-		if (ctrl->maximum >= 0 && val >= ctrl->maximum - ctrl->step / 2)
++		if (ctrl->maximum >= 0 && val >= ctrl->maximum - (s64)(ctrl->step / 2))
+ 			val = ctrl->maximum;
+ 		else
+-			val += ctrl->step / 2;
++			val += (s64)(ctrl->step / 2);
+ 		val = clamp_t(s64, val, ctrl->minimum, ctrl->maximum);
+ 		offset = val - ctrl->minimum;
+ 		do_div(offset, ctrl->step);
