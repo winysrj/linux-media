@@ -1,259 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:11695 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867AbaGHMur (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 08:50:47 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:54493 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149AbaG0TmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jul 2014 15:42:24 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8E00C4Q8ZN5JB0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Jul 2014 13:50:11 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Divneil Wadhawan' <divneil@outlook.com>,
-	linux-media@vger.kernel.org, pawel@osciak.com
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>
- <536A0709.5090605@xs4all.nl> <BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>
- <536A1A45.6080201@xs4all.nl> <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>
- <53B65C2E.9040503@xs4all.nl> <BAY176-W19A194B095C32CE30B0B8DA90D0@phx.gbl>
- <53BBA315.1000709@xs4all.nl>
-In-reply-to: <53BBA315.1000709@xs4all.nl>
-Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-Date: Tue, 08 Jul 2014 14:50:32 +0200
-Message-id: <0f6d01cf9aab$34c45180$9e4cf480$%debski@samsung.com>
+ 17 2011)) with ESMTP id <0N9D002SPYQMJ400@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 27 Jul 2014 15:42:22 -0400 (EDT)
+Date: Sun, 27 Jul 2014 16:42:18 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: crope@iki.fi, linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8] cx231xx: Add digital support for [2040:b131] Hauppauge
+ WinTV 930C-HD (model 1114xx)
+Message-id: <20140727164218.3dd674e7.m.chehab@samsung.com>
+In-reply-to: <20140727115911.0dde3d30.m.chehab@samsung.com>
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+ <1406059938-21141-7-git-send-email-zzam@gentoo.org>
+ <20140726162718.660cf512.m.chehab@samsung.com> <53D4C72A.4010209@gentoo.org>
+ <20140727104453.4578b353.m.chehab@samsung.com>
+ <20140727113248.29dccc38.m.chehab@samsung.com>
+ <20140727115911.0dde3d30.m.chehab@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+Content-type: text/plain; charset=US-ASCII
 Content-transfer-encoding: 7bit
-Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sun, 27 Jul 2014 11:59:11 -0300
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, July 08, 2014 9:52 AM
-> To: Divneil Wadhawan; linux-media@vger.kernel.org; Kamil Debski;
-> pawel@osciak.com
-> Subject: Re: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
+> Em Sun, 27 Jul 2014 11:32:48 -0300
+> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 > 
-> On 07/07/2014 09:27 AM, Divneil Wadhawan wrote:
-> > Hi Hans,
-> >
-> >
-> >> include/media/davinci/vpfe_capture.h
-> >
-> > It uses videobuf-dma-contig.h, so, I left it out.
-> >
-> >
-> >> drivers/media/platform/vivi-core.c
-> >
-> > Cannot find this one. Checked with find, in case it changed location,
-> but couldn't.
-> >
-> >
-> >> drivers/media/pci/saa7134/*
-> >
-> > Updated.
-> >
-> >
-> > Please find below the patch. I am hoping it's good to go.
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Pawel, Kamil, can you take a look as well?
-> 
-> To my knowledge there drivers/media/platform/s5p-mfc is the only one
-> that uses
-> the buffer index as a bit index (1 << v4l2_buf.index), but that driver
-> has
-> its own maximum buffer limit of 32 so it should not be affected by this
-> patch.
+> > Em Sun, 27 Jul 2014 10:44:53 -0300
+> > Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+> > 
+> > > Em Sun, 27 Jul 2014 11:32:26 +0200
+> > > Matthias Schwarzott <zzam@gentoo.org> escreveu:
+> > > 
+> > > > 
+> > > > Hi Mauro.
+> > > > 
+> > > > On 26.07.2014 21:27, Mauro Carvalho Chehab wrote:
+> > > > > Tried to apply your patch series, but there's something wrong on it.
+> > > > > 
+> > > > > See the enclosed logs. I suspect that you missed a patch adding the
+> > > > > proper tuner for this device.
 
-Yes, MFC has a hardware limit of 32 buffers. It will not be affected
-by this patch as it uses internal #define MFC_MAX_BUFFERS 32.
+The hole issue was due to that:
+> [  326.770414] cx231xx #0: New device Hauppauge Hauppauge Device @ 12 Mbps (2040:b131) with 4 interfaces
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+The root cause seems to be a bad USB cable, causing errors at USB
+detection.
 
-> Regards,
-> 
-> 	Hans
-> 
-> >
-> >
-> > Regards,
-> >
-> > Divneil
-> >
-> >
-> > From 1792d75dc0f893a181d991a0b238bbd0ead945c1 Mon Sep 17 00:00:00
-> 2001
-> > From: Divneil Wadhawan <divneil.wadhawan@st.com>
-> > Date: Mon, 7 Jul 2014 12:38:06 +0530
-> > Subject: [PATCH] v4l2: vb2: replace VIDEO_MAX_FRAME with
-> VB2_MAX_FRAME
-> >
-> > - vb2 drivers to rely on VB2_MAX_FRAME.
-> >
-> > - VB2_MAX_FRAME bumps the value to 64 from current 32
-> >
-> > Change-Id: I3d7998898df43553486166c44b54524aac449deb
-> > Signed-off-by: Divneil Wadhawan <divneil.wadhawan@st.com>
-> > ---
-> >  drivers/media/pci/saa7134/saa7134-ts.c    |    4 ++--
-> >  drivers/media/pci/saa7134/saa7134-vbi.c   |    4 ++--
-> >  drivers/media/pci/saa7134/saa7134-video.c |    2 +-
-> >  drivers/media/platform/mem2mem_testdev.c  |    2 +-
-> >  drivers/media/platform/ti-vpe/vpe.c       |    2 +-
-> >  drivers/media/v4l2-core/videobuf2-core.c  |    8 ++++----
-> >  include/media/videobuf2-core.h            |    4 +++-
-> >  7 files changed, 14 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/drivers/media/pci/saa7134/saa7134-ts.c
-> b/drivers/media/pci/saa7134/saa7134-ts.c
-> > index bd25323..0d04995 100644
-> > --- a/drivers/media/pci/saa7134/saa7134-ts.c
-> > +++ b/drivers/media/pci/saa7134/saa7134-ts.c
-> > @@ -227,8 +227,8 @@ int saa7134_ts_init1(struct saa7134_dev *dev)
-> >   /* sanitycheck insmod options */
-> >   if (tsbufs < 2)
-> >    tsbufs = 2;
-> > - if (tsbufs> VIDEO_MAX_FRAME)
-> > -  tsbufs = VIDEO_MAX_FRAME;
-> > + if (tsbufs> VB2_MAX_FRAME)
-> > +  tsbufs = VB2_MAX_FRAME;
-> >   if (ts_nr_packets < 4)
-> >    ts_nr_packets = 4;
-> >   if (ts_nr_packets> 312)
-> > diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c
-> b/drivers/media/pci/saa7134/saa7134-vbi.c
-> > index c06dbe1..15b5860 100644
-> > --- a/drivers/media/pci/saa7134/saa7134-vbi.c
-> > +++ b/drivers/media/pci/saa7134/saa7134-vbi.c
-> > @@ -203,8 +203,8 @@ int saa7134_vbi_init1(struct saa7134_dev *dev)
-> >
-> >   if (vbibufs < 2)
-> >    vbibufs = 2;
-> > - if (vbibufs> VIDEO_MAX_FRAME)
-> > -  vbibufs = VIDEO_MAX_FRAME;
-> > + if (vbibufs> VB2_MAX_FRAME)
-> > +  vbibufs = VB2_MAX_FRAME;
-> >   return 0;
-> >  }
-> >
-> > diff --git a/drivers/media/pci/saa7134/saa7134-video.c
-> b/drivers/media/pci/saa7134/saa7134-video.c
-> > index d375999..47dda6c 100644
-> > --- a/drivers/media/pci/saa7134/saa7134-video.c
-> > +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> > @@ -2032,7 +2032,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
-> >   int ret;
-> >
-> >   /* sanitycheck insmod options */
-> > - if (gbuffers < 2 || gbuffers> VIDEO_MAX_FRAME)
-> > + if (gbuffers < 2 || gbuffers> VB2_MAX_FRAME)
-> >    gbuffers = 2;
-> >   if (gbufsize> gbufsize_max)
-> >    gbufsize = gbufsize_max;
-> > diff --git a/drivers/media/platform/mem2mem_testdev.c
-> b/drivers/media/platform/mem2mem_testdev.c
-> > index 0714070..fe3235d 100644
-> > --- a/drivers/media/platform/mem2mem_testdev.c
-> > +++ b/drivers/media/platform/mem2mem_testdev.c
-> > @@ -55,7 +55,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
-> >  #define MEM2MEM_NAME  "m2m-testdev"
-> >
-> >  /* Per queue */
-> > -#define MEM2MEM_DEF_NUM_BUFS VIDEO_MAX_FRAME
-> > +#define MEM2MEM_DEF_NUM_BUFS VB2_MAX_FRAME
-> >  /* In bytes, per queue */
-> >  #define MEM2MEM_VID_MEM_LIMIT (16 * 1024 * 1024)
-> >
-> > diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> b/drivers/media/platform/ti-vpe/vpe.c
-> > index 972f43f..6b370ed 100644
-> > --- a/drivers/media/platform/ti-vpe/vpe.c
-> > +++ b/drivers/media/platform/ti-vpe/vpe.c
-> > @@ -1970,7 +1970,7 @@ static const struct v4l2_ctrl_config
-> vpe_bufs_per_job = {
-> >   .type = V4L2_CTRL_TYPE_INTEGER,
-> >   .def = VPE_DEF_BUFS_PER_JOB,
-> >   .min = 1,
-> > - .max = VIDEO_MAX_FRAME,
-> > + .max = VB2_MAX_FRAME,
-> >   .step = 1,
-> >  };
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 7c4489c..09bc9bb 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -904,7 +904,7 @@ static int __reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req)
-> >   /*
-> >    * Make sure the requested values and current defaults are sane.
-> >    */
-> > - num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
-> > + num_buffers = min_t(unsigned int, req->count, VB2_MAX_FRAME);
-> >   num_buffers = max_t(unsigned int, num_buffers, q-
-> >min_buffers_needed);
-> >   memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
-> >   memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
-> > @@ -1005,7 +1005,7 @@ static int __create_bufs(struct vb2_queue *q,
-> struct v4l2_create_buffers *create
-> >   unsigned int num_planes = 0, num_buffers, allocated_buffers;
-> >   int ret;
-> >
-> > - if (q->num_buffers == VIDEO_MAX_FRAME) {
-> > + if (q->num_buffers == VB2_MAX_FRAME) {
-> >    dprintk(1, "maximum number of buffers already allocated\n");
-> >    return -ENOBUFS;
-> >   }
-> > @@ -1016,7 +1016,7 @@ static int __create_bufs(struct vb2_queue *q,
-> struct v4l2_create_buffers *create
-> >    q->memory = create->memory;
-> >   }
-> >
-> > - num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
-> > + num_buffers = min(create->count, VB2_MAX_FRAME - q->num_buffers);
-> >
-> >   /*
-> >    * Ask the driver, whether the requested number of buffers, planes
-> per
-> > @@ -2686,7 +2686,7 @@ struct vb2_fileio_data {
-> >   struct v4l2_requestbuffers req;
-> >   struct v4l2_plane p;
-> >   struct v4l2_buffer b;
-> > - struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
-> > + struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
-> >   unsigned int cur_index;
-> >   unsigned int initial_index;
-> >   unsigned int q_count;
-> > diff --git a/include/media/videobuf2-core.h
-> b/include/media/videobuf2-core.h
-> > index 8fab6fa..3702a33 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -18,6 +18,8 @@
-> >  #include <linux/videodev2.h>
-> >  #include <linux/dma-buf.h>
-> >
-> > +#define VB2_MAX_FRAME  64
-> > +
-> >  struct vb2_alloc_ctx;
-> >  struct vb2_fileio_data;
-> >  struct vb2_threadio_data;
-> > @@ -395,7 +397,7 @@ struct vb2_queue {
-> >
-> >  /* private: internal use only */
-> >   enum v4l2_memory  memory;
-> > - struct vb2_buffer  *bufs[VIDEO_MAX_FRAME];
-> > + struct vb2_buffer  *bufs[VB2_MAX_FRAME];
-> >   unsigned int   num_buffers;
-> >
-> >   struct list_head  queued_list;
-> >
+Just send a patch series that avoids the driver to OOPS in such
+case.
 
+Regards,
+Mauro
