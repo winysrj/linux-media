@@ -1,33 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f172.google.com ([209.85.220.172]:49803 "EHLO
-	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934045AbaGXHPH (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:17663 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752463AbaG0UPz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 03:15:07 -0400
-Received: by mail-vc0-f172.google.com with SMTP id im17so4095515vcb.31
-        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 00:15:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-Date: Thu, 24 Jul 2014 15:15:05 +0800
-Message-ID: <CAHG8p1DYyKmrFqa35JmUXnAffRo11k35bgemusKX13yGvYx68A@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: blackfin: ppi: Pass device pointer to request
- peripheral pins
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sonic Zhang <sonic.adi@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Sonic Zhang <sonic.zhang@analog.com>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 27 Jul 2014 16:15:55 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9E0072H0AHFL10@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 27 Jul 2014 16:15:53 -0400 (EDT)
+To: undisclosed-recipients:;
+Received: from recife.lan ([105.144.134.254])
+ by ussync3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0N9E005920AFOV60@ussync3.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 27 Jul 2014 16:15:53 -0400 (EDT)
+Date: Sun, 27 Jul 2014 17:15:50 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] cx231xx: add support for newer cx231xx devices
+Message-id: <20140727171550.6d36912b.m.chehab@samsung.com>
+In-reply-to: <1406491992-5404-1-git-send-email-m.chehab@samsung.com>
+References: <1406491992-5404-1-git-send-email-m.chehab@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-07-23 17:57 GMT+08:00 Sonic Zhang <sonic.adi@gmail.com>:
-> From: Sonic Zhang <sonic.zhang@analog.com>
->
-> if the pinctrl driver is enabled.
->
-> Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+In time:
 
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject should be, instead:
+	mceusb: add support for newer cx231xx devices
+
+Regards,
+Mauro
+
+Em Sun, 27 Jul 2014 17:13:12 -0300
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+
+> Add support for the si2165-based cx231xx devices:
+> 	[2013:025e] PCTV QuatroStick 522e
+> 	[2013:0259] PCTV QuatroStick 521e
+> 	[2040:b131] Hauppauge WinTV 930C-HD (model 1114xx)
+> 
+> They're similar to the already supported:
+> 	[2040:b130] Hauppauge WinTV 930C-HD (model 1113xx)
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/rc/mceusb.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+> index b1be81fc6bd7..48a6a0826a77 100644
+> --- a/drivers/media/rc/mceusb.c
+> +++ b/drivers/media/rc/mceusb.c
+> @@ -187,6 +187,7 @@
+>  #define VENDOR_CONEXANT		0x0572
+>  #define VENDOR_TWISTEDMELON	0x2596
+>  #define VENDOR_HAUPPAUGE	0x2040
+> +#define VENDOR_PCTV		0x2013
+>  
+>  enum mceusb_model_type {
+>  	MCE_GEN2 = 0,		/* Most boards */
+> @@ -396,6 +397,13 @@ static struct usb_device_id mceusb_dev_table[] = {
+>  	/* Hauppauge WINTV-HVR-HVR 930C-HD - based on cx231xx */
+>  	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb130),
+>  	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+> +	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb131),
+> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+> +	{ USB_DEVICE(VENDOR_PCTV, 0x0259),
+> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+> +	{ USB_DEVICE(VENDOR_PCTV, 0x025e),
+> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+> +
+>  	/* Terminating entry */
+>  	{ }
+>  };
