@@ -1,69 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37972 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754049AbaGYPIn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54592 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbaG0T1j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 11:08:43 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
+	Sun, 27 Jul 2014 15:27:39 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 08/11] [media] coda: increase max vertical frame size to 1088
-Date: Fri, 25 Jul 2014 17:08:34 +0200
-Message-Id: <1406300917-18169-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 0/6] cx231xx: don't OOPS when probe fails
+Date: Sun, 27 Jul 2014 16:27:26 -0300
+Message-Id: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch increases the maximum vertical frame size reported
-by enum_fmt and accepted by try_fmt/s_fmt from 1080 to 1088.
-Since for 16x16-pixel macroblocks 1080p will be rounded up to
-this anyway, we may as well admit that we support it.
+cx231xx relies on a code that detects the possible PCB
+settings. However, there are several troubles there:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+1) The number of interfaces are read from the wrong place;
+2) The code doesn't check if the interface is past the data;
+3) If the code that read the PCB config fails, it keeps
+   running using some random data.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c38c8bd..da5dd2f 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -39,7 +39,6 @@
- #include <media/videobuf2-dma-contig.h>
- 
- #include "coda.h"
--#include "coda_regs.h"
- 
- #define CODA_NAME		"coda"
- 
-@@ -122,15 +121,15 @@ static const struct coda_codec codadx6_codecs[] = {
- static const struct coda_codec coda7_codecs[] = {
- 	CODA_CODEC(CODA7_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1280, 720),
- 	CODA_CODEC(CODA7_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1280, 720),
--	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
--	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1080),
-+	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
-+	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
- };
- 
- static const struct coda_codec coda9_codecs[] = {
--	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1080),
--	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1080),
--	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
--	CODA_CODEC(CODA9_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1080),
-+	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1088),
-+	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1088),
-+	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
-+	CODA_CODEC(CODA9_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
- };
- 
- static bool coda_format_is_yuv(u32 fourcc)
+All of those issues can happen when a bad cabling is used,
+causing the Kernel to OOPS.
+
+Mauro Carvalho Chehab (6):
+  cx231xx: Fix the max number of interfaces
+  cx231xx: Don't let an interface number to go past the array
+  cx231xx: use devm_ functions to allocate memory
+  cx231xx: handle errors at read_eeprom()
+  cx231xx: move analog init code to a separate function
+  cx231xx: return an error if it can't read PCB config
+
+ drivers/media/usb/cx231xx/cx231xx-cards.c   | 265 +++++++++++++++-------------
+ drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c |  10 +-
+ drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h |   2 +-
+ 3 files changed, 150 insertions(+), 127 deletions(-)
+
 -- 
-2.0.1
+1.9.3
 
