@@ -1,59 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45755 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507AbaGQVcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 17:32:08 -0400
-Message-ID: <53C840D6.8040208@iki.fi>
-Date: Fri, 18 Jul 2014 00:32:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from omr-d08.mx.aol.com ([205.188.109.207]:35212 "EHLO
+	omr-d08.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752207AbaG0XwM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jul 2014 19:52:12 -0400
+Received: from mtaout-mcb02.mx.aol.com (mtaout-mcb02.mx.aol.com [172.26.50.174])
+	by omr-d08.mx.aol.com (Outbound Mail Relay) with ESMTP id E0048700000B5
+	for <linux-media@vger.kernel.org>; Sun, 27 Jul 2014 19:44:38 -0400 (EDT)
+Received: from x220.optiplex-networks.com (81-178-2-118.dsl.pipex.com [81.178.2.118])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by mtaout-mcb02.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 6C3EE38000095
+	for <linux-media@vger.kernel.org>; Sun, 27 Jul 2014 19:44:38 -0400 (EDT)
+Message-ID: <53D58EDF.1090102@netscape.net>
+Date: Mon, 28 Jul 2014 00:44:31 +0100
+From: Kaya Saman <SamanKaya@netscape.net>
 MIME-Version: 1.0
-To: Luis Alves <ljalvs@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] si2168: Set symbol_rate in set_frontend for DVB-C
- delivery system.
-References: <1405618288-28317-1-git-send-email-ljalvs@gmail.com>
-In-Reply-To: <1405618288-28317-1-git-send-email-ljalvs@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Advice on DVB-S/S2 card and CAM support
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks sane, I will apply that.
+Hi,
 
-regards
-Antti
+I'm wondering what the best solution for getting satellite working on 
+Linux is?
 
-On 07/17/2014 08:31 PM, Luis Alves wrote:
-> This patch adds symbol rate setting to the driver.
->
-> Signed-off-by: Luis Alves <ljalvs@gmail.com>
-> ---
->   drivers/media/dvb-frontends/si2168.c | 12 ++++++++++++
->   1 file changed, 12 insertions(+)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 0422925..7980741 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -278,6 +278,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> +	/* set DVB-C symbol rate */
-> +	if (c->delivery_system == SYS_DVBC_ANNEX_A) {
-> +		memcpy(cmd.args, "\x14\x00\x02\x11", 4);
-> +		cmd.args[4] = (c->symbol_rate / 1000) & 0xff;
-> +		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
-> +		cmd.wlen = 6;
-> +		cmd.rlen = 4;
-> +		ret = si2168_cmd_execute(s, &cmd);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
->   	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
->   	cmd.wlen = 6;
->   	cmd.rlen = 4;
->
 
--- 
-http://palosaari.fi/
+Currently I have a satellite box with CAM module branded by the 
+Satellite TV provider we are with.
+
+
+As I am now migrating everything including TV through my HTPC 
+environment I would also like to link the satellite box up to the HTPC 
+too to take advantage of the PVR and streaming capabilities.
+
+
+I run XBMC as my frontend so I was looking into TV Headend to take care 
+of PVR side of things.
+
+
+My greatest issue though is what is the best solution for getting the 
+satellite system into the HTPC?
+
+
+After some research my first idea was to use a satellite tuner card; 
+models are available for Hauppauge and other vendors so really it was 
+about which was going to offer best compatibility with Linux? (distro is 
+Arch Linux with 3.15 kernel)
+
+The model of card I was looking was from DVB-Sky:
+
+http://www.dvbsky.net/Products_S950C.html
+
+something like that, which has CAM module slot and is DVB-S/S2 
+compatible and claims to have drivers supported by the Linuxtv project.
+
+
+Or alternately going for something like this:
+
+http://www.dvbsky.net/Products_T9580.html
+
+as it has a combined DVB-T tuner, then using a USB card reader for the 
+CAM "smart card".
+
+
+Has anyone used the cards above, what are the opinions relating to them? 
+Also would they work with motorized dishes?
+
+
+Since I'm not sure if "all" CAM's are supported as apparently our 
+satellite tv provider wanted to lock out other receivers so they force 
+people to use their own product;
+
+my second idea was to perhaps use a capture card with RCA inputs.
+
+Something like this:
+
+http://www.c21video.com/viewcast/osprey-210.html
+
+perhaps or a Hauppauge HD-PVR mk I edition:
+
+which according to the wiki is supported.
+
+
+Looking forward to hearing advice.
+
+
+Thanks.
+
+
+Kaya
