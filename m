@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:33012 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760297AbaGYOVS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54594 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237AbaG0T1j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 10:21:18 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 3/9] s5p-jpeg: return error immediately after get_byte fails
-Date: Fri, 25 Jul 2014 16:20:47 +0200
-Message-id: <1406298053-30184-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
-References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 27 Jul 2014 15:27:39 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 1/6] cx231xx: Fix the max number of interfaces
+Date: Sun, 27 Jul 2014 16:27:27 -0300
+Message-Id: <1406489252-30636-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
+References: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+The max number of interfaces was read from the wrong descriptor.
 
-When parsing JPEG header s5p_jpeg_parse_hdr function should return
-immediately in case there was an error while reading a byte.
-
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 126199e..a3f8862 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -906,14 +906,14 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 	while (notfound) {
- 		c = get_byte(&jpeg_buffer);
- 		if (c == -1)
--			break;
-+			return false;
- 		if (c != 0xff)
- 			continue;
- 		do
- 			c = get_byte(&jpeg_buffer);
- 		while (c == 0xff);
- 		if (c == -1)
--			break;
-+			return false;
- 		if (c == 0)
- 			continue;
- 		length = 0;
---
-1.7.9.5
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index b2fa05d985c1..d40284536beb 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1325,8 +1325,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	dev->vbi_or_sliced_cc_mode = 0;
+ 
+ 	/* get maximum no.of IAD interfaces */
+-	assoc_desc = udev->actconfig->intf_assoc[0];
+-	dev->max_iad_interface_count = assoc_desc->bInterfaceCount;
++	dev->max_iad_interface_count = udev->config->desc.bNumInterfaces;
+ 
+ 	/* init CIR module TBD */
+ 
+-- 
+1.9.3
 
