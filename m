@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47036 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753937AbaGDHsG (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4466 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750747AbaG0WXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 03:48:06 -0400
-Message-ID: <53B65C2E.9040503@xs4all.nl>
-Date: Fri, 04 Jul 2014 09:47:58 +0200
+	Sun, 27 Jul 2014 18:23:32 -0400
+Message-ID: <53D57BC3.9060205@xs4all.nl>
+Date: Mon, 28 Jul 2014 00:22:59 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Divneil Wadhawan <divneil@outlook.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>,<BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>,<536A1A45.6080201@xs4all.nl> <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>
-In-Reply-To: <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 2/3] [media] coda: fix coda_g_selection
+References: <69ab-53d52e80-1-565f8200@126846484>	 <53D54338.9090707@xs4all.nl> <1406496776.2628.1.camel@mpb-nicolas>
+In-Reply-To: <1406496776.2628.1.camel@mpb-nicolas>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/12/2014 01:38 PM, Divneil Wadhawan wrote:
-> Hi Hans,
->  
-> Please find attached the patch. I hope its okay.
-> I have only touched filed which were vb2 based in my understanding.
->  
-> Yeah! I was referring to the define as it's the easier way and also fulfilling my use case.
-> However, I am looking forward for queue->depth kind of approach where driver can specify its own choice for max buffers.
+On 07/27/2014 11:32 PM, Nicolas Dufresne wrote:
+> Le dimanche 27 juillet 2014 à 20:21 +0200, Hans Verkuil a écrit :
+>> If cropcap returns -EINVAL then that means that the current input or
+>> output does
+>> not support cropping (for input) or composing (for output). In that case the
+>> pixel aspect ratio is undefined and you have no way to get hold of that information,
+>> which is a bug in the V4L2 API.
+>>
+>> In the case of an m2m device you can safely assume that whatever the pixel aspect
+>> is of the image you give to the m2m device, it will still be the same pixel
+>> aspect when you get it back. In fact, I would say that if an m2m device returns
+>> cropcap information, then the pixel aspect ratio information is most likely not
+>> applicable to the device and will typically be 1:1.
+>>
+>> Pixel aspect ratio is only relevant if the video comes in or goes out to a physical
+>> interface (sensor, video receiver/transmitter).
 > 
-> Regards,
-> Divneil
-> PS: I was on travel, hence the delay.
+> So far "not applicable" has been interpreted as not implemented /
+> ENOTTY. Can't CODA just do that and we can close this subject ?
 
-
-Sorry for the delay, I missed your patch.
-
-It looks good, but you need to update a few more files:
-
-include/media/davinci/vpfe_capture.h
-drivers/media/platform/vivi-core.c
-drivers/media/pci/saa7134/*
+Yes, that might be the best solution. Just call v4l2_disable_ioctl for CROPCAP and
+G/S_CROP, since none of them apply to the coda driver.
 
 Regards,
 
