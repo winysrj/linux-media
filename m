@@ -1,107 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:14233 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472AbaGUE5r (ORCPT
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:47508 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319AbaG0InT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 00:57:47 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N91001BBPS91TA0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Jul 2014 13:57:45 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, pawel@osciak.com, shaik.samsung@gmail.com,
-	joshi@samsung.com, Shaik Ameer Basha <shaik.ameer@samsung.com>
-Subject: [PATCH] [media] exynos-gsc: Remove PM_RUNTIME dependency
-Date: Mon, 21 Jul 2014 10:24:48 +0530
-Message-id: <1405918488-26142-1-git-send-email-shaik.ameer@samsung.com>
+	Sun, 27 Jul 2014 04:43:19 -0400
+Received: by mail-ie0-f169.google.com with SMTP id rd18so5377702iec.14
+        for <linux-media@vger.kernel.org>; Sun, 27 Jul 2014 01:43:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53D4B7B8.1040901@xs4all.nl>
+References: <CA+NJmkcTpf5Xb4Z8gJFriB58Jtf85ay_jnTS-fM34gA1PBf60g@mail.gmail.com>
+ <53D4B013.2060404@xs4all.nl> <CA+NJmkcFLn5kVZe=4yUBcjAGp38-qAz_rx8eVapVnriANqZDNg@mail.gmail.com>
+ <53D4B7B8.1040901@xs4all.nl>
+From: Isaac Nickaein <nickaein.i@gmail.com>
+Date: Sun, 27 Jul 2014 13:12:58 +0430
+Message-ID: <CA+NJmkcnKxHWcPv-H9r=SQzOJD-DtnRc9voWz9a=BnsrgBv8kQ@mail.gmail.com>
+Subject: Re: "error: redefinition of 'altera_init'" during build on Kernel 3.0.36+
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1] Currently Gscaler clock is enabled only inside pm_runtime callbacks.
-   If PM_RUNTIME is disabled, driver hangs. This patch removes the
-   PM_RUNTIME dependency by keeping the clock enable/disable functions
-   in m2m start/stop streaming callbacks.
+On Sun, Jul 27, 2014 at 12:56 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> No. Whoever maintains that repository applied v4l code from some newer
+> kernel without apparently ever testing it. This is really the responsibility
+> of maintainer of that repository and is out of our control.
+>
+> You need to address your questions to that repository maintainer, we can't
+> help, I'm afraid.
+>
 
-2] For Exynos5420/5800, Gscaler clock has to be Turned ON before powering
-   on/off the Gscaler power domain. This dependency is taken care by
-   this patch at driver level.
+Ah I see. I have some issues with v4l2 on this kernel version and I am
+trying to upgrade v4l2 to fix that.
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c |   10 ++--------
- drivers/media/platform/exynos-gsc/gsc-m2m.c  |   13 +++++++++++++
- 2 files changed, 15 insertions(+), 8 deletions(-)
+One last question: Can I remove current v4l codes in kernel, replace
+them with the V4L2 backport (provided by linuxtv), fix the
+compatibility issues (hopefully) to get a kernel source with newer
+v4l2 code?
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 9d0cc04..39c0953 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1132,23 +1132,17 @@ static int gsc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, gsc);
- 	pm_runtime_enable(dev);
--	ret = pm_runtime_get_sync(&pdev->dev);
--	if (ret < 0)
--		goto err_m2m;
- 
- 	/* Initialize continious memory allocator */
- 	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
- 	if (IS_ERR(gsc->alloc_ctx)) {
- 		ret = PTR_ERR(gsc->alloc_ctx);
--		goto err_pm;
-+		goto err_m2m;
- 	}
- 
- 	dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
--
--	pm_runtime_put(dev);
- 	return 0;
--err_pm:
--	pm_runtime_put(dev);
-+
- err_m2m:
- 	gsc_unregister_m2m_device(gsc);
- err_v4l2:
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index e434f1f0..a98462c 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -60,19 +60,32 @@ static void __gsc_m2m_job_abort(struct gsc_ctx *ctx)
- static int gsc_m2m_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct gsc_ctx *ctx = q->drv_priv;
-+	struct gsc_dev *gsc = ctx->gsc_dev;
- 	int ret;
- 
-+	ret = clk_enable(gsc->clock);
-+	if (ret)
-+		return ret;
-+
- 	ret = pm_runtime_get_sync(&ctx->gsc_dev->pdev->dev);
-+
-+	if (!pm_runtime_enabled(&gsc->pdev->dev)) {
-+		gsc_hw_set_sw_reset(gsc);
-+		gsc_wait_reset(gsc);
-+	}
-+
- 	return ret > 0 ? 0 : ret;
- }
- 
- static void gsc_m2m_stop_streaming(struct vb2_queue *q)
- {
- 	struct gsc_ctx *ctx = q->drv_priv;
-+	struct gsc_dev *gsc = ctx->gsc_dev;
- 
- 	__gsc_m2m_job_abort(ctx);
- 
- 	pm_runtime_put(&ctx->gsc_dev->pdev->dev);
-+	clk_disable(gsc->clock);
- }
- 
- void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
--- 
-1.7.9.5
+I am not sure if the v4l2 backport is the same type of code that is
+present in kernel source at "drivers/media/video",
+"drivers/media/dvb", etc.
 
+
+Thanks,
+Isaac
+
+
+> Regards,
+>
+>         Hans
+>
+>>
+>> To bypass this error, I manually added these two includes to
+>> v4l2-.fh.h file (I guess this is not a good approach):
+>>
+>> #include <linux/module.h>
+>> #include <linux/export.h>
+>>
+>> Now when I run make, I get different errors. Here is the output
+>> truncated to 100 lines (there are many errors):
+>>
+>>
+>> root@localhost:~/v4l2/media_build# make
+>> make -C /root/v4l2/media_build/v4l
+>> make[1]: Entering directory `/root/v4l2/media_build/v4l'
+>> creating symbolic links...
+>> make -C firmware prep
+>> make[2]: Entering directory `/root/v4l2/media_build/v4l/firmware'
+>> make[2]: Leaving directory `/root/v4l2/media_build/v4l/firmware'
+>> make -C firmware
+>> make[2]: Entering directory `/root/v4l2/media_build/v4l/firmware'
+>> make[2]: Nothing to be done for `default'.
+>> make[2]: Leaving directory `/root/v4l2/media_build/v4l/firmware'
+>> Kernel build directory is /lib/modules/3.0.36+/build
+>> make -C ../linux apply_patches
+>> make[2]: Entering directory `/root/v4l2/media_build/linux'
+>> Patches for 3.0.36+ already applied.
+>> make[2]: Leaving directory `/root/v4l2/media_build/linux'
+>> make -C /lib/modules/3.0.36+/build SUBDIRS=/root/v4l2/media_build/v4l  modules
+>> make[2]: Entering directory `/lib/modules/3.0.36+/build'
+>>   CC [M]  /root/v4l2/media_build/v4l/au0828-video.o
+>> In file included from include/linux/cache.h:4:0,
+>>                  from include/linux/time.h:7,
+>>                  from include/linux/stat.h:60,
+>>                  from include/linux/module.h:10,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c: In function 'au0828_v4l2_close':
+>> /root/v4l2/media_build/v4l/au0828-video.c:1086:28: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>    v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>>                             ^
+>> include/linux/kernel.h:659:49: note: in definition of macro 'container_of'
+>>   const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+>>                                                  ^
+>> include/linux/list.h:419:13: note: in expansion of macro 'list_entry'
+>>   for (pos = list_entry((head)->next, typeof(*pos), member); \
+>>              ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:140:3:
+>> note: in expansion of macro 'list_for_each_entry'
+>>    list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) \
+>>    ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1086:3: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>    v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>>    ^
+>> In file included from include/linux/module.h:9:0,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c:1086:28: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>    v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>>                             ^
+>> include/linux/list.h:420:24: note: in definition of macro 'list_for_each_entry'
+>>        &pos->member != (head);  \
+>>                         ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1086:3: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>    v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>>    ^
+>> In file included from include/linux/cache.h:4:0,
+>>                  from include/linux/time.h:7,
+>>                  from include/linux/stat.h:60,
+>>                  from include/linux/module.h:10,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c: In function 'au0828_init_tuner':
+>> /root/v4l2/media_build/v4l/au0828-video.c:1120:27: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->std);
+>>                            ^
+>> include/linux/kernel.h:659:49: note: in definition of macro 'container_of'
+>>   const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+>>                                                  ^
+>> include/linux/list.h:419:13: note: in expansion of macro 'list_entry'
+>>   for (pos = list_entry((head)->next, typeof(*pos), member); \
+>>              ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:140:3:
+>> note: in expansion of macro 'list_for_each_entry'
+>>    list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) \
+>>    ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1120:2: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->std);
+>>   ^
+>> In file included from include/linux/module.h:9:0,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c:1120:27: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->std);
+>>                            ^
+>> include/linux/list.h:420:24: note: in definition of macro 'list_for_each_entry'
+>>        &pos->member != (head);  \
+>>                         ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1120:2: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->std);
+>>   ^
+>> In file included from include/linux/cache.h:4:0,
+>>                  from include/linux/time.h:7,
+>>                  from include/linux/stat.h:60,
+>>                  from include/linux/module.h:10,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c:1121:27: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+>>                            ^
+>> include/linux/kernel.h:659:49: note: in definition of macro 'container_of'
+>>   const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+>>                                                  ^
+>> include/linux/list.h:419:13: note: in expansion of macro 'list_entry'
+>>   for (pos = list_entry((head)->next, typeof(*pos), member); \
+>>              ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:140:3:
+>> note: in expansion of macro 'list_for_each_entry'
+>>    list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) \
+>>    ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1121:2: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+>>   ^
+>> In file included from include/linux/module.h:9:0,
+>>                  from /root/v4l2/media_build/v4l/au0828-video.c:31:
+>> /root/v4l2/media_build/v4l/au0828-video.c:1121:27: error: 'struct
+>> au0828_dev' has no member named 'v4l2_dev'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+>>                            ^
+>> include/linux/list.h:420:24: note: in definition of macro 'list_for_each_entry'
+>>        &pos->member != (head);  \
+>>                         ^
+>> /root/v4l2/media_build/v4l/../linux/include/media/v4l2-device.h:184:3:
+>> note: in expansion of macro '__v4l2_device_call_subdevs_p'
+>>    __v4l2_device_call_subdevs_p(v4l2_dev, __sd,  \
+>>    ^
+>> /root/v4l2/media_build/v4l/au0828-video.c:1121:2: note: in expansion
+>> of macro 'v4l2_device_call_all'
+>>   v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+>>   ^
+>> /root/v4l2/media_build/v4l/au0828-video.c: In function 'au0828_v4l2_poll':
+>> /root/v4l2/media_build/v4l/au0828-video.c:1171:2: error: implicit
+>> declaration of function 'poll_requested_events'
+>> [-Werror=implicit-function-declaration]
+>>   unsigned long req_events = poll_requested_events(wait);
+>>   ^
+>>
+>>
+>> On Sun, Jul 27, 2014 at 12:23 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 07/27/2014 08:47 AM, Isaac Nickaein wrote:
+>>>> Hello,
+>>>>
+>>>> I get the following error when I try to build the V4L2 on Kernel
+>>>> 3.0.36+ for ARM architecture:
+>>>>
+>>>> /root/v4l2/media_build/v4l/altera.c:2417:5: error: redefinition of 'altera_init'
+>>>>  int altera_init(struct altera_config *config, const struct firmware *fw)
+>>>>      ^
+>>>> In file included from /root/v4l2/media_build/v4l/altera.c:32:0:
+>>>> /root/v4l2/media_build/v4l/../linux/include/misc/altera.h:41:19: note:
+>>>> previous definition of 'altera_init' was here
+>>>>  static inline int altera_init(struct altera_config *config,
+>>>>                    ^
+>>>>
+>>>>
+>>>> I checked the altera.h code and apparently, the IS_ENABLED macro is
+>>>> not defined and causes this problem. I have prepared kernel source at
+>>>> /lib/modules/3.0.36+/build/ and it builds successfully.
+>>>>
+>>>> Can anyone help me on this issue?
+>>>
+>>> What kernel tree are you using? There is no IS_ENABLED in 3.0, so apparently
+>>> you have a patched kernel. Do you actually need that altera driver? If not,
+>>> then why not disable it in the kernel config?
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
