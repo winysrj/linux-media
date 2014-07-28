@@ -1,455 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:55893 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121AbaGNPob (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:42708 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253AbaG1Nif (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 11:44:31 -0400
-Received: by mail-pa0-f48.google.com with SMTP id et14so112731pad.21
-        for <linux-media@vger.kernel.org>; Mon, 14 Jul 2014 08:44:30 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com
-Subject: [PATCH 1/4] mxl301rf: add driver for MaxLinear MxL301RF OFDM tuner
-Date: Tue, 15 Jul 2014 00:43:44 +0900
-Message-Id: <1405352627-22677-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1405352627-22677-1-git-send-email-tskd08@gmail.com>
-References: <1405352627-22677-1-git-send-email-tskd08@gmail.com>
+	Mon, 28 Jul 2014 09:38:35 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] si2135: Declare the structs even if frontend is not enabled
+Date: Mon, 28 Jul 2014 10:38:25 -0300
+Message-Id: <1406554705-10296-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+As reported by Kbuildtest:
 
-This patch adds driver for mxl301rf OFDM tuner chips.
-It is used as an ISDB-T tuner in earthsoft pt3 cards.
+   In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
+   drivers/media/dvb-frontends/si2165.h:57:9: warning: 'struct si2165_config' declared inside parameter list [enabled by default]
+     struct i2c_adapter *i2c)
+            ^
+   drivers/media/dvb-frontends/si2165.h:57:9: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:157:21: error: variable 'hauppauge_930C_HD_1113xx_si2165_config' has initializer but incomplete type
+    static const struct si2165_config hauppauge_930C_HD_1113xx_si2165_config = {
+                        ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:158:2: error: unknown field 'i2c_addr' specified in initializer
+     .i2c_addr = 0x64,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:158:2: warning: excess elements in struct initializer [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:158:2: warning: (near initialization for 'hauppauge_930C_HD_1113xx_si2165_config') [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:159:2: error: unknown field 'chip_mode' specified in initializer
+     .chip_mode = SI2165_MODE_PLL_XTAL,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:159:15: error: 'SI2165_MODE_PLL_XTAL' undeclared here (not in a function)
+     .chip_mode = SI2165_MODE_PLL_XTAL,
+                  ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:159:2: warning: excess elements in struct initializer [enabled by default]
+     .chip_mode = SI2165_MODE_PLL_XTAL,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:159:2: warning: (near initialization for 'hauppauge_930C_HD_1113xx_si2165_config') [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:160:2: error: unknown field 'ref_freq_Hz' specified in initializer
+     .ref_freq_Hz = 16000000,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:160:2: warning: excess elements in struct initializer [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:160:2: warning: (near initialization for 'hauppauge_930C_HD_1113xx_si2165_config') [enabled by default]
+>> drivers/media/usb/cx231xx/cx231xx-dvb.c:163:21: error: variable 'pctv_quatro_stick_1114xx_si2165_config' has initializer but incomplete type
+    static const struct si2165_config pctv_quatro_stick_1114xx_si2165_config = {
+                        ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:164:2: error: unknown field 'i2c_addr' specified in initializer
+     .i2c_addr = 0x64,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:164:2: warning: excess elements in struct initializer [enabled by default]
+>> drivers/media/usb/cx231xx/cx231xx-dvb.c:164:2: warning: (near initialization for 'pctv_quatro_stick_1114xx_si2165_config') [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:165:2: error: unknown field 'chip_mode' specified in initializer
+     .chip_mode = SI2165_MODE_PLL_EXT,
+     ^
+>> drivers/media/usb/cx231xx/cx231xx-dvb.c:165:15: error: 'SI2165_MODE_PLL_EXT' undeclared here (not in a function)
+     .chip_mode = SI2165_MODE_PLL_EXT,
+                  ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:165:2: warning: excess elements in struct initializer [enabled by default]
+     .chip_mode = SI2165_MODE_PLL_EXT,
+     ^
+>> drivers/media/usb/cx231xx/cx231xx-dvb.c:165:2: warning: (near initialization for 'pctv_quatro_stick_1114xx_si2165_config') [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:166:2: error: unknown field 'ref_freq_Hz' specified in initializer
+     .ref_freq_Hz = 24000000,
+     ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:166:2: warning: excess elements in struct initializer [enabled by default]
+>> drivers/media/usb/cx231xx/cx231xx-dvb.c:166:2: warning: (near initialization for 'pctv_quatro_stick_1114xx_si2165_config') [enabled by default]
+   drivers/media/usb/cx231xx/cx231xx-dvb.c: In function 'dvb_init':
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:731:3: warning: passing argument 1 of 'si2165_attach' from incompatible pointer type [enabled by default]
+      dev->dvb->frontend = dvb_attach(si2165_attach,
+      ^
+   In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
+   drivers/media/dvb-frontends/si2165.h:55:36: note: expected 'const struct si2165_config *' but argument is of type 'const struct si2165_config *'
+    static inline struct dvb_frontend *si2165_attach(
+                                       ^
+   drivers/media/usb/cx231xx/cx231xx-dvb.c:764:3: warning: passing argument 1 of 'si2165_attach' from incompatible pointer type [enabled by default]
+      dev->dvb->frontend = dvb_attach(si2165_attach,
+      ^
+   In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
+   drivers/media/dvb-frontends/si2165.h:55:36: note: expected 'const struct si2165_config *' but argument is of type 'const struct si2165_config *'
+    static inline struct dvb_frontend *si2165_attach(
+                                       ^
 
-Note that this driver does not initilize the chip,
-because the initilization sequence / register setting is not disclosed.
-Thus, the driver assumes that the chips are initilized externally
-by its parent board driver before tuner_ops->init() are called.
-Earthsoft PT3 PCIe card, for example, contains the init sequence
-in its private memory and provides a command to trigger the sequence.
+That happens because the frontend was disabled by .config, but the
+si2165_attach void stub require those structs, and also the
+drivers that call it.
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+While here, remove the duplicated info about the possible I2C
+addresses.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/tuners/Kconfig    |   7 +
- drivers/media/tuners/Makefile   |   1 +
- drivers/media/tuners/mxl301rf.c | 331 ++++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/mxl301rf.h |  40 +++++
- 4 files changed, 379 insertions(+)
- create mode 100644 drivers/media/tuners/mxl301rf.c
- create mode 100644 drivers/media/tuners/mxl301rf.h
+ drivers/media/dvb-frontends/si2165.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 22b6b8b..939111d 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -250,4 +250,11 @@ config MEDIA_TUNER_R820T
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Rafael Micro R820T silicon tuner driver.
-+
-+config MEDIA_TUNER_MXL301RF
-+	tristate "MaxLinear MxL301RF tuner"
-+	depends on MEDIA_SUPPORT && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  MaxLinear MxL301RF OFDM tuner driver.
- endmenu
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index a6ff0c6..026eb16 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -38,6 +38,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
- obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
- obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
- obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
-+obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+diff --git a/drivers/media/dvb-frontends/si2165.h b/drivers/media/dvb-frontends/si2165.h
+index 7a6b59ded4e2..efaa08123b92 100644
+--- a/drivers/media/dvb-frontends/si2165.h
++++ b/drivers/media/dvb-frontends/si2165.h
+@@ -22,8 +22,6 @@
  
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
-new file mode 100644
-index 0000000..65e4438
---- /dev/null
-+++ b/drivers/media/tuners/mxl301rf.c
-@@ -0,0 +1,331 @@
-+/*
-+ * MaxLinear MxL301RF OFDM tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "mxl301rf.h"
-+
-+struct mxl301rf_state {
-+	struct mxl301rf_config cfg;
-+	struct i2c_adapter *i2c;
-+};
-+
-+static int data_write(struct mxl301rf_state *state, const u8 *buf, int len)
-+{
-+	struct i2c_msg msg = {
-+		.addr = state->cfg.addr,
-+		.flags = 0,
-+		.buf = (u8 *)buf,
-+		.len = len,
-+	};
-+
-+	return i2c_transfer(state->i2c, &msg, 1);
-+}
-+
-+static int reg_write(struct mxl301rf_state *state, u8 reg, u8 val)
-+{
-+	u8 buf[2] = { reg, val };
-+
-+	return data_write(state, buf, 2);
-+}
-+
-+static int reg_read(struct mxl301rf_state *state, u8 reg, u8 *val)
-+{
-+	u8 wbuf[2] = { 0xfb, reg };
-+	struct i2c_msg msgs[2] = {
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = 0,
-+			.buf = wbuf,
-+			.len = 2,
-+		},
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = I2C_M_RD,
-+			.buf = val,
-+			.len = 1,
-+		}
-+	};
-+
-+	return i2c_transfer(state->i2c, msgs, ARRAY_SIZE(msgs));
-+}
-+
-+/* tuner_ops */
-+
-+static int mxl301rf_get_status(struct dvb_frontend *fe, u32 *status)
-+{
-+	struct mxl301rf_state *state;
-+	int ret;
-+	u8 val;
-+
-+	*status = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_read(state, 0x16, &val);  /* check RF Synthesizer lock */
-+	if (ret < 0 || (val & 0x0c) != 0x0c)
-+		return ret;
-+	ret = reg_read(state, 0x16, &val);  /* check REF Synthesizer lock */
-+	if (ret < 0 || (val & 0x03) != 0x03)
-+		return ret;
-+	*status = TUNER_STATUS_LOCKED;
-+	return 0;
-+}
-+
-+/* *strength : [1/1000 dBm] */
-+static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
-+{
-+	struct mxl301rf_state *state;
-+	int ret;
-+	u8 rf_in1, rf_in2, rf_off1, rf_off2;
-+	u16 rf_in, rf_off;
-+	s16 level;
-+
-+	*strength = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_write(state, 0x14, 0x01);
-+	if (ret < 0)
-+		return ret;
-+	usleep_range(1000, 2000);
-+	ret = reg_read(state, 0x18, &rf_in1);
-+	if (ret == 0)
-+		ret = reg_read(state, 0x19, &rf_in2);
-+	if (ret == 0)
-+		ret = reg_read(state, 0xd6, &rf_off1);
-+	if (ret == 0)
-+		ret = reg_read(state, 0xd7, &rf_off2);
-+	if (ret != 0)
-+		return ret;
-+
-+	rf_in = (rf_in2 & 0x07) << 8 | rf_in1;
-+	rf_off = (rf_off2 & 0x0f) << 5 | (rf_off2 >> 3);
-+	level = rf_in - rf_off - (113 << 3); /* x8 dBm */
-+	level = level * 1000 / 8;
-+	*strength = (u16)level;
-+	return 0;
-+}
-+
-+static int mxl301rf_set_params(struct dvb_frontend *fe)
-+{
-+	struct shf {
-+		u32	freq;		/* Channel center frequency */
-+		u32	ofst_th;	/* Offset frequency threshold */
-+		u8	shf_val;	/* Spur shift value */
-+		u8	shf_dir;	/* Spur shift direction */
-+	};
-+	static const struct shf shf_tab[] = {
-+		{  64500, 500, 0x92, 0x07 },
-+		{ 191500, 300, 0xe2, 0x07 },
-+		{ 205500, 500, 0x2c, 0x04 },
-+		{ 212500, 500, 0x1e, 0x04 },
-+		{ 226500, 500, 0xd4, 0x07 },
-+		{  99143, 500, 0x9c, 0x07 },
-+		{ 173143, 500, 0xd4, 0x07 },
-+		{ 191143, 300, 0xd4, 0x07 },
-+		{ 207143, 500, 0xce, 0x07 },
-+		{ 225143, 500, 0xce, 0x07 },
-+		{ 243143, 500, 0xd4, 0x07 },
-+		{ 261143, 500, 0xd4, 0x07 },
-+		{ 291143, 500, 0xd4, 0x07 },
-+		{ 339143, 500, 0x2c, 0x04 },
-+		{ 117143, 500, 0x7a, 0x07 },
-+		{ 135143, 300, 0x7a, 0x07 },
-+		{ 153143, 500, 0x01, 0x07 }
-+	};
-+	static const u8 set_idac[] = {
-+		0x0d, 0x00,
-+		0x0c, 0x67,
-+		0x6f, 0x89,
-+		0x70, 0x0c,
-+		0x6f, 0x8a,
-+		0x70, 0x0e,
-+		0x6f, 0x8b,
-+		0x70, 0x1c,
-+	};
-+
-+	u8 tune0[] = {
-+		0x13, 0x00,		/* abort tuning */
-+		0x3b, 0xc0,
-+		0x3b, 0x80,
-+		0x10, 0x95,		/* BW */
-+		0x1a, 0x05,
-+		0x61, 0x00,
-+		0x62, 0xa0
-+	};
-+	u8 tune1[] = {
-+		0x11, 0x40,		/* RF frequency L */
-+		0x12, 0x0e,		/* RF frequency H */
-+		0x13, 0x01		/* start tune */
-+	};
-+
-+	struct mxl301rf_state *state;
-+	u32 freq;
-+	u16 f;
-+	u32 tmp, div;
-+	int i, ret;
-+
-+	state = fe->tuner_priv;
-+	freq = fe->dtv_property_cache.frequency;
-+	/* offset 1/7MHz if not applied yet */
-+	if (freq % 1000000 == 0)
-+		freq += 142857;
-+
-+	/* spur shift function (for analog) */
-+	for (i = 0; i < ARRAY_SIZE(shf_tab); i++) {
-+		if (freq >= (shf_tab[i].freq - shf_tab[i].ofst_th) * 1000 &&
-+		    freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000) {
-+			tune0[2 * 5 + 1] = shf_tab[i].shf_val;
-+			tune0[2 * 6 + 1] = 0xa0 | shf_tab[i].shf_dir;
-+			break;
-+		}
-+	}
-+	ret = data_write(state, tune0, sizeof(tune0));
-+	if (ret < 0)
-+		goto failed;
-+	usleep_range(3000, 4000);
-+
-+	/* convert freq to 10.6 fixed point float [MHz] */
-+	f = freq / 1000000;
-+	tmp = freq % 1000000;
-+	div = 1000000;
-+	for (i = 0; i < 6; i++) {
-+		f <<= 1;
-+		div >>= 1;
-+		if (tmp > div) {
-+			tmp -= div;
-+			f |= 1;
-+		}
-+	}
-+	if (tmp > 7812)
-+		f++;
-+	tune1[2 * 0 + 1] = f & 0xff;
-+	tune1[2 * 1 + 1] = f >> 8;
-+	ret = data_write(state, tune1, sizeof(tune1));
-+	if (ret < 0)
-+		goto failed;
-+	msleep(31);
-+
-+	ret = reg_write(state, 0x1a, 0x0d);
-+	if (ret < 0)
-+		goto failed;
-+	ret = data_write(state, set_idac, sizeof(set_idac));
-+	if (ret < 0)
-+		goto failed;
-+	return 0;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int mxl301rf_sleep(struct dvb_frontend *fe)
-+{
-+	static const u8 standby_data[] = {
-+		0x01, 0x00, 0x13, 0x00
-+	};
-+	struct mxl301rf_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	ret = data_write(fe->tuner_priv, standby_data, sizeof(standby_data));
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int mxl301rf_release(struct dvb_frontend *fe)
-+{
-+	struct mxl301rf_state *state;
-+
-+	state = fe->tuner_priv;
-+	kfree(state);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+
-+/* init sequence is not public.
-+ * the parent must have init'ed the device.
-+ * just wake up here.
-+ */
-+static int mxl301rf_init(struct dvb_frontend *fe)
-+{
-+	static const u8 wakeup_data[] = {
-+		0x01, 0x01
-+	};
-+	struct mxl301rf_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+
-+	ret = data_write(state, wakeup_data, sizeof(wakeup_data));
-+	if (ret < 0)
-+		goto failed;
-+
-+	/* tune to the initial freq */
-+	if (state->cfg.init_freq > 0) {
-+		fe->dtv_property_cache.frequency = state->cfg.init_freq;
-+		ret = mxl301rf_set_params(fe);
-+		if (ret < 0)
-+			goto failed;
-+	}
-+	return 0;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+/* exported functions */
-+
-+static const struct dvb_tuner_ops mxl301rf_ops = {
-+	.info = {
-+		.name = "MaxLinear MxL301RF",
-+
-+		.frequency_min =  93000000,
-+		.frequency_max = 767000000,
-+	},
-+
-+	.release = mxl301rf_release,
-+	.init = mxl301rf_init,
-+	.sleep = mxl301rf_sleep,
-+
-+	.set_params = mxl301rf_set_params,
-+	.get_status = mxl301rf_get_status,
-+	.get_rf_strength = mxl301rf_get_rf_strength,
-+};
-+
-+
-+struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct mxl301rf_config *cfg)
-+{
-+	struct mxl301rf_state *state;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+
-+	memcpy(&state->cfg, cfg, sizeof(*cfg));
-+	state->i2c = i2c;
-+	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
-+	fe->tuner_priv = state;
-+	dev_info(&i2c->dev, "MaxLinear MxL301RF attached.\n");
-+	return fe;
-+}
-+EXPORT_SYMBOL(mxl301rf_attach);
-+
-+MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
-+MODULE_AUTHOR("Akihiro TSUKADA");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
-new file mode 100644
-index 0000000..8c47e55
---- /dev/null
-+++ b/drivers/media/tuners/mxl301rf.h
-@@ -0,0 +1,40 @@
-+/*
-+ * MaxLinear MxL301RF OFDM tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef MXL301RF_H
-+#define MXL301RF_H
-+
-+#include <linux/kconfig.h>
-+#include "dvb_frontend.h"
-+
-+struct mxl301rf_config {
-+	u8 addr;
-+	u32 init_freq;
-+};
-+
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_MXL301RF)
-+extern struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct mxl301rf_config *cfg);
-+#else
-+static inline struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct mxl301rf_config *cfg)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif /* MXL301RF_H */
+ #include <linux/dvb/frontend.h>
+ 
+-#if IS_ENABLED(CONFIG_DVB_SI2165)
+-
+ enum {
+ 	SI2165_MODE_OFF = 0x00,
+ 	SI2165_MODE_PLL_EXT = 0x20,
+@@ -47,7 +45,7 @@ struct si2165_config {
+ 	bool inversion;
+ };
+ 
+-/* Addresses: 0x64,0x65,0x66,0x67 */
++#if IS_ENABLED(CONFIG_DVB_SI2165)
+ struct dvb_frontend *si2165_attach(
+ 	const struct si2165_config *config,
+ 	struct i2c_adapter *i2c);
 -- 
-2.0.1
+1.9.3
 
