@@ -1,58 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:32919 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752361AbaGVMXw (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:42069 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750945AbaG1HY2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 08:23:52 -0400
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: [PATCH 0/5] video: describe data bus formats
-Date: Tue, 22 Jul 2014 14:23:42 +0200
-Message-Id: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+	Mon, 28 Jul 2014 03:24:28 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 2/3] media: atmel-isi: convert the pdata from pointer to structure
+Date: Mon, 28 Jul 2014 15:22:47 +0800
+Message-ID: <1406532167-32655-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
+References: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Now the platform data is initialized by allocation of isi
+structure. In the future, we use pdata to store the dt parameters.
 
-This patch series is a proposal to describe the different data formats used
-by HW components to connect with each other.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v3 -> v4:
+  no change.
 
-This is just a copy of the existing V4L2_MBUS_FMT defintions with a neutral
-name so that it can be used by V4L2 and DRM/KMS subsystem.
+v2 -> v3:
+  use sizeof(isi->pdata) instead of using sizeof(struct).
 
-This series also makes use of this video_bus_format enum in the DRM/KMS
-subsystem to define the data fomats supported on the connector <-> device
-link.
+ drivers/media/platform/soc_camera/atmel-isi.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-The video bus formats are not documented yet (and I don't know where this doc
-should be stored), but I'm pretty sure this version won't be the last one ;-).
-
-Best Regards,
-
-Boris
-
-Boris BREZILLON (5):
-  video: move mediabus format definition to a more standard place
-  video: add RGB444_1X12 and RGB565_1X16 bus formats
-  drm: add bus_formats and nbus_formats fields to drm_display_info
-  drm: panel: simple-panel: add support for bus_format retrieval
-  drm: panel: simple-panel: add bus format information for foxlink panel
-
- drivers/gpu/drm/drm_crtc.c            |  28 +++++
- drivers/gpu/drm/panel/panel-simple.c  |   6 ++
- include/drm/drm_crtc.h                |   8 ++
- include/uapi/linux/Kbuild             |   1 +
- include/uapi/linux/v4l2-mediabus.h    | 185 +++++++++++++++-------------------
- include/uapi/linux/video-bus-format.h | 129 ++++++++++++++++++++++++
- 6 files changed, 251 insertions(+), 106 deletions(-)
- create mode 100644 include/uapi/linux/video-bus-format.h
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 802c203..74af560 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -84,7 +84,7 @@ struct atmel_isi {
+ 	struct clk			*mck;
+ 	unsigned int			irq;
+ 
+-	struct isi_platform_data	*pdata;
++	struct isi_platform_data	pdata;
+ 	u16				width_flags;	/* max 12 bits */
+ 
+ 	struct list_head		video_buffer_list;
+@@ -350,7 +350,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+ 
+ 	cfg1 &= ~ISI_CFG1_FRATE_DIV_MASK;
+ 	/* Enable linked list */
+-	cfg1 |= isi->pdata->frate | ISI_CFG1_DISCR;
++	cfg1 |= isi->pdata.frate | ISI_CFG1_DISCR;
+ 
+ 	/* Enable codec path and ISI */
+ 	ctrl = ISI_CTRL_CDC | ISI_CTRL_EN;
+@@ -795,7 +795,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	/* Make choises, based on platform preferences */
+ 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+-		if (isi->pdata->hsync_act_low)
++		if (isi->pdata.hsync_act_low)
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+@@ -803,7 +803,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+-		if (isi->pdata->vsync_act_low)
++		if (isi->pdata.vsync_act_low)
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+@@ -811,7 +811,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
+ 	    (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
+-		if (isi->pdata->pclk_act_falling)
++		if (isi->pdata.pclk_act_falling)
+ 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
+@@ -833,9 +833,9 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+ 		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
+ 
+-	if (isi->pdata->has_emb_sync)
++	if (isi->pdata.has_emb_sync)
+ 		cfg1 |= ISI_CFG1_EMB_SYNC;
+-	if (isi->pdata->full_mode)
++	if (isi->pdata.full_mode)
+ 		cfg1 |= ISI_CFG1_FULL_MODE;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+@@ -910,7 +910,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	isi->pdata = pdata;
++	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+@@ -926,7 +926,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		/* Set ISI_MCK's frequency, it should be faster than pixel
+ 		 * clock.
+ 		 */
+-		ret = clk_set_rate(isi->mck, pdata->mck_hz);
++		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -960,9 +960,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_ioremap;
+ 	}
+ 
+-	if (pdata->data_width_flags & ISI_DATAWIDTH_8)
++	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_8)
+ 		isi->width_flags = 1 << 7;
+-	if (pdata->data_width_flags & ISI_DATAWIDTH_10)
++	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+ 		isi->width_flags |= 1 << 9;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
 -- 
-1.8.3.2
+1.9.1
 
