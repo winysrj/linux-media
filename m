@@ -1,121 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:42222 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbaGHPPp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 11:15:45 -0400
-Received: by mail-lb0-f181.google.com with SMTP id p9so4122447lbv.12
-        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 08:15:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1404824605-5872-1-git-send-email-j.anaszewski@samsung.com>
-References: <1404824605-5872-1-git-send-email-j.anaszewski@samsung.com>
-Date: Tue, 8 Jul 2014 20:45:43 +0530
-Message-ID: <CAK5sBcFe=jadHD8CdqqeQ4PGLKU+bRaYm8D2yFTjOoj2SfE46g@mail.gmail.com>
-Subject: Re: [PATCH 1/3] s5p-mfc: Fix selective sclk_mfc init
-From: Sachin Kamat <spk.linux@gmail.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:36338 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbaG1SH2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 14:07:28 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/4] rc-main: allow raw protocol drivers to restrict the allowed protos
+Date: Mon, 28 Jul 2014 15:07:20 -0300
+Message-Id: <1406570842-26316-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
+References: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+On some hardware (au0828/au8522), the hardware is broken with
+regards to the initial pulse detection. So, the driver needs to
+produce a fake start pulse. That limits the acceptable protocols,
+as it is not possible to produce a fake pulse that would cover
+all supported protocols.
 
-On Tue, Jul 8, 2014 at 6:33 PM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> fc906b6d "Remove special clock usage in driver" removed
-> initialization of MFC special clock, arguing that there's
-> no need to do it explicitly, since it's one of MFC gate clock's
-> dependencies and gets enabled along with it. However, there's
-> no promise of keeping this hierarchy across Exynos SoC
-> releases, therefore this approach fails to provide a stable,
-> portable solution.
->
-> Out of all MFC versions, only v6 doesn't use special clock at all.
->
-> Signed-off-by: Mateusz Zalega <m.zalega@samsung.com>
-> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |   26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> index 11d5f1d..cc562fc 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-> @@ -21,6 +21,8 @@
->  #include "s5p_mfc_pm.h"
->
->  #define MFC_GATE_CLK_NAME      "mfc"
-> +#define MFC_CLK_NAME           "sclk-mfc"
-> +#define MFC_CLK_RATE           (200 * 1000000)
->
->  #define CLK_DEBUG
->
-> @@ -50,6 +52,23 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
->                 goto err_p_ip_clk;
->         }
->
-> +       if (dev->variant->version != MFC_VERSION_V6) {
-> +               pm->clock = clk_get(&dev->plat_dev->dev, MFC_CLK_NAME);
-> +               if (IS_ERR(pm->clock)) {
-> +                       mfc_err("Failed to get gating clock control\n");
-> +                       ret = PTR_ERR(pm->clock);
-> +                       goto err_s_clk;
+So, allow the driver to explicitly set the allowed protocols.
 
-Shouldn't this be err_p_ip_clk?
+If the driver doesn't specify, keep the old behavior.
 
-> +               }
-> +
-> +               clk_set_rate(pm->clock, MFC_CLK_RATE);
-> +               ret = clk_prepare_enable(pm->clock);
-> +               if (ret) {
-> +                       mfc_err("Failed to enable MFC core operating clock\n");
-> +                       ret = PTR_ERR(pm->clock);
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/rc/rc-main.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Why are you doing this (re-assigning)?
-
-> +                       goto err_s_clk;
-> +               }
-> +       }
-> +
->         atomic_set(&pm->power, 0);
->  #ifdef CONFIG_PM_RUNTIME
->         pm->device = &dev->plat_dev->dev;
-> @@ -59,6 +78,9 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
->         atomic_set(&clk_ref, 0);
->  #endif
->         return 0;
-> +
-> +err_s_clk:
-> +       clk_put(pm->clock);
->  err_p_ip_clk:
->         clk_put(pm->clock_gate);
->  err_g_ip_clk:
-> @@ -67,6 +89,10 @@ err_g_ip_clk:
->
->  void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
->  {
-> +       if (dev->variant->version != MFC_VERSION_V6) {
-> +               clk_disable_unprepare(pm->clock);
-> +               clk_put(pm->clock);
-> +       }
->         clk_unprepare(pm->clock_gate);
->         clk_put(pm->clock_gate);
->  #ifdef CONFIG_PM_RUNTIME
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index dfceeb4e34a8..a7991c7d010a 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -859,10 +859,9 @@ static ssize_t show_protocols(struct device *device,
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL) {
+ 		enabled = dev->enabled_protocols;
+-		if (dev->raw)
++		allowed = dev->allowed_protocols;
++		if (dev->raw && !allowed)
+ 			allowed = ir_raw_get_allowed_protocols();
+-		else
+-			allowed = dev->allowed_protocols;
+ 	} else {
+ 		enabled = dev->enabled_wakeup_protocols;
+ 		allowed = dev->allowed_wakeup_protocols;
 -- 
-Regards,
-Sachin.
+1.9.3
+
