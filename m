@@ -1,38 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40326 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754007AbaGOBJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 21:09:43 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/18] v4l: uapi: add SDR format CS8
-Date: Tue, 15 Jul 2014 04:09:06 +0300
-Message-Id: <1405386561-30450-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
-References: <1405386561-30450-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58765 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750903AbaG1HVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 03:21:22 -0400
+Date: Mon, 28 Jul 2014 10:20:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Enrico <ebutera@users.sourceforge.net>
+Cc: Michael Dietschi <michael.dietschi@inunum.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: omap3isp with DM3730 not working?!
+Message-ID: <20140728072043.GW16460@valkosipuli.retiisi.org.uk>
+References: <53D12786.5050906@InUnum.com>
+ <CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_SDR_FMT_CS8 - Complex signed 8-bit IQ sample
+Hi Enrico and Michael,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+On Thu, Jul 24, 2014 at 05:57:30PM +0200, Enrico wrote:
+> On Thu, Jul 24, 2014 at 5:34 PM, Michael Dietschi
+> <michael.dietschi@inunum.com> wrote:
+> > Hello,
+> >
+> > I have built a Poky image for Gumstix Overo and added support for a TVP5151
+> > module like described here http://www.sleepyrobot.com/?p=253.
+> > It does work well with an Overo board which hosts an OMAP3530 SoC. But when
+> > I try with an Overo hosting a DM3730 it does not work: yavta just seems to
+> > wait forever :(
+> >
+> > I did track it down to the point that IRQ0STATUS_CCDC_VD0_IRQ seems never be
+> > set but always IRQ0STATUS_CCDC_VD1_IRQ
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3cb60f6..e1ac240 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -439,6 +439,7 @@ struct v4l2_pix_format {
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
-+#define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
- 
- /*
+VD1 takes place in 2/3 of the frame, and VD0 in the beginning of the last
+line. You could check perhaps if you do get VD0 if you set it to take place
+on the previous line (i.e. the register value being height - 3; please see
+ccdc_configure() in ispccdc.c).
+
+I have to admit I haven't used the parallel interface so perhaps others
+could have more insightful comments on how to debug this.
+
+> > Can someone please give me a hint?
+> 
+> It's strange that you get the vd1_irq because it should not be set by
+> the driver and never trigger...
+
+Both VD0 and VD1 are used by the omap3isp driver, but in different points of
+the frame.
+
+> Anyway maybe a different pinmux where the camera pins are not setup correctly?
+
+This is unlikely to be at least the source of all issues since VD1 is seen.
+
+Cc Laurent.
+
 -- 
-1.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
