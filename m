@@ -1,142 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59303 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758493AbaGOLIS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 07:08:18 -0400
-Message-ID: <53C50BA0.2000800@iki.fi>
-Date: Tue, 15 Jul 2014 14:08:16 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:42577 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751013AbaG1HZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 03:25:46 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
+CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <grant.likely@linaro.org>,
+	<galak@codeaurora.org>, <rob@landley.net>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<ben.dooks@codethink.co.uk>, Josh Wu <josh.wu@atmel.com>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v4 3/3] media: atmel-isi: add primary DT support
+Date: Mon, 28 Jul 2014 15:25:17 +0800
+Message-ID: <1406532317-32701-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
+References: <1406532167-32655-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] si2157: Add support for spectrum inversion
-References: <1405411120-9569-1-git-send-email-zzam@gentoo.org> <1405411120-9569-2-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1405411120-9569-2-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Matthias!
-Idea of patch is correct, but I think implementation not. You set FE to 
-si2157_config on variable define, but on that point FE is NULL. FE 
-pointer is populated by demodulator driver, si2168. Right?
+This patch add the DT support for Atmel ISI driver.
+It use the same v4l2 DT interface that defined in video-interfaces.txt.
 
-And you could split that to 3 patches too, one for prepare em28xx, one 
-for cxusb and last is patch itself.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Cc: devicetree@vger.kernel.org
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+v3 -> v4:
+  When bus width is 10, we support both 8 & 10 bits.
+  Use of_match_ptr().
+  refine the error message.
 
-regards
-Antti
+v2 -> v3:
+  add bus-width property support.
+  add error handling when calling atmel_isi_probe_dt().
 
+v1 -> v2:
+  refine the binding document.
+  add port node description.
+  removed the optional property.
 
-On 07/15/2014 10:58 AM, Matthias Schwarzott wrote:
-> This is needed for PCTV 522e support.
-> Modify all users of si2157_config to correctly initialize all not
-> mentioned values to 0.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/tuners/si2157.c         | 3 +++
->   drivers/media/tuners/si2157.h         | 5 +++++
->   drivers/media/tuners/si2157_priv.h    | 1 +
->   drivers/media/usb/dvb-usb/cxusb.c     | 3 +--
->   drivers/media/usb/em28xx/em28xx-dvb.c | 5 +++--
->   5 files changed, 13 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 329004f..4dbd3f1 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -253,6 +253,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
->
->   	memcpy(cmd.args, "\x14\x00\x03\x07\x00\x00", 6);
->   	cmd.args[4] = delivery_system | bandwidth;
-> +	if (s->inversion)
-> +		cmd.args[5] = 0x01;
->   	cmd.wlen = 6;
->   	cmd.rlen = 1;
->   	ret = si2157_cmd_execute(s, &cmd);
-> @@ -307,6 +309,7 @@ static int si2157_probe(struct i2c_client *client,
->
->   	s->client = client;
->   	s->fe = cfg->fe;
-> +	s->inversion = cfg->inversion;
->   	mutex_init(&s->i2c_mutex);
->
->   	/* check if the tuner is there */
-> diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-> index 4465c46..6da4d5d 100644
-> --- a/drivers/media/tuners/si2157.h
-> +++ b/drivers/media/tuners/si2157.h
-> @@ -29,6 +29,11 @@ struct si2157_config {
->   	 * frontend
->   	 */
->   	struct dvb_frontend *fe;
-> +
-> +	/*
-> +	 * Spectral Inversion
-> +	 */
-> +	bool inversion;
->   };
->
->   #endif
-> diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-> index db79f3c..3ddab5e 100644
-> --- a/drivers/media/tuners/si2157_priv.h
-> +++ b/drivers/media/tuners/si2157_priv.h
-> @@ -26,6 +26,7 @@ struct si2157 {
->   	struct i2c_client *client;
->   	struct dvb_frontend *fe;
->   	bool active;
-> +	bool inversion;
->   };
->
->   /* firmare command struct */
-> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-> index ad20c39..c94a704 100644
-> --- a/drivers/media/usb/dvb-usb/cxusb.c
-> +++ b/drivers/media/usb/dvb-usb/cxusb.c
-> @@ -1337,7 +1337,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
->   	struct i2c_client *client_tuner;
->   	struct i2c_board_info info;
->   	struct si2168_config si2168_config;
-> -	struct si2157_config si2157_config;
-> +	struct si2157_config si2157_config = { .fe = adap->fe_adap[0].fe };
->
->   	/* reset the tuner */
->   	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
-> @@ -1371,7 +1371,6 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
->   	st->i2c_client_demod = client_demod;
->
->   	/* attach tuner */
-> -	si2157_config.fe = adap->fe_adap[0].fe;
->   	memset(&info, 0, sizeof(struct i2c_board_info));
->   	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
->   	info.addr = 0x60;
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index a121ed9..d472dc9 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1520,7 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
->   			struct i2c_client *client;
->   			struct i2c_board_info info;
->   			struct si2168_config si2168_config;
-> -			struct si2157_config si2157_config;
-> +			struct si2157_config si2157_config = {
-> +				.fe = dvb->fe[0]
-> +			};
->
->   			/* attach demod */
->   			si2168_config.i2c_adapter = &adapter;
-> @@ -1545,7 +1547,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
->   			dvb->i2c_client_demod = client;
->
->   			/* attach tuner */
-> -			si2157_config.fe = dvb->fe[0];
->   			memset(&info, 0, sizeof(struct i2c_board_info));
->   			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
->   			info.addr = 0x60;
->
+ .../devicetree/bindings/media/atmel-isi.txt        | 51 +++++++++++++++++
+ drivers/media/platform/soc_camera/atmel-isi.c      | 65 +++++++++++++++++++++-
+ 2 files changed, 114 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
 
+diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+new file mode 100644
+index 0000000..17e71b7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+@@ -0,0 +1,51 @@
++Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
++----------------------------------------------
++
++Required properties:
++- compatible: must be "atmel,at91sam9g45-isi"
++- reg: physical base address and length of the registers set for the device;
++- interrupts: should contain IRQ line for the ISI;
++- clocks: list of clock specifiers, corresponding to entries in
++          the clock-names property;
++- clock-names: must contain "isi_clk", which is the isi peripherial clock.
++
++ISI supports a single port node with parallel bus. It should contain one
++'port' child node with child 'endpoint' node. Please refer to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	isi: isi@f0034000 {
++		compatible = "atmel,at91sam9g45-isi";
++		reg = <0xf0034000 0x4000>;
++		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
++
++		clocks = <&isi_clk>;
++		clock-names = "isi_clk";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_isi>;
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			isi_0: endpoint {
++				remote-endpoint = <&ov2640_0>;
++				bus-width = <8>;
++			};
++		};
++	};
++
++	i2c1: i2c@f0018000 {
++		ov2640: camera@0x30 {
++			compatible = "omnivision,ov2640";
++			reg = <0x30>;
++
++			port {
++				ov2640_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 74af560..e5c1fcf 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -25,6 +25,7 @@
+ #include <media/atmel-isi.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
++#include <media/v4l2-of.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #define MAX_BUFFER_NUM			32
+@@ -33,6 +34,7 @@
+ #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
+ #define MIN_FRAME_RATE			15
+ #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
++#define ISI_DEFAULT_MCLK_FREQ		25000000
+ 
+ /* Frame buffer descriptor */
+ struct fbd {
+@@ -883,6 +885,51 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int atmel_isi_probe_dt(struct atmel_isi *isi,
++			struct platform_device *pdev)
++{
++	struct device_node *np= pdev->dev.of_node;
++	struct v4l2_of_endpoint ep;
++	int err;
++
++	/* Default settings for ISI */
++	isi->pdata.full_mode = 1;
++	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
++	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
++
++	np = of_graph_get_next_endpoint(np, NULL);
++	if (!np) {
++		dev_err(&pdev->dev, "Could not find the endpoint\n");
++		return -EINVAL;
++	}
++
++	err = v4l2_of_parse_endpoint(np, &ep);
++	if (err) {
++		dev_err(&pdev->dev, "Could not parse the endpoint\n");
++		goto err_probe_dt;
++	}
++
++	switch (ep.bus.parallel.bus_width) {
++	case 8:
++		isi->pdata.data_width_flags = ISI_DATAWIDTH_8;
++		break;
++	case 10:
++		isi->pdata.data_width_flags =
++				ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
++		break;
++	default:
++		dev_err(&pdev->dev, "Unsupported bus width: %d\n",
++				ep.bus.parallel.bus_width);
++		err = -EINVAL;
++		goto err_probe_dt;
++	}
++
++err_probe_dt:
++	of_node_put(np);
++
++	return err;
++}
++
+ static int atmel_isi_probe(struct platform_device *pdev)
+ {
+ 	unsigned int irq;
+@@ -894,7 +941,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	struct isi_platform_data *pdata;
+ 
+ 	pdata = dev->platform_data;
+-	if (!pdata || !pdata->data_width_flags) {
++	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
+ 		dev_err(&pdev->dev,
+ 			"No config available for Atmel ISI\n");
+ 		return -EINVAL;
+@@ -910,7 +957,14 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
++	if (pdata) {
++		memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
++	} else {
++		ret = atmel_isi_probe_dt(isi, pdev);
++		if (ret)
++			return ret;
++	}
++
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+@@ -1012,11 +1066,18 @@ err_alloc_ctx:
+ 	return ret;
+ }
+ 
++static const struct of_device_id atmel_isi_of_match[] = {
++	{ .compatible = "atmel,at91sam9g45-isi" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
++
+ static struct platform_driver atmel_isi_driver = {
+ 	.remove		= atmel_isi_remove,
+ 	.driver		= {
+ 		.name = "atmel_isi",
+ 		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(atmel_isi_of_match),
+ 	},
+ };
+ 
 -- 
-http://palosaari.fi/
+1.9.1
+
