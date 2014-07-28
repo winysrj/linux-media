@@ -1,64 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:49619 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaGGR14 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 13:27:56 -0400
-Received: by mail-oa0-f53.google.com with SMTP id l6so4873642oag.26
-        for <linux-media@vger.kernel.org>; Mon, 07 Jul 2014 10:27:55 -0700 (PDT)
+Received: from mout.kundenserver.de ([212.227.126.187]:54655 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbaG1Sc3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 14:32:29 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id DEB4140BD9
+	for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 20:32:27 +0200 (CEST)
+Date: Mon, 28 Jul 2014 20:32:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera for 3.17
+Message-ID: <Pine.LNX.4.64.1407282030410.32592@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <20140702053758.GA7578@kroah.com>
-References: <20140701103432.12718.82795.stgit@patser> <20140702053758.GA7578@kroah.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 7 Jul 2014 22:57:35 +0530
-Message-ID: <CAO_48GGkhB3wQwcW=DpDR4zO7k8-2tm_aynsDxZ5Q72ffwtx=A@mail.gmail.com>
-Subject: Re: [PATCH v2 0/9] Updated fence patch series
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Hi Mauro,
 
-On 2 July 2014 11:07, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Tue, Jul 01, 2014 at 12:57:02PM +0200, Maarten Lankhorst wrote:
->> So after some more hacking I've moved dma-buf to its own subdirectory,
->> drivers/dma-buf and applied the fence patches to its new place. I believe that the
->> first patch should be applied regardless, and the rest should be ready now.
->> :-)
->>
->> Changes to the fence api:
->> - release_fence -> fence_release etc.
->> - __fence_init -> fence_init
->> - __fence_signal -> fence_signal_locked
->> - __fence_is_signaled -> fence_is_signaled_locked
->> - Changing BUG_ON to WARN_ON in fence_later, and return NULL if it triggers.
->>
->> Android can expose fences to userspace. It's possible to make the new fence
->> mechanism expose the same fences to userspace by changing sync_fence_create
->> to take a struct fence instead of a struct sync_pt. No other change is needed,
->> because only the fence parts of struct sync_pt are used. But because the
->> userspace fences are a separate problem and I haven't really looked at it yet
->> I feel it should stay in staging, for now.
->
-> Ok, that's reasonable.
->
-> At first glance, this all looks "sane" to me, any objection from anyone
-> if I merge this through my driver-core tree for 3.17?
->
-Fwiw, Ack from me as well!
-> thanks,
->
-> greg k-h
-Best regards,
-~Sumit.
+Sorry for a delayed pull-request... A couple of DT documentation patches, 
+I've been recently told, that for such cases, where no new bindings are 
+added, acks from DT-maintainers aren't compulsory.
+
+The following changes since commit fe3afdce0da93aad256183bf40ff9c0e86ae8a72:
+
+  Merge branch 'patchwork' into to_next (2014-07-22 22:12:07 -0300)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.17-1
+
+for you to fetch changes up to 196171191371705756fa69c1c99e97fb3ee1bcf2:
+
+  media: atmel-isi: add primary DT support (2014-07-28 20:25:46 +0200)
+
+----------------------------------------------------------------
+Ben Dooks (2):
+      soc_camera: add support for dt binding soc_camera drivers
+      rcar_vin: add devicetree support
+
+Josh Wu (3):
+      media: atmel-isi: add v4l2 async probe support
+      media: atmel-isi: convert the pdata from pointer to structure
+      media: atmel-isi: add primary DT support
+
+Robert Jarzmik (4):
+      media: mt9m111: add device-tree documentation
+      media: soc_camera: pxa_camera documentation device-tree support
+      media: mt9m111: add device-tree suppport
+      media: pxa_camera device-tree support
+
+ .../devicetree/bindings/media/atmel-isi.txt        |  51 ++++++++
+ .../devicetree/bindings/media/i2c/mt9m111.txt      |  28 +++++
+ .../devicetree/bindings/media/pxa-camera.txt       |  43 +++++++
+ .../devicetree/bindings/media/rcar_vin.txt         |  86 ++++++++++++++
+ drivers/media/i2c/soc_camera/mt9m111.c             |  12 ++
+ drivers/media/platform/soc_camera/atmel-isi.c      |  90 ++++++++++++--
+ drivers/media/platform/soc_camera/pxa_camera.c     |  81 ++++++++++++-
+ drivers/media/platform/soc_camera/rcar_vin.c       |  72 ++++++++++--
+ drivers/media/platform/soc_camera/soc_camera.c     | 129 ++++++++++++++++++++-
+ include/media/atmel-isi.h                          |   4 +
+ 10 files changed, 574 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+ create mode 100644 Documentation/devicetree/bindings/media/pxa-camera.txt
+ create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
+
+Thanks
+Guennadi
