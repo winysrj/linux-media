@@ -1,220 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:21143 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbaGYKUz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:36341 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbaG1SH2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 06:20:55 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>, <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <grant.likely@linaro.org>,
-	<galak@codeaurora.org>, <rob@landley.net>, <robh+dt@kernel.org>,
-	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
-	<ben.dooks@codethink.co.uk>, Josh Wu <josh.wu@atmel.com>,
-	<devicetree@vger.kernel.org>
-Subject: [PATCH v3 3/3] media: atmel-isi: add primary DT support
-Date: Fri, 25 Jul 2014 18:20:00 +0800
-Message-ID: <1406283600-32084-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
-References: <1406283219-32015-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Mon, 28 Jul 2014 14:07:28 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/4] au0828: improve I2C speed
+Date: Mon, 28 Jul 2014 15:07:19 -0300
+Message-Id: <1406570842-26316-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
+References: <1406570842-26316-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the DT support for Atmel ISI driver.
-It use the same v4l2 DT interface that defined in video-interfaces.txt.
+Commits 21dc61d3c0a4 and 7a1dd50b89d4 reduced the board I2C
+speed to 20 MHz by default, due to a I2C stretch issue:
+while xc5000 uses i2c stretch when a command is sent to it,
+au0828 doesn't support this feature.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Cc: devicetree@vger.kernel.org
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+However, this is needed only for Xceive tuners. The other
+I2C devices can work at the max speed.
+
+So, revert the workarounds at board level, handling it at
+I2C level, only when talking with xc5000.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
-v2 -> v3:
-  add bus-width property support.
-  add error handling when calling atmel_isi_probe_dt().
+ drivers/media/usb/au0828/au0828-cards.c |  6 +++---
+ drivers/media/usb/au0828/au0828-i2c.c   | 23 +++++++++++++----------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-v1 -> v2:
-  refine the binding document.
-  add port node description.
-  removed the optional property.
-
- .../devicetree/bindings/media/atmel-isi.txt        | 51 +++++++++++++++++
- drivers/media/platform/soc_camera/atmel-isi.c      | 64 +++++++++++++++++++++-
- 2 files changed, 113 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
-
-diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
-new file mode 100644
-index 0000000..17e71b7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-@@ -0,0 +1,51 @@
-+Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
-+----------------------------------------------
-+
-+Required properties:
-+- compatible: must be "atmel,at91sam9g45-isi"
-+- reg: physical base address and length of the registers set for the device;
-+- interrupts: should contain IRQ line for the ISI;
-+- clocks: list of clock specifiers, corresponding to entries in
-+          the clock-names property;
-+- clock-names: must contain "isi_clk", which is the isi peripherial clock.
-+
-+ISI supports a single port node with parallel bus. It should contain one
-+'port' child node with child 'endpoint' node. Please refer to the bindings
-+defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	isi: isi@f0034000 {
-+		compatible = "atmel,at91sam9g45-isi";
-+		reg = <0xf0034000 0x4000>;
-+		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+
-+		clocks = <&isi_clk>;
-+		clock-names = "isi_clk";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_isi>;
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			isi_0: endpoint {
-+				remote-endpoint = <&ov2640_0>;
-+				bus-width = <8>;
-+			};
-+		};
-+	};
-+
-+	i2c1: i2c@f0018000 {
-+		ov2640: camera@0x30 {
-+			compatible = "omnivision,ov2640";
-+			reg = <0x30>;
-+
-+			port {
-+				ov2640_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+					bus-width = <8>;
-+				};
-+			};
-+		};
-+	};
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 74af560..ca4e43e 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -25,6 +25,7 @@
- #include <media/atmel-isi.h>
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
-+#include <media/v4l2-of.h>
- #include <media/videobuf2-dma-contig.h>
- 
- #define MAX_BUFFER_NUM			32
-@@ -33,6 +34,7 @@
- #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
- #define MIN_FRAME_RATE			15
- #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
-+#define ISI_DEFAULT_MCLK_FREQ		25000000
- 
- /* Frame buffer descriptor */
- struct fbd {
-@@ -883,6 +885,50 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int atmel_isi_probe_dt(struct atmel_isi *isi,
-+			struct platform_device *pdev)
-+{
-+	struct device_node *np= pdev->dev.of_node;
-+	struct v4l2_of_endpoint ep;
-+	int err;
-+
-+	/* Default settings for ISI */
-+	isi->pdata.full_mode = 1;
-+	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
-+	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
-+
-+	np = of_graph_get_next_endpoint(np, NULL);
-+	if (!np) {
-+		dev_err(&pdev->dev, "Could not find the endpoint\n");
-+		return -EINVAL;
-+	}
-+
-+	err = v4l2_of_parse_endpoint(np, &ep);
-+	if (err) {
-+		dev_err(&pdev->dev, "Could not parse the endpoint\n");
-+		goto err_probe_dt;
-+	}
-+
-+	switch (ep.bus.parallel.bus_width) {
-+	case 8:
-+		isi->pdata.data_width_flags = ISI_DATAWIDTH_8;
-+		break;
-+	case 10:
-+		isi->pdata.data_width_flags = ISI_DATAWIDTH_10;
-+		break;
-+	default:
-+		dev_err(&pdev->dev, "Not supported bus width: %d\n",
-+				ep.bus.parallel.bus_width);
-+		err = -EINVAL;
-+		goto err_probe_dt;
-+	}
-+
-+err_probe_dt:
-+	of_node_put(np);
-+
-+	return err;
-+}
-+
- static int atmel_isi_probe(struct platform_device *pdev)
- {
- 	unsigned int irq;
-@@ -894,7 +940,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags) {
-+	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
- 		return -EINVAL;
-@@ -910,7 +956,14 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (IS_ERR(isi->pclk))
- 		return PTR_ERR(isi->pclk);
- 
--	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
-+	if (pdata) {
-+		memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
-+	} else {
-+		ret = atmel_isi_probe_dt(isi, pdev);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
-@@ -1012,11 +1065,18 @@ err_alloc_ctx:
- 	return ret;
- }
- 
-+static const struct of_device_id atmel_isi_of_match[] = {
-+	{ .compatible = "atmel,at91sam9g45-isi" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
-+
- static struct platform_driver atmel_isi_driver = {
- 	.remove		= atmel_isi_remove,
- 	.driver		= {
- 		.name = "atmel_isi",
- 		.owner = THIS_MODULE,
-+		.of_match_table = atmel_isi_of_match,
+diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+index 7fdadf9bc90b..3a7924044a87 100644
+--- a/drivers/media/usb/au0828/au0828-cards.c
++++ b/drivers/media/usb/au0828/au0828-cards.c
+@@ -46,7 +46,7 @@ struct au0828_board au0828_boards[] = {
+ 		.name	= "Hauppauge HVR850",
+ 		.tuner_type = TUNER_XC5000,
+ 		.tuner_addr = 0x61,
+-		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
++		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+ 		.input = {
+ 			{
+ 				.type = AU0828_VMUX_TELEVISION,
+@@ -77,7 +77,7 @@ struct au0828_board au0828_boards[] = {
+ 		   stretch fits inside of a normal clock cycle, or else the
+ 		   au0828 fails to set the STOP bit.  A 30 KHz clock puts the
+ 		   clock pulse width at 18us */
+-		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
++		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+ 		.input = {
+ 			{
+ 				.type = AU0828_VMUX_TELEVISION,
+@@ -108,7 +108,7 @@ struct au0828_board au0828_boards[] = {
+ 		.name	= "DViCO FusionHDTV USB",
+ 		.tuner_type = UNSET,
+ 		.tuner_addr = ADDR_UNSET,
+-		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
++		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
  	},
- };
+ 	[AU0828_BOARD_HAUPPAUGE_WOODBURY] = {
+ 		.name = "Hauppauge Woodbury",
+diff --git a/drivers/media/usb/au0828/au0828-i2c.c b/drivers/media/usb/au0828/au0828-i2c.c
+index 17ec3651b10e..ac8e94795f48 100644
+--- a/drivers/media/usb/au0828/au0828-i2c.c
++++ b/drivers/media/usb/au0828/au0828-i2c.c
+@@ -141,25 +141,28 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
+ {
+ 	int i, strobe = 0;
+ 	struct au0828_dev *dev = i2c_adap->algo_data;
++	u8 i2c_speed = dev->board.i2c_clk_divider;
  
+ 	dprintk(4, "%s()\n", __func__);
+ 
+ 	au0828_write(dev, AU0828_I2C_MULTIBYTE_MODE_2FF, 0x01);
+ 
+ 	/* Set the I2C clock */
++
+ 	if (((dev->board.tuner_type == TUNER_XC5000) ||
+ 	     (dev->board.tuner_type == TUNER_XC5000C)) &&
+-	    (dev->board.tuner_addr == msg->addr) &&
+-	    (msg->len == 64)) {
+-		/* Hack to speed up firmware load.  The xc5000 lets us do up
+-		   to 400 KHz when in firmware download mode */
+-		au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202,
+-			     AU0828_I2C_CLK_250KHZ);
+-	} else {
+-		/* Use the i2c clock speed in the board configuration */
+-		au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202,
+-			     dev->board.i2c_clk_divider);
++	    (dev->board.tuner_addr == msg->addr)) {
++		/*
++		 * Due to I2C clock stretch, we need to use a lower speed
++		 * on xc5000 for commands. However, firmware transfer can
++		 * speed up to 400 KHz.
++		 */
++		if (msg->len == 64)
++			i2c_speed = AU0828_I2C_CLK_250KHZ;
++		else
++			i2c_speed = AU0828_I2C_CLK_20KHZ;
+ 	}
++	au0828_write(dev, AU0828_I2C_CLK_DIVIDER_202, i2c_speed);
+ 
+ 	/* Hardware needs 8 bit addresses */
+ 	au0828_write(dev, AU0828_I2C_DEST_ADDR_203, msg->addr << 1);
 -- 
-1.9.1
+1.9.3
 
