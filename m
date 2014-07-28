@@ -1,70 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:65150 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752829AbaGJJ4e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 05:56:34 -0400
-Message-ID: <1404986186.5102.98.camel@smile.fi.intel.com>
-Subject: Re: [PATCH v1 5/5] [S390] zcrypt: use seq_hex_dump() to dump buffers
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 10 Jul 2014 12:56:26 +0300
-In-Reply-To: <1404919470-26668-6-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1404919470-26668-6-git-send-email-andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:41669 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751064AbaG1VQF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 17:16:05 -0400
+Received: by mail-wi0-f180.google.com with SMTP id n3so5075880wiv.13
+        for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 14:16:03 -0700 (PDT)
+Message-ID: <53D6BD8E.7000903@gmail.com>
+Date: Mon, 28 Jul 2014 14:15:58 -0700
+From: Steve Longerbeam <slongerbeam@gmail.com>
+MIME-Version: 1.0
+To: Robert Schwebel <r.schwebel@pengutronix.de>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de>
+In-Reply-To: <20140728185949.GS13730@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-07-09 at 18:24 +0300, Andy Shevchenko wrote:
-> Instead of custom approach let's use recently introduced seq_hex_dump() helper.
-> 
-> In this case it slightly changes the output, namely the four tetrads will be
-> output on one line.
+On 07/28/2014 11:59 AM, Robert Schwebel wrote:
+> Hi,
+>
+> On Mon, Jul 28, 2014 at 06:24:45PM +0200, Jean-Michel Hautbois wrote:
+>> We have a custom board, based on i.MX6 SoC.
+>> We are currently using Freescale's release of Linux, but this is a
+>> 3.10.17 kernel, and several drivers are lacking (adv7611 for instance)
+>> or badly written (all the MXC part).
+>> As we want to have nice things :) we would like to use a mainline
+>> kernel, or at least a tree which can be mainlined.
+>>
+>> It seems (#v4l told me so) that some people (Steeve :) ?) are working
+>> on a rewriting of the IPU and all DRM part for i.MX6.
+>> What is the current status (compared to Freescale's release maybe) ?
+>> And what can we expect in a near future? Maybe, how can we help too ?
 
-The above paragraph is not true and will be removed in v2.
-The output is kept the same as in original code.
+Hi Jean-Michel,
 
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/s390/crypto/zcrypt_api.c | 10 +---------
->  1 file changed, 1 insertion(+), 9 deletions(-)
-> 
-> diff --git a/drivers/s390/crypto/zcrypt_api.c b/drivers/s390/crypto/zcrypt_api.c
-> index 0e18c5d..d1f9983 100644
-> --- a/drivers/s390/crypto/zcrypt_api.c
-> +++ b/drivers/s390/crypto/zcrypt_api.c
-> @@ -1203,16 +1203,8 @@ static void sprinthx(unsigned char *title, struct seq_file *m,
->  static void sprinthx4(unsigned char *title, struct seq_file *m,
->  		      unsigned int *array, unsigned int len)
->  {
-> -	int r;
-> -
->  	seq_printf(m, "\n%s\n", title);
-> -	for (r = 0; r < len; r++) {
-> -		if ((r % 8) == 0)
-> -			seq_printf(m, "    ");
-> -		seq_printf(m, "%08X ", array[r]);
-> -		if ((r % 8) == 7)
-> -			seq_putc(m, '\n');
-> -	}
-> +	seq_hex_dump(m, "    ", DUMP_PREFIX_NONE, 32, 4, array, len, false);
->  	seq_putc(m, '\n');
->  }
->  
+I did post a v4l2 video capture driver for i.MX6 to linux-media.
+The main complaint from Philip at Pengutronix is that it does not
+support the media device framework.
 
+The customer I am currently working for has no real interest in the
+media controller API, and the driver I posted has all the features they
+require, so any work I do to add that support to the driver would have
+to be in my spare time, and I don't have much. If our customer were to
+request and fund media control support, that would be ideal, but as it is
+I can only spend limited time on it. So if you are interested in helping
+out in the media device effort I can send what I have so far.
 
--- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
+I have not provided any patches to i.MX6 DRM/KMS drivers. We have
+developed new features (overlay plane global/local alpha, hardware gamma
+correction, color-keying, and others) for for that component but haven't
+posted them yet.
+
+Steve
+
+> Pengutronix is continuously working on mainlining more parts of the
+> i.MX6 video and graphics subsystem, including the components you have
+> mentioned. We are posting patches here when they are ready for mainline
+> review.
+>
+> Regards,
+> Robert (for commercial help, please contact me by email)
 
