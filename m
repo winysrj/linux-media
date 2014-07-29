@@ -1,37 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:54284 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932991AbaGXQTl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 12:19:41 -0400
-Message-ID: <53D131E7.2090304@posteo.de>
-Date: Thu, 24 Jul 2014 18:18:47 +0200
-From: Martin Kepplinger <martink@posteo.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56827 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752534AbaG2Aw7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jul 2014 20:52:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enrico <ebutera@users.sourceforge.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Michael Dietschi <michael.dietschi@inunum.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap3isp with DM3730 not working?!
+Date: Tue, 29 Jul 2014 02:53:17 +0200
+Message-ID: <2300187.SbcZEE0rv0@avalon>
+In-Reply-To: <CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
+References: <53D12786.5050906@InUnum.com> <1915586.ZFV4ecW0Zg@avalon> <CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
 MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel loading
-References: <53A6E72A.9090000@posteo.de>	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>	 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>	 <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>	 <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>	 <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de> <53B13E4B.2080603@posteo.de>
-In-Reply-To: <53B13E4B.2080603@posteo.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-06-30 12:39, schrieb Martin Kepplinger:
-> back to aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
-> commit. why is this not revertable exactly? how can I show a complete
-> list of commits this merge introduces?
+Hi Enrico,
+
+On Monday 28 July 2014 15:18:04 Enrico wrote:
+> On Mon, Jul 28, 2014 at 12:29 PM, Laurent Pinchart wrote:
+> > On Monday 28 July 2014 10:30:17 Enrico wrote:
+> >> On Mon, Jul 28, 2014 at 9:20 AM, Sakari Ailus wrote:
+> >>> On Thu, Jul 24, 2014 at 05:57:30PM +0200, Enrico wrote:
+> >>>> On Thu, Jul 24, 2014 at 5:34 PM, Michael Dietschi wrote:
+> >>>>> Hello,
+> >>>>> 
+> >>>>> I have built a Poky image for Gumstix Overo and added support for a
+> >>>>> TVP5151 module like described here http://www.sleepyrobot.com/?p=253.
+> >>>>> It does work well with an Overo board which hosts an OMAP3530 SoC.
+> >>>>> But when I try with an Overo hosting a DM3730 it does not work: yavta
+> >>>>> just seems to wait forever :(
+> >>>>> 
+> >>>>> I did track it down to the point that IRQ0STATUS_CCDC_VD0_IRQ seems
+> >>>>> never be set but always IRQ0STATUS_CCDC_VD1_IRQ
+> >>> 
+> >>> VD1 takes place in 2/3 of the frame, and VD0 in the beginning of the
+> >>> last line. You could check perhaps if you do get VD0 if you set it to
+> >>> take place on the previous line (i.e. the register value being height -
+> >>> 3; please see ccdc_configure() in ispccdc.c).
+> >>> 
+> >>> I have to admit I haven't used the parallel interface so perhaps others
+> >>> could have more insightful comments on how to debug this.
+> >>> 
+> >>>>> Can someone please give me a hint?
+> >>>> 
+> >>>> It's strange that you get the vd1_irq because it should not be set by
+> >>>> the driver and never trigger...
+> >>> 
+> >>> Both VD0 and VD1 are used by the omap3isp driver, but in different
+> >>> points of the frame.
+> >> 
+> >> Hi Sakari,
+> >> 
+> >> that's true in "normal" mode, but with bt656 patches VD1 is not used.
+> > 
+> > That's not correct, VD1 is used in both modes. In BT.656 mode VD1 is even
+> > used to increment the frame counter in place of the HS_VS interrupt.
 > 
+> ...in your new patches. But sleepyrobot's are the old ones and i bet
+> Michael is using those patches.
 
-It seems that _nobody_ is running a simple 32 bit i915 (acer) laptop.
-rc6 is still unusable. Black screen directly after kernel-loading. no
-change since rc1.
+You're right. Maybe that's the first problem to be fixed though ;-) Michael, 
+could you try using the "official" (and under development) BT.656 support code 
+for the OMAP3 ISP driver ? I've just pushed the branch to
 
-Seems like I won't be able to use 3.16. I'm happy to test patches and am
-happy for any advice what to do, when time permits.
+	git://linuxtv.org/pinchartl/media.git omap3isp/bt656
 
-                             martin
+-- 
+Regards,
+
+Laurent Pinchart
+
