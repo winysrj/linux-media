@@ -1,116 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:14726 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758438AbaGOKvz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 06:51:55 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8R000NQ25VES00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 Jul 2014 11:51:31 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'panpan liu' <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
-	jtp.park@samsung.com, mchehab@redhat.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1405393670-2808-1-git-send-email-panpan1.liu@samsung.com>
-In-reply-to: <1405393670-2808-1-git-send-email-panpan1.liu@samsung.com>
-Subject: RE: [PATCH] s5p-mfc: limit the size of the CPB
-Date: Tue, 15 Jul 2014 12:51:21 +0200
-Message-id: <000101cfa01a$be5fffb0$3b1fff10$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp.gentoo.org ([140.211.166.183]:54199 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751051AbaG2Fjf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jul 2014 01:39:35 -0400
+Message-ID: <53D73393.6000202@gentoo.org>
+Date: Tue, 29 Jul 2014 07:39:31 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: crope@iki.fi, linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8] cx231xx: Add digital support for [2040:b131] Hauppauge
+ WinTV 930C-HD (model 1114xx)
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org> <1406059938-21141-7-git-send-email-zzam@gentoo.org> <20140726162718.660cf512.m.chehab@samsung.com> <53D4C72A.4010209@gentoo.org> <20140727104453.4578b353.m.chehab@samsung.com> <20140727113248.29dccc38.m.chehab@samsung.com> <20140727115911.0dde3d30.m.chehab@samsung.com> <20140727164218.3dd674e7.m.chehab@samsung.com>
+In-Reply-To: <20140727164218.3dd674e7.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Panpan,
-
-Checkpatch gives errors on your patch.
-
-------------------------------
-Applying 24839 hit enter to continue...
-------------------------------
-Checkpatch:
-------------------------------
-ERROR: do not set execute permissions for source files
-#34: FILE: drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-
-ERROR: space required before the open parenthesis '('
-#58: FILE: drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:473:
-+	else if(pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
-
-total: 2 errors, 0 warnings, 25 lines checked
-
-NOTE: Ignored message types: PATCH_PREFIX
-
-24839 has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
-
-> -----Original Message-----
-> From: panpan liu [mailto:panpan1.liu@samsung.com]
-> Sent: Tuesday, July 15, 2014 5:08 AM
-> To: kyungmin.park@samsung.com; k.debski@samsung.com;
-> jtp.park@samsung.com; mchehab@redhat.com
-> Cc: linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: [PATCH] s5p-mfc: limit the size of the CPB
+On 27.07.2014 21:42, Mauro Carvalho Chehab wrote:
+> Em Sun, 27 Jul 2014 11:59:11 -0300
+> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 > 
-> The CPB size is limited by the hardware. Add this limit to the s_fmt.
+>> Em Sun, 27 Jul 2014 11:32:48 -0300
+>> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+>>
+>>> Em Sun, 27 Jul 2014 10:44:53 -0300
+>>> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+>>>
+>>>> Em Sun, 27 Jul 2014 11:32:26 +0200
+>>>> Matthias Schwarzott <zzam@gentoo.org> escreveu:
+>>>>
+>>>>>
+>>>>> Hi Mauro.
+>>>>>
+>>>>> On 26.07.2014 21:27, Mauro Carvalho Chehab wrote:
+>>>>>> Tried to apply your patch series, but there's something wrong on it.
+>>>>>>
+>>>>>> See the enclosed logs. I suspect that you missed a patch adding the
+>>>>>> proper tuner for this device.
 > 
-> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)  mode change 100644 =>
-> 100755 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> The hole issue was due to that:
+>> [  326.770414] cx231xx #0: New device Hauppauge Hauppauge Device @ 12 Mbps (2040:b131) with 4 interfaces
 > 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> old mode 100644
-> new mode 100755
-> index 0bae907..70b9458
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -413,7 +413,8 @@ static int vidioc_s_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  	int ret = 0;
->  	struct s5p_mfc_fmt *fmt;
->  	struct v4l2_pix_format_mplane *pix_mp;
-> -
-> +	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
-> +
->  	mfc_debug_enter();
->  	ret = vidioc_try_fmt(file, priv, f);
->  	pix_mp = &f->fmt.pix_mp;
-> @@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
->  	pix_mp->height = 0;
->  	pix_mp->width = 0;
-> -	if (pix_mp->plane_fmt[0].sizeimage)
-> -		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
-> -	else
-> +	if (pix_mp->plane_fmt[0].sizeimage == 0)
->  		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
->
-DEF_CPB_SIZE;
-> +	else if(pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
-> +		ctx->dec_src_buf_size = buf_size->cpb;
-> +	else
-> +		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
->  	pix_mp->plane_fmt[0].bytesperline = 0;
->  	ctx->state = MFCINST_INIT;
->  out:
-> --
-> 1.7.9.5
+> The root cause seems to be a bad USB cable, causing errors at USB
+> detection.
+> 
+> Just send a patch series that avoids the driver to OOPS in such
+> case.
+> 
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+Ah, now I understand why this specific device did not work.
+Nice errors that can be triggered by faulty hardware.
 
+Regards
+Matthias
 
