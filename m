@@ -1,47 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46659 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754405AbaGEIjG (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49995 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbaG2I1s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jul 2014 04:39:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/3] DocBook media: add missing dqevent src_change field.
-Date: Sat,  5 Jul 2014 10:31:04 +0200
-Message-Id: <1404549065-25042-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1404549065-25042-1-git-send-email-hverkuil@xs4all.nl>
-References: <1404549065-25042-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 29 Jul 2014 04:27:48 -0400
+Message-ID: <1406622460.4001.5.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v2 00/11] CODA encoder/decoder device split
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de
+Date: Tue, 29 Jul 2014 10:27:40 +0200
+In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-The v4l2_event union has a new src_change field, but that was never
-added to the VIDIOC_DQEVENT documentation of that union. Fixed.
+Am Freitag, den 18.07.2014, 12:22 +0200 schrieb Philipp Zabel:
+> Hi,
+> 
+> the following patches add a few fixes and cleanups and split the
+> coda video4linux2 device into encoder and decoder.
+> Following the principle of least surprise, this way the format
+> enumeration on the output and capture sides is fixed and does
+> not change depending on whether the given instance is currently
+> configured as encoder or decoder.
+>
+> Changes since v1:
+>  - Fixed "[media] coda: delay coda_fill_bitstream()", taking into account
+>    "[media] v4l: vb2: Fix stream start and buffer completion race".
+>  - Added Hans' acks.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 6 ++++++
- 1 file changed, 6 insertions(+)
+is there still a chance to still get this series merged for v3.17?
+Most of it got acked by Hans right away, and I have received no other
+feedback.
+The split into separate encoder and decoder devices (patch 08/11) is
+necessary for this driver to work with the GStreamer v4l2videodec
+element.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 820f86e..9ca2d08 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -94,6 +94,12 @@
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-event-src-change;</entry>
-+            <entry><structfield>src_change</structfield></entry>
-+	    <entry>Event data for event V4L2_EVENT_SOURCE_CHANGE.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
-             <entry><structfield>data</structfield>[64]</entry>
- 	    <entry>Event data. Defined by the event type. The union
--- 
-2.0.0
+regards
+Philipp
 
