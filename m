@@ -1,109 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43303 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391AbaGRM1t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 08:27:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 03/23] v4l: Support extending the v4l2_pix_format structure
-Date: Fri, 18 Jul 2014 14:27:57 +0200
-Message-ID: <1521674.bDcZxklUhm@avalon>
-In-Reply-To: <53C8AC58.7070101@xs4all.nl>
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53C83EA0.2010706@xs4all.nl> <53C8AC58.7070101@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:38658 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751311AbaG2TWR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jul 2014 15:22:17 -0400
+Message-ID: <53D7F465.7030905@gentoo.org>
+Date: Tue, 29 Jul 2014 21:22:13 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Antti Palosaari <crope@iki.fi>, Antonio Ospite <ao2@ao2.it>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] get_dvb_firmware: Add firmware extractor for si2165
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>	<1406059938-21141-2-git-send-email-zzam@gentoo.org>	<53CF7E6D.20406@iki.fi>	<53D006F2.10300@gentoo.org>	<20140723221012.3c9e8f26aa1ddac47b48cb9e@ao2.it>	<53D73328.6040802@gentoo.org> <20140729105315.e04521b28fe7d27c49bb0665@ao2.it> <53D786BE.3050803@iki.fi>
+In-Reply-To: <53D786BE.3050803@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 29.07.2014 13:34, Antti Palosaari wrote:
+> 
+> 
+> On 07/29/2014 11:53 AM, Antonio Ospite wrote:
+>> On Tue, 29 Jul 2014 07:37:44 +0200
+>> Matthias Schwarzott <zzam@gentoo.org> wrote:
+>>
+>>> On 23.07.2014 22:10, Antonio Ospite wrote:
+>>>> On Wed, 23 Jul 2014 21:03:14 +0200
+>>>> Matthias Schwarzott <zzam@gentoo.org> wrote:
+>>>>
+>>>> [...]
+>>>>> The crc value:
+>>>>> It protects the content of the file until it is in the demod - so
+>>>>> calculating it on my own would only check if the data is correctly
+>>>>> transferred from the driver into the chip.
+>>>>> But for this I needed to know the algorithm and which data is
+>>>>> checksummed exactly.
+>>>>>
+>>>>> Are the different algorithms for CRC values that give 16 bit of
+>>>>> output?
+>>>>>
+>>>>
+>>>> You could try jacksum[1] and see if any algorithm it supports
+>>>> gives you the expected result, there is a handful of 16 bits ones:
+>>>>
+>>>>    jacksum -a all -F "#ALGONAME{i} = #CHECKSUM{i}" payload.bin
+>>>>
+>>> Hi Antonio,
+>>>
+>>> I tried jacksum on the complete firmware and on parts - but it never
+>>> matched the results from the chip.
+>>>
+>>> I now found out, that the crc register changes after every 32bit write
+>>> to the data register - the fw control registers do not affect it.
+>>>
+>>> So I can try what crc results from writing 32bit portions of data.
+>>> But even that did not help in guessing the algorithm, because I do not
+>>> want to do 100s of experiments.
+>>>
+>>> some of my experiments:
+>>> crc=0x0000, data=0x00000000 -> crc=0x0000
+>>> crc=0x0000, data=0x00000001 -> crc=0x1021
+>>> crc=0x0000, data=0x00000002 -> crc=0x2042
+>>> crc=0x0000, data=0x00000004 -> crc=0x4084
+>>> crc=0x0000, data=0x00000008 -> crc=0x8108
+>>> crc=0x0000, data=0x00000010 -> crc=0x1231
+>>>
+>>> Is there some systematic way to get the formula?
+>>
+>> I don't know much about crc, but the values you are getting look like
+>> the entries in the table in lib/crc-itu-t.c so maybe compare the crc
+>> you are getting with the ones calculated with crc_itu_t() from
+>> include/linux/crc-itu-t.h
+>>
+>> I just did a quick test with jacksum, the crc-itu-t parameters can
+>> be expressed like this:
+>>
+>>     jacksum -x -a crc:16,1021,0,false,false,0 -q 00000010
+>>
+>> and the output is the expected 0x1231 for the 0x00000010 sequence.
+> 
+> maybe crc = crc + crc(val)
+> 
+It worked to apply crc_itu_t to the written data in 32bit blocks,
+but starting with the last byte:
 
-On Friday 18 July 2014 07:10:48 Hans Verkuil wrote:
-> On 07/17/2014 11:22 PM, Hans Verkuil wrote:
-> > And another thing that I found while implementing this in v4l2-ctl:
-> > 
-> > On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
-> >> The v4l2_pix_format structure has no reserved field. It is embedded in
-> >> the v4l2_framebuffer structure which has no reserved fields either, and
-> >> in the v4l2_format structure which has reserved fields that were not
-> >> previously required to be zeroed out by applications.
-> >> 
-> >> To allow extending v4l2_pix_format, inline it in the v4l2_framebuffer
-> >> structure, and use the priv field as a magic value to indicate that the
-> >> application has set all v4l2_pix_format extended fields and zeroed all
-> >> reserved fields following the v4l2_pix_format field in the v4l2_format
-> >> structure.
-> >> 
-> >> The availability of this API extension is reported to userspace through
-> >> the new V4L2_CAP_EXT_PIX_FORMAT capability flag. Just checking that the
-> >> priv field is still set to the magic value at [GS]_FMT return wouldn't
-> >> be enough, as older kernels don't zero the priv field on return.
-> >> 
-> >> To simplify the internal API towards drivers zero the extended fields
-> >> and set the priv field to the magic value for applications not aware of
-> >> the extensions.
-> >> 
-> >> Signed-off-by: Laurent Pinchart
-> >> <laurent.pinchart+renesas@ideasonboard.com>
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> b/drivers/media/v4l2-core/v4l2-ioctl.c index 16bffd8..01b4588 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> @@ -959,13 +959,48 @@ static int check_fmt(struct file *file, enum
-> >> v4l2_buf_type type)
+			crc = crc_itu_t_byte(crc, *(data+offset+3));
+			crc = crc_itu_t_byte(crc, *(data+offset+2));
+			crc = crc_itu_t_byte(crc, *(data+offset+1));
+			crc = crc_itu_t_byte(crc, *(data+offset+0));
 
-[snip]
+It would also have worked without knowing the crc because it is only
+actively read and compared in the driver - but better to know if upload
+did work.
 
-> >>  static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
-> >>  				struct file *file, void *fh, void *arg)
-> >>  {
-> >>  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-> >> +	int ret;
-> >> 
-> >>  	cap->version = LINUX_VERSION_CODE;
-> >> 
-> >> -	return ops->vidioc_querycap(file, fh, cap);
-> >> +
-> >> +	ret = ops->vidioc_querycap(file, fh, cap);
-> >> +
-> >> +	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-> > 
-> > It should be ORed to cap->device_caps as well.
-> 
-> But only if cap->capabilities sets V4L2_CAP_DEVICE_CAPS.
-> 
-> Should we unconditionally add this flag or only if CAP_VIDEO_CAPTURE or
-> CAP_VIDEO_OUTPUT is set?
-> 
-> So we could do this:
-> 
-> 	if (cap->capabilities & (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT))
-> 		cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-> 	if ((cap->capabilities & V4L2_CAP_DEVICE_CAPS) &&
-> 	    (cap->device_caps & (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT))
-> 		cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
-> 
-> 
-> I can argue either direction: on the one hand ext_pix_format handling is
-> part of the v4l2 core, so it is valid for all that use it, on the other
-> hand it makes no sense for a non-video device.
-> 
-> My preference would be to set it only in combination with video
-> capture/output since it just looks peculiar otherwise.
+Now I am still not sure if it is worth to change the firmware file to
+now have the crc explicitly.
+Counting blocks is also easy todo.
+But the firmware version is not inside the data I think.
 
-I have mixed feelings here. As the flag indicates whether a particular feature 
-is supported by the V4L2 API, wouldn't it make more sense to set it only in 
-the capabilities field, and unconditionally ? Does setting it conditionally 
-bring any benefit to kernel space or userspace ? Same question for 
-device_caps, I don't think it would help applications in a any way (but please 
-feel free to point me to use cases I might have missed).
+So there will still remain something to be added to the raw data.
 
--- 
-Regards,
-
-Laurent Pinchart
+Regards
+Matthias
 
