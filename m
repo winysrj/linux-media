@@ -1,111 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60442 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670AbaGGCnm (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17477 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767AbaG2Nhw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jul 2014 22:43:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 450262A1FD0
-	for <linux-media@vger.kernel.org>; Mon,  7 Jul 2014 04:43:31 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140707024331.450262A1FD0@tschai.lan>
-Date: Mon,  7 Jul 2014 04:43:31 +0200 (CEST)
+	Tue, 29 Jul 2014 09:37:52 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9H004B376JBE50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 29 Jul 2014 14:37:31 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0N9H002O9771EC20@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 29 Jul 2014 14:37:49 +0100 (BST)
+Message-id: <53D7A3A8.1020804@samsung.com>
+Date: Tue, 29 Jul 2014 15:37:44 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] s5p-jpeg/s5p-mfc updates
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+The following changes since commit 7f196789b3ffee243b681d3e7dab8890038db856:
 
-date:		Mon Jul  7 04:00:25 CEST 2014
-git branch:	test
-git hash:	ff792c85e60727e66774eb3da8129298690eab0c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+  si2135: Declare the structs even if frontend is not enabled (2014-07-28
+10:37:08 -0300)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+are available in the git repository at:
 
-Detailed results are available here:
+  git://linuxtv.org/snawrocki/samsung.git for-v3.17
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+for you to fetch changes up to 42bb855f82fc4f8ddbae8d614c2c187e1d824ba8:
 
-Full logs are available here:
+  s5p-mfc: remove unnecessary calling to function video_devdata() (2014-07-29
+15:29:14 +0200)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+I assume patch "s5p-jpeg: Document sclk-jpeg clock for Exynos3250 SoC"
+is correct, since I didn't get any more DT mainainer's review comments.
 
-The Media Infrastructure API from this daily build is here:
+----------------------------------------------------------------
+Jacek Anaszewski (8):
+      [media] s5p-jpeg: Document sclk-jpeg clock for Exynos3250 SoC
+      s5p-jpeg: Add support for Exynos3250 SoC
+      s5p-jpeg: return error immediately after get_byte fails
+      s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250 needs
+      s5p-jpeg: fix g_selection op
+      s5p-jpeg: Assure proper crop rectangle initialization
+      s5p-jpeg: Prevent erroneous downscaling for Exynos3250 SoC
+      s5p-jpeg: add chroma subsampling adjustment for Exynos3250
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Zhaowei Yuan (1):
+      s5p-mfc: remove unnecessary calling to function video_devdata()
+
+ .../bindings/media/exynos-jpeg-codec.txt           |   12 +-
+ drivers/media/platform/Kconfig                     |    5 +-
+ drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  660 ++++++++++++++++++--
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |   32 +-
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |  487 +++++++++++++++
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.h   |   60 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  247 +++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 +-
+ 9 files changed, 1447 insertions(+), 60 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
+
+--
+Regards,
+Sylwester
