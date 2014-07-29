@@ -1,69 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39027 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbaG3MoX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 08:44:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>,
-	Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] ARM: dts: set 'ti,set-rate-parent' for dpll4_m5x2 clock
-Date: Wed, 30 Jul 2014 14:44:43 +0200
-Message-ID: <4937815.BTzd6lYJHL@avalon>
-In-Reply-To: <53D8E7C1.7010101@ti.com>
-References: <1405418556-7030-1-git-send-email-stefan@herbrechtsmeier.net> <3350943.lsAUHoxgP5@avalon> <53D8E7C1.7010101@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp205.alice.it ([82.57.200.101]:19333 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751587AbaG2Ixc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jul 2014 04:53:32 -0400
+Date: Tue, 29 Jul 2014 10:53:15 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Antti Palosaari <crope@iki.fi>, m.chehab@samsung.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] get_dvb_firmware: Add firmware extractor for si2165
+Message-Id: <20140729105315.e04521b28fe7d27c49bb0665@ao2.it>
+In-Reply-To: <53D73328.6040802@gentoo.org>
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+	<1406059938-21141-2-git-send-email-zzam@gentoo.org>
+	<53CF7E6D.20406@iki.fi>
+	<53D006F2.10300@gentoo.org>
+	<20140723221012.3c9e8f26aa1ddac47b48cb9e@ao2.it>
+	<53D73328.6040802@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 30 July 2014 15:40:33 Tero Kristo wrote:
-> On 07/16/2014 03:29 AM, Laurent Pinchart wrote:
-> > On Tuesday 15 July 2014 12:02:35 Stefan Herbrechtsmeier wrote:
-> >> Set 'ti,set-rate-parent' property for the dpll4_m5x2_ck clock, which
-> >> is used for the ISP functional clock. This fixes the OMAP3 ISP driver's
-> >> clock rate configuration on OMAP34xx, which needs the rate to be
-> >> propagated properly to the divider node (dpll4_m5_ck).
-> >> 
-> >> Signed-off-by: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
-> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Cc: Tony Lindgren <tony@atomide.com>
-> >> Cc: Tero Kristo <t-kristo@ti.com>
-> >> Cc: <linux-media@vger.kernel.org>
-> >> Cc: <linux-omap@vger.kernel.org>
+On Tue, 29 Jul 2014 07:37:44 +0200
+Matthias Schwarzott <zzam@gentoo.org> wrote:
+
+> On 23.07.2014 22:10, Antonio Ospite wrote:
+> > On Wed, 23 Jul 2014 21:03:14 +0200
+> > Matthias Schwarzott <zzam@gentoo.org> wrote:
 > > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > [...]
+> >> The crc value:
+> >> It protects the content of the file until it is in the demod - so
+> >> calculating it on my own would only check if the data is correctly
+> >> transferred from the driver into the chip.
+> >> But for this I needed to know the algorithm and which data is
+> >> checksummed exactly.
+> >>
+> >> Are the different algorithms for CRC values that give 16 bit of output?
+> >>
 > > 
-> > Tero, could you please process it for v3.17 if time still permits ?
+> > You could try jacksum[1] and see if any algorithm it supports
+> > gives you the expected result, there is a handful of 16 bits ones:
+> > 
+> >   jacksum -a all -F "#ALGONAME{i} = #CHECKSUM{i}" payload.bin
+> > 
+> Hi Antonio,
 > 
-> This is too late for 3.17 merge window as I was on holiday last few
-> weeks. Queued for 3.17-rc early fixes though.
+> I tried jacksum on the complete firmware and on parts - but it never
+> matched the results from the chip.
+> 
+> I now found out, that the crc register changes after every 32bit write
+> to the data register - the fw control registers do not affect it.
+> 
+> So I can try what crc results from writing 32bit portions of data.
+> But even that did not help in guessing the algorithm, because I do not
+> want to do 100s of experiments.
+> 
+> some of my experiments:
+> crc=0x0000, data=0x00000000 -> crc=0x0000
+> crc=0x0000, data=0x00000001 -> crc=0x1021
+> crc=0x0000, data=0x00000002 -> crc=0x2042
+> crc=0x0000, data=0x00000004 -> crc=0x4084
+> crc=0x0000, data=0x00000008 -> crc=0x8108
+> crc=0x0000, data=0x00000010 -> crc=0x1231
+> 
+> Is there some systematic way to get the formula?
 
-Kiitos.
+I don't know much about crc, but the values you are getting look like
+the entries in the table in lib/crc-itu-t.c so maybe compare the crc
+you are getting with the ones calculated with crc_itu_t() from
+include/linux/crc-itu-t.h
 
-> >> ---
-> >> 
-> >>   arch/arm/boot/dts/omap3xxx-clocks.dtsi | 1 +
-> >>   1 file changed, 1 insertion(+)
-> >> 
-> >> diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> >> b/arch/arm/boot/dts/omap3xxx-clocks.dtsi index e47ff69..5c37500 100644
-> >> --- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> >> +++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-> >> @@ -467,6 +467,7 @@
-> >>   		ti,bit-shift = <0x1e>;
-> >>   		reg = <0x0d00>;
-> >>   		ti,set-bit-to-disable;
-> >> +		ti,set-rate-parent;
-> >>   	};
-> >>   	
-> >>   	dpll4_m6_ck: dpll4_m6_ck {
+I just did a quick test with jacksum, the crc-itu-t parameters can
+be expressed like this:
+
+	jacksum -x -a crc:16,1021,0,false,false,0 -q 00000010
+
+and the output is the expected 0x1231 for the 0x00000010 sequence.
+
+[...]
+
+Ciao,
+   Antonio
 
 -- 
-Regards,
+Antonio Ospite
+http://ao2.it
 
-Laurent Pinchart
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
