@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39231 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934169AbaGQQFS (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:36485 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947AbaG2Lby (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:05:18 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 07/11] [media] coda: lock capture frame size to output frame size when streaming
-Date: Thu, 17 Jul 2014 18:05:08 +0200
-Message-Id: <1405613112-22442-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 29 Jul 2014 07:31:54 -0400
+Message-ID: <53D785F0.1000309@ti.com>
+Date: Tue, 29 Jul 2014 14:30:56 +0300
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Linus Walleij <linus.walleij@linaro.org>,
+	abdoulaye berthe <berthe.ab@gmail.com>,
+	"arm@kernel.org" <arm@kernel.org>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	=?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Matthew Garrett <matthew.garrett@nebula.com>,
+	Michael Buesch <m@bues.ch>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mark Brown <broonie@kernel.org>,
+	Liam Girdwood <lgirdwood@gmail.com>
+CC: Alexandre Courbot <gnurou@gmail.com>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	<linux-mips@linux-mips.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Linux Input <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 3/3] driver:gpio remove all usage of gpio_remove retval
+ in driver
+References: <CACRpkda6mzVdaN0cvOxpbsxWyCv2nGyDXOjZg_5aT8u7SSQeUw@mail.gmail.com>	<1405197014-25225-1-git-send-email-berthe.ab@gmail.com>	<1405197014-25225-4-git-send-email-berthe.ab@gmail.com> <CACRpkdasp9bLULT7NJM9nYX58rRSsQKXFddOLz9Ah6kp-j-3=Q@mail.gmail.com>
+In-Reply-To: <CACRpkdasp9bLULT7NJM9nYX58rRSsQKXFddOLz9Ah6kp-j-3=Q@mail.gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="nDvig6w1IaO5idwNJGff6KXjnBUdsJGt1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As soon as the output queue is streaming, let try_fmt on the capture side
-only allow the frame size that was set on the output side.
+--nDvig6w1IaO5idwNJGff6KXjnBUdsJGt1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 3 +++
- 1 file changed, 3 insertions(+)
+On 22/07/14 18:08, Linus Walleij wrote:
+> On Sat, Jul 12, 2014 at 10:30 PM, abdoulaye berthe <berthe.ab@gmail.com=
+> wrote:
+>=20
+> Heads up. Requesting ACKs for this patch or I'm atleast warning that it=
+ will be
+> applied. We're getting rid of the return value from gpiochip_remove().
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 3d57986..6b659c8 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -721,6 +721,9 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
- 					f->fmt.pix.pixelformat);
- 		if (!codec)
- 			return -EINVAL;
-+
-+		f->fmt.pix.width = q_data_src->width;
-+		f->fmt.pix.height = q_data_src->height;
- 	} else {
- 		/* Otherwise determine codec by encoded format, if possible */
- 		codec = coda_find_codec(ctx->dev, V4L2_PIX_FMT_YUV420,
--- 
-2.0.1
+>>  drivers/video/fbdev/via/via-gpio.c             | 10 +++-------
+>=20
+> Tomi can you ACK this?
 
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
+
+--nDvig6w1IaO5idwNJGff6KXjnBUdsJGt1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT14X1AAoJEPo9qoy8lh71gvsP/iJDf8dcnv2JZFloH/noIb3s
+DCXfxyTW2zDeWEEH7rLW+fP5JKu5TutqOCF2Y85HaPa/DV1iMI4S+IUeEwNiw0wd
+JTwMqUbS2ua22J87F1Oc5kXshDk+uqLRfpxO7xs0Pd/JcsrOgA7zqJN67jeDwQo/
+XsiRTBmJ3CNR/qur7AKN8toHdZp+KaHZ/4cazUxxp/cu71eFuRfFJMjE/cGk8cva
+fsIrugCAFjYIy3z88VtW4VPj1rcNDYUlxcklbpNtosOKUuPfNoDwToLUCdjE22G9
+v93XHZKlv0iWso5fo9HA2BTDK7N37WMsyktqF1ULEUiKIyoWs6a0WG9eREVLKlpi
+ugiCLH6c4jQYycmSTmFGZnzuhz5hN5oirXpKtba6hVHh6ZNkIkGtFElGTZYjVhKn
+k06HXBVTTYwf4pg2PGSGPsl2dIx0Zyl8pG+iFn10LSxELxbNU6N/wYzf6LquPLok
+cnnfX2riaFV6DgQHhHlTqr0tN6NFb8smYeH9rq37+4GyVYnokXuBMJ+qQ5In8BDZ
+9ZgW2N1PH2aRO2RZERVwll4otqtZgJcmWdAgeZzjkl0nBpWH8X78c41O3T3LUscq
+3cDDyXHCLDGabHGuab5JPofNnN1GW8xM/wN8jLmH/abZICdjfGqRVzaQh7FJjc97
+PbSJaJG3ZaHHHc6LWcil
+=W85Y
+-----END PGP SIGNATURE-----
+
+--nDvig6w1IaO5idwNJGff6KXjnBUdsJGt1--
