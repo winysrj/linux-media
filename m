@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53806 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443AbaGKPUO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 11:20:14 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock for
- exynos3250 SoC
-Date: Fri, 11 Jul 2014 17:19:49 +0200
-Message-id: <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:36239 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750862AbaG2S3Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jul 2014 14:29:25 -0400
+Message-ID: <53D7E800.4000608@gentoo.org>
+Date: Tue, 29 Jul 2014 20:29:20 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] mceusb: select default keytable based on vendor
+References: <1406494020-12840-1-git-send-email-m.chehab@samsung.com> <53D734F9.6060201@gentoo.org> <20140729110631.2443620c.m.chehab@samsung.com>
+In-Reply-To: <20140729110631.2443620c.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-JPEG IP on Exynos3250 SoC requires enabling two clock
-gates for its operation. This patch documents this
-requirement.
+On 29.07.2014 16:06, Mauro Carvalho Chehab wrote:
+> Em Tue, 29 Jul 2014 07:45:29 +0200
+> Matthias Schwarzott <zzam@gentoo.org> escreveu:
+> 
+>> On 27.07.2014 22:47, Mauro Carvalho Chehab wrote:
+>>> Some vendors have their on keymap table that are used on
+>>> all (or almost all) models for that vendor.
+>>>
+>>> So, instead of specifying the keymap table per USB ID,
+>>> let's use the Vendor ID's table by default.
+>>>
+>>> At the end, this will mean less code to be added when newer
+>>> devices for those vendors are added.
+>>>
+>>
+>> I also did prepare something to add mceusb support, but with this only
+>> vendor dependant rc_map selection, it definitly is less code.
+>>
+>> Your mceusb patches work correctly for my 930C-HD (b130) and PCTV 522e
+>> devices.
+> 
+> Thanks for testing!
+> 
+Testing IR is fast to do :)
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: devicetree@vger.kernel.org
----
- .../bindings/media/exynos-jpeg-codec.txt           |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+> Btw, do you have plans to add DVB-C support to the frontend too?
+> I think that this is the only big feature missing.
+> 
+Yes, adding DVB-C Support is my next large goal.
 
-diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-index 937b755..3142745 100644
---- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-+++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-@@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
- Required properties:
- 
- - compatible	: should be one of:
--		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
-+		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-+		  "samsung,exynos3250-jpeg";
- - reg		: address and length of the JPEG codec IP register set;
- - interrupts	: specifies the JPEG codec IP interrupt;
--- clocks	: should contain the JPEG codec IP gate clock specifier, from the
-+- clocks	: should contain the JPEG codec IP gate clock specifier and
-+		  for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
- 		  common clock bindings;
--- clock-names	: should contain "jpeg" entry.
-+- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
-+		  for Exynos3250 SoC
--- 
-1.7.9.5
+Regards
+Matthias
 
