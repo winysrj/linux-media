@@ -1,115 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58411 "EHLO mga01.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52512 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933412AbaGQPgg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 11:36:36 -0400
-Date: Fri, 18 Jul 2014 07:29:47 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [linuxtv-media:master] 2181d142707a2cf5df44840ac7112ac4568b03c9
- BUILD DONE
-Message-ID: <53c85c6b.O9v+IptjMgCtA699%fengguang.wu@intel.com>
+	id S1753277AbaG2Leb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jul 2014 07:34:31 -0400
+Message-ID: <53D786BE.3050803@iki.fi>
+Date: Tue, 29 Jul 2014 14:34:22 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Antonio Ospite <ao2@ao2.it>, Matthias Schwarzott <zzam@gentoo.org>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] get_dvb_firmware: Add firmware extractor for si2165
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>	<1406059938-21141-2-git-send-email-zzam@gentoo.org>	<53CF7E6D.20406@iki.fi>	<53D006F2.10300@gentoo.org>	<20140723221012.3c9e8f26aa1ddac47b48cb9e@ao2.it>	<53D73328.6040802@gentoo.org> <20140729105315.e04521b28fe7d27c49bb0665@ao2.it>
+In-Reply-To: <20140729105315.e04521b28fe7d27c49bb0665@ao2.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-git://linuxtv.org/media_tree.git  master
-2181d142707a2cf5df44840ac7112ac4568b03c9  Merge branch 'sched_warn_fix' into patchwork
 
-(.text+0x281c8b0): undefined reference to `__divdi3'
-ERROR: "__udivdi3" [drivers/media/v4l2-core/videodev.ko] undefined!
-ERROR: "__umoddi3" [drivers/media/v4l2-core/videodev.ko] undefined!
-mt9m001.c:(.text+0x2424def): undefined reference to `__divdi3'
-mt9t031.c:(.text+0x2427d22): undefined reference to `__divdi3'
-pac7302.c:(.text+0x283d216): undefined reference to `__divdi3'
-radio-keene.c:(.text+0x294c621): undefined reference to `__udivdi3'
-rtl2832_sdr.c:(.text+0x3079b82): undefined reference to `__udivdi3'
-sonixb.c:(.text+0x2846fd8): undefined reference to `__divdi3'
-v4l2-ctrls.c:(.text+0x1ea2df): undefined reference to `__udivdi3'
-v4l2-ctrls.c:(.text+0x1ea33c): undefined reference to `__umoddi3'
 
-elapsed time: 587m
+On 07/29/2014 11:53 AM, Antonio Ospite wrote:
+> On Tue, 29 Jul 2014 07:37:44 +0200
+> Matthias Schwarzott <zzam@gentoo.org> wrote:
+>
+>> On 23.07.2014 22:10, Antonio Ospite wrote:
+>>> On Wed, 23 Jul 2014 21:03:14 +0200
+>>> Matthias Schwarzott <zzam@gentoo.org> wrote:
+>>>
+>>> [...]
+>>>> The crc value:
+>>>> It protects the content of the file until it is in the demod - so
+>>>> calculating it on my own would only check if the data is correctly
+>>>> transferred from the driver into the chip.
+>>>> But for this I needed to know the algorithm and which data is
+>>>> checksummed exactly.
+>>>>
+>>>> Are the different algorithms for CRC values that give 16 bit of output?
+>>>>
+>>>
+>>> You could try jacksum[1] and see if any algorithm it supports
+>>> gives you the expected result, there is a handful of 16 bits ones:
+>>>
+>>>    jacksum -a all -F "#ALGONAME{i} = #CHECKSUM{i}" payload.bin
+>>>
+>> Hi Antonio,
+>>
+>> I tried jacksum on the complete firmware and on parts - but it never
+>> matched the results from the chip.
+>>
+>> I now found out, that the crc register changes after every 32bit write
+>> to the data register - the fw control registers do not affect it.
+>>
+>> So I can try what crc results from writing 32bit portions of data.
+>> But even that did not help in guessing the algorithm, because I do not
+>> want to do 100s of experiments.
+>>
+>> some of my experiments:
+>> crc=0x0000, data=0x00000000 -> crc=0x0000
+>> crc=0x0000, data=0x00000001 -> crc=0x1021
+>> crc=0x0000, data=0x00000002 -> crc=0x2042
+>> crc=0x0000, data=0x00000004 -> crc=0x4084
+>> crc=0x0000, data=0x00000008 -> crc=0x8108
+>> crc=0x0000, data=0x00000010 -> crc=0x1231
+>>
+>> Is there some systematic way to get the formula?
+>
+> I don't know much about crc, but the values you are getting look like
+> the entries in the table in lib/crc-itu-t.c so maybe compare the crc
+> you are getting with the ones calculated with crc_itu_t() from
+> include/linux/crc-itu-t.h
+>
+> I just did a quick test with jacksum, the crc-itu-t parameters can
+> be expressed like this:
+>
+> 	jacksum -x -a crc:16,1021,0,false,false,0 -q 00000010
+>
+> and the output is the expected 0x1231 for the 0x00000010 sequence.
 
-configs tested: 75
+maybe crc = crc + crc(val)
 
-alpha                               defconfig
-parisc                            allnoconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-mips                             allmodconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                                     txx9
-sh                               allmodconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-i386                      randconfig-ha4-0718
-i386                      randconfig-ha2-0718
-i386                      randconfig-ha0-0718
-i386                      randconfig-ha3-0718
-i386                      randconfig-ha1-0718
-i386                      randconfig-ha5-0718
-ia64                             alldefconfig
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                                defconfig
-microblaze                       allyesconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-x86_64                    randconfig-ha0-0718
-x86_64                    randconfig-ha1-0718
-x86_64                    randconfig-ha2-0718
-x86_64                    randconfig-ha3-0718
-x86_64                    randconfig-ha4-0718
-x86_64                    randconfig-ha5-0718
-sparc                               defconfig
-sparc64                          allmodconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-i386                             allyesconfig
-blackfin                BF526-EZBRD_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                  TCM-BF537_defconfig
-cris                 etrax-100lx_v2_defconfig
-i386                       randconfig-r0-0717
-i386                       randconfig-r1-0717
-i386                       randconfig-r2-0717
-i386                       randconfig-r3-0717
-s390                             allmodconfig
-s390                              allnoconfig
-s390                                defconfig
-x86_64                           allmodconfig
-avr32                      atngw100_defconfig
-avr32                     atstk1006_defconfig
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                                    lkp
-x86_64                                   rhel
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
 
-Thanks,
-Fengguang
+Antti
+
+
+-- 
+http://palosaari.fi/
