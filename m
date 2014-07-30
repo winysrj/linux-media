@@ -1,77 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:64988 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932310AbaGaKgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 06:36:11 -0400
-Received: by mail-ob0-f171.google.com with SMTP id wm4so1423422obc.2
-        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 03:36:08 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:53190 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752684AbaG3NA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 09:00:58 -0400
+Message-ID: <53D8EC86.6020701@iki.fi>
+Date: Wed, 30 Jul 2014 16:00:54 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <53DA1538.90709@InUnum.com>
-References: <53D12786.5050906@InUnum.com>
-	<1915586.ZFV4ecW0Zg@avalon>
-	<CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
-	<2300187.SbcZEE0rv0@avalon>
-	<53D90786.9090809@InUnum.com>
-	<CA+2YH7vrD_N32KsksU2G37BhLPBMHJDbizrVb_N+=mnHC3oNmQ@mail.gmail.com>
-	<53DA1538.90709@InUnum.com>
-Date: Thu, 31 Jul 2014 12:36:08 +0200
-Message-ID: <CA+2YH7sROaGEtVLBs9N7FdWG5mzPZDtGgOaD2sgea--kqLELQA@mail.gmail.com>
-Subject: Re: omap3isp with DM3730 not working?!
-From: Enrico <ebutera@users.sourceforge.net>
-To: Michael Dietschi <michael.dietschi@inunum.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Bjoern <lkml@call-home.ch>,
+	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>
+Subject: Re: ddbridge -- kernel 3.15.6
+References: <53C920FB.1040501@grumpydevil.homelinux.org>	 <53CAAF9D.6000507@kaiser-linux.li> <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
+In-Reply-To: <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 31, 2014 at 12:06 PM, Michael Dietschi
-<michael.dietschi@inunum.com> wrote:
-> Am 30.07.2014 17:21, schrieb Enrico:
->
->> Standard question: are you using media-ctl from
->> git://linuxtv.org/pinchartl/v4l-utils.git field branch and latest
->> yavta from git://git.ideasonboard.org/yavta.git ?
+
+
+On 07/30/2014 08:13 AM, Bjoern wrote:
+>> Hello Rudy
 >>
->> Enrico
+>> I use a similar card from Digital Devices with Ubuntu 14.04 and kernel 3.13.0-32-generic. Support for this card was not build into the kernel and I had to compile it myself. I had to use media_build_experimental from Mr. Endriss.
+>>
+>> http://linuxtv.org/hg/~endriss/media_build_experimental
+>>
+>> Your card should be supported with this version.
+>>
+>> Regards, Thomas
 >
-> No, not exactly. I used older versions which came with Yocto Poky Daisy. But
-> I also tried with these newer ones and get the same:
+> Hi Rudy,
 >
-> root@overo:~$  ./media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP
-> CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> What Thomas writes is absolutely correct...
 >
+> This is unfortunately the worst situation I've ever run across in
+> Linux... There was a kernel driver that worked and was supported by
+> Digital Devices. Then, from what I read, changes to how the V4L drivers
+> have to be written was changed - Digital Devices doesn't like that and
+> they force users to use "experimental" builds which are the "old
+> style".
 >
-> root@overo:~$  ./media-ctl -v -f '"tvp5150 3-005c":0 [UYVY2X8 720x576],
-> "OMAP3 ISP CCDC":1 [UYVY2X8 720x576]'
+> This is total rubbish imo - if this is how it was decided that the
+> drivers have to be nowadays then adjust them. Why am I paying such a lot
+> of money others right, these DD cards are really not cheap?
 >
-> root@overo:~$  ./yavta -f UYVY -s 720x576 --capture=1 --file=image.raw
-> /dev/video2
+> Some attempts have been made by people active here to adapt the drivers
+> and make them work in newer kernels, but so far no one has succeeded.
+> Last attempt was in Jan 2014 iirc, since then - silence.
 >
+> I wish I could help out, I can code but Linux is well just a bit more
+> "difficult" I guess ;-)
 
-I think you are missing the ccdc sink pad setup, basically you should
-have something like this:
+I have one of such device too, but I have been too busy all the time 
+with other drivers...
 
-....
-- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev2
-        pad0: Sink
-                [fmt:UYVY2X8/720x288 field:alternate]
-                <- "OMAP3 ISP CCP2":1 []
-                <- "OMAP3 ISP CSI2a":1 []
-                <- "tvp5150 1-005c":0 [ENABLED]
-        pad1: Source
-                [fmt:UYVY/720x576 field:interlaced-tb
-                 crop.bounds:(0,0)/720x288
-                 crop:(0,0)/720x288]
-                -> "OMAP3 ISP CCDC output":0 [ENABLED]
-                -> "OMAP3 ISP resizer":0 []
+Basically these DTV drivers should be developed in a order, bridge 
+driver first, then demod and tuner - for one single device. After it is 
+committed in tree, you could start adding new devices and drivers. If 
+you try implement too big bunch of things as a once, you will likely 
+fail endless reviews and so.
 
-with this setup i can correctly capture deinterlaced frames with
-yavta, but have a look at the "[PATCH 00/11] OMAP3 ISP BT.656 support"
-thread, i noticed some problems maybe it's the same for you.
+I don't know what is change in development process which causes these 
+problems. What I remember there has been only few big changes in recent 
+years, change from Mercurial to Git and reorganization of directories/files.
 
-Enrico
+regards
+Antti
+
+-- 
+http://palosaari.fi/
