@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16370 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758482AbaGXDbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 23:31:47 -0400
-Date: Thu, 24 Jul 2014 11:31:56 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 496/499] drivers/media/rc/st_rc.c:290:6:
- error: 'struct rc_dev' has no member named 'allowed_protos'
-Message-ID: <53d07e2c.208vUXtur83Hznkw%fengguang.wu@intel.com>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:26709 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754880AbaG3HLT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 03:11:19 -0400
+Message-ID: <53D89846.60008@cisco.com>
+Date: Wed, 30 Jul 2014 09:01:26 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Joe Perches <joe@perches.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/6] MAINTAINERS: Update go7007 pattern
+References: <cover.1406691397.git.joe@perches.com> <9532fa3e0e1bf8fd3f63a26e095060401d785648.1406691397.git.joe@perches.com>
+In-Reply-To: <9532fa3e0e1bf8fd3f63a26e095060401d785648.1406691397.git.joe@perches.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   488046c237f3b78f91046d45662b318cd2415f64
-commit: 0dd0e92836cc6469e62600f981c289752ac42ac9 [496/499] [media] rc-core: remove protocol arrays
-config: make ARCH=arm allmodconfig
+On 07/30/2014 05:38 AM, Joe Perches wrote:
+> Commit 7955f03d18d1 ("[media] go7007: move out of staging into
+> drivers/media/usb") moved the files, update the pattern.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-Note: the linuxtv-media/master HEAD 488046c237f3b78f91046d45662b318cd2415f64 builds fine.
-      It only hurts bisectibility.
+Acked-By: Hans Verkuil <hans.verkuil@cisco.com>
 
-All error/warnings:
+Thanks, I forgot about that one.
 
-   drivers/media/rc/st_rc.c: In function 'st_rc_probe':
->> drivers/media/rc/st_rc.c:290:6: error: 'struct rc_dev' has no member named 'allowed_protos'
-     rdev->allowed_protos = RC_BIT_ALL;
-         ^
---
-   drivers/media/rc/sunxi-cir.c: In function 'sunxi_ir_probe':
->> drivers/media/rc/sunxi-cir.c:213:2: error: called object is not a function or function pointer
-     ir->rc->allowed_protocols(ir->rc, RC_BIT_ALL);
-     ^
+I'll pull this in through our media subsystem repo.
 
-vim +290 drivers/media/rc/st_rc.c
+	Hans
 
-   284	
-   285		rc_dev->dev = dev;
-   286		platform_set_drvdata(pdev, rc_dev);
-   287		st_rc_hardware_init(rc_dev);
-   288	
-   289		rdev->driver_type = RC_DRIVER_IR_RAW;
- > 290		rdev->allowed_protos = RC_BIT_ALL;
-   291		/* rx sampling rate is 10Mhz */
-   292		rdev->rx_resolution = 100;
-   293		rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
+> ---
+>  MAINTAINERS | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 6033aaf..3960ba8 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3997,6 +3997,12 @@ F:	Documentation/isdn/README.gigaset
+>  F:	drivers/isdn/gigaset/
+>  F:	include/uapi/linux/gigaset_dev.h
+>  
+> +GO7007 MPEG CODEC
+> +M:	Hans Verkuil <hans.verkuil@cisco.com>
+> +L:	linux-media@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/media/usb/go7007/
+> +
+>  GPIO SUBSYSTEM
+>  M:	Linus Walleij <linus.walleij@linaro.org>
+>  M:	Alexandre Courbot <gnurou@gmail.com>
+> @@ -8603,11 +8609,6 @@ M:	Marek Belisko <marek.belisko@gmail.com>
+>  S:	Odd Fixes
+>  F:	drivers/staging/ft1000/
+>  
+> -STAGING - GO7007 MPEG CODEC
+> -M:	Hans Verkuil <hans.verkuil@cisco.com>
+> -S:	Maintained
+> -F:	drivers/staging/media/go7007/
+> -
+>  STAGING - INDUSTRIAL IO
+>  M:	Jonathan Cameron <jic23@kernel.org>
+>  L:	linux-iio@vger.kernel.org
+> 
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
