@@ -1,3272 +1,1146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54081 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754970AbaGOBJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 21:09:45 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4782 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753374AbaG3OX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 10:23:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/18] rtl2832_sdr: move from staging to media
-Date: Tue, 15 Jul 2014 04:09:18 +0300
-Message-Id: <1405386561-30450-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
-References: <1405386561-30450-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv1 02/12] vivid.txt: add documentation for the vivid driver.
+Date: Wed, 30 Jul 2014 16:23:05 +0200
+Message-Id: <1406730195-64365-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
+References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move rtl2832_sdr driver module from staging to media.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The vivid Virtual Video Test Driver helps testing V4L2 applications
+and can emulate V4L2 hardware. Add the documentation for this driver
+first.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/Kconfig              |    9 +
- drivers/media/dvb-frontends/Makefile             |    6 +
- drivers/media/dvb-frontends/rtl2832_sdr.c        | 1497 ++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2832_sdr.h        |   54 +
- drivers/media/usb/dvb-usb-v2/Kconfig             |    1 +
- drivers/staging/media/Kconfig                    |    2 -
- drivers/staging/media/Makefile                   |    1 -
- drivers/staging/media/rtl2832u_sdr/Kconfig       |    7 -
- drivers/staging/media/rtl2832u_sdr/Makefile      |    6 -
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 1497 ----------------------
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h |   54 -
- 11 files changed, 1567 insertions(+), 1567 deletions(-)
- create mode 100644 drivers/media/dvb-frontends/rtl2832_sdr.c
- create mode 100644 drivers/media/dvb-frontends/rtl2832_sdr.h
- delete mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
- delete mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
- delete mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
- delete mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+ Documentation/video4linux/vivid.txt | 1108 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 1108 insertions(+)
+ create mode 100644 Documentation/video4linux/vivid.txt
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 1469d44..7225f05 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -446,6 +446,15 @@ config DVB_RTL2832
- 	help
- 	  Say Y when you want to support this frontend.
- 
-+config DVB_RTL2832_SDR
-+	tristate "Realtek RTL2832 SDR"
-+	depends on DVB_CORE && I2C && VIDEO_V4L2
-+	select DVB_RTL2832
-+	select VIDEOBUF2_VMALLOC
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Say Y when you want to support this SDR module.
-+
- config DVB_SI2168
- 	tristate "Silicon Labs Si2168"
- 	depends on DVB_CORE && I2C && I2C_MUX
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index dda0bee..655e3c8 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -5,6 +5,11 @@
- ccflags-y += -I$(srctree)/drivers/media/dvb-core/
- ccflags-y += -I$(srctree)/drivers/media/tuners/
- 
-+# FIXME: RTL2832 SDR driver uses power management directly from USB IF driver
-+ifdef CONFIG_DVB_RTL2832_SDR
-+	ccflags-y += -I$(srctree)/drivers/media/usb/dvb-usb-v2
-+endif
-+
- stb0899-objs := stb0899_drv.o stb0899_algo.o
- stv0900-objs := stv0900_core.o stv0900_sw.o
- drxd-objs := drxd_firm.o drxd_hard.o
-@@ -104,6 +109,7 @@ obj-$(CONFIG_DVB_A8293) += a8293.o
- obj-$(CONFIG_DVB_TDA10071) += tda10071.o
- obj-$(CONFIG_DVB_RTL2830) += rtl2830.o
- obj-$(CONFIG_DVB_RTL2832) += rtl2832.o
-+obj-$(CONFIG_DVB_RTL2832_SDR) += rtl2832_sdr.o
- obj-$(CONFIG_DVB_M88RS2000) += m88rs2000.o
- obj-$(CONFIG_DVB_AF9033) += af9033.o
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+diff --git a/Documentation/video4linux/vivid.txt b/Documentation/video4linux/vivid.txt
 new file mode 100644
-index 0000000..093df6b
+index 0000000..2dc7354
 --- /dev/null
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -0,0 +1,1497 @@
-+/*
-+ * Realtek RTL2832U SDR driver
-+ *
-+ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-+ *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
-+ *
-+ *    You should have received a copy of the GNU General Public License along
-+ *    with this program; if not, write to the Free Software Foundation, Inc.,
-+ *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ *
-+ * GNU Radio plugin "gr-kernel" for device usage will be on:
-+ * http://git.linuxtv.org/anttip/gr-kernel.git
-+ *
-+ */
-+
-+#include "dvb_frontend.h"
-+#include "rtl2832_sdr.h"
-+#include "dvb_usb.h"
-+
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/videobuf2-vmalloc.h>
-+
-+#include <linux/jiffies.h>
-+#include <linux/math64.h>
-+
-+#define MAX_BULK_BUFS            (10)
-+#define BULK_BUFFER_SIZE         (128 * 512)
-+
-+static const struct v4l2_frequency_band bands_adc[] = {
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  300000,
-+		.rangehigh  =  300000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 1,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  900001,
-+		.rangehigh  = 2800000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 2,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   = 3200000,
-+		.rangehigh  = 3200000,
-+	},
-+};
-+
-+static const struct v4l2_frequency_band bands_fm[] = {
-+	{
-+		.tuner = 1,
-+		.type = V4L2_TUNER_RF,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =    50000000,
-+		.rangehigh  =  2000000000,
-+	},
-+};
-+
-+/* stream formats */
-+struct rtl2832_sdr_format {
-+	char	*name;
-+	u32	pixelformat;
-+};
-+
-+static struct rtl2832_sdr_format formats[] = {
-+	{
-+		.name		= "IQ U8",
-+		.pixelformat	=  V4L2_SDR_FMT_CU8,
-+	}, {
-+		.name		= "IQ U16LE (emulated)",
-+		.pixelformat	= V4L2_SDR_FMT_CU16LE,
-+	},
-+};
-+
-+static const unsigned int NUM_FORMATS = ARRAY_SIZE(formats);
-+
-+/* intermediate buffers with raw data from the USB device */
-+struct rtl2832_sdr_frame_buf {
-+	struct vb2_buffer vb;   /* common v4l buffer stuff -- must be first */
-+	struct list_head list;
-+};
-+
-+struct rtl2832_sdr_state {
-+#define POWER_ON           (1 << 1)
-+#define URB_BUF            (1 << 2)
-+	unsigned long flags;
-+
-+	const struct rtl2832_config *cfg;
-+	struct dvb_frontend *fe;
-+	struct dvb_usb_device *d;
-+	struct i2c_adapter *i2c;
-+	u8 bank;
-+
-+	struct video_device vdev;
-+	struct v4l2_device v4l2_dev;
-+
-+	/* videobuf2 queue and queued buffers list */
-+	struct vb2_queue vb_queue;
-+	struct list_head queued_bufs;
-+	spinlock_t queued_bufs_lock; /* Protects queued_bufs */
-+	unsigned sequence;	     /* buffer sequence counter */
-+
-+	/* Note if taking both locks v4l2_lock must always be locked first! */
-+	struct mutex v4l2_lock;      /* Protects everything else */
-+	struct mutex vb_queue_lock;  /* Protects vb_queue and capt_file */
-+
-+	/* Pointer to our usb_device, will be NULL after unplug */
-+	struct usb_device *udev; /* Both mutexes most be hold when setting! */
-+
-+	unsigned int vb_full; /* vb is full and packets dropped */
-+
-+	struct urb     *urb_list[MAX_BULK_BUFS];
-+	int            buf_num;
-+	unsigned long  buf_size;
-+	u8             *buf_list[MAX_BULK_BUFS];
-+	dma_addr_t     dma_addr[MAX_BULK_BUFS];
-+	int urbs_initialized;
-+	int urbs_submitted;
-+
-+	unsigned int f_adc, f_tuner;
-+	u32 pixelformat;
-+
-+	/* Controls */
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *bandwidth_auto;
-+	struct v4l2_ctrl *bandwidth;
-+
-+	/* for sample rate calc */
-+	unsigned int sample;
-+	unsigned int sample_measured;
-+	unsigned long jiffies_next;
-+};
-+
-+/* write multiple hardware registers */
-+static int rtl2832_sdr_wr(struct rtl2832_sdr_state *s, u8 reg, const u8 *val,
-+		int len)
-+{
-+	int ret;
-+#define MAX_WR_LEN 24
-+#define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
-+	u8 buf[MAX_WR_XFER_LEN];
-+	struct i2c_msg msg[1] = {
-+		{
-+			.addr = s->cfg->i2c_addr,
-+			.flags = 0,
-+			.len = 1 + len,
-+			.buf = buf,
-+		}
-+	};
-+
-+	if (WARN_ON(len > MAX_WR_LEN))
-+		return -EINVAL;
-+
-+	buf[0] = reg;
-+	memcpy(&buf[1], val, len);
-+
-+	ret = i2c_transfer(s->i2c, msg, 1);
-+	if (ret == 1) {
-+		ret = 0;
-+	} else {
-+		dev_err(&s->i2c->dev,
-+			"%s: I2C wr failed=%d reg=%02x len=%d\n",
-+			KBUILD_MODNAME, ret, reg, len);
-+		ret = -EREMOTEIO;
-+	}
-+	return ret;
-+}
-+
-+/* read multiple hardware registers */
-+static int rtl2832_sdr_rd(struct rtl2832_sdr_state *s, u8 reg, u8 *val, int len)
-+{
-+	int ret;
-+	struct i2c_msg msg[2] = {
-+		{
-+			.addr = s->cfg->i2c_addr,
-+			.flags = 0,
-+			.len = 1,
-+			.buf = &reg,
-+		}, {
-+			.addr = s->cfg->i2c_addr,
-+			.flags = I2C_M_RD,
-+			.len = len,
-+			.buf = val,
-+		}
-+	};
-+
-+	ret = i2c_transfer(s->i2c, msg, 2);
-+	if (ret == 2) {
-+		ret = 0;
-+	} else {
-+		dev_err(&s->i2c->dev,
-+				"%s: I2C rd failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
-+		ret = -EREMOTEIO;
-+	}
-+	return ret;
-+}
-+
-+/* write multiple registers */
-+static int rtl2832_sdr_wr_regs(struct rtl2832_sdr_state *s, u16 reg,
-+		const u8 *val, int len)
-+{
-+	int ret;
-+	u8 reg2 = (reg >> 0) & 0xff;
-+	u8 bank = (reg >> 8) & 0xff;
-+
-+	/* switch bank if needed */
-+	if (bank != s->bank) {
-+		ret = rtl2832_sdr_wr(s, 0x00, &bank, 1);
-+		if (ret)
-+			return ret;
-+
-+		s->bank = bank;
-+	}
-+
-+	return rtl2832_sdr_wr(s, reg2, val, len);
-+}
-+
-+/* read multiple registers */
-+static int rtl2832_sdr_rd_regs(struct rtl2832_sdr_state *s, u16 reg, u8 *val,
-+		int len)
-+{
-+	int ret;
-+	u8 reg2 = (reg >> 0) & 0xff;
-+	u8 bank = (reg >> 8) & 0xff;
-+
-+	/* switch bank if needed */
-+	if (bank != s->bank) {
-+		ret = rtl2832_sdr_wr(s, 0x00, &bank, 1);
-+		if (ret)
-+			return ret;
-+
-+		s->bank = bank;
-+	}
-+
-+	return rtl2832_sdr_rd(s, reg2, val, len);
-+}
-+
-+/* write single register */
-+static int rtl2832_sdr_wr_reg(struct rtl2832_sdr_state *s, u16 reg, u8 val)
-+{
-+	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
-+}
-+
-+#if 0
-+/* read single register */
-+static int rtl2832_sdr_rd_reg(struct rtl2832_sdr_state *s, u16 reg, u8 *val)
-+{
-+	return rtl2832_sdr_rd_regs(s, reg, val, 1);
-+}
-+#endif
-+
-+/* write single register with mask */
-+static int rtl2832_sdr_wr_reg_mask(struct rtl2832_sdr_state *s, u16 reg,
-+		u8 val, u8 mask)
-+{
-+	int ret;
-+	u8 tmp;
-+
-+	/* no need for read if whole reg is written */
-+	if (mask != 0xff) {
-+		ret = rtl2832_sdr_rd_regs(s, reg, &tmp, 1);
-+		if (ret)
-+			return ret;
-+
-+		val &= mask;
-+		tmp &= ~mask;
-+		val |= tmp;
-+	}
-+
-+	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
-+}
-+
-+#if 0
-+/* read single register with mask */
-+static int rtl2832_sdr_rd_reg_mask(struct rtl2832_sdr_state *s, u16 reg,
-+		u8 *val, u8 mask)
-+{
-+	int ret, i;
-+	u8 tmp;
-+
-+	ret = rtl2832_sdr_rd_regs(s, reg, &tmp, 1);
-+	if (ret)
-+		return ret;
-+
-+	tmp &= mask;
-+
-+	/* find position of the first bit */
-+	for (i = 0; i < 8; i++) {
-+		if ((mask >> i) & 0x01)
-+			break;
-+	}
-+	*val = tmp >> i;
-+
-+	return 0;
-+}
-+#endif
-+
-+/* Private functions */
-+static struct rtl2832_sdr_frame_buf *rtl2832_sdr_get_next_fill_buf(
-+		struct rtl2832_sdr_state *s)
-+{
-+	unsigned long flags = 0;
-+	struct rtl2832_sdr_frame_buf *buf = NULL;
-+
-+	spin_lock_irqsave(&s->queued_bufs_lock, flags);
-+	if (list_empty(&s->queued_bufs))
-+		goto leave;
-+
-+	buf = list_entry(s->queued_bufs.next,
-+			struct rtl2832_sdr_frame_buf, list);
-+	list_del(&buf->list);
-+leave:
-+	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
-+	return buf;
-+}
-+
-+static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
-+		void *dst, const u8 *src, unsigned int src_len)
-+{
-+	unsigned int dst_len;
-+
-+	if (s->pixelformat ==  V4L2_SDR_FMT_CU8) {
-+		/* native stream, no need to convert */
-+		memcpy(dst, src, src_len);
-+		dst_len = src_len;
-+	} else if (s->pixelformat == V4L2_SDR_FMT_CU16LE) {
-+		/* convert u8 to u16 */
-+		unsigned int i;
-+		u16 *u16dst = dst;
-+		for (i = 0; i < src_len; i++)
-+			*u16dst++ = (src[i] << 8) | (src[i] >> 0);
-+		dst_len = 2 * src_len;
-+	} else {
-+		dst_len = 0;
-+	}
-+
-+	/* calculate samping rate and output it in 10 seconds intervals */
-+	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
-+#define MSECS 10000UL
-+		unsigned int samples = s->sample - s->sample_measured;
-+		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
-+		s->sample_measured = s->sample;
-+		dev_dbg(&s->udev->dev,
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				src_len, samples, MSECS,
-+				samples * 1000UL / MSECS);
-+	}
-+
-+	/* total number of I+Q pairs */
-+	s->sample += src_len / 2;
-+
-+	return dst_len;
-+}
-+
-+/*
-+ * This gets called for the bulk stream pipe. This is done in interrupt
-+ * time, so it has to be fast, not crash, and not stall. Neat.
-+ */
-+static void rtl2832_sdr_urb_complete(struct urb *urb)
-+{
-+	struct rtl2832_sdr_state *s = urb->context;
-+	struct rtl2832_sdr_frame_buf *fbuf;
-+
-+	dev_dbg_ratelimited(&s->udev->dev,
-+			"%s: status=%d length=%d/%d errors=%d\n",
-+			__func__, urb->status, urb->actual_length,
-+			urb->transfer_buffer_length, urb->error_count);
-+
-+	switch (urb->status) {
-+	case 0:             /* success */
-+	case -ETIMEDOUT:    /* NAK */
-+		break;
-+	case -ECONNRESET:   /* kill */
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		return;
-+	default:            /* error */
-+		dev_err_ratelimited(&s->udev->dev, "urb failed=%d\n",
-+				urb->status);
-+		break;
-+	}
-+
-+	if (likely(urb->actual_length > 0)) {
-+		void *ptr;
-+		unsigned int len;
-+		/* get free framebuffer */
-+		fbuf = rtl2832_sdr_get_next_fill_buf(s);
-+		if (unlikely(fbuf == NULL)) {
-+			s->vb_full++;
-+			dev_notice_ratelimited(&s->udev->dev,
-+					"videobuf is full, %d packets dropped\n",
-+					s->vb_full);
-+			goto skip;
-+		}
-+
-+		/* fill framebuffer */
-+		ptr = vb2_plane_vaddr(&fbuf->vb, 0);
-+		len = rtl2832_sdr_convert_stream(s, ptr, urb->transfer_buffer,
-+				urb->actual_length);
-+		vb2_set_plane_payload(&fbuf->vb, 0, len);
-+		v4l2_get_timestamp(&fbuf->vb.v4l2_buf.timestamp);
-+		fbuf->vb.v4l2_buf.sequence = s->sequence++;
-+		vb2_buffer_done(&fbuf->vb, VB2_BUF_STATE_DONE);
-+	}
-+skip:
-+	usb_submit_urb(urb, GFP_ATOMIC);
-+}
-+
-+static int rtl2832_sdr_kill_urbs(struct rtl2832_sdr_state *s)
-+{
-+	int i;
-+
-+	for (i = s->urbs_submitted - 1; i >= 0; i--) {
-+		dev_dbg(&s->udev->dev, "%s: kill urb=%d\n", __func__, i);
-+		/* stop the URB */
-+		usb_kill_urb(s->urb_list[i]);
-+	}
-+	s->urbs_submitted = 0;
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_submit_urbs(struct rtl2832_sdr_state *s)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < s->urbs_initialized; i++) {
-+		dev_dbg(&s->udev->dev, "%s: submit urb=%d\n", __func__, i);
-+		ret = usb_submit_urb(s->urb_list[i], GFP_ATOMIC);
-+		if (ret) {
-+			dev_err(&s->udev->dev,
-+					"Could not submit urb no. %d - get them all back\n",
-+					i);
-+			rtl2832_sdr_kill_urbs(s);
-+			return ret;
-+		}
-+		s->urbs_submitted++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_free_stream_bufs(struct rtl2832_sdr_state *s)
-+{
-+	if (s->flags & USB_STATE_URB_BUF) {
-+		while (s->buf_num) {
-+			s->buf_num--;
-+			dev_dbg(&s->udev->dev, "%s: free buf=%d\n",
-+					__func__, s->buf_num);
-+			usb_free_coherent(s->udev, s->buf_size,
-+					  s->buf_list[s->buf_num],
-+					  s->dma_addr[s->buf_num]);
-+		}
-+	}
-+	s->flags &= ~USB_STATE_URB_BUF;
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_alloc_stream_bufs(struct rtl2832_sdr_state *s)
-+{
-+	s->buf_num = 0;
-+	s->buf_size = BULK_BUFFER_SIZE;
-+
-+	dev_dbg(&s->udev->dev,
-+			"%s: all in all I will use %u bytes for streaming\n",
-+			__func__,  MAX_BULK_BUFS * BULK_BUFFER_SIZE);
-+
-+	for (s->buf_num = 0; s->buf_num < MAX_BULK_BUFS; s->buf_num++) {
-+		s->buf_list[s->buf_num] = usb_alloc_coherent(s->udev,
-+				BULK_BUFFER_SIZE, GFP_ATOMIC,
-+				&s->dma_addr[s->buf_num]);
-+		if (!s->buf_list[s->buf_num]) {
-+			dev_dbg(&s->udev->dev, "%s: alloc buf=%d failed\n",
-+					__func__, s->buf_num);
-+			rtl2832_sdr_free_stream_bufs(s);
-+			return -ENOMEM;
-+		}
-+
-+		dev_dbg(&s->udev->dev, "%s: alloc buf=%d %p (dma %llu)\n",
-+				__func__, s->buf_num,
-+				s->buf_list[s->buf_num],
-+				(long long)s->dma_addr[s->buf_num]);
-+		s->flags |= USB_STATE_URB_BUF;
-+	}
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_free_urbs(struct rtl2832_sdr_state *s)
-+{
-+	int i;
-+
-+	rtl2832_sdr_kill_urbs(s);
-+
-+	for (i = s->urbs_initialized - 1; i >= 0; i--) {
-+		if (s->urb_list[i]) {
-+			dev_dbg(&s->udev->dev, "%s: free urb=%d\n",
-+					__func__, i);
-+			/* free the URBs */
-+			usb_free_urb(s->urb_list[i]);
-+		}
-+	}
-+	s->urbs_initialized = 0;
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_alloc_urbs(struct rtl2832_sdr_state *s)
-+{
-+	int i, j;
-+
-+	/* allocate the URBs */
-+	for (i = 0; i < MAX_BULK_BUFS; i++) {
-+		dev_dbg(&s->udev->dev, "%s: alloc urb=%d\n", __func__, i);
-+		s->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
-+		if (!s->urb_list[i]) {
-+			dev_dbg(&s->udev->dev, "%s: failed\n", __func__);
-+			for (j = 0; j < i; j++)
-+				usb_free_urb(s->urb_list[j]);
-+			return -ENOMEM;
-+		}
-+		usb_fill_bulk_urb(s->urb_list[i],
-+				s->udev,
-+				usb_rcvbulkpipe(s->udev, 0x81),
-+				s->buf_list[i],
-+				BULK_BUFFER_SIZE,
-+				rtl2832_sdr_urb_complete, s);
-+
-+		s->urb_list[i]->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-+		s->urb_list[i]->transfer_dma = s->dma_addr[i];
-+		s->urbs_initialized++;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Must be called with vb_queue_lock hold */
-+static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
-+{
-+	unsigned long flags = 0;
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	spin_lock_irqsave(&s->queued_bufs_lock, flags);
-+	while (!list_empty(&s->queued_bufs)) {
-+		struct rtl2832_sdr_frame_buf *buf;
-+		buf = list_entry(s->queued_bufs.next,
-+				struct rtl2832_sdr_frame_buf, list);
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
-+}
-+
-+/* The user yanked out the cable... */
-+static void rtl2832_sdr_release_sec(struct dvb_frontend *fe)
-+{
-+	struct rtl2832_sdr_state *s = fe->sec_priv;
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	mutex_lock(&s->vb_queue_lock);
-+	mutex_lock(&s->v4l2_lock);
-+	/* No need to keep the urbs around after disconnection */
-+	s->udev = NULL;
-+
-+	v4l2_device_disconnect(&s->v4l2_dev);
-+	video_unregister_device(&s->vdev);
-+	mutex_unlock(&s->v4l2_lock);
-+	mutex_unlock(&s->vb_queue_lock);
-+
-+	v4l2_device_put(&s->v4l2_dev);
-+
-+	fe->sec_priv = NULL;
-+}
-+
-+static int rtl2832_sdr_querycap(struct file *file, void *fh,
-+		struct v4l2_capability *cap)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
-+	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
-+	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
-+	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
-+			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	return 0;
-+}
-+
-+/* Videobuf2 operations */
-+static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
-+		const struct v4l2_format *fmt, unsigned int *nbuffers,
-+		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
-+{
-+	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
-+	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
-+
-+	/* Need at least 8 buffers */
-+	if (vq->num_buffers + *nbuffers < 8)
-+		*nbuffers = 8 - vq->num_buffers;
-+	*nplanes = 1;
-+	/* 2 = max 16-bit sample returned */
-+	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 2);
-+	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
-+			__func__, *nbuffers, sizes[0]);
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	/* Don't allow queing new buffers after device disconnection */
-+	if (!s->udev)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void rtl2832_sdr_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vb->vb2_queue);
-+	struct rtl2832_sdr_frame_buf *buf =
-+			container_of(vb, struct rtl2832_sdr_frame_buf, vb);
-+	unsigned long flags = 0;
-+
-+	/* Check the device has not disconnected between prep and queuing */
-+	if (!s->udev) {
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		return;
-+	}
-+
-+	spin_lock_irqsave(&s->queued_bufs_lock, flags);
-+	list_add_tail(&buf->list, &s->queued_bufs);
-+	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
-+}
-+
-+static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
-+{
-+	struct dvb_frontend *fe = s->fe;
-+	int ret;
-+	unsigned int f_sr, f_if;
-+	u8 buf[4], u8tmp1, u8tmp2;
-+	u64 u64tmp;
-+	u32 u32tmp;
-+	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
-+
-+	if (!test_bit(POWER_ON, &s->flags))
-+		return 0;
-+
-+	if (s->f_adc == 0)
-+		return 0;
-+
-+	f_sr = s->f_adc;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x13e, "\x00\x00", 2);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x00\x00\x00\x00", 4);
-+	if (ret)
-+		goto err;
-+
-+	/* get IF from tuner */
-+	if (fe->ops.tuner_ops.get_if_frequency)
-+		ret = fe->ops.tuner_ops.get_if_frequency(fe, &f_if);
-+	else
-+		ret = -EINVAL;
-+
-+	if (ret)
-+		goto err;
-+
-+	/* program IF */
-+	u64tmp = f_if % s->cfg->xtal;
-+	u64tmp *= 0x400000;
-+	u64tmp = div_u64(u64tmp, s->cfg->xtal);
-+	u64tmp = -u64tmp;
-+	u32tmp = u64tmp & 0x3fffff;
-+
-+	dev_dbg(&s->udev->dev, "%s: f_if=%u if_ctl=%08x\n",
-+			__func__, f_if, u32tmp);
-+
-+	buf[0] = (u32tmp >> 16) & 0xff;
-+	buf[1] = (u32tmp >>  8) & 0xff;
-+	buf[2] = (u32tmp >>  0) & 0xff;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x119, buf, 3);
-+	if (ret)
-+		goto err;
-+
-+	/* BB / IF mode */
-+	/* POR: 0x1b1=0x1f, 0x008=0x0d, 0x006=0x80 */
-+	if (f_if) {
-+		u8tmp1 = 0x1a; /* disable Zero-IF */
-+		u8tmp2 = 0x8d; /* enable ADC I */
-+	} else {
-+		u8tmp1 = 0x1b; /* enable Zero-IF, DC, IQ */
-+		u8tmp2 = 0xcd; /* enable ADC I, ADC Q */
-+	}
-+
-+	ret = rtl2832_sdr_wr_reg(s, 0x1b1, u8tmp1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_reg(s, 0x008, u8tmp2);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_reg(s, 0x006, 0x80);
-+	if (ret)
-+		goto err;
-+
-+	/* program sampling rate (resampling down) */
-+	u32tmp = div_u64(s->cfg->xtal * 0x400000ULL, f_sr * 4U);
-+	u32tmp <<= 2;
-+	buf[0] = (u32tmp >> 24) & 0xff;
-+	buf[1] = (u32tmp >> 16) & 0xff;
-+	buf[2] = (u32tmp >>  8) & 0xff;
-+	buf[3] = (u32tmp >>  0) & 0xff;
-+	ret = rtl2832_sdr_wr_regs(s, 0x19f, buf, 4);
-+	if (ret)
-+		goto err;
-+
-+	/* low-pass filter */
-+	ret = rtl2832_sdr_wr_regs(s, 0x11c,
-+			"\xca\xdc\xd7\xd8\xe0\xf2\x0e\x35\x06\x50\x9c\x0d\x71\x11\x14\x71\x74\x19\x41\xa5",
-+			20);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x017, "\x11\x10", 2);
-+	if (ret)
-+		goto err;
-+
-+	/* mode */
-+	ret = rtl2832_sdr_wr_regs(s, 0x019, "\x05", 1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x01a, "\x1b\x16\x0d\x06\x01\xff", 6);
-+	if (ret)
-+		goto err;
-+
-+	/* FSM */
-+	ret = rtl2832_sdr_wr_regs(s, 0x192, "\x00\xf0\x0f", 3);
-+	if (ret)
-+		goto err;
-+
-+	/* PID filter */
-+	ret = rtl2832_sdr_wr_regs(s, 0x061, "\x60", 1);
-+	if (ret)
-+		goto err;
-+
-+	/* used RF tuner based settings */
-+	switch (s->cfg->tuner) {
-+	case RTL2832_TUNER_E4000:
-+		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xd0", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x18", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x14", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xec", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x83", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x010, "\x49", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x87", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x85", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x013, "\x02", 1);
-+		break;
-+	case RTL2832_TUNER_FC0012:
-+	case RTL2832_TUNER_FC0013:
-+		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x2c", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x16", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xe9\xbf", 2);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x11", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xef", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
-+		break;
-+	case RTL2832_TUNER_R820T:
-+		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x24", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xf4", 1);
-+		break;
-+	default:
-+		dev_notice(&s->udev->dev, "Unsupported tuner\n");
-+	}
-+
-+	/* software reset */
-+	ret = rtl2832_sdr_wr_reg_mask(s, 0x101, 0x04, 0x04);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_reg_mask(s, 0x101, 0x00, 0x04);
-+	if (ret)
-+		goto err;
-+err:
-+	return ret;
-+};
-+
-+static void rtl2832_sdr_unset_adc(struct rtl2832_sdr_state *s)
-+{
-+	int ret;
-+
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	/* PID filter */
-+	ret = rtl2832_sdr_wr_regs(s, 0x061, "\xe0", 1);
-+	if (ret)
-+		goto err;
-+
-+	/* mode */
-+	ret = rtl2832_sdr_wr_regs(s, 0x019, "\x20", 1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x017, "\x11\x10", 2);
-+	if (ret)
-+		goto err;
-+
-+	/* FSM */
-+	ret = rtl2832_sdr_wr_regs(s, 0x192, "\x00\x0f\xff", 3);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x13e, "\x40\x00", 2);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x06\x3f\xce\xcc", 4);
-+	if (ret)
-+		goto err;
-+err:
-+	return;
-+};
-+
-+static int rtl2832_sdr_set_tuner_freq(struct rtl2832_sdr_state *s)
-+{
-+	struct dvb_frontend *fe = s->fe;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	struct v4l2_ctrl *bandwidth_auto;
-+	struct v4l2_ctrl *bandwidth;
-+
-+	/*
-+	 * tuner RF (Hz)
-+	 */
-+	if (s->f_tuner == 0)
-+		return 0;
-+
-+	/*
-+	 * bandwidth (Hz)
-+	 */
-+	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
-+	bandwidth = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH);
-+	if (v4l2_ctrl_g_ctrl(bandwidth_auto)) {
-+		c->bandwidth_hz = s->f_adc;
-+		v4l2_ctrl_s_ctrl(bandwidth, s->f_adc);
-+	} else {
-+		c->bandwidth_hz = v4l2_ctrl_g_ctrl(bandwidth);
-+	}
-+
-+	c->frequency = s->f_tuner;
-+	c->delivery_system = SYS_DVBT;
-+
-+	dev_dbg(&s->udev->dev, "%s: frequency=%u bandwidth=%d\n",
-+			__func__, c->frequency, c->bandwidth_hz);
-+
-+	if (!test_bit(POWER_ON, &s->flags))
-+		return 0;
-+
-+	if (fe->ops.tuner_ops.set_params)
-+		fe->ops.tuner_ops.set_params(fe);
-+
-+	return 0;
-+};
-+
-+static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
-+{
-+	struct dvb_frontend *fe = s->fe;
-+
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (fe->ops.tuner_ops.init)
-+		fe->ops.tuner_ops.init(fe);
-+
-+	return 0;
-+};
-+
-+static void rtl2832_sdr_unset_tuner(struct rtl2832_sdr_state *s)
-+{
-+	struct dvb_frontend *fe = s->fe;
-+
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (fe->ops.tuner_ops.sleep)
-+		fe->ops.tuner_ops.sleep(fe);
-+
-+	return;
-+};
-+
-+static int rtl2832_sdr_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
-+	int ret;
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (!s->udev)
-+		return -ENODEV;
-+
-+	if (mutex_lock_interruptible(&s->v4l2_lock))
-+		return -ERESTARTSYS;
-+
-+	if (s->d->props->power_ctrl)
-+		s->d->props->power_ctrl(s->d, 1);
-+
-+	set_bit(POWER_ON, &s->flags);
-+
-+	ret = rtl2832_sdr_set_tuner(s);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_set_tuner_freq(s);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_set_adc(s);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_alloc_stream_bufs(s);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_sdr_alloc_urbs(s);
-+	if (ret)
-+		goto err;
-+
-+	s->sequence = 0;
-+
-+	ret = rtl2832_sdr_submit_urbs(s);
-+	if (ret)
-+		goto err;
-+
-+err:
-+	mutex_unlock(&s->v4l2_lock);
-+
-+	return ret;
-+}
-+
-+static void rtl2832_sdr_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	mutex_lock(&s->v4l2_lock);
-+
-+	rtl2832_sdr_kill_urbs(s);
-+	rtl2832_sdr_free_urbs(s);
-+	rtl2832_sdr_free_stream_bufs(s);
-+	rtl2832_sdr_cleanup_queued_bufs(s);
-+	rtl2832_sdr_unset_adc(s);
-+	rtl2832_sdr_unset_tuner(s);
-+
-+	clear_bit(POWER_ON, &s->flags);
-+
-+	if (s->d->props->power_ctrl)
-+		s->d->props->power_ctrl(s->d, 0);
-+
-+	mutex_unlock(&s->v4l2_lock);
-+}
-+
-+static struct vb2_ops rtl2832_sdr_vb2_ops = {
-+	.queue_setup            = rtl2832_sdr_queue_setup,
-+	.buf_prepare            = rtl2832_sdr_buf_prepare,
-+	.buf_queue              = rtl2832_sdr_buf_queue,
-+	.start_streaming        = rtl2832_sdr_start_streaming,
-+	.stop_streaming         = rtl2832_sdr_stop_streaming,
-+	.wait_prepare           = vb2_ops_wait_prepare,
-+	.wait_finish            = vb2_ops_wait_finish,
-+};
-+
-+static int rtl2832_sdr_g_tuner(struct file *file, void *priv,
-+		struct v4l2_tuner *v)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s: index=%d type=%d\n",
-+			__func__, v->index, v->type);
-+
-+	if (v->index == 0) {
-+		strlcpy(v->name, "ADC: Realtek RTL2832", sizeof(v->name));
-+		v->type = V4L2_TUNER_ADC;
-+		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =   300000;
-+		v->rangehigh = 3200000;
-+	} else if (v->index == 1) {
-+		strlcpy(v->name, "RF: <unknown>", sizeof(v->name));
-+		v->type = V4L2_TUNER_RF;
-+		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =    50000000;
-+		v->rangehigh = 2000000000;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
-+		const struct v4l2_tuner *v)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (v->index > 1)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_enum_freq_bands(struct file *file, void *priv,
-+		struct v4l2_frequency_band *band)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
-+			__func__, band->tuner, band->type, band->index);
-+
-+	if (band->tuner == 0) {
-+		if (band->index >= ARRAY_SIZE(bands_adc))
-+			return -EINVAL;
-+
-+		*band = bands_adc[band->index];
-+	} else if (band->tuner == 1) {
-+		if (band->index >= ARRAY_SIZE(bands_fm))
-+			return -EINVAL;
-+
-+		*band = bands_fm[band->index];
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
-+		struct v4l2_frequency *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	int ret  = 0;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
-+			__func__, f->tuner, f->type);
-+
-+	if (f->tuner == 0) {
-+		f->frequency = s->f_adc;
-+		f->type = V4L2_TUNER_ADC;
-+	} else if (f->tuner == 1) {
-+		f->frequency = s->f_tuner;
-+		f->type = V4L2_TUNER_RF;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
-+		const struct v4l2_frequency *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	int ret, band;
-+
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
-+			__func__, f->tuner, f->type, f->frequency);
-+
-+	/* ADC band midpoints */
-+	#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
-+	#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
-+
-+	if (f->tuner == 0 && f->type == V4L2_TUNER_ADC) {
-+		if (f->frequency < BAND_ADC_0)
-+			band = 0;
-+		else if (f->frequency < BAND_ADC_1)
-+			band = 1;
-+		else
-+			band = 2;
-+
-+		s->f_adc = clamp_t(unsigned int, f->frequency,
-+				bands_adc[band].rangelow,
-+				bands_adc[band].rangehigh);
-+
-+		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
-+				__func__, s->f_adc);
-+		ret = rtl2832_sdr_set_adc(s);
-+	} else if (f->tuner == 1) {
-+		s->f_tuner = clamp_t(unsigned int, f->frequency,
-+				bands_fm[0].rangelow,
-+				bands_fm[0].rangehigh);
-+		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
-+				__func__, f->frequency);
-+
-+		ret = rtl2832_sdr_set_tuner_freq(s);
-+	} else {
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (f->index >= NUM_FORMATS)
-+		return -EINVAL;
-+
-+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-+	f->pixelformat = formats[f->index].pixelformat;
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	f->fmt.sdr.pixelformat = s->pixelformat;
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	struct vb2_queue *q = &s->vb_queue;
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-+			(char *)&f->fmt.sdr.pixelformat);
-+
-+	if (vb2_is_busy(q))
-+		return -EBUSY;
-+
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			s->pixelformat = f->fmt.sdr.pixelformat;
-+			return 0;
-+		}
-+	}
-+
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	s->pixelformat = formats[0].pixelformat;
-+
-+	return 0;
-+}
-+
-+static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-+			(char *)&f->fmt.sdr.pixelformat);
-+
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
-+			return 0;
-+	}
-+
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops rtl2832_sdr_ioctl_ops = {
-+	.vidioc_querycap          = rtl2832_sdr_querycap,
-+
-+	.vidioc_enum_fmt_sdr_cap  = rtl2832_sdr_enum_fmt_sdr_cap,
-+	.vidioc_g_fmt_sdr_cap     = rtl2832_sdr_g_fmt_sdr_cap,
-+	.vidioc_s_fmt_sdr_cap     = rtl2832_sdr_s_fmt_sdr_cap,
-+	.vidioc_try_fmt_sdr_cap   = rtl2832_sdr_try_fmt_sdr_cap,
-+
-+	.vidioc_reqbufs           = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs       = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf       = vb2_ioctl_prepare_buf,
-+	.vidioc_querybuf          = vb2_ioctl_querybuf,
-+	.vidioc_qbuf              = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf             = vb2_ioctl_dqbuf,
-+
-+	.vidioc_streamon          = vb2_ioctl_streamon,
-+	.vidioc_streamoff         = vb2_ioctl_streamoff,
-+
-+	.vidioc_g_tuner           = rtl2832_sdr_g_tuner,
-+	.vidioc_s_tuner           = rtl2832_sdr_s_tuner,
-+
-+	.vidioc_enum_freq_bands   = rtl2832_sdr_enum_freq_bands,
-+	.vidioc_g_frequency       = rtl2832_sdr_g_frequency,
-+	.vidioc_s_frequency       = rtl2832_sdr_s_frequency,
-+
-+	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+	.vidioc_log_status        = v4l2_ctrl_log_status,
-+};
-+
-+static const struct v4l2_file_operations rtl2832_sdr_fops = {
-+	.owner                    = THIS_MODULE,
-+	.open                     = v4l2_fh_open,
-+	.release                  = vb2_fop_release,
-+	.read                     = vb2_fop_read,
-+	.poll                     = vb2_fop_poll,
-+	.mmap                     = vb2_fop_mmap,
-+	.unlocked_ioctl           = video_ioctl2,
-+};
-+
-+static struct video_device rtl2832_sdr_template = {
-+	.name                     = "Realtek RTL2832 SDR",
-+	.release                  = video_device_release_empty,
-+	.fops                     = &rtl2832_sdr_fops,
-+	.ioctl_ops                = &rtl2832_sdr_ioctl_ops,
-+};
-+
-+static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct rtl2832_sdr_state *s =
-+			container_of(ctrl->handler, struct rtl2832_sdr_state,
-+					hdl);
-+	struct dvb_frontend *fe = s->fe;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	dev_dbg(&s->udev->dev,
-+			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-+			__func__, ctrl->id, ctrl->name, ctrl->val,
-+			ctrl->minimum, ctrl->maximum, ctrl->step);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
-+	case V4L2_CID_RF_TUNER_BANDWIDTH:
-+		/* TODO: these controls should be moved to tuner drivers */
-+		if (s->bandwidth_auto->val) {
-+			/* Round towards the closest legal value */
-+			s32 val = s->f_adc + s->bandwidth->step / 2;
-+			u32 offset;
-+			val = clamp(val, s->bandwidth->minimum, s->bandwidth->maximum);
-+			offset = val - s->bandwidth->minimum;
-+			offset = s->bandwidth->step * (offset / s->bandwidth->step);
-+			s->bandwidth->val = s->bandwidth->minimum + offset;
-+		}
-+
-+		c->bandwidth_hz = s->bandwidth->val;
-+
-+		if (!test_bit(POWER_ON, &s->flags))
-+			return 0;
-+
-+		if (fe->ops.tuner_ops.set_params)
-+			ret = fe->ops.tuner_ops.set_params(fe);
-+		else
-+			ret = 0;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops rtl2832_sdr_ctrl_ops = {
-+	.s_ctrl = rtl2832_sdr_s_ctrl,
-+};
-+
-+static void rtl2832_sdr_video_release(struct v4l2_device *v)
-+{
-+	struct rtl2832_sdr_state *s =
-+			container_of(v, struct rtl2832_sdr_state, v4l2_dev);
-+
-+	v4l2_ctrl_handler_free(&s->hdl);
-+	v4l2_device_unregister(&s->v4l2_dev);
-+	kfree(s);
-+}
-+
-+struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+		struct v4l2_subdev *sd)
-+{
-+	int ret;
-+	struct rtl2832_sdr_state *s;
-+	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
-+	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
-+
-+	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
-+	if (s == NULL) {
-+		dev_err(&d->udev->dev,
-+				"Could not allocate memory for rtl2832_sdr_state\n");
-+		return NULL;
-+	}
-+
-+	/* setup the state */
-+	s->fe = fe;
-+	s->d = d;
-+	s->udev = d->udev;
-+	s->i2c = i2c;
-+	s->cfg = cfg;
-+	s->f_adc = bands_adc[0].rangelow;
-+	s->f_tuner = bands_fm[0].rangelow;
-+	s->pixelformat =  V4L2_SDR_FMT_CU8;
-+
-+	mutex_init(&s->v4l2_lock);
-+	mutex_init(&s->vb_queue_lock);
-+	spin_lock_init(&s->queued_bufs_lock);
-+	INIT_LIST_HEAD(&s->queued_bufs);
-+
-+	/* Init videobuf2 queue structure */
-+	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
-+	s->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-+	s->vb_queue.drv_priv = s;
-+	s->vb_queue.buf_struct_size = sizeof(struct rtl2832_sdr_frame_buf);
-+	s->vb_queue.ops = &rtl2832_sdr_vb2_ops;
-+	s->vb_queue.mem_ops = &vb2_vmalloc_memops;
-+	s->vb_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	ret = vb2_queue_init(&s->vb_queue);
-+	if (ret) {
-+		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
-+		goto err_free_mem;
-+	}
-+
-+	/* Register controls */
-+	switch (s->cfg->tuner) {
-+	case RTL2832_TUNER_E4000:
-+		v4l2_ctrl_handler_init(&s->hdl, 9);
-+		if (sd)
-+			v4l2_ctrl_add_handler(&s->hdl, sd->ctrl_handler, NULL);
-+		break;
-+	case RTL2832_TUNER_R820T:
-+		v4l2_ctrl_handler_init(&s->hdl, 2);
-+		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
-+		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 0, 8000000, 100000, 0);
-+		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+		break;
-+	case RTL2832_TUNER_FC0012:
-+	case RTL2832_TUNER_FC0013:
-+		v4l2_ctrl_handler_init(&s->hdl, 2);
-+		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
-+		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 6000000, 8000000, 1000000, 6000000);
-+		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+		break;
-+	default:
-+		v4l2_ctrl_handler_init(&s->hdl, 0);
-+		dev_notice(&s->udev->dev, "%s: Unsupported tuner\n",
-+				KBUILD_MODNAME);
-+		goto err_free_controls;
-+	}
-+
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
-+		dev_err(&s->udev->dev, "Could not initialize controls\n");
-+		goto err_free_controls;
-+	}
-+
-+	/* Init video_device structure */
-+	s->vdev = rtl2832_sdr_template;
-+	s->vdev.queue = &s->vb_queue;
-+	s->vdev.queue->lock = &s->vb_queue_lock;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
-+	video_set_drvdata(&s->vdev, s);
-+
-+	/* Register the v4l2_device structure */
-+	s->v4l2_dev.release = rtl2832_sdr_video_release;
-+	ret = v4l2_device_register(&s->udev->dev, &s->v4l2_dev);
-+	if (ret) {
-+		dev_err(&s->udev->dev,
-+				"Failed to register v4l2-device (%d)\n", ret);
-+		goto err_free_controls;
-+	}
-+
-+	s->v4l2_dev.ctrl_handler = &s->hdl;
-+	s->vdev.v4l2_dev = &s->v4l2_dev;
-+	s->vdev.lock = &s->v4l2_lock;
-+	s->vdev.vfl_dir = VFL_DIR_RX;
-+
-+	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
-+	if (ret) {
-+		dev_err(&s->udev->dev,
-+				"Failed to register as video device (%d)\n",
-+				ret);
-+		goto err_unregister_v4l2_dev;
-+	}
-+	dev_info(&s->udev->dev, "Registered as %s\n",
-+			video_device_node_name(&s->vdev));
-+
-+	fe->sec_priv = s;
-+	fe->ops.release_sec = rtl2832_sdr_release_sec;
-+
-+	dev_info(&s->i2c->dev, "%s: Realtek RTL2832 SDR attached\n",
-+			KBUILD_MODNAME);
-+	return fe;
-+
-+err_unregister_v4l2_dev:
-+	v4l2_device_unregister(&s->v4l2_dev);
-+err_free_controls:
-+	v4l2_ctrl_handler_free(&s->hdl);
-+err_free_mem:
-+	kfree(s);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(rtl2832_sdr_attach);
-+
-+MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-+MODULE_DESCRIPTION("Realtek RTL2832 SDR driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.h b/drivers/media/dvb-frontends/rtl2832_sdr.h
-new file mode 100644
-index 0000000..b865fad
---- /dev/null
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.h
-@@ -0,0 +1,54 @@
-+/*
-+ * Realtek RTL2832U SDR driver
-+ *
-+ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-+ *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
-+ *
-+ *    You should have received a copy of the GNU General Public License along
-+ *    with this program; if not, write to the Free Software Foundation, Inc.,
-+ *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ *
-+ * GNU Radio plugin "gr-kernel" for device usage will be on:
-+ * http://git.linuxtv.org/anttip/gr-kernel.git
-+ *
-+ * TODO:
-+ * Help is very highly welcome for these + all the others you could imagine:
-+ * - move controls to V4L2 API
-+ * - use libv4l2 for stream format conversions
-+ * - gr-kernel: switch to v4l2_mmap (current read eats a lot of cpu)
-+ * - SDRSharp support
-+ */
-+
-+#ifndef RTL2832_SDR_H
-+#define RTL2832_SDR_H
-+
-+#include <linux/kconfig.h>
-+#include <media/v4l2-subdev.h>
-+
-+/* for config struct */
-+#include "rtl2832.h"
-+
-+#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
-+extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd);
-+#else
-+static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd)
-+{
-+	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif /* RTL2832_SDR_H */
-diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-index 037e519..0ea144e 100644
---- a/drivers/media/usb/dvb-usb-v2/Kconfig
-+++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-@@ -129,6 +129,7 @@ config DVB_USB_RTL28XXU
- 	depends on DVB_USB_V2 && I2C_MUX
- 	select DVB_RTL2830
- 	select DVB_RTL2832
-+	select DVB_RTL2832_SDR if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MXL5005S if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index 11cfdfc..ce7d65c 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -39,8 +39,6 @@ source "drivers/staging/media/solo6x10/Kconfig"
- 
- source "drivers/staging/media/omap4iss/Kconfig"
- 
--source "drivers/staging/media/rtl2832u_sdr/Kconfig"
--
- # Keep LIRC at the end, as it has sub-menus
- source "drivers/staging/media/lirc/Kconfig"
- 
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index 86f0811..404e866 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -10,5 +10,4 @@ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
- obj-$(CONFIG_USB_SN9C102)       += sn9c102/
- obj-$(CONFIG_VIDEO_OMAP2)       += omap24xx/
- obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
--obj-$(CONFIG_DVB_RTL2832_SDR)	+= rtl2832u_sdr/
- 
-diff --git a/drivers/staging/media/rtl2832u_sdr/Kconfig b/drivers/staging/media/rtl2832u_sdr/Kconfig
-deleted file mode 100644
-index 3ede5fe..0000000
---- a/drivers/staging/media/rtl2832u_sdr/Kconfig
-+++ /dev/null
-@@ -1,7 +0,0 @@
--config DVB_RTL2832_SDR
--	tristate "Realtek RTL2832 SDR"
--	depends on USB && DVB_CORE && I2C && VIDEO_V4L2 && DVB_USB_RTL28XXU
--	select DVB_RTL2832
--	select VIDEOBUF2_VMALLOC
--	default m if !MEDIA_SUBDRV_AUTOSELECT
--
-diff --git a/drivers/staging/media/rtl2832u_sdr/Makefile b/drivers/staging/media/rtl2832u_sdr/Makefile
-deleted file mode 100644
-index 7e00a0d..0000000
---- a/drivers/staging/media/rtl2832u_sdr/Makefile
-+++ /dev/null
-@@ -1,6 +0,0 @@
--obj-$(CONFIG_DVB_RTL2832_SDR) += rtl2832_sdr.o
--
--ccflags-y += -Idrivers/media/dvb-core
--ccflags-y += -Idrivers/media/dvb-frontends
--ccflags-y += -Idrivers/media/tuners
--ccflags-y += -Idrivers/media/usb/dvb-usb-v2
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-deleted file mode 100644
-index 093df6b..0000000
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ /dev/null
-@@ -1,1497 +0,0 @@
--/*
-- * Realtek RTL2832U SDR driver
-- *
-- * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-- *
-- *    This program is free software; you can redistribute it and/or modify
-- *    it under the terms of the GNU General Public License as published by
-- *    the Free Software Foundation; either version 2 of the License, or
-- *    (at your option) any later version.
-- *
-- *    This program is distributed in the hope that it will be useful,
-- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *    GNU General Public License for more details.
-- *
-- *    You should have received a copy of the GNU General Public License along
-- *    with this program; if not, write to the Free Software Foundation, Inc.,
-- *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-- *
-- * GNU Radio plugin "gr-kernel" for device usage will be on:
-- * http://git.linuxtv.org/anttip/gr-kernel.git
-- *
-- */
--
--#include "dvb_frontend.h"
--#include "rtl2832_sdr.h"
--#include "dvb_usb.h"
--
--#include <media/v4l2-device.h>
--#include <media/v4l2-ioctl.h>
--#include <media/v4l2-ctrls.h>
--#include <media/v4l2-event.h>
--#include <media/videobuf2-vmalloc.h>
--
--#include <linux/jiffies.h>
--#include <linux/math64.h>
--
--#define MAX_BULK_BUFS            (10)
--#define BULK_BUFFER_SIZE         (128 * 512)
--
--static const struct v4l2_frequency_band bands_adc[] = {
--	{
--		.tuner = 0,
--		.type = V4L2_TUNER_ADC,
--		.index = 0,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   =  300000,
--		.rangehigh  =  300000,
--	},
--	{
--		.tuner = 0,
--		.type = V4L2_TUNER_ADC,
--		.index = 1,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   =  900001,
--		.rangehigh  = 2800000,
--	},
--	{
--		.tuner = 0,
--		.type = V4L2_TUNER_ADC,
--		.index = 2,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   = 3200000,
--		.rangehigh  = 3200000,
--	},
--};
--
--static const struct v4l2_frequency_band bands_fm[] = {
--	{
--		.tuner = 1,
--		.type = V4L2_TUNER_RF,
--		.index = 0,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   =    50000000,
--		.rangehigh  =  2000000000,
--	},
--};
--
--/* stream formats */
--struct rtl2832_sdr_format {
--	char	*name;
--	u32	pixelformat;
--};
--
--static struct rtl2832_sdr_format formats[] = {
--	{
--		.name		= "IQ U8",
--		.pixelformat	=  V4L2_SDR_FMT_CU8,
--	}, {
--		.name		= "IQ U16LE (emulated)",
--		.pixelformat	= V4L2_SDR_FMT_CU16LE,
--	},
--};
--
--static const unsigned int NUM_FORMATS = ARRAY_SIZE(formats);
--
--/* intermediate buffers with raw data from the USB device */
--struct rtl2832_sdr_frame_buf {
--	struct vb2_buffer vb;   /* common v4l buffer stuff -- must be first */
--	struct list_head list;
--};
--
--struct rtl2832_sdr_state {
--#define POWER_ON           (1 << 1)
--#define URB_BUF            (1 << 2)
--	unsigned long flags;
--
--	const struct rtl2832_config *cfg;
--	struct dvb_frontend *fe;
--	struct dvb_usb_device *d;
--	struct i2c_adapter *i2c;
--	u8 bank;
--
--	struct video_device vdev;
--	struct v4l2_device v4l2_dev;
--
--	/* videobuf2 queue and queued buffers list */
--	struct vb2_queue vb_queue;
--	struct list_head queued_bufs;
--	spinlock_t queued_bufs_lock; /* Protects queued_bufs */
--	unsigned sequence;	     /* buffer sequence counter */
--
--	/* Note if taking both locks v4l2_lock must always be locked first! */
--	struct mutex v4l2_lock;      /* Protects everything else */
--	struct mutex vb_queue_lock;  /* Protects vb_queue and capt_file */
--
--	/* Pointer to our usb_device, will be NULL after unplug */
--	struct usb_device *udev; /* Both mutexes most be hold when setting! */
--
--	unsigned int vb_full; /* vb is full and packets dropped */
--
--	struct urb     *urb_list[MAX_BULK_BUFS];
--	int            buf_num;
--	unsigned long  buf_size;
--	u8             *buf_list[MAX_BULK_BUFS];
--	dma_addr_t     dma_addr[MAX_BULK_BUFS];
--	int urbs_initialized;
--	int urbs_submitted;
--
--	unsigned int f_adc, f_tuner;
--	u32 pixelformat;
--
--	/* Controls */
--	struct v4l2_ctrl_handler hdl;
--	struct v4l2_ctrl *bandwidth_auto;
--	struct v4l2_ctrl *bandwidth;
--
--	/* for sample rate calc */
--	unsigned int sample;
--	unsigned int sample_measured;
--	unsigned long jiffies_next;
--};
--
--/* write multiple hardware registers */
--static int rtl2832_sdr_wr(struct rtl2832_sdr_state *s, u8 reg, const u8 *val,
--		int len)
--{
--	int ret;
--#define MAX_WR_LEN 24
--#define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
--	u8 buf[MAX_WR_XFER_LEN];
--	struct i2c_msg msg[1] = {
--		{
--			.addr = s->cfg->i2c_addr,
--			.flags = 0,
--			.len = 1 + len,
--			.buf = buf,
--		}
--	};
--
--	if (WARN_ON(len > MAX_WR_LEN))
--		return -EINVAL;
--
--	buf[0] = reg;
--	memcpy(&buf[1], val, len);
--
--	ret = i2c_transfer(s->i2c, msg, 1);
--	if (ret == 1) {
--		ret = 0;
--	} else {
--		dev_err(&s->i2c->dev,
--			"%s: I2C wr failed=%d reg=%02x len=%d\n",
--			KBUILD_MODNAME, ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--	return ret;
--}
--
--/* read multiple hardware registers */
--static int rtl2832_sdr_rd(struct rtl2832_sdr_state *s, u8 reg, u8 *val, int len)
--{
--	int ret;
--	struct i2c_msg msg[2] = {
--		{
--			.addr = s->cfg->i2c_addr,
--			.flags = 0,
--			.len = 1,
--			.buf = &reg,
--		}, {
--			.addr = s->cfg->i2c_addr,
--			.flags = I2C_M_RD,
--			.len = len,
--			.buf = val,
--		}
--	};
--
--	ret = i2c_transfer(s->i2c, msg, 2);
--	if (ret == 2) {
--		ret = 0;
--	} else {
--		dev_err(&s->i2c->dev,
--				"%s: I2C rd failed=%d reg=%02x len=%d\n",
--				KBUILD_MODNAME, ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--	return ret;
--}
--
--/* write multiple registers */
--static int rtl2832_sdr_wr_regs(struct rtl2832_sdr_state *s, u16 reg,
--		const u8 *val, int len)
--{
--	int ret;
--	u8 reg2 = (reg >> 0) & 0xff;
--	u8 bank = (reg >> 8) & 0xff;
--
--	/* switch bank if needed */
--	if (bank != s->bank) {
--		ret = rtl2832_sdr_wr(s, 0x00, &bank, 1);
--		if (ret)
--			return ret;
--
--		s->bank = bank;
--	}
--
--	return rtl2832_sdr_wr(s, reg2, val, len);
--}
--
--/* read multiple registers */
--static int rtl2832_sdr_rd_regs(struct rtl2832_sdr_state *s, u16 reg, u8 *val,
--		int len)
--{
--	int ret;
--	u8 reg2 = (reg >> 0) & 0xff;
--	u8 bank = (reg >> 8) & 0xff;
--
--	/* switch bank if needed */
--	if (bank != s->bank) {
--		ret = rtl2832_sdr_wr(s, 0x00, &bank, 1);
--		if (ret)
--			return ret;
--
--		s->bank = bank;
--	}
--
--	return rtl2832_sdr_rd(s, reg2, val, len);
--}
--
--/* write single register */
--static int rtl2832_sdr_wr_reg(struct rtl2832_sdr_state *s, u16 reg, u8 val)
--{
--	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
--}
--
--#if 0
--/* read single register */
--static int rtl2832_sdr_rd_reg(struct rtl2832_sdr_state *s, u16 reg, u8 *val)
--{
--	return rtl2832_sdr_rd_regs(s, reg, val, 1);
--}
--#endif
--
--/* write single register with mask */
--static int rtl2832_sdr_wr_reg_mask(struct rtl2832_sdr_state *s, u16 reg,
--		u8 val, u8 mask)
--{
--	int ret;
--	u8 tmp;
--
--	/* no need for read if whole reg is written */
--	if (mask != 0xff) {
--		ret = rtl2832_sdr_rd_regs(s, reg, &tmp, 1);
--		if (ret)
--			return ret;
--
--		val &= mask;
--		tmp &= ~mask;
--		val |= tmp;
--	}
--
--	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
--}
--
--#if 0
--/* read single register with mask */
--static int rtl2832_sdr_rd_reg_mask(struct rtl2832_sdr_state *s, u16 reg,
--		u8 *val, u8 mask)
--{
--	int ret, i;
--	u8 tmp;
--
--	ret = rtl2832_sdr_rd_regs(s, reg, &tmp, 1);
--	if (ret)
--		return ret;
--
--	tmp &= mask;
--
--	/* find position of the first bit */
--	for (i = 0; i < 8; i++) {
--		if ((mask >> i) & 0x01)
--			break;
--	}
--	*val = tmp >> i;
--
--	return 0;
--}
--#endif
--
--/* Private functions */
--static struct rtl2832_sdr_frame_buf *rtl2832_sdr_get_next_fill_buf(
--		struct rtl2832_sdr_state *s)
--{
--	unsigned long flags = 0;
--	struct rtl2832_sdr_frame_buf *buf = NULL;
--
--	spin_lock_irqsave(&s->queued_bufs_lock, flags);
--	if (list_empty(&s->queued_bufs))
--		goto leave;
--
--	buf = list_entry(s->queued_bufs.next,
--			struct rtl2832_sdr_frame_buf, list);
--	list_del(&buf->list);
--leave:
--	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
--	return buf;
--}
--
--static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
--		void *dst, const u8 *src, unsigned int src_len)
--{
--	unsigned int dst_len;
--
--	if (s->pixelformat ==  V4L2_SDR_FMT_CU8) {
--		/* native stream, no need to convert */
--		memcpy(dst, src, src_len);
--		dst_len = src_len;
--	} else if (s->pixelformat == V4L2_SDR_FMT_CU16LE) {
--		/* convert u8 to u16 */
--		unsigned int i;
--		u16 *u16dst = dst;
--		for (i = 0; i < src_len; i++)
--			*u16dst++ = (src[i] << 8) | (src[i] >> 0);
--		dst_len = 2 * src_len;
--	} else {
--		dst_len = 0;
--	}
--
--	/* calculate samping rate and output it in 10 seconds intervals */
--	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
--#define MSECS 10000UL
--		unsigned int samples = s->sample - s->sample_measured;
--		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
--		s->sample_measured = s->sample;
--		dev_dbg(&s->udev->dev,
--				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
--				src_len, samples, MSECS,
--				samples * 1000UL / MSECS);
--	}
--
--	/* total number of I+Q pairs */
--	s->sample += src_len / 2;
--
--	return dst_len;
--}
--
--/*
-- * This gets called for the bulk stream pipe. This is done in interrupt
-- * time, so it has to be fast, not crash, and not stall. Neat.
-- */
--static void rtl2832_sdr_urb_complete(struct urb *urb)
--{
--	struct rtl2832_sdr_state *s = urb->context;
--	struct rtl2832_sdr_frame_buf *fbuf;
--
--	dev_dbg_ratelimited(&s->udev->dev,
--			"%s: status=%d length=%d/%d errors=%d\n",
--			__func__, urb->status, urb->actual_length,
--			urb->transfer_buffer_length, urb->error_count);
--
--	switch (urb->status) {
--	case 0:             /* success */
--	case -ETIMEDOUT:    /* NAK */
--		break;
--	case -ECONNRESET:   /* kill */
--	case -ENOENT:
--	case -ESHUTDOWN:
--		return;
--	default:            /* error */
--		dev_err_ratelimited(&s->udev->dev, "urb failed=%d\n",
--				urb->status);
--		break;
--	}
--
--	if (likely(urb->actual_length > 0)) {
--		void *ptr;
--		unsigned int len;
--		/* get free framebuffer */
--		fbuf = rtl2832_sdr_get_next_fill_buf(s);
--		if (unlikely(fbuf == NULL)) {
--			s->vb_full++;
--			dev_notice_ratelimited(&s->udev->dev,
--					"videobuf is full, %d packets dropped\n",
--					s->vb_full);
--			goto skip;
--		}
--
--		/* fill framebuffer */
--		ptr = vb2_plane_vaddr(&fbuf->vb, 0);
--		len = rtl2832_sdr_convert_stream(s, ptr, urb->transfer_buffer,
--				urb->actual_length);
--		vb2_set_plane_payload(&fbuf->vb, 0, len);
--		v4l2_get_timestamp(&fbuf->vb.v4l2_buf.timestamp);
--		fbuf->vb.v4l2_buf.sequence = s->sequence++;
--		vb2_buffer_done(&fbuf->vb, VB2_BUF_STATE_DONE);
--	}
--skip:
--	usb_submit_urb(urb, GFP_ATOMIC);
--}
--
--static int rtl2832_sdr_kill_urbs(struct rtl2832_sdr_state *s)
--{
--	int i;
--
--	for (i = s->urbs_submitted - 1; i >= 0; i--) {
--		dev_dbg(&s->udev->dev, "%s: kill urb=%d\n", __func__, i);
--		/* stop the URB */
--		usb_kill_urb(s->urb_list[i]);
--	}
--	s->urbs_submitted = 0;
--
--	return 0;
--}
--
--static int rtl2832_sdr_submit_urbs(struct rtl2832_sdr_state *s)
--{
--	int i, ret;
--
--	for (i = 0; i < s->urbs_initialized; i++) {
--		dev_dbg(&s->udev->dev, "%s: submit urb=%d\n", __func__, i);
--		ret = usb_submit_urb(s->urb_list[i], GFP_ATOMIC);
--		if (ret) {
--			dev_err(&s->udev->dev,
--					"Could not submit urb no. %d - get them all back\n",
--					i);
--			rtl2832_sdr_kill_urbs(s);
--			return ret;
--		}
--		s->urbs_submitted++;
--	}
--
--	return 0;
--}
--
--static int rtl2832_sdr_free_stream_bufs(struct rtl2832_sdr_state *s)
--{
--	if (s->flags & USB_STATE_URB_BUF) {
--		while (s->buf_num) {
--			s->buf_num--;
--			dev_dbg(&s->udev->dev, "%s: free buf=%d\n",
--					__func__, s->buf_num);
--			usb_free_coherent(s->udev, s->buf_size,
--					  s->buf_list[s->buf_num],
--					  s->dma_addr[s->buf_num]);
--		}
--	}
--	s->flags &= ~USB_STATE_URB_BUF;
--
--	return 0;
--}
--
--static int rtl2832_sdr_alloc_stream_bufs(struct rtl2832_sdr_state *s)
--{
--	s->buf_num = 0;
--	s->buf_size = BULK_BUFFER_SIZE;
--
--	dev_dbg(&s->udev->dev,
--			"%s: all in all I will use %u bytes for streaming\n",
--			__func__,  MAX_BULK_BUFS * BULK_BUFFER_SIZE);
--
--	for (s->buf_num = 0; s->buf_num < MAX_BULK_BUFS; s->buf_num++) {
--		s->buf_list[s->buf_num] = usb_alloc_coherent(s->udev,
--				BULK_BUFFER_SIZE, GFP_ATOMIC,
--				&s->dma_addr[s->buf_num]);
--		if (!s->buf_list[s->buf_num]) {
--			dev_dbg(&s->udev->dev, "%s: alloc buf=%d failed\n",
--					__func__, s->buf_num);
--			rtl2832_sdr_free_stream_bufs(s);
--			return -ENOMEM;
--		}
--
--		dev_dbg(&s->udev->dev, "%s: alloc buf=%d %p (dma %llu)\n",
--				__func__, s->buf_num,
--				s->buf_list[s->buf_num],
--				(long long)s->dma_addr[s->buf_num]);
--		s->flags |= USB_STATE_URB_BUF;
--	}
--
--	return 0;
--}
--
--static int rtl2832_sdr_free_urbs(struct rtl2832_sdr_state *s)
--{
--	int i;
--
--	rtl2832_sdr_kill_urbs(s);
--
--	for (i = s->urbs_initialized - 1; i >= 0; i--) {
--		if (s->urb_list[i]) {
--			dev_dbg(&s->udev->dev, "%s: free urb=%d\n",
--					__func__, i);
--			/* free the URBs */
--			usb_free_urb(s->urb_list[i]);
--		}
--	}
--	s->urbs_initialized = 0;
--
--	return 0;
--}
--
--static int rtl2832_sdr_alloc_urbs(struct rtl2832_sdr_state *s)
--{
--	int i, j;
--
--	/* allocate the URBs */
--	for (i = 0; i < MAX_BULK_BUFS; i++) {
--		dev_dbg(&s->udev->dev, "%s: alloc urb=%d\n", __func__, i);
--		s->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
--		if (!s->urb_list[i]) {
--			dev_dbg(&s->udev->dev, "%s: failed\n", __func__);
--			for (j = 0; j < i; j++)
--				usb_free_urb(s->urb_list[j]);
--			return -ENOMEM;
--		}
--		usb_fill_bulk_urb(s->urb_list[i],
--				s->udev,
--				usb_rcvbulkpipe(s->udev, 0x81),
--				s->buf_list[i],
--				BULK_BUFFER_SIZE,
--				rtl2832_sdr_urb_complete, s);
--
--		s->urb_list[i]->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
--		s->urb_list[i]->transfer_dma = s->dma_addr[i];
--		s->urbs_initialized++;
--	}
--
--	return 0;
--}
--
--/* Must be called with vb_queue_lock hold */
--static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
--{
--	unsigned long flags = 0;
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	spin_lock_irqsave(&s->queued_bufs_lock, flags);
--	while (!list_empty(&s->queued_bufs)) {
--		struct rtl2832_sdr_frame_buf *buf;
--		buf = list_entry(s->queued_bufs.next,
--				struct rtl2832_sdr_frame_buf, list);
--		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
--	}
--	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
--}
--
--/* The user yanked out the cable... */
--static void rtl2832_sdr_release_sec(struct dvb_frontend *fe)
--{
--	struct rtl2832_sdr_state *s = fe->sec_priv;
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	mutex_lock(&s->vb_queue_lock);
--	mutex_lock(&s->v4l2_lock);
--	/* No need to keep the urbs around after disconnection */
--	s->udev = NULL;
--
--	v4l2_device_disconnect(&s->v4l2_dev);
--	video_unregister_device(&s->vdev);
--	mutex_unlock(&s->v4l2_lock);
--	mutex_unlock(&s->vb_queue_lock);
--
--	v4l2_device_put(&s->v4l2_dev);
--
--	fe->sec_priv = NULL;
--}
--
--static int rtl2832_sdr_querycap(struct file *file, void *fh,
--		struct v4l2_capability *cap)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
--	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
--	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
--	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
--			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
--	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
--	return 0;
--}
--
--/* Videobuf2 operations */
--static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
--		const struct v4l2_format *fmt, unsigned int *nbuffers,
--		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
--{
--	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
--	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
--
--	/* Need at least 8 buffers */
--	if (vq->num_buffers + *nbuffers < 8)
--		*nbuffers = 8 - vq->num_buffers;
--	*nplanes = 1;
--	/* 2 = max 16-bit sample returned */
--	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 2);
--	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
--			__func__, *nbuffers, sizes[0]);
--	return 0;
--}
--
--static int rtl2832_sdr_buf_prepare(struct vb2_buffer *vb)
--{
--	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vb->vb2_queue);
--
--	/* Don't allow queing new buffers after device disconnection */
--	if (!s->udev)
--		return -ENODEV;
--
--	return 0;
--}
--
--static void rtl2832_sdr_buf_queue(struct vb2_buffer *vb)
--{
--	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vb->vb2_queue);
--	struct rtl2832_sdr_frame_buf *buf =
--			container_of(vb, struct rtl2832_sdr_frame_buf, vb);
--	unsigned long flags = 0;
--
--	/* Check the device has not disconnected between prep and queuing */
--	if (!s->udev) {
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
--		return;
--	}
--
--	spin_lock_irqsave(&s->queued_bufs_lock, flags);
--	list_add_tail(&buf->list, &s->queued_bufs);
--	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
--}
--
--static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
--{
--	struct dvb_frontend *fe = s->fe;
--	int ret;
--	unsigned int f_sr, f_if;
--	u8 buf[4], u8tmp1, u8tmp2;
--	u64 u64tmp;
--	u32 u32tmp;
--	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
--
--	if (!test_bit(POWER_ON, &s->flags))
--		return 0;
--
--	if (s->f_adc == 0)
--		return 0;
--
--	f_sr = s->f_adc;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x13e, "\x00\x00", 2);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x00\x00\x00\x00", 4);
--	if (ret)
--		goto err;
--
--	/* get IF from tuner */
--	if (fe->ops.tuner_ops.get_if_frequency)
--		ret = fe->ops.tuner_ops.get_if_frequency(fe, &f_if);
--	else
--		ret = -EINVAL;
--
--	if (ret)
--		goto err;
--
--	/* program IF */
--	u64tmp = f_if % s->cfg->xtal;
--	u64tmp *= 0x400000;
--	u64tmp = div_u64(u64tmp, s->cfg->xtal);
--	u64tmp = -u64tmp;
--	u32tmp = u64tmp & 0x3fffff;
--
--	dev_dbg(&s->udev->dev, "%s: f_if=%u if_ctl=%08x\n",
--			__func__, f_if, u32tmp);
--
--	buf[0] = (u32tmp >> 16) & 0xff;
--	buf[1] = (u32tmp >>  8) & 0xff;
--	buf[2] = (u32tmp >>  0) & 0xff;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x119, buf, 3);
--	if (ret)
--		goto err;
--
--	/* BB / IF mode */
--	/* POR: 0x1b1=0x1f, 0x008=0x0d, 0x006=0x80 */
--	if (f_if) {
--		u8tmp1 = 0x1a; /* disable Zero-IF */
--		u8tmp2 = 0x8d; /* enable ADC I */
--	} else {
--		u8tmp1 = 0x1b; /* enable Zero-IF, DC, IQ */
--		u8tmp2 = 0xcd; /* enable ADC I, ADC Q */
--	}
--
--	ret = rtl2832_sdr_wr_reg(s, 0x1b1, u8tmp1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_reg(s, 0x008, u8tmp2);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_reg(s, 0x006, 0x80);
--	if (ret)
--		goto err;
--
--	/* program sampling rate (resampling down) */
--	u32tmp = div_u64(s->cfg->xtal * 0x400000ULL, f_sr * 4U);
--	u32tmp <<= 2;
--	buf[0] = (u32tmp >> 24) & 0xff;
--	buf[1] = (u32tmp >> 16) & 0xff;
--	buf[2] = (u32tmp >>  8) & 0xff;
--	buf[3] = (u32tmp >>  0) & 0xff;
--	ret = rtl2832_sdr_wr_regs(s, 0x19f, buf, 4);
--	if (ret)
--		goto err;
--
--	/* low-pass filter */
--	ret = rtl2832_sdr_wr_regs(s, 0x11c,
--			"\xca\xdc\xd7\xd8\xe0\xf2\x0e\x35\x06\x50\x9c\x0d\x71\x11\x14\x71\x74\x19\x41\xa5",
--			20);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x017, "\x11\x10", 2);
--	if (ret)
--		goto err;
--
--	/* mode */
--	ret = rtl2832_sdr_wr_regs(s, 0x019, "\x05", 1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x01a, "\x1b\x16\x0d\x06\x01\xff", 6);
--	if (ret)
--		goto err;
--
--	/* FSM */
--	ret = rtl2832_sdr_wr_regs(s, 0x192, "\x00\xf0\x0f", 3);
--	if (ret)
--		goto err;
--
--	/* PID filter */
--	ret = rtl2832_sdr_wr_regs(s, 0x061, "\x60", 1);
--	if (ret)
--		goto err;
--
--	/* used RF tuner based settings */
--	switch (s->cfg->tuner) {
--	case RTL2832_TUNER_E4000:
--		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xd0", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x18", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x14", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xec", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x83", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x010, "\x49", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x87", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x85", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x013, "\x02", 1);
--		break;
--	case RTL2832_TUNER_FC0012:
--	case RTL2832_TUNER_FC0013:
--		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x2c", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x16", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xe9\xbf", 2);
--		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x11", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xef", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
--		break;
--	case RTL2832_TUNER_R820T:
--		ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x24", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cb, "\x00", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x107, "\x40", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1cd, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x1ce, "\x10", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x108, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x109, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10a, "\x80", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xf4", 1);
--		break;
--	default:
--		dev_notice(&s->udev->dev, "Unsupported tuner\n");
--	}
--
--	/* software reset */
--	ret = rtl2832_sdr_wr_reg_mask(s, 0x101, 0x04, 0x04);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_reg_mask(s, 0x101, 0x00, 0x04);
--	if (ret)
--		goto err;
--err:
--	return ret;
--};
--
--static void rtl2832_sdr_unset_adc(struct rtl2832_sdr_state *s)
--{
--	int ret;
--
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	/* PID filter */
--	ret = rtl2832_sdr_wr_regs(s, 0x061, "\xe0", 1);
--	if (ret)
--		goto err;
--
--	/* mode */
--	ret = rtl2832_sdr_wr_regs(s, 0x019, "\x20", 1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x017, "\x11\x10", 2);
--	if (ret)
--		goto err;
--
--	/* FSM */
--	ret = rtl2832_sdr_wr_regs(s, 0x192, "\x00\x0f\xff", 3);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x13e, "\x40\x00", 2);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x06\x3f\xce\xcc", 4);
--	if (ret)
--		goto err;
--err:
--	return;
--};
--
--static int rtl2832_sdr_set_tuner_freq(struct rtl2832_sdr_state *s)
--{
--	struct dvb_frontend *fe = s->fe;
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	struct v4l2_ctrl *bandwidth_auto;
--	struct v4l2_ctrl *bandwidth;
--
--	/*
--	 * tuner RF (Hz)
--	 */
--	if (s->f_tuner == 0)
--		return 0;
--
--	/*
--	 * bandwidth (Hz)
--	 */
--	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
--	bandwidth = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH);
--	if (v4l2_ctrl_g_ctrl(bandwidth_auto)) {
--		c->bandwidth_hz = s->f_adc;
--		v4l2_ctrl_s_ctrl(bandwidth, s->f_adc);
--	} else {
--		c->bandwidth_hz = v4l2_ctrl_g_ctrl(bandwidth);
--	}
--
--	c->frequency = s->f_tuner;
--	c->delivery_system = SYS_DVBT;
--
--	dev_dbg(&s->udev->dev, "%s: frequency=%u bandwidth=%d\n",
--			__func__, c->frequency, c->bandwidth_hz);
--
--	if (!test_bit(POWER_ON, &s->flags))
--		return 0;
--
--	if (fe->ops.tuner_ops.set_params)
--		fe->ops.tuner_ops.set_params(fe);
--
--	return 0;
--};
--
--static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
--{
--	struct dvb_frontend *fe = s->fe;
--
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	if (fe->ops.tuner_ops.init)
--		fe->ops.tuner_ops.init(fe);
--
--	return 0;
--};
--
--static void rtl2832_sdr_unset_tuner(struct rtl2832_sdr_state *s)
--{
--	struct dvb_frontend *fe = s->fe;
--
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	if (fe->ops.tuner_ops.sleep)
--		fe->ops.tuner_ops.sleep(fe);
--
--	return;
--};
--
--static int rtl2832_sdr_start_streaming(struct vb2_queue *vq, unsigned int count)
--{
--	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
--	int ret;
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	if (!s->udev)
--		return -ENODEV;
--
--	if (mutex_lock_interruptible(&s->v4l2_lock))
--		return -ERESTARTSYS;
--
--	if (s->d->props->power_ctrl)
--		s->d->props->power_ctrl(s->d, 1);
--
--	set_bit(POWER_ON, &s->flags);
--
--	ret = rtl2832_sdr_set_tuner(s);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_set_tuner_freq(s);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_set_adc(s);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_alloc_stream_bufs(s);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_sdr_alloc_urbs(s);
--	if (ret)
--		goto err;
--
--	s->sequence = 0;
--
--	ret = rtl2832_sdr_submit_urbs(s);
--	if (ret)
--		goto err;
--
--err:
--	mutex_unlock(&s->v4l2_lock);
--
--	return ret;
--}
--
--static void rtl2832_sdr_stop_streaming(struct vb2_queue *vq)
--{
--	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	mutex_lock(&s->v4l2_lock);
--
--	rtl2832_sdr_kill_urbs(s);
--	rtl2832_sdr_free_urbs(s);
--	rtl2832_sdr_free_stream_bufs(s);
--	rtl2832_sdr_cleanup_queued_bufs(s);
--	rtl2832_sdr_unset_adc(s);
--	rtl2832_sdr_unset_tuner(s);
--
--	clear_bit(POWER_ON, &s->flags);
--
--	if (s->d->props->power_ctrl)
--		s->d->props->power_ctrl(s->d, 0);
--
--	mutex_unlock(&s->v4l2_lock);
--}
--
--static struct vb2_ops rtl2832_sdr_vb2_ops = {
--	.queue_setup            = rtl2832_sdr_queue_setup,
--	.buf_prepare            = rtl2832_sdr_buf_prepare,
--	.buf_queue              = rtl2832_sdr_buf_queue,
--	.start_streaming        = rtl2832_sdr_start_streaming,
--	.stop_streaming         = rtl2832_sdr_stop_streaming,
--	.wait_prepare           = vb2_ops_wait_prepare,
--	.wait_finish            = vb2_ops_wait_finish,
--};
--
--static int rtl2832_sdr_g_tuner(struct file *file, void *priv,
--		struct v4l2_tuner *v)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s: index=%d type=%d\n",
--			__func__, v->index, v->type);
--
--	if (v->index == 0) {
--		strlcpy(v->name, "ADC: Realtek RTL2832", sizeof(v->name));
--		v->type = V4L2_TUNER_ADC;
--		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
--		v->rangelow =   300000;
--		v->rangehigh = 3200000;
--	} else if (v->index == 1) {
--		strlcpy(v->name, "RF: <unknown>", sizeof(v->name));
--		v->type = V4L2_TUNER_RF;
--		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
--		v->rangelow =    50000000;
--		v->rangehigh = 2000000000;
--	} else {
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
--		const struct v4l2_tuner *v)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	if (v->index > 1)
--		return -EINVAL;
--	return 0;
--}
--
--static int rtl2832_sdr_enum_freq_bands(struct file *file, void *priv,
--		struct v4l2_frequency_band *band)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
--			__func__, band->tuner, band->type, band->index);
--
--	if (band->tuner == 0) {
--		if (band->index >= ARRAY_SIZE(bands_adc))
--			return -EINVAL;
--
--		*band = bands_adc[band->index];
--	} else if (band->tuner == 1) {
--		if (band->index >= ARRAY_SIZE(bands_fm))
--			return -EINVAL;
--
--		*band = bands_fm[band->index];
--	} else {
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
--		struct v4l2_frequency *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	int ret  = 0;
--	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
--			__func__, f->tuner, f->type);
--
--	if (f->tuner == 0) {
--		f->frequency = s->f_adc;
--		f->type = V4L2_TUNER_ADC;
--	} else if (f->tuner == 1) {
--		f->frequency = s->f_tuner;
--		f->type = V4L2_TUNER_RF;
--	} else {
--		return -EINVAL;
--	}
--
--	return ret;
--}
--
--static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
--		const struct v4l2_frequency *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	int ret, band;
--
--	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
--			__func__, f->tuner, f->type, f->frequency);
--
--	/* ADC band midpoints */
--	#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
--	#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
--
--	if (f->tuner == 0 && f->type == V4L2_TUNER_ADC) {
--		if (f->frequency < BAND_ADC_0)
--			band = 0;
--		else if (f->frequency < BAND_ADC_1)
--			band = 1;
--		else
--			band = 2;
--
--		s->f_adc = clamp_t(unsigned int, f->frequency,
--				bands_adc[band].rangelow,
--				bands_adc[band].rangehigh);
--
--		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
--				__func__, s->f_adc);
--		ret = rtl2832_sdr_set_adc(s);
--	} else if (f->tuner == 1) {
--		s->f_tuner = clamp_t(unsigned int, f->frequency,
--				bands_fm[0].rangelow,
--				bands_fm[0].rangehigh);
--		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
--				__func__, f->frequency);
--
--		ret = rtl2832_sdr_set_tuner_freq(s);
--	} else {
--		ret = -EINVAL;
--	}
--
--	return ret;
--}
--
--static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
--		struct v4l2_fmtdesc *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	if (f->index >= NUM_FORMATS)
--		return -EINVAL;
--
--	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
--	f->pixelformat = formats[f->index].pixelformat;
--
--	return 0;
--}
--
--static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
--		struct v4l2_format *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	f->fmt.sdr.pixelformat = s->pixelformat;
--	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
--
--	return 0;
--}
--
--static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
--		struct v4l2_format *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	struct vb2_queue *q = &s->vb_queue;
--	int i;
--	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.sdr.pixelformat);
--
--	if (vb2_is_busy(q))
--		return -EBUSY;
--
--	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
--	for (i = 0; i < NUM_FORMATS; i++) {
--		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
--			s->pixelformat = f->fmt.sdr.pixelformat;
--			return 0;
--		}
--	}
--
--	f->fmt.sdr.pixelformat = formats[0].pixelformat;
--	s->pixelformat = formats[0].pixelformat;
--
--	return 0;
--}
--
--static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
--		struct v4l2_format *f)
--{
--	struct rtl2832_sdr_state *s = video_drvdata(file);
--	int i;
--	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.sdr.pixelformat);
--
--	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
--	for (i = 0; i < NUM_FORMATS; i++) {
--		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
--			return 0;
--	}
--
--	f->fmt.sdr.pixelformat = formats[0].pixelformat;
--
--	return 0;
--}
--
--static const struct v4l2_ioctl_ops rtl2832_sdr_ioctl_ops = {
--	.vidioc_querycap          = rtl2832_sdr_querycap,
--
--	.vidioc_enum_fmt_sdr_cap  = rtl2832_sdr_enum_fmt_sdr_cap,
--	.vidioc_g_fmt_sdr_cap     = rtl2832_sdr_g_fmt_sdr_cap,
--	.vidioc_s_fmt_sdr_cap     = rtl2832_sdr_s_fmt_sdr_cap,
--	.vidioc_try_fmt_sdr_cap   = rtl2832_sdr_try_fmt_sdr_cap,
--
--	.vidioc_reqbufs           = vb2_ioctl_reqbufs,
--	.vidioc_create_bufs       = vb2_ioctl_create_bufs,
--	.vidioc_prepare_buf       = vb2_ioctl_prepare_buf,
--	.vidioc_querybuf          = vb2_ioctl_querybuf,
--	.vidioc_qbuf              = vb2_ioctl_qbuf,
--	.vidioc_dqbuf             = vb2_ioctl_dqbuf,
--
--	.vidioc_streamon          = vb2_ioctl_streamon,
--	.vidioc_streamoff         = vb2_ioctl_streamoff,
--
--	.vidioc_g_tuner           = rtl2832_sdr_g_tuner,
--	.vidioc_s_tuner           = rtl2832_sdr_s_tuner,
--
--	.vidioc_enum_freq_bands   = rtl2832_sdr_enum_freq_bands,
--	.vidioc_g_frequency       = rtl2832_sdr_g_frequency,
--	.vidioc_s_frequency       = rtl2832_sdr_s_frequency,
--
--	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
--	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
--	.vidioc_log_status        = v4l2_ctrl_log_status,
--};
--
--static const struct v4l2_file_operations rtl2832_sdr_fops = {
--	.owner                    = THIS_MODULE,
--	.open                     = v4l2_fh_open,
--	.release                  = vb2_fop_release,
--	.read                     = vb2_fop_read,
--	.poll                     = vb2_fop_poll,
--	.mmap                     = vb2_fop_mmap,
--	.unlocked_ioctl           = video_ioctl2,
--};
--
--static struct video_device rtl2832_sdr_template = {
--	.name                     = "Realtek RTL2832 SDR",
--	.release                  = video_device_release_empty,
--	.fops                     = &rtl2832_sdr_fops,
--	.ioctl_ops                = &rtl2832_sdr_ioctl_ops,
--};
--
--static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
--{
--	struct rtl2832_sdr_state *s =
--			container_of(ctrl->handler, struct rtl2832_sdr_state,
--					hdl);
--	struct dvb_frontend *fe = s->fe;
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int ret;
--	dev_dbg(&s->udev->dev,
--			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
--			__func__, ctrl->id, ctrl->name, ctrl->val,
--			ctrl->minimum, ctrl->maximum, ctrl->step);
--
--	switch (ctrl->id) {
--	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
--	case V4L2_CID_RF_TUNER_BANDWIDTH:
--		/* TODO: these controls should be moved to tuner drivers */
--		if (s->bandwidth_auto->val) {
--			/* Round towards the closest legal value */
--			s32 val = s->f_adc + s->bandwidth->step / 2;
--			u32 offset;
--			val = clamp(val, s->bandwidth->minimum, s->bandwidth->maximum);
--			offset = val - s->bandwidth->minimum;
--			offset = s->bandwidth->step * (offset / s->bandwidth->step);
--			s->bandwidth->val = s->bandwidth->minimum + offset;
--		}
--
--		c->bandwidth_hz = s->bandwidth->val;
--
--		if (!test_bit(POWER_ON, &s->flags))
--			return 0;
--
--		if (fe->ops.tuner_ops.set_params)
--			ret = fe->ops.tuner_ops.set_params(fe);
--		else
--			ret = 0;
--		break;
--	default:
--		ret = -EINVAL;
--	}
--
--	return ret;
--}
--
--static const struct v4l2_ctrl_ops rtl2832_sdr_ctrl_ops = {
--	.s_ctrl = rtl2832_sdr_s_ctrl,
--};
--
--static void rtl2832_sdr_video_release(struct v4l2_device *v)
--{
--	struct rtl2832_sdr_state *s =
--			container_of(v, struct rtl2832_sdr_state, v4l2_dev);
--
--	v4l2_ctrl_handler_free(&s->hdl);
--	v4l2_device_unregister(&s->v4l2_dev);
--	kfree(s);
--}
--
--struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--		struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
--		struct v4l2_subdev *sd)
--{
--	int ret;
--	struct rtl2832_sdr_state *s;
--	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
--	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
--
--	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
--	if (s == NULL) {
--		dev_err(&d->udev->dev,
--				"Could not allocate memory for rtl2832_sdr_state\n");
--		return NULL;
--	}
--
--	/* setup the state */
--	s->fe = fe;
--	s->d = d;
--	s->udev = d->udev;
--	s->i2c = i2c;
--	s->cfg = cfg;
--	s->f_adc = bands_adc[0].rangelow;
--	s->f_tuner = bands_fm[0].rangelow;
--	s->pixelformat =  V4L2_SDR_FMT_CU8;
--
--	mutex_init(&s->v4l2_lock);
--	mutex_init(&s->vb_queue_lock);
--	spin_lock_init(&s->queued_bufs_lock);
--	INIT_LIST_HEAD(&s->queued_bufs);
--
--	/* Init videobuf2 queue structure */
--	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
--	s->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
--	s->vb_queue.drv_priv = s;
--	s->vb_queue.buf_struct_size = sizeof(struct rtl2832_sdr_frame_buf);
--	s->vb_queue.ops = &rtl2832_sdr_vb2_ops;
--	s->vb_queue.mem_ops = &vb2_vmalloc_memops;
--	s->vb_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--	ret = vb2_queue_init(&s->vb_queue);
--	if (ret) {
--		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
--		goto err_free_mem;
--	}
--
--	/* Register controls */
--	switch (s->cfg->tuner) {
--	case RTL2832_TUNER_E4000:
--		v4l2_ctrl_handler_init(&s->hdl, 9);
--		if (sd)
--			v4l2_ctrl_add_handler(&s->hdl, sd->ctrl_handler, NULL);
--		break;
--	case RTL2832_TUNER_R820T:
--		v4l2_ctrl_handler_init(&s->hdl, 2);
--		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
--		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 0, 8000000, 100000, 0);
--		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
--		break;
--	case RTL2832_TUNER_FC0012:
--	case RTL2832_TUNER_FC0013:
--		v4l2_ctrl_handler_init(&s->hdl, 2);
--		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
--		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 6000000, 8000000, 1000000, 6000000);
--		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
--		break;
--	default:
--		v4l2_ctrl_handler_init(&s->hdl, 0);
--		dev_notice(&s->udev->dev, "%s: Unsupported tuner\n",
--				KBUILD_MODNAME);
--		goto err_free_controls;
--	}
--
--	if (s->hdl.error) {
--		ret = s->hdl.error;
--		dev_err(&s->udev->dev, "Could not initialize controls\n");
--		goto err_free_controls;
--	}
--
--	/* Init video_device structure */
--	s->vdev = rtl2832_sdr_template;
--	s->vdev.queue = &s->vb_queue;
--	s->vdev.queue->lock = &s->vb_queue_lock;
--	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
--	video_set_drvdata(&s->vdev, s);
--
--	/* Register the v4l2_device structure */
--	s->v4l2_dev.release = rtl2832_sdr_video_release;
--	ret = v4l2_device_register(&s->udev->dev, &s->v4l2_dev);
--	if (ret) {
--		dev_err(&s->udev->dev,
--				"Failed to register v4l2-device (%d)\n", ret);
--		goto err_free_controls;
--	}
--
--	s->v4l2_dev.ctrl_handler = &s->hdl;
--	s->vdev.v4l2_dev = &s->v4l2_dev;
--	s->vdev.lock = &s->v4l2_lock;
--	s->vdev.vfl_dir = VFL_DIR_RX;
--
--	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
--	if (ret) {
--		dev_err(&s->udev->dev,
--				"Failed to register as video device (%d)\n",
--				ret);
--		goto err_unregister_v4l2_dev;
--	}
--	dev_info(&s->udev->dev, "Registered as %s\n",
--			video_device_node_name(&s->vdev));
--
--	fe->sec_priv = s;
--	fe->ops.release_sec = rtl2832_sdr_release_sec;
--
--	dev_info(&s->i2c->dev, "%s: Realtek RTL2832 SDR attached\n",
--			KBUILD_MODNAME);
--	return fe;
--
--err_unregister_v4l2_dev:
--	v4l2_device_unregister(&s->v4l2_dev);
--err_free_controls:
--	v4l2_ctrl_handler_free(&s->hdl);
--err_free_mem:
--	kfree(s);
--	return NULL;
--}
--EXPORT_SYMBOL(rtl2832_sdr_attach);
--
--MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
--MODULE_DESCRIPTION("Realtek RTL2832 SDR driver");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-deleted file mode 100644
-index b865fad..0000000
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-+++ /dev/null
-@@ -1,54 +0,0 @@
--/*
-- * Realtek RTL2832U SDR driver
-- *
-- * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-- *
-- *    This program is free software; you can redistribute it and/or modify
-- *    it under the terms of the GNU General Public License as published by
-- *    the Free Software Foundation; either version 2 of the License, or
-- *    (at your option) any later version.
-- *
-- *    This program is distributed in the hope that it will be useful,
-- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *    GNU General Public License for more details.
-- *
-- *    You should have received a copy of the GNU General Public License along
-- *    with this program; if not, write to the Free Software Foundation, Inc.,
-- *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-- *
-- * GNU Radio plugin "gr-kernel" for device usage will be on:
-- * http://git.linuxtv.org/anttip/gr-kernel.git
-- *
-- * TODO:
-- * Help is very highly welcome for these + all the others you could imagine:
-- * - move controls to V4L2 API
-- * - use libv4l2 for stream format conversions
-- * - gr-kernel: switch to v4l2_mmap (current read eats a lot of cpu)
-- * - SDRSharp support
-- */
--
--#ifndef RTL2832_SDR_H
--#define RTL2832_SDR_H
--
--#include <linux/kconfig.h>
--#include <media/v4l2-subdev.h>
--
--/* for config struct */
--#include "rtl2832.h"
--
--#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
--extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
--	struct v4l2_subdev *sd);
--#else
--static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
--	struct v4l2_subdev *sd)
--{
--	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif
--
--#endif /* RTL2832_SDR_H */
++++ b/Documentation/video4linux/vivid.txt
+@@ -0,0 +1,1108 @@
++vivid: Virtual Video Test Driver
++================================
++
++This driver emulates video4linux hardware of various types: video capture, video
++output, vbi capture and output, radio receivers and transmitters and a software
++defined radio receiver. In addition a simple framebuffer device is available for
++testing capture and output overlays.
++
++Up to 64 vivid instances can be created, each with up to 16 inputs and 16 outputs.
++
++Each input can be a webcam, TV capture device, S-Video capture device or an HDMI
++capture device. Each output can be an S-Video output device or an HDMI output
++device.
++
++These inputs and outputs act exactly as a real hardware device would behave. This
++allows you to use this driver as a test input for application development, since
++you can test the various features without requiring special hardware.
++
++This document describes the features implemented by this driver:
++
++- Support for read()/write(), MMAP, USERPTR and DMABUF streaming I/O.
++- A large list of test patterns and variations thereof
++- Working brightness, contrast, saturation and hue controls
++- Support for the alpha color component
++- Full colorspace support, including limited/full RGB range
++- All possible control types are present
++- Support for various pixel aspect ratios and video aspect ratios
++- Error injection to test what happens if errors occur
++- Supports crop/compose/scale in any combination for both input and output
++- Can emulate up to 4K resolutions
++- All Field settings are supported for testing interlaced capturing
++- Supports all standard YUV and RGB formats, including two multiplanar YUV formats
++- Raw and Sliced VBI capture and output support
++- Radio receiver and transmitter support, including RDS support
++- Software defined radio (SDR) support
++- Capture and output overlay support
++
++These features will be described in more detail below.
++
++
++Table of Contents
++-----------------
++
++Section 1: Configuring the driver
++Section 2: Video Capture
++Section 2.1: Webcam Input
++Section 2.2: TV and S-Video Inputs
++Section 2.3: HDMI Input
++Section 3: Video Output
++Section 3.1: S-Video Output
++Section 3.2: HDMI Output
++Section 4: VBI Capture
++Section 5: VBI Output
++Section 6: Radio Receiver
++Section 7: Radio Transmitter
++Section 8: Software Defined Radio Receiver
++Section 9: Controls
++Section 9.1: User Controls - Test Controls
++Section 9.2: User Controls - Video Capture
++Section 9.3: User Controls - Audio
++Section 9.4: Image Processing Controls
++Section 9.4.1: Test Pattern Controls
++Section 9.4.2: Capture Feature Selection Controls
++Section 9.4.3: Output Feature Selection Controls
++Section 9.4.4: Error Injection Controls
++Section 9.4.5: VBI Raw Capture Controls
++Section 9.5: Digital Video Controls
++Section 9.6: FM Radio Receiver Controls
++Section 9.7: FM Radio Modulator
++Section 10: Video, VBI and RDS Looping
++Section 10.1: Video and Sliced VBI looping
++Section 10.2: Radio & RDS Looping
++Section 11: Cropping, Composing, Scaling
++Section 12: Formats
++Section 13: Capture Overlay
++Section 14: Output Overlay
++Section 15: Some Future Improvements
++
++
++Section 1: Configuring the driver
++---------------------------------
++
++By default the driver will create a single instance that has a video capture
++device with webcam, TV, S-Video and HDMI inputs, a video output device with
++S-Video and HDMI outputs, one vbi capture device, one vbi output device, one
++radio receiver device, one radio transmitter device and one SDR device.
++
++The number of instances, devices, video inputs and outputs and their types are
++all configurable using the following module options:
++
++n_devs: number of driver instances to create. By default set to 1. Up to 64
++	instances can be created.
++
++node_types: which devices should each driver instance create. An array of
++	hexadecimal values, one for each instance. The default is 0x1d3d.
++	Each value is a bitmask with the following meaning:
++		bit 0: Video Capture node
++		bit 2-3: VBI Capture node: 0 = none, 1 = raw vbi, 2 = sliced vbi, 3 = both
++		bit 4: Radio Receiver node
++		bit 5: Software Defined Radio Receiver node
++		bit 8: Video Output node
++		bit 10-11: VBI Output node: 0 = none, 1 = raw vbi, 2 = sliced vbi, 3 = both
++		bit 12: Radio Transmitter node
++		bit 16: Framebuffer for testing overlays
++
++	So to create four instances, the first two with just one video capture
++	device, the second two with just one video output device you would pass
++	these module options to vivid:
++
++		n_devs=4 node_types=0x1,0x1,0x100,0x100
++
++num_inputs: the number of inputs, one for each instance. By default 4 inputs
++	are created for each video capture device. At most 16 inputs can be created,
++	and there must be at least one.
++
++input_types: the input types for each instance, the default is 0xe4. This defines
++	what the type of each input is when the inputs are created for each driver
++	instance. This is a hexadecimal value with up to 16 pairs of bits, each
++	pair gives the type and bits 0-1 map to input 0, bits 2-3 map to input 1,
++	30-31 map to input 15. Each pair of bits has the following meaning:
++
++		00: this is a webcam input
++		01: this is a TV tuner input
++		10: this is an S-Video input
++		11: this is an HDMI input
++
++	So to create a video capture device with 8 inputs where input 0 is a TV
++	tuner, inputs 1-3 are S-Video inputs and inputs 4-7 are HDMI inputs you
++	would use the following module options:
++
++		num_inputs=8 input_types=0xffa9
++
++num_outputs: the number of outputs, one for each instance. By default 2 outputs
++	are created for each video output device. At most 16 outputs can be
++	created, and there must be at least one.
++
++output_types: the output types for each instance, the default is 0x02. This defines
++	what the type of each output is when the outputs are created for each
++	driver instance. This is a hexadecimal value with up to 16 bits, each bit
++	gives the type and bit 0 maps to output 0, bit 1 maps to output 1, bit
++	15 maps to output 15. The meaning of each bit is as follows:
++
++		0: this is an S-Video output
++		1: this is an HDMI output
++
++	So to create a video output device with 8 outputs where outputs 0-3 are
++	S-Video outputs and outputs 4-7 are HDMI outputs you would use the
++	following module options:
++
++		num_outputs=8 output_types=0xf0
++
++vid_cap_nr: give the desired videoX start number for each video capture device.
++	The default is -1 which will just take the first free number. This allows
++	you to map capture video nodes to specific videoX device nodes. Example:
++
++		n_devs=4 vid_cap_nr=2,4,6,8
++
++	This will attempt to assign /dev/video2 for the video capture device of
++	the first vivid instance, video4 for the next up to video8 for the last
++	instance. If it can't succeed, then it will just take the next free
++	number.
++
++vid_out_nr: give the desired videoX start number for each video output device.
++        The default is -1 which will just take the first free number.
++
++vbi_cap_nr: give the desired vbiX start number for each vbi capture device.
++        The default is -1 which will just take the first free number.
++
++vbi_out_nr: give the desired vbiX start number for each vbi output device.
++        The default is -1 which will just take the first free number.
++
++radio_rx_nr: give the desired radioX start number for each radio receiver device.
++        The default is -1 which will just take the first free number.
++
++radio_tx_nr: give the desired radioX start number for each radio transmitter
++	device. The default is -1 which will just take the first free number.
++
++sdr_cap_nr: give the desired swradioX start number for each SDR capture device.
++        The default is -1 which will just take the first free number.
++
++ccs_cap_mode: specify the allowed video capture crop/compose/scaling combination
++	for each driver instance. Video capture devices can have any combination
++	of cropping, composing and scaling capabilities and this will tell the
++	vivid driver which of those is should emulate. By default the user can
++	select this through controls.
++
++	The value is either -1 (controlled by the user) or a set of three bits,
++	each enabling (1) or disabling (0) one of the features:
++
++		bit 0: Enable crop support. Cropping will take only part of the
++		       incoming picture.
++		bit 1: Enable compose support. Composing will copy the incoming
++		       picture into a larger buffer.
++		bit 2: Enable scaling support. Scaling can scale the incoming
++		       picture. The scaler of the vivid driver can enlarge up
++		       or down to four times the original size. The scaler is
++		       very simple and low-quality. Simplicity and speed were
++		       key, not quality.
++
++	Note that this value is ignored by webcam inputs: those enumerate
++	discrete framesizes and that is incompatible with cropping, composing
++	or scaling.
++
++ccs_out_mode: specify the allowed video output crop/compose/scaling combination
++	for each driver instance. Video output devices can have any combination
++	of cropping, composing and scaling capabilities and this will tell the
++	vivid driver which of those is should emulate. By default the user can
++	select this through controls.
++
++	The value is either -1 (controlled by the user) or a set of three bits,
++	each enabling (1) or disabling (0) one of the features:
++
++		bit 0: Enable crop support. Cropping will take only part of the
++		       outgoing buffer.
++		bit 1: Enable compose support. Composing will copy the incoming
++		       buffer into a larger picture frame.
++		bit 2: Enable scaling support. Scaling can scale the incoming
++		       buffer. The scaler of the vivid driver can enlarge up
++		       or down to four times the original size. The scaler is
++		       very simple and low-quality. Simplicity and speed were
++		       key, not quality.
++
++multiplanar: select whether each device instance supports multi-planar formats,
++	and thus the V4L2 multi-planar API. By default the first device instance
++	is single-planar, the second multi-planar, and it keeps alternating.
++
++	This module option can override that for each instance. Values are:
++
++		0: use alternating single and multi-planar devices.
++		1: this is a single-planar instance.
++		2: this is a multi-planar instance.
++
++vivid_debug: enable driver debugging info
++
++no_error_inj: if set disable the error injecting controls. This option is
++	needed in order to run a tool like v4l2-compliance. Tools like that
++	exercise all controls including a control like 'Disconnect' which
++	emulates a USB disconnect, making the device inaccessible and so
++	all tests that v4l2-compliance is doing will fail afterwards.
++
++	There may be other situations as well where you want to disable the
++	error injection support of vivid. When this option is set, then the
++	controls that select crop, compose and scale behavior are also
++	removed. Unless overridden by ccs_cap_mode and/or ccs_out_mode the
++	will default to enabling crop, compose and scaling.
++
++Taken together, all these module options allow you to precisely customize
++the driver behavior and test your application with all sorts of permutations.
++It is also very suitable to emulate hardware that is not yet available, e.g.
++when developing software for a new upcoming device.
++
++
++Section 2: Video Capture
++------------------------
++
++This is probably the most frequently used feature. The video capture device
++can be configured by using the module options num_inputs, input_types and
++ccs_cap_mode (see section 1 for more detailed information), but by default
++four inputs are configured: a webcam, a TV tuner, an S-Video and an HDMI
++input, one input for each input type. Those are described in more detail
++below.
++
++Special attention has been given to the rate at which new frames become
++available. The jitter will be around 1 jiffie (that depends on the HZ
++configuration of your kernel, so usually 1/100, 1/250 or 1/1000 of a second),
++but the long-term behavior is exactly following the framerate. So a
++framerate of 59.94 Hz is really different from 60 Hz. If the framerate
++exceeds your kernel's HZ value, then you will get dropped frames, but the
++frame/field sequence counting will keep track of that so the sequence
++count will skip whenever frames are dropped.
++
++
++Section 2.1: Webcam Input
++-------------------------
++
++The webcam input supports three framesizes: 320x180, 640x360 and 1280x720. It
++supports frames per second settings of 10, 15, 25, 30, 50 and 60 fps. Which ones
++are available depends on the chosen framesize: the larger the framesize, the
++lower the maximum frames per second.
++
++The initially selected colorspace when you switch to the webcam input will be
++sRGB.
++
++
++Section 2.2: TV and S-Video Inputs
++----------------------------------
++
++The only difference between the TV and S-Video input is that the TV has a
++tuner. Otherwise they behave identically.
++
++These inputs support audio inputs as well: one TV and one Line-In. They
++both support all TV standards. If the standard is queried, then the Image
++Processing controls 'Standard Signal Mode' and 'Standard' determine what
++the result will be.
++
++These inputs support all combinations of the field setting. Special care has
++been taken to faithfully reproduce how fields are handled for the different
++TV standards. This is particularly noticable when generating a horizontally
++moving image so the temporal effect of using interlaced formats becomes clearly
++visible. For 50 Hz standards the top field is the oldest and the bottom field
++is the newest in time. For 60 Hz standards that is reversed: the bottom field
++is the oldest and the top field is the newest in time.
++
++When you start capturing in V4L2_FIELD_ALTERNATE mode the first buffer will
++contain the top field for 50 Hz standards and the bottom field for 60 Hz
++standards. This is what capture hardware does as well.
++
++Finally, for PAL/SECAM standards the first half of the top line contains noise.
++This simulates the Wide Screen Signal that is commonly placed there.
++
++The initially selected colorspace when you switch to the TV or S-Video input
++will be SMPTE-170M.
++
++The pixel aspect ratio will depend on the TV standard. The video aspect ratio
++can be selected through the 'Standard Aspect Ratio' Image Processing control.
++Choices are '4x3', '16x9' which will give letterboxed widescreen video and
++'16x9 Anomorphic' which will give full screen squashed anamorphic widescreen
++video that will need to be scaled accordingly.
++
++The TV 'tuner' supports a frequency range of 44-958 MHz. Channels are available
++every 6 MHz, starting from 49.25 MHz. For each channel the generated image
++will be in color for the +/- 0.25 MHz around it, and in grayscale for
+++/- 1 MHz around the channel. Beyond that it is just noise. The VIDIOC_G_TUNER
++ioctl will return 100% signal strength for +/- 0.25 MHz and 50% for +/- 1 MHz.
++It will also return correct afc values to show whether the frequency is too
++low or too high.
++
++The audio subchannels that are returned are MONO for the +/- 1 MHz range around
++a valid channel frequency. When the frequency is within +/- 0.25 MHz of the
++channel it will return either MONO, STEREO, either MONO | SAP (for NTSC) or
++LANG1 | LANG2 (for others), or STEREO | SAP.
++
++Which one is returned depends on the chosen channel, each next valid channel
++will cycle through the possible audio subchannel combinations. This allows
++you to test the various combinations by just switching channels..
++
++Finally, for these inputs the v4l2_timecode struct is filled in in the
++dequeued v4l2_buffer struct.
++
++
++Section 2.3: HDMI Input
++-----------------------
++
++The HDMI inputs supports all CEA-861 and DMT timings, both progressive and
++interlaced, for pixelclock frequencies between 25 and 600 MHz. The field
++mode for interlaced formats is always V4L2_FIELD_ALTERNATE. For HDMI the
++field order is always top field first, and when you start capturing an
++interlaced format you will receive the top field first.
++
++The initially selected colorspace when you switch to the HDMI input or
++select an HDMI timing is based on the format resolution: for resolutions
++less than or equal to 720x576 the colorspace is set to SMPTE-170M, for
++others it is set to REC-709 (CEA-861 timings) or sRGB (VESA DMT timings).
++
++The pixel aspect ratio will depend on the HDMI timing: for 720x480 is it
++set as for the NTSC TV standard, for 720x576 it is set as for the PAL TV
++standard, and for all others a 1:1 pixel aspect ratio is returned.
++
++The video aspect ratio can be selected through the 'DV Timings Aspect Ratio'
++Image Processing control. Choices are 'Source Width x Height' (just use the
++same ratio as the chosen format), '4x3' or '16x9', either of which can
++result in pillarboxed or letterboxed video.
++
++For HDMI inputs it is possible to set the EDID. By default a simple EDID
++is provided. You can only set the EDID for HDMI inputs. Internally, however,
++the EDID is shared between all HDMI inputs.
++
++No interpretation is done of the EDID data.
++
++
++Section 3: Video Output
++-----------------------
++
++The video output device can be configured by using the module options
++num_outputs, output_types and ccs_out_mode (see section 1 for more detailed
++information), but by default two outputs are configured: an S-Video and an
++HDMI input, one output for each output type. Those are described in more detail
++below.
++
++Like with video capture the framerate is also exact in the long term.
++
++
++Section 3.1: S-Video Output
++---------------------------
++
++This output supports audio outputs as well: "Line-Out 1" and "Line-Out 2".
++The S-Video output supports all TV standards.
++
++This output supports all combinations of the field setting.
++
++The initially selected colorspace when you switch to the TV or S-Video input
++will be SMPTE-170M.
++
++
++Section 3.2: HDMI Output
++------------------------
++
++The HDMI output supports all CEA-861 and DMT timings, both progressive and
++interlaced, for pixelclock frequencies between 25 and 600 MHz. The field
++mode for interlaced formats is always V4L2_FIELD_ALTERNATE.
++
++The initially selected colorspace when you switch to the HDMI output or
++select an HDMI timing is based on the format resolution: for resolutions
++less than or equal to 720x576 the colorspace is set to SMPTE-170M, for
++others it is set to REC-709 (CEA-861 timings) or sRGB (VESA DMT timings).
++
++The pixel aspect ratio will depend on the HDMI timing: for 720x480 is it
++set as for the NTSC TV standard, for 720x576 it is set as for the PAL TV
++standard, and for all others a 1:1 pixel aspect ratio is returned.
++
++An HDMI output has a valid EDID which can be obtained through VIDIOC_G_EDID.
++
++
++Section 4: VBI Capture
++----------------------
++
++There are three types of VBI capture devices: those that only support raw
++(undecoded) VBI, those that only support sliced (decoded) VBI and those that
++support both. This is determined by the node_types module option. In all
++cases the driver will generate valid VBI data: for 60 Hz standards it will
++generate Closed Caption and XDS data. The closed caption stream will
++alternate between "Hello world!" and "Closed captions test" every second.
++The XDS stream will give the current time once a minute. For 50 Hz standards
++it will generate the Wide Screen Signal which is based on the actual Video
++Aspect Ratio control setting.
++
++The VBI device will only work for the S-Video and TV inputs, it will give
++back an error if the current input is a webcam or HDMI.
++
++
++Section 5: VBI Output
++---------------------
++
++There are three types of VBI output devices: those that only support raw
++(undecoded) VBI, those that only support sliced (decoded) VBI and those that
++support both. This is determined by the node_types module option.
++
++The sliced VBI output supports the Wide Screen Signal for 50 Hz standards
++and Closed Captioning + XDS for 60 Hz standards.
++
++The VBI device will only work for the S-Video output, it will give
++back an error if the current output is HDMI.
++
++
++Section 6: Radio Receiver
++-------------------------
++
++The radio receiver emulates an FM/AM/SW receiver. The FM band also supports RDS.
++The frequency ranges are:
++
++	FM: 64 MHz - 108 MHz
++	AM: 520 kHz - 1710 kHz
++	SW: 2300 kHz - 26.1 MHz
++
++Valid channels are emulated every 1 MHz for FM and every 100 kHz for AM and SW.
++The signal strength decreases the further the frequency is from the valid
++frequency until it becomes 0% at +/- 50 kHz (FM) or 5 kHz (AM/SW) from the
++ideal frequency. The initial frequency when the driver is loaded is set to
++95 MHz.
++
++The FM receiver supports RDS as well, both using 'Block I/O' and 'Controls'
++modes. In the 'Controls' mode the RDS information is stored in read-only
++controls. These controls are updated every time the frequency is changed,
++or when the tuner status is requested. The Block I/O method uses the read()
++interface to pass the RDS blocks on to the application for decoding.
++
++The RDS signal is 'detected' for +/- 12.5 kHz around the channel frequency,
++and the further the frequency is away from the valid frequency the more RDS
++errors are randomly introduced into the block I/O stream, up to 50% of all
++blocks if you are +/- 12.5 kHz from the channel frequency. All four errors
++can occur in equal proportions: blocks marked 'CORRECTED', blocks marked
++'ERROR', blocks marked 'INVALID' and dropped blocks.
++
++The generated RDS stream contains all the standard fields contained in a
++0B group, and also radio text and the current time.
++
++The receiver supports HW frequency seek, either in Bounded mode, Wrap Around
++mode or both, which is configurable with the "Radio HW Seek Mode" control.
++
++
++Section 7: Radio Transmitter
++----------------------------
++
++The radio transmitter emulates an FM/AM/SW transmitter. The FM band also supports RDS.
++The frequency ranges are:
++
++	FM: 64 MHz - 108 MHz
++	AM: 520 kHz - 1710 kHz
++	SW: 2300 kHz - 26.1 MHz
++
++The initial frequency when the driver is loaded is 95.5 MHz.
++
++The FM transmitter supports RDS as well, both using 'Block I/O' and 'Controls'
++modes. In the 'Controls' mode the transmitted RDS information is configured
++using controls, and in 'Block I/O' mode the blocks are passed to the driver
++using write().
++
++
++Section 8: Software Defined Radio Receiver
++------------------------------------------
++
++The SDR receiver has three frequency bands for the ADC tuner:
++
++	- 300 kHz
++	- 900 kHz - 2800 kHz
++	- 3200 kHz
++
++The RF tuner supports 50 MHz - 2000 MHz.
++
++The generated data contains sinus and cosinus signals.
++
++
++Section 9: Controls
++-------------------
++
++Different devices support different controls. The sections below will describe
++each control and which devices support them.
++
++
++Section 9.1: User Controls - Test Controls
++------------------------------------------
++
++The Button, Boolean, Integer 32 Bits, Integer 64 Bits, Menu, String, Bitmask and
++Integer Menu are controls that represent all possible control types. The Menu
++control and the Integer Menu control both have 'holes' in their menu list,
++meaning that one or more menu items return EINVAL when VIDIOC_QUERYMENU is called.
++Both menu controls also have a non-zero minimum control value.  These features
++allow you to check if your application can handle such things correctly.
++These controls are supported for every device type.
++
++
++Section 9.2: User Controls - Video Capture
++------------------------------------------
++
++The following controls are specific to video capture.
++
++The Brightness, Contrast, Saturation and Hue controls actually work and are
++standard. There is one special feature with the Brightness control: each
++video input has its own brightness value, so changing input will restore
++the brightness for that input. In addition, each video input uses a different
++brightness range (minimum and maximum control values). Switching inputs will
++cause a control event to be sent with the V4L2_EVENT_CTRL_CH_RANGE flag set.
++This allows you to test controls that can change their range.
++
++The 'Gain, Automatic' and Gain controls can be used to test volatile controls:
++if 'Gain, Automatic' is set, then the Gain control is volatile and changes
++constantly. If 'Gain, Automatic' is cleared, then the Gain control is a normal
++control.
++
++The 'Horizontal Flip' and 'Vertical Flip' controls can be used to flip the
++image. These combine with the 'Sensor Flipped Horizontally/Vertically' Image
++Processing controls.
++
++The 'Alpha Component' control can be used to set the alpha component for
++formats containing an alpha channel.
++
++
++Section 9.3: User Controls - Audio
++----------------------------------
++
++The following controls are specific to video capture and output and radio
++receivers and transmitters.
++
++The 'Volume' and 'Mute' audio controls are typical for such devices to
++control the volume and mute the audio. They don't actually do anything in
++the vivid driver.
++
++
++Section 9.4: Image Processing Controls
++--------------------------------------
++
++These controls control the image generation, error injection, etc.
++
++
++Section 9.4.1: Test Pattern Controls
++------------------------------------
++
++The Test Pattern Controls are all specific to video capture.
++
++Test Pattern: selects which test pattern to use. Use the CSC Colorbar for
++	testing colorspace conversions: the colors used in that test pattern
++	map to valid colors in all colorspaces. The colorspace conversion
++	is disabled for the other test patterns.
++
++OSD Text Mode: selects whether the text superimposed on the
++	test pattern should be shown, and if so, whether only counters should
++	be displayed or the full text.
++
++Horizontal Movement: selects whether the test pattern should
++	move to the left or right and at what speed.
++
++Vertical Movement: does the same for the vertical direction.
++
++Show Border: show a two-pixel wide border at the edge of the actual image,
++	excluding letter or pillarboxing.
++
++Show Square: show a square in the middle of the image. If the image is
++	displayed with the correct pixel and image aspect ratio corrections,
++	then the width and height of the square on the monitor should be
++	the same.
++
++Insert SAV Code in Image: adds a SAV (Start of Active Video) code to the image.
++	This can be used to check if such codes in the image are inadvertently
++	interpreted instead of being ignored.
++
++Insert EAV Code in Image: does the same for the EAV (End of Active Video) code.
++
++
++Section 9.4.2: Capture Feature Selection Controls
++-------------------------------------------------
++
++These controls are all specific to video capture.
++
++Sensor Flipped Horizontally: the image is flipped horizontally and the
++	V4L2_IN_ST_HFLIP input status flag is set. This emulates the case where
++	a sensor is for example mounted upside down.
++
++Sensor Flipped Vertically: the image is flipped vertically and the
++	V4L2_IN_ST_VFLIP input status flag is set. This emulates the case where
++        a sensor is for example mounted upside down.
++
++Standard Aspect Ratio: selects if the image aspect ratio as used for the TV or
++	S-Video input should be 4x3, 16x9 or anamorphic widescreen. This may
++	introduce letterboxing.
++
++DV Timings Aspect Ratio: selects if the image aspect ratio as used for the HDMI
++	input should be the same as the source width and height ratio, or if
++	it should be 4x3 or 16x9. This may introduce letter or pillarboxing.
++
++Timestamp Source: selects when the timestamp for each buffer is taken.
++
++Colorspace: selects which colorspace should be used when generating the image.
++	This only applies if the CSC Colorbar test pattern is selected,
++	otherwise the test pattern will go through unconverted (except for
++	the so-called 'Transfer Function' corrections and the R'G'B' to Y'CbCr
++	conversion). This behavior is also what you want, since a 75% Colorbar
++	should really have 75% signal intensity and should not be affected
++	by colorspace conversions.
++
++	Changing the colorspace will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates a detected colorspace change.
++
++Limited RGB Range (16-235): selects if the RGB range of the HDMI source should
++	be limited or full range. This combines with the Digital Video 'Rx RGB
++	Quantization Range' control and can be used to test what happens if
++	a source provides you with the wrong quantization range information.
++	See the description of that control for more details.
++
++Apply Alpha To Red Only: apply the alpha channel as set by the 'Alpha Component'
++	user control to the red color of the test pattern only.
++
++Enable Capture Cropping: enables crop support. This control is only present if
++	the ccs_cap_mode module option is set to the default value of -1 and if
++	the no_error_inj module option is set to 0 (the default).
++
++Enable Capture Composing: enables composing support. This control is only
++	present if the ccs_cap_mode module option is set to the default value of
++	-1 and if the no_error_inj module option is set to 0 (the default).
++
++Enable Capture Scaler: enables support for a scaler (maximum 4 times upscaling
++	and downscaling). This control is only present if the ccs_cap_mode
++	module option is set to the default value of -1 and if the no_error_inj
++	module option is set to 0 (the default).
++
++Maximum EDID Blocks: determines how many EDID blocks the driver supports.
++	Note that the vivid driver does not actually interpret new EDID
++	data, it just stores it. It allows for up to 256 EDID blocks
++	which is the maximum supported by the standard.
++
++Fill Percentage of Frame: can be used to draw only the top X percent
++	of the image. Since each frame has to be drawn by the driver, this
++	demands a lot of the CPU. For large resolutions this becomes
++	problematic. By drawing only part of the image this CPU load can
++	be reduced.
++
++
++Section 9.4.3: Output Feature Selection Controls
++------------------------------------------------
++
++These controls are all specific to video output.
++
++Enable Output Cropping: enables crop support. This control is only present if
++	the ccs_out_mode module option is set to the default value of -1 and if
++	the no_error_inj module option is set to 0 (the default).
++
++Enable Output Composing: enables composing support. This control is only
++	present if the ccs_out_mode module option is set to the default value of
++	-1 and if the no_error_inj module option is set to 0 (the default).
++
++Enable Output Scaler: enables support for a scaler (maximum 4 times upscaling
++	and downscaling). This control is only present if the ccs_out_mode
++	module option is set to the default value of -1 and if the no_error_inj
++	module option is set to 0 (the default).
++
++
++Section 9.4.4: Error Injection Controls
++---------------------------------------
++
++The following two controls are only valid for video and vbi capture.
++
++Standard Signal Mode: selects the behavior of VIDIOC_QUERYSTD: what should
++	it return?
++
++	Changing this control will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates a changed input condition (e.g. a cable
++	was plugged in or out).
++
++Standard: selects the standard that VIDIOC_QUERYSTD should return if the
++	previous control is set to "Selected Standard".
++
++	Changing this control will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates a changed input standard.
++
++
++The following two controls are only valid for video capture.
++
++DV Timings Signal Mode: selects the behavior of VIDIOC_QUERY_DV_TIMINGS: what
++	should it return?
++
++	Changing this control will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates a changed input condition (e.g. a cable
++	was plugged in or out).
++
++DV Timings: selects the timings the VIDIOC_QUERY_DV_TIMINGS should return
++	if the previous control is set to "Selected DV Timings".
++
++	Changing this control will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates changed input timings.
++
++
++The following controls are only present if the no_error_inj module option
++is set to 0 (the default). These controls are valid for video and vbi
++capture and output streams and for the SDR capture device except for the
++Disconnect control which is valid for all devices.
++
++Wrap Sequence Number: test what happens when you wrap the sequence number in
++	struct v4l2_buffer around.
++
++Wrap Timestamp: test what happens when you wrap the timestamp in struct
++	v4l2_buffer around.
++
++Percentage of Dropped Buffers: sets the percentage of buffers that
++	are never returned by the driver (i.e., they are dropped).
++
++Disconnect: emulates a USB disconnect. The device will act as if it has
++	been disconnected. Only after all open filehandles to the device
++	node have been closed will the device become 'connected' again.
++
++Inject V4L2_BUF_FLAG_ERROR: when pressed, the next frame returned by
++	the driver will have the error flag set (i.e. the frame is marked
++	corrupt).
++
++Inject VIDIOC_REQBUFS Error: when pressed, the next REQBUFS or CREATE_BUFS
++	ioctl call will fail with an error. To be precise: the videobuf2
++	queue_setup() op will return -EINVAL.
++
++Inject VIDIOC_QBUF Error: when pressed, the next VIDIOC_QBUF or
++	VIDIOC_PREPARE_BUFFER ioctl call will fail with an error. To be
++	precise: the videobuf2 buf_prepare() op will return -EINVAL.
++
++Inject VIDIOC_STREAMON Error: when pressed, the next VIDIOC_STREAMON ioctl
++	call will fail with an error. To be precise: the videobuf2
++	start_streaming() op will return -EINVAL.
++
++Inject Fatal Streaming Error: when pressed, the streaming core will be
++	marked as having suffered a fatal error, the only way to recover
++	from that is to stop streaming. To be precise: the videobuf2
++	vb2_queue_error() function is called.
++
++
++Section 9.4.5: VBI Raw Capture Controls
++---------------------------------------
++
++Interlaced VBI Format: if set, then the raw VBI data will be interlaced instead
++	of providing it grouped by field.
++
++
++Section 9.5: Digital Video Controls
++-----------------------------------
++
++Rx RGB Quantization Range: sets the RGB quantization detection of the HDMI
++	input. This combines with the Image Processing 'Limited RGB Range (16-235)'
++	control and can be used to test what happens if a source provides
++	you with the wrong quantization range information. This can be tested
++	by selecting an HDMI input, setting this control to Full or Limited
++	range and selecting the opposite in the 'Limited RGB Range (16-235)'
++	control. The effect is easy to see if the 'Gray Ramp' test pattern
++	is selected.
++
++Tx RGB Quantization Range: sets the RGB quantization detection of the HDMI
++	output. It is currently not used for anything in vivid, but most HDMI
++	transmitters would typically have this control.
++
++Transmit Mode: sets the transmit mode of the HDMI output to HDMI or DVI-D. This
++	affects the reported colorspace since DVI_D outputs will always use
++	sRGB.
++
++
++Section 9.6: FM Radio Receiver Controls
++---------------------------------------
++
++RDS Reception: set if the RDS receiver should be enabled.
++
++RDS Program Type:
++RDS PS Name:
++RDS Radio Text:
++RDS Traffic Announcement:
++RDS Traffic Program:
++RDS Music: these are all read-only controls. If RDS Rx I/O Mode is set to
++	"Block I/O", then they are inactive as well. If RDS Rx I/O Mode is set
++	to "Controls", then these controls report the received RDS data. Note
++	that the vivid implementation of this is pretty basic: they are only
++	updated when you set a new frequency or when you get the tuner status
++	(VIDIOC_G_TUNER).
++
++Radio HW Seek Mode: can be one of "Bounded", "Wrap Around" or "Both". This
++	determines if VIDIOC_S_HW_FREQ_SEEK will be bounded by the frequency
++	range or wrap-around or if it is selectable by the user.
++
++Radio Programmable HW Seek: if set, then the user can provide the lower and
++	upper bound of the HW Seek. Otherwise the frequency range boundaries
++	will be used.
++
++Generate RBDS Instead of RDS: if set, then generate RBDS (the US variant of
++	RDS) data instead of RDS (European-style RDS). This affects only the
++	PICODE and PTY codes.
++
++RDS Rx I/O Mode: this can be "Block I/O" where the RDS blocks have to be read()
++	by the application, or "Controls" where the RDS data is provided by
++	the RDS controls mentioned above.
++
++
++Section 9.7: FM Radio Modulator
++-------------------------------
++
++RDS Program ID:
++RDS Program Type:
++RDS PS Name:
++RDS Radio Text:
++RDS Stereo:
++RDS Artificial Head:
++RDS Compressed:
++RDS Dymanic PTY:
++RDS Traffic Announcement:
++RDS Traffic Program:
++RDS Music: these are all controls that set the RDS data that is transmitted by
++	the FM modulator.
++
++RDS Tx I/O Mode: this can be "Block I/O" where the application has to use write()
++	to pass the RDS blocks to the driver, or "Controls" where the RDS data is
++	provided by the RDS controls mentioned above.
++
++
++Section 10: Video, VBI and RDS Looping
++--------------------------------------
++
++The vivid driver supports looping of video output to video input, VBI output
++to VBI input and RDS output to RDS input. For video/VBI looping this emulates
++as if a cable was hooked up between the output and input connector. So video
++and VBI looping is only supported between S-Video and HDMI inputs and outputs.
++VBI is only valid for S-Video as it makes no sense for HDMI.
++
++Since radio is wireless this looping always happens if the radio receiver
++frequency is close to the radio transmitter frequency. In that case the radio
++transmitter will 'override' the emulated radio stations.
++
++Looping is currently supported only between devices created by the same
++vivid driver instance.
++
++
++Section 10.1: Video and Sliced VBI looping
++------------------------------------------
++
++The way to enable video/VBI looping is currently fairly crude. A 'Loop Video'
++control is available in the "Image Processing" control class of the video
++output and VBI output devices. When checked the video looping will be enabled.
++Once enabled any video S-Video or HDMI input will show a static test pattern
++until the video output has started. At that time the video output will be
++looped to the video input provided that:
++
++- the input type matches the output type. So the HDMI input cannot receive
++  video from the S-Video output.
++
++- the video resolution of the video input must match that of the video output.
++  So it is not possible to loop a 50 Hz (720x576) S-Video output to a 60 Hz
++  (720x480) S-Video input, or a 720p60 HDMI output to a 1080p30 input.
++
++- the pixel formats must be identical on both sides. Otherwise the driver would
++  have to do pixel format conversion as well, and that's taking things too far.
++
++- the field settings must be identical on both sides. Same reason as above:
++  requiring the driver to convert from one field format to another complicated
++  matters too much. This also prohibits capturing with 'Field Top' or 'Field
++  Bottom' when the output video is set to 'Field Alternate'. This combination,
++  while legal, became too complicated to support. Both sides have to be 'Field
++  Alternate' for this to work. Also note that for this specific case the
++  sequence and field counting in struct v4l2_buffer on the capture side may not
++  be 100% accurate.
++
++- on the input side the "Standard Signal Mode" for the S-Video input or the
++  "DV Timings Signal Mode" for the HDMI input should be configured so that a valid
++  signal is passed to the video input.
++
++The framerates do not have to match, although this might change in the future.
++
++By default you will see the OSD text superimposed on top of the looped video.
++This can be turned off by changing the "OSD Text Mode" control of the video
++capture device.
++
++For VBI looping to work all of the above must be valid and in addition the vbi
++output must be configured for sliced VBI. The VBI capture side can be configured
++for either raw or sliced VBI.
++
++
++Section 10.2: Radio & RDS Looping
++---------------------------------
++
++As mentioned in section 6 the radio receiver emulates stations are regular
++frequency intervals. Depending on the frequency of the radio receiver a
++signal strength value is calculated (this is returned by VIDIOC_G_TUNER).
++However, it will also look at the frequency set by the radio transmitter and
++if that results in a higher signal strength than the settings of the radio
++transmitter will be used as if it was a valid station. This also includes
++the RDS data (if any) that the transmitter 'transmits'. This is received
++faithfully on the receiver side. Note that when the driver is loaded the
++frequencies of the radio receiver and transmitter are not identical, so
++initially no looping takes place.
++
++
++Section 11: Cropping, Composing, Scaling
++----------------------------------------
++
++This driver supports cropping, composing and scaling in any combination. Normally
++which features are supported can be selected through the Image Processing controls,
++but it is also possible to hardcode it when the module is loaded through the
++ccs_cap_mode and ccs_out_mode module options. See section 1 on the details of
++these module options.
++
++This allows you to test your application for all these variations.
++
++Note that the webcam input never supports cropping, composing or scaling. That only
++applies to the TV/S-Video/HDMI inputs and outputs. The reason is that webcams,
++including this virtual implementation, normally use VIDIOC_ENUM_FRAMESIZES to
++list a set of discrete framesizes that it supports. And that does not combine
++with cropping, composing or scaling. This is primarily a limitation of the
++V4L2 API which is carefully reproduced here.
++
++The minimum and maximum resolutions that the scaler can achieve are 16x16 and
++(4096 * 4) x (2160 x 4), but it can only scale up or down by a factor of 4 or
++less. So for a source resolution of 1280x720 the minimum the scaler can do is
++320x180 and the maximum is 5120x2880. You can play around with this using the
++qv4l2 test tool and you will see these dependencies.
++
++This driver also supports larger 'bytesperline' settings, something that
++VIDIOC_S_FMT allows but that few drivers implement.
++
++The scaler is a simple scaler that uses the Coarse Bresenham algorithm. It's
++designed for speed and simplicity, not quality.
++
++If the combination of crop, compose and scaling allows it, then it is possible
++to change crop and compose rectangles on the fly.
++
++
++Section 12: Formats
++-------------------
++
++The driver supports all the regular packed YUYV formats, 16, 24 and 32 RGB
++packed formats and two multiplanar formats (one luma and one chroma plane).
++
++The alpha component can be set through the 'Alpha Component' User control
++for those formats that support it. If the 'Apply Alpha To Red Only' control
++is set, then the alpha component is only used for the color red and set to
++0 otherwise.
++
++The driver has to be configured to support the multiplanar formats. By default
++the first driver instance is single-planar, the second is multi-planar, and it
++keeps alternating. This can be changed by setting the multiplanar module option,
++see section 1 for more details on that option.
++
++If the driver instance is using the multiplanar formats/API, then the first
++single planar format (YUYV) and the multiplanar NV16M and NV61M formats the
++will have a plane that has a non-zero data_offset of 128 bytes. It is rare for
++data_offset to be non-zero, so this is a useful feature for testing applications.
++
++Video output will also honor any data_offset that the application set.
++
++
++Section 13: Capture Overlay
++---------------------------
++
++Note: capture overlay support is implemented primarily to test the existing
++V4L2 capture overlay API. In practice few if any GPUs support such overlays
++anymore, and neither are they generally needed anymore since modern hardware
++is so much more capable. By setting flag 0x10000 in the node_types module
++option the vivid driver will create a simple framebuffer device that can be
++used for testing this API. Whether this API should be used for new drivers is
++questionable.
++
++This driver has support for a destructive capture overlay with bitmap clipping
++and list clipping (up to 16 rectangles) capabilities. Overlays are not
++supported for multiplanar formats. It also honors the struct v4l2_window field
++setting: if it is set to FIELD_TOP or FIELD_BOTTOM and the capture setting is
++FIELD_ALTERNATE, then only the top or bottom fields will be copied to the overlay.
++
++The overlay only works if you are also capturing at that same time. This is a
++vivid limitation since it copies from a buffer to the overlay instead of
++filling the overlay directly. And if you are not capturing, then no buffers
++are available to fill.
++
++In addition, the pixelformat of the capture format and that of the framebuffer
++must be the same for the overlay to work. Otherwise VIDIOC_OVERLAY will return
++an error.
++
++In order to really see what it going on you will need to create two vivid
++instances: the first with a framebuffer enabled. You configure the capture
++overlay of the second instance to use the framebuffer of the first, then
++you start capturing in the second instance. For the first instance you setup
++the output overlay for the video output, turn on video looping and capture
++to see the blended framebuffer overlay that's being written to by the second
++instance. This setup would require the following commands:
++
++	$ sudo modprobe vivid n_devs=2 node_types=0x10101,0x1 multiplanar=1,1
++	$ v4l2-ctl -d1 --find-fb
++	/dev/fb1 is the framebuffer associated with base address 0x12800000
++	$ sudo v4l2-ctl -d2 --set-fbuf fb=1
++	$ v4l2-ctl -d1 --set-fbuf fb=1
++	$ v4l2-ctl -d0 --set-fmt-video=pixelformat='AR15'
++	$ v4l2-ctl -d1 --set-fmt-video-out=pixelformat='AR15'
++	$ v4l2-ctl -d2 --set-fmt-video=pixelformat='AR15'
++	$ v4l2-ctl -d0 -i2
++	$ v4l2-ctl -d2 -i2
++	$ v4l2-ctl -d2 -c horizontal_movement=4
++	$ v4l2-ctl -d1 --overlay=1
++	$ v4l2-ctl -d1 -c loop_video=1
++	$ v4l2-ctl -d2 --stream-mmap --overlay=1
++
++And from another console:
++
++	$ v4l2-ctl -d1 --stream-out-mmap
++
++And yet another console:
++
++	$ qv4l2
++
++and start streaming.
++
++As you can see, this is not for the faint of heart...
++
++
++Section 14: Output Overlay
++--------------------------
++
++Note: output overlays are primarily implemented in order to test the existing
++V4L2 output overlay API. Whether this API should be used for new drivers is
++questionable.
++
++This driver has support for an output overlay and is capable of:
++
++	- bitmap clipping,
++	- list clipping (up to 16 rectangles)
++	- chromakey
++	- source chromakey
++	- global alpha
++	- local alpha
++	- local inverse alpha
++
++Output overlays are not supported for multiplanar formats. In addition, the
++pixelformat of the capture format and that of the framebuffer must be the
++same for the overlay to work. Otherwise VIDIOC_OVERLAY will return an error.
++
++Output overlays only work if the driver has been configured to create a
++framebuffer by setting flag 0x10000 in the node_types module option. The
++created framebuffer has a size of 720x576 and supports ARGB 1:5:5:5 and
++RGB 5:6:5.
++
++In order to see the effects of the various clipping, chromakeying or alpha
++processing capabilities you need to turn on video looping and see the results
++on the capture side. The use of the clipping, chromakeying or alpha processing
++capabilities will slow down the video loop considerably as a lot of checks have
++to be done per pixel.
++
++
++Section 15: Some Future Improvements
++------------------------------------
++
++Just as a reminder and in no particular order:
++
++- Add a virtual alsa driver to test audio
++- Add virtual sub-devices and media controller support
++- Some support for testing compressed video
++- Add support to loop raw VBI output to raw VBI input
++- Fix sequence/field numbering when looping of video with alternate fields
++- Add support for V4L2_CID_BG_COLOR for video outputs
++- Add ARGB888 overlay support: better testing of the alpha channel
++- Add custom DV timings support
++- Add support for V4L2_DV_FL_REDUCED_FPS
++- Improve pixel aspect support in the tpg code by passing a real v4l2_fract
++- Use per-queue locks and/or per-device locks to improve throughput
++- Add support to loop from a specific output to a specific input across
++  vivid instances
++- Add support for VIDIOC_EXPBUF once support for that has been added to vb2
++- The SDR radio should use the same 'frequencies' for stations as the normal
++  radio receiver, and give back noise if the frequency doesn't match up with
++  a station frequency
++- Improve the sinus generation of the SDR radio.
++- Make a thread for the RDS generation, that would help in particular for the
++  "Controls" RDS Rx I/O Mode as the read-only RDS controls could be updated
++  in real-time.
 -- 
-1.9.3
+2.0.1
 
