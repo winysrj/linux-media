@@ -1,124 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48880 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752467AbaGLUO1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jul 2014 16:14:27 -0400
-Message-ID: <53C1971E.3020200@iki.fi>
-Date: Sat, 12 Jul 2014 23:14:22 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41757 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbaG3X1A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 19:27:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Durkin <kc7noa@gmail.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: Fresco Logic FL2000
+Date: Thu, 31 Jul 2014 01:27:20 +0200
+Message-ID: <5475683.lx59QSOxgD@avalon>
+In-Reply-To: <CAC8M0Esy+sRt0OGychoTBfgEBznTnwiCpaC0UzZgd9ga-QSWNg@mail.gmail.com>
+References: <CAC8M0Evra8ipDo9Tgasd2AtWWLZQ8M2Ty37i6R3nc7H0-C3_wg@mail.gmail.com> <3072133.WlkirvIpIB@avalon> <CAC8M0Esy+sRt0OGychoTBfgEBznTnwiCpaC0UzZgd9ga-QSWNg@mail.gmail.com>
 MIME-Version: 1.0
-To: Shuah Khan <shuah.kh@samsung.com>, m.chehab@samsung.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: em28xx-dvb unregister i2c tuner and demod after
- fe detach
-References: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com>
-In-Reply-To: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Shuah!
-I suspect that patch makes no sense. On DVB there is runtime PM 
-controlled by DVB frontend. It wakes up all FE sub-devices when frontend 
-device is opened and sleeps when closed.
+Hi Michael,
 
-FE release() is not relevant at all for those sub-devices which are 
-implemented as a proper I2C client. I2C client has own remove() for that.
+Sorry for the late reply.
 
-em28xx_dvb_init and em28xx_dvb_fini are counterparts. Those I2C drivers 
-are load on em28xx_dvb_init so logical place for unload is em28xx_dvb_fini.
+On Tuesday 22 July 2014 11:03:35 Michael Durkin wrote:
+> as sudo su
+> 
+> root@SDR-client:/home/mike# lsusb -v -d 1d5c:2000
+> 
+> Bus 002 Device 003: ID 1d5c:2000
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.10
+>   bDeviceClass          239 Miscellaneous Device
+>   bDeviceSubClass         2 ?
+>   bDeviceProtocol         1 Interface Association
+>   bMaxPacketSize0        64
+>   idVendor           0x1d5c
+>   idProduct          0x2000
+>   bcdDevice            1.00
+>   iManufacturer           0
+>   iProduct                0
+>   iSerial                 0
+>   bNumConfigurations      1
 
-Is there some real use case you need that change?
+[snip]
 
-regards
-Antti
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       1
+>       bNumEndpoints           2
+>       bInterfaceClass        16
+>       bInterfaceSubClass      0
+>       bInterfaceProtocol      0
 
-
-On 07/11/2014 06:45 PM, Shuah Khan wrote:
-> i2c tuner and demod are unregisetred in .fini before fe detach.
-> dvb_unregister_frontend() and dvb_frontend_detach() invoke tuner
-> sleep() and release() interfaces. Change to unregister i2c tuner
-> and demod from em28xx_unregister_dvb() after unregistering dvb
-> and detaching fe.
->
-> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-> ---
->   drivers/media/usb/em28xx/em28xx-dvb.c |   32 +++++++++++++++++---------------
->   1 file changed, 17 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 8314f51..8d5cb62 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1030,6 +1030,8 @@ fail_adapter:
->
->   static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
->   {
-> +	struct i2c_client *client;
-> +
->   	dvb_net_release(&dvb->net);
->   	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
->   	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
-> @@ -1041,6 +1043,21 @@ static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
->   	if (dvb->fe[1] && !dvb->dont_attach_fe1)
->   		dvb_frontend_detach(dvb->fe[1]);
->   	dvb_frontend_detach(dvb->fe[0]);
-> +
-> +	/* remove I2C tuner */
-> +	client = dvb->i2c_client_tuner;
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> +
-> +	/* remove I2C demod */
-> +	client = dvb->i2c_client_demod;
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> +
->   	dvb_unregister_adapter(&dvb->adapter);
->   }
->
-> @@ -1628,7 +1645,6 @@ static inline void prevent_sleep(struct dvb_frontend_ops *ops)
->   static int em28xx_dvb_fini(struct em28xx *dev)
->   {
->   	struct em28xx_dvb *dvb;
-> -	struct i2c_client *client;
->
->   	if (dev->is_audio_only) {
->   		/* Shouldn't initialize IR for this interface */
-> @@ -1646,7 +1662,6 @@ static int em28xx_dvb_fini(struct em28xx *dev)
->   	em28xx_info("Closing DVB extension");
->
->   	dvb = dev->dvb;
-> -	client = dvb->i2c_client_tuner;
->
->   	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
->
-> @@ -1659,19 +1674,6 @@ static int em28xx_dvb_fini(struct em28xx *dev)
->   			prevent_sleep(&dvb->fe[1]->ops);
->   	}
->
-> -	/* remove I2C tuner */
-> -	if (client) {
-> -		module_put(client->dev.driver->owner);
-> -		i2c_unregister_device(client);
-> -	}
-> -
-> -	/* remove I2C demod */
-> -	client = dvb->i2c_client_demod;
-> -	if (client) {
-> -		module_put(client->dev.driver->owner);
-> -		i2c_unregister_device(client);
-> -	}
-> -
->   	em28xx_unregister_dvb(dvb);
->   	kfree(dvb);
->   	dev->dvb = NULL;
->
+That's, as suspected, a USB Audio/Video class device. There's currently no 
+Linux driver for that, and I'm not aware any active project to develop one 
+(there were prototypes developed behind closed doors though, but nothing 
+published as far as I know). Frankly, given how brain-dead the A/V class 
+specification is, I wouldn't hold any hope of getting support for that device 
+any time soon (or ever).
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
