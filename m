@@ -1,82 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36116 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754250AbaGNJ46 (ORCPT
+Received: from www.inunum.li ([83.169.19.93]:54862 "EHLO
+	lvps83-169-19-93.dedicated.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753529AbaG3O4D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 05:56:58 -0400
-Date: Mon, 14 Jul 2014 10:56:40 +0100
-From: Mark Rutland <mark.rutland@arm.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg
- clock for exynos3250 SoC
-Message-ID: <20140714095640.GC4980@leverpostej>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
- <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
+	Wed, 30 Jul 2014 10:56:03 -0400
+Message-ID: <53D90786.9090809@InUnum.com>
+Date: Wed, 30 Jul 2014 16:56:06 +0200
+From: Michael Dietschi <michael.dietschi@InUnum.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Enrico <ebutera@users.sourceforge.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap3isp with DM3730 not working?!
+References: <53D12786.5050906@InUnum.com> <1915586.ZFV4ecW0Zg@avalon> <CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com> <2300187.SbcZEE0rv0@avalon>
+In-Reply-To: <2300187.SbcZEE0rv0@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 11, 2014 at 04:19:49PM +0100, Jacek Anaszewski wrote:
-> JPEG IP on Exynos3250 SoC requires enabling two clock
-> gates for its operation. This patch documents this
-> requirement.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> Cc: devicetree@vger.kernel.org
-> ---
->  .../bindings/media/exynos-jpeg-codec.txt           |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> index 937b755..3142745 100644
-> --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> @@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
->  Required properties:
->  
->  - compatible	: should be one of:
-> -		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
-> +		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-> +		  "samsung,exynos3250-jpeg";
->  - reg		: address and length of the JPEG codec IP register set;
->  - interrupts	: specifies the JPEG codec IP interrupt;
-> -- clocks	: should contain the JPEG codec IP gate clock specifier, from the
-> +- clocks	: should contain the JPEG codec IP gate clock specifier and
-> +		  for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
->  		  common clock bindings;
-> -- clock-names	: should contain "jpeg" entry.
-> +- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
-> +		  for Exynos3250 SoC
+Am 29.07.2014 02:53, schrieb Laurent Pinchart:
+> You're right. Maybe that's the first problem to be fixed though ;-) 
+> Michael, could you try using the "official" (and under development) 
+> BT.656 support code for the OMAP3 ISP driver ? I've just pushed the 
+> branch to git://linuxtv.org/pinchartl/media.git omap3isp/bt656 
 
-Please turn this into a list for easier reading, e.g.
+Laurent,
 
-- clock-names: should contain:
-  * "jpeg" for the gate clock.
-  * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
+I did try this kernel and it does not work either - but with a different 
+error.
+Any Idea?
 
-You could also define clocks in terms of clock-names to avoid
-redundancy.
+Michael
 
-The SCLK_JPEG name sounds like a global name for the clock. Is there a
-name for the input line on the JPEG block this is plugged into?
 
-Thanks,
-Mark.
+These are the commands and their output:
+
+root@overo:~$  media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP 
+CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
+
+output":0[1]'
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Resetting all links to inactive
+Setting up link 16:0 -> 5:0 [1]
+Setting up link 5:1 -> 6:0 [1]
+
+root@overo:~$  media-ctl -v -V '"tvp5150 3-005c":0 [UYVY2X8 720x576], 
+"OMAP3 ISP CCDC":1 [UYVY2X8 720x576]'Opening
+
+media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Setting up format UYVY2X8 720x576 on pad tvp5150 3-005c/0
+Format set: UYVY2X8 720x240
+Setting up format UYVY2X8 720x240 on pad OMAP3 ISP CCDC/0
+Format set: UYVY2X8 720x240
+Setting up format UYVY2X8 720x576 on pad OMAP3 ISP CCDC/1
+Format set: UYVY 720x240
+
+root@overo:~$  yavta -f UYVY -s 720x576 --capture=1 --file=imagele 
+/dev/video2
+
+Device /dev/video2 opened.
+Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+Video format set: UYVY (59565955) 720x576 (stride 1440) buffer size 829440
+Video format: UYVY (59565955) 720x576 (stride 1440) buffer size 829440
+8 buffers requested.
+length: 829440 offset: 0
+Buffer 0 mapped at address 0xb6e79000.
+length: 829440 offset: 831488
+Buffer 1 mapped at address 0xb6dae000.
+length: 829440 offset: 1662976
+Buffer 2 mapped at address 0xb6ce3000.
+length: 829440 offset: 2494464
+Buffer 3 mapped at address 0xb6c18000.
+length: 829440 offset: 3325952
+Buffer 4 mapped at address 0xb6b4d000.
+length: 829440 offset: 4157440
+Buffer 5 mapped at address 0xb6a82000.
+length: 829440 offset: 4988928
+Buffer 6 mapped at address 0xb69b7000.
+length: 829440 offset: 5820416
+Buffer 7 mapped at address 0xb68ec000.
+Unable to start streaming: Invalid argument (22).
+8 buffers released.
+
