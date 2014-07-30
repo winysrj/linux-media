@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43078 "EHLO mail.kapsi.fi"
+Received: from smtp.gentoo.org ([140.211.166.183]:45636 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbaGVDSg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 23:18:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] rtl2832_sdr: remove plain 64-bit divisions
-Date: Tue, 22 Jul 2014 06:18:19 +0300
-Message-Id: <1405999099-13860-1-git-send-email-crope@iki.fi>
+	id S1755386AbaG3SuS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 14:50:18 -0400
+Message-ID: <53D93E64.6080907@gentoo.org>
+Date: Wed, 30 Jul 2014 20:50:12 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, Antonio Ospite <ao2@ao2.it>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] get_dvb_firmware: Add firmware extractor for si2165
+References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>	<1406059938-21141-2-git-send-email-zzam@gentoo.org>	<53CF7E6D.20406@iki.fi>	<53D006F2.10300@gentoo.org>	<20140723221012.3c9e8f26aa1ddac47b48cb9e@ao2.it>	<53D73328.6040802@gentoo.org> <20140729105315.e04521b28fe7d27c49bb0665@ao2.it> <53D786BE.3050803@iki.fi> <53D7F465.7030905@gentoo.org> <53D7F9DD.7080308@iki.fi>
+In-Reply-To: <53D7F9DD.7080308@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 0ba2aeb6dab80920edd9cf5b93b1ea4d6913b8f3
-(v4l2-ctrls: increase internal min/max/step/def to 64 bit)
-changes v4l2 controls to 64-bit. Driver it not working on 32-bit
-arch as it uses directly control 'step' which is changed to 64-bit.
+On 29.07.2014 21:45, Antti Palosaari wrote:
+> 
+> Do you need to know whole firmware version?
+There is only 1 byte to be used and it is called patch version.
+> How did you obtain it, from
+> sniff?
+Yes - but it also is visible in code near crc version (see below).
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832_sdr.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+> What happens if you don't tell fw version to chip at all?
+>
+In other places it is read to verify a fw was uploaded (compare to be
+not equal 0x00).
+I guess the exact value is never needed (so just for information).
+But I did not try it.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index f58bd74..023e0f4 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -1364,17 +1364,16 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
- 		/* TODO: these controls should be moved to tuner drivers */
- 		if (s->bandwidth_auto->val) {
- 			/* Round towards the closest legal value */
--			s32 val = s->f_adc + s->bandwidth->step / 2;
-+			s32 val = s->f_adc + div_u64(s->bandwidth->step, 2);
- 			u32 offset;
- 
- 			val = clamp_t(s32, val, s->bandwidth->minimum,
- 				      s->bandwidth->maximum);
- 			offset = val - s->bandwidth->minimum;
- 			offset = s->bandwidth->step *
--				(offset / s->bandwidth->step);
-+				div_u64(offset, s->bandwidth->step);
- 			s->bandwidth->val = s->bandwidth->minimum + offset;
- 		}
--
- 		c->bandwidth_hz = s->bandwidth->val;
- 
- 		if (!test_bit(POWER_ON, &s->flags))
--- 
-http://palosaari.fi/
+> Usually, almost 100%, firmware version as well all the other needed
+> information, is included to firmware image itself. I don't remember many
+> cases where special handling is needed. One (only one?) of such case is
+> af9013, where I resolved issues by calculating fw checksum by the
+> driver. IIRC chip didn't boot if there was wrong checksum for fw.
+
+The checksum is not needed to get the device working.
+The chip itself only calculates it when uploading data - and the driver
+reads out the calculated checksum and compares it to the expected value.
+It is only a verification of the correct upload.
+
+> 
+> Own headers and checksums causes troubles if I someone would like to
+> extract different firmwares from various windows binaries to test.
+> 
+> If windows driver needs to know that kind of things, those are usually
+> found very near firmware image from the driver binary. Most often just
+> dump 32 bytes after firmware image and it is somewhere there. Or before
+> firmware image. That is because those are values are stored to same
+> source code file => compiler puts that stuff ~same location.
+> 
+I had a look at the driver - the code itself has the constants compiled
+in - they are really mixed with the assembly code.
+
+Rewritten in C it is code that has fixed values as parameters to functions.
+
+ret = load_firmware(firmware,
+  0x12, /* patch version */
+  48, /* block count */
+  0xaa0c /* crc */
+);
+
+I also would prefer your version with static const variables near the data.
+
+> static const unsigned char firmware[] = {
+>   0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,
+>   0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff,
+> };
+> 
+> static const unsigned int firmware_checksum = 0x01234567;
+> static const unsigned int firmware_version = 0x0000002b;
+> 
+Regards
+Matthias
 
