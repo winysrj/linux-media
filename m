@@ -1,116 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43823 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756721AbaGNRJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:09:22 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3883 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754197AbaG3OX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 10:23:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/18] si2168: Add support for chip revision Si2168 A30
-Date: Mon, 14 Jul 2014 20:08:51 +0300
-Message-Id: <1405357739-3570-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
-References: <1405357739-3570-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv1 01/12] vb2: fix multiplanar read() with non-zero data_offset
+Date: Wed, 30 Jul 2014 16:23:04 +0200
+Message-Id: <1406730195-64365-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
+References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add handling for different chip revisions and firmwares.
+If this is a multiplanar buf_type and the plane we want to read has a
+non-zero data_offset, then that data_offset was not taken into account.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Note that read() or write() for formats with more than one plane is currently
+not allowed, hence the use of 'planes[0]' since this is only relevant for a
+single-plane format.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 34 ++++++++++++++++++++++++++-----
- drivers/media/dvb-frontends/si2168_priv.h |  4 +++-
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index bae7771..268fce3 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -333,7 +333,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	struct si2168 *s = fe->demodulator_priv;
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
--	u8 *fw_file = SI2168_FIRMWARE;
-+	u8 *fw_file;
- 	const unsigned int i2c_wr_max = 8;
- 	struct si2168_cmd cmd;
- 
-@@ -353,6 +353,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* query chip revision */
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 13;
-@@ -360,6 +361,20 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
-+			(cmd.args[4] == '0'))
-+		fw_file = SI2168_B40_FIRMWARE;
-+	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
-+			(cmd.args[4] == '0'))
-+		fw_file = SI2168_A30_FIRMWARE;
-+	else {
-+		dev_err(&s->client->dev,
-+				"%s: no firmware file for Si2168-%c%c defined\n",
-+				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	/* cold state - try to download firmware */
- 	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
- 			KBUILD_MODNAME, si2168_ops.info.name);
-@@ -367,9 +382,18 @@ static int si2168_init(struct dvb_frontend *fe)
- 	/* request the firmware, this will block and timeout */
- 	ret = request_firmware(&fw, fw_file, &s->client->dev);
- 	if (ret) {
--		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
--				KBUILD_MODNAME, fw_file);
--		goto err;
-+		/* fallback mechanism to handle old name for
-+		   SI2168_B40_FIRMWARE */
-+		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
-+				(cmd.args[4] == '0')) {
-+			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
-+			ret = request_firmware(&fw, fw_file, &s->client->dev);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c359006..0e3d927 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2959,6 +2959,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		buf->queued = 0;
+ 		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
+ 				 : vb2_plane_size(q->bufs[index], 0);
++		/* Compensate for data_offset on read in the multiplanar case. */
++		if (is_multiplanar && read &&
++		    fileio->b.m.planes[0].data_offset < buf->size) {
++			buf->pos = fileio->b.m.planes[0].data_offset;
++			buf->size -= buf->pos;
 +		}
-+		if (ret) {
-+			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
-+					KBUILD_MODNAME, fw_file);
-+			goto err;
-+		}
+ 	} else {
+ 		buf = &fileio->bufs[index];
  	}
- 
- 	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
-@@ -629,4 +653,4 @@ module_i2c_driver(si2168_driver);
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
- MODULE_LICENSE("GPL");
--MODULE_FIRMWARE(SI2168_FIRMWARE);
-+MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 97f9d87..bebb68a 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -22,7 +22,9 @@
- #include <linux/firmware.h>
- #include <linux/i2c-mux.h>
- 
--#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
-+#define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
-+#define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
-+#define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
- 
- /* state struct */
- struct si2168 {
 -- 
-1.9.3
+2.0.1
 
