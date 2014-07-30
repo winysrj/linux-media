@@ -1,69 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:51248 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933607AbaGQQ12 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41687 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbaG3XK1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:27:28 -0400
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-To: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
-	Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Subject: [PATCH 2/4] drivers/staging/media/davinci_vpfe/dm365_ipipeif.c: fix negativity check
-Date: Thu, 17 Jul 2014 19:27:16 +0300
-Message-Id: <1405614436-4506-1-git-send-email-andrey.krieger.utkin@gmail.com>
+	Wed, 30 Jul 2014 19:10:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Problems with the omap3isp
+Date: Thu, 31 Jul 2014 01:10:49 +0200
+Message-ID: <5912662.x67xxWZ5ks@avalon>
+In-Reply-To: <53C4FC99.9050308@herbrechtsmeier.net>
+References: <53C4FC99.9050308@herbrechtsmeier.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[linux-3.16-rc5/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:210]:
-(style) Checking if unsigned variable 'val' is less than zero.
+Hi Stefan,
 
-    val = get_oneshot_mode(ipipeif->input);
-    if (val < 0) {
-        pr_err("ipipeif: links setup required");
-        return -EINVAL;
-    }
+Sorry for the late reply.
 
-but
+On Tuesday 15 July 2014 12:04:09 Stefan Herbrechtsmeier wrote:
+> Hi Laurent,
+> 
+> I have some problems with the omap3isp driver. At the moment I use a
+> linux-stable 3.14.5 with your fixes for omap3xxx-clocks.dtsi.
+> 
+> 1. If I change the clock rate to 24 MHz in my camera driver the whole
+> system freeze at the clk_prepare_enable. The first enable and disable
+> works without any problem. The system freeze during a systemd / udev
+> call of media-ctl.
 
-static int get_oneshot_mode(enum ipipeif_input_entity input)
+I've never seen that before. Where does your sensor get its clock from ? Is it 
+connected to the ISP XCLKA or XCLKB output ? What happens if you don't change 
+the clock rate to 24 MHz ? What rate is it set to in that case ?
 
-Introduced temporary variable for negativity check.
-"val" is afterwards used in a lot of bitwise operations, so changing its type
-to signed is not safe, according to CERT C Secure Coding Standards chapter
-INT13-C: "Use bitwise operators only on unsigned operands"
-https://www.securecoding.cert.org/confluence/display/seccode/INT13-C.+Use+bitwise+operators+only+on+unsigned+operands
+> 2. If I enable the streaming I get a  "omap3isp omap3isp: CCDC won't
+> become idle!" and if I disable streaming I get a "omap3isp omap3isp:
+> Unable to stop OMAP3 ISP CCDC". I think the problem is, that I can't
+> disable the camera output. Do you change the order of the stream enable
+> / disable after Linux 3.4?
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=80521
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
----
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Not that I know of.
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-index 59540cd..6d4893b 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-@@ -196,6 +196,7 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
- 	int data_shift;
- 	int pack_mode;
- 	int source1;
-+	int tmp;
- 
- 	ipipeif_base_addr = ipipeif->ipipeif_base_addr;
- 
-@@ -206,8 +207,8 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
- 	outformat = &ipipeif->formats[IPIPEIF_PAD_SOURCE];
- 
- 	/* Combine all the fields to make CFG1 register of IPIPEIF */
--	val = get_oneshot_mode(ipipeif->input);
--	if (val < 0) {
-+	tmp = val = get_oneshot_mode(ipipeif->input);
-+	if (tmp < 0) {
- 		pr_err("ipipeif: links setup required");
- 		return -EINVAL;
- 	}
+The two problems might be related, maybe we could concentrate on the first one 
+first.
+
 -- 
-1.8.5.5
+Regards,
+
+Laurent Pinchart
 
