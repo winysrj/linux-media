@@ -1,92 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59173 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263AbaGVMui (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1929 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753374AbaG3OXX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 08:50:38 -0400
-Message-ID: <1406033433.4496.16.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v3 06/32] [media] coda: Add encoder/decoder support for
- CODA960
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-Date: Tue, 22 Jul 2014 14:50:33 +0200
-In-Reply-To: <20140721191944.GK13730@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-	 <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
-	 <20140721160128.27eb7428.m.chehab@samsung.com>
-	 <20140721191944.GK13730@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 30 Jul 2014 10:23:23 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6UENKfW010953
+	for <linux-media@vger.kernel.org>; Wed, 30 Jul 2014 16:23:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from test-media.192.168.1.1 (test [192.168.1.27])
+	by tschai.lan (Postfix) with ESMTPSA id 83EE02A0380
+	for <linux-media@vger.kernel.org>; Wed, 30 Jul 2014 16:23:17 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv1 00/12] vivid: Virtual Video Test Driver
+Date: Wed, 30 Jul 2014 16:23:03 +0200
+Message-Id: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 21.07.2014, 21:19 +0200 schrieb Robert Schwebel:
-> Hi Mauro,
-> 
-> On Mon, Jul 21, 2014 at 04:01:28PM -0300, Mauro Carvalho Chehab wrote:
-> > > This patch adds support for the CODA960 VPU in Freescale i.MX6 SoCs.
-> > > 
-> > > It enables h.264 and MPEG4 encoding and decoding support. Besides the usual
-> > > register shifting, the CODA960 gains frame memory control and GDI registers
-> > > that are set up for linear mapping right now, needs ENC_PIC_SRC_INDEX to be
-> > > set beyond the number of internal buffers for some reason, and has subsampling
-> > > buffers that need to be set up. Also, the work buffer size is increased to
-> > > 80 KiB.
-> > > 
-> > > The CODA960 firmware spins if there is not enough input data in the bitstream
-> > > buffer. To make it continue, buffers need to be copied into the bitstream as
-> > > soon as they are queued. As the bitstream fifo is written into from two places,
-> > > it must be protected with a mutex. For that, using a threaded interrupt handler
-> > > is necessary.
-> > > 
-> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > > ---
-> > 
-> > ...
-> > 
-> > > +	[CODA_IMX6Q] = {
-> > > +		.firmware   = "v4l-coda960-imx6q.bin",
-> > > +		.product    = CODA_960,
-> > > +		.codecs     = coda9_codecs,
-> > > +		.num_codecs = ARRAY_SIZE(coda9_codecs),
-> > > +	},
-> > > +	[CODA_IMX6DL] = {
-> > > +		.firmware   = "v4l-coda960-imx6dl.bin",
-> > > +		.product    = CODA_960,
-> > > +		.codecs     = coda9_codecs,
-> > > +		.num_codecs = ARRAY_SIZE(coda9_codecs),
-> > > +	},
-> > 
-> > Where are those firmware files available?
-> 
-> Freescale currently distributes the firmware with their multimedia
-> packages, but in header hex array form; we are trying to find a proper
-> solution (hopefully by using the linux firmware repository) for
-> mainline.
+Earlier this month I posted a 'vivi, the next generation' patch series:
 
-The firmware-imx packages referenced in the Freescale meta-fsl-arm
-repository on github.com contain VPU firmware files. Their use is
-restricted by an EULA. For example:
-http://www.freescale.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-3.0.35-4.0.0.bin
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg76758.html
 
-This contains the files vpu_fw_imx6q.bin and vpu_fw_imx6d.bin, which can
-be converted into v4l-coda960-imx6q.bin and v4l-coda960-imx6dl.bin,
-respectively, by dropping the headers and reordering the rest.
-I described this for i.MX53 earlier here:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2013-July/181101.html
+However, since that time I realized that rather than building on top of the
+old vivi, it would be much better to create a new, much more generic driver.
+This vivid test driver no longer emulates just video capture, but also
+video output, vbi capture/output, radio receivers/transmitters and SDR capture.
+There is even support for testing capture and output overlays.
 
-> The Freescale kernel people are currently discussing this internally
-> with their legal folks, see this discussion:
-> 
-> http://www.spinics.net/lists/linux-media/msg78273.html
+Up to 64 vivid instances can be created, each with up to 16 inputs and 16 outputs.
 
-regards
-Philipp
+Each input can be a webcam, TV capture device, S-Video capture device or an HDMI
+capture device. Each output can be an S-Video output device or an HDMI output
+device.
+
+These inputs and outputs act exactly as a real hardware device would behave. This
+allows you to use this driver as a test input for application development, since
+you can test the various features without requiring special hardware.
+
+Some of the features supported by this driver are:
+
+- Support for read()/write(), MMAP, USERPTR and DMABUF streaming I/O.
+- A large list of test patterns and variations thereof
+- Working brightness, contrast, saturation and hue controls
+- Support for the alpha color component
+- Full colorspace support, including limited/full RGB range
+- All possible control types are present
+- Support for various pixel aspect ratios and video aspect ratios
+- Error injection to test what happens if errors occur
+- Supports crop/compose/scale in any combination for both input and output
+- Can emulate up to 4K resolutions
+- All Field settings are supported for testing interlaced capturing
+- Supports all standard YUV and RGB formats, including two multiplanar YUV formats
+- Raw and Sliced VBI capture and output support
+- Radio receiver and transmitter support, including RDS support
+- Software defined radio (SDR) support
+- Capture and output overlay support
+
+This driver is big, but I believe that for the most part I managed to keep
+the code clean (I'm biased, though). I've split it up in several parts to
+make reviewing easier. The first patch is a vb2 fix I posted earlier, but
+patchwork failed to pick it up (probably because it was missing a Signed-of-by
+line), so I'm posting it again. The second patch is an extensive document
+that describes the features currently implemented. After that the driver code
+is posted and in the last patch the driver is hooked into Kconfig/Makefile.
+
+This goal is for this to go in for 3.18, so I expect I'll likely to a v2 at
+least since I am still improving the driver and it will be a while before
+we can merge code for v3.18.
+
+As far as I am concerned the vivi driver can be removed once this driver is
+merged.
+
+Two questions which I am sure will be raised by reviewers:
+
+1) Why add support for capture and output overlays? Isn't that obsolete?
+
+First of all, we have drivers that support it and it is really nice to be
+able to test whether it still works. I found several issues, some in the core,
+when it comes to overlay support, so at the very least it will help to
+prevent regressions until the time comes that we actually remove this API.
+
+Secondly, this driver was created not just to help applications to test their
+code, but also to help in understanding and verifying the API. In order to do
+that you need to be able to test it. Which is difficult since hardware that
+supports this is rare.
+
+I have mentioned in the documentation that the overlay support is there
+primarily for API testing and that its use in new drivers is questionable.
+
+2) Why add video loop support, doesn't that make abuse possible?
+
+I think video loop support is a great feature as it allows you to test
+video output since without it you have no idea what the video you give to
+the driver actually looks like. So just from the perspective of testing your
+application I believe this is an essential feature.
+
+There are a few reasons why I think that this is unlikely to lead to abuse:
+
+- the video loop functionality has to be enabled explicitly via a control of
+  the video output device.
+- the video capture and output resolution and formats have to match exactly
+- by default the OSD text will be placed over the looped video. This can be
+  turned off via a control of the video capture device.
+- the number of resolutions is currently fixed to SDTV and the CEA-861 and
+  VESA DMT timings. So 'random' resolutions are not supported. Although to
+  be fair, this is something I intend to add. However, if I do that then I
+  will require that the configured DV timings of the input and output are
+  identical before the video loop is possible.
+
+Taken altogether I do not think this is something that lends itself easily
+for abuse since this won't work out-of-the-box.
+
+A final note: this driver will be used to demonstrate application testing
+during my LinuxCon presentation next month. See:
+
+http://events.linuxfoundation.org/events/linuxcon-north-america/program/schedule
+
+Regards,
+
+	Hans
 
