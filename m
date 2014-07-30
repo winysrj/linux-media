@@ -1,138 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54666 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:42005 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751021AbaGJLSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 07:18:16 -0400
+	id S1751372AbaG3UwZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 16:52:25 -0400
+Message-ID: <53D95B04.2030109@iki.fi>
+Date: Wed, 30 Jul 2014 23:52:20 +0300
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] m88ds3103: implement BER
-Date: Thu, 10 Jul 2014 14:17:59 +0300
-Message-Id: <1404991079-3027-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1404991079-3027-1-git-send-email-crope@iki.fi>
-References: <1404991079-3027-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: Bjoern <lkml@call-home.ch>,
+	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>
+Subject: Re: ddbridge -- kernel 3.15.6
+References: <53C920FB.1040501@grumpydevil.homelinux.org>	 <53CAAF9D.6000507@kaiser-linux.li> <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST> <53D8EC86.6020701@iki.fi>
+In-Reply-To: <53D8EC86.6020701@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement read_ber for BER estimate.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/m88ds3103.c      | 81 ++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/m88ds3103_priv.h |  1 +
- 2 files changed, 82 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 4176edf..dfe0c2f 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -926,6 +926,86 @@ err:
- 	return ret;
- }
- 
-+static int m88ds3103_read_ber(struct dvb_frontend *fe, u32 *ber)
-+{
-+	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	unsigned int utmp;
-+	u8 buf[3], u8tmp;
-+	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+
-+	switch (c->delivery_system) {
-+	case SYS_DVBS:
-+		ret = m88ds3103_wr_reg(priv, 0xf9, 0x04);
-+		if (ret)
-+			goto err;
-+
-+		ret = m88ds3103_rd_reg(priv, 0xf8, &u8tmp);
-+		if (ret)
-+			goto err;
-+
-+		if (!(u8tmp & 0x10)) {
-+			u8tmp |= 0x10;
-+
-+			ret = m88ds3103_rd_regs(priv, 0xf6, buf, 2);
-+			if (ret)
-+				goto err;
-+
-+			priv->ber = (buf[1] << 8) | (buf[0] << 0);
-+
-+			/* restart counters */
-+			ret = m88ds3103_wr_reg(priv, 0xf8, u8tmp);
-+			if (ret)
-+				goto err;
-+		}
-+		break;
-+	case SYS_DVBS2:
-+		ret = m88ds3103_rd_regs(priv, 0xd5, buf, 3);
-+		if (ret)
-+			goto err;
-+
-+		utmp = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
-+
-+		if (utmp > 3000) {
-+			ret = m88ds3103_rd_regs(priv, 0xf7, buf, 2);
-+			if (ret)
-+				goto err;
-+
-+			priv->ber = (buf[1] << 8) | (buf[0] << 0);
-+
-+			/* restart counters */
-+			ret = m88ds3103_wr_reg(priv, 0xd1, 0x01);
-+			if (ret)
-+				goto err;
-+
-+			ret = m88ds3103_wr_reg(priv, 0xf9, 0x01);
-+			if (ret)
-+				goto err;
-+
-+			ret = m88ds3103_wr_reg(priv, 0xf9, 0x00);
-+			if (ret)
-+				goto err;
-+
-+			ret = m88ds3103_wr_reg(priv, 0xd1, 0x00);
-+			if (ret)
-+				goto err;
-+		}
-+		break;
-+	default:
-+		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
-+				__func__);
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	*ber = priv->ber;
-+
-+	return 0;
-+err:
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
- 
- static int m88ds3103_set_tone(struct dvb_frontend *fe,
- 	fe_sec_tone_mode_t fe_sec_tone_mode)
-@@ -1284,6 +1364,7 @@ static struct dvb_frontend_ops m88ds3103_ops = {
- 
- 	.read_status = m88ds3103_read_status,
- 	.read_snr = m88ds3103_read_snr,
-+	.read_ber = m88ds3103_read_ber,
- 
- 	.diseqc_send_master_cmd = m88ds3103_diseqc_send_master_cmd,
- 	.diseqc_send_burst = m88ds3103_diseqc_send_burst,
-diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
-index e73db5c..9169fdd 100644
---- a/drivers/media/dvb-frontends/m88ds3103_priv.h
-+++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
-@@ -35,6 +35,7 @@ struct m88ds3103_priv {
- 	struct dvb_frontend fe;
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
-+	u32 ber;
- 	bool warm; /* FW running */
- 	struct i2c_adapter *i2c_adapter;
- };
+On 07/30/2014 04:00 PM, Antti Palosaari wrote:
+>
+>
+> On 07/30/2014 08:13 AM, Bjoern wrote:
+>>> Hello Rudy
+>>>
+>>> I use a similar card from Digital Devices with Ubuntu 14.04 and
+>>> kernel 3.13.0-32-generic. Support for this card was not build into
+>>> the kernel and I had to compile it myself. I had to use
+>>> media_build_experimental from Mr. Endriss.
+>>>
+>>> http://linuxtv.org/hg/~endriss/media_build_experimental
+>>>
+>>> Your card should be supported with this version.
+>>>
+>>> Regards, Thomas
+>>
+>> Hi Rudy,
+>>
+>> What Thomas writes is absolutely correct...
+>>
+>> This is unfortunately the worst situation I've ever run across in
+>> Linux... There was a kernel driver that worked and was supported by
+>> Digital Devices. Then, from what I read, changes to how the V4L drivers
+>> have to be written was changed - Digital Devices doesn't like that and
+>> they force users to use "experimental" builds which are the "old
+>> style".
+>>
+>> This is total rubbish imo - if this is how it was decided that the
+>> drivers have to be nowadays then adjust them. Why am I paying such a lot
+>> of money others right, these DD cards are really not cheap?
+>>
+>> Some attempts have been made by people active here to adapt the drivers
+>> and make them work in newer kernels, but so far no one has succeeded.
+>> Last attempt was in Jan 2014 iirc, since then - silence.
+>>
+>> I wish I could help out, I can code but Linux is well just a bit more
+>> "difficult" I guess ;-)
+>
+> I have one of such device too, but I have been too busy all the time
+> with other drivers...
+>
+> Basically these DTV drivers should be developed in a order, bridge
+> driver first, then demod and tuner - for one single device. After it is
+> committed in tree, you could start adding new devices and drivers. If
+> you try implement too big bunch of things as a once, you will likely
+> fail endless reviews and so.
+>
+> I don't know what is change in development process which causes these
+> problems. What I remember there has been only few big changes in recent
+> years, change from Mercurial to Git and reorganization of
+> directories/files.
+
+Device I have seems to be:
+DD Cine S2 V6.5 - Twin Tuner Card DVB-S/S2 (PCI Express Card)
+DD DuoFlex C/C2/T/T2 Expansion (V3) - Twin Tuner Expansion-modul DVB-C/T/T2
+
+I will start looking DVB-S/S2 support at the very first as it is the 
+bridge needed in any case. I have no experience from PCIe devices...
+
+regards
+Antti
+
 -- 
-1.9.3
-
+http://palosaari.fi/
