@@ -1,115 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50245 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451AbaGLQlV (ORCPT
+Received: from fep16.mx.upcmail.net ([62.179.121.36]:49315 "EHLO
+	fep16.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230AbaG3Fdr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jul 2014 12:41:21 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH] mb86a20s: fix ISDB-T mode handling
-Date: Sat, 12 Jul 2014 13:39:51 -0300
-Message-Id: <1405183191-10432-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 30 Jul 2014 01:33:47 -0400
+Message-ID: <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
+Subject: Re: ddbridge -- kernel 3.15.6
+From: Bjoern <lkml@call-home.ch>
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>
+Date: Wed, 30 Jul 2014 07:13:25 +0200
+In-Reply-To: <53CAAF9D.6000507@kaiser-linux.li>
+References: <53C920FB.1040501@grumpydevil.homelinux.org>
+	 <53CAAF9D.6000507@kaiser-linux.li>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver was reporting an incorrect mode, when mode 2
-is selected.
+> Hello Rudy
+> 
+> I use a similar card from Digital Devices with Ubuntu 14.04 and kernel 3.13.0-32-generic. Support for this card was not build into the kernel and I had to compile it myself. I had to use media_build_experimental from Mr. Endriss.
+> 
+> http://linuxtv.org/hg/~endriss/media_build_experimental
+> 
+> Your card should be supported with this version.
+> 
+> Regards, Thomas
 
-While testing it, noticed that neither mode 1 or guard
-interval 1/32 is supported by this device. Document it,
-and ensure that it will report _AUTO when it doesn't lock,
-in order to not report a wrong detection to userspace.
+Hi Rudy,
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib0090.c       | 6 +++++-
- drivers/media/dvb-frontends/mb86a20s.c      | 9 +++++----
- drivers/media/usb/dvb-usb/dib0700_devices.c | 3 +++
- 3 files changed, 13 insertions(+), 5 deletions(-)
+What Thomas writes is absolutely correct...
 
-diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
-index 68e2af2650d3..27d5c5cd439c 100644
---- a/drivers/media/dvb-frontends/dib0090.c
-+++ b/drivers/media/dvb-frontends/dib0090.c
-@@ -24,6 +24,8 @@
-  *
-  */
- 
-+#define DEBUG_AGC
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-@@ -1199,11 +1201,13 @@ int dib0090_gain_control(struct dvb_frontend *fe)
- 		state->rf_gain_limit = state->rf_ramp[0] << WBD_ALPHA;
- 		state->current_gain = ((state->rf_ramp[0] + state->bb_ramp[0]) / 2) << GAIN_ALPHA;
- 
-+dprintk("Current gain: %d\n", state->current_gain);
-+
- 		*tune_state = CT_AGC_STEP_0;
- 	} else if (!state->agc_freeze) {
- 		s16 wbd = 0, i, cnt;
- 
--		int adc;
-+		int adc = 0;
- 		wbd_val = dib0090_get_slow_adc_val(state);
- 
- 		if (*tune_state == CT_AGC_STEP_0)
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 227a420f7069..b931179c70a4 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -711,11 +711,10 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 	rc = mb86a20s_readreg(state, 0x07);
- 	if (rc < 0)
- 		return rc;
-+	c->transmission_mode = TRANSMISSION_MODE_AUTO;
- 	if ((rc & 0x60) == 0x20) {
--		switch (rc & 0x0c >> 2) {
--		case 0:
--			c->transmission_mode = TRANSMISSION_MODE_2K;
--			break;
-+		/* Only modes 2 and 3 are supported */
-+		switch ((rc >> 2) & 0x03) {
- 		case 1:
- 			c->transmission_mode = TRANSMISSION_MODE_4K;
- 			break;
-@@ -724,7 +723,9 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 			break;
- 		}
- 	}
-+	c->guard_interval = GUARD_INTERVAL_AUTO;
- 	if (!(rc & 0x10)) {
-+		/* Guard interval 1/32 is not supported */
- 		switch (rc & 0x3) {
- 		case 0:
- 			c->guard_interval = GUARD_INTERVAL_1_4;
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 501947eaacfe..cad359fcd690 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -1645,6 +1645,8 @@ static int dib8096_set_param_override(struct dvb_frontend *fe)
- 	int ret = 0;
- 	enum frontend_tune_state tune_state = CT_SHUTDOWN;
- 
-+printk("%s called.\n", __func__);
-+
- 	switch (band) {
- 	default:
- 			deb_info("Warning : Rf frequency  (%iHz) is not in the supported range, using VHF switch ", fe->dtv_property_cache.frequency);
-@@ -1714,6 +1716,7 @@ static int dib8096_set_param_override(struct dvb_frontend *fe)
- 	} else {
- 		/* for everything else than CBAND we are using standard AGC */
- 		deb_info("not tuning in CBAND - standard AGC startup\n");
-+printk("%s: calling dib0090_pwm_gain_reset\n", __func__);
- 		dib0090_pwm_gain_reset(fe);
- 	}
- 
--- 
-1.9.3
+This is unfortunately the worst situation I've ever run across in
+Linux... There was a kernel driver that worked and was supported by
+Digital Devices. Then, from what I read, changes to how the V4L drivers
+have to be written was changed - Digital Devices doesn't like that and
+they force users to use "experimental" builds which are the "old
+style". 
+
+This is total rubbish imo - if this is how it was decided that the
+drivers have to be nowadays then adjust them. Why am I paying such a lot
+of money others right, these DD cards are really not cheap?
+
+Some attempts have been made by people active here to adapt the drivers
+and make them work in newer kernels, but so far no one has succeeded.
+Last attempt was in Jan 2014 iirc, since then - silence.
+
+I wish I could help out, I can code but Linux is well just a bit more
+"difficult" I guess ;-)
+
+Cheers,
+Bjoern
 
