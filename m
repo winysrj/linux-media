@@ -1,82 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32920 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753408AbaGQVq2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 17:46:28 -0400
-Message-ID: <53C84432.7050100@iki.fi>
-Date: Fri, 18 Jul 2014 00:46:26 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Luis Alves <ljalvs@gmail.com>, Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] si2168: improve scanning performance by setting property
- 0301 with a value from Windows driver.
-References: <1405622607-27248-1-git-send-email-olli.salonen@iki.fi> <CAGj5WxCBwM3UZ1XW9aUez+nYaB46hxy6+NOWQqwdzFdd9aNq8A@mail.gmail.com>
-In-Reply-To: <CAGj5WxCBwM3UZ1XW9aUez+nYaB46hxy6+NOWQqwdzFdd9aNq8A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:41894 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845AbaG3ENY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 00:13:24 -0400
+From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+To: linux-media@vger.kernel.org, k.debski@samsung.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+Cc: linux-samsung-soc@vger.kernel.org, m.chehab@samsung.com
+Subject: [PATCH] media: v4l2: make allocation algorithm more robust and flexible
+Date: Wed, 30 Jul 2014 12:09:50 +0800
+Message-id: <1406693390-31849-1-git-send-email-zhaowei.yuan@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/17/2014 10:09 PM, Luis Alves wrote:
-> This would be best done during init and not every time on set_frontend.
+Current algorithm relies on the fact that caller will align the
+size to PAGE_SIZE, otherwise order will be decreased to negative
+when remain size is less than PAGE_SIZE, it makes the function
+hard to be migrated.
+This patch sloves the hidden problem.
 
-I am perfectly fine it is done during set_frontend(), even it is static 
-value. There were earlier tons of these 0x14 commands, including that 
-one. I removed all that were same as default (command reports back 
-existing value when new is set). It happens that Olli's Si2168-A30 chip 
-has different default value than Si2168-B40 I have.
+Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-init() is perfect place for enabling chip, power-up blocks, start 
-clocks, downloading firmware and loading "inittab". That command seems 
-to belong tuning process itself.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index adefc31..40d18aa 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -58,7 +58,7 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
 
-I will apply that.
+ 		order = get_order(size);
+ 		/* Dont over allocate*/
+-		if ((PAGE_SIZE << order) > size)
++		if (order > 0 && (PAGE_SIZE << order) > size)
+ 			order--;
 
-regards
-Antti
+ 		pages = NULL;
+--
+1.7.9.5
 
-
->
-> Regards,
-> Luis
->
-> On Thu, Jul 17, 2014 at 7:43 PM, Olli Salonen <olli.salonen@iki.fi> wrote:
->> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->> ---
->>   drivers/media/dvb-frontends/si2168.c | 7 +++++++
->>   1 file changed, 7 insertions(+)
->>
->> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
->> index 0422925..56811e1 100644
->> --- a/drivers/media/dvb-frontends/si2168.c
->> +++ b/drivers/media/dvb-frontends/si2168.c
->> @@ -313,6 +313,13 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->>          if (ret)
->>                  goto err;
->>
->> +       memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x00", 6);
->> +       cmd.wlen = 6;
->> +       cmd.rlen = 4;
->> +       ret = si2168_cmd_execute(s, &cmd);
->> +       if (ret)
->> +               goto err;
->> +
->>          memcpy(cmd.args, "\x85", 1);
->>          cmd.wlen = 1;
->>          cmd.rlen = 1;
->> --
->> 1.9.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
--- 
-http://palosaari.fi/
