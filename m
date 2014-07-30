@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39305 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934169AbaGQQFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:05:34 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:4287
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753065AbaG3MRA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jul 2014 08:17:00 -0400
+Date: Wed, 30 Jul 2014 20:16:30 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Kamil Debski <k.debski@samsung.com>,
 	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Hans Verkuil" <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 00/11] CODA encoder/decoder device split
-Date: Thu, 17 Jul 2014 18:05:01 +0200
-Message-Id: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH v3 06/32] [media] coda: Add encoder/decoder support for
+ CODA960
+Message-ID: <20140730121628.GA22243@dragon>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+ <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
+ <20140721160128.27eb7428.m.chehab@samsung.com>
+ <20140721191944.GK13730@pengutronix.de>
+ <1406033433.4496.16.camel@paszta.hi.pengutronix.de>
+ <20140729153050.GE6827@dragon>
+ <CA+gwMccgFGxpDZFqZR=pEgnnc1z5rit4T+LsVKvp1KrWw7_aJA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CA+gwMccgFGxpDZFqZR=pEgnnc1z5rit4T+LsVKvp1KrWw7_aJA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Jul 29, 2014 at 07:06:25PM +0200, Philipp Zabel wrote:
+> > I followed the step to generate the firmware v4l-coda960-imx6q, and
+> > tested it on next-20140725 with patch 'ARM: dts: imx6qdl: Enable CODA960
+> > VPU' applied on top of it.  But I got the error of 'Wrong firmwarel' as
+> > below.
+> >
+> > [    2.582837] coda 2040000.vpu: requesting firmware 'v4l-coda960-imx6q.bin' for CODA960
+> > [    2.593344] coda 2040000.vpu: Firmware code revision: 0
+> > [    2.598649] coda 2040000.vpu: Wrong firmware. Hw: CODA960, Fw: (0x0000), Version: 0.0.0
+> 
+> I just tried with the same kernel, and the above download, converted
+> with the program in the referenced mail, and I get this:
+> 
+>     coda 2040000.vpu: Firmware code revision: 36350
+>     coda 2040000.vpu: Initialized CODA960.
+>     coda 2040000.vpu: Unsupported firmware version: 2.1.9
+>     coda 2040000.vpu: codec registered as /dev/video0
 
-the following patches add a few fixes and cleanups and split the
-coda video4linux2 device into encoder and decoder.
-Following the principle of least surprise, this way the format
-enumeration on the output and capture sides is fixed and does
-not change depending on whether the given instance is currently
-configured as encoder or decoder.
+Okay, the reason I'm running into the issue is that I'm using the FSL
+U-Boot which turns off VDDPU at initialization.
 
-regards
-Philipp
-
-Michael Olbrich (2):
-  [media] coda: use CODA_MAX_FRAME_SIZE everywhere
-  [media] coda: delay coda_fill_bitstream()
-
-Philipp Zabel (9):
-  [media] coda: fix CODA7541 hardware reset
-  [media] coda: initialize hardware on pm runtime resume only if
-    firmware available
-  [media] coda: remove CAPTURE and OUTPUT caps
-  [media] coda: remove VB2_USERPTR from queue io_modes
-  [media] coda: lock capture frame size to output frame size when
-    streaming
-  [media] coda: split userspace interface into encoder and decoder
-    device
-  [media] coda: split format enumeration for encoder end decoder device
-  [media] coda: default to h.264 decoder on invalid formats
-  [media] coda: mark constant structures as such
-
- drivers/media/platform/coda.c | 316 ++++++++++++++++++++++++++----------------
- 1 file changed, 193 insertions(+), 123 deletions(-)
-
--- 
-2.0.1
-
+Shawn
