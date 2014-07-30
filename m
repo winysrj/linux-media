@@ -1,85 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:64774 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757159AbaGWNSJ (ORCPT
+Received: from mail-qa0-f66.google.com ([209.85.216.66]:48982 "EHLO
+	mail-qa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752553AbaG3Xso (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 09:18:09 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9600G0R2A7WE60@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Jul 2014 09:18:07 -0400 (EDT)
-Date: Wed, 23 Jul 2014 10:18:02 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] si2168: Fix unknown chip version message
-Message-id: <20140723101802.6bdaa410.m.chehab@samsung.com>
-In-reply-to: <53CF70D0.1060907@iki.fi>
-References: <1406056450-16031-1-git-send-email-m.chehab@samsung.com>
- <53CF70D0.1060907@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 30 Jul 2014 19:48:44 -0400
+Received: by mail-qa0-f66.google.com with SMTP id cm18so477155qab.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Jul 2014 16:48:44 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 31 Jul 2014 01:27:03 +0200
+Message-ID: <CABfGM6_nBUSgO_4D4Wi_h67VQOty+jYQXqE0JDvRx0gL-rj_bw@mail.gmail.com>
+Subject: -- Re: Very Urgent............
+From: Fabian Morision <fmorision1@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Jul 2014 11:22:40 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Greetings from gulf region
 
-> Moikka!
-> It is single character formatter, not string, => no need to terminate, 
-> so that patch is not valid.
+Thanks for the e-mail. I am very interested on funding lucrative
+business partnership with you acting as the manager and sole
+controller of the investment while i remain a silent investor for a
+period of ten yrs , though I am only looking at investment
+opportunities within the range you specified for a start. You can
+reply me here (fmorision@yahoo.com)
 
-Well, what happened with an invalid firmware is that the first %c was
-a 0x00 character, causing that the \n at the end and the others %c
-to be discarded.
+Let me know your thought asap
 
-In other words, if you want to print the data with %c, you should be 
-validating that it is a printable character before using %c.
+Regards
 
-On a separate issue, it is not "unkown" but "unknown".
+Financial Consultant
 
-Regards,
-Mauro
-
-> 
-> regards
-> Antti
-> 
-> 
-> On 07/22/2014 10:14 PM, Mauro Carvalho Chehab wrote:
-> > At least here with my PCTV 292e, it is printing this error:
-> >
-> > 	si2168 10-0064: si2168: unkown chip version Si21170-
-> >
-> > without a \n at the end. Probably because it is doing something
-> > weird or firmware didn't load well. Anyway, better to print it
-> > in hex, instead of using %c.
-> >
-> > While here, fix the typo.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > ---
-> >   drivers/media/dvb-frontends/si2168.c | 5 ++---
-> >   1 file changed, 2 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> > index 41bdbc4d9f6c..842c4a555d01 100644
-> > --- a/drivers/media/dvb-frontends/si2168.c
-> > +++ b/drivers/media/dvb-frontends/si2168.c
-> > @@ -414,9 +414,8 @@ static int si2168_init(struct dvb_frontend *fe)
-> >   		break;
-> >   	default:
-> >   		dev_err(&s->client->dev,
-> > -				"%s: unkown chip version Si21%d-%c%c%c\n",
-> > -				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
-> > -				cmd.args[3], cmd.args[4]);
-> > +				"%s: unknown chip version: 0x%04x\n",
-> > +				KBUILD_MODNAME, chip_id);
-> >   		ret = -EINVAL;
-> >   		goto err;
-> >   	}
-> >
-> 
+Mr.Fabian Morision
