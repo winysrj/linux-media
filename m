@@ -1,69 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36486 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932102AbaGQMTV (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43859 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883AbaGaPbq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 08:19:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media:platform: OMAP3 camera support needs VIDEOBUF2_DMA_CONTIG
-Date: Thu, 17 Jul 2014 14:19:27 +0200
-Message-ID: <3044366.fg7nMOhZ3L@avalon>
-In-Reply-To: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
-References: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 31 Jul 2014 11:31:46 -0400
+Message-ID: <1406820704.16697.64.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 05/28] gpu: ipu-v3: Add units required for video capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 31 Jul 2014 17:31:44 +0200
+In-Reply-To: <1406820432.16697.58.camel@paszta.hi.pengutronix.de>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1403744755-24944-6-git-send-email-steve_longerbeam@mentor.com>
+	 <1406820432.16697.58.camel@paszta.hi.pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Sorry about the near full-quote, this mail was sent prematurely as I
+just learned Evolution does send mail on Ctrl+Enter. I'll continue this
+later.
 
-Thank you for the patch.
-
-On Friday 04 July 2014 09:51:47 Peter Meerwald wrote:
-> drivers/built-in.o: In function `isp_video_open':
-> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1253: undefined
-> reference to `vb2_dma_contig_memops' drivers/built-in.o: In function
-> `omap3isp_video_init':
-> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1344: undefined
-> reference to `vb2_dma_contig_init_ctx'
-> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1350: undefined
-> reference to `vb2_dma_contig_cleanup_ctx' drivers/built-in.o: In function
-> `omap3isp_video_cleanup':
-> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1381: undefined
-> reference to `vb2_dma_contig_cleanup_ctx' make: *** [vmlinux] Error 1
-> 
-> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree, with the "select VIDEOBUF2_DMA_CONTIG" and "select 
-OMAP_IOMMU" lines swapped below to keep them alphabetically sorted.
-
-> ---
-> 
-> not sure if this is the right way to fix, at least my kernel compiles
-> 
->  drivers/media/platform/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 8108c69..e1ff228 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -95,6 +95,7 @@ config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
->  	select ARM_DMA_USE_IOMMU
-> +	select VIDEOBUF2_DMA_CONTIG
->  	select OMAP_IOMMU
->  	---help---
->  	  Driver for an OMAP 3 camera controller.
-
--- 
-Regards,
-
-Laurent Pinchart
+regards
+Philipp
 
