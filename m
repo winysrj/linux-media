@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51073 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754511AbaGBTQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 15:16:48 -0400
-Date: Wed, 2 Jul 2014 21:16:42 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Guo Shawn-R65073 <r65073@freescale.com>,
-	Estevam Fabio-R49496 <r49496@freescale.com>
-Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for
- CODA960
-Message-ID: <20140702191642.GM22620@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
- <1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
- <1403626611.10756.11.camel@mpb-nicolas>
- <1404237187.19382.78.camel@paszta.hi.pengutronix.de>
- <0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:30712 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755930AbaGaI2i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jul 2014 04:28:38 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9K00CSVI7L4310@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jul 2014 17:28:34 +0900 (KST)
+From: panpan liu <panpan1.liu@samsung.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@redhat.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] videobuf2-core: simplify and unify the kernel api
+Date: Thu, 31 Jul 2014 16:28:15 +0800
+Message-id: <1406795295-3013-1-git-send-email-panpan1.liu@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Making the kernel api more simplified and unified.
 
-On Wed, Jul 02, 2014 at 03:37:06PM +0200, Kamil Debski wrote:
-> > From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> > Sent: Tuesday, July 01, 2014 7:53 PM
-> > To: Nicolas Dufresne
-> > Cc: linux-media@vger.kernel.org; Mauro Carvalho Chehab; Kamil Debski;
-> > Fabio Estevam; kernel@pengutronix.de
-> > Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support
-> > for CODA960
-> > 
-> > Hi Nicolas,
-> > 
-> > Am Dienstag, den 24.06.2014, 12:16 -0400 schrieb Nicolas Dufresne:
-> > [...]
-> > > > @@ -2908,6 +3183,7 @@ static void coda_timeout(struct work_struct
-> > > > *work)  static u32 coda_supported_firmwares[] = {
-> > > >  	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
-> > > >  	CODA_FIRMWARE_VERNUM(CODA_7541, 1, 4, 50),
-> > > > +	CODA_FIRMWARE_VERNUM(CODA_960, 2, 1, 5),
-> > >
-> > > Where can we find these firmwares ?
-> > 
-> > The firmware images are distributed with an EULA in Freescale's BSPs
-> > that can be downloaded from their website. The file you are looking for
-> > is vpu_fw_imx6q.bin (for i.MX6Q/D) or vpu_fw_imx6d.bin (for i.MX6DL/S).
-> > This has to be stripped of the 16-byte header and must be reordered to
-> > fit the CODA memory access pattern by reversing the order of each set
-> > of four 16-bit values (imagine little-endian 64-bit values made of four
-> > 16-bit wide bytes).
-> 
-> It would be really nice if the firmware was available in the linux-firmware
-> repository. Do you think this would be possible?
->  
-> Best wishes,
-> -- 
-> Kamil Debski
-> Samsung R&D Institute Poland
+Signed-off-by: panpan liu <panpan1.liu@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/media/v4l2-core/videobuf2-core.c
 
-I tried to convince Freescale to put the firmware into linux-firmware
-for 15 months now, but recently got no reply any more.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+old mode 100644
+new mode 100755
+index 9abb15e..71ba92c
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1194,7 +1194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		call_memop(q, prepare, vb->planes[plane].mem_priv);
 
-Fabio, Shawn, could you try to discuss this with the responsible folks
-inside FSL again? Maybe responsibilities have changed in the meantime
-and I might have tried to talk to the wrong people.
+-	q->ops->buf_queue(vb);
++	call_qop(q, buf_queue, vb);
+ }
 
-rsc
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+--
+1.7.9.5
+
