@@ -1,39 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq5.tb.mail.iss.as9143.net ([212.54.42.168]:39905 "EHLO
-	smtpq5.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932143AbaGRVRK (ORCPT
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:56524 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756304AbaGaKVK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 17:17:10 -0400
-Message-ID: <53C98ECA.1050407@grumpydevil.homelinux.org>
-Date: Fri, 18 Jul 2014 23:16:58 +0200
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+	Thu, 31 Jul 2014 06:21:10 -0400
+Received: by mail-oa0-f49.google.com with SMTP id eb12so1859743oac.36
+        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 03:21:09 -0700 (PDT)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ddbridge -- kernel 3.15.6
-References: <53C920FB.1040501@grumpydevil.homelinux.org><6E594BCC1018445BA338AAABB100405C@ci5fish><53C92FB6.40300@grumpydevil.homelinux.org><BAE402E8671443828B8815421BDD81CD@ci5fish><53C93FCB.6000302@grumpydevil.homelinux.org> <53C94AFF.5080207@grumpydevil.homelinux.org> <B7F8B540D6D44D08A40DBFA9508FA901@ci5fish>
-In-Reply-To: <B7F8B540D6D44D08A40DBFA9508FA901@ci5fish>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <2527488.lKHnXpDbSd@avalon>
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<CA+2YH7uNcD5v0wvScrJuGXMGe_SS9Vo3nVb75jQVq9R86R4K-Q@mail.gmail.com>
+	<CA+2YH7tqrLLWh2xJT-dSqWnXV4VD+jNf-egn3ea+VoEsmvqOog@mail.gmail.com>
+	<2527488.lKHnXpDbSd@avalon>
+Date: Thu, 31 Jul 2014 12:21:09 +0200
+Message-ID: <CA+2YH7vZm3famhSJeCQ0gWr=jAUm24=M40xmXGORSDXXgc-5zQ@mail.gmail.com>
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+From: Enrico <ebutera@users.sourceforge.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Enric Balletbo Serra <eballetbo@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-07-14 19:13, René wrote:
-> Had you a look to the linuxtv.org wiki page ?
-> If not read 
-> http://linuxtv.org/wiki/index.php/Linux4Media_cineS2_DVB-S2_Twin_Tuner 
-> if this correspond to your device you are may be missing the firmware 
-> file (bottom of the page)
+On Wed, Jul 30, 2014 at 11:01 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Enrico,
 >
+> On Wednesday 23 July 2014 15:57:51 Enrico wrote:
+>> On Wed, Jul 23, 2014 at 3:54 PM, Enrico wrote:
+>
+> [snip]
+>
+>> > You were right i was using the wrong binary, now the output is:
+>> >
+>> > ...
+>> > - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>> >             type V4L2 subdev subtype Unknown flags 0
+>> >             device node name /dev/v4l-subdev2
+>> >         pad0: Sink
+>> >                 [fmt:UYVY2X8/720x625 field:interlaced]
+>> > ...
+>> >         pad1: Source
+>> >                 [fmt:UYVY/720x624 field:interlaced
+>> >                  crop.bounds:(0,0)/720x624
+>> >                  crop:(0,0)/720x624]
+>> > ...
+>> > - entity 16: tvp5150 1-005c (1 pad, 1 link)
+>> >              type V4L2 subdev subtype Unknown flags 0
+>> >              device node name /dev/v4l-subdev8
+>> >         pad0: Source
+>> >                 [fmt:UYVY2X8/720x625 field:interlaced]
+>
+> That's surprising. Have you applied the tvp5150 patches from the
+> omap3isp/bt656 branch ? The field should be hardcoded to V4L2_FIELD_ALTERNATE
+> (reported as "alternate" by media-ctl), as the tvp5150 alternates between the
+> top and bottom fields in consecutive frames. The CCDC input should then be
+> configured to V4L2_FIELD_ALTERNATE as well, and the CCDC output to
+> V4L2_FIELD_ALTERNATE ("alternate"), V4L2_FIELD_INTERLACED_TB ("interlaced-tb")
+> or V4L2_FIELD_INTERLACED_BT ("interlaced-bt").
 
-The ngene and the ddbridge are both bridge drivers. Checking the driver 
-source, the ngene driver needs the ngene fw, the ddbridge does not need 
-any firmware.
+No, i missed those patches i was using only the omap3isp patches you
+posted here.
+With those patches and configuring the pipleline as you suggested i
+could finally capture some good frames with yavta.
 
-I did find something to check, but i need daylight to do so, as i am 
-checking to get extermal power to the cards.
+But i think there is some race, because it's not very "reliable". This
+is what i see:
 
-Cheers
+(with yavta -c50 -f UYVY -s 720x576 --field interlaced-tb /dev/video2)
 
+1) first run, ok
 
-Rudy
+2) if i re-run it soon after it finishes, it just hangs on start (in
+VIDIOC_DQBUF).
+I have to stop it with ctrl+c and after some seconds it exits, and the
+kernel prints the ccdc stop timeout message.
+
+in any case when it doesn't hang i can capture 200 frames with no
+errors. And if i wait some seconds before running it again it usually
+works (not always).
+
+3) if i add -F to yavta (saving to a tmpfs in ram), it hangs after
+capturing some frames (usually between 20 and 30).
+yet again, same ctrl+c thing (it exits, ccdc stop timeout...).
+
+Apart from these issues your patches are much better then the old
+ones! Any hints on what i can try to fix these issues?
+
+Thanks,
+
+Enrico
