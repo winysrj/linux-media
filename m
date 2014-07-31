@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:53197 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbaGOR3f (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4867 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932116AbaGaIcd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 13:29:35 -0400
-Message-id: <53C564F4.8010002@samsung.com>
-Date: Tue, 15 Jul 2014 11:29:24 -0600
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
-MIME-version: 1.0
-To: Antti Palosaari <crope@iki.fi>, m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [PATCH] media: em28xx-dvb unregister i2c tuner and demod after fe
- detach
-References: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com>
- <53C1971E.3020200@iki.fi>
-In-reply-to: <53C1971E.3020200@iki.fi>
-Content-type: text/plain; charset=ISO-8859-15; format=flowed
-Content-transfer-encoding: 7bit
+	Thu, 31 Jul 2014 04:32:33 -0400
+Message-ID: <53D9FEE9.4060902@xs4all.nl>
+Date: Thu, 31 Jul 2014 10:31:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: panpan liu <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jtp.park@samsung.com, mchehab@redhat.com
+CC: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] videobuf2-core: simplify and unify the kernel api
+References: <1406795295-3013-1-git-send-email-panpan1.liu@samsung.com>
+In-Reply-To: <1406795295-3013-1-git-send-email-panpan1.liu@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/12/2014 02:14 PM, Antti Palosaari wrote:
-> Moikka Shuah!
-> I suspect that patch makes no sense. On DVB there is runtime PM
-> controlled by DVB frontend. It wakes up all FE sub-devices when frontend
-> device is opened and sleeps when closed.
->
-> FE release() is not relevant at all for those sub-devices which are
-> implemented as a proper I2C client. I2C client has own remove() for that.
->
-> em28xx_dvb_init and em28xx_dvb_fini are counterparts. Those I2C drivers
-> are load on em28xx_dvb_init so logical place for unload is em28xx_dvb_fini.
->
-> Is there some real use case you need that change?
->
-> regards
-> Antti
->
+On 07/31/2014 10:28 AM, panpan liu wrote:
+> Making the kernel api more simplified and unified.
+> 
+> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
 
-Hi Antti,
+Has been fixed already in 3.15. Always check the latest code!
 
-The reason I made this change is because dvb_frontend_detach()
-calls release interfaces for fe as well as tuner. So it made
-sense to move the remove after that is all done. Are you saying
-fe and tuner release calls aren't relevant when sub-devices
-implement a proper i2c client? If that is the case then, and
-there is no chance for these release calls to be invoked when a
-proper i2c is present, then my patch isn't needed.
+Regards,
 
--- Shuah
+	Hans
 
--- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>  mode change 100644 => 100755 drivers/media/v4l2-core/videobuf2-core.c
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> old mode 100644
+> new mode 100755
+> index 9abb15e..71ba92c
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1194,7 +1194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+>  		call_memop(q, prepare, vb->planes[plane].mem_priv);
+> 
+> -	q->ops->buf_queue(vb);
+> +	call_qop(q, buf_queue, vb);
+>  }
+> 
+>  static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
