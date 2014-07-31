@@ -1,52 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36378 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbaGQL4v convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44209 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789AbaGaP2I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 07:56:51 -0400
-Received: from avalon.localnet (unknown [91.178.197.224])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 95F16359FB
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 13:55:47 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.17] MC and V4L2 core fixes
-Date: Thu, 17 Jul 2014 13:56:58 +0200
-Message-ID: <6926072.lWPNHLIZK6@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Thu, 31 Jul 2014 11:28:08 -0400
+Message-ID: <1406820486.16697.60.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 01/28] ARM: dts: imx6qdl: Add ipu aliases
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Shawn Guo <shawn.guo@freescale.com>
+Date: Thu, 31 Jul 2014 17:28:06 +0200
+In-Reply-To: <1403744755-24944-2-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1403744755-24944-2-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
+Am Mittwoch, den 25.06.2014, 18:05 -0700 schrieb Steve Longerbeam:
+> Add ipu0 (and ipu1 for quad) aliases to ipu1/ipu2 nodes respectively.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-  [media] dib8000: improve the message that reports per-layer locks 
-(2014-07-07 09:59:01 -0300)
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-are available in the git repository at:
+> ---
+>  arch/arm/boot/dts/imx6q.dtsi   |    1 +
+>  arch/arm/boot/dts/imx6qdl.dtsi |    1 +
+>  2 files changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+> index addd3f8..fcfbac2 100644
+> --- a/arch/arm/boot/dts/imx6q.dtsi
+> +++ b/arch/arm/boot/dts/imx6q.dtsi
+> @@ -14,6 +14,7 @@
+>  
+>  / {
+>  	aliases {
+> +		ipu1 = &ipu2;
+>  		spi4 = &ecspi5;
+>  	};
+>  
+> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+> index ce05991..3b3d8fe 100644
+> --- a/arch/arm/boot/dts/imx6qdl.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
+> @@ -29,6 +29,7 @@
+>  		i2c0 = &i2c1;
+>  		i2c1 = &i2c2;
+>  		i2c2 = &i2c3;
+> +		ipu0 = &ipu1;
+>  		mmc0 = &usdhc1;
+>  		mmc1 = &usdhc2;
+>  		mmc2 = &usdhc3;
 
-  git://linuxtv.org/pinchartl/media.git v4l2/core
+I think Shawn (added to Cc:) should take this patch separately, please
+consider sending it to him.
 
-for you to fetch changes up to 65ab45056f77770f777bf0e98c4060c74e91c624:
+regards
+Philipp
 
-  media-device: Remove duplicated memset() in media_enum_entities() 
-(2014-07-17 13:56:08 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      v4l: subdev: Unify argument validation across IOCTLs
-
-Salva Peiró (1):
-      media-device: Remove duplicated memset() in media_enum_entities()
-
- drivers/media/media-device.c          |   2 -
- drivers/media/v4l2-core/v4l2-subdev.c | 120 +++++++++++++++++++++------------
- 2 files changed, 74 insertions(+), 48 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
 
