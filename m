@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2481 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754974AbaGUN7h (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44206 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789AbaGaP2E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 09:59:37 -0400
-Message-ID: <53CD1CBB.2000201@xs4all.nl>
-Date: Mon, 21 Jul 2014 15:59:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 0/7] si4713/miropcm20: RDS enhancements
-References: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+	Thu, 31 Jul 2014 11:28:04 -0400
+Message-ID: <1406820482.16697.59.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 00/28] IPUv3 prep for video capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 31 Jul 2014 17:28:02 +0200
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2014 03:45 PM, Hans Verkuil wrote:
-> This patch series adds a bunch of missing RDS TX controls and implements
-> them in the si4713 driver. It also adds back RDS support to the miropcm20
-> driver.
+
+Hi Steve,
+
+Am Mittwoch, den 25.06.2014, 18:05 -0700 schrieb Steve Longerbeam:
+> Hi Philip, Sascha,
 > 
-> The Alternate Frequencies control is a u32 array since there can be up to
-> 25 alternate frequencies. This was also the reason why I am only now posting
-> this series since it had to wait for compound control support to go in.
+> Here is a rebased set of IPU patches that prepares for video capture
+> support. Video capture is not included in this set. I've addressed
+> all your IPU-specific concerns from the previous patch set, the
+> major ones being:
 > 
-> I've tested both drivers with my si4713 and miropcm20 boards.
+> - the IOMUXC control for CSI input selection has been removed. This
+>   should be part of a future CSI media entity driver.
+> 
+> - the ipu-irt unit has been removed. Enabling the IRT module is
+>   folded into ipu-ic unit. The ipu-ic unit is also cleaned up a bit.
+>
+> - the ipu-csi APIs are consolidated/simplified.
+> 
+> - added CSI and IC base offsets for i.MX51/i.MX53.
 
-I forgot to mention that this sits on top of the ctrls patches from this
-pull request:
+Sorry for the delay, I have only now started to look at the IPU again in
+detail, and I still have a few comments. I'll reply to the individual
+patches.
 
-https://patchwork.linuxtv.org/patch/24885/
+regards
+Philipp
 
-Regards,
 
-	Hans
