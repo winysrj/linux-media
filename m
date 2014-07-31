@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:49996 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbaGVFk1 (ORCPT
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:55139 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbaGaPM2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 01:40:27 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N930098WMFDH880@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jul 2014 01:40:25 -0400 (EDT)
-Date: Tue, 22 Jul 2014 02:40:21 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Different Devices identical hardware
-Message-id: <20140722024021.609dc76d.m.chehab@samsung.com>
-In-reply-to: <53CDF7A7.8080005@gentoo.org>
-References: <53CDF7A7.8080005@gentoo.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 31 Jul 2014 11:12:28 -0400
+Received: by mail-pd0-f180.google.com with SMTP id y13so3633519pdi.25
+        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 08:12:28 -0700 (PDT)
+Received: from DFTWBCREAD (wsip-70-167-188-130.sd.sd.cox.net. [70.167.188.130])
+        by mx.google.com with ESMTPSA id ez1sm5811171pbd.91.2014.07.31.08.12.26
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Thu, 31 Jul 2014 08:12:27 -0700 (PDT)
+From: "Chris R" <chrisrfq@gmail.com>
+To: <linux-media@vger.kernel.org>
+References: <047d7b16059f97447804ff7e75d5@google.com>
+In-Reply-To: <047d7b16059f97447804ff7e75d5@google.com>
+Subject: FW: Delivery Status Notification (Failure)
+Date: Thu, 31 Jul 2014 08:12:26 -0700
+Message-ID: <016d01cfacd1$d752bda0$85f838e0$@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Jul 2014 07:33:27 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+I'm trying to build the V4L-DVB drivers for an embedded system
+(OMAP3530/DM3730) that uses the 2.6.37 kernel.  I'm using the build
+instructions from
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-D
+VB_Device_Drivers and am following the more manually intensive approach
+column.
 
-> Hi,
-> 
-> I want to add support for Hauppauge WinTV 930C-HD and PCTV QuatroStick 521e.
-> The namess and USB-IDs are different, but the hardware is the same.
-> 
-> Should there be in this case one card entry in cx231xx driver or two?
-> Two would have the advantage that the correct name of the device could
-> be displayed, but some code related to the card entry would be duplicated.
+The first make crashes (make tar DIR=/home/me/mykernel) with missing file
+errors.  It lists about 20 missing files such as include/linux/dma-buf.h and
+include/trace/events/v4l2.h.  It doesn't look like those files show up in
+the kernel source until versions 3.3 and 3.14 respectively.  What is the
+best approach to resolve the missing file errors for my 2.6.37 kernel and
+still have the drivers build and run?
 
-One entry is enough. There are other similar cases on our tree. We
-generally add both names at the string name, like:
+Thanks,
+Chris
 
-	[EM2820_BOARD_PINNACLE_DVC_90] = {
-		.name         = "Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker "
-
-	[EM2820_BOARD_PROLINK_PLAYTV_USB2] = {
-		.name         = "SIIG AVTuner-PVR / Pixelview Prolink PlayTV USB 2.0",
-
-and others.
-
-Regards,
-Mauro
-
-> 
-> Regards
-> Matthias
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
