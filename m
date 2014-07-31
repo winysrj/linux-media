@@ -1,89 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:50089 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaGOOSG (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49302 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaGaSGr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 10:18:06 -0400
-Message-ID: <53B95102.3030001@gmail.com>
-Date: Sun, 06 Jul 2014 21:37:06 +0800
-From: vv <zhengdi05@gmail.com>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com, zhengdi05@gmail.com
-Subject: [PATCH]staging: media: lirc_parallel.c: fix coding style
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 31 Jul 2014 14:06:47 -0400
+Message-ID: <1406830005.16697.86.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 27/28] gpu: ipu-cpmem: Add ipu_cpmem_dump()
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 31 Jul 2014 20:06:45 +0200
+In-Reply-To: <1403744755-24944-28-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1403744755-24944-28-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 9d2c680fb573985588d33e31379d50ef3fb6e2fd Mon Sep 17 00:00:00 2001
-From: Zheng Di <zhengdi05@gmail.com>
-Date: Sun, 6 Jul 2014 20:41:53 +0800
-Subject: [PATCH] staging: media: lirc_parallel.c: fix coding style
+Am Mittwoch, den 25.06.2014, 18:05 -0700 schrieb Steve Longerbeam:
+> Adds ipu_cpmem_dump() which dumps a channel's cpmem to debug.
 
-This patch fix checkpatch:
-WARNING: else is not generally useful after a break or return
-WARNING: line over 80 characters
+Maybe #ifdef DEBUG this and ipu_dump?
 
-Signed-off-by: Zheng Di <zhengdi05@gmail.com>
----
- drivers/staging/media/lirc/lirc_parallel.c |   32
-++++++++++++++--------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+regards
+Philipp
 
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c
-b/drivers/staging/media/lirc/lirc_parallel.c
-index 1394f02..d7eb2a4 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -169,23 +169,23 @@ static unsigned int init_lirc_timer(void)
-            newtimer = (1000000*count)/timeelapsed;
-            pr_info("%u Hz timer detected\n", newtimer);
-            return newtimer;
--       }  else {
--           newtimer = (1000000*count)/timeelapsed;
--           if (abs(newtimer - default_timer) > default_timer/10) {
--               /* bad timer */
--               pr_notice("bad timer: %u Hz\n", newtimer);
--               pr_notice("using default timer: %u Hz\n",
--                     default_timer);
--               return default_timer;
--           } else {
--               pr_info("%u Hz timer detected\n", newtimer);
--               return newtimer; /* use detected value */
--           }
-        }
--   } else {
--       pr_notice("no timer detected\n");
--       return 0;
-+
-+       newtimer = (1000000*count)/timeelapsed;
-+       if (abs(newtimer - default_timer) > default_timer/10) {
-+           /* bad timer */
-+           pr_notice("bad timer: %u Hz\n", newtimer);
-+           pr_notice("using default timer: %u Hz\n",
-+                 default_timer);
-+           return default_timer;
-+       }
-+
-+       pr_info("%u Hz timer detected\n", newtimer);
-+       return newtimer; /* use detected value */
-    }
-+
-+   pr_notice("no timer detected\n");
-+   return 0;
- }
-
- static int lirc_claim(void)
-@@ -661,7 +661,7 @@ static int __init lirc_parallel_init(void)
-        goto exit_device_put;
-    }
-    ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
--                      pf, kf, lirc_lirc_irq_handler, 0, NULL);
-+                  pf, kf, lirc_lirc_irq_handler, 0, NULL);
-    parport_put_port(pport);
-    if (ppdevice == NULL) {
-        pr_notice("parport_register_device() failed\n");
--- 
-1.7.9.5
