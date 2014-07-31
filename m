@@ -1,136 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60104 "EHLO mail.kapsi.fi"
+Received: from mail.aswsp.com ([193.34.35.150]:16827 "EHLO mail.aswsp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670AbaGOCf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 22:35:57 -0400
-Message-ID: <53C4938A.3000308@iki.fi>
-Date: Tue, 15 Jul 2014 05:35:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S932239AbaGaIxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jul 2014 04:53:46 -0400
+Message-ID: <53DA0419.2090405@parrot.com>
+Date: Thu, 31 Jul 2014 10:53:45 +0200
+From: Julien BERAUD <julien.beraud@parrot.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] airspy: AirSpy SDR driver
-References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl>
-In-Reply-To: <53C43705.8020207@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: <linux-media@vger.kernel.org>
+Subject: Re: Configurable Video Controller Driver
+References: <53BEA0DA.9000706@parrot.com> <20140721111432.GQ16460@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140721111432.GQ16460@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/14/2014 11:01 PM, Hans Verkuil wrote:
-> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
->> I actually ran v4l2-compliance and there was problem with ADC band
->> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
->> both upper and lower limit. Due to that I added even small hack to driver,
+Hi Sakari,
+Thank you for your answer.
+Le 21/07/2014 13:14, Sakari Ailus a écrit :
+> Hi Julien,
+>
+> On Thu, Jul 10, 2014 at 04:19:06PM +0200, Julien BERAUD wrote:
+>> We are developing a driver for our video controller which has the
+>> particularity of being very reconfigurable.
 >>
->> +		.rangelow   = 20000000,
->> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>> We have reached a point at which the complexity and variety of the
+>> applications we need to implement forces us to
+>> design an api/library that allows us to configure the
+>> interconnection of the different video processing units(Camera
+>> interfaces,
+>> LCD interfaces, scalers, rotators, demosaicing, dead pixel
+>> correction, etc...) from userland.
+>>
+>> The media controller api has the limitation of not being able to
+>> create links but just browsing and activating/deactivating them.
+>> If we just allowed a user to activate/deactivate links, then we
+>> would have to declare all the possible connections between
+>> the different blocks, which would make it very confusing from a
+>> userland point of view. Moreover, the interconnection constraints
+>> would have to be dealt with very generically, which would make it
+>> very difficult in the kernel too.
+> How many different blocks do you have? Can they be connected in arbitrary
+> ways? If not, what kind of limitations do you have?
 >
-> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
-> that? That shouldn't be a problem, and I don't see that here either if I try that
-> myself.
+> The Media controller is originally intended for modelling complex devices
+> with hardware data paths between the sub-blocks. The question is: does your
+> device fit into that group, even if could be a little more complex than the
+> devices that are currently supported?
+We have 44 different hardware blocks that can be connected in arbitrary 
+ways but with some constraints. Some of the blocks have several 
+inputs(blenders) and some(one type only) have 2 outputs(the block is a 
+fork).
+There are some limitations. Some blocks only accept Raw Bayer as 
+input(ISP). There are some small limitations here and there, like if you 
+use a scaler with a high scaling factor, you need to go to memory 
+because the internal memory is not sufficient.
+Some of the blocks are FIFOs to write/read to memory.
+In the end, there are 6 camera inputs and 2 lcd outputs, all of them 
+parallel, 2 ISPs with 2 blocks each(bayer/yuv), and 2 stat calculators, 
+12 Fifos, 4 color converters, 2 blenders with 4 inputs each, 2 
+scalers/rotators, 4 forks, 2 sat, 2 I3D, 2 gamma converters.
+
+Our device might be a little more complex than the devices that are 
+currently supported, though I am not aware of all the currently 
+supported devices.
+
+Something else, the Media controller doesn't allow to create links from 
+userland, which is what I think we would need in order to avoid to 
+declare all the possible combinations because that would be hard to 
+understand in userland and complicated to handle in the kernel.
+
+We have come from a totally rigid interconnection declared in the BSP to 
+become more and more generic but it is probable that becoming too 
+generic wouldn't make things any better.
+
+
 >
-> If it still fails, can you show me the error message?
+>> The conclusion we have reached yet is that we have to design an API
+>> that allows us to create v4l2 subdevices that have certain
+>> capabilities(scaling,rotating, demosaicing, etc...) and then to
+>> create links between them from a userland library.
+> Can you create arbitrary devices at will, or do these devices exist on
+> hardware all the time?
+>
+The devices exist on hardware at all time. What I would like to do is to 
+create "virtual" subdevices that have some of the capabilities provided 
+by the blocks in order to benefit from all the features the hardware 
+provides in order to have a media controller tree that is clear and that 
+fits the needs of the current application. We are currently thinking 
+about designing a kernel driver along with a userland library that 
+allows us to reconfigure our hardware paths in order to create those 
+virtual subdevices and then expose them with the Media Controller/V4L2 
+subdev api.
 
-[crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
--rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
-[crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S 
-/dev/swradio0 -s
-Driver Info:
-	Driver name   : airspy
-	Card type     : AirSpy SDR
-	Bus info      : usb-0000:00:13.2-2
-	Driver version: 3.15.0
-	Capabilities  : 0x85110000
-		SDR Capture
-		Tuner
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05110000
-		SDR Capture
-		Tuner
-		Read/Write
-		Streaming
+I have tried to bring the topic up on the  v4l irc because it is a 
+complicated matter. I will try again.
 
-Compliance test for device /dev/swradio0 (not using libv4l2):
+There may be a better way to handle such a complicated video controller, 
+but I haven't found it yet. If you have any idea, I am totally open to 
+reconsider the path we are taking.
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
+In the end, it would be possible to handle each hardware block as an 
+independant subdev or input/output as long as we would be able to create 
+links with the media api but 2 considerations make it easier to do what 
+we are currently doing :
+-> In our applications, most of the hardware paths between the blocks 
+won't move at runtime, just a few links would have to be reconfigured at 
+runtime which could be exposed with the media api.
+-> We already have a low level api that allows us to handle the creation 
+of a hardware block that provide a list of capabilities.
 
-Allow for multiple opens:
-	test second sdr open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
-		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
-	test VIDIOC_G/S_TUNER: FAIL
-		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid 
-tuner 0
-	test VIDIOC_G/S_FREQUENCY: FAIL
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERYCTRL/MENU: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 6 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK (Not Supported)
-
-Streaming ioctls:
-	test read/write: OK
-	test MMAP: OK
-	test USERPTR: OK
-	test DMABUF: OK
-
-Total: 42, Succeeded: 40, Failed: 2, Warnings: 0
-[crope@localhost gr-analog]$
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Thank you,
+Julien
