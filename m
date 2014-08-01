@@ -1,219 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:46607 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420AbaHHDup (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 23:50:45 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so6219973pdj.8
-        for <linux-media@vger.kernel.org>; Thu, 07 Aug 2014 20:50:45 -0700 (PDT)
-Date: Fri, 8 Aug 2014 11:50:42 +0800
-From: "nibble.max" <nibble.max@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4 v2] support for DVBSky dvb-s2 usb: Add ts clock and clock polarity, lnb set voltage for m88ds3103
-Message-ID: <201408081150404538007@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59958 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433AbaHANzx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 09:55:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: [PATCH 7/8] omap3isp: ccdc: Don't timeout on stream off when the CCDC is stopped
+Date: Fri,  1 Aug 2014 15:46:33 +0200
+Message-Id: <1406900794-9871-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ts clock and clock polarity, lnb set voltage.
+When the CCDC is already stopped due to a buffer underrun, the stop
+state machine won't advance in BT.656 mode as no interrupt are generated
+by the stopped CCDC in that mode. Handle this case explicitly in the
+ccdc_disable() function.
 
-Signed-off-by: Nibble Max <nibble.max@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/m88ds3103.c | 77 +++++++++++++++++++++------------
- drivers/media/dvb-frontends/m88ds3103.h | 25 ++++++++---
- 2 files changed, 70 insertions(+), 32 deletions(-)
+ drivers/media/platform/omap3isp/ispccdc.c | 4 ++++
+ drivers/media/platform/omap3isp/ispccdc.h | 2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index dfe0c2f..142f9a6 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -247,7 +247,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	u8 u8tmp, u8tmp1, u8tmp2;
- 	u8 buf[2];
- 	u16 u16tmp, divide_ratio;
--	u32 tuner_frequency, target_mclk, ts_clk;
-+	u32 tuner_frequency, target_mclk;
- 	s32 s32tmp;
- 	dev_dbg(&priv->i2c->dev,
- 			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
-@@ -316,9 +316,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 				target_mclk = 144000;
- 			break;
- 		case M88DS3103_TS_PARALLEL:
--		case M88DS3103_TS_PARALLEL_12:
--		case M88DS3103_TS_PARALLEL_16:
--		case M88DS3103_TS_PARALLEL_19_2:
- 		case M88DS3103_TS_CI:
- 			if (c->symbol_rate < 18000000)
- 				target_mclk = 96000;
-@@ -352,33 +349,17 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	switch (priv->cfg->ts_mode) {
- 	case M88DS3103_TS_SERIAL:
- 		u8tmp1 = 0x00;
--		ts_clk = 0;
--		u8tmp = 0x46;
-+		u8tmp = 0x06;
- 		break;
- 	case M88DS3103_TS_SERIAL_D7:
- 		u8tmp1 = 0x20;
--		ts_clk = 0;
--		u8tmp = 0x46;
-+		u8tmp = 0x06;
- 		break;
- 	case M88DS3103_TS_PARALLEL:
--		ts_clk = 24000;
--		u8tmp = 0x42;
--		break;
--	case M88DS3103_TS_PARALLEL_12:
--		ts_clk = 12000;
--		u8tmp = 0x42;
--		break;
--	case M88DS3103_TS_PARALLEL_16:
--		ts_clk = 16000;
--		u8tmp = 0x42;
--		break;
--	case M88DS3103_TS_PARALLEL_19_2:
--		ts_clk = 19200;
--		u8tmp = 0x42;
-+		u8tmp = 0x02;
- 		break;
- 	case M88DS3103_TS_CI:
--		ts_clk = 6000;
--		u8tmp = 0x43;
-+		u8tmp = 0x03;
- 		break;
- 	default:
- 		dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n", __func__);
-@@ -386,6 +367,9 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index ff2ea2b..ec0a0e8 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1320,6 +1320,8 @@ static void __ccdc_enable(struct isp_ccdc_device *ccdc, int enable)
  
-+	if (priv->cfg->ts_clk_pol)
-+		u8tmp |= 0x40;
+ 	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PCR,
+ 			ISPCCDC_PCR_EN, enable ? ISPCCDC_PCR_EN : 0);
 +
- 	/* TS mode */
- 	ret = m88ds3103_wr_reg(priv, 0xfd, u8tmp);
- 	if (ret)
-@@ -399,8 +383,8 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	if (ts_clk) {
--		divide_ratio = DIV_ROUND_UP(target_mclk, ts_clk);
-+	if (priv->cfg->ts_clk) {
-+		divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
- 		u8tmp1 = divide_ratio / 2;
- 		u8tmp2 = DIV_ROUND_UP(divide_ratio, 2);
- 	} else {
-@@ -411,7 +395,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 
- 	dev_dbg(&priv->i2c->dev,
- 			"%s: target_mclk=%d ts_clk=%d divide_ratio=%d\n",
--			__func__, target_mclk, ts_clk, divide_ratio);
-+			__func__, target_mclk, priv->cfg->ts_clk, divide_ratio);
- 
- 	u8tmp1--;
- 	u8tmp2--;
-@@ -1053,6 +1037,44 @@ err:
- 	return ret;
++	ccdc->running = enable;
  }
  
-+static int m88ds3103_set_voltage(struct dvb_frontend *fe,
-+	fe_sec_voltage_t voltage)
-+{
-+	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	u8 data;
-+
-+	dev_dbg(&priv->i2c->dev, "%s: pin_ctrl = (%02x)\n",
-+			__func__, priv->cfg->pin_ctrl);
-+
-+	m88ds3103_rd_reg(priv, 0xa2, &data);
-+
-+	if (priv->cfg->pin_ctrl & 0x80) { /*If control pin is assigned.*/
-+		data &= ~0x03; /* bit0 V/H, bit1 off/on */
-+		if (priv->cfg->pin_ctrl & 0x02)
-+			data |= 0x02;
-+
-+		switch (voltage) {
-+		case SEC_VOLTAGE_18:
-+		     if ((priv->cfg->pin_ctrl & 0x01) == 0)
-+			data |= 0x01;
-+		     break;
-+		case SEC_VOLTAGE_13:
-+		     if (priv->cfg->pin_ctrl & 0x01)
-+			data |= 0x01;
-+		     break;
-+		case SEC_VOLTAGE_OFF:
-+		     if (priv->cfg->pin_ctrl & 0x02)
-+			data &= ~0x02;
-+		     else
-+			data |= 0x02;
-+		     break;
-+		}
-+	}
-+	m88ds3103_wr_reg(priv, 0xa2, data);
-+
-+	return 0;
-+}
-+
- static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 		struct dvb_diseqc_master_cmd *diseqc_cmd)
- {
-@@ -1370,6 +1392,7 @@ static struct dvb_frontend_ops m88ds3103_ops = {
- 	.diseqc_send_burst = m88ds3103_diseqc_send_burst,
+ static int ccdc_disable(struct isp_ccdc_device *ccdc)
+@@ -1330,6 +1332,8 @@ static int ccdc_disable(struct isp_ccdc_device *ccdc)
+ 	spin_lock_irqsave(&ccdc->lock, flags);
+ 	if (ccdc->state == ISP_PIPELINE_STREAM_CONTINUOUS)
+ 		ccdc->stopping = CCDC_STOP_REQUEST;
++	if (!ccdc->running)
++		ccdc->stopping = CCDC_STOP_FINISHED;
+ 	spin_unlock_irqrestore(&ccdc->lock, flags);
  
- 	.set_tone = m88ds3103_set_tone,
-+	.set_voltage = m88ds3103_set_voltage,
+ 	ret = wait_event_timeout(ccdc->wait,
+diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
+index 731ecc7..3440a70 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.h
++++ b/drivers/media/platform/omap3isp/ispccdc.h
+@@ -124,6 +124,7 @@ struct ispccdc_lsc {
+  * @lock: Serializes shadow_update with interrupt handler
+  * @wait: Wait queue used to stop the module
+  * @stopping: Stopping state
++ * @running: Is the CCDC hardware running
+  * @ioctl_lock: Serializes ioctl calls and LSC requests freeing
+  */
+ struct isp_ccdc_device {
+@@ -155,6 +156,7 @@ struct isp_ccdc_device {
+ 	spinlock_t lock;
+ 	wait_queue_head_t wait;
+ 	unsigned int stopping;
++	bool running;
+ 	struct mutex ioctl_lock;
  };
  
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-diff --git a/drivers/media/dvb-frontends/m88ds3103.h b/drivers/media/dvb-frontends/m88ds3103.h
-index bbb7e3a..ed9c2045 100644
---- a/drivers/media/dvb-frontends/m88ds3103.h
-+++ b/drivers/media/dvb-frontends/m88ds3103.h
-@@ -47,14 +47,23 @@ struct m88ds3103_config {
- 	 */
- #define M88DS3103_TS_SERIAL             0 /* TS output pin D0, normal */
- #define M88DS3103_TS_SERIAL_D7          1 /* TS output pin D7 */
--#define M88DS3103_TS_PARALLEL           2 /* 24 MHz, normal */
--#define M88DS3103_TS_PARALLEL_12        3 /* 12 MHz */
--#define M88DS3103_TS_PARALLEL_16        4 /* 16 MHz */
--#define M88DS3103_TS_PARALLEL_19_2      5 /* 19.2 MHz */
--#define M88DS3103_TS_CI                 6 /* 6 MHz */
-+#define M88DS3103_TS_PARALLEL           2 /* TS Parallel mode */
-+#define M88DS3103_TS_CI                 3 /* TS CI Mode */
- 	u8 ts_mode;
- 
- 	/*
-+	 * TS clk in KHz
-+	 * Default: 0.
-+	 */
-+	u32 ts_clk;
-+
-+	/*
-+	 * TS clk polarity.
-+	 * Default: 0. 1-active at falling edge; 0-active at rising edge.
-+	 */
-+	u8 ts_clk_pol:1;
-+
-+	/*
- 	 * spectrum inversion
- 	 * Default: 0
- 	 */
-@@ -86,6 +95,12 @@ struct m88ds3103_config {
- 	 * Default: none, must set
- 	 */
- 	u8 agc;
-+
-+	/*
-+	 * LNB pin control
-+	 *
-+	 */
-+	u8 pin_ctrl;
- };
- 
- /*
+-- 
+1.8.5.5
 
