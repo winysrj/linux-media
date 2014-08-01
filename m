@@ -1,30 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [194.27.217.115] ([194.27.217.115]:48669 "EHLO mail.agri.edu.tr"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757496AbaHEJjw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 05:39:52 -0400
-Date: Tue, 5 Aug 2014 00:43:33 +0300 (EEST)
-From: Humboldt University of Berlin <forhan@agri.edu.tr>
-Reply-To: Humboldt University of Berlin <account_cc@noreply.com>
-Message-ID: <1114761559.1142221.1407188613161.JavaMail.root@agri.edu.tr>
-Subject: Achtung Benutzer
+Received: from aserp1040.oracle.com ([141.146.126.69]:49721 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750783AbaHAPX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 11:23:28 -0400
+Date: Fri, 1 Aug 2014 18:23:00 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: zzam@gentoo.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org
+Subject: re: [media] si2165: Add demod driver for DVB-T only
+Message-ID: <20140801152300.GA614@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Achtung Benutzer 
+Hello Matthias Schwarzott,
 
-Dies ist ein Hinweis, dass Höflichkeit Sie nähern sich der Grenze von 2 GB Datentarif. Ihre E-Mail-Konto senden und empfangen E-Mails, wenn Ihr E-Mail Konto nicht innerhalb von 24 Stunden überprüft blockiert werden würde. 
+The patch 3e54a1697ace: "[media] si2165: Add demod driver for DVB-T
+only" from Jul 22, 2014, leads to the following static checker
+warning:
 
-Sie werden nicht in der Lage zu senden oder zu empfangen neue E-Mail, bis Sie Ihre E-Mail-Kontingent zu aktualisieren. 
-Sie können auf den entsprechenden Link klicken Sie unten auf Ihr Konto zu reaktivieren 
+	drivers/media/dvb-frontends/si2165.c:329 si2165_wait_init_done()
+	warn: signedness bug returning '(-22)'
 
-http://trkwebmaildorulamaadmin.yolasite.com/
+drivers/media/dvb-frontends/si2165.c
+   315  static bool si2165_wait_init_done(struct si2165_state *state)
+   316  {
+   317          int ret = -EINVAL;
+   318          u8 val = 0;
+   319          int i;
+   320  
+   321          for (i = 0; i < 3; ++i) {
+   322                  si2165_readreg8(state, 0x0054, &val);
+   323                  if (val == 0x01)
+   324                          return 0;
 
-* Wichtiger Hinweis: 
-In der Regel innerhalb von 24 Stunden wird Ihr Konto aktiviert werden. 
+This is the success path?
 
-Service Provider International. © 2014
+   325                  usleep_range(1000, 50000);
+   326          }
+   327          dev_err(&state->i2c->dev, "%s: init_done was not set\n",
+   328                  KBUILD_MODNAME);
+   329          return ret;
+
+-EINVAL becomes 1 when casted to bool.
+
+   330  }
+
+regards,
+dan carpenter
