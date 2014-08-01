@@ -1,70 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1482 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaH2GXK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Aug 2014 02:23:10 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7T6N77r092588
-	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:23:09 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E565E2A0757
-	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:23:03 +0200 (CEST)
-Message-ID: <54001C47.8020608@xs4all.nl>
-Date: Fri, 29 Aug 2014 08:23:03 +0200
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3769 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876AbaHAMTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 08:19:11 -0400
+Message-ID: <53DB85AA.3010207@xs4all.nl>
+Date: Fri, 01 Aug 2014 14:18:50 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] Add driver for tw68xx PCI grabber boards
+CC: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH for v3.17] videobuf2-dma-sg: fix for wrong GFP mask to sg_alloc_table_from_pages
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds the tw68 PCI driver.
+sg_alloc_table_from_pages() only allocates a sg_table, so it should just use
+GFP_KERNEL, not gfp_flags. If gfp_flags contains __GFP_DMA32 then mm/sl[au]b.c
+will call BUG_ON:
 
-These two patches are identical to the v3 patch series I posted earlier:
+[  358.027515] ------------[ cut here ]------------
+[  358.027546] kernel BUG at mm/slub.c:1416!
+[  358.027558] invalid opcode: 0000 [#1] PREEMPT SMP 
+[  358.027576] Modules linked in: mt2131 s5h1409 tda8290 tuner cx25840 cx23885 btcx_risc altera_ci tda18271 altera_stapl videobuf2_dvb tveeprom cx2341x videobuf2_dma_sg dvb_core rc_core videobuf2_memops videobuf2_core nouveau zr36067 videocodec v4l2_common videodev media x86_pkg_temp_thermal cfbfillrect cfbimgblt cfbcopyarea ttm drm_kms_helper processor button isci
+[  358.027712] CPU: 19 PID: 3654 Comm: cat Not tainted 3.16.0-rc6-telek #167
+[  358.027723] Hardware name: ASUSTeK COMPUTER INC. Z9PE-D8 WS/Z9PE-D8 WS, BIOS 5404 02/10/2014
+[  358.027741] task: ffff880897c7d960 ti: ffff88089b4d4000 task.ti: ffff88089b4d4000
+[  358.027753] RIP: 0010:[<ffffffff81196040>]  [<ffffffff81196040>] new_slab+0x280/0x320
+[  358.027776] RSP: 0018:ffff88089b4d7ae8  EFLAGS: 00010002
+[  358.027787] RAX: ffff880897c7d960 RBX: 0000000000000000 RCX: ffff88089b4d7b50
+[  358.027798] RDX: 00000000ffffffff RSI: 0000000000000004 RDI: ffff88089f803b00
+[  358.027809] RBP: ffff88089b4d7bb8 R08: 0000000000000000 R09: 0000000100400040
+[  358.027821] R10: 0000160000000000 R11: ffff88109bc02c40 R12: 0000000000000001
+[  358.027832] R13: ffff88089f8000c0 R14: ffff88089f803b00 R15: ffff8810bfcf4be0
+[  358.027845] FS:  00007f83fe5c0700(0000) GS:ffff8810bfce0000(0000) knlGS:0000000000000000
+[  358.027858] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  358.027868] CR2: 0000000001dfd568 CR3: 0000001097d5a000 CR4: 00000000000407e0
+[  358.027878] Stack:
+[  358.027885]  ffffffff81198860 ffff8810bfcf4be0 ffff880897c7d960 0000000000001b00
+[  358.027905]  ffff880897c7d960 0000000000000000 ffff8810bfcf4bf0 0000000000000000
+[  358.027924]  0000000000000000 0000000100000100 ffffffff813ef84a 00000004ffffffff
+[  358.027944] Call Trace:
+[  358.027956]  [<ffffffff81198860>] ? __slab_alloc+0x400/0x4e0
+[  358.027973]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
+[  358.027985]  [<ffffffff81198f17>] __kmalloc+0x127/0x150
+[  358.027997]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
+[  358.028009]  [<ffffffff813ef84a>] sg_kmalloc+0x1a/0x30
+[  358.028023]  [<ffffffff813eff84>] __sg_alloc_table+0x74/0x180
+[  358.028035]  [<ffffffff813ef830>] ? sg_kfree+0x20/0x20
+[  358.028048]  [<ffffffff813f00af>] sg_alloc_table+0x1f/0x60
+[  358.028061]  [<ffffffff813f0174>] sg_alloc_table_from_pages+0x84/0x1f0
+[  358.028077]  [<ffffffffa007c3f9>] vb2_dma_sg_alloc+0x159/0x230 [videobuf2_dma_sg]
+[  358.028095]  [<ffffffffa003d55a>] __vb2_queue_alloc+0x10a/0x680 [videobuf2_core]
+[  358.028113]  [<ffffffffa003e110>] __reqbufs.isra.14+0x220/0x3e0 [videobuf2_core]
+[  358.028130]  [<ffffffffa003e79d>] __vb2_init_fileio+0xbd/0x380 [videobuf2_core]
+[  358.028147]  [<ffffffffa003f563>] __vb2_perform_fileio+0x5b3/0x6e0 [videobuf2_core]
+[  358.028164]  [<ffffffffa003f871>] vb2_fop_read+0xb1/0x100 [videobuf2_core]
+[  358.028184]  [<ffffffffa06dd2e5>] v4l2_read+0x65/0xb0 [videodev]
+[  358.028198]  [<ffffffff811a243f>] vfs_read+0x8f/0x170
+[  358.028210]  [<ffffffff811a30a1>] SyS_read+0x41/0xb0
+[  358.028224]  [<ffffffff818f02e9>] system_call_fastpath+0x16/0x1b
+[  358.028234] Code: 66 90 e9 dc fd ff ff 0f 1f 40 00 41 8b 4d 68 e9 d5 fe ff ff 0f 1f 80 00 00 00 00 f0 41 80 4d 00 40 e9 03 ff ff ff 0f 1f 44 00 00 <0f> 0b 66 0f 1f 44 00 00 44 89 c6 4c 89 45 d0 e8 0c 82 ff ff 48 
+[  358.028415] RIP  [<ffffffff81196040>] new_slab+0x280/0x320
+[  358.028432]  RSP <ffff88089b4d7ae8>
+[  358.032208] ---[ end trace 6443240199c706e4 ]---
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/81407
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: stable@vger.kernel.org      # for v3.13 and up
 
-Regards,
-
-	Hans
-
-The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
-
-  [media] media: ttpci: fix av7110 build to be compatible with CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tw68
-
-for you to fetch changes up to f9c0c8edba28682cd6ab7254f2da911272053989:
-
-  MAINTAINERS: add tw68 entry (2014-08-26 08:26:39 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      tw68: add support for Techwell tw68xx PCI grabber boards
-      MAINTAINERS: add tw68 entry
-
- MAINTAINERS                         |    8 +
- drivers/media/pci/Kconfig           |    1 +
- drivers/media/pci/Makefile          |    1 +
- drivers/media/pci/tw68/Kconfig      |   10 +
- drivers/media/pci/tw68/Makefile     |    3 +
- drivers/media/pci/tw68/tw68-core.c  |  434 ++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw68/tw68-reg.h   |  195 ++++++++++++++++
- drivers/media/pci/tw68/tw68-risc.c  |  230 +++++++++++++++++++
- drivers/media/pci/tw68/tw68-video.c | 1060 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw68/tw68.h       |  231 +++++++++++++++++++
- 10 files changed, 2173 insertions(+)
- create mode 100644 drivers/media/pci/tw68/Kconfig
- create mode 100644 drivers/media/pci/tw68/Makefile
- create mode 100644 drivers/media/pci/tw68/tw68-core.c
- create mode 100644 drivers/media/pci/tw68/tw68-reg.h
- create mode 100644 drivers/media/pci/tw68/tw68-risc.c
- create mode 100644 drivers/media/pci/tw68/tw68-video.c
- create mode 100644 drivers/media/pci/tw68/tw68.h
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index adefc31..9b163a4 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -113,7 +113,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 		goto fail_pages_alloc;
+ 
+ 	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+-			buf->num_pages, 0, size, gfp_flags);
++			buf->num_pages, 0, size, GFP_KERNEL);
+ 	if (ret)
+ 		goto fail_table_alloc;
+ 
