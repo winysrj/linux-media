@@ -1,77 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34703 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753511AbaHEWE1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 18:04:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julien BERAUD <julien.beraud@parrot.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: omap3isp-bt656 stopping issue
-Date: Wed, 06 Aug 2014 00:04:55 +0200
-Message-ID: <20419111.Irr9sTQa4M@avalon>
-In-Reply-To: <509A39F0.3090202@parrot.com>
-References: <509A39F0.3090202@parrot.com>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:40584 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbaHADkh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jul 2014 23:40:37 -0400
+Received: by mail-qa0-f44.google.com with SMTP id f12so3362237qad.31
+        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 20:40:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Fri, 1 Aug 2014 03:40:36 +0000
+Message-ID: <CAEJHKkV+DztXiJtPc41m=f1vJG26AoWGd+dinCQhJ77bVY=D0Q@mail.gmail.com>
+Subject: tvtuner pixelview B1000
+From: basteon <basteon@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julien,
+hello.
 
-Going through my old BT.656-related e-mails, I think this is my most late 
-reply so far. Let's hope I won't break the record in the future.
+I have pixelview B1000 card and this card won't work with assigned
+modules cx8800, cx8802.
 
-Now that BT.656 support for the OMAP3 ISP is finally going to mainline, I was 
-wondering if you still had access to the platform mentioned below, and if you 
-could test whether the problem still occurs.
+May be I'm use wrong modules or cardid prefix:
+1554:4952, board: PixelView [card=3...
 
-The OMAP3 ISP code is available at
+# /usr/bin/tvtime-scanner
+Reading configuration from /etc/tvtime/tvtime.xml
+Scanning using TV standard NTSC.
+Scanning from  44.00 MHz to 958.00 MHz.
+MHz:  - No signal
 
-	git://linuxtv.org/pinchartl/media.git omap3isp/next
+===============================
+01:06.0 Multimedia video controller: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+	Subsystem: PROLINK Microsystems Corp Device 4952
+	Flags: bus master, medium devsel, latency 32, IRQ 10
+	Memory at fd000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data
+	Capabilities: [4c] Power Management version 2
+	Kernel modules: cx8800
 
-tvp5151 test patches can be found in the omap3isp/bt656 branch of the same 
-repository.
+01:06.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
+PCI Video and Audio Decoder [Audio Port] (rev 05)
+	Subsystem: PROLINK Microsystems Corp Device 4952
+	Flags: bus master, medium devsel, latency 32, IRQ 10
+	Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel modules: cx88-alsa
 
-On Wednesday 07 November 2012 11:37:36 Julien BERAUD wrote:
-> Hello,
-> 
-> I have been working on a platform based on an omap3630 with a tvp5151 in
-> bt656 mode and I have iommu translation faults when starting and
-> stopping capture in a loop a certain number of times.
-> I think I have identified the problem and though my working branch is
-> not exactly the same as yours, I think that you have the same issue.
-> 
-> When stopping ccdc capture(ccdc_set_stream), function ccdc_disable is
-> called which clears the bit  ISPCCDC_PCR_EN (__ccdc_disable) and waits
-> for the current frame to finish.
-> In progressive mode, the next vd0_isr will call ccdc_isr_buffer which
-> will wait for the ccdc pcr busy flag to go off and then call function
-> __ccdc_handle_stopping which will set the flags that will allow the
-> stopping process to go on.
-> 
-> The problem seems to be that in interlaced mode, if the next vd0_isr is
-> received for the first half of the frame(odd field), the ccdc_isr_buffer
-> routine is not called,  __ccdc_handle_stopping is called and sets the
-> flags that will allow the stopping process to go on without waiting for
-> the frame to finish like it should be the case, or like it is the case
-> if the next vd0_isr is received for the second part of the frame(even
-> field).
-> 
-> Calling ccdc_isr_buffer in case ccdc->stopping & CCDC_STOP_REQUEST != 0
-> makes that the flags are set only after the busy signal goes off and it
-> fixes the issue I have.
-> 
-> By the way, I haven't seen anything in the omap3630 trm that tells me
-> that in case we are in progressive mode, the busy flag goes off after
-> the current field(half frame) is finished instead of the whole frame but
-> I noticed this is the case.
-> 
-> If there is something I missed, or if the behaviour of the ccdc isn't
-> supposed to be like that, could you explain what I got wrong?
+01:06.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
+PCI Video and Audio Decoder [MPEG Port] (rev 05)
+	Subsystem: PROLINK Microsystems Corp Device 4952
+	Flags: bus master, medium devsel, latency 32, IRQ 10
+	Memory at fb000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel modules: cx8802
 
--- 
-Regards,
-
-Laurent Pinchart
-
+===============================
+[18334.495349] Linux video capture interface: v2.00
+[18334.603004] IR NEC protocol handler initialized
+[18334.614074] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.8 loaded
+[18334.618258] cx88[0]: subsystem: 1554:4952, board: PixelView
+[card=3,autodetected], frontend(s): 0
+[18334.618263] cx88[0]: TV tuner type 5, Radio tuner type -1
+[18334.628915] IR RC5(x) protocol handler initialized
+[18334.660809] IR RC6 protocol handler initialized
+[18334.687047] IR JVC protocol handler initialized
+[18334.714899] IR Sony protocol handler initialized
+[18334.754031] lirc_dev: IR Remote Control driver registered, major 252
+[18334.764669] IR LIRC bridge handler initialized
+[18334.850358] cx88[0]/2: cx2388x 8802 Driver Manager
+[18343.108212] cx88/0: cx2388x v4l2 driver version 0.0.8 loaded
+[18343.108317] cx8800 0000:01:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+[18343.112467] cx88[0]: subsystem: 1554:4952, board: PixelView
+[card=3,autodetected], frontend(s): 0
+[18343.112473] cx88[0]: TV tuner type 5, Radio tuner type -1
+[18343.312410] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 20,
+latency: 32, mmio: 0xfd000000
+[18343.316831] cx88[0]/0: registered device video0 [v4l2]
+[18343.326623] cx88[0]/0: registered device vbi0
+[18343.333136] cx88[0]/0: registered device radio0
