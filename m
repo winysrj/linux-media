@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4315 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819AbaHNMQ5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40725 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754155AbaHAMnf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 08:16:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 1 Aug 2014 08:43:35 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 299FC60093
+	for <linux-media@vger.kernel.org>; Fri,  1 Aug 2014 15:43:32 +0300 (EEST)
+Date: Fri, 1 Aug 2014 15:42:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/2] MAINTAINERS: add tw68 entry
-Date: Thu, 14 Aug 2014 14:16:48 +0200
-Message-Id: <1408018608-7858-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408018608-7858-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408018608-7858-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR 3.17] smiapp: use unlocked control functions
+Message-ID: <20140801124258.GX16460@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This set makes use of unlocked controls functions in the smiapp driver.
+Please pull.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4cdf24c..2b06a8e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9199,6 +9199,14 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
- F:	drivers/media/usb/tm6000/
- 
-+TW68 VIDEO4LINUX DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/pci/tw68/
-+
- TPM DEVICE DRIVER
- M:	Peter Huewe <peterhuewe@gmx.de>
- M:	Ashley Lai <ashley@ashleylai.com>
+The following changes since commit 27dcb00d0dc1d532b0da940e35a6d020ee33bd47:
+
+  [media] radio-miropcm20: fix sparse NULL pointer warning (2014-07-30 19:50:09 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git unlocked-ctrls
+
+for you to fetch changes up to c2685f81e4d37ab93523a20246b95a63e47d7fcc:
+
+  smiapp: Set 64-bit integer control using v4l2_ctrl_s_ctrl_int64() (2014-08-01 12:27:42 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      smiapp: Use unlocked __v4l2_ctrl_modify_range()
+      smiapp: Set 64-bit integer control using v4l2_ctrl_s_ctrl_int64()
+
+ drivers/media/i2c/smiapp/smiapp-core.c |   56 +++++++++++++-------------------
+ 1 file changed, 22 insertions(+), 34 deletions(-)
+
 -- 
-2.1.0.rc1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
