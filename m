@@ -1,41 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:54795 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaHDFyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:54:39 -0400
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:62823 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754729AbaHAThO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 15:37:14 -0400
+Received: by mail-lb0-f170.google.com with SMTP id w7so3559944lbi.1
+        for <linux-media@vger.kernel.org>; Fri, 01 Aug 2014 12:37:13 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPDOMVjHfw6Edn7LWpiu7NSquCzwiu8-fexV-0pBztO0NZTEXQ@mail.gmail.com>
-References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-	<53DF1412.9010506@xs4all.nl>
-	<CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
-	<CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
-	<CAPDOMVjHfw6Edn7LWpiu7NSquCzwiu8-fexV-0pBztO0NZTEXQ@mail.gmail.com>
-Date: Mon, 4 Aug 2014 15:54:38 +1000
-Message-ID: <CAPM=9tzf2F6fZp6NiKQZm-AESGD5zu3Jf4a6fW_d4HOZ9KvR3w@mail.gmail.com>
-Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
-From: Dave Airlie <airlied@gmail.com>
-To: Nick Krause <xerofoify@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Udo van den Heuvel <udovdh@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <1406622460.4001.5.camel@paszta.hi.pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+	<1406622460.4001.5.camel@paszta.hi.pengutronix.de>
+Date: Fri, 1 Aug 2014 16:37:12 -0300
+Message-ID: <CAOMZO5AgAFtRExeA_acYmuQ0rfgpvunCmHNw7n+_jHSSRv3dDw@mail.gmail.com>
+Subject: Re: [PATCH v2 00/11] CODA encoder/decoder device split
+From: Fabio Estevam <festevam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sascha Hauer <kernel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
+
+On Tue, Jul 29, 2014 at 5:27 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi,
 >
-> Dave,
-> I understand your issues with my programming. I need to try and
-> understand the kernel first before programming
-> for it.
+> Am Freitag, den 18.07.2014, 12:22 +0200 schrieb Philipp Zabel:
+>> Hi,
+>>
+>> the following patches add a few fixes and cleanups and split the
+>> coda video4linux2 device into encoder and decoder.
+>> Following the principle of least surprise, this way the format
+>> enumeration on the output and capture sides is fixed and does
+>> not change depending on whether the given instance is currently
+>> configured as encoder or decoder.
+>>
+>> Changes since v1:
+>>  - Fixed "[media] coda: delay coda_fill_bitstream()", taking into account
+>>    "[media] v4l: vb2: Fix stream start and buffer completion race".
+>>  - Added Hans' acks.
+>
+> is there still a chance to still get this series merged for v3.17?
+> Most of it got acked by Hans right away, and I have received no other
+> feedback.
+> The split into separate encoder and decoder devices (patch 08/11) is
+> necessary for this driver to work with the GStreamer v4l2videodec
+> element.
 
-Why do you insist on sending more patches then, every day you try and
-send another one or two, despite been
-told multiple times to a) understand what you are writing, b) build
-test, c) actual test on hw or in a VM if applicable.
+You said in another email that Kamil is on vacation. Could you please
+apply this series if you are happy with it?
 
-Frankly I think you are taking the piss, probably writing some stupid
-Uni thesis on how to subvert the kernel development model by trolling
-it with broken patches.
-
-Dave.
+Thanks
