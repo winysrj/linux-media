@@ -1,40 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:48444 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981AbaHFBZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 21:25:51 -0400
-From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com,
-	m.chehab@samsung.com, kyungmin.park@samsung.com,
-	jtp.park@samsung.com
-Cc: linux-samsung-soc@vger.kernel.org
-Subject: [PATCH V3] media: s5p_mfc: Release ctx->ctx if failed to allocate
- ctx->shm
-Date: Wed, 06 Aug 2014 09:22:08 +0800
-Message-id: <1407288128-21465-1-git-send-email-zhaowei.yuan@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59958 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753396AbaHANzu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 09:55:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: [PATCH 0/8] OMAP3 ISP CCDC fixes
+Date: Fri,  1 Aug 2014 15:46:26 +0200
+Message-Id: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ctx->ctx should be released if the following allocation for ctx->shm
-gets failed.
+Hello,
 
-Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    1 +
- 1 file changed, 1 insertion(+)
+This patch series fixes several stability issues related to the CCDC,
+especially (but not exclusively) in BT.656 mode.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 58ec7bb..dc00aea 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -228,6 +228,7 @@ static int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
- 	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->shm);
- 	if (ret) {
- 		mfc_err("Failed to allocate shared memory buffer\n");
-+		s5p_mfc_release_priv_buf(dev->mem_dev_l, &ctx->ctx);
- 		return ret;
- 	}
+The patches apply on top of the OMAP3 ISP CCDC BT.656 mode support series
+previously posted. You can find both series at
 
---
-1.7.9.5
+	git://linuxtv.org/pinchartl/media.git omap3isp/bt656
+
+I'm not sure to be completely happy with the last three patches. The CCDC
+state machine is getting too complex for my tastes, race conditions becoming
+too hard to spot. This doesn't mean the code is wrong, but a rewrite of the
+state machine will probably needed sooner than later.
+
+Laurent Pinchart (8):
+  omap3isp: ccdc: Disable the video port when unused
+  omap3isp: ccdc: Only complete buffer when all fields are captured
+  omap3isp: ccdc: Rename __ccdc_handle_stopping to ccdc_handle_stopping
+  omap3isp: ccdc: Simplify ccdc_lsc_is_configured()
+  omap3isp: ccdc: Increment the frame number at VD0 time for BT.656
+  omap3isp: ccdc: Fix freeze when a short frame is received
+  omap3isp: ccdc: Don't timeout on stream off when the CCDC is stopped
+  omap3isp: ccdc: Restart the CCDC immediately after an underrun in
+    BT.656
+
+ drivers/media/platform/omap3isp/ispccdc.c | 233 +++++++++++++++++++-----------
+ drivers/media/platform/omap3isp/ispccdc.h |   9 ++
+ 2 files changed, 154 insertions(+), 88 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
