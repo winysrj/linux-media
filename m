@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4985 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222AbaHGGuc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 02:50:32 -0400
-Message-ID: <53E321A8.9070304@xs4all.nl>
-Date: Thu, 07 Aug 2014 08:50:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:38755 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751303AbaHAPdd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Aug 2014 11:33:33 -0400
+Message-ID: <53DBB346.5060205@iki.fi>
+Date: Fri, 01 Aug 2014 18:33:26 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/1] v4l: Event documentation fixes
-References: <53E1CEA2.3080503@xs4all.nl> <1407307928-13652-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1407307928-13652-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+To: Antonio Ospite <ao2@ao2.it>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv1 02/12] vivid.txt: add documentation for the vivid driver.
+References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>	<1406730195-64365-3-git-send-email-hverkuil@xs4all.nl>	<1406834177.1912.25.camel@palomino.walls.org>	<53DB6877.1070001@xs4all.nl> <20140801171957.fe3359ee5a03f7d512de2027@ao2.it>
+In-Reply-To: <20140801171957.fe3359ee5a03f7d512de2027@ao2.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/2014 08:52 AM, Sakari Ailus wrote:
-> Constify event type constants and correct motion detection event number
-> (it's 6, not 5).
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> ---
-> Thanks for the review, Hans!
-> 
-> Since v1:
-> 
-> - No line breaks between <constant> and </constant>. No other changes.
-> 
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml         | 7 ++++---
->  Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
->  2 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> index cb77325..b036f89 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> @@ -76,21 +76,22 @@
->  	    <entry></entry>
->  	    <entry>&v4l2-event-vsync;</entry>
->              <entry><structfield>vsync</structfield></entry>
-> -	    <entry>Event data for event V4L2_EVENT_VSYNC.
-> +	    <entry>Event data for event <constant>V4L2_EVENT_VSYNC</constant>.
->              </entry>
->  	  </row>
->  	  <row>
->  	    <entry></entry>
->  	    <entry>&v4l2-event-ctrl;</entry>
->              <entry><structfield>ctrl</structfield></entry>
-> -	    <entry>Event data for event V4L2_EVENT_CTRL.
-> +	    <entry>Event data for event <constant>V4L2_EVENT_CTRL</constant>.
->              </entry>
->  	  </row>
->  	  <row>
->  	    <entry></entry>
->  	    <entry>&v4l2-event-frame-sync;</entry>
->              <entry><structfield>frame_sync</structfield></entry>
-> -	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
-> +	    <entry>Event data for event
-> +	    <constant>V4L2_EVENT_FRAME_SYNC</constant>.</entry>
->  	  </row>
->  	  <row>
->  	    <entry></entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> index 9f60956..d7c9365 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> @@ -176,7 +176,7 @@
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
-> -	    <entry>5</entry>
-> +	    <entry>6</entry>
->  	    <entry>
->  	      <para>Triggered whenever the motion detection state for one or more of the regions
->  	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
-> 
+On 08/01/2014 06:19 PM, Antonio Ospite wrote:
+> On Fri, 01 Aug 2014 12:14:15 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> On 07/31/2014 09:16 PM, Andy Walls wrote:
+>>> On Wed, 2014-07-30 at 16:23 +0200, Hans Verkuil wrote:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+> [..]
+>>>> +- Improve the sinus generation of the SDR radio.
+>>>
+>>> Maybe a lookup table, containing the first quarter wave of cos() from 0
+>>> to pi/2 in pi/200 steps, and then linear interpolation for cos() of
+>>> angles in between those steps.  You could go with a larger lookup table
+>>> with finer grained steps to reduce the approximation errors.  A lookup
+>>> table with linear interpolation, I would think, requires fewer
+>>> mutliplies and divides than the current Taylor expansion computation.
+>>
+>> Yeah, I had plans for that. There actually is a sine-table already in vivid-tpg.c
+>> since I'm using that to implement Hue support.
+>>
+>
+> I don't know what your requirements are here but JFTR there is already a
+> simplistic implementation of fixed point operations in
+> include/linux/fixp-arith.h I used them in
+> drivers/media/usb/gspca/ov534.c for some hue calculation.
 
+I looked that too, but there was very small LUT => very bad resolution. 
+So I ended up copying sin/cos from cx88 driver (Taylor method).
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
