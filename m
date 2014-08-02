@@ -1,99 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28418 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342AbaHUW4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 18:56:06 -0400
-Date: Fri, 22 Aug 2014 06:55:54 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:devel 498/499] ERROR: "omapdss_compat_init"
- undefined!
-Message-ID: <53f678fa.xHewYZEdCq2Io7qg%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from fep12.mx.upcmail.net ([62.179.121.32]:47957 "EHLO
+	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513AbaHBLOK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Aug 2014 07:14:10 -0400
+Message-ID: <1406978043.2504.17.camel@bjoern-W35xSTQ-370ST>
+Subject: Re: ddbridge -- kernel 3.15.6
+From: Bjoern <lkml@call-home.ch>
+To: Georgi Chorbadzhiyski <gf@unixsol.org>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
+	Thomas Kaiser <thomas@kaiser-linux.li>
+Date: Sat, 02 Aug 2014 13:14:03 +0200
+In-Reply-To: <1406977344.2504.15.camel@bjoern-W35xSTQ-370ST>
+References: <53C920FB.1040501@grumpydevil.homelinux.org>
+	 <53CAAF9D.6000507@kaiser-linux.li>
+	 <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
+	 <21465.62099.786583.416351@morden.metzler>
+	 <1406868897.2548.15.camel@bjoern-W35xSTQ-370ST>
+	 <53DB20E4.7020803@unixsol.org>
+	 <1406977344.2504.15.camel@bjoern-W35xSTQ-370ST>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git devel
-head:   2558eeda5cd75649a1159aadca530a990b81c4ee
-commit: ace9078f1c07b94332e37a5017bb34097e082e54 [498/499] [media] enable COMPILE_TEST for OMAP2 vout
-config: make ARCH=mips allmodconfig
+On Sa, 2014-08-02 at 13:02 +0200, Bjoern wrote:
+> Once that is done I will give an update here - send me an email and I'll
+> give you a link where you can get the patches from (unless that's also
+> allowed here in the ML?). Yes, in the long term I would indeed also
+> submit them here but I have ZERO knowledge how that is done here...
+> 
+> Best regards,
+> Bjoern
+> 
+Looks like Antti beat me to it by some hours ;) So then I'll stop my
+attempts and let him do this :)
 
-All error/warnings:
+-Bjoern
 
->> ERROR: "omapdss_compat_init" undefined!
->> ERROR: "omap_dss_get_overlay_manager" undefined!
->> ERROR: "omap_dss_get_num_overlay_managers" undefined!
->> ERROR: "omap_dss_get_overlay" undefined!
->> ERROR: "omapdss_is_initialized" undefined!
->> ERROR: "omap_dispc_register_isr" undefined!
->> ERROR: "omapdss_get_version" undefined!
->> ERROR: "omap_dss_put_device" undefined!
->> ERROR: "omap_dss_get_next_device" undefined!
->> ERROR: "omap_dispc_unregister_isr" undefined!
->> ERROR: "omapdss_compat_uninit" undefined!
->> ERROR: "omap_dss_get_device" undefined!
->> ERROR: "omap_dss_get_num_overlays" undefined!
---
-   In file included from arch/mips/include/asm/page.h:238:0,
-                    from include/linux/mmzone.h:20,
-                    from include/linux/gfp.h:5,
-                    from include/linux/kmod.h:22,
-                    from include/linux/module.h:13,
-                    from drivers/media/platform/omap/omap_voutlib.c:21:
-   drivers/media/platform/omap/omap_voutlib.c: In function 'omap_vout_alloc_buffer':
-   arch/mips/include/asm/page.h:226:50: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
-                                                     ^
-   include/asm-generic/memory_model.h:30:41: note: in definition of macro '__pfn_to_page'
-    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
-                                            ^
-   arch/mips/include/asm/page.h:226:41: note: in expansion of macro 'PFN_DOWN'
-    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
-                                            ^
->> drivers/media/platform/omap/omap_voutlib.c:313:20: note: in expansion of macro 'virt_to_page'
-       SetPageReserved(virt_to_page(addr));
-                       ^
-   In file included from arch/mips/include/asm/page.h:178:0,
-                    from include/linux/mmzone.h:20,
-                    from include/linux/gfp.h:5,
-                    from include/linux/kmod.h:22,
-                    from include/linux/module.h:13,
-                    from drivers/media/platform/omap/omap_voutlib.c:21:
-   arch/mips/include/asm/io.h:119:29: note: expected 'const volatile void *' but argument is of type 'long unsigned int'
-    static inline unsigned long virt_to_phys(volatile const void *address)
-                                ^
-   In file included from arch/mips/include/asm/page.h:238:0,
-                    from include/linux/mmzone.h:20,
-                    from include/linux/gfp.h:5,
-                    from include/linux/kmod.h:22,
-                    from include/linux/module.h:13,
-                    from drivers/media/platform/omap/omap_voutlib.c:21:
-   drivers/media/platform/omap/omap_voutlib.c: In function 'omap_vout_free_buffer':
-   arch/mips/include/asm/page.h:226:50: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
-    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
-                                                     ^
-   include/asm-generic/memory_model.h:30:41: note: in definition of macro '__pfn_to_page'
-    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
-                                            ^
-   arch/mips/include/asm/page.h:226:41: note: in expansion of macro 'PFN_DOWN'
-    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
-                                            ^
->> drivers/media/platform/omap/omap_voutlib.c:334:21: note: in expansion of macro 'virt_to_page'
-      ClearPageReserved(virt_to_page(addr));
-                        ^
-   In file included from arch/mips/include/asm/page.h:178:0,
-                    from include/linux/mmzone.h:20,
-                    from include/linux/gfp.h:5,
-                    from include/linux/kmod.h:22,
-                    from include/linux/module.h:13,
-                    from drivers/media/platform/omap/omap_voutlib.c:21:
-   arch/mips/include/asm/io.h:119:29: note: expected 'const volatile void *' but argument is of type 'long unsigned int'
-    static inline unsigned long virt_to_phys(volatile const void *address)
-                                ^
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
