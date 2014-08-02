@@ -1,52 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:44123 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaH1PQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 11:16:31 -0400
-Received: by mail-pa0-f50.google.com with SMTP id kq14so2909106pab.23
-        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 08:16:28 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
-	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH v3 0/3] Introduce hix5hd2 IR transmitter driver
-Date: Thu, 28 Aug 2014 23:16:14 +0800
-Message-Id: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:45338 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753140AbaHBDtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Aug 2014 23:49:14 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/5] cxd2843: do not call get_if_frequency() when it is NULL
+Date: Sat,  2 Aug 2014 06:48:51 +0300
+Message-Id: <1406951335-24026-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
+References: <1406951335-24026-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v3:
-Got info from Mauro, 3.17 disable all protocol by default, specific protocol
-can be selected via ir-keytable and /sys/class/rc/rc0/protocols
+Calling NULL callback crash kernel. Check its existence before
+call it.
 
-Got suggestion from Sean, add rdev specific info, like timeout, resoluton.
-Add optional property "linux,rc-map-name", if kernel keymap is used
-otherwise user space keymap will be used.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/cxd2843.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-v2:
-Rebase to 3.17-rc1, solve two issues:
-a) rc_set_allowed_protocols is deprecated
-b) rc-ir-raw.c add empty change_protocol, which block using all protocol
-For example, when rdev->map_name = RC_MAP_LIRC, ir-nec-decoder can not be used.
-
-Guoxiong Yan (2):
-  rc: Add DT bindings for hix5hd2
-  rc: Introduce hix5hd2 IR transmitter driver
-
-Zhangfei Gao (1):
-  ARM: dts: hix5hd2: add ir node
-
- .../devicetree/bindings/media/hix5hd2-ir.txt       |   25 ++
- arch/arm/boot/dts/hisi-x5hd2.dtsi                  |   10 +-
- drivers/media/rc/Kconfig                           |   11 +
- drivers/media/rc/Makefile                          |    1 +
- drivers/media/rc/ir-hix5hd2.c                      |  351 ++++++++++++++++++++
- 5 files changed, 397 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/hix5hd2-ir.txt
- create mode 100644 drivers/media/rc/ir-hix5hd2.c
-
+diff --git a/drivers/media/dvb-frontends/cxd2843.c b/drivers/media/dvb-frontends/cxd2843.c
+index 10fc240..433d913 100644
+--- a/drivers/media/dvb-frontends/cxd2843.c
++++ b/drivers/media/dvb-frontends/cxd2843.c
+@@ -1154,7 +1154,8 @@ static int set_parameters(struct dvb_frontend *fe)
+ 		state->plp = fe->dtv_property_cache.stream_id & 0xff;
+ 	}
+ 	/* printk("PLP = %08x, bw = %u\n", state->plp, state->bw); */
+-	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
++	if (fe->ops.tuner_ops.get_if_frequency)
++		fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+ 	stat = Start(state, IF);
+ 	return stat;
+ }
 -- 
-1.7.9.5
+http://palosaari.fi/
 
