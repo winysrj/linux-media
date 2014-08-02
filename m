@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37439 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbaHMQkl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 12:40:41 -0400
-Message-ID: <53EB9507.3010300@infradead.org>
-Date: Wed, 13 Aug 2014 09:40:39 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Jim Davis <jim.epost@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"m.chehab" <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Holger Waechtler <holger@convergence.de>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: randconfig build error with next-20140813, in drivers/media/pci/ttpci/av7110_ir.c
-References: <CA+r1ZhgkWwnhJYEfm461pesWEMb6rTuYqHtAD5ZZLVm7-_BmCw@mail.gmail.com>
-In-Reply-To: <CA+r1ZhgkWwnhJYEfm461pesWEMb6rTuYqHtAD5ZZLVm7-_BmCw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53564 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753571AbaHBDtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Aug 2014 23:49:14 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/5] ddbridge: disable driver building
+Date: Sat,  2 Aug 2014 06:48:52 +0300
+Message-Id: <1406951335-24026-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
+References: <1406951335-24026-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/13/14 09:23, Jim Davis wrote:
-> Building with the attached random configuration file,
-> 
->   LD      init/built-in.o
-> drivers/built-in.o: In function `input_sync':
-> av7110_ir.c:(.text+0x1223ac): undefined reference to `input_event'
-> drivers/built-in.o: In function `av7110_emit_key':
-> av7110_ir.c:(.text+0x12247c): undefined reference to `input_event'
-> av7110_ir.c:(.text+0x122495): undefined reference to `input_event'
-> av7110_ir.c:(.text+0x122569): undefined reference to `input_event'
-> av7110_ir.c:(.text+0x1225a7): undefined reference to `input_event'
-> drivers/built-in.o:av7110_ir.c:(.text+0x122629): more undefined
-> references to `input_event' follow
-> drivers/built-in.o: In function `av7110_ir_init':
-> (.text+0x1227e4): undefined reference to `input_allocate_device'
-> drivers/built-in.o: In function `av7110_ir_init':
-> (.text+0x12298f): undefined reference to `input_register_device'
-> drivers/built-in.o: In function `av7110_ir_init':
-> (.text+0x12299e): undefined reference to `input_free_device'
-> drivers/built-in.o: In function `av7110_ir_exit':
-> (.text+0x122a94): undefined reference to `input_unregister_device'
-> make: *** [vmlinux] Error 1
-> 
+Disable building that driver for a wile. We do massive driver
+update from latest vendor driver and this is to avoid Kernel
+compilation breakage.
 
-I reported this on Feb. 14 and July 11 of 2014.  :(
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/pci/ddbridge/Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-
+diff --git a/drivers/media/pci/ddbridge/Makefile b/drivers/media/pci/ddbridge/Makefile
+index 7446c8b..39e922c 100644
+--- a/drivers/media/pci/ddbridge/Makefile
++++ b/drivers/media/pci/ddbridge/Makefile
+@@ -4,7 +4,8 @@
+ 
+ ddbridge-objs := ddbridge-core.o
+ 
+-obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
++#obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
++obj-$() += ddbridge.o
+ 
+ ccflags-y += -Idrivers/media/dvb-core/
+ ccflags-y += -Idrivers/media/dvb-frontends/
 -- 
-~Randy
+http://palosaari.fi/
+
