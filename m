@@ -1,54 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:43034 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbaH2Dtp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 23:49:45 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NB100G1JUMVJ040@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 29 Aug 2014 12:49:43 +0900 (KST)
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, 'Archit Taneja' <archit@ti.com>,
-	'Jingoo Han' <jg1.han@samsung.com>
-Subject: [PATCH] [media] v4l: ti-vpe: Remove casting the return value which is
- a void pointer
-Date: Fri, 29 Aug 2014 12:49:43 +0900
-Message-id: <004f01cfc33c$44c1f650$ce45e2f0$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from astaromail.nku.edu.tr ([193.255.68.1]:60136 "EHLO
+	posta3.nku.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750733AbaHBXKx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Aug 2014 19:10:53 -0400
+Date: Sun, 3 Aug 2014 01:45:34 +0300 (EEST)
+From: "Admin. webmail" <eyuksel@nku.edu.tr>
+Reply-To: "Admin. webmail" <chevroletclaimsdepartment@taxcolandia.com>
+Message-ID: <1569872438.10228233.1407019534699.JavaMail.zimbra@nku.edu.tr>
+Subject: A webes MAIL TEAM
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Casting the return value which is a void pointer is redundant.
-The conversion from void pointer to any other pointer type is
-guaranteed by the C programming language.
+A webes MAIL TEAM
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Figyelem!
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 972f43f69206..aa7f96852a8c 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2343,8 +2343,7 @@ v4l2_dev_unreg:
- 
- static int vpe_remove(struct platform_device *pdev)
- {
--	struct vpe_dev *dev =
--		(struct vpe_dev *) platform_get_drvdata(pdev);
-+	struct vpe_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " VPE_MODULE_NAME);
- 
--- 
-2.0.0
+Ez a web-mail rendszergazda. Kérjük, tájékoztatni kell, hogy az e-mail szerver most lett frissítve, és az e-mail kell frissíteni immediately.This folyamat az, hogy a cég e-mail szerver frissítik, és a védett, mint mindig. Kérjük kattintson az alábbi linkre és kövesse az utasításokat, hogy frissítse a számla
 
+http://mailupdate123.jigsy.com/ 
 
+Üdvözlettel,
+Admin.
+webmail
