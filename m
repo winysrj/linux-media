@@ -1,96 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:30262 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbaHRPKM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48650 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752320AbaHCMFI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Aug 2014 11:10:12 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAI00LXDCSWU380@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Aug 2014 11:10:08 -0400 (EDT)
-Date: Mon, 18 Aug 2014 10:10:05 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Bimow Chen <Bimow.Chen@ite.com.tw>
-Cc: linux-firmware@kernel.org, linux-media@vger.kernel.org
-Subject: Re: linux-firmware: Add firmware v3.25.0.0 for ITEtech IT9135 DVB-T
- USB driver
-Message-id: <20140818101005.553f7765.m.chehab@samsung.com>
-In-reply-to: <1408340171.7346.4.camel@ite-desktop>
-References: <1408340171.7346.4.camel@ite-desktop>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Sun, 3 Aug 2014 08:05:08 -0400
+Date: Sun, 3 Aug 2014 15:04:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: vpif: fix array out of bound warnings
+Message-ID: <20140803120432.GZ16460@valkosipuli.retiisi.org.uk>
+References: <1405701111-26983-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1405701111-26983-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mr. Chen,
+Hi Prabhakar,
 
-Em Mon, 18 Aug 2014 13:36:11 +0800
-Bimow Chen <Bimow.Chen@ite.com.tw> escreveu:
-
-> From 7f12471b97ff0a81a97d9133e10a5ebe4e7c0c11 Mon Sep 17 00:00:00 2001
-> From: Bimow Chen <Bimow.Chen@ite.com.tw>
-> Date: Fri, 15 Aug 2014 13:44:19 +0800
-> Subject: [PATCH] it9135: add firmware v3.25.0.0 for ITEtech IT9135 DVB-T USB driver
+On Fri, Jul 18, 2014 at 05:31:51PM +0100, Lad, Prabhakar wrote:
+> This patch fixes following array out of bound warnings,
 > 
-> Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+> drivers/media/platform/davinci/vpif_display.c: In function 'vpif_remove':
+> drivers/media/platform/davinci/vpif_display.c:1389:36: warning: iteration
+> 1u invokes undefined behavior [-Waggressive-loop-optimizations]
+>    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>                                     ^
+> drivers/media/platform/davinci/vpif_display.c:1385:2: note: containing loop
+>   for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+>   ^
+> drivers/media/platform/davinci/vpif_capture.c: In function 'vpif_remove':
+> drivers/media/platform/davinci/vpif_capture.c:1581:36: warning: iteration
+> 1u invokes undefined behavior [-Waggressive-loop-optimizations]
+>    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>                                     ^
+> drivers/media/platform/davinci/vpif_capture.c:1577:2: note: containing loop
+>   for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+>   ^
+> drivers/media/platform/davinci/vpif_capture.c:1580:23: warning: array subscript
+> is above array bounds [-Warray-bounds]
+>    common = &ch->common[i];
+> 
+> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > ---
->  WHENCE               |   10 ++++++++++
->  dvb-usb-it9135-01.fw |  Bin 0 -> 8128 bytes
->  dvb-usb-it9135-02.fw |  Bin 0 -> 5834 bytes
->  3 files changed, 10 insertions(+), 0 deletions(-)
->  create mode 100644 dvb-usb-it9135-01.fw
->  create mode 100644 dvb-usb-it9135-02.fw
+>  drivers/media/platform/davinci/vpif_capture.c | 2 +-
+>  drivers/media/platform/davinci/vpif_display.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/WHENCE b/WHENCE
-> index bd65d8c..9c0ca10 100644
-> --- a/WHENCE
-> +++ b/WHENCE
-> @@ -2503,3 +2503,13 @@ File: intel/fw_sst_0f28.bin-48kHz_i2s_master
->  License: Redistributable. See LICENCE.fw_sst_0f28 for details
->  
->  --------------------------------------------------------------------------
-> +
-> +Driver: it9135 -- ITEtech IT913x DVB-T USB driver
-> +
-> +File: dvb-usb-it9135-01.fw
-> +File: dvb-usb-it9135-02.fw
-> +Version: 3.25.0.0
-> +
-> +Licence: GPLv2 or later
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 2f90f0d..3a85238 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1577,7 +1577,7 @@ static int vpif_remove(struct platform_device *device)
+>  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+>  		/* Get the pointer to the channel object */
+>  		ch = vpif_obj.dev[i];
+> -		common = &ch->common[i];
+> +		common = &ch->common[VPIF_VIDEO_INDEX];
 
-Hmm... Licence GPLv2 actually means that you would be releasing the
-source code for the firmware, but you're actually granting license
-for using your binary firmwares. So, you need to correct the licensing
-terms here. There are several models that you can follow at the
-WHENCE file and at the LICENCE.* files for binary only firmwares.
+You could refer to the alloc_ctz directly w/o extra local variables. Also
+local variables that are only used inside the loop could be declared there
+as well.
 
-Just to help you to decide, there are 3 models of licence commonly
-used by media drivers:
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Model 1:
+>  		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>  		/* Unregister video device */
+>  		video_unregister_device(ch->video_dev);
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index 0bd6dcb..6c6bd6b 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -1385,7 +1385,7 @@ static int vpif_remove(struct platform_device *device)
+>  	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+>  		/* Get the pointer to the channel object */
+>  		ch = vpif_obj.dev[i];
+> -		common = &ch->common[i];
+> +		common = &ch->common[VPIF_VIDEO_INDEX];
+>  		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>  		/* Unregister video device */
+>  		video_unregister_device(ch->video_dev);
 
- Permission to use, copy, modify, and/or distribute this software, only
- for use with ITE ICs, for any purpose with or without fee is hereby
- granted, provided that the above copyright notice and this permission
- notice appear in all source code copies.
+-- 
+Kind regards,
 
-Model 2:
-
- Permission is hereby granted for the distribution of this firmware
- as part of Linux or other Open Source operating system kernel
- provided this copyright notice is accompanying it.
-
-Model 3:
-
- ITE grants permission to use and redistribute these firmware
- files for use with IT devices, but not as a part of the Linux
- kernel or in any other form which would require these files themselves
- to be covered by the terms of the GNU General Public License.
- These firmware files are distributed in the hope that they will be
- useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-Regards,
-Mauro
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
