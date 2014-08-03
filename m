@@ -1,180 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1333 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642AbaH2OQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Aug 2014 10:16:12 -0400
-Message-ID: <54008AF4.9050708@xs4all.nl>
-Date: Fri, 29 Aug 2014 16:15:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-i2c@vger.kernel.org
-CC: lars@metafoo.de, w.sang@pengutronix.de,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/2] adv7604: Use DT parsing in dummy creation
-References: <1409318897-12668-1-git-send-email-jean-michel.hautbois@vodalys.com> <1409318897-12668-2-git-send-email-jean-michel.hautbois@vodalys.com>
-In-Reply-To: <1409318897-12668-2-git-send-email-jean-michel.hautbois@vodalys.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mx02.posteo.de ([89.146.194.165]:47306 "EHLO posteo.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751487AbaHCOzr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Aug 2014 10:55:47 -0400
+From: Martin Kepplinger <martink@posteo.de>
+To: gregkh@linuxfoundation.org
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	Martin Kepplinger <martink@posteo.de>
+Subject: [PATCH] staging: media: as102: replace custom dprintk() with dev_dbg()
+Date: Sun,  3 Aug 2014 16:54:21 +0200
+Message-Id: <1407077661-2411-1-git-send-email-martink@posteo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/29/2014 03:28 PM, Jean-Michel Hautbois wrote:
-> This patch uses DT in order to parse addresses for dummy devices of adv7604.
-> If nothing is defined, it uses default addresses.
-> The main prupose is using two adv76xx on the same i2c bus.
-> 
-> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> ---
->  .../devicetree/bindings/media/i2c/adv7604.txt      |  7 ++-
->  drivers/media/i2c/adv7604.c                        | 56 ++++++++++++++--------
->  2 files changed, 42 insertions(+), 21 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> index c27cede..221b75c 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -10,6 +10,7 @@ Required Properties:
->  
->    - compatible: Must contain one of the following
->      - "adi,adv7611" for the ADV7611
-> +    - "adi,adv7604" for the ADV7604
->  
->    - reg: I2C slave address
->  
-> @@ -32,6 +33,8 @@ The digital output port node must contain at least one endpoint.
->  Optional Properties:
->  
->    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-> +  - reg-names : Names of registers to be reprogrammed.
-> +		Refer to source code for possible values.
->  
->  Optional Endpoint Properties:
->  
-> @@ -50,7 +53,9 @@ Example:
->  
->  	hdmi_receiver@4c {
->  		compatible = "adi,adv7611";
-> -		reg = <0x4c>;
-> +		/* edid page will be accessible @ 0x66 on i2c bus*/
-> +		reg = <0x4c 0x66>;
-> +		reg-names = "main", "edid";
->  
->  		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
->  		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index d4fa213..4e660a2 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -326,6 +326,22 @@ static const struct adv7604_video_standards adv7604_prim_mode_hdmi_gr[] = {
->  	{ },
->  };
->  
-> +static const char const *adv7604_secondary_names[] = {
-> +	"main", /* ADV7604_PAGE_IO */
-> +	"avlink", /* ADV7604_PAGE_AVLINK */
-> +	"cec", /* ADV7604_PAGE_CEC */
-> +	"infoframe", /* ADV7604_PAGE_INFOFRAME */
-> +	"esdp", /* ADV7604_PAGE_ESDP */
-> +	"dpp", /* ADV7604_PAGE_DPP */
-> +	"afe", /* ADV7604_PAGE_AFE */
-> +	"rep", /* ADV7604_PAGE_REP */
-> +	"edid", /* ADV7604_PAGE_EDID */
-> +	"hdmi", /* ADV7604_PAGE_HDMI */
-> +	"test", /* ADV7604_PAGE_TEST */
-> +	"cp", /* ADV7604_PAGE_CP */
-> +	"vdp" /* ADV7604_PAGE_VDP */
-> +};
-> +
->  /* ----------------------------------------------------------------------- */
->  
->  static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
-> @@ -2528,13 +2544,27 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
->  }
->  
->  static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
-> -							u8 addr, u8 io_reg)
-> +						unsigned int i)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct adv7604_platform_data *pdata = client->dev.platform_data;
-> +	unsigned int io_reg = 0xf2 + i;
-> +	struct i2c_client *new_client;
-> +
-> +	/* Try to find it in DT */
-> +	new_client = i2c_new_secondary_device(client,
-> +			adv7604_secondary_names[i], io_read(sd, io_reg) >> 1);
+remove dprintk() and replace it with dev_dbg() in order to
+use the common kernel coding style.
 
-Does this work if CONFIG_OF isn't set? I suspect not.
+Signed-off-by: Martin Kepplinger <martink@posteo.de>
+---
+I don't have the device but this builds.
+I think this is ok when it gets reviewed.
 
->  
-> -	if (addr)
-> -		io_write(sd, io_reg, addr << 1);
-> -	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-> +	if (!new_client)
-> +		/* if not defined in DT, use default if available */
-> +		if (pdata && pdata->i2c_addresses[i])
-> +			new_client = i2c_new_dummy(client->adapter,
-> +						pdata->i2c_addresses[i]);
+applies to -next20140801
 
-This is not the same as the original code. If pdata->i2c_addresses[i] == 0,
-then it should use io_read(sd, io_reg) >> 1 as the address for i2c_new_dummy.
+ drivers/staging/media/as102/as102_drv.c     |   15 +++++----
+ drivers/staging/media/as102/as102_drv.h     |    7 -----
+ drivers/staging/media/as102/as102_fe.c      |   44 +++++++++++++++++++--------
+ drivers/staging/media/as102/as102_usb_drv.c |   41 ++++++++++++++-----------
+ 4 files changed, 62 insertions(+), 45 deletions(-)
 
-This would break existing code that uses platform_data (such as on our PCIe
-board).
-
-Regards,
-
-	Hans
-
-> +
-> +	if (new_client)
-> +		io_write(sd, io_reg, new_client->addr << 1);
-> +
-> +	return new_client;
->  }
->  
->  static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
-> @@ -2677,6 +2707,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
->  
->  static struct of_device_id adv7604_of_id[] __maybe_unused = {
->  	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(of, adv7604_of_id);
-> @@ -2717,20 +2748,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
->  	/* Disable the interrupt for now as no DT-based board uses it. */
->  	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
->  
-> -	/* Use the default I2C addresses. */
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
-> -
->  	/* Hardcode the remaining platform data fields. */
->  	state->pdata.disable_pwrdnb = 0;
->  	state->pdata.disable_cable_det_rst = 0;
-> @@ -2891,8 +2908,7 @@ static int adv7604_probe(struct i2c_client *client,
->  			continue;
->  
->  		state->i2c_clients[i] =
-> -			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
-> -					     0xf2 + i);
-> +			adv7604_dummy_client(sd, i);
->  		if (state->i2c_clients[i] == NULL) {
->  			err = -ENOMEM;
->  			v4l2_err(sd, "failed to create i2c client %u\n", i);
-> 
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index 09d64cd..e0ee618 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -31,10 +31,6 @@
+ #include "as102_fw.h"
+ #include "dvbdev.h"
+ 
+-int as102_debug;
+-module_param_named(debug, as102_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Turn on/off debugging (default: off)");
+-
+ int dual_tuner;
+ module_param_named(dual_tuner, dual_tuner, int, 0644);
+ MODULE_PARM_DESC(dual_tuner, "Activate Dual-Tuner config (default: off)");
+@@ -74,7 +70,8 @@ static void as102_stop_stream(struct as102_dev_t *dev)
+ 			return;
+ 
+ 		if (as10x_cmd_stop_streaming(bus_adap) < 0)
+-			dprintk(debug, "as10x_cmd_stop_streaming failed\n");
++			dev_dbg(&dev->bus_adap.usb_dev->dev,
++				"as10x_cmd_stop_streaming failed\n");
+ 
+ 		mutex_unlock(&dev->bus_adap.lock);
+ 	}
+@@ -112,14 +109,16 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 	int ret = -EFAULT;
+ 
+ 	if (mutex_lock_interruptible(&dev->bus_adap.lock)) {
+-		dprintk(debug, "mutex_lock_interruptible(lock) failed !\n");
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"amutex_lock_interruptible(lock) failed !\n");
+ 		return -EBUSY;
+ 	}
+ 
+ 	switch (onoff) {
+ 	case 0:
+ 		ret = as10x_cmd_del_PID_filter(bus_adap, (uint16_t) pid);
+-		dprintk(debug, "DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
+ 			index, pid, ret);
+ 		break;
+ 	case 1:
+@@ -131,7 +130,7 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 		filter.pid = pid;
+ 
+ 		ret = as10x_cmd_add_PID_filter(bus_adap, &filter);
+-		dprintk(debug,
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
+ 			"ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
+ 			index, filter.idx, filter.pid, ret);
+ 		break;
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index a06837d..49d0c42 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -27,17 +27,10 @@
+ #define DRIVER_FULL_NAME "Abilis Systems as10x usb driver"
+ #define DRIVER_NAME "as10x_usb"
+ 
+-extern int as102_debug;
+ #define debug	as102_debug
+ extern struct usb_driver as102_usb_driver;
+ extern int elna_enable;
+ 
+-#define dprintk(debug, args...) \
+-	do { if (debug) {	\
+-		pr_debug("%s: ", __func__);	\
+-		printk(args);	\
+-	} } while (0)
+-
+ #define AS102_DEVICE_MAJOR	192
+ 
+ #define AS102_USB_BUF_SIZE	512
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index b686b76..69ffd51 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -46,7 +46,8 @@ static int as102_fe_set_frontend(struct dvb_frontend *fe)
+ 	/* send abilis command: SET_TUNE */
+ 	ret =  as10x_cmd_set_tune(&dev->bus_adap, &tune_args);
+ 	if (ret != 0)
+-		dprintk(debug, "as10x_cmd_set_tune failed. (err = %d)\n", ret);
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"as10x_cmd_set_tune failed. (err = %d)\n", ret);
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+ 
+@@ -82,10 +83,17 @@ static int as102_fe_get_tune_settings(struct dvb_frontend *fe,
+ 			struct dvb_frontend_tune_settings *settings) {
+ 
+ #if 0
+-	dprintk(debug, "step_size    = %d\n", settings->step_size);
+-	dprintk(debug, "max_drift    = %d\n", settings->max_drift);
+-	dprintk(debug, "min_delay_ms = %d -> %d\n", settings->min_delay_ms,
+-		1000);
++	struct as102_dev_t *dev;
++
++	dev = (struct as102_dev_t *) fe->tuner_priv;
++	if (dev == NULL)
++		return -EINVAL;
++	dev_dbg(&dev->bus_adap.usb_dev->dev,
++		"step_size    = %d\n", settings->step_size);
++	dev_dbg(&dev->bus_adap.usb_dev->dev,
++		"max_drift    = %d\n", settings->max_drift);
++	dev_dbg(&dev->bus_adap.usb_dev->dev,
++		"min_delay_ms = %d -> %d\n", settings->min_delay_ms, 1000);
+ #endif
+ 
+ 	settings->min_delay_ms = 1000;
+@@ -110,7 +118,8 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	/* send abilis command: GET_TUNE_STATUS */
+ 	ret = as10x_cmd_get_tune_status(&dev->bus_adap, &tstate);
+ 	if (ret < 0) {
+-		dprintk(debug, "as10x_cmd_get_tune_status failed (err = %d)\n",
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"as10x_cmd_get_tune_status failed (err = %d)\n",
+ 			ret);
+ 		goto out;
+ 	}
+@@ -133,7 +142,8 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		*status = TUNE_STATUS_NOT_TUNED;
+ 	}
+ 
+-	dprintk(debug, "tuner status: 0x%02x, strength %d, per: %d, ber: %d\n",
++	dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"tuner status: 0x%02x, strength %d, per: %d, ber: %d\n",
+ 			tstate.tune_state, tstate.signal_strength,
+ 			tstate.PER, tstate.BER);
+ 
+@@ -141,10 +151,10 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		if (as10x_cmd_get_demod_stats(&dev->bus_adap,
+ 			(struct as10x_demod_stats *) &dev->demod_stats) < 0) {
+ 			memset(&dev->demod_stats, 0, sizeof(dev->demod_stats));
+-			dprintk(debug,
+-				"as10x_cmd_get_demod_stats failed (probably not tuned)\n");
++			dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"as10x_cmd_get_demod_stats failed (probably not tuned)\n");
+ 		} else {
+-			dprintk(debug,
++			dev_dbg(&dev->bus_adap.usb_dev->dev,
+ 				"demod status: fc: 0x%08x, bad fc: 0x%08x, "
+ 				"bytes corrected: 0x%08x , MER: 0x%04x\n",
+ 				dev->demod_stats.frame_count,
+@@ -447,6 +457,13 @@ static uint8_t as102_fe_get_code_rate(fe_code_rate_t arg)
+ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+ 			  struct dtv_frontend_properties *params)
+ {
++	struct dvb_frontend *fe;
++	struct as102_dev_t *dev;
++
++	fe = container_of(params, struct dvb_frontend, dtv_property_cache);
++	dev = (struct as102_dev_t *) fe->tuner_priv;
++	if (dev == NULL)
++		dev_err(&dev->bus_adap.usb_dev->dev, "No device found\n");
+ 
+ 	/* set frequency */
+ 	tune_args->freq = params->frequency / 1000;
+@@ -531,7 +548,8 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+ 		break;
+ 	}
+ 
+-	dprintk(debug, "tuner parameters: freq: %d  bw: 0x%02x  gi: 0x%02x\n",
++	dev_dbg(&dev->bus_adap.usb_dev->dev,
++		"tuner parameters: freq: %d  bw: 0x%02x  gi: 0x%02x\n",
+ 			params->frequency,
+ 			tune_args->bandwidth,
+ 			tune_args->guard_interval);
+@@ -556,8 +574,8 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+ 			   as102_fe_get_code_rate(params->code_rate_LP);
+ 		}
+ 
+-		dprintk(debug,
+-			"\thierarchy: 0x%02x  selected: %s  code_rate_%s: 0x%02x\n",
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++		"\thierarchy: 0x%02x  selected: %s  code_rate_%s: 0x%02x\n",
+ 			tune_args->hierarchy,
+ 			tune_args->hier_select == HIER_HIGH_PRIORITY ?
+ 			"HP" : "LP",
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index e6f6278..86f83b9 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -104,21 +104,22 @@ static int as102_usb_xfer_cmd(struct as10x_bus_adapter_t *bus_adap,
+ 				      send_buf, send_buf_len,
+ 				      USB_CTRL_SET_TIMEOUT /* 200 */);
+ 		if (ret < 0) {
+-			dprintk(debug, "usb_control_msg(send) failed, err %i\n",
+-					ret);
++			dev_dbg(&bus_adap->usb_dev->dev,
++				"usb_control_msg(send) failed, err %i\n", ret);
+ 			return ret;
+ 		}
+ 
+ 		if (ret != send_buf_len) {
+-			dprintk(debug, "only wrote %d of %d bytes\n",
+-					ret, send_buf_len);
++			dev_dbg(&bus_adap->usb_dev->dev,
++			"only wrote %d of %d bytes\n", ret, send_buf_len);
+ 			return -1;
+ 		}
+ 	}
+ 
+ 	if (recv_buf != NULL) {
+ #ifdef TRACE
+-		dprintk(debug, "want to read: %d bytes\n", recv_buf_len);
++		dev_dbg(bus_adap->usb_dev->dev,
++			"want to read: %d bytes\n", recv_buf_len);
+ #endif
+ 		ret = usb_control_msg(bus_adap->usb_dev,
+ 				      usb_rcvctrlpipe(bus_adap->usb_dev, 0),
+@@ -130,12 +131,13 @@ static int as102_usb_xfer_cmd(struct as10x_bus_adapter_t *bus_adap,
+ 				      recv_buf, recv_buf_len,
+ 				      USB_CTRL_GET_TIMEOUT /* 200 */);
+ 		if (ret < 0) {
+-			dprintk(debug, "usb_control_msg(recv) failed, err %i\n",
+-					ret);
++			dev_dbg(&bus_adap->usb_dev->dev,
++				"usb_control_msg(recv) failed, err %i\n", ret);
+ 			return ret;
+ 		}
+ #ifdef TRACE
+-		dprintk(debug, "read %d bytes\n", recv_buf_len);
++		dev_dbg(bus_adap->usb_dev->dev,
++			"read %d bytes\n", recv_buf_len);
+ #endif
+ 	}
+ 
+@@ -153,13 +155,14 @@ static int as102_send_ep1(struct as10x_bus_adapter_t *bus_adap,
+ 			   usb_sndbulkpipe(bus_adap->usb_dev, 1),
+ 			   send_buf, send_buf_len, &actual_len, 200);
+ 	if (ret) {
+-		dprintk(debug, "usb_bulk_msg(send) failed, err %i\n", ret);
++		dev_dbg(&bus_adap->usb_dev->dev,
++			"usb_bulk_msg(send) failed, err %i\n", ret);
+ 		return ret;
+ 	}
+ 
+ 	if (actual_len != send_buf_len) {
+-		dprintk(debug, "only wrote %d of %d bytes\n",
+-				actual_len, send_buf_len);
++		dev_dbg(&bus_adap->usb_dev->dev, "only wrote %d of %d bytes\n",
++			actual_len, send_buf_len);
+ 		return -1;
+ 	}
+ 	return ret ? ret : actual_len;
+@@ -177,13 +180,14 @@ static int as102_read_ep2(struct as10x_bus_adapter_t *bus_adap,
+ 			   usb_rcvbulkpipe(bus_adap->usb_dev, 2),
+ 			   recv_buf, recv_buf_len, &actual_len, 200);
+ 	if (ret) {
+-		dprintk(debug, "usb_bulk_msg(recv) failed, err %i\n", ret);
++		dev_dbg(&bus_adap->usb_dev->dev,
++			"usb_bulk_msg(recv) failed, err %i\n", ret);
+ 		return ret;
+ 	}
+ 
+ 	if (actual_len != recv_buf_len) {
+-		dprintk(debug, "only read %d of %d bytes\n",
+-				actual_len, recv_buf_len);
++		dev_dbg(&bus_adap->usb_dev->dev, "only read %d of %d bytes\n",
++			actual_len, recv_buf_len);
+ 		return -1;
+ 	}
+ 	return ret ? ret : actual_len;
+@@ -211,7 +215,8 @@ static int as102_submit_urb_stream(struct as102_dev_t *dev, struct urb *urb)
+ 
+ 	err = usb_submit_urb(urb, GFP_ATOMIC);
+ 	if (err)
+-		dprintk(debug, "%s: usb_submit_urb failed\n", __func__);
++		dev_dbg(&urb->dev->dev,
++			"%s: usb_submit_urb failed\n", __func__);
+ 
+ 	return err;
+ }
+@@ -256,7 +261,8 @@ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
+ 				       GFP_KERNEL,
+ 				       &dev->dma_addr);
+ 	if (!dev->stream) {
+-		dprintk(debug, "%s: usb_buffer_alloc failed\n", __func__);
++		dev_dbg(&dev->bus_adap.usb_dev->dev,
++			"%s: usb_buffer_alloc failed\n", __func__);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -268,7 +274,8 @@ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
+ 
+ 		urb = usb_alloc_urb(0, GFP_ATOMIC);
+ 		if (urb == NULL) {
+-			dprintk(debug, "%s: usb_alloc_urb failed\n", __func__);
++			dev_dbg(&dev->bus_adap.usb_dev->dev,
++				"%s: usb_alloc_urb failed\n", __func__);
+ 			as102_free_usb_stream_buffer(dev);
+ 			return -ENOMEM;
+ 		}
+-- 
+1.7.10.4
 
