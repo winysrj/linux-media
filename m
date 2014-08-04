@@ -1,42 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3982 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753658AbaHUUTx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 16:19:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/12] cxusb: fix sparse warning
-Date: Thu, 21 Aug 2014 22:19:30 +0200
-Message-Id: <1408652376-39525-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
+Received: from aserp1040.oracle.com ([141.146.126.69]:29468 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046AbaHDJKz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 05:10:55 -0400
+Date: Mon, 4 Aug 2014 12:10:24 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Martin Kepplinger <martink@posteo.de>
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: Re: [PATCH] staging: media: as102: replace custom dprintk() with
+ dev_dbg()
+Message-ID: <20140804091023.GP4856@mwanda>
+References: <1407077661-2411-1-git-send-email-martink@posteo.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1407077661-2411-1-git-send-email-martink@posteo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun, Aug 03, 2014 at 04:54:21PM +0200, Martin Kepplinger wrote:
+> @@ -447,6 +457,13 @@ static uint8_t as102_fe_get_code_rate(fe_code_rate_t arg)
+>  static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+>  			  struct dtv_frontend_properties *params)
+>  {
+> +	struct dvb_frontend *fe;
+> +	struct as102_dev_t *dev;
+> +
+> +	fe = container_of(params, struct dvb_frontend, dtv_property_cache);
+> +	dev = (struct as102_dev_t *) fe->tuner_priv;
+> +	if (dev == NULL)
+> +		dev_err(&dev->bus_adap.usb_dev->dev, "No device found\n");
 
-drivers/media/usb/dvb-usb/cxusb.c:178:40: warning: restricted __le16 degrades to integer
+NULL dereference in printing error message.  I think smatch or
+coccinelle would detect this although I haven't tried either.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/dvb-usb/cxusb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This is the typical bug for this kind of patch.
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 16bc579..9fe677e 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -175,7 +175,7 @@ static int cxusb_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 
- 	for (i = 0; i < num; i++) {
- 
--		if (d->udev->descriptor.idVendor == USB_VID_MEDION)
-+		if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_MEDION)
- 			switch (msg[i].addr) {
- 			case 0x63:
- 				cxusb_gpio_tuner(d, 0);
--- 
-2.1.0.rc1
-
+regards,
+dan carpenter
