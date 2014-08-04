@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep27.mx.upcmail.net ([62.179.121.47]:63622 "EHLO
-	fep27.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102AbaHAEzF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 00:55:05 -0400
-Message-ID: <1406868897.2548.15.camel@bjoern-W35xSTQ-370ST>
-Subject: Re: ddbridge -- kernel 3.15.6
-From: Bjoern <lkml@call-home.ch>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
-	Thomas Kaiser <thomas@kaiser-linux.li>
-Date: Fri, 01 Aug 2014 06:54:57 +0200
-In-Reply-To: <21465.62099.786583.416351@morden.metzler>
-References: <53C920FB.1040501@grumpydevil.homelinux.org>
-	 <53CAAF9D.6000507@kaiser-linux.li>
-	 <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
-	 <21465.62099.786583.416351@morden.metzler>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:50448 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbaHDFuO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:50:14 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
+References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+	<53DF1412.9010506@xs4all.nl>
+	<CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
+	<CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
+Date: Mon, 4 Aug 2014 01:50:13 -0400
+Message-ID: <CAPDOMVjHfw6Edn7LWpiu7NSquCzwiu8-fexV-0pBztO0NZTEXQ@mail.gmail.com>
+Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
+From: Nick Krause <xerofoify@gmail.com>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Udo van den Heuvel <udovdh@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Do, 2014-07-31 at 09:38 +0200, Ralph Metzler wrote:
-> Bjoern writes:
+On Mon, Aug 4, 2014 at 1:43 AM, Nick Krause <xerofoify@gmail.com> wrote:
+> On Mon, Aug 4, 2014 at 1:38 AM, Dave Airlie <airlied@gmail.com> wrote:
+>> On 4 August 2014 15:03, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 08/04/2014 05:25 AM, Nicholas Krause wrote:
+>>>> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
+>>>> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
+>>>>
+>>>> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+>>>
+>>> Dunno what's going on here after reading Dave Airlie's reply, but:
+>>>
+>>
+>> Nick has decided he wants to be a kernel developer, a laudable goal.
+>>
+>> He however has decided not to take any advice given to me by a number of other
+>> kernel developers on how to work on the kernel. So instead he sends random
+>> broken patches to random subsystems in the hope that one will slip past a sleepy
+>> maintainer and end up in the kernel.
+>>
+>> He isn't willing to spend his own time learning anything, he is
+>> expecting that kernel
+>> developers want to spoon feed someone who sends them broken patches.
+>>
+>> We've asked him to stop, he keeps doing it, then when caught out apologizes
+>> with something along the lines, of I'm trying to learn, "idiot
+>> mistake", despite having
+>> been told to take a step back and try and learn how the kernel works.
+>>
+>> Now we have to waste more maintainer time making sure nobody accidentally
+>> merges anything he sends.
+>>
+>> Dave.
+> All of my merges are not in the main kernel and have been revoked.
+> Cheers Nick
 
-> I don't know anything about any "old or new style".
-> Digital Devices did not submit any changes to the kernel tree.
 
-Why does that not happen? Wouldn't it be easier for your consumers? Plug
-in your card and voila, it works "out of the box"? But fine, Oliver
-indeed has done some attempts there it seems.
- 
-> Oliver Endriss did and afterwards some strange things happened.
-
-That something changed in V4L I found here (after I bought the devices):
-http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
-
-> E.g. the CI driver (cxd2099) is still in staging for no valid reason. The
-> reasons given apply only to ddbridge. Why isn't ddbridge in staging?
-
-What are the reasons?
-
-And if that is the case - _who is responsible_ for this still being in
-staging? Then we can ask that person what is going on - if there is no
-reason then that is bad and wrong. And I hope there is not only one
-single person who decides what leaves staging, some backup should be
-around I hope?
-
-> It is not like drivers are not available and supported, just
-> not in the mainline kernel tree. 
-
-Right... and I hope that can be changed. I really really like the DD
-hardware I have, but always having to rebuild everything with a new
-kernel is just not my idea of how hardware should run in 2014 on Linux
-anymore.
-
-> Regards,
-> Ralph
-
-Regards,
-Bjoern
-
+Dave,
+I understand your issues with my programming. I need to try and
+understand the kernel first before programming
+for it.
+Regards Nick
