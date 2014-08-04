@@ -1,97 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44170 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755750AbaHZVzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:22 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 20/35] [media] fimc-is-param: get rid of warnings
-Date: Tue, 26 Aug 2014 18:54:56 -0300
-Message-Id: <1409090111-8290-21-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4385 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390AbaHDKaN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 06:30:13 -0400
+Message-ID: <53DF60A7.4080208@xs4all.nl>
+Date: Mon, 04 Aug 2014 12:29:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] pwc: fix WARN_ON
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In file included from drivers/media/platform/exynos4-is/fimc-is-param.c:31:0:
-drivers/media/platform/exynos4-is/fimc-is-errno.h:245:20: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
- const char * const fimc_is_strerr(unsigned int error);
-                    ^
-drivers/media/platform/exynos4-is/fimc-is-errno.h:246:20: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
- const char * const fimc_is_param_strerr(unsigned int error);
-                    ^
-drivers/media/platform/exynos4-is/fimc-is-param.c: In function 'fimc_is_set_initial_params':
-drivers/media/platform/exynos4-is/fimc-is-param.c:670:23: warning: variable 'sensor' set but not used [-Wunused-but-set-variable]
-  struct sensor_param *sensor;
-                       ^
+If start_streaming fails, then the buffers must be given back to vb2 with state
+QUEUED, not ERROR. Otherwise a WARN_ON will be generated.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-is-errno.c | 4 ++--
- drivers/media/platform/exynos4-is/fimc-is-errno.h | 4 ++--
- drivers/media/platform/exynos4-is/fimc-is-param.c | 2 --
- 3 files changed, 4 insertions(+), 6 deletions(-)
+In the disconnect it is pointless to call pwc_cleanup_queued_bufs() as stop_streaming()
+will be called anyway.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-errno.c b/drivers/media/platform/exynos4-is/fimc-is-errno.c
-index e8519e151c1a..e050e63fe358 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-errno.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-errno.c
-@@ -15,7 +15,7 @@
- 
- #include "fimc-is-errno.h"
- 
--const char * const fimc_is_param_strerr(unsigned int error)
-+const char *fimc_is_param_strerr(unsigned int error)
- {
- 	switch (error) {
- 	case ERROR_COMMON_CMD:
-@@ -146,7 +146,7 @@ const char * const fimc_is_param_strerr(unsigned int error)
- 	}
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 15b754d..702267e 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -508,7 +508,8 @@ static void pwc_isoc_cleanup(struct pwc_device *pdev)
  }
  
--const char * const fimc_is_strerr(unsigned int error)
-+const char *fimc_is_strerr(unsigned int error)
+ /* Must be called with vb_queue_lock hold */
+-static void pwc_cleanup_queued_bufs(struct pwc_device *pdev)
++static void pwc_cleanup_queued_bufs(struct pwc_device *pdev,
++				    enum vb2_buffer_state state)
  {
- 	error &= ~IS_ERROR_TIME_OUT_FLAG;
+ 	unsigned long flags = 0;
  
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-errno.h b/drivers/media/platform/exynos4-is/fimc-is-errno.h
-index 3de6f6da6f87..ef981e74513a 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-errno.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is-errno.h
-@@ -242,7 +242,7 @@ enum fimc_is_error {
- 	ERROR_SCALER_FLIP				= 521,
- };
+@@ -519,7 +520,7 @@ static void pwc_cleanup_queued_bufs(struct pwc_device *pdev)
+ 		buf = list_entry(pdev->queued_bufs.next, struct pwc_frame_buf,
+ 				 list);
+ 		list_del(&buf->list);
+-		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++		vb2_buffer_done(&buf->vb, state);
+ 	}
+ 	spin_unlock_irqrestore(&pdev->queued_bufs_lock, flags);
+ }
+@@ -674,7 +675,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		pwc_set_leds(pdev, 0, 0);
+ 		pwc_camera_power(pdev, 0);
+ 		/* And cleanup any queued bufs!! */
+-		pwc_cleanup_queued_bufs(pdev);
++		pwc_cleanup_queued_bufs(pdev, VB2_BUF_STATE_QUEUED);
+ 	}
+ 	mutex_unlock(&pdev->v4l2_lock);
  
--const char * const fimc_is_strerr(unsigned int error);
--const char * const fimc_is_param_strerr(unsigned int error);
-+const char *fimc_is_strerr(unsigned int error);
-+const char *fimc_is_param_strerr(unsigned int error);
+@@ -692,7 +693,9 @@ static void stop_streaming(struct vb2_queue *vq)
+ 		pwc_isoc_cleanup(pdev);
+ 	}
  
- #endif /* FIMC_IS_ERR_H_ */
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
-index bf1465d1bf6d..72b9b436c5c0 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-param.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
-@@ -667,7 +667,6 @@ void __is_set_fd_config_orientation_val(struct fimc_is *is, u32 val)
- void fimc_is_set_initial_params(struct fimc_is *is)
- {
- 	struct global_param *global;
--	struct sensor_param *sensor;
- 	struct isp_param *isp;
- 	struct drc_param *drc;
- 	struct fd_param *fd;
-@@ -676,7 +675,6 @@ void fimc_is_set_initial_params(struct fimc_is *is)
+-	pwc_cleanup_queued_bufs(pdev);
++	pwc_cleanup_queued_bufs(pdev, VB2_BUF_STATE_ERROR);
++	if (pdev->fill_buf)
++		vb2_buffer_done(&pdev->fill_buf->vb, VB2_BUF_STATE_ERROR);
+ 	mutex_unlock(&pdev->v4l2_lock);
+ }
  
- 	index = is->config_index;
- 	global = &is->config[index].global;
--	sensor = &is->config[index].sensor;
- 	isp = &is->config[index].isp;
- 	drc = &is->config[index].drc;
- 	fd = &is->config[index].fd;
--- 
-1.9.3
+@@ -1125,7 +1128,6 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 	if (pdev->vb_queue.streaming)
+ 		pwc_isoc_cleanup(pdev);
+ 	pdev->udev = NULL;
+-	pwc_cleanup_queued_bufs(pdev);
+ 
+ 	v4l2_device_disconnect(&pdev->v4l2_dev);
+ 	video_unregister_device(&pdev->vdev);
 
