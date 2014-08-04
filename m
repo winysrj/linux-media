@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46477 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628AbaHPPjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Aug 2014 11:39:01 -0400
-Message-ID: <53EF7B12.3090700@iki.fi>
-Date: Sat, 16 Aug 2014 17:38:58 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jahn Kohlhas <jahn@kohlhas.info>, linux-media@vger.kernel.org
-Subject: Re: S482
-References: <53EF73DC.4000704@kohlhas.info>
-In-Reply-To: <53EF73DC.4000704@kohlhas.info>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:55351 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750892AbaHDUE7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 16:04:59 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: m.chehab@samsung.com, dan.carpenter@oracle.com,
+	mkrufky@linuxtv.org, dcb314@hotmail.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH] drivers/media/dvb-frontends/stv0900_sw.c: Fix break placement
+Date: Mon,  4 Aug 2014 23:04:52 +0300
+Message-Id: <1407182692-1234-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=81621
+Reported-by: David Binderman <dcb314@hotmail.com>
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+---
+ drivers/media/dvb-frontends/stv0900_sw.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On 08/16/2014 05:08 PM, Jahn Kohlhas wrote:
-> Hey,
-> is it possible to include the patches from Tevii for the media-build in
-> your git repo?
-> http://www.tevii.com/Tevii_Product_20140428_media_build_b6.tar.bz2.rar
-> the files they have patched:
-> dw2102.c patched
-> m88ts202x.h new
->
-> Would be very nice to get the S482 working with the git build ;)
-> Thanks
-
-If you have a device and enough experience then do it. I cannot do as I 
-don't have such device.
-
-regards
-Antti
-
-
+diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
+index 4ce1d26..a0a7b16 100644
+--- a/drivers/media/dvb-frontends/stv0900_sw.c
++++ b/drivers/media/dvb-frontends/stv0900_sw.c
+@@ -1733,9 +1733,10 @@ static void stv0900_set_search_standard(struct stv0900_internal *intp,
+ 		break;
+ 	case STV0900_SEARCH_DSS:
+ 		dprintk("Search Standard = DSS\n");
+-	case STV0900_SEARCH_DVBS2:
+ 		break;
++	case STV0900_SEARCH_DVBS2:
+ 		dprintk("Search Standard = DVBS2\n");
++		break;
+ 	case STV0900_AUTO_SEARCH:
+ 	default:
+ 		dprintk("Search Standard = AUTO\n");
 -- 
-http://palosaari.fi/
+1.8.5.5
+
