@@ -1,61 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51140 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbaHSNC7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:02:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 6/8] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
-Date: Tue, 19 Aug 2014 15:02:44 +0200
-Message-Id: <1408453366-1366-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:58289 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750716AbaHDE3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Aug 2014 00:29:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/9] tda18212: prepare for I2C client conversion
+Date: Mon,  4 Aug 2014 07:29:23 +0300
+Message-Id: <1407126571-21629-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the for_each_... macro should make the code a bit shorter and
-easier to read.
+We need carry pointer to frontend via config struct
+(I2C platform_data ptr) when I2C model is used. Add that pointer
+first in order to keep build unbreakable during conversion.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/gpu/drm/drm_of.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/tuners/tda18212.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
-index 16150a0..024fa77 100644
---- a/drivers/gpu/drm/drm_of.c
-+++ b/drivers/gpu/drm/drm_of.c
-@@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 	struct device_node *remote_port, *ep = NULL;
- 	uint32_t possible_crtcs = 0;
+diff --git a/drivers/media/tuners/tda18212.h b/drivers/media/tuners/tda18212.h
+index c36b49e..265559a 100644
+--- a/drivers/media/tuners/tda18212.h
++++ b/drivers/media/tuners/tda18212.h
+@@ -37,6 +37,11 @@ struct tda18212_config {
+ 	u16 if_dvbc;
+ 	u16 if_atsc_vsb;
+ 	u16 if_atsc_qam;
++
++	/*
++	 * pointer to DVB frontend
++	 */
++	struct dvb_frontend *fe;
+ };
  
--	do {
--		ep = of_graph_get_next_endpoint(port, ep);
--		if (!ep)
--			break;
--
-+	for_each_endpoint_of_node(port, ep) {
- 		remote_port = of_graph_get_remote_port(ep);
- 		if (!remote_port) {
- 			of_node_put(ep);
-@@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 		possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
- 
- 		of_node_put(remote_port);
--	} while (1);
-+	}
- 
- 	return possible_crtcs;
- }
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_TDA18212)
 -- 
-2.1.0.rc1
+http://palosaari.fi/
 
