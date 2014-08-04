@@ -1,87 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:61229 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269AbaHUCEv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53770 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751033AbaHDMu2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 22:04:51 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAM009EQWG1NL00@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 21 Aug 2014 11:04:49 +0900 (KST)
-From: Changbing Xiong <cb.xiong@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, crope@iki.fi
-Subject: [PATCH 1/3] media: fix kernel deadlock due to tuner pull-out while
- playing
-Date: Thu, 21 Aug 2014 10:04:25 +0800
-Message-id: <1408586666-2105-1-git-send-email-cb.xiong@samsung.com>
+	Mon, 4 Aug 2014 08:50:28 -0400
+Date: Mon, 4 Aug 2014 15:50:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH/RFC v4 06/21] leds: add API for setting torch brightness
+Message-ID: <20140804125019.GA16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
+ <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
+ <53DF7E0E.2060705@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53DF7E0E.2060705@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enviroment: odroidx2 + Hauppauge(WinTV-Aero-M)
-Normally, ADAP_STREAMING bit is set in dvb_usb_start_feed and cleared in dvb_usb_stop_feed.
-But in exceptional cases, for example, when the tv is playing programs, and the tuner is pulled out.
-then dvb_usbv2_disconnect is called, it will first call dvb_usbv2_adapter_frontend_exit to stop
-dvb_frontend_thread, and then call dvb_usbv2_adapter_dvb_exit to clear ADAP_STREAMING bit, At this point,
-if dvb_frontend_thread is sleeping and wait for ADAP_STREAMING to be cleared to get out of sleep.
-then dvb_frontend_thread can never be stoped, because clearing ADAP_STREAMING bit is performed after
-dvb_frontend_thread is stopped(i.e. performed in dvb_usbv2_adapter_dvb_exit), So deadlock becomes true.
+Hi Jacek,
 
-[  240.822037] INFO: task khubd:497 blocked for more than 120 seconds.
-[  240.822655] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-[  240.830493] khubd           D c0013b3c     0   497      2 0x00000000
-[  240.836996] [<c0013b3c>] (__schedule+0x200/0x54c) from [<c00110f4>] (schedule_timeout+0x14c/0x19c)
-[  240.845940] [<c00110f4>] (schedule_timeout+0x14c/0x19c) from [<c00137f4>] (wait_for_common+0xac/0x150)
-[  240.855234] [<c00137f4>] (wait_for_common+0xac/0x150) from [<c004989c>] (kthread_stop+0x58/0x90)
-[  240.864004] [<c004989c>] (kthread_stop+0x58/0x90) from [<c03b2ebc>] (dvb_frontend_stop+0x3c/0x9c)
-[  240.872849] [<c03b2ebc>] (dvb_frontend_stop+0x3c/0x9c) from [<c03b2f3c>] (dvb_unregister_frontend+0x20/0xd8)
-[  240.882666] [<c03b2f3c>] (dvb_unregister_frontend+0x20/0xd8) from [<c03ed938>] (dvb_usbv2_exit+0x68/0xfc)
-[  240.892204] [<c03ed938>] (dvb_usbv2_exit+0x68/0xfc) from [<c03eda18>] (dvb_usbv2_disconnect+0x4c/0x70)
-[  240.901499] [<c03eda18>] (dvb_usbv2_disconnect+0x4c/0x70) from [<c031c050>] (usb_unbind_interface+0x58/0x188)
-[  240.911395] [<c031c050>] (usb_unbind_interface+0x58/0x188) from [<c02c3e78>] (__device_release_driver+0x74/0xd0)
-[  240.921544] [<c02c3e78>] (__device_release_driver+0x74/0xd0) from [<c02c3ef0>] (device_release_driver+0x1c/0x28)
-[  240.931697] [<c02c3ef0>] (device_release_driver+0x1c/0x28) from [<c02c39b8>] (bus_remove_device+0xc4/0xe4)
-[  240.941332] [<c02c39b8>] (bus_remove_device+0xc4/0xe4) from [<c02c1344>] (device_del+0xf4/0x178)
-[  240.950106] [<c02c1344>] (device_del+0xf4/0x178) from [<c0319eb0>] (usb_disable_device+0xa0/0x1c8)
-[  240.959040] [<c0319eb0>] (usb_disable_device+0xa0/0x1c8) from [<c03128b4>] (usb_disconnect+0x88/0x188)
-[  240.968326] [<c03128b4>] (usb_disconnect+0x88/0x188) from [<c0313edc>] (hub_thread+0x4d0/0x1200)
-[  240.977100] [<c0313edc>] (hub_thread+0x4d0/0x1200) from [<c0049690>] (kthread+0xa4/0xb0)
-[  240.985174] [<c0049690>] (kthread+0xa4/0xb0) from [<c0009118>] (ret_from_fork+0x14/0x3c)
-[  240.993259] INFO: task kdvb-ad-0-fe-0:3256 blocked for more than 120 seconds.
-[  241.000349] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-[  241.008162] kdvb-ad-0-fe-0  D c0013b3c     0  3256      2 0x00000000
-[  241.014507] [<c0013b3c>] (__schedule+0x200/0x54c) from [<c03eda44>] (wait_schedule+0x8/0x10)
-[  241.022924] [<c03eda44>] (wait_schedule+0x8/0x10) from [<c001120c>] (__wait_on_bit+0x74/0xb8)
-[  241.031434] [<c001120c>] (__wait_on_bit+0x74/0xb8) from [<c00112b8>] (out_of_line_wait_on_bit+0x68/0x70)
-[  241.040902] [<c00112b8>] (out_of_line_wait_on_bit+0x68/0x70) from [<c03e5e88>] (dvb_usb_fe_sleep+0xf4/0xfc)
-[  241.050618] [<c03e5e88>] (dvb_usb_fe_sleep+0xf4/0xfc) from [<c03b4b74>] (dvb_frontend_thread+0x124/0x4e8)
-[  241.060164] [<c03b4b74>] (dvb_frontend_thread+0x124/0x4e8) from [<c0049690>] (kthread+0xa4/0xb0)
-[  241.068929] [<c0049690>] (kthread+0xa4/0xb0) from [<c0009118>] (ret_from_fork+0x14/0x3c)
+Thank you for your continued efforts on this!
 
-Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
----
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
- mode change 100644 => 100755 drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+On Mon, Aug 04, 2014 at 02:35:26PM +0200, Jacek Anaszewski wrote:
+> On 07/16/2014 11:54 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >Jacek Anaszewski wrote:
+> >...
+> >>diff --git a/include/linux/leds.h b/include/linux/leds.h
+> >>index 1a130cc..9bea9e6 100644
+> >>--- a/include/linux/leds.h
+> >>+++ b/include/linux/leds.h
+> >>@@ -44,11 +44,21 @@ struct led_classdev {
+> >>  #define LED_BLINK_ONESHOT_STOP    (1 << 18)
+> >>  #define LED_BLINK_INVERT    (1 << 19)
+> >>  #define LED_SYSFS_LOCK        (1 << 20)
+> >>+#define LED_DEV_CAP_TORCH    (1 << 21)
+> >>
+> >>      /* Set LED brightness level */
+> >>      /* Must not sleep, use a workqueue if needed */
+> >>      void        (*brightness_set)(struct led_classdev *led_cdev,
+> >>                        enum led_brightness brightness);
+> >>+    /*
+> >>+     * Set LED brightness immediately - it is required for flash led
+> >>+     * devices as they require setting torch brightness to have
+> >>immediate
+> >>+     * effect. brightness_set op cannot be used for this purpose because
+> >>+     * the led drivers schedule a work queue task in it to allow for
+> >>+     * being called from led-triggers, i.e. from the timer irq context.
+> >>+     */
+> >
+> >Do we need to classify actual devices based on this? I think it's rather
+> >a different API behaviour between the LED and the V4L2 APIs.
+> >
+> >On devices that are slow to control, the behaviour should be asynchronous
+> >over the LED API and synchronous when accessed through the V4L2 API. How
+> >about implementing the work queue, as I have suggested, in the
+> >framework, so
+> >that individual drivers don't need to care about this and just implement
+> >the
+> >synchronous variant of this op? A flag could be added to distinguish
+> >devices
+> >that are fast so that the work queue isn't needed.
+> >
+> >It'd be nice to avoid individual drivers having to implement multiple
+> >ops to
+> >do the same thing, just for differing user space interfacs.
+> >
+> 
+> It is not only the matter of a device controller speed. If a flash
+> device is to be made accessible from the LED subsystem, then it
+> should be also compatible with led-triggers. Some of led-triggers
+> call brightness_set op from the timer irq context and thus no
+> locking in the callback can occur. This requirement cannot be
+> met i.e. if i2c bus is to be used. This is probably the primary
+> reason for scheduling work queue tasks in brightness_set op.
+> 
+> Having the above in mind, setting a brightness in a work queue
+> task must be possible for all LED Class Flash drivers, regardless
+> whether related devices have fast or slow controller.
+> 
+> Let's recap the cost of possible solutions then:
+> 
+> 1) Moving the work queues to the LED framework
+> 
+>   - it would probably require extending led_set_brightness and
+>     __led_set_brightness functions by a parameter indicating whether it
+>     should call brightness_set op in the work queue task or directly;
+>   - all existing triggers would have to be updated accordingly;
+>   - work queues would have to be removed from all the LED drivers;
+> 
+> 2) adding led_set_torch_brightness API
+> 
+>   - no modifications in existing drivers and triggers would be required
+>   - instead, only the modifications from the discussed patch would
+>     be required
+> 
+> Solution 1 looks cleaner but requires much more modifications.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-old mode 100644
-new mode 100755
-index de02db8..d2da3be
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -770,9 +770,9 @@ static int dvb_usbv2_adapter_exit(struct dvb_usb_device *d)
+How about a combination of the two, i.e. option 1 with the old op remaining
+there for compatibility with the old drivers (with a comment telling it's
+deprecated)?
 
- 	for (i = MAX_NO_OF_ADAPTER_PER_DEVICE - 1; i >= 0; i--) {
- 		if (d->adapter[i].props) {
--			dvb_usbv2_adapter_frontend_exit(&d->adapter[i]);
- 			dvb_usbv2_adapter_dvb_exit(&d->adapter[i]);
- 			dvb_usbv2_adapter_stream_exit(&d->adapter[i]);
-+			dvb_usbv2_adapter_frontend_exit(&d->adapter[i]);
- 		}
- 	}
+This way new drivers will benefit from having to implement this just once,
+and modifications to the existing drivers could be left for later. The
+downside is that any old drivers wouldn't get V4L2 flash API but that's
+entirely acceptable in my opinion since these would hardly be needed in use
+cases that would benefit from V4L2 flash API.
 
---
-1.7.9.5
+-- 
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
