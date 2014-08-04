@@ -1,256 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52575 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755638AbaHYRMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 13:12:16 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/12] e4000: logging changes
-Date: Mon, 25 Aug 2014 20:11:55 +0300
-Message-Id: <1408986718-3881-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1408986718-3881-1-git-send-email-crope@iki.fi>
-References: <1408986718-3881-1-git-send-email-crope@iki.fi>
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:35462 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973AbaHDF6M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:58:12 -0400
+Received: by mail-yk0-f177.google.com with SMTP id 79so3863692ykr.8
+        for <linux-media@vger.kernel.org>; Sun, 03 Aug 2014 22:58:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53DF1BEF.6030904@xs4all.nl>
+References: <53DF1BEF.6030904@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Mon, 4 Aug 2014 14:57:30 +0900
+Message-ID: <CAMm-=zCMU-Dy_7q+Me4u_p+vOBCQatmSe4fEmHWLYS-JQEXcmg@mail.gmail.com>
+Subject: Re: [PATCH for v3.17] videobuf2-core: add comments before the WARN_ON
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove function name from debug logs. Logging system could add it
-automatically.
+On Mon, Aug 4, 2014 at 2:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Recently WARN_ON() calls have been added to warn if the driver is not
+> properly returning buffers to vb2 in start_streaming (if it fails) or
+> stop_streaming(). Add comments before those WARN_ON calls that refer
+> to the videobuf2-core.h header that explains what drivers are supposed
+> to do in these situations. That should help point developers in the
+> right direction if they see these warnings.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c | 71 ++++++++++++++++++++------------------------
- 1 file changed, 32 insertions(+), 39 deletions(-)
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 90d9334..92fde76 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -26,7 +26,7 @@ static int e4000_init(struct dvb_frontend *fe)
- 	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "\n");
- 
- 	/* dummy I2C to ensure I2C wakes up */
- 	ret = regmap_write(s->regmap, 0x02, 0x40);
-@@ -87,7 +87,7 @@ static int e4000_init(struct dvb_frontend *fe)
- 	s->active = true;
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -97,7 +97,7 @@ static int e4000_sleep(struct dvb_frontend *fe)
- 	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "\n");
- 
- 	s->active = false;
- 
-@@ -106,7 +106,7 @@ static int e4000_sleep(struct dvb_frontend *fe)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -121,9 +121,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	u8 buf[5], i_data[4], q_data[4];
- 
- 	dev_dbg(&s->client->dev,
--			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
--			__func__, c->delivery_system, c->frequency,
--			c->bandwidth_hz);
-+			"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
-+			c->delivery_system, c->frequency, c->bandwidth_hz);
- 
- 	/* gain control manual */
- 	ret = regmap_write(s->regmap, 0x1a, 0x00);
-@@ -150,9 +149,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
--	dev_dbg(&s->client->dev,
--			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
--			__func__, f_vco, buf[0], sigma_delta);
-+	dev_dbg(&s->client->dev, "f_vco=%llu pll div=%d sigma_delta=%04x\n",
-+			f_vco, buf[0], sigma_delta);
- 
- 	ret = regmap_bulk_write(s->regmap, 0x09, buf, 5);
- 	if (ret)
-@@ -253,7 +251,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -262,7 +260,7 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	struct e4000 *s = fe->tuner_priv;
- 
--	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "\n");
- 
- 	*frequency = 0; /* Zero-IF */
- 
-@@ -276,10 +274,9 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
--			__func__, s->lna_gain_auto->cur.val,
--			s->lna_gain_auto->val, s->lna_gain->cur.val,
--			s->lna_gain->val);
-+	dev_dbg(&s->client->dev, "lna auto=%d->%d val=%d->%d\n",
-+			s->lna_gain_auto->cur.val, s->lna_gain_auto->val,
-+			s->lna_gain->cur.val, s->lna_gain->val);
- 
- 	if (s->lna_gain_auto->val && s->if_gain_auto->cur.val)
- 		u8tmp = 0x17;
-@@ -301,7 +298,7 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
- 	}
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -312,10 +309,9 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
--			__func__, s->mixer_gain_auto->cur.val,
--			s->mixer_gain_auto->val, s->mixer_gain->cur.val,
--			s->mixer_gain->val);
-+	dev_dbg(&s->client->dev, "mixer auto=%d->%d val=%d->%d\n",
-+			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
-+			s->mixer_gain->cur.val, s->mixer_gain->val);
- 
- 	if (s->mixer_gain_auto->val)
- 		u8tmp = 0x15;
-@@ -333,7 +329,7 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- 	}
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -345,10 +341,9 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
- 	u8 buf[2];
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
--			__func__, s->if_gain_auto->cur.val,
--			s->if_gain_auto->val, s->if_gain->cur.val,
--			s->if_gain->val);
-+	dev_dbg(&s->client->dev, "if auto=%d->%d val=%d->%d\n",
-+			s->if_gain_auto->cur.val, s->if_gain_auto->val,
-+			s->if_gain->cur.val, s->if_gain->val);
- 
- 	if (s->if_gain_auto->val && s->lna_gain_auto->cur.val)
- 		u8tmp = 0x17;
-@@ -372,7 +367,7 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
- 	}
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -390,7 +385,7 @@ static int e4000_pll_lock(struct dvb_frontend *fe)
- 	s->pll_lock->val = (utmp & 0x01);
- err:
- 	if (ret)
--		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
- 	return ret;
- }
-@@ -408,8 +403,8 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 		ret = e4000_pll_lock(s->fe);
- 		break;
- 	default:
--		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
--				__func__, ctrl->id, ctrl->name);
-+		dev_dbg(&s->client->dev, "unknown ctrl: id=%d name=%s\n",
-+				ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -445,8 +440,8 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ret = e4000_set_if_gain(s->fe);
- 		break;
- 	default:
--		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
--				__func__, ctrl->id, ctrl->name);
-+		dev_dbg(&s->client->dev, "unknown ctrl: id=%d name=%s\n",
-+				ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -494,7 +489,7 @@ static int e4000_probe(struct i2c_client *client,
- 	s = kzalloc(sizeof(struct e4000), GFP_KERNEL);
- 	if (!s) {
- 		ret = -ENOMEM;
--		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
-+		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
-@@ -512,7 +507,7 @@ static int e4000_probe(struct i2c_client *client,
- 	if (ret)
- 		goto err;
- 
--	dev_dbg(&s->client->dev, "%s: chip id=%02x\n", __func__, utmp);
-+	dev_dbg(&s->client->dev, "chip id=%02x\n", utmp);
- 
- 	if (utmp != 0x40) {
- 		ret = -ENODEV;
-@@ -559,9 +554,7 @@ static int e4000_probe(struct i2c_client *client,
- 	s->sd.ctrl_handler = &s->hdl;
- #endif
- 
--	dev_info(&s->client->dev,
--			"%s: Elonics E4000 successfully identified\n",
--			KBUILD_MODNAME);
-+	dev_info(&s->client->dev, "Elonics E4000 successfully identified\n");
- 
- 	fe->tuner_priv = s;
- 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
-@@ -573,7 +566,7 @@ static int e4000_probe(struct i2c_client *client,
- 	return 0;
- err:
- 	if (ret) {
--		dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&client->dev, "failed=%d\n", ret);
- 		kfree(s);
- 	}
- 
-@@ -586,7 +579,7 @@ static int e4000_remove(struct i2c_client *client)
- 	struct e4000 *s = container_of(sd, struct e4000, sd);
- 	struct dvb_frontend *fe = s->fe;
- 
--	dev_dbg(&client->dev, "%s:\n", __func__);
-+	dev_dbg(&client->dev, "\n");
- 
- #if IS_ENABLED(CONFIG_VIDEO_V4L2)
- 	v4l2_ctrl_handler_free(&s->hdl);
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index c359006..d3f2a22 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1762,6 +1762,12 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>         q->start_streaming_called = 0;
+>
+>         dprintk(1, "driver refused to start streaming\n");
+> +       /*
+> +        * If you see this warning, then the driver isn't cleaning up properly
+> +        * after a failed start_streaming(). See the start_streaming()
+> +        * documentation in videobuf2-core.h for more information how buffers
+> +        * should be returned to vb2 in start_streaming().
+> +        */
+>         if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+>                 unsigned i;
+>
+> @@ -2123,6 +2129,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>         if (q->start_streaming_called)
+>                 call_void_qop(q, stop_streaming, q);
+>
+> +       /*
+> +        * If you see this warning, then the driver isn't cleaning up properly
+> +        * in stop_streaming(). See the stop_streaming() documentation in
+> +        * videobuf2-core.h for more information how buffers should be returned
+> +        * to vb2 in stop_streaming().
+> +        */
+>         if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+>                 for (i = 0; i < q->num_buffers; ++i)
+>                         if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
+> --
+> 2.0.1
+>
+
+
+
 -- 
-http://palosaari.fi/
-
+Best regards,
+Pawel Osciak
