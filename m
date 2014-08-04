@@ -1,68 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2779 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752846AbaHTW7m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:47946 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751244AbaHDE3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Aug 2014 00:29:49 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 01/29] img-ir: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:00 +0200
-Message-Id: <1408575568-20562-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/9] em28xx: convert tda18212 tuner to I2C client
+Date: Mon,  4 Aug 2014 07:29:26 +0300
+Message-Id: <1407126571-21629-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1407126571-21629-1-git-send-email-crope@iki.fi>
+References: <1407126571-21629-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Used tda18212 tuner is implemented as a I2C driver. Use em28xx
+tuner I2C client for tda18212 driver.
 
-drivers/media/rc/img-ir/img-ir-nec.c:111:23: warning: symbol 'img_ir_nec' was not declared. Should it be static?
-drivers/media/rc/img-ir/img-ir-jvc.c:54:23: warning: symbol 'img_ir_jvc' was not declared. Should it be static?
-drivers/media/rc/img-ir/img-ir-sony.c:120:23: warning: symbol 'img_ir_sony' was not declared. Should it be static?
-drivers/media/rc/img-ir/img-ir-sharp.c:75:23: warning: symbol 'img_ir_sharp' was not declared. Should it be static?
-drivers/media/rc/img-ir/img-ir-sanyo.c:82:23: warning: symbol 'img_ir_sanyo' was not declared. Should it be static?
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/rc/img-ir/img-ir-hw.c | 6 ------
- drivers/media/rc/img-ir/img-ir-hw.h | 6 ++++++
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index bfb282a..ec49f94 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -25,12 +25,6 @@
- /* Decoders lock (only modified to preprocess them) */
- static DEFINE_SPINLOCK(img_ir_decoders_lock);
- 
--extern struct img_ir_decoder img_ir_nec;
--extern struct img_ir_decoder img_ir_jvc;
--extern struct img_ir_decoder img_ir_sony;
--extern struct img_ir_decoder img_ir_sharp;
--extern struct img_ir_decoder img_ir_sanyo;
--
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_NEC
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index 3e40ce8..8fcc16c 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.h
-+++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -168,6 +168,12 @@ struct img_ir_decoder {
- 		      struct img_ir_filter *out, u64 protocols);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 3a3e243..7d62ff5 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -373,7 +373,6 @@ static struct tda18271_config kworld_ub435q_v2_config = {
  };
  
-+extern struct img_ir_decoder img_ir_nec;
-+extern struct img_ir_decoder img_ir_jvc;
-+extern struct img_ir_decoder img_ir_sony;
-+extern struct img_ir_decoder img_ir_sharp;
-+extern struct img_ir_decoder img_ir_sanyo;
+ static struct tda18212_config kworld_ub435q_v3_config = {
+-	.i2c_address	= 0x60,
+ 	.if_atsc_vsb	= 3600,
+ 	.if_atsc_qam	= 3600,
+ };
+@@ -1435,6 +1434,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		}
+ 		break;
+ 	case EM2874_BOARD_KWORLD_UB435Q_V3:
++	{
++		struct i2c_client *client;
++		struct i2c_adapter *adapter = &dev->i2c_adap[dev->def_i2c_bus];
++		struct i2c_board_info board_info = {
++			.type = "tda18212",
++			.addr = 0x60,
++			.platform_data = &kworld_ub435q_v3_config,
++		};
 +
- /**
-  * struct img_ir_reg_timings - Reg values for decoder timings at clock rate.
-  * @ctrl:	Processed control register value.
+ 		dvb->fe[0] = dvb_attach(lgdt3305_attach,
+ 					&em2874_lgdt3305_nogate_dev,
+ 					&dev->i2c_adap[dev->def_i2c_bus]);
+@@ -1443,14 +1451,26 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			goto out_free;
+ 		}
+ 
+-		/* Attach the demodulator. */
+-		if (!dvb_attach(tda18212_attach, dvb->fe[0],
+-				&dev->i2c_adap[dev->def_i2c_bus],
+-				&kworld_ub435q_v3_config)) {
+-			result = -EINVAL;
++		/* attach tuner */
++		kworld_ub435q_v3_config.fe = dvb->fe[0];
++		request_module("tda18212");
++		client = i2c_new_device(adapter, &board_info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dvb_frontend_detach(dvb->fe[0]);
++			result = -ENODEV;
+ 			goto out_free;
+ 		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			dvb_frontend_detach(dvb->fe[0]);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_tuner = client;
+ 		break;
++	}
+ 	case EM2874_BOARD_PCTV_HD_MINI_80E:
+ 		dvb->fe[0] = dvb_attach(drx39xxj_attach, &dev->i2c_adap[dev->def_i2c_bus]);
+ 		if (dvb->fe[0] != NULL) {
 -- 
-2.1.0.rc1
+http://palosaari.fi/
 
