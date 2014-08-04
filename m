@@ -1,81 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.195]:60438 "EHLO jenni2.inet.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:17756 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751193AbaHHHQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Aug 2014 03:16:49 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 4/4] cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
-Date: Fri,  8 Aug 2014 10:06:38 +0300
-Message-Id: <1407481598-24598-4-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
-References: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
+	id S1751253AbaHDPZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Aug 2014 11:25:20 -0400
+Message-ID: <53DFA5D1.70502@redhat.com>
+Date: Mon, 04 Aug 2014 17:25:05 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?0JDQu9C10LrRgdCw0L3QtNGAINCR0LXRgNGB0LXQvdC10LI=?=
+	<bay@hackerdom.ru>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Antonio Ospite <ao2@ao2.it>,
+	Alexsey Shestacov <wingrime@linux-sunxi.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PULL patches for 3.17]: 2 gspca patches + sunxi cir support
+References: <53B16CDF.6040702@redhat.com> <CAPomEdzz0sLM2siMXNBbNZ849bSXxKDYYkXtSaAp=seJ7yj2ww@mail.gmail.com>
+In-Reply-To: <CAPomEdzz0sLM2siMXNBbNZ849bSXxKDYYkXtSaAp=seJ7yj2ww@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Read MAC address from the EEPROM.
+Hi,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/cxusb.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+On 08/04/2014 03:47 PM, Александр Берсенев wrote:
+> Hello,
+> 
+> any news with this patch?
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index c3a44c7..6abfd6b 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -673,6 +673,41 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
- 	{ 0x0025, KEY_POWER },
- };
- 
-+static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
-+{
-+	u8 wbuf[2];
-+	u8 rbuf[6];
-+	int ret;
-+	struct i2c_msg msg[] = {
-+		{
-+			.addr = 0x51,
-+			.flags = 0,
-+			.buf = wbuf,
-+			.len = 2,
-+		}, {
-+			.addr = 0x51,
-+			.flags = I2C_M_RD,
-+			.buf = rbuf,
-+			.len = 6,
-+		}
-+	};
-+
-+	wbuf[0] = 0x1e;
-+	wbuf[1] = 0x00;
-+	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
-+
-+	if (ret == 2) {
-+		memcpy(mac, rbuf, 6);
-+		return 0;
-+	} else {
-+		if (ret < 0)
-+			return ret;
-+		else
-+			return -EIO;
-+		}
-+	}
-+}
-+
- static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
- 					u8 data, int *mem)
- {
-@@ -2315,6 +2350,8 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
- 	.size_of_priv     = sizeof(struct cxusb_state),
- 
- 	.num_adapters = 1,
-+	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
-+
- 	.adapter = {
- 		{
- 		.num_frontends = 1,
--- 
-1.9.1
+I assume you mean the sunxi-cir patch ? It has been
+pulled into the media tree a while back, and should show
+up in 3.17-rc1.
 
+Regards,
+
+Hans
