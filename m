@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43837 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091AbaHRRFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Aug 2014 13:05:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-usb@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Michael Grzeschik <mgr@pengutronix.de>
-Subject: [PATCH 0/2] Move UVC gagdet to video_ioctl2
-Date: Mon, 18 Aug 2014 19:06:15 +0200
-Message-Id: <1408381577-31901-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56224 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750716AbaHDE3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Aug 2014 00:29:50 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 9/9] ddbridge: fix I2C adapter capabilities
+Date: Mon,  4 Aug 2014 07:29:31 +0300
+Message-Id: <1407126571-21629-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1407126571-21629-1-git-send-email-crope@iki.fi>
+References: <1407126571-21629-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+It is I2C adapter, not SMBUS, which could do some simple SMBUS
+operations. Report is as a I2C capable too. Wrong reported type
+causes RegMap to fail write multiple registers using I2C register
+address auto-increment.
 
-This small patch series replaces manual handling of V4L2 ioctls in the UVC
-gadget function driver with the video_ioctl2 infrastructure. This simplifies
-the driver and brings support for V4L2 tracing features.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/pci/ddbridge/ddbridge-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The series is based on top of Michael Grzeschik's "usb: gadget/uvc: remove
-DRIVER_VERSION{,_NUMBER}" patch. The result can be found at
-
-	git://linuxtv.org/pinchartl/media.git uvc/gadget
-
-The patches have been compile-tested only so far. I'd appreciate if someone
-could test them on real hardware.
-
-Laurent Pinchart (2):
-  usb: gadget: f_uvc: Store EP0 control request state during setup stage
-  usb: gadget: f_uvc: Move to video_ioctl2
-
- drivers/usb/gadget/function/f_uvc.c    |   7 +
- drivers/usb/gadget/function/uvc_v4l2.c | 315 ++++++++++++++++-----------------
- 2 files changed, 164 insertions(+), 158 deletions(-)
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-i2c.c b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+index 6845d2a..121a12b 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-i2c.c
++++ b/drivers/media/pci/ddbridge/ddbridge-i2c.c
+@@ -163,7 +163,7 @@ static int ddb_i2c_master_xfer(struct i2c_adapter *adapter,
+ 
+ static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
+ {
+-	return I2C_FUNC_SMBUS_EMUL;
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ }
+ 
+ struct i2c_algorithm ddb_i2c_algo = {
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
 
