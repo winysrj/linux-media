@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2723 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333AbaHTW7s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 26/29] si2165: fix sparse warning
-Date: Thu, 21 Aug 2014 00:59:25 +0200
-Message-Id: <1408575568-20562-27-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f54.google.com ([209.85.215.54]:35632 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973AbaHDUj5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 16:39:57 -0400
+Received: by mail-la0-f54.google.com with SMTP id hz20so5946553lab.13
+        for <linux-media@vger.kernel.org>; Mon, 04 Aug 2014 13:39:56 -0700 (PDT)
+Message-ID: <53DFEF99.7040503@cogentembedded.com>
+Date: Tue, 05 Aug 2014 00:39:53 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Ian Molton <ian.molton@codethink.co.uk>,
+	linux-media@vger.kernel.org
+CC: linux-kernel@lists.codethink.co.uk, g.liakhovetski@gmx.de,
+	m.chehab@samsung.com, vladimir.barinov@cogentembedded.com,
+	magnus.damm@gmail.com, horms@verge.net.au, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are
+ returned to error state before stopping.
+References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk> <1404812474-7627-3-git-send-email-ian.molton@codethink.co.uk>
+In-Reply-To: <1404812474-7627-3-git-send-email-ian.molton@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/08/2014 01:41 PM, Ian Molton wrote:
 
-drivers/media/dvb-frontends/si2165.c:329:16: warning: odd constant _Bool cast (ffffffffffffffea becomes 1)
+> Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb-frontends/si2165.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> This patch returns all active buffers to state ERROR prior to stopping.
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 3a2d6c5..4386092 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -312,7 +312,7 @@ static u32 si2165_get_fe_clk(struct si2165_state *state)
- 	return state->adc_clk;
- }
- 
--static bool si2165_wait_init_done(struct si2165_state *state)
-+static int si2165_wait_init_done(struct si2165_state *state)
- {
- 	int ret = -EINVAL;
- 	u8 val = 0;
--- 
-2.1.0.rc1
+> Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
+
+> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+
+    Fixed kernel WARNINGs for me! \o/
+    Ian, perhaps it makes sense for me to take these patches into my hands?
+
+WBR, Sergei
 
