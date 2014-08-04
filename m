@@ -1,38 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s87.loopia.se ([194.9.94.112]:60289 "EHLO s87.loopia.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756966AbaHGFmH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Aug 2014 01:42:07 -0400
-From: Hans Wennborg <hans@hanshq.net>
-To: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Hans Wennborg <hans@hanshq.net>
-Subject: [PATCH 1/2] [media] dvb: remove 0x prefix from decimal value in printf
-Date: Wed,  6 Aug 2014 22:41:45 -0700
-Message-Id: <1407390105-29277-1-git-send-email-hans@hanshq.net>
-In-Reply-To: <20140806115607.1946e967.m.chehab@samsung.com>
-References: <20140806115607.1946e967.m.chehab@samsung.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:63945 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896AbaHDEHj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 00:07:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+Date: Mon, 4 Aug 2014 14:07:37 +1000
+Message-ID: <CAPM=9tzyJmisCMqUtfkyDJ1vPaSypb--_Rbeim-qRRSDJNmZag@mail.gmail.com>
+Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
+From: Dave Airlie <airlied@gmail.com>
+To: Nicholas Krause <xerofoify@gmail.com>
+Cc: udovdh@xs4all.nl,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Wennborg <hans@hanshq.net>
----
- drivers/media/dvb-frontends/mb86a16.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 4 August 2014 13:25, Nicholas Krause <xerofoify@gmail.com> wrote:
+> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
+> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
+>
 
-diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
-index 9ae40ab..1f7fce7 100644
---- a/drivers/media/dvb-frontends/mb86a16.c
-+++ b/drivers/media/dvb-frontends/mb86a16.c
-@@ -115,7 +115,7 @@ static int mb86a16_read(struct mb86a16_state *state, u8 reg, u8 *val)
- 	};
- 	ret = i2c_transfer(state->i2c_adap, msg, 2);
- 	if (ret != 2) {
--		dprintk(verbose, MB86A16_ERROR, 1, "read error(reg=0x%02x, ret=0x%i)",
-+		dprintk(verbose, MB86A16_ERROR, 1, "read error(reg=0x%02x, ret=%i)",
- 			reg, ret);
- 
- 		return -EREMOTEIO;
--- 
-2.0.0.526.g5318336
+Please go back and read every mail sent to you in the last few weeks.
+then read them again, go nuts read them again.
 
+Still wondering where I'm going with this? read them again.
+
+then understand that I mean this in the nicest way possible. "please fuck off."
+
+you are wasting developers time.
+
+Dave.
