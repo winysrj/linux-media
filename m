@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34733 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438AbaHEWl3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 18:41:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: alaganraj sandhanam <alaganraj.sandhanam@gmail.com>
-Cc: linux-media@vger.kernel.org, sre@debian.org, sakari.ailus@iki.fi
-Subject: Re: omap3isp device tree support
-Date: Wed, 06 Aug 2014 00:41:59 +0200
-Message-ID: <9468625.rMRWF7vSjZ@avalon>
-In-Reply-To: <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
-References: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com> <7469714.hULjr0WVDI@avalon> <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3803 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921AbaHDFDZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:03:25 -0400
+Message-ID: <53DF1412.9010506@xs4all.nl>
+Date: Mon, 04 Aug 2014 07:03:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+To: Nicholas Krause <xerofoify@gmail.com>, udovdh@xs4all.nl
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
+References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+In-Reply-To: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alagan,
-
-On Wednesday 06 August 2014 04:07:58 alaganraj sandhanam wrote:
-> Hi Laurent,
+On 08/04/2014 05:25 AM, Nicholas Krause wrote:
+> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
+> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
 > 
-> Thanks for the info. what about git://linuxtv.org/pinchartl/media.git
-> omap3isp/dt branch?
-> I took 3 patches from this branch, fixed
-> error: implicit declaration of function ‘v4l2_of_get_next_endpoint’
-> by changing to "of_graph_get_next_endpoint".
-> 
-> while booting i'm getting below msg
-> [    1.558471] of_graph_get_next_endpoint(): no port node found in
-> /ocp/omap3_isp@480bc000
-> [    1.567169] omap3isp 480bc000.omap3_isp: no port node at
-> /ocp/omap3_isp@480bc000
-> 
-> omap3isp/dt is not working branch?
+> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 
-The branch contains work in progress patches. If I'm not mistaken the code 
-isn't complete and doesn't work yet.
+Dunno what's going on here after reading Dave Airlie's reply, but:
 
--- 
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+It's clearly wrong and if you get here at all you have a driver bug anyway. That
+WARN_ON is there for a reason. Your driver isn't returning buffers correctly in
+stop_streaming or in start_streaming if start_streaming fails with an error.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7c4489c..08e478b 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2115,7 +2115,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+>  		for (i = 0; i < q->num_buffers; ++i)
+>  			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
+> -				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
+> +				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ACTIVE);
+>  		/* Must be zero now */
+>  		WARN_ON(atomic_read(&q->owned_by_drv_count));
+>  	}
+> 
 
