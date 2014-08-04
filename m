@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:57201 "EHLO
-	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751446AbaHIAgX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Aug 2014 20:36:23 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, dheitmueller@kernellabs.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] au0828: remove CONFIG_VIDEO_AU0828_RC scope around au0828_rc_*()
-Date: Fri,  8 Aug 2014 18:36:19 -0600
-Message-Id: <cae8929faf952b312460a09b8b05c7875b4c560f.1407544065.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
-References: <cover.1407544065.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
-References: <cover.1407544065.git.shuah.kh@samsung.com>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:34485 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065AbaHDFnN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:43:13 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
+References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+	<53DF1412.9010506@xs4all.nl>
+	<CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
+Date: Mon, 4 Aug 2014 01:43:12 -0400
+Message-ID: <CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
+Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
+From: Nick Krause <xerofoify@gmail.com>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Udo van den Heuvel <udovdh@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove CONFIG_VIDEO_AU0828_RC scope around au0828_rc_register()
-and au0828_rc_unregister() calls in au0828-core
-
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c |    4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index eb5f2b1..2090498 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -153,9 +153,7 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 
- 	dprintk(1, "%s()\n", __func__);
- 
--#ifdef CONFIG_VIDEO_AU0828_RC
- 	au0828_rc_unregister(dev);
--#endif
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
- 
-@@ -266,10 +264,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 		pr_err("%s() au0282_dev_register failed\n",
- 		       __func__);
- 
--#ifdef CONFIG_VIDEO_AU0828_RC
- 	/* Remote controller */
- 	au0828_rc_register(dev);
--#endif
- 
- 	/*
- 	 * Store the pointer to the au0828_dev so it can be accessed in
--- 
-1.7.10.4
-
+On Mon, Aug 4, 2014 at 1:38 AM, Dave Airlie <airlied@gmail.com> wrote:
+> On 4 August 2014 15:03, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 08/04/2014 05:25 AM, Nicholas Krause wrote:
+>>> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
+>>> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
+>>>
+>>> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+>>
+>> Dunno what's going on here after reading Dave Airlie's reply, but:
+>>
+>
+> Nick has decided he wants to be a kernel developer, a laudable goal.
+>
+> He however has decided not to take any advice given to me by a number of other
+> kernel developers on how to work on the kernel. So instead he sends random
+> broken patches to random subsystems in the hope that one will slip past a sleepy
+> maintainer and end up in the kernel.
+>
+> He isn't willing to spend his own time learning anything, he is
+> expecting that kernel
+> developers want to spoon feed someone who sends them broken patches.
+>
+> We've asked him to stop, he keeps doing it, then when caught out apologizes
+> with something along the lines, of I'm trying to learn, "idiot
+> mistake", despite having
+> been told to take a step back and try and learn how the kernel works.
+>
+> Now we have to waste more maintainer time making sure nobody accidentally
+> merges anything he sends.
+>
+> Dave.
+All of my merges are not in the main kernel and have been revoked.
+Cheers Nick
