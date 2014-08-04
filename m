@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:34230 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932159AbaHVQmH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 12:42:07 -0400
-Received: by mail-lb0-f179.google.com with SMTP id v6so9706774lbi.10
-        for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 09:42:04 -0700 (PDT)
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH] drivers: media: b2c2: flexcop.h: Fix typo in include guard
-Date: Fri, 22 Aug 2014 18:41:56 +0200
-Message-Id: <1408725716-2695-1-git-send-email-linux@rasmusvillemoes.dk>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3675 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608AbaHDJTQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 05:19:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v3.17 1/2] DocBook media: fix fieldname in struct v4l2_subdev_selection
+Date: Mon,  4 Aug 2014 11:19:02 +0200
+Message-Id: <1407143943-4557-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Three trailing underscores is one too many.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Field 'rect' is really named 'r'.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/b2c2/flexcop.h | 2 +-
+ Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/common/b2c2/flexcop.h b/drivers/media/common/b2c2/flexcop.h
-index 897b10c..8942bda 100644
---- a/drivers/media/common/b2c2/flexcop.h
-+++ b/drivers/media/common/b2c2/flexcop.h
-@@ -4,7 +4,7 @@
-  * see flexcop.c for copyright information
-  */
- #ifndef __FLEXCOP_H__
--#define __FLEXCOP_H___
-+#define __FLEXCOP_H__
- 
- #define FC_LOG_PREFIX "b2c2-flexcop"
- #include "flexcop-common.h"
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index 1ba9e99..c62a736 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -119,7 +119,7 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-rect;</entry>
+-	    <entry><structfield>rect</structfield></entry>
++	    <entry><structfield>r</structfield></entry>
+ 	    <entry>Selection rectangle, in pixels.</entry>
+ 	  </row>
+ 	  <row>
 -- 
-2.0.4
+2.0.1
 
