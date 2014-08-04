@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3260 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbaHJL6Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 07:58:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 17/19] cx23885: fix weird sizes.
-Date: Sun, 10 Aug 2014 13:57:54 +0200
-Message-Id: <1407671876-39386-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:36497 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750973AbaHDT2G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Aug 2014 15:28:06 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com
+Cc: fengguang.wu@intel.com, Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH] si2165: change return type of si2165_wait_init_done from bool to int
+Date: Mon,  4 Aug 2014 21:27:43 +0200
+Message-Id: <1407180463-17936-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+In case of an error -EINVAL will be mis-casted to 1.
 
-These values make no sense. All SDTV standards have the same width.
-This seems to be copied from the cx88 driver. Just drop these weird
-values.
+This was triggered by a coccinelle warning.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/pci/cx23885/cx23885.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/si2165.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 99a5fe0..f542ced 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
- 
- static inline unsigned int norm_maxw(v4l2_std_id norm)
- {
--	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
-+	return 720;
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 3a2d6c5..f02d946 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -312,9 +312,8 @@ static u32 si2165_get_fe_clk(struct si2165_state *state)
+ 	return state->adc_clk;
  }
  
- static inline unsigned int norm_maxh(v4l2_std_id norm)
+-static bool si2165_wait_init_done(struct si2165_state *state)
++static int si2165_wait_init_done(struct si2165_state *state)
  {
--	return (norm & V4L2_STD_625_50) ? 576 : 480;
-+	return (norm & V4L2_STD_525_60) ? 480 : 576;
+-	int ret = -EINVAL;
+ 	u8 val = 0;
+ 	int i;
+ 
+@@ -326,7 +325,7 @@ static bool si2165_wait_init_done(struct si2165_state *state)
+ 	}
+ 	dev_err(&state->i2c->dev, "%s: init_done was not set\n",
+ 		KBUILD_MODNAME);
+-	return ret;
++	return -EINVAL;
  }
  
- static inline unsigned int norm_swidth(v4l2_std_id norm)
- {
--	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
-+	return 754;
- }
+ static int si2165_upload_firmware_block(struct si2165_state *state,
 -- 
-2.0.1
+2.0.0
 
