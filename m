@@ -1,89 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:21752 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751826AbaHWLY4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 07:24:56 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: dri-devel@lists.freedesktop.org
-Cc: josh@joshtriplett.org, kernel-janitors@vger.kernel.org,
-	linux-nfc@lists.01.org, linux-wireless@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pwm@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-omap@vger.kernel.org,
-	rtc-linux@googlegroups.com
-Subject: [PATCH 0/9] use c99 initializers in structures
-Date: Sat, 23 Aug 2014 13:20:22 +0200
-Message-Id: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:54795 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbaHDFyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:54:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAPDOMVjHfw6Edn7LWpiu7NSquCzwiu8-fexV-0pBztO0NZTEXQ@mail.gmail.com>
+References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
+	<53DF1412.9010506@xs4all.nl>
+	<CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
+	<CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
+	<CAPDOMVjHfw6Edn7LWpiu7NSquCzwiu8-fexV-0pBztO0NZTEXQ@mail.gmail.com>
+Date: Mon, 4 Aug 2014 15:54:38 +1000
+Message-ID: <CAPM=9tzf2F6fZp6NiKQZm-AESGD5zu3Jf4a6fW_d4HOZ9KvR3w@mail.gmail.com>
+Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
+From: Dave Airlie <airlied@gmail.com>
+To: Nick Krause <xerofoify@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Udo van den Heuvel <udovdh@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches add labels in the initializations of structure fields (c99
-initializers).  The complete semantic patch thta makes this change is shown
-below.  This rule ignores cases where the initialization is just 0 or NULL,
-where some of the fields already use labels, and where there are nested
-structures.
+>
+> Dave,
+> I understand your issues with my programming. I need to try and
+> understand the kernel first before programming
+> for it.
 
-// <smpl>
-@ok1@
-identifier i1,i2;
-position p;
-@@
+Why do you insist on sending more patches then, every day you try and
+send another one or two, despite been
+told multiple times to a) understand what you are writing, b) build
+test, c) actual test on hw or in a VM if applicable.
 
-struct i1 i2@p = { \(0\|NULL\) };
+Frankly I think you are taking the piss, probably writing some stupid
+Uni thesis on how to subvert the kernel development model by trolling
+it with broken patches.
 
-@ok2@
-identifier i1,i2,i3;
-position p;
-expression e;
-@@
-
-struct i1 i2@p = { ..., .i3 = e, ... };
-
-@ok3@
-identifier i1,i2;
-position p;
-@@
-
-struct i1 i2@p = { ..., { ... }, ... };
-
-@decl@
-identifier i1,fld;
-type T;
-field list[n] fs;
-@@
-
-struct i1 {
- fs
- T fld;
- ...};
-
-@bad@
-identifier decl.i1,i2;
-expression e;
-position p != {ok1.p,ok2.p,ok3.p};
-constant nm;
-initializer list[decl.n] is;
-position fix;
-@@
-
-struct i1 i2@p = { is,
-(
- nm(...)
-|
- e@fix
-)
- ,...};
-
-@@
-identifier decl.i1,i2,decl.fld;
-expression e;
-position bad.p, bad.fix;
-@@
-
-struct i1 i2@p = { ...,
-+ .fld = e
-- e@fix
- ,...};
-// </smpl>
-
+Dave.
