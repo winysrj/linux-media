@@ -1,59 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2035 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752365AbaHVXcF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 19:32:05 -0400
-Message-ID: <53F7D2D3.4070809@xs4all.nl>
-Date: Fri, 22 Aug 2014 23:31:31 +0000
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:37687 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbaHDGUA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 02:20:00 -0400
+Received: by mail-oa0-f47.google.com with SMTP id g18so4642689oah.34
+        for <linux-media@vger.kernel.org>; Sun, 03 Aug 2014 23:20:00 -0700 (PDT)
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Jan Kara <jack@suse.cz>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	m.szyprowski@samsung.com, pawel@osciak.com
-Subject: [PATCHv2] videobuf2-core: take mmap_sem before calling __qbuf_userptr
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <53D6BD8E.7000903@gmail.com>
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
+	<20140728185949.GS13730@pengutronix.de>
+	<53D6BD8E.7000903@gmail.com>
+Date: Sun, 3 Aug 2014 23:14:22 -0700
+Message-ID: <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+From: Tim Harvey <tharvey@gateworks.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Robert Schwebel <r.schwebel@pengutronix.de>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	Steve Longerbeam <slongerbeam@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Changes since v1: fix the embarrassing bug where mmap_sem wasn't initialized)
+On Mon, Jul 28, 2014 at 2:15 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> On 07/28/2014 11:59 AM, Robert Schwebel wrote:
+>> Hi,
+>>
+>> On Mon, Jul 28, 2014 at 06:24:45PM +0200, Jean-Michel Hautbois wrote:
+>>> We have a custom board, based on i.MX6 SoC.
+>>> We are currently using Freescale's release of Linux, but this is a
+>>> 3.10.17 kernel, and several drivers are lacking (adv7611 for instance)
+>>> or badly written (all the MXC part).
+>>> As we want to have nice things :) we would like to use a mainline
+>>> kernel, or at least a tree which can be mainlined.
+>>>
+>>> It seems (#v4l told me so) that some people (Steeve :) ?) are working
+>>> on a rewriting of the IPU and all DRM part for i.MX6.
+>>> What is the current status (compared to Freescale's release maybe) ?
+>>> And what can we expect in a near future? Maybe, how can we help too ?
+>
+> Hi Jean-Michel,
+>
+> I did post a v4l2 video capture driver for i.MX6 to linux-media.
+> The main complaint from Philip at Pengutronix is that it does not
+> support the media device framework.
 
-Commit f035eb4e976ef5a059e30bc91cfd310ff030a7d3 (videobuf2: fix lockdep warning)
-unfortunately removed the mmap_sem lock that is needed around the call to
-__qbuf_userptr. Amazingly nobody noticed this (especially me as the author)
-until Jan Kara pointed this out to me.
+Philipp,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+It is unfortunate that the lack of the media device framework is
+holding back acceptance of Steve's patches. Is this something that can
+be added later? Does your patchset which you posted for reference
+resolve this issue and perhaps is something that everyone could agree
+on for a starting point?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5b808e2..a0ab6af 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1591,6 +1591,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	struct rw_semaphore *mmap_sem;
- 	int ret;
- 
- 	ret = __verify_length(vb, b);
-@@ -1627,7 +1628,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
-+		mmap_sem = &current->mm->mmap_sem;
-+		down_read(mmap_sem);
- 		ret = __qbuf_userptr(vb, b);
-+		up_read(mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
--- 
-2.0.1
+Regards,
 
+Tim
+
+>
+> The customer I am currently working for has no real interest in the
+> media controller API, and the driver I posted has all the features they
+> require, so any work I do to add that support to the driver would have
+> to be in my spare time, and I don't have much. If our customer were to
+> request and fund media control support, that would be ideal, but as it is
+> I can only spend limited time on it. So if you are interested in helping
+> out in the media device effort I can send what I have so far.
+>
+> I have not provided any patches to i.MX6 DRM/KMS drivers. We have
+> developed new features (overlay plane global/local alpha, hardware gamma
+> correction, color-keying, and others) for for that component but haven't
+> posted them yet.
+>
+> Steve
+>
+>> Pengutronix is continuously working on mainlining more parts of the
+>> i.MX6 video and graphics subsystem, including the components you have
+>> mentioned. We are posting patches here when they are ready for mainline
+>> review.
+>>
+>> Regards,
+>> Robert (for commercial help, please contact me by email)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
