@@ -1,115 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56219 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbaHJCOd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 22:14:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/3] au0828: Fix DVB resume when streaming
-Date: Sat,  9 Aug 2014 23:14:21 -0300
-Message-Id: <1407636862-19394-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
-References: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-yh0-f53.google.com ([209.85.213.53]:61498 "EHLO
+	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133AbaHEOuL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 10:50:11 -0400
+Received: by mail-yh0-f53.google.com with SMTP id c41so695417yho.26
+        for <linux-media@vger.kernel.org>; Tue, 05 Aug 2014 07:50:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53E0E7C4.8080205@xs4all.nl>
+References: <53E080F6.30301@xs4all.nl>
+	<CAKocOONtJJmnAELZzVG_4KdgrXrMrwXVGW=quh=vDqa+pm1tbQ@mail.gmail.com>
+	<53E0E7C4.8080205@xs4all.nl>
+Date: Tue, 5 Aug 2014 08:50:10 -0600
+Message-ID: <CAKocOOMqM-Fu+3gFm65cY74VdegjZYFnb_A2ezOhh0U+Etb=FA@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: fix compiler warnings
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?Frank_Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When DVB is streaming and suspend is called, it will call
-au0828_stop_transport(), with will clean the streaming flag.
+On Tue, Aug 5, 2014 at 8:18 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 08/05/2014 03:57 PM, Shuah Khan wrote:
+> I'm not sure what you mean. It *was* a local variable, that was the problem.
+> There are two option: one is to add it to the main struct, then other is to
+> allocate and free it inside the function. In general I dislike that since it
+> adds aan extra check (did we really get the memory?) and you have to make sure
+> you will free the memory. And that's besides the overhead of having to allocate
+> memory. Originally I named tmp_i2c_client 'probe_i2c_client', but then I saw
+> that the ir code needs it as well. If the ir code is fixed so it has its own
+> i2c client, then the name can revert to probe_i2c_client.
+>
 
-Due to that, stop_urb_transfer() will be called twice,
-causing an oops.
+Right. Adding it to the main structure is better than alloc and free the memory.
+Would i2c_client_buf or i2c_client_data sound better than tmp_i2c_client?
 
-So, we need another flag to be used at resume, telling it
-to restart DVB.
-
-While here, add a logic at stop_urb_transfer() to prevent
-it of being called twice, and convert the usb_streaming
-flag into boolean.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/au0828/au0828-dvb.c | 14 +++++++++-----
- drivers/media/usb/au0828/au0828.h     |  4 ++--
- 2 files changed, 11 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index bc4ea5397e92..821f86e92cde 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -121,7 +121,7 @@ static void urb_completion(struct urb *purb)
- 		return;
- 	}
- 
--	if (dev->urb_streaming == 0) {
-+	if (!dev->urb_streaming) {
- 		dprintk(2, "%s: not streaming!\n", __func__);
- 		return;
- 	}
-@@ -159,7 +159,10 @@ static int stop_urb_transfer(struct au0828_dev *dev)
- 
- 	dprintk(2, "%s()\n", __func__);
- 
--	dev->urb_streaming = 0;
-+	if (!dev->urb_streaming)
-+		return 0;
-+
-+	dev->urb_streaming = false;
- 	for (i = 0; i < URB_COUNT; i++) {
- 		if (dev->urbs[i]) {
- 			usb_kill_urb(dev->urbs[i]);
-@@ -229,7 +232,7 @@ static int start_urb_transfer(struct au0828_dev *dev)
- 		}
- 	}
- 
--	dev->urb_streaming = 1;
-+	dev->urb_streaming = true;
- 	ret = 0;
- 
- err:
-@@ -323,7 +326,7 @@ static void au0828_restart_dvb_streaming(struct work_struct *work)
- 					      restart_streaming);
- 	struct au0828_dvb *dvb = &dev->dvb;
- 
--	if (dev->urb_streaming == 0)
-+	if (!dev->urb_streaming)
- 		return;
- 
- 	dprintk(1, "Restarting streaming...!\n");
-@@ -628,6 +631,7 @@ void au0828_dvb_suspend(struct au0828_dev *dev)
- 		stop_urb_transfer(dev);
- 		au0828_stop_transport(dev, 1);
- 		mutex_unlock(&dvb->lock);
-+		dev->need_urb_start = 1;
- 	}
- }
- 
-@@ -635,7 +639,7 @@ void au0828_dvb_resume(struct au0828_dev *dev)
- {
- 	struct au0828_dvb *dvb = &dev->dvb;
- 
--	if (dvb->frontend && dev->urb_streaming) {
-+	if (dvb->frontend && dev->need_urb_start) {
- 		pr_info("resuming DVB\n");
- 
- 		au0828_set_frontend(dvb->frontend);
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index d187129b96b7..a7cc6e397fdd 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -267,8 +267,8 @@ struct au0828_dev {
- 	char *transfer_buffer[AU0828_MAX_ISO_BUFS];/* transfer buffers for isoc
- 						   transfer */
- 
--	/* USB / URB Related */
--	int		urb_streaming;
-+	/* DVB USB / URB Related */
-+	bool		urb_streaming, need_urb_start;
- 	struct urb	*urbs[URB_COUNT];
- 
- 	/* Preallocated transfer digital transfer buffers */
--- 
-1.9.3
-
+-- Shuah
