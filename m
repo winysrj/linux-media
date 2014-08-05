@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:34682 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933257AbaH0NDF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 09:03:05 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAY00026V1Y7320@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Aug 2014 14:05:58 +0100 (BST)
-Message-id: <53FDD6FA.1010303@samsung.com>
-Date: Wed, 27 Aug 2014 15:02:50 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH] media: s5p-mfc: rename special clock to sclk_mfc
-References: <1409142988-9315-1-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1409142988-9315-1-git-send-email-m.szyprowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52233 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755635AbaHERAm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:42 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 09/15] [media] coda: increase max vertical frame size to 1088
+Date: Tue,  5 Aug 2014 19:00:14 +0200
+Message-Id: <1407258020-12078-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/08/14 14:36, Marek Szyprowski wrote:
-> Commit d19f405a5a8d2ed942b40f8cf7929a5a50d0cc59 ("[media] s5p-mfc: Fix
-> selective sclk_mfc init") added support for special clock handling
-> (named "sclk-mfc"). However this clock is not defined yet on any
-> platform, so before adding it to all Exynos platform, better rename it
-> to "sclk_mfc" to match the scheme used for all other special clocks on
-> Exynos platform.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+This patch increases the maximum vertical frame size reported
+by enum_fmt and accepted by try_fmt/s_fmt from 1080 to 1088.
+Since for 16x16-pixel macroblocks 1080p will be rounded up to
+this anyway, we may as well admit that we support it.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 3bf30b8..6020e33 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -39,7 +39,6 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "coda.h"
+-#include "coda_regs.h"
+ 
+ #define CODA_NAME		"coda"
+ 
+@@ -122,15 +121,15 @@ static const struct coda_codec codadx6_codecs[] = {
+ static const struct coda_codec coda7_codecs[] = {
+ 	CODA_CODEC(CODA7_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1280, 720),
+ 	CODA_CODEC(CODA7_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1280, 720),
+-	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
+-	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1080),
++	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
++	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ };
+ 
+ static const struct coda_codec coda9_codecs[] = {
+-	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1080),
+-	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1080),
+-	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
+-	CODA_CODEC(CODA9_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1080),
++	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1088),
++	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1088),
++	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
++	CODA_CODEC(CODA9_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ };
+ 
+ static bool coda_format_is_yuv(u32 fourcc)
+-- 
+2.0.1
+
