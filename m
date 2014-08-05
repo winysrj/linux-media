@@ -1,104 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:53940 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932120AbaHVOU4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 10:20:56 -0400
-Received: by mail-la0-f49.google.com with SMTP id hz20so9806174lab.8
-        for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 07:20:55 -0700 (PDT)
-Date: Fri, 22 Aug 2014 18:20:53 +0400
-From: Mikhail Ulianov <mikhail.ulyanov@cogentembedded.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: m.chehab@samsung.com, horms@verge.net.au, magnus.damm@gmail.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 6/6] devicetree: bindings: Document Renesas JPEG
- Processing Unit.
-Message-ID: <20140822182053.62667c32@bones>
-In-Reply-To: <3694359.xqEjcGBlOG@avalon>
-References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<3694359.xqEjcGBlOG@avalon>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:48461 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755334AbaHEGwc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 02:52:32 -0400
+Received: by mail-we0-f172.google.com with SMTP id x48so485373wes.31
+        for <linux-media@vger.kernel.org>; Mon, 04 Aug 2014 23:52:31 -0700 (PDT)
+Date: Tue, 5 Aug 2014 08:52:19 +0200
+From: Zahari Doychev <zahari.doychev@linux.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [RFC PATCH 00/26] i.MX5/6 IPUv3 CSI/IC
+Message-ID: <20140805065219.GA5775@rebelion>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thanks for your comments.
+Hi Philipp,
 
-On Thu, 21 Aug 2014 01:01:43 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+can you tell which kernel tree I have to use for this patch set?
 
-> Hi Mikhail,
+Thanks and Regards,
+Zahari
+
+On Thu, Jun 12, 2014 at 07:06:14PM +0200, Philipp Zabel wrote:
+> Hi,
 > 
-> Thank you for the patch.
+> attached is a series of our work in progress i.MX6 capture drivers.
+> I'm posting this now in reaction to Steve's i.MX6 Video capture series,
+> as a reference for further discussion.
+> Of the Image Converter (IC) we only use the postprocessor task, with
+> tiling for larger frames, to implement v4l2 mem2mem scaler/colorspace
+> converter and deinterlacer devices.
+> The capture code capture code already uses the media controller framework
+> and creates a subdevice representing the CSI, but the path to memory is
+> fixed to IDMAC via SMFC, which is the only possible path for grayscale
+> and  and anything with multiple output ports connected
+> to the CSIs (such as the CSI2IPU gasket on i.MX6) doesn't work yet. Also,
+> I think the CSI subdevice driver should be completely separate from the
+> capture driver.
 > 
-> On Tuesday 19 August 2014 16:50:53 Mikhail Ulyanov wrote:  
-> > Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> > ---
-> >  .../devicetree/bindings/media/renesas,jpu.txt      | 23
-> > +++++++++++++++++++ 1 file changed, 23 insertions(+)
-> >  create mode 100644
-> > Documentation/devicetree/bindings/media/renesas,jpu.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> > b/Documentation/devicetree/bindings/media/renesas,jpu.txt new file
-> > mode 100644
-> > index 0000000..44b07df
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> > @@ -0,0 +1,23 @@
-> > +* Renesas VSP1 Video Processing Engine  
+> regards
+> Philipp
 > 
-> Copy & paste ? :-)
->   
-Yeah. Will fix it.
-
-> > +
-> > +The JPEG processing unit (JPU) incorporates the JPEG codec with an
-> > encoding +and decoding function conforming to the JPEG baseline
-> > process, so that the JPU
-> > +can encode image data and decode JPEG data quickly.
-> > +It can be found in the Renesas R-Car first and second generation
-> > SoCs.  
+> Philipp Zabel (16):
+>   gpu: ipu-v3: Add function to setup CP channel as interlaced
+>   gpu: ipu-v3: Add ipu_cpmem_get_buffer function
+>   gpu: ipu-v3: Add support for partial interleaved YCbCr 4:2:0 (NV12)
+>     format
+>   gpu: ipu-v3: Add support for planar YUV 4:2:2 (YUV422P) format
+>   imx-drm: currently only IPUv3 is supported, make it mandatory
+>   [media] Add i.MX SoC wide media device driver
+>   [media] imx-ipu: Add i.MX IPUv3 capture driver
+>   [media] ipuv3-csi: Skip 3 lines for NTSC BT.656
+>   [media] imx-ipuv3-csi: Add support for temporarily stopping the stream
+>     on sync loss
+>   [media] imx-ipuv3-csi: Export sync lock event to userspace
+>   [media] v4l2-subdev.h: Add lock status notification
+>   [media] v4l2-subdev: Export v4l2_subdev_fops
+>   mfd: syscon: add child device support
+>   [media] imx: Add video switch
+>   ARM: dts: Add IPU aliases on i.MX6
+>   ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their
+>     connections
 > 
-> Is there a difference between the first and second generation JPUs ?
->   
-There should be no difference because in practice maximum supported
-resolution for Gen2 is 4096x4096 (not 8000x8000 as in overview section
-of documentation). And in Gen1 documentation(overview section) maximum
-supported resolution is also 4096x4096. 
-
-
-> > +
-> > +Required properties:
-> > +  - compatible: should containg one of the following:
-> > +			- "renesas,jpu-r8a7790" for R-Car H2
-> > +			- "renesas,jpu-r8a7791" for R-Car M2  
+> Sascha Hauer (10):
+>   gpu: ipu-v3: Add IC support
+>   gpu: ipu-v3: Register IC with IPUv3
+>   [media] imx-ipu: add ipu media common code
+>   [media] imx-ipu: Add i.MX IPUv3 scaler driver
+>   [media] imx-ipu: Add i.MX IPUv3 deinterlacer driver
+>   [media] v4l2: subdev: Add v4l2_device_register_subdev_node function
+>   [media] v4l2: Fix V4L2_CID_PIXEL_RATE
+>   [media] v4l2 async: remove from notifier list
+>   [media] ipuv3-csi: Pass ipucsi to v4l2_media_subdev_s_power
+>   [media] ipuv3-csi: make subdev controls available on video device
 > 
-> How about adding a "renesas,jpu" generic compatible, and listing both
-> the SoC- specific and the generic values (in that order) in the
-> compatible property ?
->   
-Could be a good idea, but there is no JPU in some R-Car Gen1 SoCs
-e.g. E1. Plus we don't have full documentation on JPU in Gen1 SoCs.
-So for now Gen1 is not supported. Or this doesn't matter in that case?
-
-
-> > +  - reg: Base address and length of the registers block for the
-> > JPU.
-> > +  - interrupts: JPU interrupt specifier.
-> > +  - clocks: A phandle + clock-specifier pair for the JPU
-> > functional clock. +
-> > +Example: R8A7790 (R-Car H2) JPU node
-> > +	jpeg-codec@fe980000 {
-> > +		compatible = "renesas,jpu-r8a7790";
-> > +		reg = <0 0xfe980000 0 0x10300>;
-> > +		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
-> > +		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
-> > +	};  
->   
+>  Documentation/devicetree/bindings/mfd/syscon.txt |   11 +
+>  arch/arm/boot/dts/imx6dl.dtsi                    |  182 +++
+>  arch/arm/boot/dts/imx6q.dtsi                     |  119 ++
+>  arch/arm/boot/dts/imx6qdl.dtsi                   |    9 +
+>  drivers/gpu/ipu-v3/Makefile                      |    2 +-
+>  drivers/gpu/ipu-v3/ipu-common.c                  |  119 ++
+>  drivers/gpu/ipu-v3/ipu-ic.c                      | 1227 +++++++++++++++
+>  drivers/gpu/ipu-v3/ipu-prv.h                     |    6 +
+>  drivers/media/platform/Kconfig                   |    4 +
+>  drivers/media/platform/Makefile                  |    1 +
+>  drivers/media/platform/imx/Kconfig               |   50 +
+>  drivers/media/platform/imx/Makefile              |    6 +
+>  drivers/media/platform/imx/imx-ipu-scaler.c      |  825 +++++++++++
+>  drivers/media/platform/imx/imx-ipu-vdic.c        |  716 +++++++++
+>  drivers/media/platform/imx/imx-ipu.c             |  313 ++++
+>  drivers/media/platform/imx/imx-ipu.h             |   36 +
+>  drivers/media/platform/imx/imx-ipuv3-csi.c       | 1729 ++++++++++++++++++++++
+>  drivers/media/platform/imx/imx-media.c           |  174 +++
+>  drivers/media/platform/imx/imx-video-switch.c    |  347 +++++
+>  drivers/media/v4l2-core/v4l2-async.c             |    1 +
+>  drivers/media/v4l2-core/v4l2-ctrls.c             |    8 +-
+>  drivers/media/v4l2-core/v4l2-device.c            |   63 +-
+>  drivers/media/v4l2-core/v4l2-subdev.c            |    1 +
+>  drivers/mfd/syscon.c                             |    3 +
+>  drivers/staging/imx-drm/Kconfig                  |    7 +-
+>  include/media/imx.h                              |   25 +
+>  include/media/v4l2-device.h                      |    5 +
+>  include/media/v4l2-subdev.h                      |    3 +
+>  include/video/imx-ipu-v3.h                       |   16 +
+>  29 files changed, 5976 insertions(+), 32 deletions(-)
+>  create mode 100644 drivers/gpu/ipu-v3/ipu-ic.c
+>  create mode 100644 drivers/media/platform/imx/Kconfig
+>  create mode 100644 drivers/media/platform/imx/Makefile
+>  create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
+>  create mode 100644 drivers/media/platform/imx/imx-ipu-vdic.c
+>  create mode 100644 drivers/media/platform/imx/imx-ipu.c
+>  create mode 100644 drivers/media/platform/imx/imx-ipu.h
+>  create mode 100644 drivers/media/platform/imx/imx-ipuv3-csi.c
+>  create mode 100644 drivers/media/platform/imx/imx-media.c
+>  create mode 100644 drivers/media/platform/imx/imx-video-switch.c
+>  create mode 100644 include/media/imx.h
+> 
+> -- 
+> 2.0.0.rc2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
