@@ -1,295 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3064 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307AbaHTW7r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:47 -0400
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4898 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbaHEOTJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 10:19:09 -0400
+Message-ID: <53E0E7C4.8080205@xs4all.nl>
+Date: Tue, 05 Aug 2014 16:18:44 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 13/29] ddbridge: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:12 +0200
-Message-Id: <1408575568-20562-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Shuah Khan <shuahkhan@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Subject: Re: [PATCH] em28xx: fix compiler warnings
+References: <53E080F6.30301@xs4all.nl> <CAKocOONtJJmnAELZzVG_4KdgrXrMrwXVGW=quh=vDqa+pm1tbQ@mail.gmail.com>
+In-Reply-To: <CAKocOONtJJmnAELZzVG_4KdgrXrMrwXVGW=quh=vDqa+pm1tbQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/05/2014 03:57 PM, Shuah Khan wrote:
+> On Tue, Aug 5, 2014 at 1:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Fix three compiler warnings:
+>>
+>> drivers/media/usb/em28xx/em28xx-input.c: In function ‘em28xx_i2c_ir_handle_key’:
+>> drivers/media/usb/em28xx/em28xx-input.c:318:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>>  }
+>>  ^
+>>   CC [M]  drivers/media/usb/em28xx/em28xx-dvb.o
+>> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_micron’:
+>> drivers/media/usb/em28xx/em28xx-camera.c:199:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>>  }
+>>  ^
+>> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_omnivision’:
+>> drivers/media/usb/em28xx/em28xx-camera.c:304:1: warning: the frame size of 1088 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>>  }
+>>  ^
+>>
+>> Note: there is no way the code in em28xx_i2c_ir_handle_key() is correct: it's
+>> using an almost completely uninitialized i2c_client struct with random flags,
+>> dev and name fields. Can't this turned into a proper i2c_client struct in
+>> struct em28xx? At least with this patch it's no longer random data.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+> 
+>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+>> index ed843bd..07069b6 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-input.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+>> @@ -298,12 +298,11 @@ static int em28xx_i2c_ir_handle_key(struct em28xx_IR *ir)
+>>         static u32 scancode;
+>>         enum rc_type protocol;
+>>         int rc;
+>> -       struct i2c_client client;
+>>
+>> -       client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
+>> -       client.addr = ir->i2c_dev_addr;
+>> +       dev->tmp_i2c_client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
+>> +       dev->tmp_i2c_client.addr = ir->i2c_dev_addr;
+>>
+>> -       rc = ir->get_key_i2c(&client, &protocol, &scancode);
+>> +       rc = ir->get_key_i2c(&dev->tmp_i2c_client, &protocol, &scancode);
+>>         if (rc < 0) {
+>>                 dprintk("ir->get_key_i2c() failed: %d\n", rc);
+>>                 return rc;
+>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+>> index 84ef8ef..437ca08 100644
+>> --- a/drivers/media/usb/em28xx/em28xx.h
+>> +++ b/drivers/media/usb/em28xx/em28xx.h
+>> @@ -630,6 +630,7 @@ struct em28xx {
+>>         struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
+>>         struct i2c_client i2c_client[NUM_I2C_BUSES];
+>>         struct em28xx_i2c_bus i2c_bus[NUM_I2C_BUSES];
+>> +       struct i2c_client tmp_i2c_client;
+> 
+> Hans,
+> 
+> Is it necessary to add this temp variable to the structure? It is
+> always assigned
+> whenever it is used in this patch. It might make sense to make it
+> local variable.
 
-drivers/media/pci/ddbridge/ddbridge-core.c:88:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:93:37: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:95:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:99:15: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:117:58: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:119:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:123:68: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:130:17: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:131:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:136:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:138:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:152:22: warning: symbol 'ddb_i2c_algo' was not declared. Should it be static?
-drivers/media/pci/ddbridge/ddbridge-core.c:183:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:184:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:246:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:247:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:255:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:256:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:269:35: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:358:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:359:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:360:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:362:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:366:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:368:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:369:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:370:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:380:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:381:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:393:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:394:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:395:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:396:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:397:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:401:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:403:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:404:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:406:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:416:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:417:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:475:36: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:484:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:494:20: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:501:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:524:36: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:534:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:852:21: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:973:20: warning: incorrect type in initializer (incompatible argument 2 (different address spaces))
-drivers/media/pci/ddbridge/ddbridge-core.c:974:20: warning: incorrect type in initializer (incompatible argument 2 (different address spaces))
-drivers/media/pci/ddbridge/ddbridge-core.c:978:20: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:982:20: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:1003:23: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1006:23: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1009:30: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1015:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1017:39: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1035:24: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1041:20: warning: symbol 'cxd_cfg' was not declared. Should it be static?
-drivers/media/pci/ddbridge/ddbridge-core.c:1130:44: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:1183:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1188:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1193:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1198:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1213:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1214:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1215:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1216:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1231:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1232:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1233:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1289:17: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1333:23: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1295:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1347:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1353:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1354:24: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1359:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1361:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1373:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1374:16: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1378:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1382:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1385:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1386:24: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1388:24: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1393:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1394:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1395:16: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1398:16: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1399:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1451:42: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1462:45: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1467:37: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1538:28: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1550:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1561:31: warning: Using plain integer as NULL pointer
-drivers/media/pci/ddbridge/ddbridge-core.c:1585:19: warning: incorrect type in assignment (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1591:47: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1591:60: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ddbridge/ddbridge-core.c:1607:9: warning: too many warnings
+I'm not sure what you mean. It *was* a local variable, that was the problem.
+There are two option: one is to add it to the main struct, then other is to
+allocate and free it inside the function. In general I dislike that since it
+adds aan extra check (did we really get the memory?) and you have to make sure
+you will free the memory. And that's besides the overhead of having to allocate
+memory. Originally I named tmp_i2c_client 'probe_i2c_client', but then I saw
+that the ir code needs it as well. If the ir code is fixed so it has its own
+i2c client, then the name can revert to probe_i2c_client.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 30 ++++++++++++++----------------
- drivers/media/pci/ddbridge/ddbridge.h      | 12 +++++-------
- 2 files changed, 19 insertions(+), 23 deletions(-)
+Regards,
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index da8f848..c82e855 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -149,7 +149,7 @@ static u32 ddb_i2c_functionality(struct i2c_adapter *adap)
- 	return I2C_FUNC_SMBUS_EMUL;
- }
- 
--struct i2c_algorithm ddb_i2c_algo = {
-+static struct i2c_algorithm ddb_i2c_algo = {
- 	.master_xfer   = ddb_i2c_master_xfer,
- 	.functionality = ddb_i2c_functionality,
- };
-@@ -266,7 +266,7 @@ static void io_free(struct pci_dev *pdev, u8 **vbuf,
- 	for (i = 0; i < num; i++) {
- 		if (vbuf[i]) {
- 			pci_free_consistent(pdev, size, vbuf[i], pbuf[i]);
--			vbuf[i] = 0;
-+			vbuf[i] = NULL;
- 		}
- 	}
- }
-@@ -440,7 +440,7 @@ static u32 ddb_output_free(struct ddb_output *output)
- }
- 
- static ssize_t ddb_output_write(struct ddb_output *output,
--				const u8 *buf, size_t count)
-+				const __user u8 *buf, size_t count)
- {
- 	struct ddb *dev = output->port->dev;
- 	u32 idx, off, stat = output->stat;
-@@ -506,7 +506,7 @@ static u32 ddb_input_avail(struct ddb_input *input)
- 	return 0;
- }
- 
--static ssize_t ddb_input_read(struct ddb_input *input, u8 *buf, size_t count)
-+static ssize_t ddb_input_read(struct ddb_input *input, __user u8 *buf, size_t count)
- {
- 	struct ddb *dev = input->port->dev;
- 	u32 left = count;
-@@ -849,7 +849,7 @@ static int dvb_input_attach(struct ddb_input *input)
- 		return ret;
- 	input->attached = 4;
- 
--	input->fe = 0;
-+	input->fe = NULL;
- 	switch (port->type) {
- 	case DDB_TUNER_DVBS_ST:
- 		if (demod_attach_stv0900(input, 0) < 0)
-@@ -895,7 +895,7 @@ static int dvb_input_attach(struct ddb_input *input)
- /****************************************************************************/
- /****************************************************************************/
- 
--static ssize_t ts_write(struct file *file, const char *buf,
-+static ssize_t ts_write(struct file *file, const __user char *buf,
- 			size_t count, loff_t *ppos)
- {
- 	struct dvb_device *dvbdev = file->private_data;
-@@ -920,7 +920,7 @@ static ssize_t ts_write(struct file *file, const char *buf,
- 	return (left == count) ? -EAGAIN : (count - left);
- }
- 
--static ssize_t ts_read(struct file *file, char *buf,
-+static ssize_t ts_read(struct file *file, __user char *buf,
- 		       size_t count, loff_t *ppos)
- {
- 	struct dvb_device *dvbdev = file->private_data;
-@@ -975,11 +975,9 @@ static const struct file_operations ci_fops = {
- 	.open    = dvb_generic_open,
- 	.release = dvb_generic_release,
- 	.poll    = ts_poll,
--	.mmap    = 0,
- };
- 
- static struct dvb_device dvbdev_ci = {
--	.priv    = 0,
- 	.readers = -1,
- 	.writers = -1,
- 	.users   = -1,
-@@ -1038,7 +1036,7 @@ static void output_tasklet(unsigned long data)
- }
- 
- 
--struct cxd2099_cfg cxd_cfg = {
-+static struct cxd2099_cfg cxd_cfg = {
- 	.bitrate =  62000,
- 	.adr     =  0x40,
- 	.polarity = 1,
-@@ -1127,7 +1125,7 @@ static void ddb_ports_detach(struct ddb *dev)
- 				ddb_output_stop(port->output);
- 				dvb_ca_en50221_release(port->en);
- 				kfree(port->en);
--				port->en = 0;
-+				port->en = NULL;
- 				dvb_unregister_adapter(&port->output->adap);
- 			}
- 			break;
-@@ -1413,9 +1411,9 @@ static int flashio(struct ddb *dev, u8 *wbuf, u32 wlen, u8 *rbuf, u32 rlen)
- #define DDB_MAGIC 'd'
- 
- struct ddb_flashio {
--	__u8 *write_buf;
-+	__user __u8 *write_buf;
- 	__u32 write_len;
--	__u8 *read_buf;
-+	__user __u8 *read_buf;
- 	__u32 read_len;
- };
- 
-@@ -1439,7 +1437,7 @@ static int ddb_open(struct inode *inode, struct file *file)
- static long ddb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	struct ddb *dev = file->private_data;
--	void *parg = (void *)arg;
-+	__user void *parg = (__user void *)arg;
- 	int res;
- 
- 	switch (cmd) {
-@@ -1558,7 +1556,7 @@ static void ddb_remove(struct pci_dev *pdev)
- 	ddb_device_destroy(dev);
- 
- 	ddb_unmap(dev);
--	pci_set_drvdata(pdev, 0);
-+	pci_set_drvdata(pdev, NULL);
- 	pci_disable_device(pdev);
- }
- 
-@@ -1637,7 +1635,7 @@ fail1:
- fail:
- 	printk(KERN_ERR "fail\n");
- 	ddb_unmap(dev);
--	pci_set_drvdata(pdev, 0);
-+	pci_set_drvdata(pdev, NULL);
- 	pci_disable_device(pdev);
- 	return -1;
- }
-diff --git a/drivers/media/pci/ddbridge/ddbridge.h b/drivers/media/pci/ddbridge/ddbridge.h
-index 8b1b41d..be87fbd 100644
---- a/drivers/media/pci/ddbridge/ddbridge.h
-+++ b/drivers/media/pci/ddbridge/ddbridge.h
-@@ -156,7 +156,7 @@ struct ddb_port {
- 
- struct ddb {
- 	struct pci_dev        *pdev;
--	unsigned char         *regs;
-+	unsigned char __iomem *regs;
- 	struct ddb_port        port[DDB_MAX_PORT];
- 	struct ddb_i2c         i2c[DDB_MAX_I2C];
- 	struct ddb_input       input[DDB_MAX_INPUT];
-@@ -173,12 +173,10 @@ struct ddb {
- /****************************************************************************/
- 
- #define ddbwritel(_val, _adr)        writel((_val), \
--				     (char *) (dev->regs+(_adr)))
--#define ddbreadl(_adr)               readl((char *) (dev->regs+(_adr)))
--#define ddbcpyto(_adr, _src, _count) memcpy_toio((char *)	\
--				     (dev->regs+(_adr)), (_src), (_count))
--#define ddbcpyfrom(_dst, _adr, _count) memcpy_fromio((_dst), (char *) \
--				       (dev->regs+(_adr)), (_count))
-+				     dev->regs+(_adr))
-+#define ddbreadl(_adr)               readl(dev->regs+(_adr))
-+#define ddbcpyto(_adr, _src, _count) memcpy_toio(dev->regs+(_adr), (_src), (_count))
-+#define ddbcpyfrom(_dst, _adr, _count) memcpy_fromio((_dst), dev->regs+(_adr), (_count))
- 
- /****************************************************************************/
- 
--- 
-2.1.0.rc1
+	Hans
+
+> Somehow seeing a tmp field in the structure doesn't sound right and
+> also since it
+> maintains state being in the structure, it could be used with incorrect data.
+> 
+> -- Shuah
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
