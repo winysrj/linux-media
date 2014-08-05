@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:24259 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947AbaHNLyy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 07:54:54 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAA00BBVP3HZT20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Aug 2014 07:54:53 -0400 (EDT)
-Date: Thu, 14 Aug 2014 08:54:49 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.18] tw68: add new driver for tw68xx grabber cards
-Message-id: <20140814085449.46224641.m.chehab@samsung.com>
-In-reply-to: <53EC8240.5080801@cisco.com>
-References: <53EC8240.5080801@cisco.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52185 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755635AbaHERA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH 14/15] [media] coda: set capture frame size with output S_FMT
+Date: Tue,  5 Aug 2014 19:00:19 +0200
+Message-Id: <1407258020-12078-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 14 Aug 2014 11:32:48 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-> The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
->                                                                                                                                        
->    [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
->                                                                                                                                        
-> are available in the git repository at:
->                                                                                                                                        
->    git://linuxtv.org/hverkuil/media_tree.git tw68
->                                                                                                                                        
-> for you to fetch changes up to 64889b98f7ed20ab630a47eff4a5847c3aa0555e:
->                                                                                                                                        
->    MAINTAINERS: add tw68 entry (2014-08-10 10:36:10 +0200)
->                                                                                                                                        
-> ----------------------------------------------------------------
-> Hans Verkuil (2):
->        tw68: add support for Techwell tw68xx PCI grabber boards
+This patch makes coda_s_fmt_vid_out propagate the output frame size
+to the capture side.
+The GStreamer v4l2videodec only ever calls S_FMT on the output side
+and then expects G_FMT on the capture side to return a valid format.
 
-NACK. This patch breaks compilation with allyesconfig:
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/platform/coda/coda-common.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-drivers/media/pci/tw68/tw68-video.c: In function 'tw68_s_input':
-drivers/media/pci/tw68/tw68-video.c:751:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
-  if (i < 0 || i >= TW68_INPUT_MAX)
-  ^
-drivers/media/pci/tw68/built-in.o:(.bss+0x568): multiple definition of `video_debug'
-drivers/media/pci/saa7134/built-in.o:(.bss+0x3b08): first defined here
-make[2]: *** [drivers/media/pci/built-in.o] Error 1
-make[1]: *** [drivers/media/pci] Error 2
-make: *** [_module_drivers/media] Error 2
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index dfecb86..a1080a7 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -496,6 +496,7 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
+ 			      struct v4l2_format *f)
+ {
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
++	struct v4l2_format f_cap;
+ 	int ret;
+ 
+ 	ret = coda_try_fmt_vid_out(file, priv, f);
+@@ -508,7 +509,16 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	ctx->colorspace = f->fmt.pix.colorspace;
+ 
+-	return ret;
++	f_cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	coda_g_fmt(file, priv, &f_cap);
++	f_cap.fmt.pix.width = f->fmt.pix.width;
++	f_cap.fmt.pix.height = f->fmt.pix.height;
++
++	ret = coda_try_fmt_vid_cap(file, priv, &f_cap);
++	if (ret)
++		return ret;
++
++	return coda_s_fmt(ctx, &f_cap);
+ }
+ 
+ static int coda_qbuf(struct file *file, void *priv,
+-- 
+2.0.1
 
-PS.: It likely makes sense to also rename video_debug at saa7134, or
-to get rid of both, in favor of using dynamic debug printks.
-
-Regards,
-Mauro
