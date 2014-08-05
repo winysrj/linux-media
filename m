@@ -1,92 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49760 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932613AbaHYOrX (ORCPT
+Received: from HC210-202-87-179.vdslpro.static.apol.com.tw ([210.202.87.179]:47169
+	"EHLO ironport.ite.com.tw" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755141AbaHEFrG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 10:47:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Grzeschik <mgr@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	linux-usb@vger.kernel.org, balbi@ti.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCH v2 2/3] usb: gadget/uvc: also handle v4l2 ioctl ENUM_FMT
-Date: Mon, 25 Aug 2014 16:48:06 +0200
-Message-ID: <1558910.c27BVhDgdW@avalon>
-In-Reply-To: <20140825135957.GG22481@pengutronix.de>
-References: <1407512339-8433-1-git-send-email-m.grzeschik@pengutronix.de> <7518802.YGX5leEVlJ@avalon> <20140825135957.GG22481@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 5 Aug 2014 01:47:06 -0400
+Received: from ms2.internal.ite.com.tw (ms2.internal.ite.com.tw [192.168.15.236])
+	by mse.ite.com.tw with ESMTP id s755l2b5003782
+	for <linux-media@vger.kernel.org>; Tue, 5 Aug 2014 13:47:02 +0800 (CST)
+	(envelope-from Bimow.Chen@ite.com.tw)
+Received: from [192.168.190.2] (unknown [192.168.190.2])
+	by ms2.internal.ite.com.tw (Postfix) with ESMTP id 4007C45307
+	for <linux-media@vger.kernel.org>; Tue,  5 Aug 2014 13:46:59 +0800 (CST)
+Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-g7HmastJ+b36B/9XJXcb"
+Date: Tue, 05 Aug 2014 13:48:03 +0800
+Message-ID: <1407217683.2988.9.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
 
-On Monday 25 August 2014 15:59:57 Michael Grzeschik wrote:
-> On Wed, Aug 20, 2014 at 07:05:30PM +0200, Laurent Pinchart wrote:
-> > On Wednesday 20 August 2014 02:06:54 Hans Verkuil wrote:
-> > > On 08/19/2014 05:01 PM, Laurent Pinchart wrote:
-> > > > Hi Michael,
-> > > > 
-> > > > Thank you for the patch.
-> > > > 
-> > > > (CC'ing Hans Verkuil and the linux-media mailing list)
-> > > > 
-> > > > On Friday 08 August 2014 17:38:58 Michael Grzeschik wrote:
-> > > >> This patch adds ENUM_FMT as possible ioctl to the uvc v4l2 device.
-> > > >> That makes userspace applications with a generic IOCTL calling
-> > > >> convention make also use of it.
-> > > >> 
-> > > >> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > > >> ---
-> > > >> 
-> > > >> v1 -> v2:
-> > > >>  - changed first switch case to simple if
-> > > >>  - added separate function
-> > > >>  - added description field
-> > > >>  - bail out on array boundaries
-> > > >>  
-> > > >>  drivers/usb/gadget/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++--
-> > > >>  1 file changed, 28 insertions(+), 2 deletions(-)
-> > > >> 
-> > > >> diff --git a/drivers/usb/gadget/uvc_v4l2.c
-> > > >> b/drivers/usb/gadget/uvc_v4l2.c
-> > > >> index ad48e81..58633bf 100644
-> > > >> --- a/drivers/usb/gadget/uvc_v4l2.c
-> > > >> +++ b/drivers/usb/gadget/uvc_v4l2.c
-> > > >> @@ -55,14 +55,30 @@ struct uvc_format
-> > > >>  {
-> > > >>  	u8 bpp;
-> > > >>  	u32 fcc;
-> > > >> +	char *description;
-> > > >>  };
-> > > >>  
-> > > >>  static struct uvc_format uvc_formats[] = {
-> > > >> -	{ 16, V4L2_PIX_FMT_YUYV  },
-> > > >> -	{ 0,  V4L2_PIX_FMT_MJPEG },
-> > > >> +	{ 16, V4L2_PIX_FMT_YUYV, "YUV 4:2:2" },
-> > > >> +	{ 0,  V4L2_PIX_FMT_MJPEG, "MJPEG" },
-> > > > 
-> > > > Format descriptions are currently duplicated in every driver, causing
-> > > > higher memory usage and different descriptions for the same format
-> > > > depending on the driver. Hans, should we try to fix this ?
-> > > 
-> > > Yes, we should. It's been on my todo list for ages, but at a very low
-> > > priority. I'm not planning to work on this in the near future, but if
-> > > someone else wants to work on this, then just go ahead.
-> > 
-> > Michael, would you like to give this a try, or should I do it ?
-> 
-> It seems Philipp is already taking the chance! :)
+--=-g7HmastJ+b36B/9XJXcb
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Perfect timing, I wonder if that's just a coincidence ;-)
 
-I don't think this patch is very urgent, would you be fine with rebasing it on 
-top of Philipp's patch when it will be accepted ?
 
+--=-g7HmastJ+b36B/9XJXcb
+Content-Disposition: attachment; filename="0004-Add-sleep-for-firmware-ready.patch"
+Content-Type: text/x-patch; name="0004-Add-sleep-for-firmware-ready.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Tue, 5 Aug 2014 11:20:53 +0800
+Subject: [PATCH 4/4] Add sleep for firmware ready.
+
+
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 7b9b75f..a450cdb 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 	if (ret < 0)
+ 		goto err;
+ 
++	msleep(30);
++
+ 	/* firmware loaded, request boot */
+ 	req.cmd = CMD_FW_BOOT;
+ 	ret = af9035_ctrl_msg(d, &req);
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
+
+--=-g7HmastJ+b36B/9XJXcb--
 
