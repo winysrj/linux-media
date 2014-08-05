@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:36793 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243AbaHNJcu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:32:50 -0400
-Received: from [10.61.209.179] ([10.61.209.179])
-	(authenticated bits=0)
-	by aer-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id s7E9WmIX004625
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 09:32:49 GMT
-Message-ID: <53EC8240.5080801@cisco.com>
-Date: Thu, 14 Aug 2014 11:32:48 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from mail-yh0-f54.google.com ([209.85.213.54]:53239 "EHLO
+	mail-yh0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191AbaHEN5K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 09:57:10 -0400
+Received: by mail-yh0-f54.google.com with SMTP id v1so648215yhn.27
+        for <linux-media@vger.kernel.org>; Tue, 05 Aug 2014 06:57:09 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] tw68: add new driver for tw68xx grabber cards
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <53E080F6.30301@xs4all.nl>
+References: <53E080F6.30301@xs4all.nl>
+Date: Tue, 5 Aug 2014 07:57:09 -0600
+Message-ID: <CAKocOONtJJmnAELZzVG_4KdgrXrMrwXVGW=quh=vDqa+pm1tbQ@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: fix compiler warnings
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?Frank_Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
-                                                                                                                                       
-   [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
-                                                                                                                                       
-are available in the git repository at:
-                                                                                                                                       
-   git://linuxtv.org/hverkuil/media_tree.git tw68
-                                                                                                                                       
-for you to fetch changes up to 64889b98f7ed20ab630a47eff4a5847c3aa0555e:
-                                                                                                                                       
-   MAINTAINERS: add tw68 entry (2014-08-10 10:36:10 +0200)
-                                                                                                                                       
-----------------------------------------------------------------
-Hans Verkuil (2):
-       tw68: add support for Techwell tw68xx PCI grabber boards
-       MAINTAINERS: add tw68 entry
-                                                                                                                                       
-  MAINTAINERS                         |    8 +
-  drivers/media/pci/Kconfig           |    1 +
-  drivers/media/pci/Makefile          |    1 +
-  drivers/media/pci/tw68/Kconfig      |   10 +
-  drivers/media/pci/tw68/Makefile     |    3 +
-  drivers/media/pci/tw68/tw68-core.c  |  458 ++++++++++++++++++++++++++++++++++++++
-  drivers/media/pci/tw68/tw68-reg.h   |  195 ++++++++++++++++
-  drivers/media/pci/tw68/tw68-risc.c  |  230 +++++++++++++++++++
-  drivers/media/pci/tw68/tw68-video.c | 1082 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/pci/tw68/tw68.h       |  235 ++++++++++++++++++++
-  10 files changed, 2223 insertions(+)
-  create mode 100644 drivers/media/pci/tw68/Kconfig
-  create mode 100644 drivers/media/pci/tw68/Makefile
-  create mode 100644 drivers/media/pci/tw68/tw68-core.c
-  create mode 100644 drivers/media/pci/tw68/tw68-reg.h
-  create mode 100644 drivers/media/pci/tw68/tw68-risc.c
-  create mode 100644 drivers/media/pci/tw68/tw68-video.c
-  create mode 100644 drivers/media/pci/tw68/tw68.h
+On Tue, Aug 5, 2014 at 1:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Fix three compiler warnings:
+>
+> drivers/media/usb/em28xx/em28xx-input.c: In function ‘em28xx_i2c_ir_handle_key’:
+> drivers/media/usb/em28xx/em28xx-input.c:318:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>  }
+>  ^
+>   CC [M]  drivers/media/usb/em28xx/em28xx-dvb.o
+> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_micron’:
+> drivers/media/usb/em28xx/em28xx-camera.c:199:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>  }
+>  ^
+> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_omnivision’:
+> drivers/media/usb/em28xx/em28xx-camera.c:304:1: warning: the frame size of 1088 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>  }
+>  ^
+>
+> Note: there is no way the code in em28xx_i2c_ir_handle_key() is correct: it's
+> using an almost completely uninitialized i2c_client struct with random flags,
+> dev and name fields. Can't this turned into a proper i2c_client struct in
+> struct em28xx? At least with this patch it's no longer random data.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+
+> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> index ed843bd..07069b6 100644
+> --- a/drivers/media/usb/em28xx/em28xx-input.c
+> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> @@ -298,12 +298,11 @@ static int em28xx_i2c_ir_handle_key(struct em28xx_IR *ir)
+>         static u32 scancode;
+>         enum rc_type protocol;
+>         int rc;
+> -       struct i2c_client client;
+>
+> -       client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
+> -       client.addr = ir->i2c_dev_addr;
+> +       dev->tmp_i2c_client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
+> +       dev->tmp_i2c_client.addr = ir->i2c_dev_addr;
+>
+> -       rc = ir->get_key_i2c(&client, &protocol, &scancode);
+> +       rc = ir->get_key_i2c(&dev->tmp_i2c_client, &protocol, &scancode);
+>         if (rc < 0) {
+>                 dprintk("ir->get_key_i2c() failed: %d\n", rc);
+>                 return rc;
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index 84ef8ef..437ca08 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -630,6 +630,7 @@ struct em28xx {
+>         struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
+>         struct i2c_client i2c_client[NUM_I2C_BUSES];
+>         struct em28xx_i2c_bus i2c_bus[NUM_I2C_BUSES];
+> +       struct i2c_client tmp_i2c_client;
+
+Hans,
+
+Is it necessary to add this temp variable to the structure? It is
+always assigned
+whenever it is used in this patch. It might make sense to make it
+local variable.
+Somehow seeing a tmp field in the structure doesn't sound right and
+also since it
+maintains state being in the structure, it could be used with incorrect data.
+
+-- Shuah
