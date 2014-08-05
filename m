@@ -1,66 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:42751 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbaHOQWk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 12:22:40 -0400
-Date: Fri, 15 Aug 2014 21:52:35 +0530
-From: Himangi Saraogi <himangi774@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH] rc-core: use USB API functions rather than constants
-Message-ID: <20140815162235.GA7134@himangi-Dell>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52188 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755902AbaHERA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH 13/15] [media] coda: fix coda_s_fmt_vid_out
+Date: Tue,  5 Aug 2014 19:00:18 +0200
+Message-Id: <1407258020-12078-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces the use of !usb_endpoint_dir_in(epd) and
-!usb_endpoint_xfer_int(epd).
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The Coccinelle semantic patch that makes these changes is as follows:
+Set the context color space when s_fmt succeeded, not when it failed.
 
-- ((epd->bEndpointAddress & \(USB_ENDPOINT_DIR_MASK\|0x80\)) !=
--  \(USB_DIR_IN\|0x80\))
-+ !usb_endpoint_dir_in(epd)
-
-@@ struct usb_endpoint_descriptor *epd; @@
-
-- ((epd->bmAttributes & \(USB_ENDPOINT_XFERTYPE_MASK\|3\)) !=
-- \(USB_ENDPOINT_XFER_INT\|3\))
-+ !usb_endpoint_xfer_int(epd)
-
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- drivers/media/rc/streamzap.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
-index 80c4fee..bf4a442 100644
---- a/drivers/media/rc/streamzap.c
-+++ b/drivers/media/rc/streamzap.c
-@@ -362,16 +362,14 @@ static int streamzap_probe(struct usb_interface *intf,
- 	}
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index e84b320..dfecb86 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -504,7 +504,9 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
  
- 	sz->endpoint = &(iface_host->endpoint[0].desc);
--	if ((sz->endpoint->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
--	    != USB_DIR_IN) {
-+	if (!usb_endpoint_dir_in(sz->endpoint)) {
- 		dev_err(&intf->dev, "%s: endpoint doesn't match input device "
- 			"02%02x\n", __func__, sz->endpoint->bEndpointAddress);
- 		retval = -ENODEV;
- 		goto free_sz;
- 	}
+ 	ret = coda_s_fmt(ctx, f);
+ 	if (ret)
+-		ctx->colorspace = f->fmt.pix.colorspace;
++		return ret;
++
++	ctx->colorspace = f->fmt.pix.colorspace;
  
--	if ((sz->endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--	    != USB_ENDPOINT_XFER_INT) {
-+	if (!usb_endpoint_xfer_int(sz->endpoint)) {
- 		dev_err(&intf->dev, "%s: endpoint attributes don't match xfer "
- 			"02%02x\n", __func__, sz->endpoint->bmAttributes);
- 		retval = -ENODEV;
+ 	return ret;
+ }
 -- 
-1.9.1
+2.0.1
 
