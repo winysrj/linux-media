@@ -1,47 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40313 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbaHPVPc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Aug 2014 17:15:32 -0400
-Message-ID: <53EFC9F1.9040307@infradead.org>
-Date: Sat, 16 Aug 2014 14:15:29 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Sumit Semwal <sumit.semwal@linaro.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	linaro-mm-sig@lists.linaro.org, Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Subject: [PATCH] dma-buf: fix <linux/seqno-fence.h> kernel-doc warning
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52262 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754948AbaHERBD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:01:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 08/15] [media] coda: allow running coda without iram on mx6dl
+Date: Tue,  5 Aug 2014 19:00:13 +0200
+Message-Id: <1407258020-12078-9-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
-
-Fix kernel-doc warning, missing parameter description:
-
-Warning(..//include/linux/seqno-fence.h:99): No description found for parameter 'cond'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- include/linux/seqno-fence.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/coda/coda-bit.c    |  3 +++
+ drivers/media/platform/coda/coda-common.c | 14 +++++++-------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-Index: lnx-317-rc1/include/linux/seqno-fence.h
-===================================================================
---- lnx-317-rc1.orig/include/linux/seqno-fence.h
-+++ lnx-317-rc1/include/linux/seqno-fence.h
-@@ -62,6 +62,7 @@ to_seqno_fence(struct fence *fence)
-  * @context: the execution context this fence is a part of
-  * @seqno_ofs: the offset within @sync_buf
-  * @seqno: the sequence # to signal on
-+ * @cond: the fence condition to check
-  * @ops: the fence_ops for operations on this seqno fence
-  *
-  * This function initializes a struct seqno_fence with passed parameters,
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index cc9afb7..fddd10d 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -474,6 +474,9 @@ static void coda_setup_iram(struct coda_ctx *ctx)
+ 	iram_info->next_paddr = dev->iram.paddr;
+ 	iram_info->remaining = dev->iram.size;
+ 
++	if (!dev->iram.vaddr)
++		return;
++
+ 	switch (dev->devtype->product) {
+ 	case CODA_7541:
+ 		dbk_bits = CODA7_USE_HOST_DBK_ENABLE | CODA7_USE_DBK_ENABLE;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 4e85e38..3bf30b8 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1947,15 +1947,15 @@ static int coda_probe(struct platform_device *pdev)
+ 	dev->iram.vaddr = gen_pool_dma_alloc(dev->iram_pool, dev->iram.size,
+ 					     &dev->iram.paddr);
+ 	if (!dev->iram.vaddr) {
+-		dev_err(&pdev->dev, "unable to alloc iram\n");
+-		return -ENOMEM;
++		dev_warn(&pdev->dev, "unable to alloc iram\n");
++	} else {
++		dev->iram.blob.data = dev->iram.vaddr;
++		dev->iram.blob.size = dev->iram.size;
++		dev->iram.dentry = debugfs_create_blob("iram", 0644,
++						       dev->debugfs_root,
++						       &dev->iram.blob);
+ 	}
+ 
+-	dev->iram.blob.data = dev->iram.vaddr;
+-	dev->iram.blob.size = dev->iram.size;
+-	dev->iram.dentry = debugfs_create_blob("iram", 0644, dev->debugfs_root,
+-					       &dev->iram.blob);
+-
+ 	dev->workqueue = alloc_workqueue("coda", WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+ 	if (!dev->workqueue) {
+ 		dev_err(&pdev->dev, "unable to alloc workqueue\n");
+-- 
+2.0.1
+
