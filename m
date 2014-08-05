@@ -1,160 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:25550 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674AbaHTNnd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:43:33 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v5 3/3] exynos4-is: Add support for v4l2-flash subdevs
-Date: Wed, 20 Aug 2014 15:43:11 +0200
-Message-id: <1408542191-335-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542191-335-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542191-335-1-git-send-email-j.anaszewski@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52213 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755913AbaHERAf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 10/15] [media] coda: add an intermediate debug level
+Date: Tue,  5 Aug 2014 19:00:15 +0200
+Message-Id: <1407258020-12078-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds suppport for external v4l2-flash devices.
-The support includes parsing camera-flash DT property
-and asynchronous subdevice registration.
+Dumping all register accesses drowns other debugging messages
+in the log. Add a less verbose debug level.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/exynos4-is/media-dev.c |   37 +++++++++++++++++++++++--
- drivers/media/platform/exynos4-is/media-dev.h |   13 ++++++++-
- 2 files changed, 47 insertions(+), 3 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 344718d..ecb929c 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -451,6 +451,26 @@ rpm_put:
- 	return ret;
- }
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 6020e33..7311452 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -58,7 +58,7 @@
  
-+static void fimc_md_register_flash_entities(struct fimc_md *fmd)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node;
-+	struct device_node *np;
-+	int i = 0;
-+
-+	do {
-+		np = of_parse_phandle(parent, "flashes", i);
-+		if (np) {
-+			pr_info("found flash\n");
-+			fmd->flash[fmd->num_flashes].asd.match_type =
-+							V4L2_ASYNC_MATCH_OF;
-+			fmd->flash[fmd->num_flashes].asd.match.of.node = np;
-+			fmd->num_flashes++;
-+			fmd->async_subdevs[fmd->num_sensors + i] =
-+						&fmd->flash[i].asd;
-+		}
-+	} while (np && (++i < FIMC_MAX_FLASHES));
-+}
-+
- static int __of_get_csis_id(struct device_node *np)
+ int coda_debug;
+ module_param(coda_debug, int, 0644);
+-MODULE_PARM_DESC(coda_debug, "Debug level (0-1)");
++MODULE_PARM_DESC(coda_debug, "Debug level (0-2)");
+ 
+ struct coda_fmt {
+ 	char *name;
+@@ -67,7 +67,7 @@ struct coda_fmt {
+ 
+ void coda_write(struct coda_dev *dev, u32 data, u32 reg)
  {
- 	u32 reg = 0;
-@@ -1273,6 +1293,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
- 	struct fimc_sensor_info *si = NULL;
- 	int i;
- 
-+	/* Register flash subdev if detected any */
-+	for (i = 0; i < ARRAY_SIZE(fmd->flash); i++) {
-+		if (fmd->flash[i].asd.match.of.node == subdev->dev->of_node) {
-+			fmd->flash[i].subdev = subdev;
-+			fmd->num_flashes++;
-+			return 0;
-+		}
-+	}
-+
- 	/* Find platform data for this sensor subdev */
- 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
- 		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
-@@ -1383,6 +1412,8 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_m_ent;
- 	}
- 
-+	fimc_md_register_flash_entities(fmd);
-+
- 	mutex_unlock(&fmd->media_dev.graph_mutex);
- 
- 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
-@@ -1399,12 +1430,14 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_attr;
- 	}
- 
--	if (fmd->num_sensors > 0) {
-+	if (fmd->num_sensors > 0 || fmd->num_flashes > 0) {
- 		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
--		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
-+		fmd->subdev_notifier.num_subdevs = fmd->num_sensors +
-+							fmd->num_flashes;
- 		fmd->subdev_notifier.bound = subdev_notifier_bound;
- 		fmd->subdev_notifier.complete = subdev_notifier_complete;
- 		fmd->num_sensors = 0;
-+		fmd->num_flashes = 0;
- 
- 		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
- 						&fmd->subdev_notifier);
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index 0321454..feff9c8 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -34,6 +34,8 @@
- 
- #define FIMC_MAX_SENSORS	4
- #define FIMC_MAX_CAMCLKS	2
-+#define FIMC_MAX_FLASHES	2
-+#define FIMC_MAX_ASYNC_SUBDEVS (FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
- #define DEFAULT_SENSOR_CLK_FREQ	24000000U
- 
- /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-@@ -93,6 +95,11 @@ struct fimc_sensor_info {
- 	struct fimc_dev *host;
- };
- 
-+struct fimc_flash_info {
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev asd;
-+};
-+
- struct cam_clk {
- 	struct clk_hw hw;
- 	struct fimc_md *fmd;
-@@ -104,6 +111,8 @@ struct cam_clk {
-  * @csis: MIPI CSIS subdevs data
-  * @sensor: array of registered sensor subdevs
-  * @num_sensors: actual number of registered sensors
-+ * @flash: array of registered flash subdevs
-+ * @num_flashes: actual number of registered flashes
-  * @camclk: external sensor clock information
-  * @fimc: array of registered fimc devices
-  * @fimc_is: fimc-is data structure
-@@ -123,6 +132,8 @@ struct fimc_md {
- 	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
- 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
- 	int num_sensors;
-+	struct fimc_flash_info flash[FIMC_MAX_FLASHES];
-+	int num_flashes;
- 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
- 	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
-@@ -149,7 +160,7 @@ struct fimc_md {
- 	} clk_provider;
- 
- 	struct v4l2_async_notifier subdev_notifier;
--	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
-+	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_ASYNC_SUBDEVS];
- 
- 	bool user_subdev_api;
- 	spinlock_t slock;
+-	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
++	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
+ 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
+ 	writel(data, dev->regs_base + reg);
+ }
+@@ -76,7 +76,7 @@ unsigned int coda_read(struct coda_dev *dev, u32 reg)
+ {
+ 	u32 data;
+ 	data = readl(dev->regs_base + reg);
+-	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
++	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
+ 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
+ 	return data;
+ }
 -- 
-1.7.9.5
+2.0.1
 
