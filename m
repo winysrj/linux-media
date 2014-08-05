@@ -1,284 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:30501 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777AbaHZMNz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 08:13:55 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Laura Abbott <lauraa@codeaurora.org>,
-	Josh Cartwright <joshc@codeaurora.org>,
-	Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: [PATCH 3/7] drivers: dma-coherent: add initialization from device tree
-Date: Tue, 26 Aug 2014 14:09:44 +0200
-Message-id: <1409054988-32758-4-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
-References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34761 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307AbaHEXrl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 19:47:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jean-michel.hautbois@vodalys.com
+Cc: linux-media@vger.kernel.org, jhautbois@gmail.com,
+	hans.verkuil@cisco.com
+Subject: Re: [PATCH] Add support for LMH0395
+Date: Wed, 06 Aug 2014 01:48:10 +0200
+Message-ID: <1978362.PNRBY8jkj9@avalon>
+In-Reply-To: <1406901877-18329-1-git-send-email-jean-michel.hautbois@vodalys.com>
+References: <1406901877-18329-1-git-send-email-jean-michel.hautbois@vodalys.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialization procedure of dma coherent pool has been split into two
-parts, so memory pool can now be initialized without assigning to
-particular struct device. Then initialized region can be assigned to
-more than one struct device. To protect from concurent allocations from
-different devices, a spinlock has been added to dma_coherent_mem
-structure. The last part of this patch adds support for handling
-'shared-dma-pool' reserved-memory device tree nodes.
+Hi Jean-Michel,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/base/dma-coherent.c | 138 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 119 insertions(+), 19 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/base/dma-coherent.c b/drivers/base/dma-coherent.c
-index 7d6e84a51424..4e2dfcc16b70 100644
---- a/drivers/base/dma-coherent.c
-+++ b/drivers/base/dma-coherent.c
-@@ -14,11 +14,14 @@ struct dma_coherent_mem {
- 	int		size;
- 	int		flags;
- 	unsigned long	*bitmap;
-+	spinlock_t	spinlock;
- };
- 
--int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
--				dma_addr_t device_addr, size_t size, int flags)
-+static int dma_init_coherent_memory(phys_addr_t phys_addr, dma_addr_t device_addr,
-+			     size_t size, int flags,
-+			     struct dma_coherent_mem **mem)
- {
-+	struct dma_coherent_mem *dma_mem = NULL;
- 	void __iomem *mem_base = NULL;
- 	int pages = size >> PAGE_SHIFT;
- 	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
-@@ -27,27 +30,26 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
- 		goto out;
- 	if (!size)
- 		goto out;
--	if (dev->dma_mem)
--		goto out;
--
--	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
- 
- 	mem_base = ioremap(phys_addr, size);
- 	if (!mem_base)
- 		goto out;
- 
--	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
--	if (!dev->dma_mem)
-+	dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
-+	if (!dma_mem)
- 		goto out;
--	dev->dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
--	if (!dev->dma_mem->bitmap)
-+	dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-+	if (!dma_mem->bitmap)
- 		goto free1_out;
- 
--	dev->dma_mem->virt_base = mem_base;
--	dev->dma_mem->device_base = device_addr;
--	dev->dma_mem->pfn_base = PFN_DOWN(phys_addr);
--	dev->dma_mem->size = pages;
--	dev->dma_mem->flags = flags;
-+	dma_mem->virt_base = mem_base;
-+	dma_mem->device_base = device_addr;
-+	dma_mem->pfn_base = PFN_DOWN(phys_addr);
-+	dma_mem->size = pages;
-+	dma_mem->flags = flags;
-+	spin_lock_init(&dma_mem->spinlock);
-+
-+	*mem = dma_mem;
- 
- 	if (flags & DMA_MEMORY_MAP)
- 		return DMA_MEMORY_MAP;
-@@ -55,12 +57,51 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
- 	return DMA_MEMORY_IO;
- 
-  free1_out:
--	kfree(dev->dma_mem);
-+	kfree(dma_mem);
-  out:
- 	if (mem_base)
- 		iounmap(mem_base);
- 	return 0;
- }
-+
-+static void dma_release_coherent_memory(struct dma_coherent_mem *mem)
-+{
-+	if (!mem)
-+		return;
-+	iounmap(mem->virt_base);
-+	kfree(mem->bitmap);
-+	kfree(mem);
-+}
-+
-+static int dma_assign_coherent_memory(struct device *dev,
-+				      struct dma_coherent_mem *mem)
-+{
-+	if (dev->dma_mem)
-+		return -EBUSY;
-+
-+	dev->dma_mem = mem;
-+	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
-+
-+	return 0;
-+}
-+
-+int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
-+				dma_addr_t device_addr, size_t size, int flags)
-+{
-+	struct dma_coherent_mem *mem;
-+	int ret;
-+
-+	ret = dma_init_coherent_memory(phys_addr, device_addr, size, flags,
-+				       &mem);
-+	if (ret == 0)
-+		return 0;
-+
-+	if (dma_assign_coherent_memory(dev, mem) == 0)
-+		return ret;
-+
-+	dma_release_coherent_memory(mem);
-+	return 0;
-+}
- EXPORT_SYMBOL(dma_declare_coherent_memory);
- 
- void dma_release_declared_memory(struct device *dev)
-@@ -69,10 +110,8 @@ void dma_release_declared_memory(struct device *dev)
- 
- 	if (!mem)
- 		return;
-+	dma_release_coherent_memory(mem);
- 	dev->dma_mem = NULL;
--	iounmap(mem->virt_base);
--	kfree(mem->bitmap);
--	kfree(mem);
- }
- EXPORT_SYMBOL(dma_release_declared_memory);
- 
-@@ -80,6 +119,7 @@ void *dma_mark_declared_memory_occupied(struct device *dev,
- 					dma_addr_t device_addr, size_t size)
- {
- 	struct dma_coherent_mem *mem = dev->dma_mem;
-+	unsigned long flags;
- 	int pos, err;
- 
- 	size += device_addr & ~PAGE_MASK;
-@@ -87,8 +127,11 @@ void *dma_mark_declared_memory_occupied(struct device *dev,
- 	if (!mem)
- 		return ERR_PTR(-EINVAL);
- 
-+	spin_lock_irqsave(&mem->spinlock, flags);
- 	pos = (device_addr - mem->device_base) >> PAGE_SHIFT;
- 	err = bitmap_allocate_region(mem->bitmap, pos, get_order(size));
-+	spin_unlock_irqrestore(&mem->spinlock, flags);
-+
- 	if (err != 0)
- 		return ERR_PTR(err);
- 	return mem->virt_base + (pos << PAGE_SHIFT);
-@@ -115,6 +158,7 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
- {
- 	struct dma_coherent_mem *mem;
- 	int order = get_order(size);
-+	unsigned long flags;
- 	int pageno;
- 
- 	if (!dev)
-@@ -124,6 +168,7 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
- 		return 0;
- 
- 	*ret = NULL;
-+	spin_lock_irqsave(&mem->spinlock, flags);
- 
- 	if (unlikely(size > (mem->size << PAGE_SHIFT)))
- 		goto err;
-@@ -138,10 +183,12 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
- 	*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
- 	*ret = mem->virt_base + (pageno << PAGE_SHIFT);
- 	memset(*ret, 0, size);
-+	spin_unlock_irqrestore(&mem->spinlock, flags);
- 
- 	return 1;
- 
- err:
-+	spin_unlock_irqrestore(&mem->spinlock, flags);
- 	/*
- 	 * In the case where the allocation can not be satisfied from the
- 	 * per-device area, try to fall back to generic memory if the
-@@ -171,8 +218,11 @@ int dma_release_from_coherent(struct device *dev, int order, void *vaddr)
- 	if (mem && vaddr >= mem->virt_base && vaddr <
- 		   (mem->virt_base + (mem->size << PAGE_SHIFT))) {
- 		int page = (vaddr - mem->virt_base) >> PAGE_SHIFT;
-+		unsigned long flags;
- 
-+		spin_lock_irqsave(&mem->spinlock, flags);
- 		bitmap_release_region(mem->bitmap, page, order);
-+		spin_unlock_irqrestore(&mem->spinlock, flags);
- 		return 1;
- 	}
- 	return 0;
-@@ -218,3 +268,53 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
- 	return 0;
- }
- EXPORT_SYMBOL(dma_mmap_from_coherent);
-+
-+/*
-+ * Support for reserved memory regions defined in device tree
-+ */
-+#ifdef CONFIG_OF_RESERVED_MEM
-+#include <linux/of.h>
-+#include <linux/of_fdt.h>
-+#include <linux/of_reserved_mem.h>
-+
-+static int rmem_dma_device_init(struct reserved_mem *rmem, struct device *dev)
-+{
-+	struct dma_coherent_mem *mem = rmem->priv;
-+	if (!mem &&
-+	    dma_init_coherent_memory(rmem->base, rmem->base, rmem->size,
-+				     DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE,
-+				     &mem) != DMA_MEMORY_MAP) {
-+		pr_info("Reserved memory: failed to init DMA memory pool at %pa, size %ld MiB\n",
-+			&rmem->base, (unsigned long)rmem->size / SZ_1M);
-+		return -ENODEV;
-+	}
-+	rmem->priv = mem;
-+	dma_assign_coherent_memory(dev, mem);
-+	return 0;
-+}
-+
-+static void rmem_dma_device_release(struct reserved_mem *rmem,
-+				    struct device *dev)
-+{
-+	dev->dma_mem = NULL;
-+}
-+
-+static const struct reserved_mem_ops rmem_dma_ops = {
-+	.device_init	= rmem_dma_device_init,
-+	.device_release	= rmem_dma_device_release,
-+};
-+
-+static int __init rmem_dma_setup(struct reserved_mem *rmem)
-+{
-+	unsigned long node = rmem->fdt_node;
-+
-+	if (of_get_flat_dt_prop(node, "reusable", NULL))
-+		return -EINVAL;
-+
-+	rmem->ops = &rmem_dma_ops;
-+	pr_info("Reserved memory: created DMA memory pool at %pa, size %ld MiB\n",
-+		&rmem->base, (unsigned long)rmem->size / SZ_1M);
-+	return 0;
-+}
-+RESERVEDMEM_OF_DECLARE(dma, "shared-dma-pool", rmem_dma_setup);
-+#endif
+On Friday 01 August 2014 16:04:37 jean-michel.hautbois@vodalys.com wrote:
+> From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> 
+> This device is a SPI based device from TI.
+> It is a 3 Gbps HD/SD SDI Dual Output Low Power
+> Extended Reach Adaptive Cable Equalizer.
+> 
+> Add routing support in order to select output
+> LMH0395 enables the use of up to two outputs.
+> 
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> ---
+>  .../devicetree/bindings/media/spi/lmh0395.txt      |  24 ++
+>  drivers/media/Kconfig                              |   1 +
+>  drivers/media/Makefile                             |   2 +-
+>  drivers/media/spi/Kconfig                          |  14 ++
+>  drivers/media/spi/Makefile                         |   1 +
+>  drivers/media/spi/lmh0395.c                        | 256 ++++++++++++++++++
+>  6 files changed, 297 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/spi/lmh0395.txt
+>  create mode 100644 drivers/media/spi/Kconfig
+>  create mode 100644 drivers/media/spi/Makefile
+>  create mode 100644 drivers/media/spi/lmh0395.c
+> 
+> diff --git a/Documentation/devicetree/bindings/media/spi/lmh0395.txt
+> b/Documentation/devicetree/bindings/media/spi/lmh0395.txt new file mode
+> 100644
+> index 0000000..d55c4eb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/spi/lmh0395.txt
+> @@ -0,0 +1,24 @@
+> +* Texas Instruments lmh0395 3G HD/SD SDI equalizer
+> +
+> +The LMH0395 3 Gbps HD/SD SDI Dual Output Low Power Extended Reach Adaptive
+> +Cable Equalizer is designed to equalize data transmitted over cable (or any
+> +media with similar dispersive loss characteristics).
+> +The equalizer operates over a wide range of data rates from 125 Mbps to
+> 2.97 Gbps
+> +and supports SMPTE 424M, SMPTE 292M, SMPTE344M, SMPTE 259M, and DVB-ASI
+> standards.
+> +
+> +Required Properties :
+> +- compatible: Must be "ti,lmh0395"
+
+As the device has ports, they should be exposed in DT using the of-graph 
+bindings. You can just reference the video-interfaces.txt document. See the 
+adv7604 bindings for an example.
+
+> +
+> +Example:
+> +
+> +ecspi@02010000 {
+> +	...
+> +	...
+> +
+> +	lmh0395@1 {
+> +		compatible = "ti,lmh0395";
+> +		reg = <1>;
+> +		spi-max-frequency = <20000000>;
+> +	};
+> +	...
+> +};
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index 1d0758a..ce193b0 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -199,6 +199,7 @@ config MEDIA_ATTACH
+>  	default MODULES
+> 
+>  source "drivers/media/i2c/Kconfig"
+> +source "drivers/media/spi/Kconfig"
+>  source "drivers/media/tuners/Kconfig"
+>  source "drivers/media/dvb-frontends/Kconfig"
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index 620f275..7578bcd 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -28,6 +28,6 @@ obj-y += rc/
+>  # Finally, merge the drivers that require the core
+>  #
+> 
+> -obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ parport/
+> +obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ parport/ spi/
+>  obj-$(CONFIG_VIDEO_DEV) += radio/
+> 
+> diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+> new file mode 100644
+> index 0000000..291e7ea
+> --- /dev/null
+> +++ b/drivers/media/spi/Kconfig
+> @@ -0,0 +1,14 @@
+> +if VIDEO_V4L2
+> +
+> +config VIDEO_LMH0395
+> +	tristate "LMH0395 equalizer"
+> +	depends on VIDEO_V4L2 && SPI && MEDIA_CONTROLLER
+> +	---help---
+> +	  Support for TI LMH0395 3G HD/SD SDI Dual Output Low Power
+> +	  Extended Reach Adaptive Cable Equalizer.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called lmh0395.
+> +
+> +
+> +endif
+> diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+> new file mode 100644
+> index 0000000..6c587e5
+> --- /dev/null
+> +++ b/drivers/media/spi/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_VIDEO_LMH0395)	+= lmh0395.o
+> diff --git a/drivers/media/spi/lmh0395.c b/drivers/media/spi/lmh0395.c
+> new file mode 100644
+> index 0000000..e287725
+> --- /dev/null
+> +++ b/drivers/media/spi/lmh0395.c
+> @@ -0,0 +1,256 @@
+> +/*
+> + * LMH0395 SPI driver.
+> + * Copyright (C) 2014  Jean-Michel Hautbois
+> + *
+> + * 3G HD/SD SDI Dual Output Low Power Extended Reach Adaptive Cable
+> Equalizer + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/ioctl.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/types.h>
+> +#include <linux/slab.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/spi/spi.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-device.h>
+> +
+> +static int debug;
+> +module_param(debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "debug level (0-1)");
+> +
+> +#define	LMH0395_SPI_CMD_WRITE	0x00
+> +#define	LMH0395_SPI_CMD_READ	0x80
+> +
+> +/* Registers of LMH0395 */
+> +#define LMH0395_GENERAL_CTRL		0x00
+> +#define LMH0395_OUTPUT_DRIVER		0x01
+> +#define LMH0395_LAUNCH_AMP_CTRL		0x02
+> +#define LMH0395_MUTE_REF		0x03
+> +#define LMH0395_DEVICE_ID		0x04
+> +#define	LMH0395_RATE_INDICATOR		0x05
+> +#define	LMH0395_CABLE_LENGTH_INDICATOR	0x06
+> +#define	LMH0395_LAUNCH_AMP_INDICATION	0x07
+> +
+> +/* This is a one input, dual output device */
+> +#define LMH0395_SDI_INPUT	0
+> +#define LMH0395_SDI_OUT0	1
+> +#define LMH0395_SDI_OUT1	2
+> +
+> +#define LMH0395_PADS_NUM	3
+> +
+> +/* Register LMH0395_MUTE_REF bits [7:6] */
+> +enum lmh0395_output_type {
+> +	LMH0395_OUTPUT_TYPE_NONE,
+> +	LMH0395_OUTPUT_TYPE_SDO0,
+> +	LMH0395_OUTPUT_TYPE_SDO1,
+> +	LMH0395_OUTPUT_TYPE_BOTH
+> +};
+> +
+> +static const char * const output_strs[] = {
+> +	"No Output Driver",
+> +	"Output Driver 0",
+> +	"Output Driver 1",
+> +	"Output Driver 0+1",
+> +};
+> +
+> +
+> +/* spi implementation */
+> +
+> +static int lmh0395_spi_write(struct spi_device *spi, u8 reg, u8 data)
+> +{
+> +	int err = 0;
+
+No need to initialize err to 0 here.
+
+> +	u8 cmd[2];
+> +
+> +	cmd[0] = LMH0395_SPI_CMD_WRITE | reg;
+> +	cmd[1] = data;
+> +
+> +	err = spi_write(spi, cmd, 2);
+> +	if (err < 0) {
+> +		dev_err(&spi->dev, "SPI failed to select reg\n");
+> +		return err;
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static int lmh0395_spi_read(struct spi_device *spi, u8 reg, u8 *data)
+> +{
+> +	int err = 0;
+
+Same comment.
+
+> +	u8 cmd[2];
+> +	u8 read_data[2];
+> +
+> +	cmd[0] = LMH0395_SPI_CMD_READ | reg;
+> +	cmd[1] = 0xFF;
+> +
+> +	err = spi_write(spi, cmd, 2);
+> +	if (err < 0) {
+> +		dev_err(&spi->dev, "SPI failed to select reg\n");
+> +		return err;
+> +	}
+> +
+> +	err = spi_read(spi, read_data, 2);
+> +	if (err < 0) {
+> +		dev_err(&spi->dev, "SPI failed to read reg\n");
+> +		return err;
+> +	}
+> +	/* The first 8 bits is the adress used, drop it */
+> +	*data = read_data[1];
+> +
+> +	return err;
+> +}
+> +
+> +struct lmh0395_state {
+> +	struct v4l2_subdev sd;
+> +	struct media_pad pads[LMH0395_PADS_NUM];
+> +	enum lmh0395_output_type output_type;
+> +};
+> +
+> +static inline struct lmh0395_state *to_state(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct lmh0395_state, sd);
+> +}
+> +
+> +static int lmh0395_set_output_type(struct v4l2_subdev *sd, u32 output)
+> +{
+> +	struct lmh0395_state *state = to_state(sd);
+> +	struct spi_device *spi = v4l2_get_subdevdata(sd);
+> +	u8 muteref_reg;
+> +
+> +	switch (output) {
+> +	case LMH0395_OUTPUT_TYPE_SDO0:
+> +		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
+> +		muteref_reg |= 0x01 << 6;
+> +		break;
+> +	case LMH0395_OUTPUT_TYPE_SDO1:
+> +		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
+> +		muteref_reg |= 0x10 << 6;
+> +		break;
+> +	case LMH0395_OUTPUT_TYPE_BOTH:
+> +		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
+> +		muteref_reg |= 0x11 << 6;
+> +		break;
+> +	case LMH0395_OUTPUT_TYPE_NONE:
+> +		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
+> +		muteref_reg |= 0x0 << 6;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	v4l2_info(sd, "Selecting %s output type\n", output_strs[output]);
+
+v4l2_info will print a message each time the output is changed, that will spam 
+the kernel log. You can turn that into a debug message.
+
+> +
+> +	lmh0395_spi_write(spi, LMH0395_MUTE_REF, muteref_reg);
+> +	state->output_type = output;
+> +	return 0;
+> +
+> +}
+> +
+> +static int lmh0395_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+> +				u32 config)
+> +{
+> +	struct lmh0395_state *state = to_state(sd);
+> +	int err = 0;
+> +
+> +	if (state->output_type != output)
+> +		err = lmh0395_set_output_type(sd, output);
+> +
+> +	return err;
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops lmh0395_video_ops = {
+> +	.s_routing = lmh0395_s_routing,
+> +};
+> +
+> +static const struct v4l2_subdev_ops lmh0395_ops = {
+> +	.video = &lmh0395_video_ops,
+> +};
+> +
+> +static int lmh0395_probe(struct spi_device *spi)
+> +{
+> +	u8 device_id;
+> +	struct lmh0395_state *state;
+> +	struct v4l2_subdev *sd;
+> +	int err;
+> +
+> +	err = lmh0395_spi_read(spi, LMH0395_DEVICE_ID, &device_id);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	dev_dbg(&spi->dev, "device_id 0x%x\n", device_id);
+> +
+> +	/* Now that the device is here, let's init V4L2 */
+> +	state = devm_kzalloc(&spi->dev, sizeof(*state), GFP_KERNEL);
+> +	if (!state)
+> +		return -ENOMEM;
+> +
+> +	sd = &state->sd;
+> +	v4l2_spi_subdev_init(sd, spi, &lmh0395_ops);
+> +	state->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+
+The only subdev operation implemented by the driver, video.s_routing, isn't 
+exposed to userspace by the subdev APÏ, so the node would be pretty useless.
+
+I've started working on a more generic routing operation that could be exposed 
+to userspace. I'll try to post patches in the near future.
+
+> +
+> +	state->pads[LMH0395_SDI_INPUT].flags = MEDIA_PAD_FL_SINK;
+> +	state->pads[LMH0395_SDI_OUT0].flags = MEDIA_PAD_FL_SOURCE;
+> +	state->pads[LMH0395_SDI_OUT1].flags = MEDIA_PAD_FL_SOURCE;
+> +	err = media_entity_init(&sd->entity, LMH0395_PADS_NUM, &state->pads, 0);
+> +	if (err)
+> +		return err;
+> +
+> +	err = v4l2_async_register_subdev(sd);
+> +	if (err < 0)
+> +		media_entity_cleanup(&sd->entity);
+
+Shouldn't you return err here ?
+
+> +	v4l2_dbg(1, debug, sd, "Configuring equalizer\n");
+> +	lmh0395_set_output_type(sd, LMH0395_OUTPUT_TYPE_BOTH);
+> +	dev_info(&spi->dev, "driver registered\n");
+
+That's incorrect, the probe function doesn't register the driver. If you want 
+a message here, you could say "device probed" or "device found". The other 
+option would be to just remove the message, or turn it into a dev_dbg.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int lmh0395_remove(struct spi_device *spi)
+> +{
+> +	struct v4l2_subdev *sd = spi_get_drvdata(spi);
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +	return 0;
+> +}
+
 -- 
-1.9.2
+Regards,
+
+Laurent Pinchart
 
