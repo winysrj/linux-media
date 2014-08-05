@@ -1,60 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40824 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008AbaHTUMG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 16:12:06 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52211 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755635AbaHERAe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:34 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/5] [media] enable COMPILE_TEST for MX2 eMMa-PrP driver
-Date: Wed, 20 Aug 2014 15:11:53 -0500
-Message-Id: <1408565517-22034-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 05/15] [media] coda: dequeue buffers if start_streaming fails
+Date: Tue,  5 Aug 2014 19:00:10 +0200
+Message-Id: <1407258020-12078-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By allowing compilation on all archs, we can use static
-analysis tools to test this driver.
-
-In order to do that, replace asm/sizes.h by its generic
-name (linux/sizes.h), with should keep doing the right
-thing.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/Kconfig       | 3 ++-
- drivers/media/platform/mx2_emmaprp.c | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 34 +++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 6d86646d9743..66566c920fe9 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -185,7 +185,8 @@ config VIDEO_SAMSUNG_S5P_MFC
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 86fc527..1e93889 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1005,6 +1005,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
+ 	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
+ 	struct coda_q_data *q_data_src, *q_data_dst;
++	struct vb2_buffer *buf;
+ 	u32 dst_fourcc;
+ 	int ret = 0;
  
- config VIDEO_MX2_EMMAPRP
- 	tristate "MX2 eMMa-PrP support"
--	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on SOC_IMX27 || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	help
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index fa8f7cabe364..4971ff21f82b 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -27,7 +27,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-dma-contig.h>
--#include <asm/sizes.h>
-+#include <linux/sizes.h>
+@@ -1016,17 +1017,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 			coda_fill_bitstream(ctx);
+ 			mutex_unlock(&ctx->bitstream_mutex);
  
- #define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
+-			if (coda_get_bitstream_payload(ctx) < 512)
+-				return -EINVAL;
++			if (coda_get_bitstream_payload(ctx) < 512) {
++				ret = -EINVAL;
++				goto err;
++			}
+ 		} else {
+-			if (count < 1)
+-				return -EINVAL;
++			if (count < 1) {
++				ret = -EINVAL;
++				goto err;
++			}
+ 		}
  
+ 		ctx->streamon_out = 1;
+ 	} else {
+-		if (count < 1)
+-			return -EINVAL;
++		if (count < 1) {
++			ret = -EINVAL;
++			goto err;
++		}
+ 
+ 		ctx->streamon_cap = 1;
+ 	}
+@@ -1047,7 +1054,8 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 				     q_data_dst->fourcc);
+ 	if (!ctx->codec) {
+ 		v4l2_err(v4l2_dev, "couldn't tell instance type.\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
+ 
+ 	ret = ctx->ops->start_streaming(ctx);
+@@ -1055,11 +1063,21 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		if (ret == -EAGAIN)
+ 			return 0;
+ 		else if (ret < 0)
+-			return ret;
++			goto err;
+ 	}
+ 
+ 	ctx->initialized = 1;
+ 	return ret;
++
++err:
++	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
++	} else {
++		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
++			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
++	}
++	return ret;
+ }
+ 
+ static void coda_stop_streaming(struct vb2_queue *q)
 -- 
-1.9.3
+2.0.1
 
