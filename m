@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:21687 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754722AbaHFGhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Aug 2014 02:37:53 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 0616E20086
-	for <linux-media@vger.kernel.org>; Wed,  6 Aug 2014 09:37:51 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: Event documentation fixes
-Date: Wed,  6 Aug 2014 09:37:49 +0300
-Message-Id: <1407307069-13480-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34733 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438AbaHEWl3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 18:41:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: alaganraj sandhanam <alaganraj.sandhanam@gmail.com>
+Cc: linux-media@vger.kernel.org, sre@debian.org, sakari.ailus@iki.fi
+Subject: Re: omap3isp device tree support
+Date: Wed, 06 Aug 2014 00:41:59 +0200
+Message-ID: <9468625.rMRWF7vSjZ@avalon>
+In-Reply-To: <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
+References: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com> <7469714.hULjr0WVDI@avalon> <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Constify event type constants and correct motion detection event number
-(it's 6, not 5).
+Hi Alagan,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml         | 7 ++++---
- Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+On Wednesday 06 August 2014 04:07:58 alaganraj sandhanam wrote:
+> Hi Laurent,
+> 
+> Thanks for the info. what about git://linuxtv.org/pinchartl/media.git
+> omap3isp/dt branch?
+> I took 3 patches from this branch, fixed
+> error: implicit declaration of function ‘v4l2_of_get_next_endpoint’
+> by changing to "of_graph_get_next_endpoint".
+> 
+> while booting i'm getting below msg
+> [    1.558471] of_graph_get_next_endpoint(): no port node found in
+> /ocp/omap3_isp@480bc000
+> [    1.567169] omap3isp 480bc000.omap3_isp: no port node at
+> /ocp/omap3_isp@480bc000
+> 
+> omap3isp/dt is not working branch?
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index cb77325..ce7e700 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -76,21 +76,22 @@
- 	    <entry></entry>
- 	    <entry>&v4l2-event-vsync;</entry>
-             <entry><structfield>vsync</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_VSYNC.
-+	    <entry>Event data for event <constant>V4L2_EVENT_VSYNC</constant>.
-             </entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>&v4l2-event-ctrl;</entry>
-             <entry><structfield>ctrl</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_CTRL.
-+	    <entry>Event data for event <constant>V4L2_EVENT_CTRL</constant>.
-             </entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>&v4l2-event-frame-sync;</entry>
-             <entry><structfield>frame_sync</structfield></entry>
--	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
-+	    <entry>Event data for event <constant>V4L2_EVENT_FRAME_SYNC
-+	    </constant>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 9f60956..d7c9365 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -176,7 +176,7 @@
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
--	    <entry>5</entry>
-+	    <entry>6</entry>
- 	    <entry>
- 	      <para>Triggered whenever the motion detection state for one or more of the regions
- 	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
+The branch contains work in progress patches. If I'm not mistaken the code 
+isn't complete and doesn't work yet.
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
