@@ -1,67 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50438 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751071AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 08/14] it913x: fix tuner sleep power leak
-Date: Sat,  9 Aug 2014 23:27:06 +0300
-Message-Id: <1407616032-2722-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35058 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753951AbaHFIpf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 04:45:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	sasha.levin@oracle.com
+Subject: Re: [PATCHv3] videobuf2: fix lockdep warning
+Date: Wed, 06 Aug 2014 10:46:04 +0200
+Message-ID: <7218932.ogQRVaqRSh@avalon>
+In-Reply-To: <53E1CECB.40600@xs4all.nl>
+References: <53E0B84E.3050803@xs4all.nl> <9597115.RDDXHorZIT@avalon> <53E1CECB.40600@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IT913x tuner driver disables own clock, provided by demod core, as
-very a first operation when tuner is put on *sleep*. That likely
-causes failure of all the rest commands on sleep sequence, which
-leads situation where tuner is not actually on sleep, but consuming
-a lot of power.
+Hi Hans,
 
-I measured 102mA current consumption from the USB before change
-and after change it was only 32mA. Used device was single tuner
-IT9135 BX.
+On Wednesday 06 August 2014 08:44:27 Hans Verkuil wrote:
+> On 08/06/2014 12:15 AM, Laurent Pinchart wrote:
+> > On Tuesday 05 August 2014 12:56:14 Hans Verkuil wrote:
+> >> Changes since v2: use a mutex instead of a spinlock due to possible
+> >> sleeps inside the mmap memop. Use the mutex when buffers are
+> >> allocated/freed, so it's a much coarser lock.
+> >> 
+> >> The following lockdep warning has been there ever since commit
+> > 
+> >> a517cca6b24fc54ac209e44118ec8962051662e3 one year ago:
+> > [snip]
+> > 
+> >> The reason is that vb2_fop_mmap and vb2_fop_get_unmapped_area take the
+> >> core lock while they are called with the mmap_sem semaphore held. But
+> >> elsewhere in the code the core lock is taken first but calls to
+> >> copy_to/from_user() can take the mmap_sem semaphore as well, potentially
+> >> causing a classical A-B/B-A deadlock.
+> >> 
+> >> However, the mmap/get_unmapped_area calls really shouldn't take the core
+> >> lock at all. So what would happen if they don't take the core lock
+> >> anymore?
+> >> 
+> >> There are two situations that need to be taken into account: calling mmap
+> >> while new buffers are being added and calling mmap while buffers are
+> >> being deleted.
+> >> 
+> >> The first case works almost fine without a lock: in all cases mmap relies
+> >> on correctly filled-in q->num_buffers/q->num_planes values and those are
+> >> only updated by reqbufs and create_buffers *after* any new buffers have
+> >> been initialized completely. Except in one case: if an error occurred
+> >> while allocating the buffers it will increase num_buffers and rely on
+> >> __vb2_queue_free to decrease it again. So there is a short period where
+> >> the buffer information may be wrong.
+> >> 
+> >> The second case definitely does pose a problem: buffers may be in the
+> >> process of being deleted, without the internal structure being updated.
+> >> 
+> >> In order to fix this a new mutex is added to vb2_queue that is taken when
+> >> buffers are allocated or deleted, and in vb2_mmap. That way vb2_mmap
+> >> won't get stale buffer data. Note that this is a problem only for
+> >> MEMORY_MMAP, so even though __qbuf_userptr and __qbuf_dmabuf also mess
+> >> around with buffers (mem_priv in particular), this doesn't clash with
+> >> vb2_mmap or vb2_get_unmapped_area since those are MMAP specific.
+> >> 
+> >> As an additional bonus the hack in __buf_prepare, the USERPTR case, can
+> >> be removed as well since mmap() no longer takes the core lock.
+> >> 
+> >> All in all a much cleaner solution.
+> >> 
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > with one small comment, please see below.
+> > 
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/videobuf2-core.c | 56 +++++++++-----------------
+> >>  include/media/videobuf2-core.h           |  2 ++
+> >>  2 files changed, 21 insertions(+), 37 deletions(-)
+> > 
+> > [snip]
+> > 
+> >> diff --git a/include/media/videobuf2-core.h
+> >> b/include/media/videobuf2-core.h index fc910a6..ae1289b 100644
+> >> --- a/include/media/videobuf2-core.h
+> >> +++ b/include/media/videobuf2-core.h
+> >> @@ -366,6 +366,7 @@ struct v4l2_fh;
+> >>   *		cannot be started unless at least this number of buffers
+> >>   *		have been queued into the driver.
+> >>   *
+> >> + * @queue_lock:	private mutex used when buffers are
+> >> allocated/freed/mmapped
+> >
+> > queue_lock sounds a bit too generic to me, it might confuse readers into
+> > thinking the lock protects the whole queue.
+> 
+> How about mmap_lock?
 
-Second reason to remove that register from tuner driver is reason
-it is simply on wrong driver (demod vs. tuner), breaking the
-principle of correct driver.
+That sounds better.
 
-Clock is now provided more correctly af9033 demod driver as a
-config option.
+> >>   * @memory:	current memory type used
+> >>   * @bufs:	videobuf buffer structures
+> >>   * @num_buffers: number of allocated/used buffers
+> >> @@ -399,6 +400,7 @@ struct vb2_queue {
+> >>  	u32				min_buffers_needed;
+> >>  
+> >>  /* private: internal use only */
+> >> +	struct mutex			queue_lock;
+> >>  	enum v4l2_memory		memory;
+> >>  	struct vb2_buffer		*bufs[VIDEO_MAX_FRAME];
+> >>  	unsigned int			num_buffers;
 
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/tuner_it913x.c      | 1 -
- drivers/media/tuners/tuner_it913x_priv.h | 1 -
- 2 files changed, 2 deletions(-)
-
-diff --git a/drivers/media/tuners/tuner_it913x.c b/drivers/media/tuners/tuner_it913x.c
-index 3d83c42..3265d9a 100644
---- a/drivers/media/tuners/tuner_it913x.c
-+++ b/drivers/media/tuners/tuner_it913x.c
-@@ -202,7 +202,6 @@ static int it913x_init(struct dvb_frontend *fe)
- 
- 	/* Power Up Tuner - common all versions */
- 	ret = it913x_wr_reg(state, PRO_DMOD, 0xec40, 0x1);
--	ret |= it913x_wr_reg(state, PRO_DMOD, 0xfba8, 0x0);
- 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec57, 0x0);
- 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec58, 0x0);
- 
-diff --git a/drivers/media/tuners/tuner_it913x_priv.h b/drivers/media/tuners/tuner_it913x_priv.h
-index ce65210..8e85a61 100644
---- a/drivers/media/tuners/tuner_it913x_priv.h
-+++ b/drivers/media/tuners/tuner_it913x_priv.h
-@@ -38,7 +38,6 @@ struct it913xset {	u32 pro;
- 
- /* Tuner setting scripts (still keeping it9137) */
- static struct it913xset it9137_tuner_off[] = {
--	{PRO_DMOD, 0xfba8, {0x01}, 0x01}, /* Tuner Clock Off  */
- 	{PRO_DMOD, 0xec40, {0x00}, 0x01}, /* Power Down Tuner */
- 	{PRO_DMOD, 0xec02, {0x3f, 0x1f, 0x3f, 0x3f}, 0x04},
- 	{PRO_DMOD, 0xec06, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
