@@ -1,136 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4302 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958AbaH1RdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 13:33:18 -0400
-Message-ID: <53FF67A5.8000607@xs4all.nl>
-Date: Thu, 28 Aug 2014 19:32:21 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	kernel@pengutronix.de,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC v2] [media] v4l2: add V4L2 pixel format array and helper
- functions
-References: <1409043654-12252-1-git-send-email-p.zabel@pengutronix.de> <2323863.aLBeKZnVsL@avalon> <1409242175.2696.108.camel@paszta.hi.pengutronix.de> <2088388.O2EqQOIWv7@avalon> <53FF5B95.4030705@xs4all.nl> <20140828141851.54899cae.m.chehab@samsung.com>
-In-Reply-To: <20140828141851.54899cae.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:63466 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752588AbaHFUuy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 16:50:54 -0400
+Received: by mail-wg0-f43.google.com with SMTP id l18so3118891wgh.26
+        for <linux-media@vger.kernel.org>; Wed, 06 Aug 2014 13:50:53 -0700 (PDT)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR tracker to grayscale
+Date: Wed,  6 Aug 2014 22:50:49 +0200
+Message-Id: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/28/2014 07:18 PM, Mauro Carvalho Chehab wrote:
-> Em Thu, 28 Aug 2014 18:40:53 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 08/28/2014 06:25 PM, Laurent Pinchart wrote:
->>> Hi Philipp,
->>>
->>> On Thursday 28 August 2014 18:09:35 Philipp Zabel wrote:
->>>> Am Donnerstag, den 28.08.2014, 14:24 +0200 schrieb Laurent Pinchart:
->>>>>> A driver could then do the following:
->>>>>>
->>>>>> static struct v4l2_pixfmt_info driver_formats[] = {
->>>>>>
->>>>>> 	{ .pixelformat = V4L2_PIX_FMT_YUYV },
->>>>>> 	{ .pixelformat = V4L2_PIX_FMT_YUV420 },
->>>>>>
->>>>>> };
->>>>>>
->>>>>> int driver_probe(...)
->>>>>> {
->>>>>>
->>>>>> 	...
->>>>>> 	v4l2_init_pixfmt_array(driver_formats,
->>>>>> 	
->>>>>> 			ARRAY_SIZE(driver_formats));
->>>>>> 	
->>>>>> 	...
->>>>>>
->>>>>> }
->>>>>
->>>>> Good question. This option consumes more memory, and prevents the driver-
->>>>> specific format info arrays to be const, which bothers me a bit.
->>>>
->>>> Also, this wouldn't help drivers that don't want to take these
->>>> additional steps, which probably includes a lot of camera drivers with
->>>> only a few formats.
->>>>
->>>>> On the other hand it allows drivers to override some of the default
->>>>> values for odd cases.
->>>>
->>>> Hm, but those cases don't have to use the v4l2_pixfmt_info at all.
->>>>
->>>>> I won't nack this approach, but I'm wondering whether a better
->>>>> solution wouldn't be possible. Hans, Mauro, Guennadi, any opinion ?
->>>>
->>>> We could keep the global v4l2_pixfmt_info array sorted by fourcc value
->>>> and do a binary search (would have to be kept in mind when adding new
->>>> formats)
->>>
->>> I like that option, provided we can ensure that the array is sorted. This can 
->>> get a bit tricky, and Hans might wear his "don't over-optimize" hat :-)
-> 
-> The big issue is that, afaikt, there's no way to make gcc to order it,
-> so the order would need to be manually ensured. This is challenging, and
-> makes the review process complex if done right.
-> 
-> I really don't see any gain on applying such patch. If the concern is
-> just about properly naming the pixel formats, it is a way easier to use
-> some defines for the names, and use the defines.
+This patch adds a quirk to force Y8 pixel format even if the camera reports
+half-width YUYV.
 
-It's not just the names, also the bit depth etc. Most drivers need that information
-and having it in a central place simplifies driver design. Yes, it slightly
-increases the amount of memory, but that is insignificant compared to the huge
-amount of memory necessary for video buffers. And reducing driver complexity is
-always good since that has always been the main problem with drivers, not memory
-or code performance.
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 29 ++++++++++++++++++++++++++++-
+ drivers/media/usb/uvc/uvcvideo.h   |  1 +
+ 2 files changed, 29 insertions(+), 1 deletion(-)
 
-> Btw, that's how we solved
-> this issue at rc core:
-> 	http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/include/media/rc-map.h
-> 
-> Also, that means a less footprint for tiny Kernels.
-> 
->> Well, for small sets of data (which this is) a binary search may well be
->> slower than a simple search. So yes, you should do some performance tests
->> before going with the more complex option.
-> 
-> with 128 pixformats, a binary search takes 8 ifs against 128.
-
-Actually, that's 64 on average. Even less if you know that some formats will
-be searched for a lot more frequently than others and you can order your data
-accordingly.
-
-> So, it
-> should be faster.
-
-Binary search has a lot more overhead than a simple array traversal. I did
-experiments with this when I worked on the control framework, and it was
-very surprising how slow binary search was compared to a simple linked list
-traversal. I think I needed well over 100 elements before the binary search
-became faster. You really need to test things like this if you know the data
-set is relatively small.
-
-> 
-> Yet, even on a very slow machine, seeking for 128 formats is still
-> likely fast enough to not affect performance of a media application.
-
-I agree with that.
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index c3bb250..90a8f10 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 	struct uvc_format_desc *fmtdesc;
+ 	struct uvc_frame *frame;
+ 	const unsigned char *start = buffer;
++	bool force_yuy2_to_y8 = false;
+ 	unsigned int interval;
+ 	unsigned int i, n;
+ 	__u8 ftype;
+@@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		/* Find the format descriptor from its GUID. */
+ 		fmtdesc = uvc_format_by_guid(&buffer[5]);
  
->> By placing the commonly used pixel formats at the beginning of the list I
->> suspect a simple search is the fastest lookup method, and very easy to
->> implement as well.
-> 
-> IMHO, we shouldn't apply this approach, as we're just growing the
-> Kernel size without any real benefit.
++		format->bpp = buffer[21];
++
++		if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
++			if (fmtdesc && fmtdesc->fcc == V4L2_PIX_FMT_YUYV &&
++			    format->bpp == 16) {
++				force_yuy2_to_y8 = true;
++				fmtdesc = &uvc_fmts[9];
++				format->bpp = 8;
++			} else {
++				uvc_printk(KERN_WARNING,
++					"Forcing %d-bit %s to %s not supported",
++					format->bpp, fmtdesc->name,
++					uvc_fmts[9].name);
++			}
++		}
++
+ 		if (fmtdesc != NULL) {
+ 			strlcpy(format->name, fmtdesc->name,
+ 				sizeof format->name);
+@@ -345,7 +362,6 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 			format->fcc = 0;
+ 		}
+ 
+-		format->bpp = buffer[21];
+ 		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+ 			ftype = UVC_VS_FRAME_UNCOMPRESSED;
+ 		} else {
+@@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		frame->bFrameIndex = buffer[3];
+ 		frame->bmCapabilities = buffer[4];
+ 		frame->wWidth = get_unaligned_le16(&buffer[5]);
++		if (force_yuy2_to_y8)
++			frame->wWidth *= 2;
+ 		frame->wHeight = get_unaligned_le16(&buffer[7]);
+ 		frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
+ 		frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
+@@ -2467,6 +2485,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+ 				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
++	/* Oculus VR Positional Tracker DK2 */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x2833,
++	  .idProduct		= 0x0201,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
+ 	/* Generic USB Video Class */
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
+ 	{}
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 9e35982..1dd78c0 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -137,6 +137,7 @@
+ #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
+ #define UVC_QUIRK_PROBE_DEF		0x00000100
+ #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
++#define UVC_QUIRK_FORCE_Y8		0x00000400
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+-- 
+2.0.1
 
-Simplifying drivers is the real benefit.
-
-Regards,
-
-	Hans
