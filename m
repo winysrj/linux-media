@@ -1,57 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:35204 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753657AbaHYM7v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 08:59:51 -0400
-MIME-Version: 1.0
-In-Reply-To: <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-Date: Mon, 25 Aug 2014 14:59:46 +0200
-Message-ID: <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
-Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
- Processing Unit.
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mta-out1.inet.fi ([62.71.2.231]:38755 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753706AbaHFHFj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Aug 2014 03:05:39 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/3] cxusb: Add support for TechnoTrend TT-connect CT2-4650 CI
+Date: Wed,  6 Aug 2014 10:05:04 +0300
+Message-Id: <1407308704-4120-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407308704-4120-1-git-send-email-olli.salonen@iki.fi>
+References: <1407308704-4120-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mikhail,
+TechnoTrend TT-connect CT2-4650 CI is an USB DVB-T2/C tuner with the
+following components:
 
-On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov
-<mikhail.ulyanov@cogentembedded.com> wrote:
-> +  - compatible: should containg one of the following:
-> +                       - "renesas,jpu-r8a7790" for R-Car H2
-> +                       - "renesas,jpu-r8a7791" for R-Car M2
-> +                       - "renesas,jpu-gen2" for R-Car second generation
+ USB interface: Cypress CY7C68013A-56LTXC
+ Demodulator: Silicon Labs Si2168-A20
+ Tuner: Silicon Labs Si2158-A20
+ CI chip: CIMaX SP2HF
 
-Isn't "renesas,jpu-gen2" meant as a fallback?
+The firmware for the tuner is the same as for TechnoTrend TT-TVStick CT2-4400. See
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg76944.html
 
-I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
-so we can make the driver match against '7790 and '7791 is we find
-out about an incompatibility.
+The demodulator needs a firmware that can be extracted from the Windows drivers.
+File ttConnect4650_64.sys should be extracted from
+http://www.tt-downloads.de/bda-treiber_4.1.0.4.zip (MD5 sum below).
 
-Gr{oetje,eeting}s,
+3464bfc37a47b4032568718bacba23fb  ttConnect4650_64.sys
 
-                        Geert
+Then the firmware can be extracted:
+dd if=ttConnect4650_64.sys ibs=1 skip=273376 count=6424 of=dvb-demod-si2168-a20-01.fw
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+The SP2 CI module requires a definition of a function cxusb_tt_ct2_4650_ci_ctrl that
+is passed on to the SP2 driver and called back for CAM operations.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/Kconfig |  1 +
+ drivers/media/usb/dvb-usb/cxusb.c | 92 ++++++++++++++++++++++++++++++++++++++-
+ drivers/media/usb/dvb-usb/cxusb.h |  4 ++
+ 3 files changed, 96 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 10aef21..87deb55 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -118,6 +118,7 @@ config DVB_USB_CXUSB
+ 	select DVB_ATBM8830 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_LGS8GXX if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_SP2 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MXL5005S if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 16bc579..499d76d 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -44,6 +44,7 @@
+ #include "atbm8830.h"
+ #include "si2168.h"
+ #include "si2157.h"
++#include "sp2.h"
+ 
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  80
+@@ -672,6 +673,37 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+ 	{ 0x0025, KEY_POWER },
+ };
+ 
++static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
++					u8 data, int *mem)
++{
++	struct dvb_usb_device *d = priv;
++	u8 wbuf[3];
++	u8 rbuf[2];
++	int ret;
++
++	wbuf[0] = (addr >> 8) & 0xff;
++	wbuf[1] = addr & 0xff;
++
++	if (read) {
++		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_READ, wbuf, 2, rbuf, 2);
++	} else {
++		wbuf[2] = data;
++		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_WRITE, wbuf, 3, rbuf, 1);
++	}
++
++	if (ret)
++		goto err;
++
++	if (read)
++		*mem = rbuf[1];
++
++	return 0;
++err:
++	deb_info("%s: ci usb write returned %d\n", __func__, ret);
++	return ret;
++
++}
++
+ static int cxusb_dee1601_demod_init(struct dvb_frontend* fe)
+ {
+ 	static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x28 };
+@@ -1350,9 +1382,12 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 	struct i2c_adapter *adapter;
+ 	struct i2c_client *client_demod;
+ 	struct i2c_client *client_tuner;
++	struct i2c_client *client_ci;
+ 	struct i2c_board_info info;
+ 	struct si2168_config si2168_config;
+ 	struct si2157_config si2157_config;
++	struct sp2_config sp2_config;
++	u8 o[2], i;
+ 
+ 	/* reset the tuner */
+ 	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
+@@ -1408,6 +1443,48 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 
+ 	st->i2c_client_tuner = client_tuner;
+ 
++	/* initialize CI */
++	if (d->udev->descriptor.idProduct ==
++		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
++
++		memcpy(o, "\xc0\x01", 2);
++		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
++		msleep(100);
++
++		memcpy(o, "\xc0\x00", 2);
++		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
++		msleep(100);
++
++		memset(&sp2_config, 0, sizeof(sp2_config));
++		sp2_config.dvb_adap = &adap->dvb_adap;
++		sp2_config.priv = d;
++		sp2_config.ci_control = cxusb_tt_ct2_4650_ci_ctrl;
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
++		info.addr = 0x40;
++		info.platform_data = &sp2_config;
++		request_module(info.type);
++		client_ci = i2c_new_device(&d->i2c_adap, &info);
++		if (client_ci == NULL || client_ci->dev.driver == NULL) {
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			return -ENODEV;
++		}
++		if (!try_module_get(client_ci->dev.driver->owner)) {
++			i2c_unregister_device(client_ci);
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			return -ENODEV;
++		}
++
++		st->i2c_client_ci = client_ci;
++
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1551,6 +1628,13 @@ static void cxusb_disconnect(struct usb_interface *intf)
+ 		i2c_unregister_device(client);
+ 	}
+ 
++	/* remove I2C client for CI */
++	client = st->i2c_client_ci;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	dvb_usb_device_exit(intf);
+ }
+ 
+@@ -1576,6 +1660,7 @@ static struct usb_device_id cxusb_table [] = {
+ 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
+ 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
+ 	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_TVSTICK_CT2_4400) },
++	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) },
+ 	{}		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE (usb, cxusb_table);
+@@ -2265,13 +2350,18 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+ 		.rc_interval    = 150,
+ 	},
+ 
+-	.num_device_descs = 1,
++	.num_device_descs = 2,
+ 	.devices = {
+ 		{
+ 			"TechnoTrend TVStick CT2-4400",
+ 			{ NULL },
+ 			{ &cxusb_table[20], NULL },
+ 		},
++		{
++			"TechnoTrend TT-connect CT2-4650 CI",
++			{ NULL },
++			{ &cxusb_table[21], NULL },
++		},
+ 	}
+ };
+ 
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 527ff79..29f3e2e 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -28,10 +28,14 @@
+ #define CMD_ANALOG        0x50
+ #define CMD_DIGITAL       0x51
+ 
++#define CMD_SP2_CI_WRITE  0x70
++#define CMD_SP2_CI_READ   0x71
++
+ struct cxusb_state {
+ 	u8 gpio_write_state[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++	struct i2c_client *i2c_client_ci;
+ };
+ 
+ #endif
+-- 
+1.9.1
+
