@@ -1,150 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:64802 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbaHORf7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 13:35:59 -0400
-Received: by mail-la0-f47.google.com with SMTP id mc6so2594673lab.34
-        for <linux-media@vger.kernel.org>; Fri, 15 Aug 2014 10:35:57 -0700 (PDT)
-Message-ID: <53EE4549.7050200@googlemail.com>
-Date: Fri, 15 Aug 2014 19:37:13 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: fix compiler warnings
-References: <53E080F6.30301@xs4all.nl> <53E0F5AE.2050903@googlemail.com> <53E32077.2070709@xs4all.nl> <53E3AB26.4070601@googlemail.com> <53E5F0B0.803@xs4all.nl>
-In-Reply-To: <53E5F0B0.803@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:29047 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751857AbaHFPUn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 11:20:43 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9W004J05AF7J60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Aug 2014 16:20:39 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0N9W00F5Y5AG0G20@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Aug 2014 16:20:40 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] mem2mem: coda driver changes
+Date: Wed, 06 Aug 2014 17:20:44 +0200
+Message-id: <0dd501cfb189$fe188750$fa4995f0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following changes since commit d1352f268415182f9bfc06b142fb50083e5f6479:
 
-Am 09.08.2014 um 11:58 schrieb Hans Verkuil:
-> On 08/07/2014 06:36 PM, Frank Schäfer wrote:
->> Am 07.08.2014 um 08:45 schrieb Hans Verkuil:
->>> On 08/05/2014 05:18 PM, Frank Schäfer wrote:
->>>> Hi Hans,
->>>>
->>>> Am 05.08.2014 um 09:00 schrieb Hans Verkuil:
->>>>> Fix three compiler warnings:
->>>>>
->>>>> drivers/media/usb/em28xx/em28xx-input.c: In function ‘em28xx_i2c_ir_handle_key’:
->>>>> drivers/media/usb/em28xx/em28xx-input.c:318:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->>>>>  }
->>>>>  ^
->>>>>   CC [M]  drivers/media/usb/em28xx/em28xx-dvb.o
->>>>> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_micron’:
->>>>> drivers/media/usb/em28xx/em28xx-camera.c:199:1: warning: the frame size of 1096 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->>>>>  }
->>>>>  ^
->>>>> drivers/media/usb/em28xx/em28xx-camera.c: In function ‘em28xx_probe_sensor_omnivision’:
->>>>> drivers/media/usb/em28xx/em28xx-camera.c:304:1: warning: the frame size of 1088 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->>>>>  }
->>>>>  ^
->>>> Hmmm... I don't get these weird warnings.
->>>> How can I reproduce them ?
->>> I'm using gcc 4.9.1 and I'm compiling the kernel using just a regular make command.
->>> In my .config I have CONFIG_FRAME_WARN=1024.
->> Weird. With gcc version 4.8.1 20130909 [gcc-4_8-branch revision 202388]
->> I get much smaller frame sizes:
-> Are you compiling for 32 or 64 bits? I'm compiling for 64 bits.
+  Merge two fixes from branch 'patchwork' into to_next (2014-08-01 15:32:27
+-0300)
 
-Ah yes, it was a 32 bit kernel.
-With a 64 bit kernel I get frame sizes of 736-744 bytes.
-Hmm... still much smaller than the 1088-1096 bytes gcc 4.9.1 reports...
+are available in the git repository at:
 
->
->> ...
->> drivers/media/usb/em28xx/em28xx-input.c: In function
->> ‘em28xx_i2c_ir_handle_key’:
->> drivers/media/usb/em28xx/em28xx-input.c:318:1: warning: the frame size
->> of 424 bytes is larger than 256 bytes [-Wframe-larger-than=]
->>  }
->>  ^
->> ...
->> drivers/media/usb/em28xx/em28xx-camera.c: In function
->> ‘em28xx_probe_sensor_micron’:
->> drivers/media/usb/em28xx/em28xx-camera.c:199:1: warning: the frame size
->> of 432 bytes is larger than 256 bytes [-Wframe-larger-than=]
->>  }
->>  ^
->> ...
->> drivers/media/usb/em28xx/em28xx-camera.c: In function
->> ‘em28xx_probe_sensor_omnivision’:
->> drivers/media/usb/em28xx/em28xx-camera.c:304:1: warning: the frame size
->> of 428 bytes is larger than 256 bytes [-Wframe-larger-than=]
->>  }
->>  ^
->> ...
-[...]
->> 2.) i2c rc key polling:
->>
->> em28xx_i2c_ir_handle_key() passes the client structure to one of the 4
->> get_key functions
->>
->>     rc = ir->get_key_i2c(&client, &protocol, &scancode);
->>
->> which either call
->>
->>     i2c_transfer(client->adapter, msg, len)
->>
->> directly or the helper function
->>
->>     i2c_master_recv(client, buf, len))
->>
->> which creates an i2c message before calling i2c_transfer().
->> The only members used from the i2c_client struct are
->>
->>     msg.addr = client->addr;
->>     msg.flags = client->flags & I2C_M_TEN;
->>
->> So the only fields from struct i2c_client which need to be setup are
->> "adapter" and "addr" and "flags".
->> Adapter an addres are initialized properly to
->>
->>     client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
->>     client.addr = ir->i2c_dev_addr;
->>
->> The only thing which is indeed missing here and needs to be fixed is
->>
->>     client.flags = 0;
-> Are there no debugging calls that use client.name? 
 
-No, only adpater, address and flags are required/used for an i2c_transfer().
+  git://linuxtv.org/kdebski/media_tree_2.git for-v3.17-2
 
-> Basically what I don't
-> understand is why this isn't a proper i2c_client, registered and all and
-> in its proper place in the /sys/ hierarchy.
->
-> It feels very much like a quick hack. 
+for you to fetch changes up to b22f1b734d206dde3790472e9e3ecb0f240f0812:
 
-The ir i2c decoder is indeed a pure em28xx internal thing. No external
-client driver is used.
-Hence the code is straight forward.
-The only benefit of registering an i2c_client would be to make it
-available via sysfs.
-I'm not sure If it's worth the amount of extra work+code.
+  coda: checkpatch cleanup (2014-08-06 14:29:24 +0200)
 
-> And if nothing else, at least zero
-> the struct before use. That will make any problems that this hack causes
-> reproducible instead of dependent on whatever random values were on the
-> stack.
+----------------------------------------------------------------
+Michael Olbrich (2):
+      coda: use CODA_MAX_FRAME_SIZE everywhere
+      coda: delay coda_fill_bitstream()
 
-The only problem here is the missing initialization of field "flags".
-It's a bug that needs to be fixed. Fortunately it doesn't cause any trouble.
+Philipp Zabel (32):
+      coda: fix CODA7541 hardware reset
+      coda: initialize hardware on pm runtime resume only if firmware
+available
+      coda: remove CAPTURE and OUTPUT caps
+      coda: remove VB2_USERPTR from queue io_modes
+      coda: lock capture frame size to output frame size when streaming
+      coda: split userspace interface into encoder and decoder device
+      coda: split format enumeration for encoder end decoder device
+      coda: default to h.264 decoder on invalid formats
+      coda: mark constant structures as such
+      coda: move coda driver into its own directory
+      coda: move defines, enums, and structs into shared header
+      coda: add context ops
+      coda: move BIT processor command execution out of pic_run_work
+      coda: add coda_bit_stream_set_flag helper
+      coda: move per-instance buffer allocation and cleanup
+      coda: move H.264 helper function into separate file
+      coda: move BIT specific functions into separate file
+      coda: include header for memcpy
+      coda: remove unnecessary peek at next destination buffer from
+coda_finish_decode
+      coda: request BIT processor interrupt by name
+      coda: dequeue buffers if start_streaming fails
+      coda: dequeue buffers on streamoff
+      coda: skip calling coda_find_codec in encoder try_fmt_vid_out
+      coda: allow running coda without iram on mx6dl
+      coda: increase max vertical frame size to 1088
+      coda: add an intermediate debug level
+      coda: improve allocation error messages
+      coda: fix timestamp list handling
+      coda: fix coda_s_fmt_vid_out
+      coda: set capture frame size with output S_FMT
+      coda: disable old cropping ioctls
+      coda: checkpatch cleanup
 
-In general, if structs with optional fields are used, the reader of the
-code easily gets the feeling that something might be missing.
-I know what I'm talking about... ;-)
-
-A patch is in the works.
-
-Regards,
-Frank
-
-> Regards,
->
-> 	Hans
+ drivers/media/platform/Makefile                    |    2 +-
+ drivers/media/platform/coda.c                      | 3933
+--------------------
+ drivers/media/platform/coda/Makefile               |    3 +
+ drivers/media/platform/coda/coda-bit.c             | 1860 +++++++++
+ drivers/media/platform/coda/coda-common.c          | 2065 ++++++++++
+ drivers/media/platform/coda/coda-h264.c            |   37 +
+ drivers/media/platform/coda/coda.h                 |  287 ++
+ .../media/platform/{coda.h => coda/coda_regs.h}    |    0
+ 8 files changed, 4253 insertions(+), 3934 deletions(-)
+ delete mode 100644 drivers/media/platform/coda.c
+ create mode 100644 drivers/media/platform/coda/Makefile
+ create mode 100644 drivers/media/platform/coda/coda-bit.c
+ create mode 100644 drivers/media/platform/coda/coda-common.c
+ create mode 100644 drivers/media/platform/coda/coda-h264.c
+ create mode 100644 drivers/media/platform/coda/coda.h
+ rename drivers/media/platform/{coda.h => coda/coda_regs.h} (100%)
 
