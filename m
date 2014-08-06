@@ -1,158 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f169.google.com ([209.85.216.169]:49465 "EHLO
-	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbaHQHkR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Aug 2014 03:40:17 -0400
-Received: by mail-qc0-f169.google.com with SMTP id c9so3825293qcz.28
-        for <linux-media@vger.kernel.org>; Sun, 17 Aug 2014 00:40:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOriPhKT_LYFe-PXdFraOj0HYkq6C-gHbx=e4Y7RrHJ2urZ0QQ@mail.gmail.com>
-References: <CAOriPhKT_LYFe-PXdFraOj0HYkq6C-gHbx=e4Y7RrHJ2urZ0QQ@mail.gmail.com>
-Date: Sun, 17 Aug 2014 17:40:16 +1000
-Message-ID: <CAOriPhLYhzayQ5G81-EbGFvfLP+xDWmYQmntfDZyEU2datdAnw@mail.gmail.com>
-Subject: Fwd: Updated dvb-t scan and channels.conf data for
- Australia/Melbourne (au-Melbourne)
-From: Paul Freeman <pfcomptech@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001a11c1257e8b26880500ce5d69
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:58619 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754279AbaHFKKX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 06:10:23 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9V009VMQWPLQ70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Aug 2014 11:10:01 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	kernel@pengutronix.de
+References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [PATCH RESEND 00/15] CODA patches for v3.17
+Date: Wed, 06 Aug 2014 12:10:23 +0200
+Message-id: <0d9001cfb15e$a38f8d90$eaaea8b0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a11c1257e8b26880500ce5d69
-Content-Type: text/plain; charset=UTF-8
+Hi Philipp,
 
-Attached are updated dvb-t scan and channels.conf data for
-Australia/Melbourne as of August 17 2014.  The main change is the
-updated SBS channel frequency which occurred early in 2014.
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Tuesday, August 05, 2014 7:00 PM
+> 
+> Hi Kamil, Mauro,
+> 
+> thank you for merging most of the pending coda patches in time for
+> v3.17.
+> Here are the remaining patches, rebased on top of the current media
+> for-3.17 branch.
+> I have left all checkpatch warnings in the "[media] coda: request BIT
+> processor interrupt by name" patch untouched, as this only moves code
+> around. 
 
-Could these please be used to patch the official repository for the
-au-Melbourne files.
+As for warnings, I think it could be corrected in another patch. But
+please do that ASAP. Also it would be really good to correct warnings/error
+in remaining files. Hint: checkpatch -f run on particular files can give
+you the list of violations.
 
-Regards
+I am not saying that all lines over 80 are wrong. Some of them are
+justified,
+but when splitting a line into two is simple and does not hurt the code it
+should be done.
 
-Paul
+I would like errors to be corrected now. I think, there is one error only
+in these patches. Could you do this?
 
---001a11c1257e8b26880500ce5d69
-Content-Type: application/octet-stream; name="channels.conf.au-Melbourne"
-Content-Disposition: attachment; filename="channels.conf.au-Melbourne"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hyy1qf5n0
+1) coda: move BIT specific functions into separate file
 
-NyBEaWdpdGFsKFNldmVuIE5ldHdvcmspOjE3NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lE
-VEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VB
-UkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo3Njk6NzcwOjEzMjgKNyBEaWdpdGFsIDEo
-U2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpG
-RUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZB
-TF8xXzE2OkhJRVJBUkNIWV9OT05FOjc2OTo3NzA6MTMyOQo3VFdPKFNldmVuIE5ldHdvcmspOjE3
-NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpR
-QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlf
-Tk9ORTo4MDE6ODAyOjEzMzAKN21hdGUoU2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lP
-Tl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJ
-T05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjgxNzo4MTk6MTMz
-MQo3IERpZ2l0YWwoU2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRX
-SURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpH
-VUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjc2OTo3NzA6MTMzMgpUVjRNRToxNzc1
-MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFN
-XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05P
-TkU6ODgxOjg4MjoxMzM1CkZyZXNoIElkZWFzIFRWIChTZXZlbiBOZXR3b3JrKToxNzc1MDAwMDA6
-SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
-QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6ODk3
-Ojg5ODoxMzM2ClNCUyBPTkUoU0JTKToxODQ1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
-XzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
-X0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxNjE6ODE6Nzg1ClNCUyBUV08oU0JTKToxODQ1
-MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFN
-XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9O
-RToxNjI6ODM6Nzg2ClNCUyAzKFNCUyk6MTg0NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURU
-SF83X01IWjpGRUNfMl8zOkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFS
-RF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4NwpOSVRWKFNCUyk6MTg0NTAw
-MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ19OT05FOlFBTV82
-NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6
-MTY0Ojg3Ojc4OApTQlMgSEQoU0JTKToxODQ1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
-XzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
-X0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxMDI6MTAzOjc4OQpTQlMgUmFkaW8gMShTQlMp
-OjE4NDUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfTk9O
-RTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNI
-WV9OT05FOjA6MjAxOjc5OApTQlMgUmFkaW8gMihTQlMpOjE4NDUwMDAwMDpJTlZFUlNJT05fQVVU
-TzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01P
-REVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAyOjc5OQpTQlMgUmFk
-aW8gMyhTQlMpOjE4NDUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJf
-MzpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84
-OkhJRVJBUkNIWV9OT05FOjA6MjAzOjgwMApOaW5lIE1lbGJvdXJuZShOaW5lIE5ldHdvcmsgQXVz
-dHJhbGlhKToxOTE2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6
-RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6
-SElFUkFSQ0hZX05PTkU6NTE5OjcyMDoxMDcyCkdFTShOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKTox
-OTE2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6
-UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZ
-X05PTkU6NTEyOjY1MDoxMDczCkdPIShOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKToxOTE2MjUwMDA6
-SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
-QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE3
-OjcwMDoxMDc0CkVYVFJBKE5pbmUgTmV0d29yayBBdXN0cmFsaWEpOjE5MTYyNTAwMDpJTlZFUlNJ
-T05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNT
-SU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MjA6NzMwOjEw
-NzUKRVhUUkEgMihOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKToxOTE2MjUwMDA6SU5WRVJTSU9OX0FV
-VE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9N
-T0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTIxOjc0MDoxMDc2Ck9O
-RShUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUha
-OkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVS
-VkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE0OjY3MjoxNTg1ClRFTiBEaWdpdGFsKFRlbiBNZWxi
-b3VybmUpOjIxOTUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpG
-RUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpI
-SUVSQVJDSFlfTk9ORTo1MTI6NjUwOjE1ODkKVFZTTihUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6
-SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
-QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE4
-OjY5MDoxNTkwCk9ORShUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFO
-RFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhL
-OkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE0OjY3MjoxNTkxCkVMRVZFTihU
-ZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZF
-Q18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFM
-XzFfMTY6SElFUkFSQ0hZX05PTkU6NTE2OjY4MToxNTkyClNwcmVlVFYoVGVuIE1lbGJvdXJuZSk6
-MjE5NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ19OT05F
-OlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNI
-WV9OT05FOjUyMDo3MDA6MTU5MwpBQkMgTmV3cyAyNChBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05f
-QVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9O
-X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORToyMzE0OjIzMTU6NTYw
-CkFCQyhBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNf
-NDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8x
-NjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjU2MQpBQkMyIC8gQUJDNChBQkMpOjIyNjUwMDAwMDpJ
-TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJB
-TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORToyMzA3
-OjIzMDg6NTYyCkFCQyhBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19N
-SFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5U
-RVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjU2MwpEb3VibGUgSihBQkMpOjIyNjUw
-MDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1f
-NjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9O
-RTowOjIzMTc6NTY2CkFCQyBKYXp6KEFCQyk6MjI2NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRX
-SURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpH
-VUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjA6MjMxODo1NjcKQUJDMyhBQkMpOjIy
-NjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpR
-QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlf
-Tk9ORToyMzExOjIzMTI6NTY0CkMzMShDMzEpOjU1NzYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5E
-V0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRUFNLOlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdV
-QVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6MTAxOjEwMjozNTg1Cg==
---001a11c1257e8b26880500ce5d69
-Content-Type: application/octet-stream; name="scan.au-Melbourne"
-Content-Disposition: attachment; filename="scan.au-Melbourne"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hyy1qf6c1
+ERROR: return is not a function, parentheses are not required
+#83: FILE: drivers/media/platform/coda/coda-bit.c:40:
++	return (coda_read(dev, CODA_REG_BIT_CUR_PC) != 0);
 
-Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
-d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
-CiMhIDx3X3NjYW4+IDIwMTMwMzMxIDEgMCBURVJSRVNUUklBTCBBVSA8L3dfc2Nhbj4KIy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQojIGxvY2F0aW9uIGFuZCBwcm92aWRlcjogPEF1c3RyYWxpYS9NZWxi
-b3VybmU+CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDE0LTA4LTE3CiMgcHJvdmlkZWQgYnkg
-KG9wdCkgICAgOiA8cGZjb21wdGVjaCBhdCBnbWFpbC5jb20+CiMKIyBUWzJdIFtwbHBfaWRdIFtz
-eXN0ZW1faWRdIDxmcmVxPiA8Ync+IDxmZWNfaGk+IDxmZWNfbG8+IDxtb2Q+IDx0bT4gPGd1YXJk
-PiA8aGk+IFsjIGNvbW1lbnRdCiMtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVCAxNzc1MDAwMDAgN01I
-eiAgMy80IE5PTkUgICAgUUFNNjQgICA4ayAxLzE2IE5PTkUgICAgICAjIFNldmVuIE5ldHdvcmsK
-VCAxODQ1MDAwMDAgN01IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4ayAgMS84IE5PTkUgICAgICAj
-IFNCUyBNZWxib3VybmUKVCAxOTE2MjUwMDAgN01IeiAgMy80IE5PTkUgICAgUUFNNjQgICA4ayAx
-LzE2IE5PTkUgICAgICAjIE5pbmUgTmV0d29yayBBdXN0cmFsaWEKVCAyMTk1MDAwMDAgN01IeiAg
-My80IE5PTkUgICAgUUFNNjQgICA4ayAxLzE2IE5PTkUgICAgICAjIE5ldHdvcmsgVEVOClQgMjI2
-NTAwMDAwIDdNSHogIDMvNCBOT05FICAgIFFBTTY0ICAgOGsgMS8xNiBOT05FICAgICAgIyBBQkMg
-TWVsYm91cm5lClQgNTU3NjI1MDAwIDdNSHogIDMvNCBOT05FICAgICBRUFNLICAgOGsgMS8xNiBO
-T05FICAgICAgIyBDMzEK
---001a11c1257e8b26880500ce5d69--
+> The other patches are checkpatch clean, except for the
+> CODA_CODEC definition lines that I'd like to keep unbroken.
+> I've also added a fixup for 38932df4cb17 "coda: move H.264 helper
+> function into separate file" in the front.
+> 
+> regards
+> Philipp
+> 
+> Philipp Zabel (15):
+>   [media] coda: include header for memcpy
+>   [media] coda: move BIT specific functions into separate file
+>   [media] coda: remove unnecessary peek at next destination buffer from
+>     coda_finish_decode
+>   [media] coda: request BIT processor interrupt by name
+>   [media] coda: dequeue buffers if start_streaming fails
+>   [media] coda: dequeue buffers on streamoff
+>   [media] coda: skip calling coda_find_codec in encoder try_fmt_vid_out
+>   [media] coda: allow running coda without iram on mx6dl
+>   [media] coda: increase max vertical frame size to 1088
+>   [media] coda: add an intermediate debug level
+>   [media] coda: improve allocation error messages
+>   [media] coda: fix timestamp list handling
+>   [media] coda: fix coda_s_fmt_vid_out
+>   [media] coda: set capture frame size with output S_FMT
+>   [media] coda: disable old cropping ioctls
+> 
+>  drivers/media/platform/coda/Makefile      |    2 +-
+>  drivers/media/platform/coda/coda-bit.c    | 1823
+> +++++++++++++++++++++++++++
+>  drivers/media/platform/coda/coda-common.c | 1944 ++-------------------
+> --------
+>  drivers/media/platform/coda/coda-h264.c   |    1 +
+>  drivers/media/platform/coda/coda.h        |   56 +
+>  5 files changed, 1976 insertions(+), 1850 deletions(-)  create mode
+> 100644 drivers/media/platform/coda/coda-bit.c
+> 
+> --
+> 2.0.1
+
