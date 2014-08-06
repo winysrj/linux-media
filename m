@@ -1,83 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44315 "EHLO mail.kapsi.fi"
+Received: from mga11.intel.com ([192.55.52.93]:21687 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756527AbaHVPZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 11:25:52 -0400
-Message-ID: <53F760F8.1050904@iki.fi>
-Date: Fri, 22 Aug 2014 18:25:44 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jeff Mahoney <jeffm@suse.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Kernel Maling List <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Autoselecting SPI for MEDIA_SUBDRV_AUTOSELECT?
-References: <53F75B26.2020101@suse.com> <53F75F02.2030300@iki.fi> <53F76097.8020800@suse.com>
-In-Reply-To: <53F76097.8020800@suse.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754722AbaHFGhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Aug 2014 02:37:53 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 0616E20086
+	for <linux-media@vger.kernel.org>; Wed,  6 Aug 2014 09:37:51 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: Event documentation fixes
+Date: Wed,  6 Aug 2014 09:37:49 +0300
+Message-Id: <1407307069-13480-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/2014 06:24 PM, Jeff Mahoney wrote:
-> On Fri Aug 22 11:17:22 2014, Antti Palosaari wrote:
->> Moikka!
->>
->> On 08/22/2014 06:00 PM, Jeff Mahoney wrote:
->>> -----BEGIN PGP SIGNED MESSAGE-----
->>> Hash: SHA1
->>>
->>> Hi Antti -
->>>
->>> Commit e4462ffc160 ([media] Kconfig: sub-driver auto-select SPI bus)
->>> enables CONFIG_SPI globally for a driver that won't even be enabled in
->>> many cases.
->>>
->>> Is there a reason USB_MSI2500 doesn't select SPI instead of
->>> MEDIA_SUBDRV_AUTOSELECT?
->>
->> Nothing but I decided to set it similarly as I2C, another more common
->> bus. IIRC same was for I2C_MUX too.
->>
->> You could still disable media subdriver autoselect and then disable
->> SPI and select all the media drivers (excluding MSSi2500) manually.
->>
->> I have feeling that media auto-select was added to select everything
->> needed for media.
->
-> Ok, that makes sense. I suppose I'll still need to enable SPI just for
-> this device and disable every other SPI device anyway. I'll live.
+Constify event type constants and correct motion detection event number
+(it's 6, not 5).
 
-See drivers/media/Kconfig :
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml         | 7 ++++---
+ Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-config MEDIA_SUBDRV_AUTOSELECT
-	bool "Autoselect ancillary drivers (tuners, sensors, i2c, frontends)"
-	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || 
-MEDIA_CAMERA_SUPPORT || MEDIA_SDR_SUPPORT
-	depends on HAS_IOMEM
-	select I2C
-	select I2C_MUX
-	select SPI
-	default y
-	help
-	  By default, a media driver auto-selects all possible ancillary
-	  devices such as tuners, sensors, video encoders/decoders and
-	  frontends, that are used by any of the supported devices.
-
-	  This is generally the right thing to do, except when there
-	  are strict constraints with regards to the kernel size,
-	  like on embedded systems.
-
-	  Use this option with care, as deselecting ancillary drivers which
-	  are, in fact, necessary will result in the lack of the needed
-	  functionality for your device (it may not tune or may not have
-	  the needed demodulators).
-
-	  If unsure say Y.
-
-
-regards
-Antti
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index cb77325..ce7e700 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -76,21 +76,22 @@
+ 	    <entry></entry>
+ 	    <entry>&v4l2-event-vsync;</entry>
+             <entry><structfield>vsync</structfield></entry>
+-	    <entry>Event data for event V4L2_EVENT_VSYNC.
++	    <entry>Event data for event <constant>V4L2_EVENT_VSYNC</constant>.
+             </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>&v4l2-event-ctrl;</entry>
+             <entry><structfield>ctrl</structfield></entry>
+-	    <entry>Event data for event V4L2_EVENT_CTRL.
++	    <entry>Event data for event <constant>V4L2_EVENT_CTRL</constant>.
+             </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>&v4l2-event-frame-sync;</entry>
+             <entry><structfield>frame_sync</structfield></entry>
+-	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
++	    <entry>Event data for event <constant>V4L2_EVENT_FRAME_SYNC
++	    </constant>.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 9f60956..d7c9365 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -176,7 +176,7 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
+-	    <entry>5</entry>
++	    <entry>6</entry>
+ 	    <entry>
+ 	      <para>Triggered whenever the motion detection state for one or more of the regions
+ 	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
 -- 
-http://palosaari.fi/
+1.8.3.2
+
