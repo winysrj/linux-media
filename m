@@ -1,58 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54821 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaHUCGF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 22:06:05 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAM00AM3WHX4KB0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 21 Aug 2014 11:05:57 +0900 (KST)
-From: Changbing Xiong <cb.xiong@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, crope@iki.fi
-Subject: [PATCH 3/3] media: check status of dmxdev->exit in poll functions of
- demux&dvr
-Date: Thu, 21 Aug 2014 10:05:40 +0800
-Message-id: <1408586740-2169-1-git-send-email-cb.xiong@samsung.com>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:53108 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750730AbaHFEeu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 00:34:50 -0400
+Received: by mail-pa0-f41.google.com with SMTP id rd3so2706238pab.0
+        for <linux-media@vger.kernel.org>; Tue, 05 Aug 2014 21:34:50 -0700 (PDT)
+Date: Wed, 6 Aug 2014 12:34:44 +0800
+From: "nibble.max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH 2/4] support for DVBSky dvb-s2 usb: change em28xx-dvb.c following the m88ds3103 config change
+Message-ID: <201408061234417811441@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-when usb-type tuner is pulled out, user applications did not close device's FD,
-and go on polling the device, we should return POLLERR directly.
+change em28xx-dvb.c following the m88ds3103 config change
 
-Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
 ---
- drivers/media/dvb-core/dmxdev.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 7a5c070..42b5e70 100755
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -1085,9 +1085,10 @@ static long dvb_demux_ioctl(struct file *file, unsigned int cmd,
- static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
- {
- 	struct dmxdev_filter *dmxdevfilter = file->private_data;
-+	struct dmxdev *dmxdev = dmxdevfilter->dev;
- 	unsigned int mask = 0;
-
--	if (!dmxdevfilter)
-+	if ((!dmxdevfilter) || (dmxdev->exit))
- 		return POLLERR;
-
- 	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
-@@ -1181,6 +1182,9 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
-
- 	dprintk("function : %s\n", __func__);
-
-+	if (dmxdev->exit)
-+		return POLLERR;
-+
- 	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
-
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
---
-1.7.9.5
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 3a3e243..d8e9760 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -856,7 +856,9 @@ static const struct m88ds3103_config pctv_461e_m88ds3103_config = {
+ 	.clock = 27000000,
+ 	.i2c_wr_max = 33,
+ 	.clock_out = 0,
+-	.ts_mode = M88DS3103_TS_PARALLEL_16,
++	.ts_mode = M88DS3103_TS_PARALLEL,
++	.ts_clk = 16000,
++	.ts_clk_pol = 1,
+ 	.agc = 0x99,
+ };
+  
 
