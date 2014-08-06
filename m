@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44017 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982AbaHURRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 13:17:06 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] m88ts2022: fix 32bit overflow on filter calc
-Date: Thu, 21 Aug 2014 20:16:56 +0300
-Message-Id: <1408641416-6840-1-git-send-email-crope@iki.fi>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:55940 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752424AbaHFEkH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 00:40:07 -0400
+Received: by mail-pd0-f170.google.com with SMTP id g10so2582849pdj.15
+        for <linux-media@vger.kernel.org>; Tue, 05 Aug 2014 21:40:06 -0700 (PDT)
+Date: Wed, 6 Aug 2014 12:40:01 +0800
+From: "nibble.max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] support for DVBSky dvb-s2 usb: add dvbsky rc keymaps include file
+Message-ID: <201408061239584840620@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maximum satellite symbol rate used is 45000000Sps which overflows
-when multiplied by 135. As final calculation result is fraction,
-we could use mult_frac macro in order to keep calculation inside
-32 bit number limits and prevent overflow.
+add dvbsky rc keymaps include file.
 
-Original bug and fix was provided by Nibble Max. I decided to
-implement it differently as it is now.
-
-Reported-by: Nibble Max <nibble.max@gmail.com>
-Cc: <stable@kernel.org>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
 ---
- drivers/media/tuners/m88ts2022.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/rc-map.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 40c42de..7a62097 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -314,7 +314,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	div_min = gdiv28 * 78 / 100;
- 	div_max = clamp_val(div_max, 0U, 63U);
- 
--	f_3db_hz = c->symbol_rate * 135UL / 200UL;
-+	f_3db_hz = mult_frac(c->symbol_rate, 135, 200);
- 	f_3db_hz +=  2000000U + (frequency_offset_khz * 1000U);
- 	f_3db_hz = clamp(f_3db_hz, 7000000U, 40000000U);
- 
--- 
-http://palosaari.fi/
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 80f9518..e7a1514 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -135,6 +135,7 @@ void rc_map_init(void);
+ #define RC_MAP_DM1105_NEC                "rc-dm1105-nec"
+ #define RC_MAP_DNTV_LIVE_DVBT_PRO        "rc-dntv-live-dvbt-pro"
+ #define RC_MAP_DNTV_LIVE_DVB_T           "rc-dntv-live-dvb-t"
++#define RC_MAP_DVBSKY                    "rc-dvbsky"
+ #define RC_MAP_EMPTY                     "rc-empty"
+ #define RC_MAP_EM_TERRATEC               "rc-em-terratec"
+ #define RC_MAP_ENCORE_ENLTV2             "rc-encore-enltv2"
+  
 
