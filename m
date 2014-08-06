@@ -1,103 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4193 "EHLO
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3831 "EHLO
 	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754684AbaHNJyZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	with ESMTP id S1753435AbaHFCjS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 22:39:18 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s762dFg3095138
+	for <linux-media@vger.kernel.org>; Wed, 6 Aug 2014 04:39:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0C7B42A2651
+	for <linux-media@vger.kernel.org>; Wed,  6 Aug 2014 04:39:09 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 20/20] cx23885: Add busy checks before changing formats
-Date: Thu, 14 Aug 2014 11:54:05 +0200
-Message-Id: <1408010045-24016-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140806023909.0C7B42A2651@tschai.lan>
+Date: Wed,  6 Aug 2014 04:39:09 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Before you can change the standard or the capture format, make sure the
-various vb2_queues aren't in use since you cannot change the buffer size from
-underneath a a busy vb2_queue.
+Results of the daily build of media_tree:
 
-Also make sure that the return code of cx23885_set_tvnorm is returned
-correctly, otherwise the -EBUSY will be lost.
+date:		Wed Aug  6 04:00:28 CEST 2014
+git branch:	test
+git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.15-7.slh.3-amd64
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-417.c   | 10 +++++-----
- drivers/media/pci/cx23885/cx23885-video.c | 15 ++++++++++++---
- 2 files changed, 17 insertions(+), 8 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index f1ef901..6973055 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1248,18 +1248,18 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- {
- 	struct cx23885_dev *dev = video_drvdata(file);
- 	unsigned int i;
-+	int ret;
- 
- 	for (i = 0; i < ARRAY_SIZE(cx23885_tvnorms); i++)
- 		if (id & cx23885_tvnorms[i].id)
- 			break;
- 	if (i == ARRAY_SIZE(cx23885_tvnorms))
- 		return -EINVAL;
--	dev->encodernorm = cx23885_tvnorms[i];
--
--	/* Have the drier core notify the subdevices */
--	cx23885_set_tvnorm(dev, id);
- 
--	return 0;
-+	ret = cx23885_set_tvnorm(dev, id);
-+	if (!ret)
-+		dev->encodernorm = cx23885_tvnorms[i];
-+	return ret;
- }
- 
- static int vidioc_enum_input(struct file *file, void *priv,
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index defdf74..f0ea904 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -119,6 +119,12 @@ int cx23885_set_tvnorm(struct cx23885_dev *dev, v4l2_std_id norm)
- 		(unsigned int)norm,
- 		v4l2_norm_to_name(norm));
- 
-+	if (dev->tvnorm != norm) {
-+		if (vb2_is_busy(&dev->vb2_vidq) || vb2_is_busy(&dev->vb2_vbiq) ||
-+		    vb2_is_busy(&dev->vb2_mpegq))
-+			return -EBUSY;
-+	}
-+
- 	dev->tvnorm = norm;
- 
- 	call_all(dev, video, s_std, norm);
-@@ -591,6 +597,11 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	if (0 != err)
- 		return err;
-+
-+	if (vb2_is_busy(&dev->vb2_vidq) || vb2_is_busy(&dev->vb2_vbiq) ||
-+	    vb2_is_busy(&dev->vb2_mpegq))
-+		return -EBUSY;
-+
- 	dev->fmt        = format_by_fourcc(f->fmt.pix.pixelformat);
- 	dev->width      = f->fmt.pix.width;
- 	dev->height     = f->fmt.pix.height;
-@@ -654,9 +665,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- 	struct cx23885_dev *dev = video_drvdata(file);
- 	dprintk(1, "%s()\n", __func__);
- 
--	cx23885_set_tvnorm(dev, tvnorms);
--
--	return 0;
-+	return cx23885_set_tvnorm(dev, tvnorms);
- }
- 
- int cx23885_enum_input(struct cx23885_dev *dev, struct v4l2_input *i)
--- 
-2.1.0.rc1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
