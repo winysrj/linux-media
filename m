@@ -1,182 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59958 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332AbaHANzv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 09:55:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: [PATCH 2/8] omap3isp: ccdc: Only complete buffer when all fields are captured
-Date: Fri,  1 Aug 2014 15:46:28 +0200
-Message-Id: <1406900794-9871-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39237 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753338AbaHFGyg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Aug 2014 02:54:36 -0400
+Date: Wed, 6 Aug 2014 09:53:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com
+Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
+Message-ID: <20140806065358.GC16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Checking that the captured field corresponds to the last required field
-depending on the requested field order before completing the buffer
-isn't enough. When the first field at stream start corresponds to the
-last required field, this would result in returning an interlaced buffer
-containing a single field.
+Hi Jacek,
 
-Fix this by keeping track of the fields captured in the buffer, and make
-sure that both fields are present for alternate field orders.
+On Fri, Jul 11, 2014 at 04:04:03PM +0200, Jacek Anaszewski wrote:
+...
+> 1) Who should register V4L2 Flash sub-device?
+> 
+> LED Flash Class devices, after introduction of the Flash Manager,
+> are not tightly coupled with any media controller. They are maintained
+> by the Flash Manager and made available for dynamic assignment to
+> any media system they are connected to through multiplexing devices.
+> 
+> In the proposed rough solution, when support for V4L2 Flash sub-devices
+> is enabled, there is a v4l2_device created for them to register in.
+> This however implies that V4L2 Flash device will not be available
+> in any media controller, which calls its existence into question.
+> 
+> Therefore I'd like to consult possible ways of solving this issue.
+> The option I see is implementing a mechanism for moving V4L2 Flash
+> sub-devices between media controllers. A V4L2 Flash sub-device
+> would initially be assigned to one media system in the relevant
+> device tree binding, but it could be dynamically reassigned to
+> the other one. However I'm not sure if media controller design
+> is prepared for dynamic modifications of its graph and how many
+> modifications in the existing drivers this solution would require.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c | 78 ++++++++++++++++++++-----------
- drivers/media/platform/omap3isp/ispccdc.h |  7 +++
- 2 files changed, 58 insertions(+), 27 deletions(-)
+Do you have a use case where you would need to strobe a flash from multiple
+media devices at different times, or is this entirely theoretical? Typically
+flash controllers are connected to a single source of hardware strobe (if
+there's one) since the flash LEDs are in fact mounted next to a specific
+camera sensor.
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index ecc37f2..56c3129 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1134,6 +1134,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	u32 ccdc_pattern;
- 
- 	ccdc->bt656 = false;
-+	ccdc->fields = 0;
- 
- 	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
- 	sensor = media_entity_to_v4l2_subdev(pad->entity);
-@@ -1529,12 +1530,59 @@ done:
- 	spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
- }
- 
-+/*
-+ * Check whether the CCDC has captured all fields necessary to complete the
-+ * buffer.
-+ */
-+static bool ccdc_has_all_fields(struct isp_ccdc_device *ccdc)
-+{
-+	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
-+	struct isp_device *isp = to_isp_device(ccdc);
-+	enum v4l2_field of_field = ccdc->formats[CCDC_PAD_SOURCE_OF].field;
-+	enum v4l2_field field;
-+
-+	/* When the input is progressive fields don't matter. */
-+	if (of_field == V4L2_FIELD_NONE)
-+		return true;
-+
-+	/* Read the current field identifier. */
-+	field = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE)
-+	      & ISPCCDC_SYN_MODE_FLDSTAT
-+	      ? V4L2_FIELD_BOTTOM : V4L2_FIELD_TOP;
-+
-+	/* When capturing fields in alternate order just store the current field
-+	 * identifier in the pipeline.
-+	 */
-+	if (of_field == V4L2_FIELD_ALTERNATE) {
-+		pipe->field = field;
-+		return true;
-+	}
-+
-+	/* The format is interlaced. Make sure we've captured both fields. */
-+	ccdc->fields |= field == V4L2_FIELD_BOTTOM
-+		      ? CCDC_FIELD_BOTTOM : CCDC_FIELD_TOP;
-+
-+	if (ccdc->fields != CCDC_FIELD_BOTH)
-+		return false;
-+
-+	/* Verify that the field just captured corresponds to the last field
-+	 * needed based on the desired field order.
-+	 */
-+	if ((of_field == V4L2_FIELD_INTERLACED_TB && field == V4L2_FIELD_TOP) ||
-+	    (of_field == V4L2_FIELD_INTERLACED_BT && field == V4L2_FIELD_BOTTOM))
-+		return false;
-+
-+	/* The buffer can be completed, reset the fields for the next buffer. */
-+	ccdc->fields = 0;
-+
-+	return true;
-+}
-+
- static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- {
- 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
- 	struct isp_device *isp = to_isp_device(ccdc);
- 	struct isp_buffer *buffer;
--	enum v4l2_field field;
- 
- 	/* The CCDC generates VD0 interrupts even when disabled (the datasheet
- 	 * doesn't explicitly state if that's supposed to happen or not, so it
-@@ -1554,11 +1602,6 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 		return 1;
- 	}
- 
--	/* Read the current field identifier. */
--	field = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE)
--	      & ISPCCDC_SYN_MODE_FLDSTAT
--	      ? V4L2_FIELD_BOTTOM : V4L2_FIELD_TOP;
--
- 	/* Wait for the CCDC to become idle. */
- 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
- 		dev_info(isp->dev, "CCDC won't become idle!\n");
-@@ -1567,27 +1610,8 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 		return 0;
- 	}
- 
--	switch (ccdc->formats[CCDC_PAD_SOURCE_OF].field) {
--	case V4L2_FIELD_ALTERNATE:
--		/* When capturing fields in alternate order store the current
--		 * field identifier in the pipeline.
--		 */
--		pipe->field = field;
--		break;
--
--	case V4L2_FIELD_INTERLACED_TB:
--		/* When interleaving fields only complete the buffer after
--		 * capturing the second field.
--		 */
--		if (field == V4L2_FIELD_TOP)
--			return 1;
--		break;
--
--	case V4L2_FIELD_INTERLACED_BT:
--		if (field == V4L2_FIELD_BOTTOM)
--			return 1;
--		break;
--	}
-+	if (!ccdc_has_all_fields(ccdc))
-+		return 1;
- 
- 	buffer = omap3isp_video_buffer_next(&ccdc->video_out);
- 	if (buffer != NULL)
-diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
-index c325b89..731ecc7 100644
---- a/drivers/media/platform/omap3isp/ispccdc.h
-+++ b/drivers/media/platform/omap3isp/ispccdc.h
-@@ -93,6 +93,10 @@ struct ispccdc_lsc {
- #define CCDC_PAD_SOURCE_VP		2
- #define CCDC_PADS_NUM			3
- 
-+#define CCDC_FIELD_TOP			1
-+#define CCDC_FIELD_BOTTOM		2
-+#define CCDC_FIELD_BOTH			3
-+
- /*
-  * struct isp_ccdc_device - Structure for the CCDC module to store its own
-  *			    information
-@@ -114,6 +118,7 @@ struct ispccdc_lsc {
-  * @update: Bitmask of controls to update during the next interrupt
-  * @shadow_update: Controls update in progress by userspace
-  * @bt656: Whether the input interface uses BT.656 synchronization
-+ * @fields: The fields (CCDC_FIELD_*) stored in the current buffer
-  * @underrun: A buffer underrun occurred and a new buffer has been queued
-  * @state: Streaming state
-  * @lock: Serializes shadow_update with interrupt handler
-@@ -143,6 +148,8 @@ struct isp_ccdc_device {
- 	unsigned int shadow_update;
- 
- 	bool bt656;
-+	unsigned int fields;
-+
- 	unsigned int underrun:1;
- 	enum isp_pipeline_stream_state state;
- 	spinlock_t lock;
+If this is a real issue the way to solve it would be to have a single media
+device instead of many.
+
+> 2) Consequences of locking the Flash Manager during flash strobe
+> 
+> In case a LED Flash Class device depends on muxes involved in
+> routing the other LED Flash Class device's strobe signals,
+> the Flash Manager must be locked for the time of strobing
+> to prevent reconfiguration of the strobe signal routing
+> by the other device.
+
+I wouldn't be concerned of this in particular. It's more important we do
+actully have V4L2 flash API supported by LED flash drivers and that they do
+implement the API correctly.
+
+It's at least debatable whether you should try to prevent user space from
+doing silly things or not. With complex devices it may relatively easily
+lead to wrecking havoc with actual use cases which we certainly do not want.
+
+In this case, if you just prevent changing the routing (do you have a use
+case for it?) while strobing, someone else could still change the routing
+just before you strobe.
+
 -- 
-1.8.5.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
