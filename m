@@ -1,198 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2667 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbaHJSYm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 14:24:42 -0400
-Message-ID: <53E7B8B9.8020900@xs4all.nl>
-Date: Sun, 10 Aug 2014 20:23:53 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:46516 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248AbaHFTbF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 15:31:05 -0400
 MIME-Version: 1.0
+Date: Wed, 6 Aug 2014 21:31:02 +0200
+Message-ID: <CAMuHMdVPzkgJCPXBbFYc44T4JiyRN+r1nrcd0oPhW0vBy82LoQ@mail.gmail.com>
+Subject: =?UTF-8?Q?dib7000p=5Fget=5Fstats=3A_=E2=80=98i=E2=80=99_is_used_uninitialized_=28w?=
+	=?UTF-8?Q?as=3A_Re=3A_=5Bmedia=5D_dib7000p=3A_Add_DVBv5_stats_support=29?=
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [PATCH 0/3] Another series of PM fixes for au0828
-References: <1407636862-19394-1-git-send-email-m.chehab@samsung.com> <53E78CC1.1030905@xs4all.nl> <20140810140515.513d5ec8.m.chehab@samsung.com> <53E7AC53.7050006@xs4all.nl> <20140810150902.1fe25395.m.chehab@samsung.com>
-In-Reply-To: <20140810150902.1fe25395.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2014 08:09 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 10 Aug 2014 19:30:59 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 08/10/2014 07:05 PM, Mauro Carvalho Chehab wrote:
->>> Hi Hans,
->>>
->>> Em Sun, 10 Aug 2014 17:16:17 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> Hi Mauro,
->>>>
->>>> The following are just some general remarks regarding PM and au0828, it's
->>>> not specific to this patch series. I'm just brainstorming here...
->>>>
->>>> It's unfortunate that the au0828 isn't using vb2 yet. I would be interested in
->>>> seeing what can be done in vb2 to help implement suspend/resume. Basically vb2
->>>> has already most (all?) of the information it needs to handle this. Ideally all
->>>> you need to do in the driver is to call vb2_suspend or vb2_resume and vb2 will
->>>> take care of the rest, calling start/stop_streaming as needed. Some work would
->>>> have to be done there to ensure buffers are queued/dequeued to the right queues
->>>> and in the right state.
->>>
->>> I guess one of the problems with any core-provided method is to ensure that
->>> the tuner is initialized and locked before it, in order to avoid filling
->>> buffers from the wrong channel.
->>>
->>> Btw, this is one unsolved problem that we face with PM on media: we
->>> need to assure that resume will follow a precise init order:
->>> 	- All core subsystems are initialized before everything else;
->>> 	- The firmwares are loaded;
->>> 	- The I2C gates are in the right state;
->>> 	- The tuner is set;
->>> 	- The gpio's are properly configured;
->>> 	- The analog and/or the digital demodulator are properly
->>> 	  configured;
->>>
->>> Only after that, the driver (and VB2) can be resumed.
->>
->> Those items are certainly out-of-scope of vb2 and are device specific.
->>
->>> A proper PM support will require lots of changes at the media core, and
->>> likely on other subsystems. We (I, Shuah and some people I'm hiring)
->>> are looking into those issues, but a proper fix with proper core support
->>> will take some time.
->>>
->>>> So vb2 would handle all the DMA/streaming aspects of suspend/resume, thus
->>>> simplifying the driver.
->>>
->>> The changes will be minimal. Just one patch would be affected:
->>> 	https://patchwork.linuxtv.org/patch/25277/
->>>
->>> IMHO, for USB drivers, the best strategy for suspend/resume is the one
->>> taken on au0828, e. g. at suspend:
->>> 	- stop DMA;
->>> 	- cancel the pending URB;
->>> 	- stop any pending kthread;
->>> 	- call vb2_discard_done() to discard any pending buffers
->>> 	  (I think VB1 doesn't have anything similar);
->>
->> With proper vb2 support stop DMA, cancel pending USB and vb2_discard_done
->> would all be done by vb2. The first two would be done in the stop_streaming
->> vb2 op.
-> 
-> stop streaming will also free the buffers. This is not needed at
-> suspend, and would require to reallocate them at resume.
+Hi Mauro,
 
-No, stop_streaming doesn't free buffers. It stops the DMA/streaming and returns
-any active (i.e. owned by the driver) buffers to the vb2 core. Only after
-calling reqbufs(0) or when the filehandle is released are buffers freed.
+On Wed, Aug 6, 2014 at 2:03 AM, Linux Kernel Mailing List
+<linux-kernel@vger.kernel.org> wrote:
+> Gitweb:     http://git.kernel.org/linus/;a=commit;h=041ad449683bb2d54a7f082d78ec15bbc958a175
+> Commit:     041ad449683bb2d54a7f082d78ec15bbc958a175
+> Parent:     d44913c1e547df19b2dc0b527f92a4b4354be23a
+> Refname:    refs/heads/master
+> Author:     Mauro Carvalho Chehab <m.chehab@samsung.com>
+> AuthorDate: Thu May 29 14:44:56 2014 -0300
+> Committer:  Mauro Carvalho Chehab <m.chehab@samsung.com>
+> CommitDate: Tue Jun 17 12:04:50 2014 -0300
+>
+>     [media] dib7000p: Add DVBv5 stats support
+>
+>     Adds DVBv5 stats support. For now, just mimic whatever dib8000
+>     does, as they're very similar, with regards to statistics.
+>
+>     However, dib7000p_get_time_us() likely require some
+>     adjustments, as I didn't actually reviewed the formula
+>     for it to work with DVB-T. Still, better than nothing,
+>     as latter patches can improve it.
 
-> 
-> If you saw the code on the above patch, the suspend code is actually
-> just a few lines of the code: 
+Yes, it does, as its "layer" parameter is not used....
 
-I saw it :-)
+> diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+> index d36fa0d..c41f90d 100644
+> --- a/drivers/media/dvb-frontends/dib7000p.c
+> +++ b/drivers/media/dvb-frontends/dib7000p.c
 
-But it is still a second place where you have to stop/start streaming.
-If it is all centralized in one place, then that reduces the chances
-of bugs. Also, for other drivers you may have to do a lot more, of
-course.
+> +/* FIXME: may require changes - this one was borrowed from dib8000 */
+> +static u32 dib7000p_get_time_us(struct dvb_frontend *demod, int layer)
+> +{
 
-> 
-> +	if (dev->stream_state == STREAM_ON) {
-> +		au0828_analog_stream_disable(dev);
-> +		/* stop urbs */
-> +		for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-> +			urb = dev->isoc_ctl.urb[i];
-> +			if (urb) {
-> +				if (!irqs_disabled())
-> +					usb_kill_urb(urb);
-> +				else
-> +					usb_unlink_urb(urb);
-> +			}
-> +		}
-> +	}
-> +
-> +	if (dev->vid_timeout_running)
-> +		del_timer_sync(&dev->vid_timeout);
-> +	if (dev->vbi_timeout_running)
-> +		del_timer_sync(&dev->vbi_timeout);
+[...]
+
 > +}
-> 
-> Where the del_timer_sync() on au0828 is just due to stop the
-> hardware bug workaround code on this specific driver.
-> 
-> The resume is about the same size. No need to free buffers.
-> This is a way less things than calling stop at suspend and
-> start at resume.
-> 
->>>
->>> And, at resume, restart them.
->>>
->>> We could provide a core support to cancel the pending URBs, but most 
->>> of the stuff are driver-specific, because the core doesn't have
->>> any code to handle USB streams on a generic way (well, gspca has,
->>> but it doesn't cover the DVB specifics).
->>>
->>> I started writing a URB handling abstraction for the tm6000 driver
->>> that I wanted to add at the core, but I didn't finish making it
->>> generic enough. Moving it to core and porting the existing drivers
->>> to use it would take a lot of time and effort. Not sure if it is
->>> worth nowadays.
->>>
->>> What I'm trying to say is that most of the issues related to
->>> suspend/resume aren't at the streaming engine (being VB1, VB2
->>> or a driver-specific one). Once we fix the main issues subsystem-wide,
->>> then we can have a clearer view if are there anything we could do at
->>> VB2 level.
->>>
->>>> Is it perhaps an idea to convert au0828 to vb2 in order to pursue this further?
->>>>
->>>> Besides, converting to vb2 tends to get rid of a substantial amount of code
->>>> which makes it much easier to work with.
->>>
->>> I don't think that converting au0828 to vb2 would help to improve
->>> the suspend issues. Ok, should do it anyway at long term, as we want
->>> one day to get rid of VB1, but we should take some care with this driver.
->>> It has workarounds for several hardware bugs that cause the stream to
->>> stop working under not well known situations. There are even two
->>> threads there to detect and apply such workarounds when stream
->>> suddenly stops without a (known) reason.
->>
->> These types of weird errors are exactly why I would recommend to port to
->> vb2. The sequence of events is very clear and systematic in vb2, whereas it
->> will drive you bonkers if you try to understand the flow in vb1. I do not
->> trust *any* driver that uses vb1. There is no way drivers can cover all
->> corner cases since vb1 is one of the craziest pieces of code I've ever seen.
->> Especially since it doesn't look crazy at first glance, that's what makes
->> it such a nasty framework.
-> 
-> Those weird errors are not due to VB1. They are due to a hardware bug
-> that sometimes misalign the DMA data at bit level. Even unload/reload
-> the driver sometimes is not enough to fix.
 
-Yuck. 
+> +static int dib7000p_get_stats(struct dvb_frontend *demod, fe_status_t stat)
+> +{
+> +       struct dib7000p_state *state = demod->demodulator_priv;
+> +       struct dtv_frontend_properties *c = &demod->dtv_property_cache;
+> +       int i;
 
-> 
->> I've ported quite a few drivers by now to vb2 and in all cases things that
->> used to be flaky (or just plain broken) suddenly started working. This may
->> or may not apply to au0828, but it will certainly make the code a lot
->> easier to understand. Particularly crucial steps such as when the streaming
->> starts and stops is very well defined in vb2. Ditto for resource handling (who
->> 'owns' the stream) which is handled by vb2 as well.
-> 
-> I'm not against porting it to vb2. Just saying that it requires more
-> testing than usual, as the hardware is buggy.
-> 
-> I may eventually do it if I have some spare time next week.
+[...]
 
-That would be nice.
+> +       /* Get PER measures */
+> +       if (show_per_stats) {
+> +               dib7000p_read_unc_blocks(demod, &val);
+> +
+> +               c->block_error.stat[0].scale = FE_SCALE_COUNTER;
+> +               c->block_error.stat[0].uvalue += val;
+> +
+> +               time_us = dib7000p_get_time_us(demod, i);
 
-Regards,
+drivers/media/dvb-frontends/dib7000p.c: In function ‘dib7000p_get_stats’:
+drivers/media/dvb-frontends/dib7000p.c:1972: warning: ‘i’ is used
+uninitialized in this function
 
-	Hans
+So far this is harmless, as the "layer" parameter isn't used, but this
+deserves some cleanup.
 
+> +               if (time_us) {
+> +                       blocks = 1250000ULL * 1000000ULL;
+> +                       do_div(blocks, time_us * 8 * 204);
+> +                       c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+> +                       c->block_count.stat[0].uvalue += blocks;
+> +               }
+> +       }
+> +       return 0;
+> +}
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
