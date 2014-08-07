@@ -1,116 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3586 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751029AbaHaClH (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45046 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754423AbaHGATH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Aug 2014 22:41:07 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7V2f3WY003406
-	for <linux-media@vger.kernel.org>; Sun, 31 Aug 2014 04:41:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 227692A0757
-	for <linux-media@vger.kernel.org>; Sun, 31 Aug 2014 04:40:58 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140831024058.227692A0757@tschai.lan>
-Date: Sun, 31 Aug 2014 04:40:58 +0200 (CEST)
+	Wed, 6 Aug 2014 20:19:07 -0400
+Date: Thu, 7 Aug 2014 03:18:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: alaganraj sandhanam <alaganraj.sandhanam@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, sre@debian.org
+Subject: Re: omap3isp device tree support
+Message-ID: <20140807001859.GD16460@valkosipuli.retiisi.org.uk>
+References: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com>
+ <7469714.hULjr0WVDI@avalon>
+ <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Alaganraj,
 
-Results of the daily build of media_tree:
+On Wed, Aug 06, 2014 at 04:07:58AM +0530, alaganraj sandhanam wrote:
+> Hi Laurent,
+> 
+> Thanks for the info. what about git://linuxtv.org/pinchartl/media.git
+> omap3isp/dt branch?
+> I took 3 patches from this branch, fixed
+> error: implicit declaration of function ‘v4l2_of_get_next_endpoint’
+> by changing to "of_graph_get_next_endpoint".
+> 
+> while booting i'm getting below msg
+> [    1.558471] of_graph_get_next_endpoint(): no port node found in
+> /ocp/omap3_isp@480bc000
+> [    1.567169] omap3isp 480bc000.omap3_isp: no port node at
+> /ocp/omap3_isp@480bc000
+> 
+> omap3isp/dt is not working branch?
 
-date:		Sun Aug 31 04:00:14 CEST 2014
-git branch:	test
-git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-1.slh.1-amd64
+My patches, while experimental, may be helpful for you. Perhaps. At the
+moment the issue is IOMMU; Hiroshi Doyu had some patches to get that
+attached to the ISP but for various reasons they didn't make it to the
+mainline kernel.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+You can find my patches here:
 
-Detailed results are available here:
+<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/rm696-041-dt>
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+PLEASE do no clone the entire tree, but add that as a remote to an existing
+tree. The patches are on top of the linux-omap master branch.
 
-Full logs are available here:
+I think I've gotten through to sensor sub-device registration with these and
+the smiapp driver. I'll try to send some of the omap3isp and possibly also
+smiapp patches for review soon. It's unlikely to be a complete set, though.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+-- 
+Kind regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
