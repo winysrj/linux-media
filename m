@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4738 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253AbaHTW7q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 21/29] bcm3510: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:20 +0200
-Message-Id: <1408575568-20562-22-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:42547 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757518AbaHGOhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 10:37:40 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9X00GZXXYRFG30@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 07 Aug 2014 10:37:39 -0400 (EDT)
+Date: Thu, 07 Aug 2014 11:37:35 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] au0828-input: Be sure that IR is enabled at polling
+Message-id: <20140807113735.21460b96.m.chehab@samsung.com>
+In-reply-to: <CAGoCfizexXY6QzMZ_7LxBFsf2h7P8SSBVQ4JwcwaYB4=E+3Wzw@mail.gmail.com>
+References: <1407419190-10031-1-git-send-email-m.chehab@samsung.com>
+ <CAGoCfix4h+Fh7PsPnhbn1wWh4-nsdMe-hjJ2B_Wrba8+0G59vg@mail.gmail.com>
+ <20140807110442.353469bc.m.chehab@samsung.com>
+ <CAGoCfizexXY6QzMZ_7LxBFsf2h7P8SSBVQ4JwcwaYB4=E+3Wzw@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Thu, 07 Aug 2014 10:14:45 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-drivers/media/dvb-frontends/bcm3510.c:646:24: warning: cast to restricted __le16
-drivers/media/dvb-frontends/bcm3510.c:647:24: warning: cast to restricted __le16
+> > Well, au8522_rc_set is defined as:
+> >
+> >         #define au8522_rc_set(ir, reg, bit) au8522_rc_andor(ir, (reg), (bit), (bit))
+> 
+> Ah, ok.  It's just a really poorly named macro.  Nevermind then.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb-frontends/bcm3510.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Yep. calling it au8522_rc_setbits would likely be better. I tried to
+stick with the same name convention as this macro:
 
-diff --git a/drivers/media/dvb-frontends/bcm3510.c b/drivers/media/dvb-frontends/bcm3510.c
-index 39a29dd..998d150 100644
---- a/drivers/media/dvb-frontends/bcm3510.c
-+++ b/drivers/media/dvb-frontends/bcm3510.c
-@@ -643,8 +643,8 @@ static int bcm3510_download_firmware(struct dvb_frontend* fe)
- 
- 	b = fw->data;
- 	for (i = 0; i < fw->size;) {
--		addr = le16_to_cpu( *( (u16 *)&b[i] ) );
--		len  = le16_to_cpu( *( (u16 *)&b[i+2] ) );
-+		addr = le16_to_cpu(*((__le16 *)&b[i]));
-+		len  = le16_to_cpu(*((__le16 *)&b[i+2]));
- 		deb_info("firmware chunk, addr: 0x%04x, len: 0x%04x, total length: 0x%04zx\n",addr,len,fw->size);
- 		if ((ret = bcm3510_write_ram(st,addr,&b[i+4],len)) < 0) {
- 			err("firmware download failed: %d\n",ret);
--- 
-2.1.0.rc1
+drivers/media/usb/au0828/au0828.h:#define au0828_set(dev, reg, bit) au0828_andor(dev, (reg), (bit), (bit))
 
+Regards,
+Mauro
