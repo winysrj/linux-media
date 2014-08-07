@@ -1,57 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55295 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbaHJArh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH v2 03/18] [media] au0828: add au0828_rc_*() stubs for VIDEO_AU0828_RC disabled case
-Date: Sat,  9 Aug 2014 21:47:09 -0300
-Message-Id: <1407631644-11990-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-oa0-f50.google.com ([209.85.219.50]:47668 "EHLO
+	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932126AbaHGOZP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 10:25:15 -0400
+MIME-Version: 1.0
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Thu, 7 Aug 2014 16:24:59 +0200
+Message-ID: <CAL8zT=hs42xkjp9WYPf=baLjJURzhR9_v-icLX73_uxrqsuh8Q@mail.gmail.com>
+Subject: Multiple devices with same SMBus address
+To: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Jean-Michel Hautbois <jhautbois@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shuah Khan <shuah.kh@samsung.com>
+Hi,
 
-Define au0828_rc_*() stubs to avoid compile errors when
-VIDEO_AU0828_RC is disabled and avoid the need to enclose
-au0828_rc_*() in ifdef CONFIG_VIDEO_AU0828_RC in .c files.
+I have a custom board which has two LMH0303 SDI drivers on the same
+i2c bus. They are connected in some daisy chain form, like on the
+schematics in the datasheet on page 9 :
+http://www.ti.com/lit/ds/symlink/lmh0303.pdf
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/au0828/au0828.h | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+My problem is how to declare these devices in the DT in order to set
+the new adress of the first one when probed.
 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 96bec05d7dac..fd0916e20323 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -326,7 +326,14 @@ extern struct videobuf_queue_ops au0828_vbi_qops;
- 	} while (0)
- 
- /* au0828-input.c */
--int au0828_rc_register(struct au0828_dev *dev);
--void au0828_rc_unregister(struct au0828_dev *dev);
--int au0828_rc_suspend(struct au0828_dev *dev);
--int au0828_rc_resume(struct au0828_dev *dev);
-+#ifdef CONFIG_VIDEO_AU0828_RC
-+extern int au0828_rc_register(struct au0828_dev *dev);
-+extern void au0828_rc_unregister(struct au0828_dev *dev);
-+extern int au0828_rc_suspend(struct au0828_dev *dev);
-+extern int au0828_rc_resume(struct au0828_dev *dev);
-+#else
-+static inline int au0828_rc_register(struct au0828_dev *dev) { return 0; }
-+static inline void au0828_rc_unregister(struct au0828_dev *dev) { }
-+static inline int au0828_rc_suspend(struct au0828_dev *dev) { return 0; }
-+static inline int au0828_rc_resume(struct au0828_dev *dev) { return 0; }
-+#endif
--- 
-1.9.3
+I thought that something like that could do the trick but it seems crappy :
 
+lmh0303@17 {
+    new-addr = <0x16>;
+    rsti_n = <&gpio1_17>; /* GPIO signal connected to the RSTI signal
+of the first LMH0303 */
+};
+lmh0303@17 {
+    /* Nothing to do right now */
+};
+
+This is a draft thought :).
+
+Maybe would it also be possible do define a "super device" like this :
+lmh0303@17 {
+    lmh0303_1 {
+        new-addr = <0x16>;
+        rsti_n = <&gpio1_17>; /* GPIO signal connected to the RSTI
+signal of the first LMH0303 */
+    };
+    lmh0303_2 {
+    };
+};
+
+This would be something like the gpio-leds binding...
+But there is probably already a nice way to do that :-) ?
+
+Thanks for your advices !
+JM
