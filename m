@@ -1,136 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35676 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbaHVKkT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:40:19 -0400
-Message-ID: <53F71E10.6050007@iki.fi>
-Date: Fri, 22 Aug 2014 13:40:16 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 6/6] m88ds3103: change .set_voltage() implementation
-References: <1408667621-12072-1-git-send-email-crope@iki.fi> <201408221119057340205@gmail.com>
-In-Reply-To: <201408221119057340205@gmail.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:31160 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754471AbaHGOEr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 10:04:47 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N9X007BBWFYTX20@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 07 Aug 2014 10:04:46 -0400 (EDT)
+Date: Thu, 07 Aug 2014 11:04:42 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] au0828-input: Be sure that IR is enabled at polling
+Message-id: <20140807110442.353469bc.m.chehab@samsung.com>
+In-reply-to: <CAGoCfix4h+Fh7PsPnhbn1wWh4-nsdMe-hjJ2B_Wrba8+0G59vg@mail.gmail.com>
+References: <1407419190-10031-1-git-send-email-m.chehab@samsung.com>
+ <CAGoCfix4h+Fh7PsPnhbn1wWh4-nsdMe-hjJ2B_Wrba8+0G59vg@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-Sure I can change that flag from voltage_en to voltage_dis. Mostly I
-just wanted to get rid of those if () statements and bit operations when
-handling boolean type flags.
+Em Thu, 07 Aug 2014 10:00:31 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-regards
-Antti
+> On Thu, Aug 7, 2014 at 9:46 AM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+> > When the DVB code sets the frontend, it disables the IR
+> > INT, probably due to some hardware bug, as there's no code
+> > there at au8522 frontend that writes on register 0xe0.
+> >
+> > Fixing it at au8522 code is hard, as it doesn't know if the
+> > IR is enabled or disabled, and just restoring the value of
+> > register 0xe0 could cause other nasty effects. So, better
+> > to add a hack at au0828-input polling interval to enable int,
+> > if disabled.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > ---
+> >  drivers/media/usb/au0828/au0828-input.c | 12 ++++++++++--
+> >  1 file changed, 10 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+> > index 94d29c2a6fcf..b4475706dfd2 100644
+> > --- a/drivers/media/usb/au0828/au0828-input.c
+> > +++ b/drivers/media/usb/au0828/au0828-input.c
+> > @@ -94,14 +94,19 @@ static int au8522_rc_read(struct au0828_rc *ir, u16 reg, int val,
+> >  static int au8522_rc_andor(struct au0828_rc *ir, u16 reg, u8 mask, u8 value)
+> >  {
+> >         int rc;
+> > -       char buf;
+> > +       char buf, oldbuf;
+> >
+> >         rc = au8522_rc_read(ir, reg, -1, &buf, 1);
+> >         if (rc < 0)
+> >                 return rc;
+> >
+> > +       oldbuf = buf;
+> >         buf = (buf & ~mask) | (value & mask);
+> >
+> > +       /* Nothing to do, just return */
+> > +       if (buf == oldbuf)
+> > +               return 0;
+> > +
+> >         return au8522_rc_write(ir, reg, buf);
+> >  }
+> >
+> > @@ -127,8 +132,11 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
+> >
+> >         /* Check IR int */
+> >         rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
+> > -       if (rc < 0 || !(buf[0] & (1 << 4)))
+> > +       if (rc < 0 || !(buf[0] & (1 << 4))) {
+> > +               /* Be sure that IR is enabled */
+> > +               au8522_rc_set(ir, 0xe0, 1 << 4);
+> 
+> Shouldn't this be a call to au8522_rc_andor()  rather than au8522_rc_set()?
 
-On 08/22/2014 06:19 AM, Nibble Max wrote:
-> 
-> It is easier to understand for using "voltage_dis" to keep the same logic for voltage selection and off/on.
-> 
->> Add some error checking and implement functionality a little bit
->> differently.
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->> drivers/media/dvb-frontends/m88ds3103.c | 50 ++++++++++++++++++++++-----------
->> 1 file changed, 34 insertions(+), 16 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
->> index 238b04e..d8fbdfd 100644
->> --- a/drivers/media/dvb-frontends/m88ds3103.c
->> +++ b/drivers/media/dvb-frontends/m88ds3103.c
->> @@ -1038,36 +1038,54 @@ err:
->> }
->>
->> static int m88ds3103_set_voltage(struct dvb_frontend *fe,
->> -	fe_sec_voltage_t voltage)
->> +	fe_sec_voltage_t fe_sec_voltage)
->> {
->> 	struct m88ds3103_priv *priv = fe->demodulator_priv;
->> -	u8 data;
->> +	int ret;
->> +	u8 u8tmp;
->> +	bool voltage_sel, voltage_en;
-> bool voltage_sel, voltage_dis;
->>
->> -	m88ds3103_rd_reg(priv, 0xa2, &data);
->> +	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
->> +			fe_sec_voltage);
->>
->> -	data &= ~0x03; /* bit0 V/H, bit1 off/on */
->> -	if (priv->cfg->lnb_en_pol)
->> -		data |= 0x02;
->> +	if (!priv->warm) {
->> +		ret = -EAGAIN;
->> +		goto err;
->> +	}
->>
->> -	switch (voltage) {
->> +	switch (fe_sec_voltage) {
->> 	case SEC_VOLTAGE_18:
->> -		if (priv->cfg->lnb_hv_pol == 0)
->> -			data |= 0x01;
->> +		voltage_sel = 1;
->> +		voltage_en = 1;
-> voltage_dis = 0;
->> 		break;
->> 	case SEC_VOLTAGE_13:
->> -		if (priv->cfg->lnb_hv_pol)
->> -			data |= 0x01;
->> +		voltage_sel = 0;
->> +		voltage_en = 1;
-> voltage_dis = 0;
->> 		break;
->> 	case SEC_VOLTAGE_OFF:
->> -		if (priv->cfg->lnb_en_pol)
->> -			data &= ~0x02;
->> -		else
->> -			data |= 0x02;
->> +		voltage_sel = 0;
->> +		voltage_en = 0;
-> voltage_dis = 1;
->> 		break;
->> +	default:
->> +		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
->> +				__func__);
->> +		ret = -EINVAL;
->> +		goto err;
->> 	}
->> -	m88ds3103_wr_reg(priv, 0xa2, data);
->> +
->> +	/* output pin polarity */
->> +	voltage_sel ^= priv->cfg->lnb_hv_pol;
->> +	voltage_en ^= !priv->cfg->lnb_en_pol;
-> voltage_dis ^= priv->cfg->lnb_en_pol;
->> +
->> +	u8tmp = voltage_en << 1 | voltage_sel << 0;
-> u8tmp = voltage_dis << 1 | voltage_sel << 0;
->> +	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
->> +	if (ret)
->> +		goto err;
->>
->> 	return 0;
->> +err:
->> +	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
->> +	return ret;
->> }
->>
->> static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
->> -- 
->> http://palosaari.fi/
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Well, au8522_rc_set is defined as:
 
--- 
-http://palosaari.fi/
+	#define au8522_rc_set(ir, reg, bit) au8522_rc_andor(ir, (reg), (bit), (bit))
+
+Regards,
+Mauro
