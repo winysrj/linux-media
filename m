@@ -1,139 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2916 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbaHDV14 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 17:27:56 -0400
-Message-ID: <53DFFABC.9000800@xs4all.nl>
-Date: Mon, 04 Aug 2014 23:27:24 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ian Molton <ian.molton@codethink.co.uk>,
-	linux-media@vger.kernel.org
-CC: linux-kernel@lists.codethink.co.uk, g.liakhovetski@gmx.de,
-	m.chehab@samsung.com, vladimir.barinov@cogentembedded.com,
-	magnus.damm@gmail.com, horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 3/4] media: rcar_vin: Fix race condition terminating stream
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk> <1404812474-7627-4-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404812474-7627-4-git-send-email-ian.molton@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:50466 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757223AbaHGNau (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 09:30:50 -0400
+Received: by mail-pd0-f173.google.com with SMTP id w10so5227212pde.18
+        for <linux-media@vger.kernel.org>; Thu, 07 Aug 2014 06:30:49 -0700 (PDT)
+Date: Thu, 7 Aug 2014 21:30:10 +0800
+From: "nibble.max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201408061227374212345@gmail.com>,
+ <201408071731141714723@gmail.com>
+Subject: Re: Re: [PATCH 1/4] support for DVBSky dvb-s2 usb: add some config andset_voltagefor m88ds3103
+Message-ID: <201408072130010930397@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/08/2014 11:41 AM, Ian Molton wrote:
-> This patch fixes a race condition whereby a frame being captured may generate an
->  interrupt between requesting capture to halt and freeing buffers.
-> 
-> This condition is exposed by the earlier patch that explicitly calls
-> vb2_buffer_done() during stop streaming.
-> 
-> The solution is to wait for capture to finish prior to finalising these buffers.
-> 
-> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c | 43 ++++++++++++++++++----------
->  1 file changed, 28 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 06ce705..aeda4e2 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -455,6 +455,29 @@ error:
->  	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
->  }
->  
-> +/*
-> + * Wait for capture to stop and all in-flight buffers to be finished with by
-> + * the video hardware. This must be called under &priv->lock
-> + *
-> + */
-> +static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
-> +{
-> +	while (priv->state != STOPPED) {
-> +
-> +		/* issue stop if running */
-> +		if (priv->state == RUNNING)
-> +			rcar_vin_request_capture_stop(priv);
-> +
-> +		/* wait until capturing has been stopped */
-> +		if (priv->state == STOPPING) {
-> +			priv->request_to_stop = true;
-> +			spin_unlock_irq(&priv->lock);
-> +			wait_for_completion(&priv->capture_stop);
-> +			spin_lock_irq(&priv->lock);
-> +		}
-> +	}
-> +}
-> +
->  static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
->  {
->  	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-> @@ -462,7 +485,6 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
->  	struct rcar_vin_priv *priv = ici->priv;
->  	unsigned int i;
->  	int buf_in_use = 0;
-> -
->  	spin_lock_irq(&priv->lock);
->  
->  	/* Is the buffer in use by the VIN hardware? */
-> @@ -474,20 +496,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
->  	}
->  
->  	if (buf_in_use) {
-> -		while (priv->state != STOPPED) {
-> -
-> -			/* issue stop if running */
-> -			if (priv->state == RUNNING)
-> -				rcar_vin_request_capture_stop(priv);
-> -
-> -			/* wait until capturing has been stopped */
-> -			if (priv->state == STOPPING) {
-> -				priv->request_to_stop = true;
-> -				spin_unlock_irq(&priv->lock);
-> -				wait_for_completion(&priv->capture_stop);
-> -				spin_lock_irq(&priv->lock);
-> -			}
-> -		}
-> +		rcar_vin_wait_stop_streaming(priv);
-> +
 
-Why on earth would videobuf_release call stop_streaming()?
-
-You start streaming in the start_streaming op, not in the buf_queue op. If you
-need a certain minimum of buffers before start_streaming can be called, then just
-set min_buffers_needed in struct vb2_queue.
-
-And stop streaming happens in stop_streaming. The various vb2 queue ops should just
-do what the op name says. That way everything works nicely together and it makes
-your driver much easier to understand.
-
-Sorry I am late in reviewing this, but I only now stumbled on these patches.
-
-Regards,
-
-	Hans
-
->  		/*
->  		 * Capturing has now stopped. The buffer we have been asked
->  		 * to release could be any of the current buffers in use, so
-> @@ -517,12 +527,15 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
->  
->  	spin_lock_irq(&priv->lock);
->  
-> +	rcar_vin_wait_stop_streaming(priv);
-> +
->  	for (i = 0; i < vq->num_buffers; ++i)
->  		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
->  			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
->  
->  	list_for_each_safe(buf_head, tmp, &priv->capture)
->  		list_del_init(buf_head);
-> +
->  	spin_unlock_irq(&priv->lock);
->  }
->  
-> 
-
-
+>Moikka!
+>
+>On 08/07/2014 12:31 PM, nibble.max wrote:
+>>>> @@ -523,6 +508,17 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>>>>    
+>>>>    	priv->delivery_system = c->delivery_system;
+>>>>    
+>>>> +	if (priv->cfg->start_ctrl) {
+>>>> +		for (len = 0; len < 30 ; len++) {
+>>>> +			m88ds3103_read_status(fe, &status);
+>>>> +			if (status & FE_HAS_LOCK) {
+>>>> +				priv->cfg->start_ctrl(fe);
+>>>> +				break;
+>>>> +			}
+>>>> +			msleep(20);
+>>>> +		}
+>>>> +	}
+>>>> +
+>>>
+>>> What is idea of that start_ctrl logic? It looks ugly. Why it is needed?
+>>> What is wrong with default DVB-core implementation? You should not need
+>>> to poll demod lock here and then call streaming control callback from
+>>> USB driver. If you implement .streaming_ctrl() callback to DVB USB
+>>> driver, it is called automatically for you.
+>> It is nothing with streaming_ctrl of DVB USB driver.
+>> It relates with the hardware chip problem.
+>> The m88ds3103 will not output ts clock when it powers up at the first time.
+>> It starts to output ts clock as soon as it locks the signal.
+>> But the slave fifo of Cypress usb chip really need this clock to work.
+>> If there is no this clock, the salve fifo will stop.
+>> start_ctrl logic is used to restart the salve fifo when the ts clock is valid.
+>
+>OK. Then we have to find out some solution... Is there anyone who has a
+>nice idea how to signal USB interface driver when demod gains a lock?
+>Sure USB driver could poll read_status() too, but it does not sound good
+>solution neither.
+>
+>How about overriding FE .read_status() callback. It is called all the
+>time by DVB-core when frontend is open. Hook .read_status() to USB
+>interface driver, then call original .read_status() (implemented by
+>m88ds3103 driver), and after each call check if status is LOCKED or NOT
+>LOCKED. When status changes from NOT LOCKED to LOCKED call that board
+>specific routine which restarts TS FIFO. No change for demod driver
+>needed at all.
+>
+It sounds a good idea.
+Try to remove start_ctrl() and set_voltage() callback from demod driver
+and send the patch for m88ds3103 later.
+>regards
+>Antto
+>
+>-- 
+>http://palosaari.fi/
 
