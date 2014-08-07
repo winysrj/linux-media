@@ -1,55 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60618 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbaHTNmP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:42:15 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v5 0/4] LED / flash API integration - LED Flash Class
-Date: Wed, 20 Aug 2014 15:41:54 +0200
-Message-id: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3531 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754499AbaHGGvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 02:51:32 -0400
+Message-ID: <53E321E5.7080601@xs4all.nl>
+Date: Thu, 07 Aug 2014 08:51:17 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] v4l: Event documentation fixes
+References: <53E1CEA2.3080503@xs4all.nl> <1407307928-13652-1-git-send-email-sakari.ailus@linux.intel.com> <53E321A8.9070304@xs4all.nl>
+In-Reply-To: <53E321A8.9070304@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is the follow-up of the LED / flash API integration
-series [1]. For clarity reasons the patchset has been split into
-five subsets:
+On 08/07/2014 08:50 AM, Hans Verkuil wrote:
+> On 08/06/2014 08:52 AM, Sakari Ailus wrote:
+>> Constify event type constants and correct motion detection event number
+>> (it's 6, not 5).
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-- LED Flash Class
-- Flash Manager
-- V4L2 Flash
-- LED Flash Class drivers
-- Documentation
+Hmm, I did that already. Oh well, you can never have too many acks :-)
 
-The series is based on linux-next-20140820.
-
-Thanks,
-Jacek Anaszewski
-
-[1] https://lkml.org/lkml/2014/7/11/914
-
-Jacek Anaszewski (4):
-  leds: Improve and export led_update_brightness
-  leds: implement sysfs interface locking mechanism
-  leds: add API for setting torch brightness
-  leds: Add LED Flash Class wrapper to LED subsystem
-
- drivers/leds/Kconfig            |   11 +
- drivers/leds/Makefile           |    1 +
- drivers/leds/led-class-flash.c  |  645 +++++++++++++++++++++++++++++++++++++++
- drivers/leds/led-class.c        |   40 ++-
- drivers/leds/led-core.c         |   48 +++
- drivers/leds/led-triggers.c     |   20 +-
- include/linux/led-class-flash.h |  273 +++++++++++++++++
- include/linux/leds.h            |   66 ++++
- 8 files changed, 1091 insertions(+), 13 deletions(-)
- create mode 100644 drivers/leds/led-class-flash.c
- create mode 100644 include/linux/led-class-flash.h
-
--- 
-1.7.9.5
+> 
+>> ---
+>> Thanks for the review, Hans!
+>>
+>> Since v1:
+>>
+>> - No line breaks between <constant> and </constant>. No other changes.
+>>
+>>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml         | 7 ++++---
+>>  Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
+>>  2 files changed, 5 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> index cb77325..b036f89 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> @@ -76,21 +76,22 @@
+>>  	    <entry></entry>
+>>  	    <entry>&v4l2-event-vsync;</entry>
+>>              <entry><structfield>vsync</structfield></entry>
+>> -	    <entry>Event data for event V4L2_EVENT_VSYNC.
+>> +	    <entry>Event data for event <constant>V4L2_EVENT_VSYNC</constant>.
+>>              </entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>>  	    <entry>&v4l2-event-ctrl;</entry>
+>>              <entry><structfield>ctrl</structfield></entry>
+>> -	    <entry>Event data for event V4L2_EVENT_CTRL.
+>> +	    <entry>Event data for event <constant>V4L2_EVENT_CTRL</constant>.
+>>              </entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>>  	    <entry>&v4l2-event-frame-sync;</entry>
+>>              <entry><structfield>frame_sync</structfield></entry>
+>> -	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
+>> +	    <entry>Event data for event
+>> +	    <constant>V4L2_EVENT_FRAME_SYNC</constant>.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> index 9f60956..d7c9365 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> @@ -176,7 +176,7 @@
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
+>> -	    <entry>5</entry>
+>> +	    <entry>6</entry>
+>>  	    <entry>
+>>  	      <para>Triggered whenever the motion detection state for one or more of the regions
+>>  	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
