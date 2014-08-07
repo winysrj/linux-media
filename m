@@ -1,28 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.balikpapan.go.id ([203.130.240.43]:51683 "EHLO
-	mail.balikpapan.go.id" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaHYJdJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 05:33:09 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Account Upgrades
-To: Recipients <pariwisata@balikpapan.go.id>
-From: "Admin Helpdesk" <pariwisata@balikpapan.go.id>
-Date: Mon, 25 Aug 2014 14:54:05 +0530
-Reply-To: noreply@webadministration.org
-Message-Id: <20140825092409.DD121A8575A@mail.balikpapan.go.id>
+Received: from bombadil.infradead.org ([198.137.202.9]:35400 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932358AbaHGQKe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 12:10:34 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/3] au0828: Enable IR for HVR-850.
+Date: Thu,  7 Aug 2014 13:10:26 -0300
+Message-Id: <1407427826-12886-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407427826-12886-1-git-send-email-m.chehab@samsung.com>
+References: <1407427826-12886-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This Message is From Helpdesk. Due to our latest IP Security upgrades we have reason to
-believe that your webmail account was accessed by a third party. Protecting the security
-of your webmail account is our primary concern, we have limited access to sensitive
-webmail account features. Failure to revalidates your webmail account will be blocked in 24
-hours. To Confirm Your webmail account click on the link below:
-http://mailsmaintenanceteam.webs.com/
+HVR-850 also has a remote. Enable it.
 
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-cards.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Admin Help Desk
+diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+index 2c6b7da137ed..b6c9d1f466bd 100644
+--- a/drivers/media/usb/au0828/au0828-cards.c
++++ b/drivers/media/usb/au0828/au0828-cards.c
+@@ -46,6 +46,7 @@ struct au0828_board au0828_boards[] = {
+ 		.name	= "Hauppauge HVR850",
+ 		.tuner_type = TUNER_XC5000,
+ 		.tuner_addr = 0x61,
++		.has_ir_i2c = 1,
+ 		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+ 		.input = {
+ 			{
+-- 
+1.9.3
+
