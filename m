@@ -1,48 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.unf.edu.ar ([170.210.232.249]:55136 "EHLO pak.unf.edu.ar"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752578AbaHNQgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 12:36:38 -0400
-Message-ID: <f50ec0af6553dde61e685b1e8d365ae1.squirrel@webmail.unf.edu.ar>
-Date: Thu, 14 Aug 2014 13:31:14 -0300
-Subject: NOTICE
-From: "Head Quarter Western Union and Money Gram Transfer" <info@wu.org>
-Reply-To: wu_headquarter@outlook.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:49208 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757254AbaHGNqj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 09:46:39 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] au0828-input: Be sure that IR is enabled at polling
+Date: Thu,  7 Aug 2014 10:46:30 -0300
+Message-Id: <1407419190-10031-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Top of the day to you all from the Head Quarter Western Union and Money
-Gram Transfer.
+When the DVB code sets the frontend, it disables the IR
+INT, probably due to some hardware bug, as there's no code
+there at au8522 frontend that writes on register 0xe0.
 
-Dear User
+Fixing it at au8522 code is hard, as it doesn't know if the
+IR is enabled or disabled, and just restoring the value of
+register 0xe0 could cause other nasty effects. So, better
+to add a hack at au0828-input polling interval to enable int,
+if disabled.
 
-This is to inform all our users that the high rate of scam has been coming
-so much and we are receive complains from beach Transfer office that our
-customer has been send money to differed country as a result of scam. So
-we have decided to upgrade our system for security reasons.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-input.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Dear customer for security reason if any payment is been made via Western
-Union or MoneyGram you are been advise to send us the scan copy of the
-payment slip and the information of the payment for verification.
-
-For Western Union or MoneyGarm verification:
-
-Name of sender:
-Name of Receiver:
-Address of sender:
-Address of Receiver:
-Amount sent:
-MTCN (Money Transfer Control Number) OR Reference number:
-Country from which payment was made:
-Country from which payment is about to be receive:
-Test question and answer if any required:
-
-Once this informations are receive verification take place and we will get
-back to you as soon as the payment is been verified.
-
-Thanks for your understanding and we look forward to serve you better.
+diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+index 94d29c2a6fcf..b4475706dfd2 100644
+--- a/drivers/media/usb/au0828/au0828-input.c
++++ b/drivers/media/usb/au0828/au0828-input.c
+@@ -94,14 +94,19 @@ static int au8522_rc_read(struct au0828_rc *ir, u16 reg, int val,
+ static int au8522_rc_andor(struct au0828_rc *ir, u16 reg, u8 mask, u8 value)
+ {
+ 	int rc;
+-	char buf;
++	char buf, oldbuf;
+ 
+ 	rc = au8522_rc_read(ir, reg, -1, &buf, 1);
+ 	if (rc < 0)
+ 		return rc;
+ 
++	oldbuf = buf;
+ 	buf = (buf & ~mask) | (value & mask);
+ 
++	/* Nothing to do, just return */
++	if (buf == oldbuf)
++		return 0;
++
+ 	return au8522_rc_write(ir, reg, buf);
+ }
+ 
+@@ -127,8 +132,11 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
+ 
+ 	/* Check IR int */
+ 	rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
+-	if (rc < 0 || !(buf[0] & (1 << 4)))
++	if (rc < 0 || !(buf[0] & (1 << 4))) {
++		/* Be sure that IR is enabled */
++	        au8522_rc_set(ir, 0xe0, 1 << 4);
+ 		return 0;
++	}
+ 
+ 	/* Something arrived. Get the data */
+ 	rc = au8522_rc_read(ir, 0xe3, 0x11, buf, sizeof(buf));
+-- 
+1.9.3
 
