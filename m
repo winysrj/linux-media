@@ -1,143 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55264 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759AbaHJArl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:41 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 15/18] [media] au0828: move the code that sets DTV on a separate function
-Date: Sat,  9 Aug 2014 21:47:21 -0300
-Message-Id: <1407631644-11990-16-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:36248 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756187AbaHHLGf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 07:06:35 -0400
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] dma-buf/fence: Fix one more kerneldoc warning
+Date: Fri,  8 Aug 2014 13:06:30 +0200
+Message-Id: <1407495990-19475-1-git-send-email-thierry.reding@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we'll be adding a code to resume tuner operation, we
-need to move the code that actually sets DTV on a separate
-function, to be called by the resume code.
+From: Thierry Reding <treding@nvidia.com>
 
-No functional changes, just code got moved.
+The seqno_fence_init() function's cond argument isn't described in the
+kerneldoc comment. Fix that to silence a warning when building DocBook
+documentation.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/media/tuners/xc5000.c | 79 ++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 34 deletions(-)
+ include/linux/seqno-fence.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index af137046bfe5..3293fd8df59b 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -59,6 +59,7 @@ struct xc5000_priv {
- 	u32 freq_hz, freq_offset;
- 	u32 bandwidth;
- 	u8  video_standard;
-+	unsigned int mode;
- 	u8  rf_mode;
- 	u8  radio_input;
- 
-@@ -712,9 +713,50 @@ static void xc_debug_dump(struct xc5000_priv *priv)
- 	}
- }
- 
-+static int xc5000_tune_digital(struct dvb_frontend *fe)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret;
-+	u32 bw = fe->dtv_property_cache.bandwidth_hz;
-+
-+	ret = xc_set_signal_source(priv, priv->rf_mode);
-+	if (ret != 0) {
-+		printk(KERN_ERR
-+			"xc5000: xc_set_signal_source(%d) failed\n",
-+			priv->rf_mode);
-+		return -EREMOTEIO;
-+	}
-+
-+	ret = xc_set_tv_standard(priv,
-+		xc5000_standard[priv->video_standard].video_mode,
-+		xc5000_standard[priv->video_standard].audio_mode, 0);
-+	if (ret != 0) {
-+		printk(KERN_ERR "xc5000: xc_set_tv_standard failed\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	ret = xc_set_IF_frequency(priv, priv->if_khz);
-+	if (ret != 0) {
-+		printk(KERN_ERR "xc5000: xc_Set_IF_frequency(%d) failed\n",
-+		       priv->if_khz);
-+		return -EIO;
-+	}
-+
-+	xc_write_reg(priv, XREG_OUTPUT_AMP, 0x8a);
-+
-+	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_DIGITAL);
-+
-+	if (debug)
-+		xc_debug_dump(priv);
-+
-+	priv->bandwidth = bw;
-+
-+	return 0;
-+}
-+
- static int xc5000_set_params(struct dvb_frontend *fe)
- {
--	int ret, b;
-+	int b;
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	u32 bw = fe->dtv_property_cache.bandwidth_hz;
- 	u32 freq = fe->dtv_property_cache.frequency;
-@@ -794,43 +836,12 @@ static int xc5000_set_params(struct dvb_frontend *fe)
- 	}
- 
- 	priv->freq_hz = freq - priv->freq_offset;
-+	priv->mode = V4L2_TUNER_DIGITAL_TV;
- 
- 	dprintk(1, "%s() frequency=%d (compensated to %d)\n",
- 		__func__, freq, priv->freq_hz);
- 
--	ret = xc_set_signal_source(priv, priv->rf_mode);
--	if (ret != 0) {
--		printk(KERN_ERR
--			"xc5000: xc_set_signal_source(%d) failed\n",
--			priv->rf_mode);
--		return -EREMOTEIO;
--	}
--
--	ret = xc_set_tv_standard(priv,
--		xc5000_standard[priv->video_standard].video_mode,
--		xc5000_standard[priv->video_standard].audio_mode, 0);
--	if (ret != 0) {
--		printk(KERN_ERR "xc5000: xc_set_tv_standard failed\n");
--		return -EREMOTEIO;
--	}
--
--	ret = xc_set_IF_frequency(priv, priv->if_khz);
--	if (ret != 0) {
--		printk(KERN_ERR "xc5000: xc_Set_IF_frequency(%d) failed\n",
--		       priv->if_khz);
--		return -EIO;
--	}
--
--	xc_write_reg(priv, XREG_OUTPUT_AMP, 0x8a);
--
--	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_DIGITAL);
--
--	if (debug)
--		xc_debug_dump(priv);
--
--	priv->bandwidth = bw;
--
--	return 0;
-+	return xc5000_tune_digital(fe);
- }
- 
- static int xc5000_is_firmware_loaded(struct dvb_frontend *fe)
+diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
+index 3d6003de4b0d..a1ba6a5ccdd6 100644
+--- a/include/linux/seqno-fence.h
++++ b/include/linux/seqno-fence.h
+@@ -62,6 +62,7 @@ to_seqno_fence(struct fence *fence)
+  * @context: the execution context this fence is a part of
+  * @seqno_ofs: the offset within @sync_buf
+  * @seqno: the sequence # to signal on
++ * @cond: fence wait condition
+  * @ops: the fence_ops for operations on this seqno fence
+  *
+  * This function initializes a struct seqno_fence with passed parameters,
 -- 
-1.9.3
+2.0.4
 
