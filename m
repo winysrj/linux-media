@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:63945 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750896AbaHDEHj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 00:07:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-Date: Mon, 4 Aug 2014 14:07:37 +1000
-Message-ID: <CAPM=9tzyJmisCMqUtfkyDJ1vPaSypb--_Rbeim-qRRSDJNmZag@mail.gmail.com>
-Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
-From: Dave Airlie <airlied@gmail.com>
-To: Nicholas Krause <xerofoify@gmail.com>
-Cc: udovdh@xs4all.nl,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:56090 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756251AbaHHKmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 06:42:38 -0400
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] dma-buf/fence: Fix a kerneldoc warning
+Date: Fri,  8 Aug 2014 12:42:32 +0200
+Message-Id: <1407494552-18147-1-git-send-email-thierry.reding@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4 August 2014 13:25, Nicholas Krause <xerofoify@gmail.com> wrote:
-> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
-> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
->
+From: Thierry Reding <treding@nvidia.com>
 
-Please go back and read every mail sent to you in the last few weeks.
-then read them again, go nuts read them again.
+kerneldoc doesn't know how to parse variables, so don't let it try.
 
-Still wondering where I'm going with this? read them again.
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/dma-buf/fence.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-then understand that I mean this in the nicest way possible. "please fuck off."
+diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
+index 4222cb2aa96a..7bb9d65d9a2c 100644
+--- a/drivers/dma-buf/fence.c
++++ b/drivers/dma-buf/fence.c
+@@ -29,7 +29,7 @@
+ EXPORT_TRACEPOINT_SYMBOL(fence_annotate_wait_on);
+ EXPORT_TRACEPOINT_SYMBOL(fence_emit);
+ 
+-/**
++/*
+  * fence context counter: each execution context should have its own
+  * fence context, this allows checking if fences belong to the same
+  * context or not. One device can have multiple separate contexts,
+-- 
+2.0.4
 
-you are wasting developers time.
-
-Dave.
