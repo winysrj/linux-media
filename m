@@ -1,95 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1207 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751352AbaHDJTQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 05:19:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.17 2/2] DocBook media: update version number and V4L2 changes
-Date: Mon,  4 Aug 2014 11:19:03 +0200
-Message-Id: <1407143943-4557-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407143943-4557-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407143943-4557-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:35381 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756332AbaHHPTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 11:19:24 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH trivial 2/4] [media] cx23885: Spelling s/compuations/computations/
+Date: Fri,  8 Aug 2014 17:19:13 +0200
+Message-Id: <1407511155-5264-2-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1407511155-5264-1-git-send-email-geert@linux-m68k.org>
+References: <1407511155-5264-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Note: the revision text for the v4l2_pix_format change from Laurent
-erroneously mentioned 3.16 when it only got merged for 3.17. Fixed
-that as well.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
 ---
- Documentation/DocBook/media/v4l/compat.xml | 24 ++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml   | 11 ++++++-----
- 2 files changed, 30 insertions(+), 5 deletions(-)
+ drivers/media/pci/cx23885/cx23888-ir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index eee6f0f..3a626d1 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2545,6 +2545,30 @@ fields changed from _s32 to _u32.
-       </orderedlist>
-     </section>
+diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
+index 2c951dec2d33..c2ff5fc01157 100644
+--- a/drivers/media/pci/cx23885/cx23888-ir.c
++++ b/drivers/media/pci/cx23885/cx23888-ir.c
+@@ -263,7 +263,7 @@ static inline unsigned int lpf_count_to_us(unsigned int count)
+ }
  
-+    <section>
-+      <title>V4L2 in Linux 3.16</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added event V4L2_EVENT_SOURCE_CHANGE.
-+	  </para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-+    <section>
-+      <title>V4L2 in Linux 3.17</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Extended &v4l2-pix-format;. Added format flags.
-+	  </para>
-+        </listitem>
-+        <listitem>
-+	  <para>Added compound control types and &VIDIOC-QUERY-EXT-CTRL;.
-+	  </para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index f2f81f0..7cfe618 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -152,10 +152,11 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
--	<revnumber>3.16</revnumber>
--	<date>2014-05-27</date>
--	<authorinitials>lp</authorinitials>
--	<revremark>Extended &v4l2-pix-format;. Added format flags.
-+	<revnumber>3.17</revnumber>
-+	<date>2014-08-04</date>
-+	<authorinitials>lp, hv</authorinitials>
-+	<revremark>Extended &v4l2-pix-format;. Added format flags. Added compound control types
-+and VIDIOC_QUERY_EXT_CTRL.
- 	</revremark>
-       </revision>
- 
-@@ -538,7 +539,7 @@ and discussions on the V4L mailing list.</revremark>
- </partinfo>
- 
- <title>Video for Linux Two API Specification</title>
-- <subtitle>Revision 3.14</subtitle>
-+ <subtitle>Revision 3.17</subtitle>
- 
-   <chapter id="common">
-     &sub-common;
+ /*
+- * FIFO register pulse width count compuations
++ * FIFO register pulse width count computations
+  */
+ static u32 clock_divider_to_resolution(u16 divider)
+ {
 -- 
-2.0.1
+1.9.1
 
