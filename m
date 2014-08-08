@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58876 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233AbaHPAIA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 20:08:00 -0400
-Message-ID: <53EEA0DF.6090903@infradead.org>
-Date: Fri, 15 Aug 2014 17:07:59 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: Re: [linuxtv-media:devel 498/499] av7110.c:undefined reference to
- `av7110_ir_exit'
-References: <53ee83cb.H8pPJAwEaBRBZftj%fengguang.wu@intel.com>
-In-Reply-To: <53ee83cb.H8pPJAwEaBRBZftj%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:8255 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831AbaHHGnR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 02:43:17 -0400
+Message-id: <53E47186.5000309@samsung.com>
+Date: Fri, 08 Aug 2014 08:43:18 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Bryan Wu <cooloney@gmail.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com
+Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <CAK5ve-L67=q-EpWvxD5-x+cFT7dh8p0HHuoUbAWA-j5BqCO52A@mail.gmail.com>
+ <CAK5ve-+xyXyjPqejTPRvz=bJ4M5v19Uq1oaVv94QKqBWf1D4dA@mail.gmail.com>
+In-reply-to: <CAK5ve-+xyXyjPqejTPRvz=bJ4M5v19Uq1oaVv94QKqBWf1D4dA@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/14 15:03, kbuild test robot wrote:
-> tree:   git://linuxtv.org/media_tree.git devel
-> head:   f1d2fd677f61bf4d649098317497db11a958a021
-> commit: 277c0ffaea64c71c39f03b9ee6818de600c38fc3 [498/499] [media] media: ttpci: build av7110_ir.c only when allowed by CONFIG_INPUT_EVDEV
-> config: x86_64-randconfig-s1-08160530 (attached as .config)
+Hi Bryan,
 
-Argh, thanks, fix is on the way.
+On 07/16/2014 07:21 PM, Bryan Wu wrote:
+> On Wed, Jul 16, 2014 at 10:19 AM, Bryan Wu <cooloney@gmail.com> wrote:
+>> On Fri, Jul 11, 2014 at 7:04 AM, Jacek Anaszewski
+>> <j.anaszewski@samsung.com> wrote:
+>>> This is is the fourth version of the patch series being a follow up
+>>> of the discussion on Media summit 2013-10-23, related to the
+>>> LED / flash API integration (the notes from the discussion were
+>>> enclosed in the message [1], paragraph 5).
+>>> The series is based on linux-next-20140707
+>>>
+>>
+>> I really apologize that I missed your discussion email in my Gmail
+>> inbox, it was archived some where. Even in this series some of these
+>> patches are archived in different tab.
+>>
+>> I will start to review and help to push this.
+>>
+>
+> In the mean time, could you please provide an git tree for me to pull?
+> It's much easier for me to review in my git.
 
+Few days ago I sent to your private email the path to the git
+repository to pull, but I am resending it through the lists to
+make sure that it will not get filtered somehow again.
 
-> All error/warnings:
-> 
->    drivers/built-in.o: In function `av7110_detach':
->>> av7110.c:(.text+0x228d4a): undefined reference to `av7110_ir_exit'
->    drivers/built-in.o: In function `arm_thread':
->>> av7110.c:(.text+0x22a404): undefined reference to `av7110_check_ir_config'
->>> av7110.c:(.text+0x22a626): undefined reference to `av7110_check_ir_config'
->    drivers/built-in.o: In function `av7110_attach':
->>> av7110.c:(.text+0x22b08c): undefined reference to `av7110_ir_init'
-> 
-> ---
-> 0-DAY kernel build testing backend              Open Source Technology Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> 
+git://linuxtv.org/snawrocki/samsung.git
+branch: led_flash_integration_v4
 
+gitweb:
+http://git.linuxtv.org/cgit.cgi/snawrocki/samsung.git/log/?h=led_flash_integration_v4
 
--- 
-~Randy
+Best Regards,
+Jacek Anaszewski
