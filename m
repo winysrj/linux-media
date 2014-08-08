@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:36619 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaHWQnH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 12:43:07 -0400
-Received: by mail-we0-f177.google.com with SMTP id w62so11750471wes.36
-        for <linux-media@vger.kernel.org>; Sat, 23 Aug 2014 09:43:06 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Gregor Jasny <gjasny@googlemail.com>
-Subject: [PATCH 3/5] libdvbv5: Hide unused and unexposed cnr_to_qual_s tables
-Date: Sat, 23 Aug 2014 18:42:41 +0200
-Message-Id: <1408812163-18309-4-git-send-email-gjasny@googlemail.com>
-In-Reply-To: <1408812163-18309-1-git-send-email-gjasny@googlemail.com>
-References: <1408812163-18309-1-git-send-email-gjasny@googlemail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1706 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751464AbaHHHiX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 03:38:23 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s787cJGb040587
+	for <linux-media@vger.kernel.org>; Fri, 8 Aug 2014 09:38:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1748A2A2651
+	for <linux-media@vger.kernel.org>; Fri,  8 Aug 2014 09:38:10 +0200 (CEST)
+Message-ID: <53E47E61.1060007@xs4all.nl>
+Date: Fri, 08 Aug 2014 09:38:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media: fix order of v4l2_edid fields
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
----
- lib/libdvbv5/dvb-fe.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The order of the last two fields in the G/S_EDID specification was swapped from
+what is in the actual struct. Fix this.
 
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 013edd6..6471f68 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -944,7 +944,7 @@ struct cnr_to_qual_s dvb_s2_cnr_2_qual[] = {
-  * Minimum values from ARIB STD-B21 for DVB_QUAL_OK.
-  * As ARIB doesn't define a max value, assume +2dB for DVB_QUAL_GOOD
-  */
--struct cnr_to_qual_s isdb_t_cnr_2_qual[] = {
-+static struct cnr_to_qual_s isdb_t_cnr_2_qual[] = {
- 	{  DQPSK, FEC_1_2,  6.2,  8.2},
- 	{  DQPSK, FEC_2_3,  7.7,  9.7},
- 	{  DQPSK, FEC_3_4,  8.7, 10.7},
-@@ -974,7 +974,7 @@ struct cnr_to_qual_s isdb_t_cnr_2_qual[] = {
-  * Values obtained from table A.1 of ETSI EN 300 744 v1.6.1
-  * OK corresponds to Ricean fading; Good to Rayleigh fading
-  */
--struct cnr_to_qual_s dvb_t_cnr_2_qual[] = {
-+static struct cnr_to_qual_s dvb_t_cnr_2_qual[] = {
- 	{   QPSK, FEC_1_2,  4.1,  5.9},
- 	{   QPSK, FEC_2_3,  6.1,  9.6},
- 	{   QPSK, FEC_3_4,  7.2, 12.4},
--- 
-2.1.0
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+index ce4563b..fa91651 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+@@ -125,17 +125,17 @@
+ 	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry>__u8&nbsp;*</entry>
+-	    <entry><structfield>edid</structfield></entry>
+-	    <entry>Pointer to memory that contains the EDID. The minimum size is
+-	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
+-	  </row>
+-	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield>[5]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
++	  <row>
++	    <entry>__u8&nbsp;*</entry>
++	    <entry><structfield>edid</structfield></entry>
++	    <entry>Pointer to memory that contains the EDID. The minimum size is
++	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
