@@ -1,21 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vm-emlprdomg-09.its.yale.edu ([130.132.50.188]:36693 "EHLO
-	vm-emlprdomg-09.its.yale.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751201AbaHOOuf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 10:50:35 -0400
-Message-Id: <201408150835.s7F8T2qv015878@vm-emlprdomg-09.its.yale.edu>
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Philanthropic Donation To Your Email In Honor Of My Late Wife Who Died Of
- Cancer
-To: You <tom.crist@yale.edu>
-From: "Tom Crist Fund" <tom.crist@yale.edu>
-Date: Fri, 15 Aug 2014 01:38:38 -0700
-Reply-To: tom.crist.awards@rogers.com
+Received: from mta-out1.inet.fi ([62.71.2.195]:60438 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751193AbaHHHQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Aug 2014 03:16:49 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 4/4] cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
+Date: Fri,  8 Aug 2014 10:06:38 +0300
+Message-Id: <1407481598-24598-4-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
+References: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am Tom Crist retired CEO of EECOL Electric and winner of Forty Million Dollars in the Calgary Lotto and I ve made a donation to your email. Contact me with name, address, age, phone number and occupation via private email. View link for more info; http://www.cbc.ca/video/news/audioplayer.html?clipid=2424885304
+Read MAC address from the EEPROM.
+
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/cxusb.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index c3a44c7..6abfd6b 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -673,6 +673,41 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+ 	{ 0x0025, KEY_POWER },
+ };
+ 
++static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
++{
++	u8 wbuf[2];
++	u8 rbuf[6];
++	int ret;
++	struct i2c_msg msg[] = {
++		{
++			.addr = 0x51,
++			.flags = 0,
++			.buf = wbuf,
++			.len = 2,
++		}, {
++			.addr = 0x51,
++			.flags = I2C_M_RD,
++			.buf = rbuf,
++			.len = 6,
++		}
++	};
++
++	wbuf[0] = 0x1e;
++	wbuf[1] = 0x00;
++	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
++
++	if (ret == 2) {
++		memcpy(mac, rbuf, 6);
++		return 0;
++	} else {
++		if (ret < 0)
++			return ret;
++		else
++			return -EIO;
++		}
++	}
++}
++
+ static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
+ 					u8 data, int *mem)
+ {
+@@ -2315,6 +2350,8 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+ 	.size_of_priv     = sizeof(struct cxusb_state),
+ 
+ 	.num_adapters = 1,
++	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
++
+ 	.adapter = {
+ 		{
+ 		.num_frontends = 1,
+-- 
+1.9.1
+
