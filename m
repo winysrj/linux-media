@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52236 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755933AbaHERAm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:42 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 06/15] [media] coda: dequeue buffers on streamoff
-Date: Tue,  5 Aug 2014 19:00:11 +0200
-Message-Id: <1407258020-12078-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
-References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:58410 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752570AbaHHQ7r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 12:59:47 -0400
+MIME-Version: 1.0
+In-Reply-To: <53E47186.5000309@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <CAK5ve-L67=q-EpWvxD5-x+cFT7dh8p0HHuoUbAWA-j5BqCO52A@mail.gmail.com>
+ <CAK5ve-+xyXyjPqejTPRvz=bJ4M5v19Uq1oaVv94QKqBWf1D4dA@mail.gmail.com> <53E47186.5000309@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Fri, 8 Aug 2014 09:59:24 -0700
+Message-ID: <CAK5ve-+3WmaU+OEX1T_xMWDRDgNxD6YXrqTB-=UyaQxHknVbow@mail.gmail.com>
+Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed to decrease the q->owned_by_drv_count to zero before
-__vb2_queue_cancel is called, to avoid the WARN_ON therein.
+On Thu, Aug 7, 2014 at 11:43 PM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> Hi Bryan,
+>
+>
+> On 07/16/2014 07:21 PM, Bryan Wu wrote:
+>>
+>> On Wed, Jul 16, 2014 at 10:19 AM, Bryan Wu <cooloney@gmail.com> wrote:
+>>>
+>>> On Fri, Jul 11, 2014 at 7:04 AM, Jacek Anaszewski
+>>> <j.anaszewski@samsung.com> wrote:
+>>>>
+>>>> This is is the fourth version of the patch series being a follow up
+>>>> of the discussion on Media summit 2013-10-23, related to the
+>>>> LED / flash API integration (the notes from the discussion were
+>>>> enclosed in the message [1], paragraph 5).
+>>>> The series is based on linux-next-20140707
+>>>>
+>>>
+>>> I really apologize that I missed your discussion email in my Gmail
+>>> inbox, it was archived some where. Even in this series some of these
+>>> patches are archived in different tab.
+>>>
+>>> I will start to review and help to push this.
+>>>
+>>
+>> In the mean time, could you please provide an git tree for me to pull?
+>> It's much easier for me to review in my git.
+>
+>
+> Few days ago I sent to your private email the path to the git
+> repository to pull, but I am resending it through the lists to
+> make sure that it will not get filtered somehow again.
+>
+>
+> git://linuxtv.org/snawrocki/samsung.git
+> branch: led_flash_integration_v4
+>
+> gitweb:
+> http://git.linuxtv.org/cgit.cgi/snawrocki/samsung.git/log/?h=led_flash_integration_v4
+>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Yes, I got it. I merged some leds core fixing patches from you
+recently. So could you please split these big patchset into several
+small parts which should be easier for reviewing and discussion.
+ - led core fixing
+ - led flash core patches
+ - led flash manager patches
+ - v4l2 led patches
+ - Documentations
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 1e93889..6760e34 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1084,6 +1084,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct coda_dev *dev = ctx->dev;
-+	struct vb2_buffer *buf;
- 
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-@@ -1091,7 +1092,11 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 		ctx->streamon_out = 0;
- 
- 		coda_bit_stream_end_flag(ctx);
-+
- 		ctx->isequence = 0;
-+
-+		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
-+			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
- 	} else {
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 			 "%s: capture\n", __func__);
-@@ -1099,6 +1104,9 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 
- 		ctx->osequence = 0;
- 		ctx->sequence_offset = 0;
-+
-+		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
-+			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
--- 
-2.0.1
+My plan is to review these and merge them to my -devel branch. Then
+invite people for testing.
 
+Thanks,
+-Bryan
