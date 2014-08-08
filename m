@@ -1,42 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:46065 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775AbaHTXZu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 19:25:50 -0400
-Received: by mail-wg0-f47.google.com with SMTP id b13so8380185wgh.18
-        for <linux-media@vger.kernel.org>; Wed, 20 Aug 2014 16:25:49 -0700 (PDT)
-From: James Hogan <james.hogan@imgtec.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 01/29] img-ir: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:25:45 +0100
-Message-ID: <29366498.0jAlad3L7u@radagast>
-In-Reply-To: <1408575568-20562-2-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl> <1408575568-20562-2-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4343 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126AbaHHM7Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 08:59:24 -0400
+Message-ID: <53E4C996.4060001@xs4all.nl>
+Date: Fri, 08 Aug 2014 14:59:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: [RFC PATCH] vb2: use pr_info instead of pr_debug
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 21 August 2014 00:59:00 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> drivers/media/rc/img-ir/img-ir-nec.c:111:23: warning: symbol 'img_ir_nec'
-> was not declared. Should it be static?
-> drivers/media/rc/img-ir/img-ir-jvc.c:54:23: warning: symbol 'img_ir_jvc'
-> was not declared. Should it be static?
-> drivers/media/rc/img-ir/img-ir-sony.c:120:23: warning: symbol 'img_ir_sony'
-> was not declared. Should it be static?
-> drivers/media/rc/img-ir/img-ir-sharp.c:75:23: warning: symbol
-> 'img_ir_sharp' was not declared. Should it be static?
-> drivers/media/rc/img-ir/img-ir-sanyo.c:82:23: warning: symbol
-> 'img_ir_sanyo' was not declared. Should it be static?
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Modern kernels enable dynamic printk support, which is fine, except when it is
+combined with a debug module option. Enabling debug in videobuf2-core now produces
+no debugging unless it is also enabled through the dynamic printk support in debugfs.
 
-Acked-by: James Hogan <james.hogan@imgtec.com>
+Either use a debug module option + pr_info, or use pr_debug without a debug module
+option. In this case the fact that you can set various debug levels is very useful,
+so I believe that for videobuf2-core.c we should use pr_info.
 
-Thanks
-James
+The mix of the two is very confusing: I've spent too much time already trying to
+figure out why I am not seeing any debug output in the kernel log when I do:
+
+	echo 1 >/sys/modules/videobuf2_core/parameters/debug
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 0e3d927..0b59735 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -36,7 +36,7 @@ module_param(debug, int, 0644);
+ #define dprintk(level, fmt, arg...)					      \
+ 	do {								      \
+ 		if (debug >= level)					      \
+-			pr_debug("vb2: %s: " fmt, __func__, ## arg); \
++			pr_info("vb2: %s: " fmt, __func__, ## arg); \
+ 	} while (0)
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
