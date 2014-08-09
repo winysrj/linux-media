@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44071 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755693AbaHZVzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:18 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 05/35] [media] gsc-core: Remove useless test
-Date: Tue, 26 Aug 2014 18:54:41 -0300
-Message-Id: <1409090111-8290-6-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:61825 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbaHIF6p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 01:58:45 -0400
+Received: by mail-pd0-f179.google.com with SMTP id v10so2151865pde.38
+        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 22:58:44 -0700 (PDT)
+Message-ID: <1407563920.5172.0.camel@phoenix>
+Subject: [PATCH 1/4] [media] ov7670: Include media/v4l2-image-sizes.h
+From: Axel Lin <axel.lin@ingics.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
+Date: Sat, 09 Aug 2014 13:58:40 +0800
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_probe':
-drivers/media/platform/exynos-gsc/gsc-core.c:1089:2: warning: comparison is alw
-ays false due to limited range of data type [-Wtype-limits]
-  if (gsc->id < 0 || gsc->id >= drv_data->num_entities) {
-  ^
+So we can remove the same defines in the driver code.
 
-gsc->id is declared as u16, so it should always be a positive
-value.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ov7670.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 9d0cc04d7ab7..8d8b3cff8212 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1086,7 +1086,7 @@ static int gsc_probe(struct platform_device *pdev)
- 	else
- 		gsc->id = pdev->id;
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index cdd7c1b..dd3db24 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -19,6 +19,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-image-sizes.h>
+ #include <media/ov7670.h>
  
--	if (gsc->id < 0 || gsc->id >= drv_data->num_entities) {
-+	if (gsc->id >= drv_data->num_entities) {
- 		dev_err(dev, "Invalid platform device id: %d\n", gsc->id);
- 		return -EINVAL;
- 	}
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+@@ -30,19 +31,6 @@ module_param(debug, bool, 0644);
+ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ /*
+- * Basic window sizes.  These probably belong somewhere more globally
+- * useful.
+- */
+-#define VGA_WIDTH	640
+-#define VGA_HEIGHT	480
+-#define QVGA_WIDTH	320
+-#define QVGA_HEIGHT	240
+-#define CIF_WIDTH	352
+-#define CIF_HEIGHT	288
+-#define QCIF_WIDTH	176
+-#define	QCIF_HEIGHT	144
+-
+-/*
+  * The 7670 sits on i2c with ID 0x42
+  */
+ #define OV7670_I2C_ADDR 0x42
 -- 
-1.9.3
+1.9.1
+
+
 
