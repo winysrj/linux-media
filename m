@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3803 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921AbaHDFDZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:03:25 -0400
-Message-ID: <53DF1412.9010506@xs4all.nl>
-Date: Mon, 04 Aug 2014 07:03:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:61232 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751273AbaHIJgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 05:36:24 -0400
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	<stable@vger.kernel.org>
+Subject: [PATCH 2/2] em28xx-v4l: fix video buffer field order reporting in progressive mode
+Date: Sat,  9 Aug 2014 11:37:21 +0200
+Message-Id: <1407577041-3301-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1407577041-3301-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1407577041-3301-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Nicholas Krause <xerofoify@gmail.com>, udovdh@xs4all.nl
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
-References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-In-Reply-To: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/2014 05:25 AM, Nicholas Krause wrote:
-> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
-> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
-> 
-> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+The correct field order in progressive mode is V4L2_FIELD_NONE, not V4L2_FIELD_INTERLACED.
 
-Dunno what's going on here after reading Dave Airlie's reply, but:
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-It's clearly wrong and if you get here at all you have a driver bug anyway. That
-WARN_ON is there for a reason. Your driver isn't returning buffers correctly in
-stop_streaming or in start_streaming if start_streaming fails with an error.
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7c4489c..08e478b 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2115,7 +2115,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
->  		for (i = 0; i < q->num_buffers; ++i)
->  			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> -				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
-> +				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ACTIVE);
->  		/* Must be zero now */
->  		WARN_ON(atomic_read(&q->owned_by_drv_count));
->  	}
-> 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 9db219d..f6cf99f 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -435,7 +435,10 @@ static inline void finish_buffer(struct em28xx *dev,
+ 	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+ 
+ 	buf->vb.v4l2_buf.sequence = dev->v4l2->field_count++;
+-	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
++	if (dev->v4l2->progressive)
++		buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
++	else
++		buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
+ 	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+ 
+ 	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+-- 
+1.8.4.5
 
