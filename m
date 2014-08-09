@@ -1,48 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ny01.nytud.hu ([193.6.194.1]:52427 "EHLO ny01.nytud.hu"
+Received: from mail.kapsi.fi ([217.30.184.167]:60364 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907AbaHVTJZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 15:09:25 -0400
-Received: (from oravecz@localhost)
-	by ny01.nytud.hu (8.11.6/8.11.6) id s7MJ3IT28956
-	for linux-media@vger.kernel.org; Fri, 22 Aug 2014 21:03:18 +0200
-Message-Id: <201408221903.s7MJ3IT28956@ny01.nytud.hu>
-Subject: HVR 900 (USB ID 2040:6500) no analogue sound reloaded
+	id S1751509AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:27:32 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Date: Fri, 22 Aug 2014 21:03:18 +0200 (CEST)
-Reply-To: oravecz@nytud.mta.hu
-From: Oravecz Csaba <oravecz@nytud.mta.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Antti Palosaari <crope@iki.fi>, <stable@vger.kernel.org>
+Subject: [PATCH 05/14] af9035: new IDs: add support for PCTV 78e and PCTV 79e
+Date: Sat,  9 Aug 2014 23:27:03 +0300
+Message-Id: <1407616032-2722-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
+References: <1407616032-2722-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Malcolm Priestley <tvboxspy@gmail.com>
 
-I reported this issue earlier but for some reason it went pretty much
-unnoticed. The essence is that with the newest em28xx drivers now present in
-3.14 kernels (i'm on stock fedora 3.14.15-100.fc19.i686.PAE) I can't get
-analogue sound from this card.
+add the following IDs
+USB_PID_PCTV_78E (0x025a) for PCTV 78e
+USB_PID_PCTV_79E (0x0262) for PCTV 79e
 
-I see that the code snippet that produced this output in the pre 3.14 versions
+For these it9135 devices.
 
-em2882/3 #0: Config register raw data: 0x50
-em2882/3 #0: AC97 vendor ID = 0xffffffff
-em2882/3 #0: AC97 features = 0x6a90
-em2882/3 #0: Empia 202 AC97 audio processor detected
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: <stable@vger.kernel.org> # v3.14+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h  | 2 ++
+ drivers/media/usb/dvb-usb-v2/af9035.c | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-is still there in em28xx-core.c, however, there is nothing like that in
-current kernel logs so it seems that this part of the code is just skipped,
-which I tend to think is not the intended behaviour. I have not gone any
-further to investigate the issue, rather I've simply copied the 'old' em28xx
-directory over the current one in the latest source and compiled the drivers
-in this way and so got back the old em28xx version, which is working well in
-the current kernel as well.
-
-I don't consider this an optimal solution so 
-I would very much appreciate any help in this issue.
-
-best,
-o.cs.
-
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 5135a09..12ce19c 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -280,6 +280,8 @@
+ #define USB_PID_PCTV_400E				0x020f
+ #define USB_PID_PCTV_450E				0x0222
+ #define USB_PID_PCTV_452E				0x021f
++#define USB_PID_PCTV_78E				0x025a
++#define USB_PID_PCTV_79E				0x0262
+ #define USB_PID_REALTEK_RTL2831U			0x2831
+ #define USB_PID_REALTEK_RTL2832U			0x2832
+ #define USB_PID_TECHNOTREND_CONNECT_S2_3600		0x3007
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 75ec1c6..c82beac 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1575,6 +1575,10 @@ static const struct usb_device_id af9035_id_table[] = {
+ 		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_HAUPPAUGE, 0xf900,
+ 		&af9035_props, "Hauppauge WinTV-MiniStick 2", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_78E,
++		&af9035_props, "PCTV 78e", RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
++		&af9035_props, "PCTV 79e", RC_MAP_IT913X_V2) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9035_id_table);
+-- 
+http://palosaari.fi/
 
