@@ -1,121 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:40305 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbaHTNpE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:45:04 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v5 07/10] DT: Add documentation for the mfd Maxim max77693
-Date: Wed, 20 Aug 2014 15:44:16 +0200
-Message-id: <1408542259-415-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51465 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751055AbaHIUlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:41:23 -0400
+Message-ID: <53E6876B.1040008@iki.fi>
+Date: Sat, 09 Aug 2014 23:41:15 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/4] V4L/DVB: Update tuner script for new firmware
+References: <1407217543.2988.5.camel@ite-desktop>
+In-Reply-To: <1407217543.2988.5.camel@ite-desktop>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+I applied that too, but removed those register writes you added to 
+af9033 driver. Patch commit message was totally missing and I did a 
+*lot* of reverse-engineering in order to understand patch (actually all 
+these patches).
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   62 ++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+What I discovered, not sure if correct, but that patch updates IT9135 BX 
+chipset tuner related inittabs. Tuner config 60 and 61 was updated. I 
+take latest IT9135 windows driver binary from Hauppauge and extracted 
+inittab for tuner 60. It was just same as here. So I suspect these tabs 
+are just same than latest windows. Firmware is likely same too, but I 
+was too lazy to dump it out from windows driver and compare...
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 11921cc..0c3db3d 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -27,6 +27,55 @@ Optional properties:
- 
- 	[*] refer Documentation/devicetree/bindings/regulator/regulator.txt
- 
-+Optional node:
-+- led-flash : the LED submodule device node
-+
-+Required properties of "led-flash" node:
-+- compatible : must be "maxim,max77693-flash"
-+- maxim,num-leds : number of connected leds
-+	Possible values: 1 or 2.
-+- maxim,fleds : array of current outputs in order: fled1, fled2
-+	Note: both current outputs can be connected to a single led
-+	Possible values:
-+		0 - the output is left disconnected,
-+		1 - a diode is connected to the output.
-+
-+Optional properties of "led-flash" node:
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If maxim,num-leds == <2> boost must be enabled
-+	(it defaults to 1 if not set):
-+	Possible values:
-+		0 - no boost,
-+		1 - adaptive mode,
-+		2 - fixed mode.
-+- iout-torch : Array of maximum intensities in microamperes of the torch
-+	led currents in order: fled1, fled2.
-+		15625 - 250000
-+- iout-flash : Array of maximum intensities in microamperes of the flash
-+	led currents in order: fled1, fled2.
-+	Range:
-+		15625 - 1000000 (max 625000 if boost mode is enabled)
-+- flash-timeout : timeout in microseconds after which flash led
-+		  is turned off
-+	Range:
-+		62500 - 1000000
-+- maxim,trigger : Array of flags indicating which trigger can activate given led
-+	in order: fled1, fled2
-+	Possible flag values (can be combined):
-+		1 - FLASH pin of the chip,
-+		2 - TORCH pin of the chip,
-+		4 - software via I2C command.
-+- maxim,trigger-type : Array of trigger types in order: flash, torch.
-+	Possible trigger types:
-+		0 - Rising edge of the signal triggers the flash/torch,
-+		1 - Signal level controls duration of the flash/torch.
-+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
- Example:
- 	max77693@66 {
- 		compatible = "maxim,max77693";
-@@ -52,4 +101,17 @@ Example:
- 					regulator-boot-on;
- 			};
- 		};
-+		led_flash: led-flash {
-+			compatible = "maxim,max77693-flash";
-+			iout-torch = <500000 0>;
-+			iout-flash = <1250000 0>;
-+			flash-timeout = <1000000 1000000>;
-+			maxim,num-leds = <1>;
-+			maxim,fleds = <1 1>;
-+			maxim,trigger = <7 7>;
-+			maxim,trigger-type = <0 1>;
-+			maxim,boost-mode = <1>;
-+			maxim,boost-vout = <5000>;
-+			maxim,vsys-min = <2400>;
-+		};
- 	};
+Also, what I suspect, the 0xfba8 register write I removed from that 
+patch, is some clock output provided by demod core. That is clock source 
+for tuner, right?
+
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
