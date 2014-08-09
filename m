@@ -1,535 +1,553 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42133 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553AbaHFLC2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 07:02:28 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: checkpatch cleanup
-Date: Wed,  6 Aug 2014 13:02:23 +0200
-Message-Id: <1407322943-3650-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:58092 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbaHIWnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 18:43:03 -0400
+Message-ID: <53E6A3F4.2060909@iki.fi>
+Date: Sun, 10 Aug 2014 01:43:00 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: "nibble.max" <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	"olli.salonen" <olli.salonen@iki.fi>
+Subject: Re: [PATCH 3/4 v3] support for DVBSky dvb-s2 usb: add dvb-usb-v2
+ driver for DVBSky dvb-s2 box, no ci support.
+References: <201408081339569531809@gmail.com>
+In-Reply-To: <201408081339569531809@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch breaks most long lines, concatenates broken up text strings,
-and adds or removes parentheses where needed to make checkpatch happy.
-The long codec list lines and a few 81-wide lines remain.
+Moikka!
+I reviewed that quickly. I noticed one real issue; USB control message 
+buffers. USB buffers are not allowed to taken from the stack as it does 
+not work every supported architecture. Easiest way is to put buffers to 
+state as state is allocated memory. In that case you have to take 
+account also locking. Driver calls now dvb_usbv2_generic_XXX from many 
+places, so it will not work until you add own lock. Due to that, there 
+is usually only one driver specific XXXX_ctrl_msg() where locking is done.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 143 +++++++++++++++++++-----------
- drivers/media/platform/coda/coda-common.c |  34 ++++---
- 2 files changed, 113 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 18fa369..07fc91a 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -37,7 +37,7 @@
- 
- static inline int coda_is_initialized(struct coda_dev *dev)
- {
--	return (coda_read(dev, CODA_REG_BIT_CUR_PC) != 0);
-+	return coda_read(dev, CODA_REG_BIT_CUR_PC) != 0;
- }
- 
- static inline unsigned long coda_isbusy(struct coda_dev *dev)
-@@ -165,17 +165,20 @@ static void coda_kfifo_sync_to_device_write(struct coda_ctx *ctx)
- 	coda_write(dev, wr_ptr, CODA_REG_BIT_WR_PTR(ctx->reg_idx));
- }
- 
--static int coda_bitstream_queue(struct coda_ctx *ctx, struct vb2_buffer *src_buf)
-+static int coda_bitstream_queue(struct coda_ctx *ctx,
-+				struct vb2_buffer *src_buf)
- {
- 	u32 src_size = vb2_get_plane_payload(src_buf, 0);
- 	u32 n;
- 
--	n = kfifo_in(&ctx->bitstream_fifo, vb2_plane_vaddr(src_buf, 0), src_size);
-+	n = kfifo_in(&ctx->bitstream_fifo, vb2_plane_vaddr(src_buf, 0),
-+		     src_size);
- 	if (n < src_size)
- 		return -ENOSPC;
- 
--	dma_sync_single_for_device(&ctx->dev->plat_dev->dev, ctx->bitstream.paddr,
--				   ctx->bitstream.size, DMA_TO_DEVICE);
-+	dma_sync_single_for_device(&ctx->dev->plat_dev->dev,
-+				   ctx->bitstream.paddr, ctx->bitstream.size,
-+				   DMA_TO_DEVICE);
- 
- 	src_buf->v4l2_buf.sequence = ctx->qsequence++;
- 
-@@ -246,11 +249,12 @@ void coda_bit_stream_end_flag(struct coda_ctx *ctx)
- 
- 	ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
- 
-+	/* If this context is currently running, update the hardware flag */
- 	if ((dev->devtype->product == CODA_960) &&
- 	    coda_isbusy(dev) &&
- 	    (ctx->idx == coda_read(dev, CODA_REG_BIT_RUN_INDEX))) {
--		/* If this context is currently running, update the hardware flag */
--		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
-+		coda_write(dev, ctx->bit_stream_param,
-+			   CODA_REG_BIT_BIT_STREAM_PARAM);
- 	}
- }
- 
-@@ -315,9 +319,10 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
- 	/* Register frame buffers in the parameter buffer */
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
- 		paddr = ctx->internal_frames[i].paddr;
--		coda_parabuf_write(ctx, i * 3 + 0, paddr); /* Y */
--		coda_parabuf_write(ctx, i * 3 + 1, paddr + ysize); /* Cb */
--		coda_parabuf_write(ctx, i * 3 + 2, paddr + ysize + ysize/4); /* Cr */
-+		/* Start addresses of Y, Cb, Cr planes */
-+		coda_parabuf_write(ctx, i * 3 + 0, paddr);
-+		coda_parabuf_write(ctx, i * 3 + 1, paddr + ysize);
-+		coda_parabuf_write(ctx, i * 3 + 2, paddr + ysize + ysize / 4);
- 
- 		/* mvcol buffer for h.264 */
- 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
-@@ -374,18 +379,22 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 		/* worst case slice size */
- 		size = (DIV_ROUND_UP(q_data->width, 16) *
- 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
--		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size, "slicebuf");
-+		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size,
-+					     "slicebuf");
- 		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte slice buffer",
-+			v4l2_err(&dev->v4l2_dev,
-+				 "failed to allocate %d byte slice buffer",
- 				 ctx->slicebuf.size);
- 			return ret;
- 		}
- 	}
- 
- 	if (dev->devtype->product == CODA_7541) {
--		ret = coda_alloc_context_buf(ctx, &ctx->psbuf, CODA7_PS_BUF_SIZE, "psbuf");
-+		ret = coda_alloc_context_buf(ctx, &ctx->psbuf,
-+					     CODA7_PS_BUF_SIZE, "psbuf");
- 		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "failed to allocate psmem buffer");
-+			v4l2_err(&dev->v4l2_dev,
-+				 "failed to allocate psmem buffer");
- 			goto err;
- 		}
- 	}
-@@ -396,7 +405,8 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 		size += CODA9_PS_SAVE_SIZE;
- 	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size, "workbuf");
- 	if (ret < 0) {
--		v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte context buffer",
-+		v4l2_err(&dev->v4l2_dev,
-+			 "failed to allocate %d byte context buffer",
- 			 ctx->workbuf.size);
- 		goto err;
- 	}
-@@ -465,6 +475,7 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- {
- 	struct coda_iram_info *iram_info = &ctx->iram_info;
- 	struct coda_dev *dev = ctx->dev;
-+	int w64, w128;
- 	int mb_width;
- 	int dbk_bits;
- 	int bit_bits;
-@@ -497,13 +508,15 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- 
- 		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 		mb_width = DIV_ROUND_UP(q_data_src->width, 16);
-+		w128 = mb_width * 128;
-+		w64 = mb_width * 64;
- 
- 		/* Prioritize in case IRAM is too small for everything */
- 		if (dev->devtype->product == CODA_7541) {
- 			iram_info->search_ram_size = round_up(mb_width * 16 *
- 							      36 + 2048, 1024);
- 			iram_info->search_ram_paddr = coda_iram_alloc(iram_info,
--							iram_info->search_ram_size);
-+						iram_info->search_ram_size);
- 			if (!iram_info->search_ram_paddr) {
- 				pr_err("IRAM is smaller than the search ram size\n");
- 				goto out;
-@@ -513,18 +526,18 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- 		}
- 
- 		/* Only H.264BP and H.263P3 are considered */
--		iram_info->buf_dbk_y_use = coda_iram_alloc(iram_info, 64 * mb_width);
--		iram_info->buf_dbk_c_use = coda_iram_alloc(iram_info, 64 * mb_width);
-+		iram_info->buf_dbk_y_use = coda_iram_alloc(iram_info, w64);
-+		iram_info->buf_dbk_c_use = coda_iram_alloc(iram_info, w64);
- 		if (!iram_info->buf_dbk_c_use)
- 			goto out;
- 		iram_info->axi_sram_use |= dbk_bits;
- 
--		iram_info->buf_bit_use = coda_iram_alloc(iram_info, 128 * mb_width);
-+		iram_info->buf_bit_use = coda_iram_alloc(iram_info, w128);
- 		if (!iram_info->buf_bit_use)
- 			goto out;
- 		iram_info->axi_sram_use |= bit_bits;
- 
--		iram_info->buf_ip_ac_dc_use = coda_iram_alloc(iram_info, 128 * mb_width);
-+		iram_info->buf_ip_ac_dc_use = coda_iram_alloc(iram_info, w128);
- 		if (!iram_info->buf_ip_ac_dc_use)
- 			goto out;
- 		iram_info->axi_sram_use |= ip_bits;
-@@ -535,19 +548,20 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- 
- 		q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 		mb_width = DIV_ROUND_UP(q_data_dst->width, 16);
-+		w128 = mb_width * 128;
- 
--		iram_info->buf_dbk_y_use = coda_iram_alloc(iram_info, 128 * mb_width);
--		iram_info->buf_dbk_c_use = coda_iram_alloc(iram_info, 128 * mb_width);
-+		iram_info->buf_dbk_y_use = coda_iram_alloc(iram_info, w128);
-+		iram_info->buf_dbk_c_use = coda_iram_alloc(iram_info, w128);
- 		if (!iram_info->buf_dbk_c_use)
- 			goto out;
- 		iram_info->axi_sram_use |= dbk_bits;
- 
--		iram_info->buf_bit_use = coda_iram_alloc(iram_info, 128 * mb_width);
-+		iram_info->buf_bit_use = coda_iram_alloc(iram_info, w128);
- 		if (!iram_info->buf_bit_use)
- 			goto out;
- 		iram_info->axi_sram_use |= bit_bits;
- 
--		iram_info->buf_ip_ac_dc_use = coda_iram_alloc(iram_info, 128 * mb_width);
-+		iram_info->buf_ip_ac_dc_use = coda_iram_alloc(iram_info, w128);
- 		if (!iram_info->buf_ip_ac_dc_use)
- 			goto out;
- 		iram_info->axi_sram_use |= ip_bits;
-@@ -634,8 +648,8 @@ int coda_check_firmware(struct coda_dev *dev)
- 	clk_disable_unprepare(dev->clk_ahb);
- 
- 	if (product != dev->devtype->product) {
--		v4l2_err(&dev->v4l2_dev, "Wrong firmware. Hw: %s, Fw: %s,"
--			 " Version: %u.%u.%u\n",
-+		v4l2_err(&dev->v4l2_dev,
-+			 "Wrong firmware. Hw: %s, Fw: %s, Version: %u.%u.%u\n",
- 			 coda_product_name(dev->devtype->product),
- 			 coda_product_name(product), major, minor, release);
- 		return -EINVAL;
-@@ -648,8 +662,9 @@ int coda_check_firmware(struct coda_dev *dev)
- 		v4l2_info(&dev->v4l2_dev, "Firmware version: %u.%u.%u\n",
- 			  major, minor, release);
- 	} else {
--		v4l2_warn(&dev->v4l2_dev, "Unsupported firmware version: "
--			  "%u.%u.%u\n", major, minor, release);
-+		v4l2_warn(&dev->v4l2_dev,
-+			  "Unsupported firmware version: %u.%u.%u\n",
-+			  major, minor, release);
- 	}
- 
- 	return 0;
-@@ -720,27 +735,32 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 
- 	if (dev->devtype->product == CODA_DX6) {
- 		/* Configure the coda */
--		coda_write(dev, dev->iram.paddr, CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR);
-+		coda_write(dev, dev->iram.paddr,
-+			   CODADX6_REG_BIT_SEARCH_RAM_BASE_ADDR);
- 	}
- 
- 	/* Could set rotation here if needed */
- 	switch (dev->devtype->product) {
- 	case CODA_DX6:
--		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
--		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
-+		value = (q_data_src->width & CODADX6_PICWIDTH_MASK)
-+			<< CODADX6_PICWIDTH_OFFSET;
-+		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK)
-+			 << CODA_PICHEIGHT_OFFSET;
- 		break;
- 	case CODA_7541:
- 		if (dst_fourcc == V4L2_PIX_FMT_H264) {
- 			value = (round_up(q_data_src->width, 16) &
- 				 CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
- 			value |= (round_up(q_data_src->height, 16) &
--				  CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
-+				 CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 			break;
- 		}
- 		/* fallthrough */
- 	case CODA_960:
--		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
--		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
-+		value = (q_data_src->width & CODA7_PICWIDTH_MASK)
-+			<< CODA7_PICWIDTH_OFFSET;
-+		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK)
-+			 << CODA_PICHEIGHT_OFFSET;
- 	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_SRC_SIZE);
- 	coda_write(dev, ctx->params.framerate,
-@@ -750,16 +770,20 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 	switch (dst_fourcc) {
- 	case V4L2_PIX_FMT_MPEG4:
- 		if (dev->devtype->product == CODA_960)
--			coda_write(dev, CODA9_STD_MPEG4, CODA_CMD_ENC_SEQ_COD_STD);
-+			coda_write(dev, CODA9_STD_MPEG4,
-+				   CODA_CMD_ENC_SEQ_COD_STD);
- 		else
--			coda_write(dev, CODA_STD_MPEG4, CODA_CMD_ENC_SEQ_COD_STD);
-+			coda_write(dev, CODA_STD_MPEG4,
-+				   CODA_CMD_ENC_SEQ_COD_STD);
- 		coda_write(dev, 0, CODA_CMD_ENC_SEQ_MP4_PARA);
- 		break;
- 	case V4L2_PIX_FMT_H264:
- 		if (dev->devtype->product == CODA_960)
--			coda_write(dev, CODA9_STD_H264, CODA_CMD_ENC_SEQ_COD_STD);
-+			coda_write(dev, CODA9_STD_H264,
-+				   CODA_CMD_ENC_SEQ_COD_STD);
- 		else
--			coda_write(dev, CODA_STD_H264, CODA_CMD_ENC_SEQ_COD_STD);
-+			coda_write(dev, CODA_STD_H264,
-+				   CODA_CMD_ENC_SEQ_COD_STD);
- 		if (ctx->params.h264_deblk_enabled) {
- 			value = ((ctx->params.h264_deblk_alpha &
- 				  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
-@@ -784,13 +808,17 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 		value = 0;
- 		break;
- 	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
--		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
--		value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-+		value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK)
-+			 << CODA_SLICING_SIZE_OFFSET;
-+		value |= (1 & CODA_SLICING_UNIT_MASK)
-+			 << CODA_SLICING_UNIT_OFFSET;
- 		value |=  1 & CODA_SLICING_MODE_MASK;
- 		break;
- 	case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
--		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
--		value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-+		value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK)
-+			 << CODA_SLICING_SIZE_OFFSET;
-+		value |= (0 & CODA_SLICING_UNIT_MASK)
-+			 << CODA_SLICING_UNIT_OFFSET;
- 		value |=  1 & CODA_SLICING_MODE_MASK;
- 		break;
- 	}
-@@ -800,7 +828,8 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 
- 	if (ctx->params.bitrate) {
- 		/* Rate control enabled */
--		value = (ctx->params.bitrate & CODA_RATECONTROL_BITRATE_MASK) << CODA_RATECONTROL_BITRATE_OFFSET;
-+		value = (ctx->params.bitrate & CODA_RATECONTROL_BITRATE_MASK)
-+			<< CODA_RATECONTROL_BITRATE_OFFSET;
- 		value |=  1 & CODA_RATECONTROL_ENABLE_MASK;
- 		if (dev->devtype->product == CODA_960)
- 			value |= BIT(31); /* disable autoskip */
-@@ -919,8 +948,10 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 					CODA9_CMD_SET_FRAME_AXI_BTP_ADDR);
- 
- 			/* FIXME */
--			coda_write(dev, ctx->internal_frames[2].paddr, CODA9_CMD_SET_FRAME_SUBSAMP_A);
--			coda_write(dev, ctx->internal_frames[3].paddr, CODA9_CMD_SET_FRAME_SUBSAMP_B);
-+			coda_write(dev, ctx->internal_frames[2].paddr,
-+				   CODA9_CMD_SET_FRAME_SUBSAMP_A);
-+			coda_write(dev, ctx->internal_frames[3].paddr,
-+				   CODA9_CMD_SET_FRAME_SUBSAMP_B);
- 		}
- 	}
- 
-@@ -1092,7 +1123,8 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	}
- 
- 	/* submit */
--	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
-+	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode,
-+		   CODA_CMD_ENC_PIC_ROT_MODE);
- 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
- 
- 
-@@ -1135,9 +1167,10 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 		   CODA_CMD_ENC_PIC_BB_SIZE);
- 
- 	if (!ctx->streamon_out) {
--		/* After streamoff on the output side, set the stream end flag */
-+		/* After streamoff on the output side, set stream end flag */
- 		ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
--		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
-+		coda_write(dev, ctx->bit_stream_param,
-+			   CODA_REG_BIT_BIT_STREAM_PARAM);
- 	}
- 
- 	if (dev->devtype->product != CODA_DX6)
-@@ -1217,7 +1250,8 @@ static void coda_seq_end_work(struct work_struct *work)
- 	mutex_lock(&dev->coda_mutex);
- 
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
--		 "%d: %s: sent command 'SEQ_END' to coda\n", ctx->idx, __func__);
-+		 "%d: %s: sent command 'SEQ_END' to coda\n", ctx->idx,
-+		 __func__);
- 	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "CODA_COMMAND_SEQ_END failed\n");
-@@ -1550,7 +1584,8 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 		coda_write(dev, CODA_PRE_SCAN_EN, CODA_CMD_DEC_PIC_OPTION);
- 		break;
- 	case CODA_960:
--		coda_write(dev, (1 << 10), CODA_CMD_DEC_PIC_OPTION); /* 'hardcode to use interrupt disable mode'? */
-+		/* 'hardcode to use interrupt disable mode'? */
-+		coda_write(dev, (1 << 10), CODA_CMD_DEC_PIC_OPTION);
- 		break;
- 	}
- 
-@@ -1666,7 +1701,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		}
- 	}
- 
--	ctx->frm_dis_flg = coda_read(dev, CODA_REG_BIT_FRM_DIS_FLG(ctx->reg_idx));
-+	ctx->frm_dis_flg = coda_read(dev,
-+				     CODA_REG_BIT_FRM_DIS_FLG(ctx->reg_idx));
- 
- 	/*
- 	 * The previous display frame was copied out by the rotator,
-@@ -1694,7 +1730,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		else if (ctx->display_idx < 0)
- 			ctx->hold = true;
- 	} else if (decoded_idx == -2) {
--		/* no frame was decoded, we still return the remaining buffers */
-+		/* no frame was decoded, we still return remaining buffers */
- 	} else if (decoded_idx < 0 || decoded_idx >= ctx->num_internal_frames) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "decoded frame index out of range: %d\n", decoded_idx);
-@@ -1801,7 +1837,8 @@ irqreturn_t coda_irq_handler(int irq, void *data)
- 
- 	ctx = v4l2_m2m_get_curr_priv(dev->m2m_dev);
- 	if (ctx == NULL) {
--		v4l2_err(&dev->v4l2_dev, "Instance released before the end of transaction\n");
-+		v4l2_err(&dev->v4l2_dev,
-+			 "Instance released before the end of transaction\n");
- 		mutex_unlock(&dev->coda_mutex);
- 		return IRQ_HANDLED;
- 	}
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index ffb4c76..0997b5c 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -75,6 +75,7 @@ void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- unsigned int coda_read(struct coda_dev *dev, u32 reg)
- {
- 	u32 data;
-+
- 	data = readl(dev->regs_base + reg);
- 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
- 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
-@@ -736,7 +737,8 @@ static void coda_pic_run_work(struct work_struct *work)
- 		return;
- 	}
- 
--	if (!wait_for_completion_timeout(&ctx->completion, msecs_to_jiffies(1000))) {
-+	if (!wait_for_completion_timeout(&ctx->completion,
-+					 msecs_to_jiffies(1000))) {
- 		dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout\n");
- 
- 		ctx->hold = true;
-@@ -812,6 +814,7 @@ static void coda_lock(void *m2m_priv)
- {
- 	struct coda_ctx *ctx = m2m_priv;
- 	struct coda_dev *pcdev = ctx->dev;
-+
- 	mutex_lock(&pcdev->dev_mutex);
- }
- 
-@@ -819,6 +822,7 @@ static void coda_unlock(void *m2m_priv)
- {
- 	struct coda_ctx *ctx = m2m_priv;
- 	struct coda_dev *pcdev = ctx->dev;
-+
- 	mutex_unlock(&pcdev->dev_mutex);
- }
- 
-@@ -995,7 +999,8 @@ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
- 	if (name && parent) {
- 		buf->blob.data = buf->vaddr;
- 		buf->blob.size = size;
--		buf->dentry = debugfs_create_blob(name, 0644, parent, &buf->blob);
-+		buf->dentry = debugfs_create_blob(name, 0644, parent,
-+						  &buf->blob);
- 		if (!buf->dentry)
- 			dev_warn(&dev->plat_dev->dev,
- 				 "failed to create debugfs entry %s\n", name);
-@@ -1276,17 +1281,20 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
-+		V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1,
-+		500);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_HEADER_MODE,
- 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
- 		(1 << V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE),
- 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0, 1920 * 1088 / 256, 1, 0);
-+		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0,
-+		1920 * 1088 / 256, 1, 0);
- 
- 	if (ctx->ctrls.error) {
--		v4l2_err(&ctx->dev->v4l2_dev, "control initialization error (%d)",
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			"control initialization error (%d)",
- 			ctx->ctrls.error);
- 		return -EINVAL;
- 	}
-@@ -1365,7 +1373,7 @@ static int coda_open(struct file *file, enum coda_inst_type inst_type,
- 	int ret;
- 	int idx;
- 
--	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
- 
-@@ -1444,7 +1452,8 @@ static int coda_open(struct file *file, enum coda_inst_type inst_type,
- 	ctx->bitstream.vaddr = dma_alloc_writecombine(&dev->plat_dev->dev,
- 			ctx->bitstream.size, &ctx->bitstream.paddr, GFP_KERNEL);
- 	if (!ctx->bitstream.vaddr) {
--		v4l2_err(&dev->v4l2_dev, "failed to allocate bitstream ringbuffer");
-+		v4l2_err(&dev->v4l2_dev,
-+			 "failed to allocate bitstream ringbuffer");
- 		ret = -ENOMEM;
- 		goto err_dma_writecombine;
- 	}
-@@ -1617,10 +1626,12 @@ static int coda_hw_init(struct coda_dev *dev)
- 	/* Set default values */
- 	switch (dev->devtype->product) {
- 	case CODA_DX6:
--		coda_write(dev, CODADX6_STREAM_BUF_PIC_FLUSH, CODA_REG_BIT_STREAM_CTRL);
-+		coda_write(dev, CODADX6_STREAM_BUF_PIC_FLUSH,
-+			   CODA_REG_BIT_STREAM_CTRL);
- 		break;
- 	default:
--		coda_write(dev, CODA7_STREAM_BUF_PIC_FLUSH, CODA_REG_BIT_STREAM_CTRL);
-+		coda_write(dev, CODA7_STREAM_BUF_PIC_FLUSH,
-+			   CODA_REG_BIT_STREAM_CTRL);
- 	}
- 	if (dev->devtype->product == CODA_960)
- 		coda_write(dev, 1 << 12, CODA_REG_BIT_FRAME_MEM_CTRL);
-@@ -1854,7 +1865,7 @@ static int coda_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	int ret, irq;
- 
--	dev = devm_kzalloc(&pdev->dev, sizeof *dev, GFP_KERNEL);
-+	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
- 		dev_err(&pdev->dev, "Not enough memory for %s\n",
- 			CODA_NAME);
-@@ -1905,7 +1916,8 @@ static int coda_probe(struct platform_device *pdev)
- 		if (ret == -ENOENT || ret == -ENOSYS) {
- 			dev->rstc = NULL;
- 		} else {
--			dev_err(&pdev->dev, "failed get reset control: %d\n", ret);
-+			dev_err(&pdev->dev, "failed get reset control: %d\n",
-+				ret);
- 			return ret;
- 		}
- 	}
+Another issues are style issues. Use checkpatch.pl tool to show those.
+./scripts/checkpatch.pl --file drivers/media/usb/dvb-usb-v2/dvbsky.c
+
+regards
+Antti
+
+
+On 08/08/2014 08:39 AM, nibble.max wrote:
+> remove ci support part in v1 patch.
+> hook demod read status and set voltage operations.
+> add m88ts2022 select in Kconfig.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+>   drivers/media/usb/dvb-usb-v2/Kconfig  |   7 +
+>   drivers/media/usb/dvb-usb-v2/Makefile |   3 +
+>   drivers/media/usb/dvb-usb-v2/dvbsky.c | 455 ++++++++++++++++++++++++++++++++++
+>   3 files changed, 465 insertions(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+> index 66645b0..5b34323 100644
+> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
+> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+> @@ -141,3 +141,10 @@ config DVB_USB_RTL28XXU
+>   	help
+>   	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
+>
+> +config DVB_USB_DVBSKY
+> +	tristate "DVBSky USB support"
+> +	depends on DVB_USB_V2
+> +	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+> +	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  Say Y here to support the USB receivers from DVBSky.
+> diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+> index bc38f03..f10d4df 100644
+> --- a/drivers/media/usb/dvb-usb-v2/Makefile
+> +++ b/drivers/media/usb/dvb-usb-v2/Makefile
+> @@ -37,6 +37,9 @@ obj-$(CONFIG_DVB_USB_MXL111SF) += mxl111sf-tuner.o
+>   dvb-usb-rtl28xxu-objs := rtl28xxu.o
+>   obj-$(CONFIG_DVB_USB_RTL28XXU) += dvb-usb-rtl28xxu.o
+>
+> +dvb-usb-dvbsky-objs := dvbsky.o
+> +obj-$(CONFIG_DVB_USB_DVBSKY) += dvb-usb-dvbsky.o
+> +
+>   ccflags-y += -I$(srctree)/drivers/media/dvb-core
+>   ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+>   ccflags-y += -I$(srctree)/drivers/media/tuners
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> new file mode 100644
+> index 0000000..2db363e
+> --- /dev/null
+> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> @@ -0,0 +1,455 @@
+> +/*
+> + * Driver for DVBSky USB2.0 receiver
+> + *
+> + * Copyright (C) 2013 Max nibble <nibble.max@gmail.com>
+> + *
+> + *    This program is free software; you can redistribute it and/or modify
+> + *    it under the terms of the GNU General Public License as published by
+> + *    the Free Software Foundation; either version 2 of the License, or
+> + *    (at your option) any later version.
+> + *
+> + *    This program is distributed in the hope that it will be useful,
+> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *    GNU General Public License for more details.
+> + *
+> + *    You should have received a copy of the GNU General Public License
+> + *    along with this program; if not, write to the Free Software
+> + *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include "dvb_usb.h"
+> +#include "m88ds3103.h"
+> +#include "m88ts2022.h"
+> +
+> +static int dvbsky_debug;
+> +module_param(dvbsky_debug, int, 0644);
+> +MODULE_PARM_DESC(dvbsky_debug, "Activates dvbsky usb debugging (default:0)");
+> +
+> +#define DVBSKY_MSG_DELAY	0/*2000*/
+
+Remove that unneeded variable. It is extra delay for some hardware where 
+waiting between BULK send and rece control sequence is needed.
+
+> +
+> +#define dprintk(args...) \
+> +	do { \
+> +		if (dvbsky_debug) \
+> +			printk(KERN_INFO "dvbsky_usb: " args); \
+> +	} while (0)
+> +
+> +DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+> +
+> +struct dvbsky_state {
+> +	struct mutex stream_mutex;
+> +	u8 last_lock;
+> +	struct i2c_client *i2c_client_tuner;
+> +	int (*fe_set_voltage)(struct dvb_frontend *fe,
+> +		fe_sec_voltage_t voltage);
+> +	int (*fe_read_status)(struct dvb_frontend *fe,
+> +		fe_status_t *status);
+> +};
+> +
+> +static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+> +{
+> +	struct dvbsky_state *state = d_to_priv(d);
+> +	int ret;
+> +	u8 obuf_pre[3] = { 0x37, 0, 0 };
+> +	u8 obuf_post[3] = { 0x36, 3, 0 };
+> +	dprintk("%s() -off \n", __func__);
+> +	mutex_lock(&state->stream_mutex);
+> +	ret = dvb_usbv2_generic_write(d, obuf_pre, 3);
+> +	if (!ret && onoff) {
+> +		msleep(10);
+> +		ret = dvb_usbv2_generic_write(d, obuf_post, 3);
+> +		dprintk("%s() -on \n", __func__);
+> +	}
+> +	mutex_unlock(&state->stream_mutex);
+> +	return ret;
+> +}
+> +
+> +static int dvbsky_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+> +{
+> +	struct dvb_usb_device *d = fe_to_d(fe);
+> +	/*dprintk("%s() %d\n", __func__, onoff);*/
+> +	return dvbsky_stream_ctrl(d, (onoff == 0) ? 0 : 1);
+> +}
+> +
+> +/* GPIO */
+> +static int dvbsky_gpio_ctrl(struct dvb_usb_device *d, u8 gport, u8 value)
+> +{
+> +	int ret;
+> +	u8 obuf[64], ibuf[64];
+> +	obuf[0] = 0x0e;
+> +	obuf[1] = gport;
+> +	obuf[2] = value;
+> +	ret = dvb_usbv2_generic_rw(d, obuf, 3, ibuf, 1);
+> +	if (ret)
+> +		dev_err(&d->udev->dev, "%s: %s() " \
+> +				"failed=%d\n", KBUILD_MODNAME, __func__, ret);
+> +	return ret;
+> +}
+> +
+> +/* I2C */
+> +static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+> +	int num)
+> +{
+> +	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+> +	int ret = 0;
+> +	u8 ibuf[64], obuf[64];
+> +
+> +	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+> +		return -EAGAIN;
+> +
+> +	if (num > 2) {
+> +		printk(KERN_ERR
+> +		"dvbsky_usb: too many i2c messages[%d] than 2.", num);
+> +		ret = -EOPNOTSUPP;
+> +		goto i2c_error;
+> +	}
+> +
+> +	if (num == 1) {
+> +		if (msg[0].len > 60) {
+> +			printk(KERN_ERR
+> +			"dvbsky_usb: too many i2c bytes[%d] than 60.",
+> +			msg[0].len);
+> +			ret = -EOPNOTSUPP;
+> +			goto i2c_error;
+> +		}
+> +		if (msg[0].flags & I2C_M_RD) {
+> +			/* single read */
+> +			obuf[0] = 0x09;
+> +			obuf[1] = 0;
+> +			obuf[2] = msg[0].len;
+> +			obuf[3] = msg[0].addr;
+> +			ret = dvb_usbv2_generic_rw(d, obuf, 4,
+> +					ibuf, msg[0].len + 1);
+> +			if (ret)
+> +				dev_err(&d->udev->dev, "%s: %s() " \
+> +					"failed=%d\n",
+> +					KBUILD_MODNAME, __func__, ret);
+> +			/*dprintk("%s(): read status = %d\n",
+> +				__func__, ibuf[0]);*/
+> +			if (!ret)
+> +				memcpy(msg[0].buf, &ibuf[1], msg[0].len);
+> +		} else {
+> +			/* write */
+> +			obuf[0] = 0x08;
+> +			obuf[1] = msg[0].addr;
+> +			obuf[2] = msg[0].len;
+> +			memcpy(&obuf[3], msg[0].buf, msg[0].len);
+> +			ret = dvb_usbv2_generic_rw(d, obuf,
+> +					msg[0].len + 3, ibuf, 1);
+> +			if (ret)
+> +				dev_err(&d->udev->dev, "%s: %s() " \
+> +					"failed=%d\n",
+> +					KBUILD_MODNAME, __func__, ret);
+> +			/*dprintk("%s(): write status = %d\n",
+> +				__func__, ibuf[0]);*/
+> +		}
+> +	} else {
+> +		if ((msg[0].len > 60) || (msg[1].len > 60)) {
+> +			printk(KERN_ERR
+> +			"dvbsky_usb: too many i2c bytes[w-%d][r-%d] than 60.",
+> +			msg[0].len, msg[1].len);
+> +			ret = -EOPNOTSUPP;
+> +			goto i2c_error;
+> +		}
+> +		/* write then read */
+> +		obuf[0] = 0x09;
+> +		obuf[1] = msg[0].len;
+> +		obuf[2] = msg[1].len;
+> +		obuf[3] = msg[0].addr;
+> +		memcpy(&obuf[4], msg[0].buf, msg[0].len);
+> +		ret = dvb_usbv2_generic_rw(d, obuf,
+> +			msg[0].len + 4, ibuf, msg[1].len + 1);
+> +		if (ret)
+> +			dev_err(&d->udev->dev, "%s: %s() " \
+> +				"failed=%d\n", KBUILD_MODNAME, __func__, ret);
+> +		/*dprintk("%s(): write then read status = %d\n",
+> +			__func__, ibuf[0]);*/
+> +		if (!ret)
+> +			memcpy(msg[1].buf, &ibuf[1], msg[1].len);
+> +	}
+> +i2c_error:
+> +	mutex_unlock(&d->i2c_mutex);
+> +	return (ret) ? ret : num;
+> +}
+> +
+> +static u32 dvbsky_i2c_func(struct i2c_adapter *adapter)
+> +{
+> +	return I2C_FUNC_I2C;
+> +}
+> +
+> +static struct i2c_algorithm dvbsky_i2c_algo = {
+> +	.master_xfer   = dvbsky_i2c_xfer,
+> +	.functionality = dvbsky_i2c_func,
+> +};
+> +
+> +#if IS_ENABLED(CONFIG_RC_CORE)
+> +static int dvbsky_rc_query(struct dvb_usb_device *d)
+> +{
+> +
+> +	u32 code = 0xffff, scancode;
+> +	u8 rc5_command, rc5_system;
+> +	u8 obuf[2], ibuf[2], toggle;
+> +	int ret;
+> +	obuf[0] = 0x10;
+> +	ret = dvb_usbv2_generic_rw(d, obuf, 1, ibuf, 2);
+> +	if (ret)
+> +		dev_err(&d->udev->dev, "%s: %s() " \
+> +				"failed=%d\n", KBUILD_MODNAME, __func__, ret);
+> +	if (ret == 0)
+> +		code = (ibuf[0] << 8) | ibuf[1];
+> +	if (code != 0xffff) {
+> +		dprintk("rc code: %x \n", code);
+> +		rc5_command = code & 0x3F;
+> +		rc5_system = (code & 0x7C0) >> 6;
+> +		toggle = (code & 0x800) ? 1 : 0;
+> +		scancode = rc5_system << 8 | rc5_command;
+> +		rc_keydown(d->rc_dev, RC_TYPE_RC5, scancode, toggle);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int dvbsky_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+> +{
+> +	rc->allowed_protos = RC_BIT_RC5;
+> +	rc->query          = dvbsky_rc_query;
+> +	rc->interval       = 300;
+> +	return 0;
+> +}
+> +#else
+> +	#define dvbsky_get_rc_config NULL
+> +#endif
+> +
+> +static int dvbsky_usb_set_voltage(struct dvb_frontend *fe,
+> +	fe_sec_voltage_t voltage)
+> +{
+> +	struct dvb_usb_device *d = fe_to_d(fe);
+> +	struct dvbsky_state *state = d_to_priv(d);
+> +	u8 value;
+> +
+> +	if (voltage == SEC_VOLTAGE_OFF)
+> +		value = 0;
+> +	else
+> +		value = 1;
+> +	dvbsky_gpio_ctrl(d, 0x80, value);
+> +
+> +	return state->fe_set_voltage(fe, voltage);
+> +}
+> +
+> +static int dvbsky_read_mac_addr(struct dvb_usb_adapter *adap, u8 mac[6])
+> +{
+> +	struct dvb_usb_device *d = adap_to_d(adap);
+> +	u8 obuf[] = { 0x1e, 0x00 };
+> +	u8 ibuf[6] = { 0 };
+> +	struct i2c_msg msg[] = {
+> +		{
+> +			.addr = 0x51,
+> +			.flags = 0,
+> +			.buf = obuf,
+> +			.len = 2,
+> +		}, {
+> +			.addr = 0x51,
+> +			.flags = I2C_M_RD,
+> +			.buf = ibuf,
+> +			.len = 6,
+> +		}
+> +	};
+> +
+> +	if (i2c_transfer(&d->i2c_adap, msg, 2) == 2)
+> +		memcpy(mac, ibuf, 6);
+> +
+> +	printk(KERN_INFO "dvbsky_usb MAC address=%pM\n", mac);
+> +
+> +	return 0;
+> +}
+> +
+> +static int dvbsky_usb_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> +{
+> +	struct dvb_usb_device *d = fe_to_d(fe);
+> +	struct dvbsky_state *state = d_to_priv(d);
+> +	int ret;
+> +
+> +	ret = state->fe_read_status(fe, status);
+> +
+> +	/* it need resync slave fifo when signal change from unlock to lock.*/
+> +	if ((*status & FE_HAS_LOCK) && (!state->last_lock))
+> +		dvbsky_stream_ctrl(d, 1);
+> +
+> +	state->last_lock = (*status & FE_HAS_LOCK) ? 1 : 0;
+> +	return ret;
+> +}
+> +
+> +static const struct m88ds3103_config dvbsky_s960_m88ds3103_config = {
+> +	.i2c_addr = 0x68,
+> +	.clock = 27000000,
+> +	.i2c_wr_max = 33,
+> +	.clock_out = 0,
+> +	.ts_mode = M88DS3103_TS_CI,
+> +	.ts_clk = 16000,
+> +	.ts_clk_pol = 0,
+> +	.agc = 0x99,
+> +	.pin_ctrl = 0x83,
+> +};
+> +
+> +static int dvbsky_s960_attach(struct dvb_usb_adapter *adap)
+> +{
+> +	struct dvbsky_state *state = adap_to_priv(adap);
+> +	struct dvb_usb_device *d = adap_to_d(adap);
+> +	int ret = 0;
+> +	/* demod I2C adapter */
+> +	struct i2c_adapter *i2c_adapter;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info;
+> +	struct m88ts2022_config m88ts2022_config = {
+> +			.clock = 27000000,
+> +		};
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +
+> +	/* attach demod */
+> +	adap->fe[0] = dvb_attach(m88ds3103_attach,
+> +			&dvbsky_s960_m88ds3103_config,
+> +			&d->i2c_adap,
+> +			&i2c_adapter);
+> +	if (!adap->fe[0]) {
+> +		printk(KERN_ERR "dvbsky_s960_attach fail.");
+> +		ret = -ENODEV;
+> +		goto fail_attach;
+> +	}
+> +
+> +	/* attach tuner */
+> +	m88ts2022_config.fe = adap->fe[0];
+> +	strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
+> +	info.addr = 0x60;
+> +	info.platform_data = &m88ts2022_config;
+> +	request_module("m88ts2022");
+> +	client = i2c_new_device(i2c_adapter, &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		dvb_frontend_detach(adap->fe[0]);
+> +		ret = -ENODEV;
+> +		goto fail_attach;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		dvb_frontend_detach(adap->fe[0]);
+> +		ret = -ENODEV;
+> +		goto fail_attach;
+> +	}
+> +
+> +	/* delegate signal strength measurement to tuner */
+> +	adap->fe[0]->ops.read_signal_strength =
+> +			adap->fe[0]->ops.tuner_ops.get_rf_strength;
+> +
+> +	/* hook fe: need to resync the slave fifo when signal locks. */
+> +	state->fe_read_status = adap->fe[0]->ops.read_status;
+> +	adap->fe[0]->ops.read_status = dvbsky_usb_read_status;
+> +
+> +	/* hook fe: LNB off/on is control by Cypress usb chip. */
+> +	state->fe_set_voltage = adap->fe[0]->ops.set_voltage;
+> +	adap->fe[0]->ops.set_voltage = dvbsky_usb_set_voltage;
+> +
+> +	state->i2c_client_tuner = client;
+> +
+> +fail_attach:
+> +	return ret;
+> +}
+> +
+> +static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
+> +{
+> +	/*
+> +	printk(KERN_INFO "%s, build on %s %s(),delay=%d\n",
+> +	__func__, __DATE__,__TIME__,d->props->generic_bulk_ctrl_delay);
+> +	*/
+> +	dvbsky_gpio_ctrl(d, 0x04, 1);
+> +	msleep(10);
+> +	dvbsky_gpio_ctrl(d, 0x83, 0);
+> +	dvbsky_gpio_ctrl(d, 0xc0, 1);
+> +	msleep(100);
+> +	dvbsky_gpio_ctrl(d, 0x83, 1);
+> +	dvbsky_gpio_ctrl(d, 0xc0, 0);
+> +	msleep(50);
+> +
+> +	return WARM;
+> +}
+> +
+> +static int dvbsky_init(struct dvb_usb_device *d)
+> +{
+> +	struct dvbsky_state *state = d_to_priv(d);
+> +
+> +	/* use default interface */
+> +	/*
+> +	ret = usb_set_interface(d->udev, 0, 0);
+> +	if (ret)
+> +		return ret;
+> +	*/
+> +	mutex_init(&state->stream_mutex);
+> +
+> +	state->last_lock = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +static void dvbsky_exit(struct dvb_usb_device *d)
+> +{
+> +	struct dvbsky_state *state = d_to_priv(d);
+> +	struct i2c_client *client;
+> +
+> +	client = state->i2c_client_tuner;
+> +	/* remove I2C tuner */
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +}
+> +
+> +/* DVB USB Driver stuff */
+> +static struct dvb_usb_device_properties dvbsky_s960_props = {
+> +	.driver_name = KBUILD_MODNAME,
+> +	.owner = THIS_MODULE,
+> +	.adapter_nr = adapter_nr,
+> +	.size_of_priv = sizeof(struct dvbsky_state),
+> +
+> +	.generic_bulk_ctrl_endpoint = 0x01,
+> +	.generic_bulk_ctrl_endpoint_response = 0x81,
+> +	.generic_bulk_ctrl_delay = DVBSKY_MSG_DELAY,
+> +
+> +	.i2c_algo         = &dvbsky_i2c_algo,
+> +	.frontend_attach  = dvbsky_s960_attach,
+> +	.init             = dvbsky_init,
+> +	.get_rc_config    = dvbsky_get_rc_config,
+> +	.streaming_ctrl   = dvbsky_streaming_ctrl,
+> +	.identify_state	  = dvbsky_identify_state,
+> +	.exit             = dvbsky_exit,
+> +	.read_mac_address = dvbsky_read_mac_addr,
+> +
+> +	.num_adapters = 1,
+> +	.adapter = {
+> +		{
+> +			.stream = DVB_USB_STREAM_BULK(0x82, 8, 4096),
+> +		}
+> +	}
+> +};
+> +
+> +static const struct usb_device_id dvbsky_id_table[] = {
+> +	{ DVB_USB_DEVICE(0x0572, 0x6831,
+> +		&dvbsky_s960_props, "DVBSky S960/S860", RC_MAP_DVBSKY) },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
+> +
+> +static struct usb_driver dvbsky_usb_driver = {
+> +	.name = KBUILD_MODNAME,
+> +	.id_table = dvbsky_id_table,
+> +	.probe = dvb_usbv2_probe,
+> +	.disconnect = dvb_usbv2_disconnect,
+> +	.suspend = dvb_usbv2_suspend,
+> +	.resume = dvb_usbv2_resume,
+> +	.reset_resume = dvb_usbv2_reset_resume,
+> +	.no_dynamic_id = 1,
+> +	.soft_unbind = 1,
+> +};
+> +
+> +module_usb_driver(dvbsky_usb_driver);
+> +
+> +MODULE_AUTHOR("Max nibble <nibble.max@gmail.com>");
+> +MODULE_DESCRIPTION("Driver for DVBSky USB");
+> +MODULE_LICENSE("GPL");
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 -- 
-2.0.1
-
+http://palosaari.fi/
