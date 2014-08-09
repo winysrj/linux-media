@@ -1,552 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:55859 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934997AbaH0PcK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 11:32:10 -0400
-Received: by mail-pa0-f53.google.com with SMTP id rd3so477952pab.40
-        for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 08:32:08 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH v2 3/5] qm1d1c0042: add driver for Sharp QM1D1C0042 ISDB-S tuner
-Date: Thu, 28 Aug 2014 00:29:14 +0900
-Message-Id: <1409153356-1887-4-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46756 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751880AbaHIWv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 18:51:59 -0400
+Message-ID: <53E6A60D.2040901@iki.fi>
+Date: Sun, 10 Aug 2014 01:51:57 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 3/4] cxusb: Add support for TechnoTrend TT-connect CT2-4650
+ CI
+References: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi> <1407481598-24598-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407481598-24598-3-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-This patch adds driver for qm1d1c0042 tuner chips.
-It is used as an ISDB-S tuner in earthsoft pt3 cards.
+cxusb_ctrl_msg() uses USB buffers from the stack which is no-no. But it 
+is old mistake...
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
-Changes in v2:
-- moved a static const table out of function scope
-- removed an unused config parameter
-- improvement in _init() to support suspend/resume
+regards
+Antti
 
- drivers/media/tuners/Kconfig      |   7 +
- drivers/media/tuners/Makefile     |   1 +
- drivers/media/tuners/qm1d1c0042.c | 422 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/qm1d1c0042.h |  50 +++++
- 4 files changed, 480 insertions(+)
+On 08/08/2014 10:06 AM, Olli Salonen wrote:
+> TechnoTrend TT-connect CT2-4650 CI (0b48:3012) is an USB DVB-T2/C tuner with
+> the following components:
+>
+>   USB interface: Cypress CY7C68013A-56LTXC
+>   Demodulator: Silicon Labs Si2168-A20
+>   Tuner: Silicon Labs Si2158-A20
+>   CI chip: CIMaX SP2HF
+>
+> The firmware for the tuner is the same as for TechnoTrend TT-TVStick CT2-4400.
+> See https://www.mail-archive.com/linux-media@vger.kernel.org/msg76944.html
+>
+> The demodulator needs a firmware that can be extracted from the Windows drivers.
+> File ttConnect4650_64.sys should be extracted from
+> http://www.tt-downloads.de/bda-treiber_4.1.0.4.zip (MD5 sum below).
+>
+> 3464bfc37a47b4032568718bacba23fb  ttConnect4650_64.sys
+>
+> Then the firmware can be extracted:
+> dd if=ttConnect4650_64.sys ibs=1 skip=273376 count=6424 of=dvb-demod-si2168-a20-01.fw
+>
+> The SP2 CI module requires a definition of a function cxusb_tt_ct2_4650_ci_ctrl
+> that is passed on to the SP2 driver and called back for CAM operations.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb/Kconfig |  2 +-
+>   drivers/media/usb/dvb-usb/cxusb.c | 92 ++++++++++++++++++++++++++++++++++++++-
+>   drivers/media/usb/dvb-usb/cxusb.h |  4 ++
+>   3 files changed, 96 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+> index 10aef21..41d3eb9 100644
+> --- a/drivers/media/usb/dvb-usb/Kconfig
+> +++ b/drivers/media/usb/dvb-usb/Kconfig
+> @@ -130,7 +130,7 @@ config DVB_USB_CXUSB
+>
+>   	  Medion MD95700 hybrid USB2.0 device.
+>   	  DViCO FusionHDTV (Bluebird) USB2.0 devices
+> -	  TechnoTrend TVStick CT2-4400
+> +	  TechnoTrend TVStick CT2-4400 and CT2-4650 CI devices
+>
+>   config DVB_USB_M920X
+>   	tristate "Uli m920x DVB-T USB2.0 support"
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index 16bc579..c3a44c7 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -44,6 +44,7 @@
+>   #include "atbm8830.h"
+>   #include "si2168.h"
+>   #include "si2157.h"
+> +#include "sp2.h"
+>
+>   /* Max transfer size done by I2C transfer functions */
+>   #define MAX_XFER_SIZE  80
+> @@ -672,6 +673,37 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+>   	{ 0x0025, KEY_POWER },
+>   };
+>
+> +static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
+> +					u8 data, int *mem)
+> +{
+> +	struct dvb_usb_device *d = priv;
+> +	u8 wbuf[3];
+> +	u8 rbuf[2];
+> +	int ret;
+> +
+> +	wbuf[0] = (addr >> 8) & 0xff;
+> +	wbuf[1] = addr & 0xff;
+> +
+> +	if (read) {
+> +		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_READ, wbuf, 2, rbuf, 2);
+> +	} else {
+> +		wbuf[2] = data;
+> +		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_WRITE, wbuf, 3, rbuf, 1);
+> +	}
+> +
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (read)
+> +		*mem = rbuf[1];
+> +
+> +	return 0;
+> +err:
+> +	deb_info("%s: ci usb write returned %d\n", __func__, ret);
+> +	return ret;
+> +
+> +}
+> +
+>   static int cxusb_dee1601_demod_init(struct dvb_frontend* fe)
+>   {
+>   	static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x28 };
+> @@ -1350,9 +1382,12 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>   	struct i2c_adapter *adapter;
+>   	struct i2c_client *client_demod;
+>   	struct i2c_client *client_tuner;
+> +	struct i2c_client *client_ci;
+>   	struct i2c_board_info info;
+>   	struct si2168_config si2168_config;
+>   	struct si2157_config si2157_config;
+> +	struct sp2_config sp2_config;
+> +	u8 o[2], i;
+>
+>   	/* reset the tuner */
+>   	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
+> @@ -1408,6 +1443,48 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>
+>   	st->i2c_client_tuner = client_tuner;
+>
+> +	/* initialize CI */
+> +	if (d->udev->descriptor.idProduct ==
+> +		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
+> +
+> +		memcpy(o, "\xc0\x01", 2);
+> +		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+> +		msleep(100);
+> +
+> +		memcpy(o, "\xc0\x00", 2);
+> +		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
+> +		msleep(100);
+> +
+> +		memset(&sp2_config, 0, sizeof(sp2_config));
+> +		sp2_config.dvb_adap = &adap->dvb_adap;
+> +		sp2_config.priv = d;
+> +		sp2_config.ci_control = cxusb_tt_ct2_4650_ci_ctrl;
+> +		memset(&info, 0, sizeof(struct i2c_board_info));
+> +		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
+> +		info.addr = 0x40;
+> +		info.platform_data = &sp2_config;
+> +		request_module(info.type);
+> +		client_ci = i2c_new_device(&d->i2c_adap, &info);
+> +		if (client_ci == NULL || client_ci->dev.driver == NULL) {
+> +			module_put(client_tuner->dev.driver->owner);
+> +			i2c_unregister_device(client_tuner);
+> +			module_put(client_demod->dev.driver->owner);
+> +			i2c_unregister_device(client_demod);
+> +			return -ENODEV;
+> +		}
+> +		if (!try_module_get(client_ci->dev.driver->owner)) {
+> +			i2c_unregister_device(client_ci);
+> +			module_put(client_tuner->dev.driver->owner);
+> +			i2c_unregister_device(client_tuner);
+> +			module_put(client_demod->dev.driver->owner);
+> +			i2c_unregister_device(client_demod);
+> +			return -ENODEV;
+> +		}
+> +
+> +		st->i2c_client_ci = client_ci;
+> +
+> +	}
+> +
+>   	return 0;
+>   }
+>
+> @@ -1537,6 +1614,13 @@ static void cxusb_disconnect(struct usb_interface *intf)
+>   	struct cxusb_state *st = d->priv;
+>   	struct i2c_client *client;
+>
+> +	/* remove I2C client for CI */
+> +	client = st->i2c_client_ci;
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +
+>   	/* remove I2C client for tuner */
+>   	client = st->i2c_client_tuner;
+>   	if (client) {
+> @@ -1576,6 +1660,7 @@ static struct usb_device_id cxusb_table [] = {
+>   	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
+>   	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
+>   	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_TVSTICK_CT2_4400) },
+> +	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) },
+>   	{}		/* Terminating entry */
+>   };
+>   MODULE_DEVICE_TABLE (usb, cxusb_table);
+> @@ -2265,13 +2350,18 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+>   		.rc_interval    = 150,
+>   	},
+>
+> -	.num_device_descs = 1,
+> +	.num_device_descs = 2,
+>   	.devices = {
+>   		{
+>   			"TechnoTrend TVStick CT2-4400",
+>   			{ NULL },
+>   			{ &cxusb_table[20], NULL },
+>   		},
+> +		{
+> +			"TechnoTrend TT-connect CT2-4650 CI",
+> +			{ NULL },
+> +			{ &cxusb_table[21], NULL },
+> +		},
+>   	}
+>   };
+>
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+> index 527ff79..29f3e2e 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.h
+> +++ b/drivers/media/usb/dvb-usb/cxusb.h
+> @@ -28,10 +28,14 @@
+>   #define CMD_ANALOG        0x50
+>   #define CMD_DIGITAL       0x51
+>
+> +#define CMD_SP2_CI_WRITE  0x70
+> +#define CMD_SP2_CI_READ   0x71
+> +
+>   struct cxusb_state {
+>   	u8 gpio_write_state[3];
+>   	struct i2c_client *i2c_client_demod;
+>   	struct i2c_client *i2c_client_tuner;
+> +	struct i2c_client *i2c_client_ci;
+>   };
+>
+>   #endif
+>
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index cd3f8ee..8125d1d 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -264,4 +264,11 @@ config MEDIA_TUNER_MXL301RF
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  MaxLinear MxL301RF OFDM tuner driver.
-+
-+config MEDIA_TUNER_QM1D1C0042
-+	tristate "Sharp QM1D1C0042 tuner"
-+	depends on MEDIA_SUPPORT && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Sharp QM1D1C0042 trellis coded 8PSK tuner driver.
- endmenu
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index 6d5bf48..04d5efc 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -40,6 +40,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
- obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
- obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
- obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
-+obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
- 
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-new file mode 100644
-index 0000000..ea6c245
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -0,0 +1,422 @@
-+/*
-+ * Sharp QM1D1C0042 8PSK tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "qm1d1c0042.h"
-+
-+#define QM1D1C0042_NUM_REGS 0x20
-+
-+static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
-+	0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-+	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-+	0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-+	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-+};
-+
-+static const struct qm1d1c0042_config default_cfg = {
-+	.init_freq = 0,
-+	.xtal_freq = 16000,
-+	.lpf = 1,
-+	.fast_srch = 0,
-+	.lpf_wait = 20,
-+	.fast_srch_wait = 4,
-+	.normal_srch_wait = 15,
-+};
-+
-+struct qm1d1c0042_state {
-+	struct qm1d1c0042_config cfg;
-+	struct i2c_adapter *i2c;
-+	struct dvb_frontend *fe;
-+	u8 regs[QM1D1C0042_NUM_REGS];
-+};
-+
-+static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
-+{
-+	u8 wbuf[2] = { reg, val };
-+	struct i2c_msg msg = {
-+		.addr = state->cfg.addr,
-+		.flags = 0,
-+		.buf = wbuf,
-+		.len = 2,
-+	};
-+	return i2c_transfer(state->i2c, &msg, 1);
-+}
-+
-+
-+static int reg_read(struct qm1d1c0042_state *state, u8 reg, u8 *val)
-+{
-+	struct i2c_msg msgs[2] = {
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = 0,
-+			.buf = &reg,
-+			.len = 1,
-+		},
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = I2C_M_RD,
-+			.buf = val,
-+			.len = 1,
-+		},
-+	};
-+
-+	return i2c_transfer(state->i2c, msgs, ARRAY_SIZE(msgs));
-+}
-+
-+static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
-+{
-+	if (fast)
-+		state->regs[0x03] |= 0x01; /* set fast search mode */
-+	else
-+		state->regs[0x03] &= ~0x01 & 0xff;
-+
-+	return reg_write(state, 0x03, state->regs[0x03]);
-+}
-+
-+static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
-+{
-+	int ret;
-+
-+	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
-+	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
-+	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
-+	ret = reg_write(state, 0x01, state->regs[0x01]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x05, state->regs[0x05]);
-+
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, state->fe->dvb->num, state->fe->id);
-+	return ret;
-+}
-+
-+/* tuner_ops */
-+
-+static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct qm1d1c0042_state *state;
-+	struct qm1d1c0042_config *cfg;
-+
-+	state = fe->tuner_priv;
-+	cfg = priv_cfg;
-+
-+	state->cfg.init_freq = cfg->init_freq;
-+	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
-+		dev_warn(&state->i2c->dev,
-+			"(%s) changing xtal_freq not supported. "
-+			"[adap%d-fe%d]\n", __func__, fe->dvb->num, fe->id);
-+	state->cfg.lpf = cfg->lpf;
-+	state->cfg.fast_srch = cfg->fast_srch;
-+	if (cfg->lpf_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.lpf_wait = cfg->lpf_wait;
-+	else
-+		state->cfg.lpf_wait = default_cfg.lpf_wait;
-+	if (cfg->fast_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.fast_srch_wait = cfg->fast_srch_wait;
-+	else
-+		state->cfg.fast_srch_wait = default_cfg.fast_srch_wait;
-+	if (cfg->normal_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.normal_srch_wait = cfg->normal_srch_wait;
-+	else
-+		state->cfg.normal_srch_wait = default_cfg.normal_srch_wait;
-+	return 0;
-+}
-+
-+/* divisor, vco_band parameters */
-+/*  {maxfreq,  param1(band?), param2(div?) */
-+static const u32 conv_table[9][3] = {
-+	{ 2151000, 1, 7 },
-+	{ 1950000, 1, 6 },
-+	{ 1800000, 1, 5 },
-+	{ 1600000, 1, 4 },
-+	{ 1450000, 1, 3 },
-+	{ 1250000, 1, 2 },
-+	{ 1200000, 0, 7 },
-+	{  975000, 0, 6 },
-+	{  950000, 0, 0 }
-+};
-+
-+static int qm1d1c0042_set_params(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	u32 freq;
-+	int i, ret;
-+	u8 val, mask;
-+	u32 a, sd;
-+	s32 b;
-+
-+	state = fe->tuner_priv;
-+	freq = fe->dtv_property_cache.frequency;
-+
-+	state->regs[0x08] &= 0xf0;
-+	state->regs[0x08] |= 0x09;
-+
-+	state->regs[0x13] &= 0x9f;
-+	state->regs[0x13] |= 0x20;
-+
-+	/* div2/vco_band */
-+	val = state->regs[0x02] & 0x0f;
-+	for (i = 0; i < 8; i++)
-+		if (freq < conv_table[i][0] && freq >= conv_table[i + 1][0]) {
-+			val |= conv_table[i][1] << 7;
-+			val |= conv_table[i][2] << 4;
-+			break;
-+		}
-+	ret = reg_write(state, 0x02, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	a = (freq + state->cfg.xtal_freq / 2) / state->cfg.xtal_freq;
-+
-+	state->regs[0x06] &= 0x40;
-+	state->regs[0x06] |= (a - 12) / 4;
-+	ret = reg_write(state, 0x06, state->regs[0x06]);
-+	if (ret < 0)
-+		return ret;
-+
-+	state->regs[0x07] &= 0xf0;
-+	state->regs[0x07] |= (a - 4 * ((a - 12) / 4 + 1) - 5) & 0x0f;
-+	ret = reg_write(state, 0x07, state->regs[0x07]);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* LPF */
-+	val = state->regs[0x08];
-+	if (state->cfg.lpf) {
-+		/* LPF_CLK, LPF_FC */
-+		val &= 0xf0;
-+		val |= 0x02;
-+	}
-+	ret = reg_write(state, 0x08, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * b = (freq / state->cfg.xtal_freq - a) << 20;
-+	 * sd = b          (b >= 0)
-+	 *      1<<22 + b  (b < 0)
-+	 */
-+	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
-+	if (b >= 0)
-+		sd = b;
-+	else
-+		sd = (1 << 22) + b;
-+
-+	state->regs[0x09] &= 0xc0;
-+	state->regs[0x09] |= (sd >> 16) & 0x3f;
-+	state->regs[0x0a] = (sd >> 8) & 0xff;
-+	state->regs[0x0b] = sd & 0xff;
-+	ret = reg_write(state, 0x09, state->regs[0x09]);
-+	ret |= reg_write(state, 0x0a, state->regs[0x0a]);
-+	ret |= reg_write(state, 0x0b, state->regs[0x0b]);
-+	if (ret != 0)
-+		return ret;
-+
-+	if (!state->cfg.lpf) {
-+		/* CSEL_Offset */
-+		ret = reg_write(state, 0x13, state->regs[0x13]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* VCO_TM, LPF_TM */
-+	mask = state->cfg.lpf ? 0x3f : 0x7f;
-+	val = state->regs[0x0c] & mask;
-+	ret = reg_write(state, 0x0c, val);
-+	if (ret < 0)
-+		return ret;
-+	usleep_range(2000, 3000);
-+	val = state->regs[0x0c] | ~mask;
-+	ret = reg_write(state, 0x0c, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (state->cfg.lpf)
-+		msleep(state->cfg.lpf_wait);
-+	else if (state->regs[0x03] & 0x01)
-+		msleep(state->cfg.fast_srch_wait);
-+	else
-+		msleep(state->cfg.normal_srch_wait);
-+
-+	if (state->cfg.lpf) {
-+		/* LPF_FC */
-+		ret = reg_write(state, 0x08, 0x09);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* CSEL_Offset */
-+		ret = reg_write(state, 0x13, state->regs[0x13]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	return 0;
-+}
-+
-+static int qm1d1c0042_get_status(struct dvb_frontend *fe, u32 *status)
-+{
-+	struct qm1d1c0042_state *state;
-+	int ret;
-+
-+	*status = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_read(state, 0x0d, &state->regs[0x0d]);
-+	if (ret == 0 && state->regs[0x0d] & 0x40)
-+		*status = TUNER_STATUS_LOCKED;
-+	return ret;
-+}
-+
-+static int qm1d1c0042_sleep(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	state->regs[0x01] &= (~(1 << 3)) & 0xff; /* BB_Reg_disable */
-+	state->regs[0x01] |= 1 << 0;             /* STDBY */
-+	state->regs[0x05] |= 1 << 3;             /* pfd_rst STANDBY */
-+	ret = reg_write(state, 0x05, state->regs[0x05]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x01, state->regs[0x01]);
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int qm1d1c0042_init(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	u8 val;
-+	u8 i;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	memcpy(state->regs, reg_initval, sizeof(reg_initval));
-+
-+	reg_write(state, 0x01, 0x0c);
-+	reg_write(state, 0x01, 0x0c);
-+
-+	ret = reg_write(state, 0x01, 0x0c); /* soft reset on */
-+	if (ret < 0)
-+		goto failed;
-+	usleep_range(2000, 3000);
-+
-+	val = state->regs[0x01] | 0x10;
-+	ret = reg_write(state, 0x01, val); /* soft reset off */
-+	if (ret < 0)
-+		goto failed;
-+
-+	/* check ID */
-+	ret = reg_read(state, 0x00, &val);
-+	if (ret < 0 || val != 0x48)
-+		goto failed;
-+	usleep_range(2000, 3000);
-+
-+	state->regs[0x0c] |= 0x40;
-+	ret = reg_write(state, 0x0c, state->regs[0x0c]);
-+	if (ret < 0)
-+		goto failed;
-+	msleep(state->cfg.lpf_wait);
-+
-+	/* set all writable registers */
-+	for (i = 1; i <= 0x0c ; i++) {
-+		ret = reg_write(state, i, state->regs[i]);
-+		if (ret < 0)
-+			goto failed;
-+	}
-+	for (i = 0x11; i < QM1D1C0042_NUM_REGS; i++) {
-+		ret = reg_write(state, i, state->regs[i]);
-+		if (ret < 0)
-+			goto failed;
-+	}
-+
-+	ret = qm1d1c0042_wakeup(state);
-+	if (ret < 0)
-+		goto failed;
-+
-+	ret = qm1d1c0042_set_srch_mode(state, state->cfg.fast_srch);
-+	if (ret < 0)
-+		goto failed;
-+
-+	if (state->cfg.init_freq > 0) {
-+		u32 f = fe->dtv_property_cache.frequency;
-+
-+		fe->dtv_property_cache.frequency = state->cfg.init_freq;
-+		ret = qm1d1c0042_set_params(fe);
-+		fe->dtv_property_cache.frequency = f;
-+	}
-+	return ret;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int qm1d1c0042_release(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+
-+	state = fe->tuner_priv;
-+	kfree(state);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+/* exported functions */
-+
-+static const struct dvb_tuner_ops qm1d1c0042_ops = {
-+	.info = {
-+		.name = "Sharp QM1D1C0042",
-+
-+		.frequency_min =  950000,
-+		.frequency_max = 2150000,
-+	},
-+
-+	.release = qm1d1c0042_release,
-+	.init = qm1d1c0042_init,
-+	.sleep = qm1d1c0042_sleep,
-+	.set_config = qm1d1c0042_set_config,
-+	.set_params = qm1d1c0042_set_params,
-+	.get_status = qm1d1c0042_get_status,
-+};
-+
-+
-+struct dvb_frontend *qm1d1c0042_attach(struct dvb_frontend *fe,
-+				       struct i2c_adapter *i2c,
-+				       const struct qm1d1c0042_config *cfg)
-+{
-+	struct qm1d1c0042_state *state;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+
-+	state->fe = fe;
-+	state->i2c = i2c;
-+	memcpy(&state->cfg, &default_cfg, sizeof(default_cfg));
-+	state->cfg.addr = cfg->addr;
-+
-+	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
-+	fe->tuner_priv = state;
-+	fe->ops.tuner_ops.set_config(fe, (void *)cfg);
-+	dev_info(&i2c->dev, "Sharp QM1D1C0042 attached.\n");
-+	return fe;
-+}
-+EXPORT_SYMBOL(qm1d1c0042_attach);
-+
-+MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
-+MODULE_AUTHOR("Akihiro TSUKADA");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
-new file mode 100644
-index 0000000..5b76da8
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1c0042.h
-@@ -0,0 +1,50 @@
-+/*
-+ * Sharp QM1D1C0042 8PSK tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef QM1D1C0042_H
-+#define QM1D1C0042_H
-+
-+#include <linux/kconfig.h>
-+#include "dvb_frontend.h"
-+
-+
-+struct qm1d1c0042_config {
-+	u8   addr;
-+	u32  init_freq;    /* initial frequency to be tuned. [kHz] */
-+	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
-+	bool lpf;          /* enable LPF */
-+	bool fast_srch;    /* enable fast search mode, no LPF */
-+	u32  lpf_wait;         /* wait in tuning with LPF enabled. [ms] */
-+	u32  fast_srch_wait;   /* with fast-search mode, no LPF. [ms] */
-+	u32  normal_srch_wait; /* with no LPF/fast-search mode. [ms] */
-+};
-+/* special values indicating to use the default in qm1d1c0042_config */
-+#define QM1D1C0042_CFG_XTAL_DFLT 0
-+#define QM1D1C0042_CFG_WAIT_DFLT 0
-+
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_QM1D1C0042)
-+extern struct dvb_frontend *qm1d1c0042_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct qm1d1c0042_config *cfg);
-+#else
-+static inline struct dvb_frontend *qm1d1c0042_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct qm1d1c0042_config *cfg)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif /* QM1D1C0042_H */
 -- 
-2.1.0
-
+http://palosaari.fi/
