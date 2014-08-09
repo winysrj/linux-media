@@ -1,99 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44068 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755676AbaHZVzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:18 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 01/35] [media] vpif_display: get rid of some unused vars
-Date: Tue, 26 Aug 2014 18:54:37 -0300
-Message-Id: <1409090111-8290-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:63667 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751023AbaHIF7s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 01:59:48 -0400
+Received: by mail-pa0-f53.google.com with SMTP id rd3so8384570pab.12
+        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 22:59:48 -0700 (PDT)
+Message-ID: <1407563984.5172.1.camel@phoenix>
+Subject: [PATCH 2/4] [media] vs6624: Include media/v4l2-image-sizes.h
+From: Axel Lin <axel.lin@ingics.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Date: Sat, 09 Aug 2014 13:59:44 +0800
+In-Reply-To: <1407563920.5172.0.camel@phoenix>
+References: <1407563920.5172.0.camel@phoenix>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/davinci/vpif_display.c: In function 'vpif_channel_isr':
-drivers/media/platform/davinci/vpif_display.c:363:18: warning: variable 'field'
- set but not used [-Wunused-but-set-variable]
-  enum v4l2_field field;
-                  ^
-drivers/media/platform/davinci/vpif_display.c: In function 'vpif_calculate_offs
-ets':
-drivers/media/platform/davinci/vpif_display.c:505:23: warning: variable 'vpitch
-' set but not used [-Wunused-but-set-variable]
-  unsigned int hpitch, vpitch, sizeimage;
-                       ^
-drivers/media/platform/davinci/vpif_display.c: In function 'vpif_set_output':
-drivers/media/platform/davinci/vpif_display.c:816:27: warning: variable 'subdev
-_info' set but not used [-Wunused-but-set-variable]
-  struct vpif_subdev_info *subdev_info = NULL;
+So we can remove the same defines in the driver code.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- drivers/media/platform/davinci/vpif_display.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/media/i2c/vs6624.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index a03ec7381cfe..aaa9ec06630f 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -360,7 +360,6 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 	struct vpif_device *dev = &vpif_obj;
- 	struct channel_obj *ch;
- 	struct common_obj *common;
--	enum v4l2_field field;
- 	int fid = -1, i;
- 	int channel_id = 0;
+diff --git a/drivers/media/i2c/vs6624.c b/drivers/media/i2c/vs6624.c
+index 23f4f65..373f2df 100644
+--- a/drivers/media/i2c/vs6624.c
++++ b/drivers/media/i2c/vs6624.c
+@@ -30,22 +30,10 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-image-sizes.h>
  
-@@ -369,7 +368,6 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 		return IRQ_NONE;
+ #include "vs6624_regs.h"
  
- 	ch = dev->dev[channel_id];
--	field = ch->common[VPIF_VIDEO_INDEX].fmt.fmt.pix.field;
- 	for (i = 0; i < VPIF_NUMOBJECTS; i++) {
- 		common = &ch->common[i];
- 		/* If streaming is started in this channel */
-@@ -502,7 +500,7 @@ static void vpif_calculate_offsets(struct channel_obj *ch)
- 	struct vpif_params *vpifparams = &ch->vpifparams;
- 	enum v4l2_field field = common->fmt.fmt.pix.field;
- 	struct video_obj *vid_ch = &ch->video;
--	unsigned int hpitch, vpitch, sizeimage;
-+	unsigned int hpitch, sizeimage;
+-#define VGA_WIDTH       640
+-#define VGA_HEIGHT      480
+-#define QVGA_WIDTH      320
+-#define QVGA_HEIGHT     240
+-#define QQVGA_WIDTH     160
+-#define QQVGA_HEIGHT    120
+-#define CIF_WIDTH       352
+-#define CIF_HEIGHT      288
+-#define QCIF_WIDTH      176
+-#define QCIF_HEIGHT     144
+-#define QQCIF_WIDTH     88
+-#define QQCIF_HEIGHT    72
+-
+ #define MAX_FRAME_RATE  30
  
- 	if (V4L2_FIELD_ANY == common->fmt.fmt.pix.field) {
- 		if (ch->vpifparams.std_info.frm_fmt)
-@@ -516,7 +514,6 @@ static void vpif_calculate_offsets(struct channel_obj *ch)
- 	sizeimage = common->fmt.fmt.pix.sizeimage;
- 
- 	hpitch = common->fmt.fmt.pix.bytesperline;
--	vpitch = sizeimage / (hpitch * 2);
- 	if ((V4L2_FIELD_NONE == vid_ch->buf_field) ||
- 	    (V4L2_FIELD_INTERLACED == vid_ch->buf_field)) {
- 		common->ytop_off = 0;
-@@ -813,17 +810,14 @@ static int vpif_set_output(struct vpif_display_config *vpif_cfg,
- {
- 	struct vpif_display_chan_config *chan_cfg =
- 		&vpif_cfg->chan_config[ch->channel_id];
--	struct vpif_subdev_info *subdev_info = NULL;
- 	struct v4l2_subdev *sd = NULL;
- 	u32 input = 0, output = 0;
- 	int sd_index;
- 	int ret;
- 
- 	sd_index = vpif_output_to_subdev(vpif_cfg, chan_cfg, index);
--	if (sd_index >= 0) {
-+	if (sd_index >= 0)
- 		sd = vpif_obj.sd[sd_index];
--		subdev_info = &vpif_cfg->subdevinfo[sd_index];
--	}
- 
- 	if (sd) {
- 		input = chan_cfg->outputs[index].input_route;
+ struct vs6624 {
 -- 
-1.9.3
+1.9.1
+
+
 
