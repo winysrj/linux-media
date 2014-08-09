@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:38605 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbaHDUAY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 16:00:24 -0400
-Received: by mail-lb0-f179.google.com with SMTP id v6so5686282lbi.38
-        for <linux-media@vger.kernel.org>; Mon, 04 Aug 2014 13:00:22 -0700 (PDT)
-Message-ID: <53DFE654.1000102@cogentembedded.com>
-Date: Tue, 05 Aug 2014 00:00:20 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Ian Molton <ian.molton@codethink.co.uk>,
-	linux-media@vger.kernel.org
-CC: linux-kernel@lists.codethink.co.uk, g.liakhovetski@gmx.de,
-	m.chehab@samsung.com, vladimir.barinov@cogentembedded.com,
-	magnus.damm@gmail.com, horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Re: Resend: [PATCH 0/4] rcar_vin: fix soc_camera WARN_ON() issues.
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:56700 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751507AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:27:32 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 01/14] get_dvb_firmware: Update firmware of ITEtech IT9135
+Date: Sat,  9 Aug 2014 23:26:59 +0300
+Message-Id: <1407616032-2722-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
+References: <1407616032-2722-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
 
-On 07/08/2014 01:41 PM, Ian Molton wrote:
+IT9135 firmware update.
 
-> Resent to include the author and a couple of other interested parties :)
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/dvb/get_dvb_firmware | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-    Thank you (despite you didn't include me :-).
-
-> This patch series provides fixes that allow the rcar_vin driver to function
-> without triggering dozens of warnings from the videobuf2 and soc_camera layers.
-
-> Patches 2/3 should probably be merged into a single, atomic change, although
-> patch 2 does not make the existing situation /worse/ in and of itself.
-
-    Perhaps it's worth to just swap patches 2 & 3...
-
-> Patch 4 does not change the code logic, but is cleaner and less prone to
-> breakage caused by furtutre modification. Also, more consistent with the use of
-> vb pointers elsewhere in the driver.
-
-    It's not a good practice to post fixes and clean-ups in a single series.
-
-> Comments welcome!
-
-    I've just tested the whole series, so here's my:
-
-Tested-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
-WBR, Sergei
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index 26c623d..91b43d2 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -708,23 +708,25 @@ sub drxk_terratec_htc_stick {
+ }
+ 
+ sub it9135 {
+-	my $sourcefile = "dvb-usb-it9135.zip";
+-	my $url = "http://www.ite.com.tw/uploads/firmware/v3.6.0.0/$sourcefile";
+-	my $hash = "1e55f6c8833f1d0ae067c2bb2953e6a9";
+-	my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 0);
+-	my $outfile = "dvb-usb-it9135.fw";
++	my $url = "http://www.ite.com.tw/uploads/firmware/v3.25.0.0/";
++	my $file1 = "dvb-usb-it9135-01.zip";
+ 	my $fwfile1 = "dvb-usb-it9135-01.fw";
++	my $hash1 = "02fcf11174eda84745dae7e61c5ff9ba";
++	my $file2 = "dvb-usb-it9135-02.zip";
+ 	my $fwfile2 = "dvb-usb-it9135-02.fw";
++	my $hash2 = "d5e1437dc24358578e07999475d4cac9";
+ 
+ 	checkstandard();
+ 
+-	wgetfile($sourcefile, $url);
+-	unzip($sourcefile, $tmpdir);
+-	verify("$tmpdir/$outfile", $hash);
+-	extract("$tmpdir/$outfile", 64, 8128, "$fwfile1");
+-	extract("$tmpdir/$outfile", 12866, 5817, "$fwfile2");
++	wgetfile($file1, $url . $file1);
++	unzip($file1, "");
++	verify("$fwfile1", $hash1);
++
++	wgetfile($file2, $url . $file2);
++	unzip($file2, "");
++	verify("$fwfile2", $hash2);
+ 
+-	"$fwfile1 $fwfile2"
++	"$file1 $file2"
+ }
+ 
+ sub tda10071 {
+-- 
+http://palosaari.fi/
 
