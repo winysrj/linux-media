@@ -1,64 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45260 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753915AbaHZUIm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 16:08:42 -0400
-Message-ID: <53FCE947.6000103@infradead.org>
-Date: Tue, 26 Aug 2014 13:08:39 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:59297 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751187AbaHIUrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:47:09 -0400
+Message-ID: <53E688CA.1080203@iki.fi>
+Date: Sat, 09 Aug 2014 23:47:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mark Brown <broonie@kernel.org>
-CC: Peter Foley <pefoley2@pefoley.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
-References: <1409073919-27336-1-git-send-email-broonie@kernel.org> <53FCDE16.1000205@infradead.org> <20140826192624.GN17528@sirena.org.uk> <53FCE70A.6000907@infradead.org>
-In-Reply-To: <53FCE70A.6000907@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] V4L/DVB: Update tuner initialization sequence
+References: <1407217613.2988.7.camel@ite-desktop>
+In-Reply-To: <1407217613.2988.7.camel@ite-desktop>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/26/14 12:59, Randy Dunlap wrote:
-> On 08/26/14 12:26, Mark Brown wrote:
->> On Tue, Aug 26, 2014 at 12:20:54PM -0700, Randy Dunlap wrote:
->>> On 08/26/14 10:25, Mark Brown wrote:
->>
->>>> index d58101e788fc..65a351d75c95 100644
->>>> --- a/Documentation/video4linux/Makefile
->>>> +++ b/Documentation/video4linux/Makefile
->>>> @@ -1 +1 @@
->>>> -obj-m := v4l2-pci-skeleton.o
->>>> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
->>>> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
->>
->>>> +config VIDEO_PCI_SKELETON
->>>> +	tristate "Skeleton PCI V4L2 driver"
->>>> +	depends on PCI && COMPILE_TEST
->>
->>> 	               && ??  No, don't require COMPILE_TEST.
->>
->> That's a very deliberate choice.  There's no reason I can see to build
->> this code other than to check that it builds, it's reference code rather
->> than something that someone is expected to actually use in their system.  
->> This seems like a perfect candidate for COMPILE_TEST.
->>
->>> 		However, PCI || COMPILE_TEST would allow it to build on arm64
->>> 		if COMPILE_TEST is enabled, guaranteeing build errors.
->>> 		Is that what should happen?  I suppose so...
->>
->> No, it's not - if it's going to depend on COMPILE_TEST at all it need to
->> be a hard dependency.
-> 
-> How about just drop COMPILE_TEST?  This code only builds if someone enabled
-> BUILD_DOCSRC.  That should be enough (along with PCI and some VIDEO kconfig
-> symbols) to qualify it.
+I applied that patch too, but reverted register writes you removed / 
+moved to af9033 demod driver. Also, register write added for attach() 
+happens too late leaving tuner ops populated even it fails. That causes 
+surely kernel crash when tuner attach fails and DVB-core sees tuner 
+callbacks are populated. So I moved it happen few lines earlier. Also 
+removed sleep as I didn't see any need for it.
 
-I'll add BUILD_DOCSRC to the depends list in the Kconfig file...
+There should be commit description on each patch saying what it does and 
+why. I did a lot of reverse-engineering to understand these patches.
 
+
+regards
+Antti
 
 -- 
-~Randy
+http://palosaari.fi/
