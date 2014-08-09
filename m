@@ -1,140 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33270 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752460AbaHNFDo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 01:03:44 -0400
-Date: Thu, 14 Aug 2014 08:03:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com
-Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
-Message-ID: <20140814050338.GO16460@valkosipuli.retiisi.org.uk>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
- <20140806065358.GC16460@valkosipuli.retiisi.org.uk>
- <53E336FA.2050306@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53E336FA.2050306@samsung.com>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:65476 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbaHIGTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 02:19:24 -0400
+Received: by mail-pd0-f177.google.com with SMTP id p10so8094973pdj.36
+        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 23:19:24 -0700 (PDT)
+Message-ID: <1407565160.5172.4.camel@phoenix>
+Subject: [PATCH 1/2] [media] sh_veu: Include media/v4l2-image-sizes.h
+From: Axel Lin <axel.lin@ingics.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Date: Sat, 09 Aug 2014 14:19:20 +0800
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+So we can remove the same defines in the driver code.
 
-On Thu, Aug 07, 2014 at 10:21:14AM +0200, Jacek Anaszewski wrote:
-> On 08/06/2014 08:53 AM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Fri, Jul 11, 2014 at 04:04:03PM +0200, Jacek Anaszewski wrote:
-> >...
-> >>1) Who should register V4L2 Flash sub-device?
-> >>
-> >>LED Flash Class devices, after introduction of the Flash Manager,
-> >>are not tightly coupled with any media controller. They are maintained
-> >>by the Flash Manager and made available for dynamic assignment to
-> >>any media system they are connected to through multiplexing devices.
-> >>
-> >>In the proposed rough solution, when support for V4L2 Flash sub-devices
-> >>is enabled, there is a v4l2_device created for them to register in.
-> >>This however implies that V4L2 Flash device will not be available
-> >>in any media controller, which calls its existence into question.
-> >>
-> >>Therefore I'd like to consult possible ways of solving this issue.
-> >>The option I see is implementing a mechanism for moving V4L2 Flash
-> >>sub-devices between media controllers. A V4L2 Flash sub-device
-> >>would initially be assigned to one media system in the relevant
-> >>device tree binding, but it could be dynamically reassigned to
-> >>the other one. However I'm not sure if media controller design
-> >>is prepared for dynamic modifications of its graph and how many
-> >>modifications in the existing drivers this solution would require.
-> >
-> >Do you have a use case where you would need to strobe a flash from multiple
-> >media devices at different times, or is this entirely theoretical? Typically
-> >flash controllers are connected to a single source of hardware strobe (if
-> >there's one) since the flash LEDs are in fact mounted next to a specific
-> >camera sensor.
-> 
-> I took into account such arrangements in response to your message
-> [1], where you were considering configurations like "one flash but
-> two
-> cameras", "one camera and two flashes". And you also called for
-> proposing generic solution.
-> 
-> One flash and two (or more) cameras case is easily conceivable -
-> You even mentioned stereo cameras. One camera and many flashes
-> arrangement might be useful in case of some professional devices which
-> might be designed so that they would be able to apply different scene
-> lighting. I haven't heard about such devices, but as you said
-> such a configuration isn't unthinkable.
-> 
-> >If this is a real issue the way to solve it would be to have a single media
-> >device instead of many.
-> 
-> I was considering adding media device, that would be a representation
-> of a flash manager, gathering all the registered flashes. Nonetheless,
-> finally I came to conclusion that a v4l2-device alone should suffice,
-> just to provide a Flash Manager representation allowing for
-> v4l2-flash sub-devices to register in.
-> All the features provided by the media device are useless in case
-> of a set of V4L2 Flash sub-devices. They couldn't have any linkage
-> in such a device. The only benefit from having media device gathering
-> V4L2 Flash devices would be possibility of listing them.
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/media/platform/sh_veu.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Not quite so. The flash is associated to the sensor (and lens) using the
-group ID in the Media controller. The user space doesn't need to "know" this
-association.
-
-More complex use cases such as the above may need extensions to the Media
-controller API.
-
-> >>2) Consequences of locking the Flash Manager during flash strobe
-> >>
-> >>In case a LED Flash Class device depends on muxes involved in
-> >>routing the other LED Flash Class device's strobe signals,
-> >>the Flash Manager must be locked for the time of strobing
-> >>to prevent reconfiguration of the strobe signal routing
-> >>by the other device.
-> >
-> >I wouldn't be concerned of this in particular. It's more important we do
-> >actully have V4L2 flash API supported by LED flash drivers and that they do
-> >implement the API correctly.
-> >
-> >It's at least debatable whether you should try to prevent user space from
-> >doing silly things or not. With complex devices it may relatively easily
-> >lead to wrecking havoc with actual use cases which we certainly do not want.
-> >
-> >In this case, if you just prevent changing the routing (do you have a use
-> >case for it?) while strobing, someone else could still change the routing
-> >just before you strobe.
-> 
-> Originally I started to implementing this so that strobe signal routing
-> was altered upon setting strobe source. With such an implementation
-> the use case would be as follows:
-> 
-> 1. Process 1 sets strobe source to external
-> 2. Process 2 sets strobe source to software
-> 3. Process 1 strobes the flash, unaware that strobe source setting has
->    been changed
-> 
-> To avoid such problems I changed the implementation so that the
-> routing is set in the led_flash_manager_setup_strobe function called
-> from led_set_flash_strobe and led_set_external_strobe functions.
-> led_flash_manager_setup_strobe sets strobe signal routing
-> and strobes the flash under lock and holds it for the flash timeout
-> period, which prevents spurious reconfiguration.
-> 
-> Nonetheless, I agree that trying to handle this problem is troublesome,
-> and would affect current V4L2 Flash SPI semantics. If you don't share
-> my concerns I am happy to leave this locking solution out :)
-
-I do propose leaving it out. If we should have such a thing we should think
-it in a larger scope than just flash strobing.
-
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index 8dc279d..be3b3bc 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -26,6 +26,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mem2mem.h>
++#include <media/v4l2-image-sizes.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #define VEU_STR 0x00 /* start register */
+@@ -135,9 +136,6 @@ enum sh_veu_fmt_idx {
+ 	SH_VEU_FMT_RGB24,
+ };
+ 
+-#define VGA_WIDTH	640
+-#define VGA_HEIGHT	480
+-
+ #define DEFAULT_IN_WIDTH	VGA_WIDTH
+ #define DEFAULT_IN_HEIGHT	VGA_HEIGHT
+ #define DEFAULT_IN_FMTIDX	SH_VEU_FMT_NV12
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+
