@@ -1,158 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1692 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753795AbaHYLjT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 07:39:19 -0400
-Message-ID: <53FB2045.1020504@xs4all.nl>
-Date: Mon, 25 Aug 2014 13:38:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de
-Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper functions
-References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:54503 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751055AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:27:32 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/14] af9033: feed clock to RF tuner
+Date: Sat,  9 Aug 2014 23:27:02 +0300
+Message-Id: <1407616032-2722-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
+References: <1407616032-2722-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+IT9135 RF tuner clock is coming from demodulator. We need enable it
+early in demod init, before any tuner I/O. Currently it is enabled
+by tuner driver itself, but it is too late and performance will be
+reduced as some registers are not updated correctly. Clock is
+disabled automatically when demod is put onto sleep.
 
-I have to think a bit more about the format names, but in the meantime I have
-two other suggestions:
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-On 08/25/2014 12:33 PM, Philipp Zabel wrote:
-> This patch adds an array of V4L2 pixel formats and descriptions that can be
-> used by drivers so that each driver doesn't have to provide its own slightly
-> different format descriptions for VIDIOC_ENUM_FMT.
-> 
-> Each array entry also includes two bits per pixel values (for a single line and
-> one for the whole image) that can be used to determine the v4l2_pix_format
-> bytesperline and sizeimage values and whether the format is planar or
-> compressed.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> I have started to convert some drivers on a boring train ride, but it occurred
-> to me that I probably should get some feedback before carrying on with this:
-> http://git.pengutronix.de/?p=pza/linux.git;a=shortlog;h=refs/heads/topic/media-pixfmt
-> ---
->  drivers/media/v4l2-core/v4l2-common.c | 488 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-common.h           |  44 +++
->  2 files changed, 532 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index ccaa38f..41692df 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -533,3 +533,491 @@ void v4l2_get_timestamp(struct timeval *tv)
->  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> +
-> +static const struct v4l2_pixfmt v4l2_pixfmts[] = {
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index be4bec2..5c90ea6 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -314,6 +314,19 @@ static int af9033_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
++	/* feed clock to RF tuner */
++	switch (state->cfg.tuner) {
++	case AF9033_TUNER_IT9135_38:
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
++		ret = af9033_wr_reg(state, 0x80fba8, 0x00);
++		if (ret < 0)
++			goto err;
++	}
++
+ 	/* settings for TS interface */
+ 	if (state->cfg.ts_mode == AF9033_TS_MODE_USB) {
+ 		ret = af9033_wr_reg_mask(state, 0x80f9a5, 0x00, 0x01);
+-- 
+http://palosaari.fi/
 
-<snip>
-
-> +};
-> +
-> +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(v4l2_pixfmts); i++) {
-> +		if (v4l2_pixfmts[i].pixelformat == fourcc)
-> +			return v4l2_pixfmts + i;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_pixfmt_by_fourcc);
-> +
-> +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc)
-> +{
-> +	const struct v4l2_pixfmt *fmt;
-> +
-> +	fmt = v4l2_pixfmt_by_fourcc(fourcc);
-> +	if (!fmt)
-> +		return -EINVAL;
-> +
-> +	strlcpy((char *)f->description, fmt->name, sizeof(f->description));
-> +	f->pixelformat = fmt->pixelformat;
-> +	f->flags = (fmt->bpp_image == 0) ? V4L2_FMT_FLAG_COMPRESSED : 0;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fill_fmtdesc);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 48f9748..27b084f 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -204,4 +204,48 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  
->  void v4l2_get_timestamp(struct timeval *tv);
->  
-> +/**
-> + * struct v4l2_pixfmt - internal V4L2 pixel format description
-> + * @name: format description to be returned by enum_fmt
-> + * @pixelformat: v4l2 pixel format fourcc
-> + * @bpp_line: bits per pixel, averaged over a line (of the first plane
-> + *            for planar formats), used to calculate bytesperline
-> + *            Zero for compressed and macroblock tiled formats.
-> + * @bpp_image: bits per pixel, averaged over the whole image. This is used to
-> + *             calculate sizeimage for uncompressed formats.
-> + *             Zero for compressed formats.
-
-I would add a 'planes' field as well for use with formats that use non-contiguous
-planes.
-
-> + */
-> +struct v4l2_pixfmt {
-> +	const char	*name;
-> +	u32		pixelformat;
-> +	u8		bpp_line;
-> +	u8		bpp_image;
-> +};
-> +
-> +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc);
-> +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc);
-> +
-> +static inline unsigned int v4l2_bytesperline(const struct v4l2_pixfmt *fmt,
-> +					     unsigned int width)
-> +{
-> +	return width * fmt->bpp_line / 8;
-
-Round up: return (width * fmt->bpp_line + 7) / 8;
-
-> +}
-> +
-> +static inline unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt,
-> +					  unsigned int width,
-> +					  unsigned int height)
-> +{
-> +	return width * height * fmt->bpp_image / 8;
-
-Ditto: return height * v4l2_bytesperline(fmt, width);
-
-> +}
-> +
-> +static inline bool v4l2_pixfmt_is_planar(const struct v4l2_pixfmt *fmt)
-> +{
-> +	return fmt->bpp_line && (fmt->bpp_line != fmt->bpp_image);
-> +}
-> +
-> +static inline bool v4l2_pixfmt_is_compressed(const struct v4l2_pixfmt *fmt)
-> +{
-> +	return fmt->bpp_image == 0;
-> +}
-> +
->  #endif /* V4L2_COMMON_H_ */
-> 
-
-Regards,
-
-	Hans
