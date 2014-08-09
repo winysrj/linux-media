@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41408 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750738AbaHAOE3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Aug 2014 10:04:29 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 15CD160093
-	for <linux-media@vger.kernel.org>; Fri,  1 Aug 2014 17:04:27 +0300 (EEST)
-Date: Fri, 1 Aug 2014 17:04:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:60949 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751433AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:27:32 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 3.17] smiapp: Set sub-device owner
-Message-ID: <20140801140424.GY16460@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 07/14] af9035: enable AF9033 demod clock source for IT9135
+Date: Sat,  9 Aug 2014 23:27:05 +0300
+Message-Id: <1407616032-2722-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
+References: <1407616032-2722-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Integrated RF tuner of IT9135 is connected to demod clock source
+named dyn0_clk. Enable that clock source in order to provide stable
+clock early enough.
 
-This patch got accidentally dropped from my patchset which contained another
-patch it required:
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-commit b2a06aecb24329e16edc3108b8192d65ace8da75
-Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-Date:   Thu Dec 12 09:36:46 2013 -0300
-
-    [media] v4l: Only get module if it's different than the driver for v4l2_dev
-    
-    When the sub-device is registered, increment the use count of the sub-device
-    owner only if it's different from the owner of the driver for the media
-    device. This avoids increasing the use count by the module itself and thus
-    making it possible to unload it when it's not in use.
-    
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-    Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-Thanks to Laurent for spotting this. Please pull.
-
-
-The following changes since commit 27dcb00d0dc1d532b0da940e35a6d020ee33bd47:
-
-  [media] radio-miropcm20: fix sparse NULL pointer warning (2014-07-30 19:50:09 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-subdev-owner
-
-for you to fetch changes up to 7ac057ec6296b80529075c47fa5eb304e96344df:
-
-  smiapp: Set sub-device owner (2014-08-01 16:47:15 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      smiapp: Set sub-device owner
-
- drivers/media/i2c/smiapp/smiapp-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index c82beac..8ac0423 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -647,16 +647,19 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
+ 	state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
+ 
+-	/* eeprom memory mapped location */
+ 	if (state->chip_type == 0x9135) {
++		/* feed clock for integrated RF tuner */
++		state->af9033_config[0].dyn0_clk = true;
++		state->af9033_config[1].dyn0_clk = true;
++
+ 		if (state->chip_version == 0x02) {
+ 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
+ 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_60;
+-			tmp16 = 0x00461d;
++			tmp16 = 0x00461d; /* eeprom memory mapped location */
+ 		} else {
+ 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
+ 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_38;
+-			tmp16 = 0x00461b;
++			tmp16 = 0x00461b; /* eeprom memory mapped location */
+ 		}
+ 
+ 		/* check if eeprom exists */
 -- 
-Kind regards,
+http://palosaari.fi/
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
