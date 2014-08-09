@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:37612 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbaHaCkA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Aug 2014 22:40:00 -0400
-Received: by mail-pa0-f51.google.com with SMTP id rd3so9420388pab.38
-        for <linux-media@vger.kernel.org>; Sat, 30 Aug 2014 19:39:59 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
-	arnd@arndb.de, varkabhadram@gmail.com, haifeng.yan@linaro.org,
-	jchxue@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH v4 3/3] ARM: dts: hix5hd2: add ir node
-Date: Sun, 31 Aug 2014 10:39:11 +0800
-Message-Id: <1409452751-17463-4-git-send-email-zhangfei.gao@linaro.org>
-In-Reply-To: <1409452751-17463-1-git-send-email-zhangfei.gao@linaro.org>
-References: <1409452751-17463-1-git-send-email-zhangfei.gao@linaro.org>
+Received: from mout.gmx.net ([212.227.15.15]:60083 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751871AbaHIRgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 13:36:25 -0400
+Date: Sat, 9 Aug 2014 19:36:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Suman Kumar <suman@inforcecomputing.com>
+cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a
+ Missing blank line coding style issue
+In-Reply-To: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com>
+Message-ID: <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
+References: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- arch/arm/boot/dts/hisi-x5hd2.dtsi |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Hi Suman,
 
-diff --git a/arch/arm/boot/dts/hisi-x5hd2.dtsi b/arch/arm/boot/dts/hisi-x5hd2.dtsi
-index 7b1cb53..1d7cd04 100644
---- a/arch/arm/boot/dts/hisi-x5hd2.dtsi
-+++ b/arch/arm/boot/dts/hisi-x5hd2.dtsi
-@@ -391,7 +391,7 @@
- 		};
- 
- 		sysctrl: system-controller@00000000 {
--			compatible = "hisilicon,sysctrl";
-+			compatible = "hisilicon,sysctrl", "syscon";
- 			reg = <0x00000000 0x1000>;
- 			reboot-offset = <0x4>;
- 		};
-@@ -476,5 +476,13 @@
-                         interrupts = <0 70 4>;
-                         clocks = <&clock HIX5HD2_SATA_CLK>;
- 		};
-+
-+		ir: ir@001000 {
-+			compatible = "hisilicon,hix5hd2-ir";
-+			reg = <0x001000 0x1000>;
-+			interrupts = <0 47 4>;
-+			clocks = <&clock HIX5HD2_FIXED_24M>;
-+			hisilicon,power-syscon = <&sysctrl>;
-+		};
- 	};
- };
--- 
-1.7.9.5
+On Sat, 9 Aug 2014, Suman Kumar wrote:
 
+>     Fixes a coding style issue reported by checkpatch.pl
+
+Thanks for your patch. To my taste checkpatch.pl has unfortunately become 
+too noisy with meaningless / unimportant warnings like this one. Is this 
+in CodingStyle? If not, my intention is to drop this. However, Mauro may 
+override by either taking this himself or asking me to apply this.
+
+Thanks
+Guennadi
+
+> 
+> Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
+> index ceaddfb..fe15a80 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera_platform.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
+> @@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
+>  static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
+>  {
+>  	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
+> +
+>  	return container_of(subdev, struct soc_camera_platform_priv, subdev);
+>  }
+>  
+>  static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
+>  {
+>  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+> +
+>  	return p->set_capture(p, enable);
+>  }
+>  
+> -- 
+> 1.8.2
+> 
