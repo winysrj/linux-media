@@ -1,28 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from astaromail.nku.edu.tr ([193.255.68.1]:60136 "EHLO
-	posta3.nku.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750733AbaHBXKx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Aug 2014 19:10:53 -0400
-Date: Sun, 3 Aug 2014 01:45:34 +0300 (EEST)
-From: "Admin. webmail" <eyuksel@nku.edu.tr>
-Reply-To: "Admin. webmail" <chevroletclaimsdepartment@taxcolandia.com>
-Message-ID: <1569872438.10228233.1407019534699.JavaMail.zimbra@nku.edu.tr>
-Subject: A webes MAIL TEAM
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:39113 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751252AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Aug 2014 16:27:32 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/14] it913x: init tuner on attach
+Date: Sat,  9 Aug 2014 23:27:01 +0300
+Message-Id: <1407616032-2722-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
+References: <1407616032-2722-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A webes MAIL TEAM
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
 
-Figyelem!
+That register is needed to program very first in order to operate
+correctly.
 
-Ez a web-mail rendszergazda. Kérjük, tájékoztatni kell, hogy az e-mail szerver most lett frissítve, és az e-mail kell frissíteni immediately.This folyamat az, hogy a cég e-mail szerver frissítik, és a védett, mint mindig. Kérjük kattintson az alábbi linkre és kövesse az utasításokat, hogy frissítse a számla
+[crope@iki.fi: returned sequence back, removed sleep, moved reg
+write earlier to prevent populating tuner ops in case of failure]
 
-http://mailupdate123.jigsy.com/ 
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tuner_it913x.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Üdvözlettel,
-Admin.
-webmail
+diff --git a/drivers/media/tuners/tuner_it913x.c b/drivers/media/tuners/tuner_it913x.c
+index 6f30d7e..3d83c42 100644
+--- a/drivers/media/tuners/tuner_it913x.c
++++ b/drivers/media/tuners/tuner_it913x.c
+@@ -396,6 +396,7 @@ struct dvb_frontend *it913x_attach(struct dvb_frontend *fe,
+ 		struct i2c_adapter *i2c_adap, u8 i2c_addr, u8 config)
+ {
+ 	struct it913x_state *state = NULL;
++	int ret;
+ 
+ 	/* allocate memory for the internal state */
+ 	state = kzalloc(sizeof(struct it913x_state), GFP_KERNEL);
+@@ -425,6 +426,11 @@ struct dvb_frontend *it913x_attach(struct dvb_frontend *fe,
+ 	state->tuner_type = config;
+ 	state->firmware_ver = 1;
+ 
++	/* tuner RF initial */
++	ret = it913x_wr_reg(state, PRO_DMOD, 0xec4c, 0x68);
++	if (ret < 0)
++		goto error;
++
+ 	fe->tuner_priv = state;
+ 	memcpy(&fe->ops.tuner_ops, &it913x_tuner_ops,
+ 			sizeof(struct dvb_tuner_ops));
+-- 
+http://palosaari.fi/
+
