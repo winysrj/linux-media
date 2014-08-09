@@ -1,102 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1826 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118AbaHRMe2 (ORCPT
+Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:57201 "EHLO
+	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751446AbaHIAgX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Aug 2014 08:34:28 -0400
-Message-ID: <53F1F2A3.9060801@xs4all.nl>
-Date: Mon, 18 Aug 2014 12:33:39 +0000
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/2] au0828: explicitly identify boards with analog TV
-References: <1408362689-25583-1-git-send-email-m.chehab@samsung.com> <1408362689-25583-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1408362689-25583-2-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 8 Aug 2014 20:36:23 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, dheitmueller@kernellabs.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] au0828: remove CONFIG_VIDEO_AU0828_RC scope around au0828_rc_*()
+Date: Fri,  8 Aug 2014 18:36:19 -0600
+Message-Id: <cae8929faf952b312460a09b8b05c7875b4c560f.1407544065.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
+References: <cover.1407544065.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
+References: <cover.1407544065.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/2014 11:51 AM, Mauro Carvalho Chehab wrote:
-> Right now, the au0828 driver uses .tuner to detect if analog
-> tv is being used or not. By not filling .tuner fields at the
-> board struct, the I2C core can't do decisions based on it.
-> 
-> So, add a field to explicitly tell when analog TV is supported.
-> 
-> No functional changes.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-cards.c | 10 +++-------
->  drivers/media/usb/au0828/au0828.h       |  1 +
->  2 files changed, 4 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-> index 2c6b7da137ed..8f2fc2fe6a89 100644
-> --- a/drivers/media/usb/au0828/au0828-cards.c
-> +++ b/drivers/media/usb/au0828/au0828-cards.c
-> @@ -46,6 +46,7 @@ struct au0828_board au0828_boards[] = {
->  		.name	= "Hauppauge HVR850",
->  		.tuner_type = TUNER_XC5000,
->  		.tuner_addr = 0x61,
-> +		.has_analog = 1,
->  		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
->  		.input = {
->  			{
-> @@ -72,12 +73,7 @@ struct au0828_board au0828_boards[] = {
->  		.tuner_type = TUNER_XC5000,
->  		.tuner_addr = 0x61,
->  		.has_ir_i2c = 1,
-> -		/* The au0828 hardware i2c implementation does not properly
-> -		   support the xc5000's i2c clock stretching.  So we need to
-> -		   lower the clock frequency enough where the 15us clock
-> -		   stretch fits inside of a normal clock cycle, or else the
-> -		   au0828 fails to set the STOP bit.  A 30 KHz clock puts the
-> -		   clock pulse width at 18us */
+Remove CONFIG_VIDEO_AU0828_RC scope around au0828_rc_register()
+and au0828_rc_unregister() calls in au0828-core
 
-Why was this comment block dropped? The commit message makes no mention of it.
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-
-> +		.has_analog = 1,
->  		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
->  		.input = {
->  			{
-> @@ -232,7 +228,7 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
->  	}
->  
->  	/* Setup tuners */
-> -	if (dev->board.tuner_type != TUNER_ABSENT) {
-> +	if (dev->board.tuner_type != TUNER_ABSENT && dev->board.has_analog) {
-
-This tests against TUNER_ABSENT and, even after applying patch 2, the 'Unknown
-Board' struct still specifies UNSET instead of TUNER_ABSENT. Can you change
-that as well in patch 2?
-
-This UNSET/TUNER_ABSENT confusion is similar to what I found in cx23885. I think
-there are several drivers that are all inconsistent in how they handle this.
-
-Regards,
-
-	Hans
-
->  		/* Load the tuner module, which does the attach */
->  		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
->  				"tuner", dev->board.tuner_addr, NULL);
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index 96bec05d7dac..20b82ba5be6c 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -89,6 +89,7 @@ struct au0828_board {
->  	unsigned char tuner_addr;
->  	unsigned char i2c_clk_divider;
->  	unsigned char has_ir_i2c:1;
-> +	unsigned char has_analog:1;
->  	struct au0828_input input[AU0828_MAX_INPUT];
->  
->  };
-> 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index eb5f2b1..2090498 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -153,9 +153,7 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 
+ 	dprintk(1, "%s()\n", __func__);
+ 
+-#ifdef CONFIG_VIDEO_AU0828_RC
+ 	au0828_rc_unregister(dev);
+-#endif
+ 	/* Digital TV */
+ 	au0828_dvb_unregister(dev);
+ 
+@@ -266,10 +264,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 		pr_err("%s() au0282_dev_register failed\n",
+ 		       __func__);
+ 
+-#ifdef CONFIG_VIDEO_AU0828_RC
+ 	/* Remote controller */
+ 	au0828_rc_register(dev);
+-#endif
+ 
+ 	/*
+ 	 * Store the pointer to the au0828_dev so it can be accessed in
+-- 
+1.7.10.4
 
