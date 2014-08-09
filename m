@@ -1,50 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:36203 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbaHTNoB (ORCPT
+Received: from qmta11.emeryville.ca.mail.comcast.net ([76.96.27.211]:38571
+	"EHLO qmta11.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751266AbaHIAgX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:01 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Subject: [PATCH/RFC v5 1/3] mfd: max77693: Fix register enum name
-Date: Wed, 20 Aug 2014 15:43:39 +0200
-Message-id: <1408542221-375-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542221-375-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542221-375-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 8 Aug 2014 20:36:23 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, dheitmueller@kernellabs.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] au0828: au0828_rc_*() defines cleanup 
+Date: Fri,  8 Aug 2014 18:36:17 -0600
+Message-Id: <cover.1407544065.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the MAX77693 documentation the name of
-the register is FLASH_STATUS.
+Define au0828_rc_*() stubs to avoid compile errors when
+VIDEO_AU0828_RC is disabled and avoid the need to enclose
+au0828_rc_*() in ifdef CONFIG_VIDEO_AU0828_RC in .c files.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: SangYoung Son <hello.son@smasung.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- include/linux/mfd/max77693-private.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This patch series adds stubs and fixes places where ifdef
+is used.
 
-diff --git a/include/linux/mfd/max77693-private.h b/include/linux/mfd/max77693-private.h
-index c466ff3..615f121 100644
---- a/include/linux/mfd/max77693-private.h
-+++ b/include/linux/mfd/max77693-private.h
-@@ -46,7 +46,7 @@ enum max77693_pmic_reg {
- 	MAX77693_LED_REG_VOUT_FLASH2			= 0x0C,
- 	MAX77693_LED_REG_FLASH_INT			= 0x0E,
- 	MAX77693_LED_REG_FLASH_INT_MASK			= 0x0F,
--	MAX77693_LED_REG_FLASH_INT_STATUS		= 0x10,
-+	MAX77693_LED_REG_FLASH_STATUS			= 0x10,
- 
- 	MAX77693_PMIC_REG_PMIC_ID1			= 0x20,
- 	MAX77693_PMIC_REG_PMIC_ID2			= 0x21,
+Shuah Khan (2):
+  au0828: add au0828_rc_*() stubs for VIDEO_AU0828_RC disabled case
+  au0828: remove CONFIG_VIDEO_AU0828_RC scope around au0828_rc_*()
+
+ drivers/media/usb/au0828/au0828-core.c |    4 ----
+ drivers/media/usb/au0828/au0828.h      |   15 +++++++++++----
+ 2 files changed, 11 insertions(+), 8 deletions(-)
+
 -- 
-1.7.9.5
+1.7.10.4
 
