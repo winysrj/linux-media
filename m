@@ -1,102 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta01.emeryville.ca.mail.comcast.net ([76.96.30.16]:36156 "EHLO
-	qmta01.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751529AbaHMSwp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 14:52:45 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, ttmesterr@gmail.com,
-	dheitmueller@kernellabs.com, cb.xiong@samsung.com,
-	yongjun_wei@trendmicro.com.cn
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] media: fix au0828 dvb suspend/resume to call dvb_frontend_suspend/resume
-Date: Wed, 13 Aug 2014 12:52:39 -0600
-Message-Id: <1407955959-7901-1-git-send-email-shuah.kh@samsung.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2899 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751871AbaHIRro (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 13:47:44 -0400
+Message-ID: <53E65EA4.6080106@xs4all.nl>
+Date: Sat, 09 Aug 2014 19:47:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Suman Kumar <suman@inforcecomputing.com>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a Missing
+ blank line coding style issue
+References: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com> <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 doesn't resume correctly and TV tuning fails with
-xc_set_signal_source(0) failed message. Change au0828 dvb
-suspend and resume interfaces to suspend and resume frontend
-during suspend and resume respectively. dvb_frontend_suspend()
-suspends tuner and fe using tuner and fe ops. dvb_frontend_resume()
-resumes fe and tuner using fe and tuner ops ini before waking up
-the frontend. With this change HVR950Q suspend and resume work
-when system gets suspended when digital function is tuned to a
-channel and with active TV stream, and after resume it went right
-back to active TV stream.
+On 08/09/2014 07:36 PM, Guennadi Liakhovetski wrote:
+> Hi Suman,
+> 
+> On Sat, 9 Aug 2014, Suman Kumar wrote:
+> 
+>>     Fixes a coding style issue reported by checkpatch.pl
+> 
+> Thanks for your patch. To my taste checkpatch.pl has unfortunately become 
+> too noisy with meaningless / unimportant warnings like this one. Is this 
+> in CodingStyle? If not, my intention is to drop this.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/au0828/au0828-dvb.c |   47 ++++++++++++++++++---------------
- 1 file changed, 26 insertions(+), 21 deletions(-)
+I don't see it being mentioned explicitly in the CodingStyle, but the coding
+style follows K&R, and they put an empty line between local variables and the
+start of the code. And I like it that way as well, it makes it easier to review.
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index 821f86e..4bd9d68 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -620,34 +620,39 @@ int au0828_dvb_register(struct au0828_dev *dev)
- void au0828_dvb_suspend(struct au0828_dev *dev)
- {
- 	struct au0828_dvb *dvb = &dev->dvb;
-+	int rc;
- 
--	if (dvb->frontend && dev->urb_streaming) {
--		pr_info("stopping DVB\n");
--
--		cancel_work_sync(&dev->restart_streaming);
--
--		/* Stop transport */
--		mutex_lock(&dvb->lock);
--		stop_urb_transfer(dev);
--		au0828_stop_transport(dev, 1);
--		mutex_unlock(&dvb->lock);
--		dev->need_urb_start = 1;
-+	if (dvb->frontend) {
-+		if (dev->urb_streaming) {
-+			cancel_work_sync(&dev->restart_streaming);
-+			/* Stop transport */
-+			mutex_lock(&dvb->lock);
-+			stop_urb_transfer(dev);
-+			au0828_stop_transport(dev, 1);
-+			mutex_unlock(&dvb->lock);
-+			dev->need_urb_start = 1;
-+		}
-+		/* suspend frontend - does tuner and fe to sleep */
-+		rc = dvb_frontend_suspend(dvb->frontend);
-+		pr_info("au0828_dvb_suspend(): Suspending DVB fe %d\n", rc);
- 	}
- }
- 
- void au0828_dvb_resume(struct au0828_dev *dev)
- {
- 	struct au0828_dvb *dvb = &dev->dvb;
-+	int rc;
- 
--	if (dvb->frontend && dev->need_urb_start) {
--		pr_info("resuming DVB\n");
--
--		au0828_set_frontend(dvb->frontend);
--
--		/* Start transport */
--		mutex_lock(&dvb->lock);
--		au0828_start_transport(dev);
--		start_urb_transfer(dev);
--		mutex_unlock(&dvb->lock);
-+	if (dvb->frontend) {
-+		/* resume frontend - does fe and tuner init */
-+		rc = dvb_frontend_resume(dvb->frontend);
-+		pr_info("au0828_dvb_resume(): Resuming DVB fe %d\n", rc);
-+		if (dev->need_urb_start) {
-+			/* Start transport */
-+			mutex_lock(&dvb->lock);
-+			au0828_start_transport(dev);
-+			start_urb_transfer(dev);
-+			mutex_unlock(&dvb->lock);
-+		}
- 	}
- }
--- 
-1.7.10.4
+If you don't want to be bothered by such patches, just delegate them to me in
+patchwork, I don't mind.
+
+Regards,
+
+	Hans
+
+> However, Mauro may 
+> override by either taking this himself or asking me to apply this.
+> 
+> Thanks
+> Guennadi
+> 
+>>
+>> Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
+>> ---
+>>  drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
+>> index ceaddfb..fe15a80 100644
+>> --- a/drivers/media/platform/soc_camera/soc_camera_platform.c
+>> +++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
+>> @@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
+>>  static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
+>>  {
+>>  	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
+>> +
+>>  	return container_of(subdev, struct soc_camera_platform_priv, subdev);
+>>  }
+>>  
+>>  static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
+>>  {
+>>  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+>> +
+>>  	return p->set_capture(p, enable);
+>>  }
+>>  
+>> -- 
+>> 1.8.2
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
