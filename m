@@ -1,50 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:36497 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750973AbaHDT2G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Aug 2014 15:28:06 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com
-Cc: fengguang.wu@intel.com, Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH] si2165: change return type of si2165_wait_init_done from bool to int
-Date: Mon,  4 Aug 2014 21:27:43 +0200
-Message-Id: <1407180463-17936-1-git-send-email-zzam@gentoo.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:59435 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbaHIGBo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 02:01:44 -0400
+Received: by mail-pd0-f171.google.com with SMTP id z10so8116499pdj.30
+        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 23:01:43 -0700 (PDT)
+Message-ID: <1407564099.5172.3.camel@phoenix>
+Subject: [PATCH 4/4] [media] soc_camera: ov772x: Include
+ media/v4l2-image-sizes.h
+From: Axel Lin <axel.lin@ingics.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	linux-media@vger.kernel.org
+Date: Sat, 09 Aug 2014 14:01:39 +0800
+In-Reply-To: <1407563920.5172.0.camel@phoenix>
+References: <1407563920.5172.0.camel@phoenix>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case of an error -EINVAL will be mis-casted to 1.
+So we can remove the same defines in the driver code.
 
-This was triggered by a coccinelle warning.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 ---
- drivers/media/dvb-frontends/si2165.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/i2c/soc_camera/ov772x.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 3a2d6c5..f02d946 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -312,9 +312,8 @@ static u32 si2165_get_fe_clk(struct si2165_state *state)
- 	return state->adc_clk;
- }
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index 7f2b3c8..970a04e 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -29,6 +29,7 @@
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
++#include <media/v4l2-image-sizes.h>
  
--static bool si2165_wait_init_done(struct si2165_state *state)
-+static int si2165_wait_init_done(struct si2165_state *state)
- {
--	int ret = -EINVAL;
- 	u8 val = 0;
- 	int i;
+ /*
+  * register offset
+@@ -360,10 +361,6 @@
+ #define SCAL0_ACTRL     0x08 /* Auto scaling factor control */
+ #define SCAL1_2_ACTRL   0x04 /* Auto scaling factor control */
  
-@@ -326,7 +325,7 @@ static bool si2165_wait_init_done(struct si2165_state *state)
- 	}
- 	dev_err(&state->i2c->dev, "%s: init_done was not set\n",
- 		KBUILD_MODNAME);
--	return ret;
-+	return -EINVAL;
- }
+-#define VGA_WIDTH		640
+-#define VGA_HEIGHT		480
+-#define QVGA_WIDTH		320
+-#define QVGA_HEIGHT		240
+ #define OV772X_MAX_WIDTH	VGA_WIDTH
+ #define OV772X_MAX_HEIGHT	VGA_HEIGHT
  
- static int si2165_upload_firmware_block(struct si2165_state *state,
 -- 
-2.0.0
+1.9.1
+
+
 
