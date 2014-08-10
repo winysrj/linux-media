@@ -1,113 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4765 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179AbaHECje (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 22:39:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s752dNCF050540
-	for <linux-media@vger.kernel.org>; Tue, 5 Aug 2014 04:39:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 847B82A2651
-	for <linux-media@vger.kernel.org>; Tue,  5 Aug 2014 04:39:18 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140805023918.847B82A2651@tschai.lan>
-Date: Tue,  5 Aug 2014 04:39:18 +0200 (CEST)
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:34731 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288AbaHJJlm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 05:41:42 -0400
+Received: by mail-pa0-f49.google.com with SMTP id hz1so9387315pad.8
+        for <linux-media@vger.kernel.org>; Sun, 10 Aug 2014 02:41:41 -0700 (PDT)
+Message-ID: <1407663691.6912.7.camel@phoenix>
+Subject: [PATCH] [media] saa6752hs: Convert to devm_kzalloc()
+From: Axel Lin <axel.lin@ingics.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	linux-media@vger.kernel.org
+Date: Sun, 10 Aug 2014 17:41:31 +0800
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Using the managed function the kfree() calls can be removed from the
+probe error path and the remove handler.
 
-Results of the daily build of media_tree:
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/media/i2c/saa6752hs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-date:		Tue Aug  5 04:00:23 CEST 2014
-git branch:	test
-git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-7.slh.3-amd64
+diff --git a/drivers/media/i2c/saa6752hs.c b/drivers/media/i2c/saa6752hs.c
+index 04e9e55..4024ea6 100644
+--- a/drivers/media/i2c/saa6752hs.c
++++ b/drivers/media/i2c/saa6752hs.c
+@@ -660,7 +660,7 @@ static const struct v4l2_subdev_ops saa6752hs_ops = {
+ static int saa6752hs_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+-	struct saa6752hs_state *h = kzalloc(sizeof(*h), GFP_KERNEL);
++	struct saa6752hs_state *h;
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_ctrl_handler *hdl;
+ 	u8 addr = 0x13;
+@@ -668,6 +668,8 @@ static int saa6752hs_probe(struct i2c_client *client,
+ 
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
++
++	h = devm_kzalloc(&client->dev, sizeof(*h), GFP_KERNEL);
+ 	if (h == NULL)
+ 		return -ENOMEM;
+ 	sd = &h->sd;
+@@ -752,7 +754,6 @@ static int saa6752hs_probe(struct i2c_client *client,
+ 		int err = hdl->error;
+ 
+ 		v4l2_ctrl_handler_free(hdl);
+-		kfree(h);
+ 		return err;
+ 	}
+ 	v4l2_ctrl_cluster(3, &h->video_bitrate_mode);
+@@ -767,7 +768,6 @@ static int saa6752hs_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&to_state(sd)->hdl);
+-	kfree(to_state(sd));
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
