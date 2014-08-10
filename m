@@ -1,25 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4443 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbaHDK1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 06:27:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH for v3.17 0/2] vb2 fixes
-Date: Mon,  4 Aug 2014 12:27:10 +0200
-Message-Id: <1407148032-41607-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtprelay0087.hostedemail.com ([216.40.44.87]:45246 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751215AbaHJVAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 17:00:53 -0400
+Message-ID: <1407704449.4082.11.camel@joe-AO725>
+Subject: Re: [PATCH] staging: soc_camera.c: fixed coding style: lines over
+ 80 char
+From: Joe Perches <joe@perches.com>
+To: Suman Kumar <suman@inforcecomputing.com>
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Date: Sun, 10 Aug 2014 14:00:49 -0700
+In-Reply-To: <1407703301-2037-1-git-send-email-suman@inforcecomputing.com>
+References: <1407703301-2037-1-git-send-email-suman@inforcecomputing.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I saw this post http://www.mail-archive.com/linux-media@vger.kernel.org/msg77864.html
-and decided to quickly fix the pwc videobuf2-core.c warning. While doing that
-I encountered two more vb2 bugs: one very confusing typo in a comment and one
-regression from an earlier patch that needs to be applied from 3.15 and up.
+On Mon, 2014-08-11 at 02:11 +0530, Suman Kumar wrote:
+>     Fixes a coding style issue of 'lines over 80 char' reported by
+>     checkpatch.pl
+[]
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+[]
+> @@ -1430,7 +1434,7 @@ static int soc_camera_async_bound(struct v4l2_async_notifier *notifier,
+>  				  struct v4l2_async_subdev *asd)
+>  {
+>  	struct soc_camera_async_client *sasc = container_of(notifier,
+> -					struct soc_camera_async_client, notifier);
+> +				    struct soc_camera_async_client, notifier);
+>  	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
 
-Both are corner cases relating to what should be done when start_streaming fails.
+I don't easily parse the original or modified lines.
 
-Regards,
+If you are really concerned abut 80 columns and readability
+instead of merely quieting checkpatch, these might be better
+on multiple lines like
 
-	Hans
+	struct soc_camera_async_client *sasc;
+	struct soc_camera_device *icd;
+
+	sasc = container_of(notifier, struct soc_camera_async_client, notifier);
+	icd = platform_get_drvdata(sasc->pdev);
+
 
