@@ -1,288 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:36390 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820AbaH1RUv (ORCPT
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:57747 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbaHJUpq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 13:20:51 -0400
-Received: by mail-wg0-f45.google.com with SMTP id k14so1050349wgh.4
-        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 10:20:50 -0700 (PDT)
-Message-ID: <53FF64EF.1030809@gmail.com>
-Date: Thu, 28 Aug 2014 18:20:47 +0100
-From: Kaya Saman <kayasaman@gmail.com>
+	Sun, 10 Aug 2014 16:45:46 -0400
+Received: by mail-yk0-f178.google.com with SMTP id 142so5381745ykq.37
+        for <linux-media@vger.kernel.org>; Sun, 10 Aug 2014 13:45:46 -0700 (PDT)
+Received: from mythbox.lightfoot.us ([64.184.112.106])
+        by mx.google.com with ESMTPSA id c61sm4105789yhk.25.2014.08.10.13.45.42
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 10 Aug 2014 13:45:45 -0700 (PDT)
+Message-ID: <53E7D9F5.1030600@gmail.com>
+Date: Sun, 10 Aug 2014 16:45:41 -0400
+From: Bob Lightfoot <boblfoot@gmail.com>
 MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>,
-	Kaya Saman <SamanKaya@netscape.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Advice on DVB-S/S2 card and CAM support
-References: <53D58EDF.1090102@netscape.net> <53FEA63E.9020208@gmx.net> <53FF406B.9040001@netscape.net> <53FF583A.4080702@gmx.net>
-In-Reply-To: <53FF583A.4080702@gmx.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: CX23885 error during boot
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/28/2014 05:26 PM, P. van Gaans wrote:
-> On 08/28/2014 04:44 PM, Kaya Saman wrote:
->> On 08/28/2014 04:47 AM, P. van Gaans wrote:
->>> On 07/28/2014 01:44 AM, Kaya Saman wrote:
->>>> Hi,
->>>>
->>>> I'm wondering what the best solution for getting satellite working on
->>>> Linux is?
->>>>
->>>>
->>>> Currently I have a satellite box with CAM module branded by the
->>>> Satellite TV provider we are with.
->>>>
->>>>
->>>> As I am now migrating everything including TV through my HTPC
->>>> environment I would also like to link the satellite box up to the HTPC
->>>> too to take advantage of the PVR and streaming capabilities.
->>>>
->>>>
->>>> I run XBMC as my frontend so I was looking into TV Headend to take 
->>>> care
->>>> of PVR side of things.
->>>>
->>>>
->>>> My greatest issue though is what is the best solution for getting the
->>>> satellite system into the HTPC?
->>>>
->>>>
->>>> After some research my first idea was to use a satellite tuner card;
->>>> models are available for Hauppauge and other vendors so really it was
->>>> about which was going to offer best compatibility with Linux? 
->>>> (distro is
->>>> Arch Linux with 3.15 kernel)
->>>>
->>>> The model of card I was looking was from DVB-Sky:
->>>>
->>>> http://www.dvbsky.net/Products_S950C.html
->>>>
->>>> something like that, which has CAM module slot and is DVB-S/S2
->>>> compatible and claims to have drivers supported by the Linuxtv 
->>>> project.
->>>>
->>>>
->>>> Or alternately going for something like this:
->>>>
->>>> http://www.dvbsky.net/Products_T9580.html
->>>>
->>>> as it has a combined DVB-T tuner, then using a USB card reader for the
->>>> CAM "smart card".
->>>>
->>>>
->>>> Has anyone used the cards above, what are the opinions relating to 
->>>> them?
->>>> Also would they work with motorized dishes?
->>>>
->>>>
->>>> Since I'm not sure if "all" CAM's are supported as apparently our
->>>> satellite tv provider wanted to lock out other receivers so they force
->>>> people to use their own product;
->>>>
->>>> my second idea was to perhaps use a capture card with RCA inputs.
->>>>
->>>> Something like this:
->>>>
->>>> http://www.c21video.com/viewcast/osprey-210.html
->>>>
->>>> perhaps or a Hauppauge HD-PVR mk I edition:
->>>>
->>>> which according to the wiki is supported.
->>>>
->>>>
->>>> Looking forward to hearing advice.
->>>>
->>>>
->>>> Thanks.
->>>>
->>>>
->>>> Kaya
->>>> -- 
->>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>> Hi Kaya,
->>
->> Hi,
->>
->> many thanks for the response!
->>
->>>
->>> RCA inputs is probably the last thing you want. Less quality, more of
->>> a pain to set up.
->>
->> Unfortunately I need the composite inputs due to a set-top box which is
->> used to watch (non-English) sports with; and they are paid channels. The
->> box is non-HD so only RCA (Phono) or SCART output.
->>
->>>
->>> You may or may not be able to use that CAM - but even if it's
->>> supported, a CAM has downsides. It generally only supports one channel
->>> at a time - and surely not multiple channels from different
->>> frequencies (if you have more tuners). And it's more expensive, both
->>> the tuner (that needs a CI slot) and the CAM you need. Also, I'm not
->>> sure if tvheadend nowadays supports a CAM - it used not to, but
->>> support may have been added.
->>>
->>> The main downside of a phoenix-mode cardreader is that it's harder to
->>> set up, but if you can find a guide for your provider it's generally
->>> doable. It's cheaper, more flexible and allows for faster channel
->>> switching.
->>
->> I doubt the provider will have a guide as they "claim" to want to lock
->> everybody into their own set-top box - the non-HD one described above.
->>
->>>
->>> As for a tuner, I personally suggest going for a USB-tuner. You never
->>> know if you want to connect you tuner to a notebook or NAS or anything
->>> in the future, with USB you're more flexible. If you do go for PCI-e,
->>> Tevii appears to have some supported products that are also available.
->>>
->>> If you go for USB, support is somewhat problematic (problematic
->>> because many supported tuners are no longer available in stores),
->>> you'll have to see what's locally available. (perhaps also check
->>> second-hand) Be careful, some devices have various revisions. Always
->>> check http://linuxtv.org/wiki/index.php/Hardware_Device_Information
->>
->> I did go this route eventually (since writing my initial post) :-)
->> currently - though this was supposed to be my "last resort" route.
->>
->> I grabbed a Hauppauge WinTV PVR-1900 EU version.
->>
->> According to these guides:
->>
->> http://www.linuxtv.org/wiki/index.php/Pvrusb2
->>
->> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1950
->>
->> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1900
->>
->> It is supported.
->>
->> I will need to write a separate posting for it though as I'm a little
->> stuck with it. The BER is quite high and also I can't switch to the
->> 'composite' input most of the time though on rare occasion it does work?
->>
->> The PCI/ or PCI-E card is still an option for me as it will go into a
->> rather large HTPC case which I can also use as a server for distributed
->> TV around the network.
->>
->>>
->>> Very recently, Antti reviewed a patch from nibble.max to support the
->>> DVBsky S960. (and presumably it's direct clones from Mystique) This is
->>> a pretty cheap tuner that can still be found in shops. It would appear
->>> that as soon as this patch gets merged, this device will be supported
->>> if you compile v4l-dvb yourself, and in time support will make it into
->>> the kernel.
->>>
->>> In any case, you want something with in-kernel support - something
->>> that's only supported by s2-liplianin or vendor drivers (like many
->>> dvbsky and TBS products) will only break in the long term. Only
->>> exception to this is Sundtek, but I personally have mixed feelings
->>> about closed source userspace drivers. I wouldn't recommend them
->>> personally.
->>
->> In my research I got suggested the Digital Devices line of products:
->>
->> http://www.digitaldevices.de/
->>
->> They are German so hopefully the quality will be extremely good and they
->> all seem natively supported.
->>
->>>
->>> Good luck,
->>
->> Many thanks.
->>
->>>
->>> P. van Gaans
->>
->> Kaya
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
->
-> Hi Kaya,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hi P. van Gaans,
+Dear Media Community:
+    Since switching to CentOS7 and the 3.10.0-123 kernel as listed below:
+> Linux mythbox.lightfoot.us 3.10.0-123.6.3.el7.x86_64 #1 SMP Wed Aug
+> 6 21:12:36 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
 
-sorry for the confusion!
+	I keep getting the following in dmesg related to my Hauppage Video
+Card at bootup.  The error seems to have no affect on operation, but I
+am curious if there is something to be done to resolve it?
 
->
-> "I doubt the provider will have a guide as they "claim" to want to 
-> lock everybody into their own set-top box - the non-HD one described 
-> above."
->
-> No, I mean a guide written by somebody on the internet on how to 
-> configure a cardserver (like OScam). If your provider is well known 
-> chances are somebody has already written a guide for that.
+> [root@mythbox ~]# dmesg | grep -A 1 -B 1 23885 [    9.885221]
+> cx18-0: cx23418 revision 01010000 (B) [    9.886966] cx23885 driver
+> version 0.0.3 loaded [    9.887305] CORE cx23885[0]: subsystem:
+> 0070:7801, board: Hauppauge WinTV-HVR1800 [card=2,autodetected] [
+> 9.900353] iTCO_vendor_support: vendor-support=0 -- [   10.276671]
+> tveeprom 3-0050: has radio [   10.276673] cx23885[0]: hauppauge
+> eeprom: model=78521 [   10.283170] cx18-alsa: module loading... [
+> 10.287519] cx25840 5-0044: cx23887 A/V decoder found @ 0x88
+> (cx23885[0]) [   10.599619] ieee80211 phy0: rt2x00_set_chip: Info -
+> Chipset detected - rt: 2573, rf: 0002, rev: 000a -- [   10.897596]
+> cx18-0: FW version: 0.0.74.0 (Release 2007/03/12) [   11.610505]
+> cx25840 5-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382
+> bytes) [   11.633747] tuner 4-0042: Tuner -1 found with type(s)
+> Radio TV. -- [   12.246302] cx18-0 843: verified load of
+> v4l-cx23418-dig.fw firmware (16382 bytes) [   12.903492]
+> cx23885[0]: registered device video1 [v4l2] [   12.903583]
+> cx23885[0]: registered device vbi1 [   12.903780] cx23885[0]:
+> registered ALSA audio device [   13.782171] cx23885[0]: registered
+> device video2 [mpeg] [   13.782192] Firmware and/or mailbox pointer
+> not initialized or corrupted, signature = 0xffffffff, cmd =
+> PING_FW -- [   14.113710] ERROR: Firmware size mismatch (have
+> 16382, expected 376836) [   14.113755] cx23885_initialize_codec()
+> f/w load failed [   14.113793] cx23885_dvb_register() allocating 1
+> frontend(s) [   14.113796] cx23885[0]: cx23885 based dvb card [
+> 14.145153] MT2131: successfully identified at address 0x61 [
+> 14.146825] DVB: registering new adapter (cx23885[0]) [   14.146833]
+> cx23885 0000:02:00.0: DVB: registering adapter 1 frontend 0
+> (Samsung S5H1409 QAM/8VSB Frontend)... [   14.147622]
+> cx23885_dev_checkrevision() Hardware revision = 0xb1 [   14.147630]
+> cx23885[0]/0: found at 0000:02:00.0, rev: 15, irq: 17, latency: 0,
+> mmio: 0xf9e00000 [   14.963310] EXT4-fs (sda2): mounted filesystem
+> with ordered data mode. Opts: (null) [root@mythbox ~]#
 
-Hmm... I could try that. Basically the setup is a DigiTurk box. The 
-provider has already claimed to have disabled usage on all set-top boxes 
-other then their own branded ones??? I think that was to stop people 
-outside of the country to use their own "better?" boxes with their 
-system. Hence the reason for grabbing the HVR-1900.
+Sincerely,
+Bob Lightfoot
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
->
-> "I grabbed a Hauppauge WinTV PVR-1900 EU version."
->
-> I don't understand. That's an analog+DVB-T hybrid device. So you'll 
-> keep using the settopbox?
-
-Sorry, no! I don't want to keep using it. However, if like I stated I 
-can't use the smart card module with other DVB-S/S2 tuners then I will 
-have to stick with this setup :-(
-
->
-> Well, it's your choice - there are dozens of supported analog cards 
-> for Linux. I don't think TVheadend is going to like this, because 
-> while TVheadend can probably work with that card, that's usually by 
-> using the analog tuner on an analog TV network and some internet feed 
-> to replace the EPG. You however are using a settopbox and the 
-> composite input, so I don't know how you're going to switch channels. 
-> I'm sure it's technically possible, but I couldn't tell you how. So 
-> good luck.
-
-I have done this already in MythTV, and works well. Channel changes of 
-course don't work however, since really the set-top box is tuned to one 
-paid channel (don't ask! I don't get it myself - but that's soccer fans 
-for you) which is only served by the current provider with special 
-smart-card (something similar to this as example:
-
-http://www.skysat-europe.com/Zencart/zencart4a/images/Orbit220300.jpg ).
-
-((Not our provider or card but just using as example to illustrate the 
-type of setup we have)).
-
-So yep, really I guess if I could just get the analog input currently to 
-behave hopefully I will be able to get it to work stably with MythTV or 
-TVHeadend until I grab proper PCI cards and see if they work with the CI 
-card; have already posted a query about that using another subject header.
-
-Sorry if all this is really confusing! It's worse for me trying to get 
-things working around a soccer fanatic :-P
-
->
-> Best regards,
-
-Regards
-
->
-> P. van Gaans
-
-Kaya
-
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+iQEcBAEBAgAGBQJT59n1AAoJEKqgpLIhfz3Xnw4H/RKVTFbjop2Qf00vdxDy1zQ1
+AdJx2mxS+LC0AMHu6tXwLw5QuaqczHIx2arkB2ry1OskLwvKqZXUsDXkRQVgrPob
+TG4dCkQtdK3u4aMPXJ10RGMfXA8HZ3z//dfV2Adp98EvUBcw9XrK8EEL729I7fFH
++kLQV5592XoBhIBPAJN7/SsuK+45glkt3yuQva/nkaNV0JP77IgtozeYVQyVd99Y
+rZcK/WaQmy0+6ErrQc3zKLqKnfk/frnj5UmgZVKnMEstXYU1u2/1kZsQtXvxnBRT
+R9kssWp2cxU7bR6oek3bCX34zP2x1K872TH8TmHdqDD54TVd65cPD9gPjMjITWE=
+=PcpQ
+-----END PGP SIGNATURE-----
