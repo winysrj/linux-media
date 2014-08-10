@@ -1,101 +1,545 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:46516 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755248AbaHFTbF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 15:31:05 -0400
-MIME-Version: 1.0
-Date: Wed, 6 Aug 2014 21:31:02 +0200
-Message-ID: <CAMuHMdVPzkgJCPXBbFYc44T4JiyRN+r1nrcd0oPhW0vBy82LoQ@mail.gmail.com>
-Subject: =?UTF-8?Q?dib7000p=5Fget=5Fstats=3A_=E2=80=98i=E2=80=99_is_used_uninitialized_=28w?=
-	=?UTF-8?Q?as=3A_Re=3A_=5Bmedia=5D_dib7000p=3A_Add_DVBv5_stats_support=29?=
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1941 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbaHJL60 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 18/19] cx23885: remove FSF address as per checkpatch
+Date: Sun, 10 Aug 2014 13:57:55 +0200
+Message-Id: <1407671876-39386-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Aug 6, 2014 at 2:03 AM, Linux Kernel Mailing List
-<linux-kernel@vger.kernel.org> wrote:
-> Gitweb:     http://git.kernel.org/linus/;a=commit;h=041ad449683bb2d54a7f082d78ec15bbc958a175
-> Commit:     041ad449683bb2d54a7f082d78ec15bbc958a175
-> Parent:     d44913c1e547df19b2dc0b527f92a4b4354be23a
-> Refname:    refs/heads/master
-> Author:     Mauro Carvalho Chehab <m.chehab@samsung.com>
-> AuthorDate: Thu May 29 14:44:56 2014 -0300
-> Committer:  Mauro Carvalho Chehab <m.chehab@samsung.com>
-> CommitDate: Tue Jun 17 12:04:50 2014 -0300
->
->     [media] dib7000p: Add DVBv5 stats support
->
->     Adds DVBv5 stats support. For now, just mimic whatever dib8000
->     does, as they're very similar, with regards to statistics.
->
->     However, dib7000p_get_time_us() likely require some
->     adjustments, as I didn't actually reviewed the formula
->     for it to work with DVB-T. Still, better than nothing,
->     as latter patches can improve it.
+These addresses are usually out-of-date and the top-level license will
+always have the right address. So drop it from these sources.
 
-Yes, it does, as its "layer" parameter is not used....
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/altera-ci.c     |  4 ----
+ drivers/media/pci/cx23885/altera-ci.h     |  4 ----
+ drivers/media/pci/cx23885/cimax2.c        |  4 ----
+ drivers/media/pci/cx23885/cimax2.h        |  4 ----
+ drivers/media/pci/cx23885/cx23885-417.c   |  4 ----
+ drivers/media/pci/cx23885/cx23885-alsa.c  |  4 ----
+ drivers/media/pci/cx23885/cx23885-av.c    |  5 -----
+ drivers/media/pci/cx23885/cx23885-av.h    |  5 -----
+ drivers/media/pci/cx23885/cx23885-cards.c |  6 ------
+ drivers/media/pci/cx23885/cx23885-core.c  |  4 ----
+ drivers/media/pci/cx23885/cx23885-dvb.c   |  5 -----
+ drivers/media/pci/cx23885/cx23885-f300.c  |  4 ----
+ drivers/media/pci/cx23885/cx23885-i2c.c   | 12 ------------
+ drivers/media/pci/cx23885/cx23885-input.c |  5 -----
+ drivers/media/pci/cx23885/cx23885-input.h |  5 -----
+ drivers/media/pci/cx23885/cx23885-ioctl.c |  4 ----
+ drivers/media/pci/cx23885/cx23885-ioctl.h |  4 ----
+ drivers/media/pci/cx23885/cx23885-ir.c    |  5 -----
+ drivers/media/pci/cx23885/cx23885-ir.h    |  5 -----
+ drivers/media/pci/cx23885/cx23885-reg.h   |  4 ----
+ drivers/media/pci/cx23885/cx23885-vbi.c   |  4 ----
+ drivers/media/pci/cx23885/cx23885-video.c |  5 -----
+ drivers/media/pci/cx23885/cx23885-video.h |  5 -----
+ drivers/media/pci/cx23885/cx23885.h       |  4 ----
+ drivers/media/pci/cx23885/cx23888-ir.c    |  5 -----
+ drivers/media/pci/cx23885/cx23888-ir.h    |  5 -----
+ drivers/media/pci/cx23885/netup-eeprom.c  |  4 ----
+ drivers/media/pci/cx23885/netup-eeprom.h  |  4 ----
+ drivers/media/pci/cx23885/netup-init.c    |  4 ----
+ drivers/media/pci/cx23885/netup-init.h    |  4 ----
+ 30 files changed, 141 deletions(-)
 
-> diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
-> index d36fa0d..c41f90d 100644
-> --- a/drivers/media/dvb-frontends/dib7000p.c
-> +++ b/drivers/media/dvb-frontends/dib7000p.c
+diff --git a/drivers/media/pci/cx23885/altera-ci.c b/drivers/media/pci/cx23885/altera-ci.c
+index 2926f7f..8302d44 100644
+--- a/drivers/media/pci/cx23885/altera-ci.c
++++ b/drivers/media/pci/cx23885/altera-ci.c
+@@ -16,10 +16,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ /*
+diff --git a/drivers/media/pci/cx23885/altera-ci.h b/drivers/media/pci/cx23885/altera-ci.h
+index 4998c96..5028f0c 100644
+--- a/drivers/media/pci/cx23885/altera-ci.h
++++ b/drivers/media/pci/cx23885/altera-ci.h
+@@ -16,10 +16,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifndef __ALTERA_CI_H
+ #define __ALTERA_CI_H
+diff --git a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
+index 16fa7ea..631e4f2 100644
+--- a/drivers/media/pci/cx23885/cimax2.c
++++ b/drivers/media/pci/cx23885/cimax2.c
+@@ -17,10 +17,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include "cx23885.h"
+diff --git a/drivers/media/pci/cx23885/cimax2.h b/drivers/media/pci/cx23885/cimax2.h
+index 518744a..565e958 100644
+--- a/drivers/media/pci/cx23885/cimax2.h
++++ b/drivers/media/pci/cx23885/cimax2.h
+@@ -17,10 +17,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #ifndef CIMAX2_H
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index a17238a..f1ef901 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -18,10 +18,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
+index cbbf9ad..1b162ee 100644
+--- a/drivers/media/pci/cx23885/cx23885-alsa.c
++++ b/drivers/media/pci/cx23885/cx23885-alsa.c
+@@ -15,10 +15,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
+index c443b7a..877dad8 100644
+--- a/drivers/media/pci/cx23885/cx23885-av.c
++++ b/drivers/media/pci/cx23885/cx23885-av.c
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #include "cx23885.h"
+diff --git a/drivers/media/pci/cx23885/cx23885-av.h b/drivers/media/pci/cx23885/cx23885-av.h
+index d2915c3..97f232f 100644
+--- a/drivers/media/pci/cx23885/cx23885-av.h
++++ b/drivers/media/pci/cx23885/cx23885-av.h
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #ifndef _CX23885_AV_H_
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index c2b6080..21e500b 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/init.h>
+@@ -1970,5 +1966,3 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	}
+ 	}
+ }
+-
+-/* ------------------------------------------------------------------ */
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 2599af1..8663f7b 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/init.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 376b0a6..4f643ae 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+@@ -1717,4 +1713,3 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
+ 
+ 	return 0;
+ }
+-
+diff --git a/drivers/media/pci/cx23885/cx23885-f300.c b/drivers/media/pci/cx23885/cx23885-f300.c
+index 5444cc5..6f817d8 100644
+--- a/drivers/media/pci/cx23885/cx23885-f300.c
++++ b/drivers/media/pci/cx23885/cx23885-f300.c
+@@ -22,10 +22,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include "cx23885.h"
+diff --git a/drivers/media/pci/cx23885/cx23885-i2c.c b/drivers/media/pci/cx23885/cx23885-i2c.c
+index 4887314..fd71306 100644
+--- a/drivers/media/pci/cx23885/cx23885-i2c.c
++++ b/drivers/media/pci/cx23885/cx23885-i2c.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/module.h>
+@@ -386,11 +382,3 @@ void cx23885_av_clk(struct cx23885_dev *dev, int enable)
+ 
+ 	i2c_xfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
+ }
+-
+-/* ----------------------------------------------------------------------- */
+-
+-/*
+- * Local variables:
+- * c-basic-offset: 8
+- * End:
+- */
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 1940c18..9d37fe6 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -28,11 +28,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #include <linux/slab.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-input.h b/drivers/media/pci/cx23885/cx23885-input.h
+index 87dc44e..6199c7e 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.h
++++ b/drivers/media/pci/cx23885/cx23885-input.h
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #ifndef _CX23885_INPUT_H_
+diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.c b/drivers/media/pci/cx23885/cx23885-ioctl.c
+index 9c16786..d2cdd40 100644
+--- a/drivers/media/pci/cx23885/cx23885-ioctl.c
++++ b/drivers/media/pci/cx23885/cx23885-ioctl.c
+@@ -15,10 +15,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include "cx23885.h"
+diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.h b/drivers/media/pci/cx23885/cx23885-ioctl.h
+index 92d9f07..cc5dbb6 100644
+--- a/drivers/media/pci/cx23885/cx23885-ioctl.h
++++ b/drivers/media/pci/cx23885/cx23885-ioctl.h
+@@ -15,10 +15,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #ifndef _CX23885_IOCTL_H_
+diff --git a/drivers/media/pci/cx23885/cx23885-ir.c b/drivers/media/pci/cx23885/cx23885-ir.c
+index bfef193..89dc4cc 100644
+--- a/drivers/media/pci/cx23885/cx23885-ir.c
++++ b/drivers/media/pci/cx23885/cx23885-ir.c
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #include <media/v4l2-device.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-ir.h b/drivers/media/pci/cx23885/cx23885-ir.h
+index 0c9d8bd..8e93d1f 100644
+--- a/drivers/media/pci/cx23885/cx23885-ir.h
++++ b/drivers/media/pci/cx23885/cx23885-ir.h
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #ifndef _CX23885_IR_H_
+diff --git a/drivers/media/pci/cx23885/cx23885-reg.h b/drivers/media/pci/cx23885/cx23885-reg.h
+index a99936e..2d3cbaf 100644
+--- a/drivers/media/pci/cx23885/cx23885-reg.h
++++ b/drivers/media/pci/cx23885/cx23885-reg.h
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #ifndef _CX23885_REG_H_
+diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
+index 358776e..67b71f9 100644
+--- a/drivers/media/pci/cx23885/cx23885-vbi.c
++++ b/drivers/media/pci/cx23885/cx23885-vbi.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 55037f2..477610e 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/init.h>
+@@ -1286,4 +1282,3 @@ fail_unreg:
+ 	cx23885_video_unregister(dev);
+ 	return err;
+ }
+-
+diff --git a/drivers/media/pci/cx23885/cx23885-video.h b/drivers/media/pci/cx23885/cx23885-video.h
+index c961a2b..291e8f3 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.h
++++ b/drivers/media/pci/cx23885/cx23885-video.h
+@@ -12,11 +12,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #ifndef _CX23885_VIDEO_H_
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index f542ced..c306aa3 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -13,10 +13,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/pci.h>
+diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
+index 2c951de..8ac968b 100644
+--- a/drivers/media/pci/cx23885/cx23888-ir.c
++++ b/drivers/media/pci/cx23885/cx23888-ir.c
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #include <linux/kfifo.h>
+diff --git a/drivers/media/pci/cx23885/cx23888-ir.h b/drivers/media/pci/cx23885/cx23888-ir.h
+index d2de41c..ff74a93 100644
+--- a/drivers/media/pci/cx23885/cx23888-ir.h
++++ b/drivers/media/pci/cx23885/cx23888-ir.h
+@@ -14,11 +14,6 @@
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- *  02110-1301, USA.
+  */
+ 
+ #ifndef _CX23888_IR_H_
+diff --git a/drivers/media/pci/cx23885/netup-eeprom.c b/drivers/media/pci/cx23885/netup-eeprom.c
+index 98a48f5..b6542ee 100644
+--- a/drivers/media/pci/cx23885/netup-eeprom.c
++++ b/drivers/media/pci/cx23885/netup-eeprom.c
+@@ -17,10 +17,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #
+diff --git a/drivers/media/pci/cx23885/netup-eeprom.h b/drivers/media/pci/cx23885/netup-eeprom.h
+index 13926e1..90cac5b 100644
+--- a/drivers/media/pci/cx23885/netup-eeprom.h
++++ b/drivers/media/pci/cx23885/netup-eeprom.h
+@@ -16,10 +16,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #ifndef NETUP_EEPROM_H
+diff --git a/drivers/media/pci/cx23885/netup-init.c b/drivers/media/pci/cx23885/netup-init.c
+index 0044fef..76d9487 100644
+--- a/drivers/media/pci/cx23885/netup-init.c
++++ b/drivers/media/pci/cx23885/netup-init.c
+@@ -17,10 +17,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include "cx23885.h"
+diff --git a/drivers/media/pci/cx23885/netup-init.h b/drivers/media/pci/cx23885/netup-init.h
+index d26ae4b..daaa212 100644
+--- a/drivers/media/pci/cx23885/netup-init.h
++++ b/drivers/media/pci/cx23885/netup-init.h
+@@ -17,9 +17,5 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ extern void netup_initialize(struct cx23885_dev *dev);
+-- 
+2.0.1
 
-> +/* FIXME: may require changes - this one was borrowed from dib8000 */
-> +static u32 dib7000p_get_time_us(struct dvb_frontend *demod, int layer)
-> +{
-
-[...]
-
-> +}
-
-> +static int dib7000p_get_stats(struct dvb_frontend *demod, fe_status_t stat)
-> +{
-> +       struct dib7000p_state *state = demod->demodulator_priv;
-> +       struct dtv_frontend_properties *c = &demod->dtv_property_cache;
-> +       int i;
-
-[...]
-
-> +       /* Get PER measures */
-> +       if (show_per_stats) {
-> +               dib7000p_read_unc_blocks(demod, &val);
-> +
-> +               c->block_error.stat[0].scale = FE_SCALE_COUNTER;
-> +               c->block_error.stat[0].uvalue += val;
-> +
-> +               time_us = dib7000p_get_time_us(demod, i);
-
-drivers/media/dvb-frontends/dib7000p.c: In function ‘dib7000p_get_stats’:
-drivers/media/dvb-frontends/dib7000p.c:1972: warning: ‘i’ is used
-uninitialized in this function
-
-So far this is harmless, as the "layer" parameter isn't used, but this
-deserves some cleanup.
-
-> +               if (time_us) {
-> +                       blocks = 1250000ULL * 1000000ULL;
-> +                       do_div(blocks, time_us * 8 * 204);
-> +                       c->block_count.stat[0].scale = FE_SCALE_COUNTER;
-> +                       c->block_count.stat[0].uvalue += blocks;
-> +               }
-> +       }
-> +       return 0;
-> +}
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
