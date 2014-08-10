@@ -1,53 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27053 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754822AbaHUWsH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 18:48:07 -0400
-Date: Fri, 22 Aug 2014 06:47:12 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:devel 499/499] ERROR: "__bad_ndelay" undefined!
-Message-ID: <53f676f0.P3aNjtNdkLtXRJXR%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2653 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574AbaHJL60 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 09/19] cx23885: drop radio-related dead code
+Date: Sun, 10 Aug 2014 13:57:46 +0200
+Message-Id: <1407671876-39386-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git devel
-head:   2558eeda5cd75649a1159aadca530a990b81c4ee
-commit: 2558eeda5cd75649a1159aadca530a990b81c4ee [499/499] [media] enable COMPILE_TEST for media drivers
-config: make ARCH=i386 allmodconfig
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-All error/warnings:
+Currently no radio device nodes are ever created, so remove the dead radio
+code.
 
-   ERROR: "omap_stop_dma" undefined!
-   ERROR: "omap_start_dma" undefined!
-   ERROR: "omap_dma_link_lch" undefined!
-   ERROR: "omap_set_dma_dest_burst_mode" undefined!
-   ERROR: "omap_set_dma_src_params" undefined!
-   ERROR: "omap_request_dma" undefined!
-   ERROR: "omap_set_dma_transfer_params" undefined!
-   ERROR: "omap_set_dma_dest_params" undefined!
-   ERROR: "omap_free_dma" undefined!
->> ERROR: "__bad_ndelay" undefined!
-   ERROR: "omapdss_compat_init" undefined!
-   ERROR: "omap_dss_get_overlay_manager" undefined!
-   ERROR: "omap_dss_get_num_overlay_managers" undefined!
-   ERROR: "omap_dss_get_overlay" undefined!
-   ERROR: "omapdss_is_initialized" undefined!
-   ERROR: "omap_dispc_register_isr" undefined!
-   ERROR: "omapdss_get_version" undefined!
-   ERROR: "omap_dss_put_device" undefined!
-   ERROR: "omap_dss_get_next_device" undefined!
-   ERROR: "omap_dispc_unregister_isr" undefined!
-   ERROR: "omapdss_compat_uninit" undefined!
-   ERROR: "omap_dss_get_device" undefined!
-   ERROR: "omap_dss_get_num_overlays" undefined!
-   ERROR: "vpif_lock" undefined!
-   ERROR: "vpif_lock" undefined!
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/pci/cx23885/cx23885-video.c | 15 +++------------
+ drivers/media/pci/cx23885/cx23885.h       |  3 ---
+ 2 files changed, 3 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 9bb19fd..50694c6 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -49,15 +49,12 @@ MODULE_LICENSE("GPL");
+ 
+ static unsigned int video_nr[] = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
+ static unsigned int vbi_nr[]   = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
+-static unsigned int radio_nr[] = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
+ 
+ module_param_array(video_nr, int, NULL, 0444);
+ module_param_array(vbi_nr,   int, NULL, 0444);
+-module_param_array(radio_nr, int, NULL, 0444);
+ 
+ MODULE_PARM_DESC(video_nr, "video device numbers");
+ MODULE_PARM_DESC(vbi_nr, "vbi device numbers");
+-MODULE_PARM_DESC(radio_nr, "radio device numbers");
+ 
+ static unsigned int video_debug;
+ module_param(video_debug, int, 0644);
+@@ -727,7 +724,6 @@ static int video_open(struct file *file)
+ 	struct cx23885_dev *dev = video_drvdata(file);
+ 	struct cx23885_fh *fh;
+ 	enum v4l2_buf_type type = 0;
+-	int radio = 0;
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+@@ -736,13 +732,10 @@ static int video_open(struct file *file)
+ 	case VFL_TYPE_VBI:
+ 		type = V4L2_BUF_TYPE_VBI_CAPTURE;
+ 		break;
+-	case VFL_TYPE_RADIO:
+-		radio = 1;
+-		break;
+ 	}
+ 
+-	dprintk(1, "open dev=%s radio=%d type=%s\n",
+-		video_device_node_name(vdev), radio, v4l2_type_names[type]);
++	dprintk(1, "open dev=%s type=%s\n",
++		video_device_node_name(vdev), v4l2_type_names[type]);
+ 
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+@@ -752,7 +745,6 @@ static int video_open(struct file *file)
+ 	v4l2_fh_init(&fh->fh, vdev);
+ 	file->private_data = &fh->fh;
+ 	fh->dev      = dev;
+-	fh->radio    = radio;
+ 	fh->type     = type;
+ 	fh->width    = 320;
+ 	fh->height   = 240;
+@@ -1333,8 +1325,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	if (dev->tuner_type == TUNER_ABSENT)
+ 		return -EINVAL;
+ 
+-	/* f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV; */
+-	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	f->type = V4L2_TUNER_ANALOG_TV;
+ 	f->frequency = dev->freq;
+ 
+ 	call_all(dev, tuner, g_frequency, f);
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 2d57af7..94ab000 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -144,7 +144,6 @@ struct cx23885_fh {
+ 	struct v4l2_fh		   fh;
+ 	struct cx23885_dev         *dev;
+ 	enum v4l2_buf_type         type;
+-	int                        radio;
+ 	u32                        resources;
+ 
+ 	/* video overlay */
+@@ -413,7 +412,6 @@ struct cx23885_dev {
+ 	unsigned int               tuner_bus;
+ 	unsigned int               radio_type;
+ 	unsigned char              radio_addr;
+-	unsigned int               has_radio;
+ 	struct v4l2_subdev 	   *sd_cx25840;
+ 	struct work_struct	   cx25840_work;
+ 
+@@ -431,7 +429,6 @@ struct cx23885_dev {
+ 	u32                        freq;
+ 	struct video_device        *video_dev;
+ 	struct video_device        *vbi_dev;
+-	struct video_device        *radio_dev;
+ 
+ 	struct cx23885_dmaqueue    vidq;
+ 	struct cx23885_dmaqueue    vbiq;
+-- 
+2.0.1
+
