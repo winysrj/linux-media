@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0153.hostedemail.com ([216.40.44.153]:50986 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752561AbaHDLMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Aug 2014 07:12:18 -0400
-Message-ID: <1407150732.16152.59.camel@joe-AO725>
-Subject: Re: [PATCHv2] staging: media: as102: replace custom dprintk() with
- dev_dbg()
-From: Joe Perches <joe@perches.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Martin Kepplinger <martink@posteo.de>, gregkh@linuxfoundation.org,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, m.chehab@samsung.com
-Date: Mon, 04 Aug 2014 04:12:12 -0700
-In-Reply-To: <20140804104016.GQ4804@mwanda>
-References: <20140804091023.GP4856@mwanda>
-	 <1407147434-27732-1-git-send-email-martink@posteo.de>
-	 <20140804104016.GQ4804@mwanda>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55266 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764AbaHJArl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:41 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 01/18] [media] au0828: avoid race conditions at RC stop
+Date: Sat,  9 Aug 2014 21:47:07 -0300
+Message-Id: <1407631644-11990-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-08-04 at 13:40 +0300, Dan Carpenter wrote:
-> On Mon, Aug 04, 2014 at 12:17:14PM +0200, Martin Kepplinger wrote:
-[]
-> > +	if (dev) {
-> > +		dev_dbg(&dev->bus_adap.usb_dev->dev,
-> > +		"tuner parameters: freq: %d  bw: 0x%02x  gi: 0x%02x\n",
-> > +			params->frequency,
-> > +			tune_args->bandwidth,
-> > +			tune_args->guard_interval);
-> > +	} else {
-> > +	pr_debug("as102: tuner parameters: freq: %d  bw: 0x%02x  gi: 0x%02x\n",
-> >  			params->frequency,
-> >  			tune_args->bandwidth,
-> >  			tune_args->guard_interval);
-> > +	}
-[]
-> This isn't indented correctly.  I wish checkpatch.pl would catch that...
-> Anyway, the else side can be removed as explained earlier.
+As the RC kthread can re-enable IR int, we should first
+cancel the kthread and then disable IR int.
 
-checkpatch doesn't warn on any of:
+While here, remove a temporary debug printk.
 
-$ cat t.c
-static int func(void **bar)
-{
-	bool b;
-			/* test */
-		int a[2] = {
-			3,
-				6
-	};
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-input.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-		if (b) {
-			b = a[0] == a[1];
-	}
-			return a[b];
-	}
-$
-
-I think it'd be better if it would one day
-but it doesn't seem as simple as it seems
-for checkpatch to do it.
+diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+index f0c5672e5f56..47ef07a693af 100644
+--- a/drivers/media/usb/au0828/au0828-input.c
++++ b/drivers/media/usb/au0828/au0828-input.c
+@@ -253,10 +253,10 @@ static void au0828_rc_stop(struct rc_dev *rc)
+ {
+ 	struct au0828_rc *ir = rc->priv;
+ 
++	cancel_delayed_work_sync(&ir->work);
++
+ 	/* Disable IR */
+ 	au8522_rc_clear(ir, 0xe0, 1 << 4);
+-
+-	cancel_delayed_work_sync(&ir->work);
+ }
+ 
+ static int au0828_probe_i2c_ir(struct au0828_dev *dev)
+-- 
+1.9.3
 
