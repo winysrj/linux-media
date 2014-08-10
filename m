@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51451 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069AbaHGVHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Aug 2014 17:07:10 -0400
-Message-ID: <53E3EA78.5040607@iki.fi>
-Date: Fri, 08 Aug 2014 00:07:04 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: Re: [media:v4l_for_linus 393/499] tuner-core.c:undefined reference
- to `xc5000_attach'
-References: <53e1c569.+9t1lBrjysNHBgah%fengguang.wu@intel.com>
-In-Reply-To: <53e1c569.+9t1lBrjysNHBgah%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:56218 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754AbaHJCOd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 22:14:33 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/3] Another series of PM fixes for au0828
+Date: Sat,  9 Aug 2014 23:14:19 -0300
+Message-Id: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-could you look that one? There is now multiple reports for ~all those 
-silicon tuners which are used by tuner.ko module (CONFIG MEDIA_TUNER). 
-Even it blames SDR Kconfig tuner patch I made, it is not the real issue. 
-In my understanding issue is that tuner.ko is build-in and those tuner 
-drivers it uses are build as a module. I think those used tuners 
-(xc5000, xc4000, etc.) should be defaulted to same as MEDIA_TUNER when 
-!MEDIA_SUBDRV_AUTOSELECT.
+There are still a few bugs that can happen when suspending and
+a video stream is active. This patch series fix them. After
+that, resume works fine, even it suspend happened while
+streaming.
 
+There is one remaining issue though: xc5000 firmware doesn't
+load after resume.
 
-regards
-Antti
+What happens (on both analog and digital) is:
 
+[  143.071323] xc5000: xc5000_suspend()
+[  143.071324] xc5000: xc5000_tuner_reset()
+[  143.099992] au0828: Suspend
+[  143.099992] au0828: Stopping RC
+[  143.101694] au0828: stopping V4L2
+[  143.101695] au0828: stopping V4L2 active URBs
+[  144.988637] au0828: Resume
+[  145.342026] au0828: Restarting RC
+[  145.343296] au0828: restarting V4L2
+[  145.464413] xc5000: xc5000_is_firmware_loaded() returns True id = 0xffff
+[  145.464414] xc5000: xc_set_signal_source(1) Source = CABLE
+[  146.370861] xc5000: xc_set_signal_source(1) failed
 
+I suspect that it has to do with a wrong value for the I2C
+gateway. The proper fix is likely to convert au0828 to use
+the I2C mux support, and remove the old i2c_gate_ctrl
+approach. However, such patch would require more work, to
+avoid breaking other drivers.
 
-On 08/06/2014 09:04 AM, kbuild test robot wrote:
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> head:   0f3bf3dc1ca394a8385079a5653088672b65c5c4
-> commit: f5b44da1ac4146e06147a5df3058f4c265c932ec [393/499] [media] Kconfig: fix tuners build warnings
-> config: x86_64-randconfig-s1-08061342 (attached as .config)
->
-> All error/warnings:
->
->     drivers/built-in.o: In function `set_type':
->>> tuner-core.c:(.text+0x32ed52): undefined reference to `xc5000_attach'
->>> tuner-core.c:(.text+0x32f123): undefined reference to `xc5000_attach'
->     tuner-core.c:(.text+0x32f1e6): undefined reference to `xc4000_attach'
->
-> ---
-> 0-DAY kernel build testing backend              Open Source Technology Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
->
+Mauro Carvalho Chehab (3):
+  au0828: fix checks if dvb is initialized
+  au0828: Fix DVB resume when streaming
+  xc5000: be sure that the firmware is there before set params
+
+ drivers/media/tuners/xc5000.c         | 10 +++++-----
+ drivers/media/usb/au0828/au0828-dvb.c | 24 ++++++++++++++----------
+ drivers/media/usb/au0828/au0828.h     |  4 ++--
+ 3 files changed, 21 insertions(+), 17 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.9.3
+
