@@ -1,33 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24]:58551 "EHLO
-	qmta02.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752042AbaHNBJ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 21:09:29 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, fabf@skynet.be
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 0/2] media: tuner xc5000 firmware load fixes and improvements
-Date: Wed, 13 Aug 2014 19:09:22 -0600
-Message-Id: <cover.1407977791.git.shuah.kh@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:55272 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbaHJArh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 17/18] [media] xc5000: add a resume function
+Date: Sat,  9 Aug 2014 21:47:23 -0300
+Message-Id: <1407631644-11990-18-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes firmware load issues seen during suspend and
-resume and speeds up firmware force load path. Releasing
-firmware from xc5000_release() instead of right after load
-helps avoid requesting firmware when it needs to be force
-loaded and fixes slowpath warnings during resume after suspend
-is done before firmware is loaded.
+If a device suspends/hibertates with a station tuned, restore
+the tuner station at resume.
 
-Shuah Khan (2):
-  media: tuner xc5000 - release firmwware from xc5000_release()
-  media: tuner xc5000 - try to avoid firmware load in resume path
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/tuners/xc5000.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/tuners/xc5000.c |   50 ++++++++++++++++++++++++++++-------------
- 1 file changed, 35 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index 78695ed4549c..140c537bcfcc 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -1354,6 +1354,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
+ 	.init		   = xc5000_init,
+ 	.sleep		   = xc5000_sleep,
+ 	.suspend	   = xc5000_suspend,
++	.resume		   = xc5000_apply_params,
+ 
+ 	.set_config	   = xc5000_set_config,
+ 	.set_params	   = xc5000_set_params,
 -- 
-1.7.10.4
+1.9.3
 
