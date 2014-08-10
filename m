@@ -1,212 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55298 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbaHJArh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 16/18] [media] xc5000: Split config and set code for analog/radio
-Date: Sat,  9 Aug 2014 21:47:22 -0300
-Message-Id: <1407631644-11990-17-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2617 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584AbaHJL60 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 19/19] cx23885: remove btcx-risc dependency
+Date: Sun, 10 Aug 2014 13:57:56 +0200
+Message-Id: <1407671876-39386-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we need a function that reapply the last tuned radio,
-in order to do resume, split the code that validates and
-updates the internal priv struct from the ones that
-actually set radio and TV.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A latter patch will add support for resume.
+It's just as easy to do it in the driver. This dependency only uses a
+fraction of the btcx-risc module and doing it directly in the driver
+adds only a few lines. The btcx-risc module is really meant for the
+bttv driver, not for other drivers.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/xc5000.c | 81 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 56 insertions(+), 25 deletions(-)
+ drivers/media/pci/cx23885/Kconfig        |  1 -
+ drivers/media/pci/cx23885/Makefile       |  1 -
+ drivers/media/pci/cx23885/cx23885-alsa.c |  5 ++++-
+ drivers/media/pci/cx23885/cx23885-core.c | 36 +++++++++++++++++---------------
+ drivers/media/pci/cx23885/cx23885.h      | 18 ++++++++++------
+ 5 files changed, 35 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 3293fd8df59b..78695ed4549c 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -863,12 +863,10 @@ static int xc5000_is_firmware_loaded(struct dvb_frontend *fe)
- 	return ret;
+diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
+index 38c3b7b..a883ea4 100644
+--- a/drivers/media/pci/cx23885/Kconfig
++++ b/drivers/media/pci/cx23885/Kconfig
+@@ -3,7 +3,6 @@ config VIDEO_CX23885
+ 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && SND
+ 	select SND_PCM
+ 	select I2C_ALGOBIT
+-	select VIDEO_BTCX
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	depends on RC_CORE
+diff --git a/drivers/media/pci/cx23885/Makefile b/drivers/media/pci/cx23885/Makefile
+index 2a2cafb..a2cbdcf 100644
+--- a/drivers/media/pci/cx23885/Makefile
++++ b/drivers/media/pci/cx23885/Makefile
+@@ -8,7 +8,6 @@ obj-$(CONFIG_VIDEO_CX23885) += cx23885.o
+ obj-$(CONFIG_MEDIA_ALTERA_CI) += altera-ci.o
+ 
+ ccflags-y += -Idrivers/media/i2c
+-ccflags-y += -Idrivers/media/common
+ ccflags-y += -Idrivers/media/tuners
+ ccflags-y += -Idrivers/media/dvb-core
+ ccflags-y += -Idrivers/media/dvb-frontends
+diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
+index 1b162ee..ae7c2e8 100644
+--- a/drivers/media/pci/cx23885/cx23885-alsa.c
++++ b/drivers/media/pci/cx23885/cx23885-alsa.c
+@@ -270,12 +270,15 @@ int cx23885_audio_irq(struct cx23885_dev *dev, u32 status, u32 mask)
+ 
+ static int dsp_buffer_free(struct cx23885_audio_dev *chip)
+ {
++	struct cx23885_riscmem *risc;
++
+ 	BUG_ON(!chip->dma_size);
+ 
+ 	dprintk(2, "Freeing buffer\n");
+ 	cx23885_alsa_dma_unmap(chip);
+ 	cx23885_alsa_dma_free(chip->buf);
+-	btcx_riscmem_free(chip->pci, &chip->buf->risc);
++	risc = &chip->buf->risc;
++	pci_free_consistent(chip->pci, risc->size, risc->cpu, risc->dma);
+ 	kfree(chip->buf);
+ 
+ 	chip->buf = NULL;
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 8663f7b..331edda 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -570,7 +570,7 @@ void cx23885_sram_channel_dump(struct cx23885_dev *dev,
  }
  
--static int xc5000_set_tv_freq(struct dvb_frontend *fe,
--	struct analog_parameters *params)
-+static void xc5000_config_tv(struct dvb_frontend *fe,
-+			     struct analog_parameters *params)
+ static void cx23885_risc_disasm(struct cx23885_tsport *port,
+-				struct btcx_riscmem *risc)
++				struct cx23885_riscmem *risc)
  {
- 	struct xc5000_priv *priv = fe->tuner_priv;
--	u16 pll_lock_status;
--	int ret;
+ 	struct cx23885_dev *dev = port->dev;
+ 	unsigned int i, j, n;
+@@ -1121,14 +1121,13 @@ static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
+ 	return rp;
+ }
  
- 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
- 		__func__, params->frequency);
-@@ -887,42 +885,49 @@ static int xc5000_set_tv_freq(struct dvb_frontend *fe,
- 	if (params->std & V4L2_STD_MN) {
- 		/* default to BTSC audio standard */
- 		priv->video_standard = MN_NTSC_PAL_BTSC;
--		goto tune_channel;
-+		return;
- 	}
+-int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
++int cx23885_risc_buffer(struct pci_dev *pci, struct cx23885_riscmem *risc,
+ 			struct scatterlist *sglist, unsigned int top_offset,
+ 			unsigned int bottom_offset, unsigned int bpl,
+ 			unsigned int padding, unsigned int lines)
+ {
+ 	u32 instructions, fields;
+ 	__le32 *rp;
+-	int rc;
  
- 	if (params->std & V4L2_STD_PAL_BG) {
- 		/* default to NICAM audio standard */
- 		priv->video_standard = BG_PAL_NICAM;
--		goto tune_channel;
-+		return;
- 	}
+ 	fields = 0;
+ 	if (UNSET != top_offset)
+@@ -1144,9 +1143,10 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+ 	instructions  = fields * (1 + ((bpl + padding) * lines)
+ 		/ PAGE_SIZE + lines);
+ 	instructions += 5;
+-	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+-	if (rc < 0)
+-		return rc;
++	risc->size = instructions * 12;
++	risc->cpu = pci_alloc_consistent(pci, risc->size, &risc->dma);
++	if (risc->cpu == NULL)
++		return -ENOMEM;
  
- 	if (params->std & V4L2_STD_PAL_I) {
- 		/* default to NICAM audio standard */
- 		priv->video_standard = I_PAL_NICAM;
--		goto tune_channel;
-+		return;
- 	}
+ 	/* write risc instructions */
+ 	rp = risc->cpu;
+@@ -1164,14 +1164,13 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+ }
  
- 	if (params->std & V4L2_STD_PAL_DK) {
- 		/* default to NICAM audio standard */
- 		priv->video_standard = DK_PAL_NICAM;
--		goto tune_channel;
-+		return;
- 	}
+ int cx23885_risc_databuffer(struct pci_dev *pci,
+-				   struct btcx_riscmem *risc,
++				   struct cx23885_riscmem *risc,
+ 				   struct scatterlist *sglist,
+ 				   unsigned int bpl,
+ 				   unsigned int lines, unsigned int lpi)
+ {
+ 	u32 instructions;
+ 	__le32 *rp;
+-	int rc;
  
- 	if (params->std & V4L2_STD_SECAM_DK) {
- 		/* default to A2 DK1 audio standard */
- 		priv->video_standard = DK_SECAM_A2DK1;
--		goto tune_channel;
-+		return;
- 	}
+ 	/* estimate risc mem: worst case is one write per page border +
+ 	   one write per scan line + syncs + jump (all 2 dwords).  Here
+@@ -1181,9 +1180,10 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
+ 	instructions  = 1 + (bpl * lines) / PAGE_SIZE + lines;
+ 	instructions += 4;
  
- 	if (params->std & V4L2_STD_SECAM_L) {
- 		priv->video_standard = L_SECAM_NICAM;
--		goto tune_channel;
-+		return;
- 	}
+-	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+-	if (rc < 0)
+-		return rc;
++	risc->size = instructions * 12;
++	risc->cpu = pci_alloc_consistent(pci, risc->size, &risc->dma);
++	if (risc->cpu == NULL)
++		return -ENOMEM;
  
- 	if (params->std & V4L2_STD_SECAM_LC) {
- 		priv->video_standard = LC_SECAM_NICAM;
--		goto tune_channel;
-+		return;
- 	}
-+}
-+
-+static int xc5000_set_tv_freq(struct dvb_frontend *fe)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	u16 pll_lock_status;
-+	int ret;
- 
- tune_channel:
- 	ret = xc_set_signal_source(priv, priv->rf_mode);
-@@ -966,12 +971,11 @@ tune_channel:
+ 	/* write risc instructions */
+ 	rp = risc->cpu;
+@@ -1196,14 +1196,13 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
  	return 0;
  }
  
--static int xc5000_set_radio_freq(struct dvb_frontend *fe,
--	struct analog_parameters *params)
-+static int xc5000_config_radio(struct dvb_frontend *fe,
-+			       struct analog_parameters *params)
-+
+-int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
++int cx23885_risc_vbibuffer(struct pci_dev *pci, struct cx23885_riscmem *risc,
+ 			struct scatterlist *sglist, unsigned int top_offset,
+ 			unsigned int bottom_offset, unsigned int bpl,
+ 			unsigned int padding, unsigned int lines)
  {
- 	struct xc5000_priv *priv = fe->tuner_priv;
--	int ret = -EINVAL;
--	u8 radio_input;
+ 	u32 instructions, fields;
+ 	__le32 *rp;
+-	int rc;
  
- 	dprintk(1, "%s() frequency=%d (in units of khz)\n",
- 		__func__, params->frequency);
-@@ -981,6 +985,18 @@ static int xc5000_set_radio_freq(struct dvb_frontend *fe,
- 		return -EINVAL;
- 	}
+ 	fields = 0;
+ 	if (UNSET != top_offset)
+@@ -1219,9 +1218,10 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+ 	instructions  = fields * (1 + ((bpl + padding) * lines)
+ 		/ PAGE_SIZE + lines);
+ 	instructions += 5;
+-	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+-	if (rc < 0)
+-		return rc;
++	risc->size = instructions * 12;
++	risc->cpu = pci_alloc_consistent(pci, risc->size, &risc->dma);
++	if (risc->cpu == NULL)
++		return -ENOMEM;
+ 	/* write risc instructions */
+ 	rp = risc->cpu;
  
-+	priv->freq_hz = params->frequency * 125 / 2;
-+	priv->rf_mode = XC_RF_MODE_AIR;
+@@ -1246,8 +1246,10 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+ 
+ void cx23885_free_buffer(struct cx23885_dev *dev, struct cx23885_buffer *buf)
+ {
++	struct cx23885_riscmem *risc = &buf->risc;
 +
-+	return 0;
-+}
-+
-+static int xc5000_set_radio_freq(struct dvb_frontend *fe)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret;
-+	u8 radio_input;
-+
- 	if (priv->radio_input == XC5000_RADIO_FM1)
- 		radio_input = FM_RADIO_INPUT1;
- 	else if  (priv->radio_input == XC5000_RADIO_FM2)
-@@ -993,10 +1009,6 @@ static int xc5000_set_radio_freq(struct dvb_frontend *fe,
- 		return -EINVAL;
- 	}
- 
--	priv->freq_hz = params->frequency * 125 / 2;
--
--	priv->rf_mode = XC_RF_MODE_AIR;
--
- 	ret = xc_set_tv_standard(priv, xc5000_standard[radio_input].video_mode,
- 			       xc5000_standard[radio_input].audio_mode, radio_input);
- 
-@@ -1024,11 +1036,27 @@ static int xc5000_set_radio_freq(struct dvb_frontend *fe,
- 	return 0;
+ 	BUG_ON(in_interrupt());
+-	btcx_riscmem_free(dev->pci, &buf->risc);
++	pci_free_consistent(dev->pci, risc->size, risc->cpu, risc->dma);
  }
  
-+static int xc5000_apply_params(struct dvb_frontend *fe)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
+ static void cx23885_tsport_reg_dump(struct cx23885_tsport *port)
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index c306aa3..1ff86ba 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -29,7 +29,6 @@
+ #include <media/videobuf2-dvb.h>
+ #include <media/rc-core.h>
+ 
+-#include "btcx-risc.h"
+ #include "cx23885-reg.h"
+ #include "media/cx2341x.h"
+ 
+@@ -152,6 +151,13 @@ enum cx23885_src_sel_type {
+ 	CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO
+ };
+ 
++struct cx23885_riscmem {
++	unsigned int   size;
++	__le32         *cpu;
++	__le32         *jmp;
++	dma_addr_t     dma;
++};
 +
-+	switch (priv->mode) {
-+	case V4L2_TUNER_RADIO:
-+		return xc5000_set_radio_freq(fe);
-+	case V4L2_TUNER_ANALOG_TV:
-+		return xc5000_set_tv_freq(fe);
-+	case V4L2_TUNER_DIGITAL_TV:
-+		return xc5000_tune_digital(fe);
-+	}
-+
-+	return 0;
-+}
-+
- static int xc5000_set_analog_params(struct dvb_frontend *fe,
- 			     struct analog_parameters *params)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
--	int ret = -EINVAL;
-+	int ret;
+ /* buffer for one video frame */
+ struct cx23885_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+@@ -160,7 +166,7 @@ struct cx23885_buffer {
  
- 	if (priv->i2c_props.adap == NULL)
- 		return -EINVAL;
-@@ -1040,18 +1068,21 @@ static int xc5000_set_analog_params(struct dvb_frontend *fe,
+ 	/* cx23885 specific */
+ 	unsigned int           bpl;
+-	struct btcx_riscmem    risc;
++	struct cx23885_riscmem risc;
+ 	struct cx23885_fmt     *fmt;
+ 	u32                    count;
+ };
+@@ -300,7 +306,7 @@ struct cx23885_kernel_ir {
  
- 	switch (params->mode) {
- 	case V4L2_TUNER_RADIO:
--		ret = xc5000_set_radio_freq(fe, params);
-+		ret = xc5000_config_radio(fe, params);
-+		if (ret)
-+			return ret;
- 		break;
- 	case V4L2_TUNER_ANALOG_TV:
--	case V4L2_TUNER_DIGITAL_TV:
--		ret = xc5000_set_tv_freq(fe, params);
-+		xc5000_config_tv(fe, params);
-+		break;
-+	default:
- 		break;
- 	}
-+	priv->mode = params->mode;
+ struct cx23885_audio_buffer {
+ 	unsigned int		bpl;
+-	struct btcx_riscmem	risc;
++	struct cx23885_riscmem	risc;
+ 	void			*vaddr;
+ 	struct scatterlist	*sglist;
+ 	int                     sglen;
+@@ -489,13 +495,13 @@ extern int cx23885_sram_channel_setup(struct cx23885_dev *dev,
+ extern void cx23885_sram_channel_dump(struct cx23885_dev *dev,
+ 	struct sram_channel *ch);
  
--	return ret;
-+	return xc5000_apply_params(fe);
- }
+-extern int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
++extern int cx23885_risc_buffer(struct pci_dev *pci, struct cx23885_riscmem *risc,
+ 	struct scatterlist *sglist,
+ 	unsigned int top_offset, unsigned int bottom_offset,
+ 	unsigned int bpl, unsigned int padding, unsigned int lines);
  
--
- static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
+ extern int cx23885_risc_vbibuffer(struct pci_dev *pci,
+-	struct btcx_riscmem *risc, struct scatterlist *sglist,
++	struct cx23885_riscmem *risc, struct scatterlist *sglist,
+ 	unsigned int top_offset, unsigned int bottom_offset,
+ 	unsigned int bpl, unsigned int padding, unsigned int lines);
+ 
+@@ -595,7 +601,7 @@ extern struct cx23885_audio_dev *cx23885_audio_register(
+ extern void cx23885_audio_unregister(struct cx23885_dev *dev);
+ extern int cx23885_audio_irq(struct cx23885_dev *dev, u32 status, u32 mask);
+ extern int cx23885_risc_databuffer(struct pci_dev *pci,
+-				   struct btcx_riscmem *risc,
++				   struct cx23885_riscmem *risc,
+ 				   struct scatterlist *sglist,
+ 				   unsigned int bpl,
+ 				   unsigned int lines,
 -- 
-1.9.3
+2.0.1
 
