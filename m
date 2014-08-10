@@ -1,106 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.194]:56405 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932117AbaHKT60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Aug 2014 15:58:26 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: olli@cabbala.net
-Cc: Olli Salonen <olli.salonen@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/6] si2168: add ts_mode setting and move to si2168_init
-Date: Mon, 11 Aug 2014 22:58:10 +0300
-Message-Id: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:55296 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628AbaHJArh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 10/18] [media] au0828: Remove a bad whitespace
+Date: Sat,  9 Aug 2014 21:47:16 -0300
+Message-Id: <1407631644-11990-11-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Luis Alves submitted a TS mode patch to si2168 earlier, but the patch was rejected due to a small issue. Here is a working version. Also, setting of TS mode is moved from si2168_set_frontend to si2168_init.
-
-This patch adds the TS mode as a config option for the si2168 demod:
-- ts_mode added to config struct.
-- Possible (interesting) values are
-   * Parallel mode = 0x06
-   * Serial mode = 0x03
-
-Currently the modules using this demod only use parallel mode. Patches for these modules later in this patch series.
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 17 ++++++++++-------
- drivers/media/dvb-frontends/si2168.h      |  6 ++++++
- drivers/media/dvb-frontends/si2168_priv.h |  1 +
- 3 files changed, 17 insertions(+), 7 deletions(-)
+ drivers/media/usb/au0828/au0828-dvb.c   | 0
+ drivers/media/usb/au0828/au0828-input.c | 2 +-
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ mode change 100755 => 100644 drivers/media/usb/au0828/au0828-dvb.c
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 8f81d97..0eb0e4e 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -297,13 +297,6 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+old mode 100755
+new mode 100644
+diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+index 7a5437a4d938..5efb83977f39 100644
+--- a/drivers/media/usb/au0828/au0828-input.c
++++ b/drivers/media/usb/au0828/au0828-input.c
+@@ -133,7 +133,7 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
+ 	rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
+ 	if (rc < 0 || !(buf[0] & (1 << 4))) {
+ 		/* Be sure that IR is enabled */
+-	        au8522_rc_set(ir, 0xe0, 1 << 4);
++		au8522_rc_set(ir, 0xe0, 1 << 4);
+ 		return 0;
+ 	}
  
--	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
--	cmd.wlen = 6;
--	cmd.rlen = 4;
--	ret = si2168_cmd_execute(s, &cmd);
--	if (ret)
--		goto err;
--
- 	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
-@@ -465,6 +458,15 @@ static int si2168_init(struct dvb_frontend *fe)
- 	dev_info(&s->client->dev, "%s: found a '%s' in warm state\n",
- 			KBUILD_MODNAME, si2168_ops.info.name);
- 
-+	/* set ts mode */
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
-+	cmd.args[4] |= s->ts_mode;
-+	cmd.wlen = 6;
-+	cmd.rlen = 4;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
- 	s->active = true;
- 
- 	return 0;
-@@ -633,6 +635,7 @@ static int si2168_probe(struct i2c_client *client,
- 
- 	*config->i2c_adapter = s->adapter;
- 	*config->fe = &s->fe;
-+	s->ts_mode = config->ts_mode;
- 
- 	i2c_set_clientdata(client, s);
- 
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index 3c5b5ab..e086d67 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -34,6 +34,12 @@ struct si2168_config {
- 	 * returned by driver
- 	 */
- 	struct i2c_adapter **i2c_adapter;
-+
-+	/* TS mode */
-+	u8 ts_mode;
- };
- 
-+#define SI2168_TS_PARALLEL	0x06
-+#define SI2168_TS_SERIAL	0x03
-+
- #endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index ebbf502..0f83284 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -36,6 +36,7 @@ struct si2168 {
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
- 	bool active;
-+	u8 ts_mode;
- };
- 
- /* firmare command struct */
 -- 
-1.9.1
+1.9.3
 
