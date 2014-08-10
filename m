@@ -1,58 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35166 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932297AbaHVRE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 13:04:57 -0400
-Message-ID: <53F77835.7050406@suse.com>
-Date: Fri, 22 Aug 2014 13:04:53 -0400
-From: Jeff Mahoney <jeffm@suse.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Kconfig: do not select SPI bus on sub-driver auto-select
-References: <1408726929-3924-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1408726929-3924-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2908 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751507AbaHJL6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/19] cx23885: fix audio input handling
+Date: Sun, 10 Aug 2014 13:57:39 +0200
+Message-Id: <1407671876-39386-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri Aug 22 13:02:09 2014, Antti Palosaari wrote:
-> We should not select SPI bus when sub-driver auto-select is
-> selected. That option is meant for auto-selecting all possible
-> ancillary drivers used for selected board driver. Ancillary
-> drivers should define needed dependencies itself.
->
-> I2C and I2C_MUX are still selected here for a reason described on
-> commit 347f7a3763601d7b466898d1f10080b7083ac4a3
->
-> Reverts commit e4462ffc1602d9df21c00a0381dca9080474e27a
->
-> Reported-by: Jeff Mahoney <jeffm@suse.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/Kconfig | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index f60bad4..3c89fcb 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -182,7 +182,6 @@ config MEDIA_SUBDRV_AUTOSELECT
->  	depends on HAS_IOMEM
->  	select I2C
->  	select I2C_MUX
-> -	select SPI
->  	default y
->  	help
->  	  By default, a media driver auto-selects all possible ancillary
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-FWIW, in the patch I used locally, I also did a 'select SPI' in the 
-MSI2500 driver since it wouldn't otherwise be obvious that a USB device 
-depends on SPI.
+Fix a bunch of v4l2-compliance errors relating to audio input handling.
 
--Jeff
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/cx23885-video.c | 31 ++++++++++++++++++++-----------
+ 1 file changed, 20 insertions(+), 11 deletions(-)
 
---
-Jeff Mahoney
-SUSE Labs
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 2666ac4..79de4ac 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1153,7 +1153,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	strlcpy(cap->card, cx23885_boards[dev->board].name,
+ 		sizeof(cap->card));
+ 	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
+-	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING | V4L2_CAP_AUDIO;
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 	if (vdev->vfl_type == VFL_TYPE_VBI)
+@@ -1302,16 +1302,16 @@ int cx23885_enum_input(struct cx23885_dev *dev, struct v4l2_input *i)
+ 	i->index = n;
+ 	i->type  = V4L2_INPUT_TYPE_CAMERA;
+ 	strcpy(i->name, iname[INPUT(n)->type]);
++	i->std = CX23885_NORMS;
+ 	if ((CX23885_VMUX_TELEVISION == INPUT(n)->type) ||
+ 		(CX23885_VMUX_CABLE == INPUT(n)->type)) {
+ 		i->type = V4L2_INPUT_TYPE_TUNER;
+-		i->std = CX23885_NORMS;
++		i->audioset = 4;
++	} else {
++		/* Two selectable audio inputs for non-tv inputs */
++		i->audioset = 3;
+ 	}
+ 
+-	/* Two selectable audio inputs for non-tv inputs */
+-	if (INPUT(n)->type != CX23885_VMUX_TELEVISION)
+-		i->audioset = 0x3;
+-
+ 	if (dev->input == n) {
+ 		/* enum'd input matches our configured input.
+ 		 * Ask the video decoder to process the call
+@@ -1397,19 +1397,19 @@ static int cx23885_query_audinput(struct file *file, void *priv,
+ 	static const char *iname[] = {
+ 		[0] = "Baseband L/R 1",
+ 		[1] = "Baseband L/R 2",
++		[2] = "TV",
+ 	};
+ 	unsigned int n;
+ 	dprintk(1, "%s()\n", __func__);
+ 
+ 	n = i->index;
+-	if (n >= 2)
++	if (n >= 3)
+ 		return -EINVAL;
+ 
+ 	memset(i, 0, sizeof(*i));
+ 	i->index = n;
+ 	strcpy(i->name, iname[n]);
+-	i->capability  = V4L2_AUDCAP_STEREO;
+-	i->mode  = V4L2_AUDMODE_AVL;
++	i->capability = V4L2_AUDCAP_STEREO;
+ 	return 0;
+ 
+ }
+@@ -1425,7 +1425,11 @@ static int vidioc_g_audinput(struct file *file, void *priv,
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+ 
+-	i->index = dev->audinput;
++	if ((CX23885_VMUX_TELEVISION == INPUT(dev->input)->type) ||
++		(CX23885_VMUX_CABLE == INPUT(dev->input)->type))
++		i->index = 2;
++	else
++		i->index = dev->audinput;
+ 	dprintk(1, "%s(input=%d)\n", __func__, i->index);
+ 
+ 	return cx23885_query_audinput(file, priv, i);
+@@ -1435,7 +1439,12 @@ static int vidioc_s_audinput(struct file *file, void *priv,
+ 	const struct v4l2_audio *i)
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+-	if (i->index >= 2)
++
++	if ((CX23885_VMUX_TELEVISION == INPUT(dev->input)->type) ||
++		(CX23885_VMUX_CABLE == INPUT(dev->input)->type)) {
++		return i->index != 2 ? -EINVAL : 0;
++	}
++	if (i->index > 1)
+ 		return -EINVAL;
+ 
+ 	dprintk(1, "%s(%d)\n", __func__, i->index);
+-- 
+2.0.1
+
