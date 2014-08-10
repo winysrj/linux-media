@@ -1,84 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2899 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbaHIRro (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 13:47:44 -0400
-Message-ID: <53E65EA4.6080106@xs4all.nl>
-Date: Sat, 09 Aug 2014 19:47:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Suman Kumar <suman@inforcecomputing.com>
-CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a Missing
- blank line coding style issue
-References: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com> <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:62529 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbaHJUl7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 16:41:59 -0400
+Received: by mail-pd0-f174.google.com with SMTP id fp1so9597921pdb.5
+        for <linux-media@vger.kernel.org>; Sun, 10 Aug 2014 13:41:58 -0700 (PDT)
+From: Suman Kumar <suman@inforcecomputing.com>
+To: hverkuil@xs4all.nl
+Cc: g.liakhovetski@gmx.de, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	suman@inforcecomputing.com, kernel-janitors@vger.kernel.org
+Subject: [PATCH] staging: soc_camera.c: fixed coding style: lines over 80 char
+Date: Mon, 11 Aug 2014 02:11:41 +0530
+Message-Id: <1407703301-2037-1-git-send-email-suman@inforcecomputing.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/2014 07:36 PM, Guennadi Liakhovetski wrote:
-> Hi Suman,
-> 
-> On Sat, 9 Aug 2014, Suman Kumar wrote:
-> 
->>     Fixes a coding style issue reported by checkpatch.pl
-> 
-> Thanks for your patch. To my taste checkpatch.pl has unfortunately become 
-> too noisy with meaningless / unimportant warnings like this one. Is this 
-> in CodingStyle? If not, my intention is to drop this.
+    Fixes a coding style issue of 'lines over 80 char' reported by
+    checkpatch.pl
 
-I don't see it being mentioned explicitly in the CodingStyle, but the coding
-style follows K&R, and they put an empty line between local variables and the
-start of the code. And I like it that way as well, it makes it easier to review.
+Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-If you don't want to be bothered by such patches, just delegate them to me in
-patchwork, I don't mind.
-
-Regards,
-
-	Hans
-
-> However, Mauro may 
-> override by either taking this himself or asking me to apply this.
-> 
-> Thanks
-> Guennadi
-> 
->>
->> Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
->> ---
->>  drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
->> index ceaddfb..fe15a80 100644
->> --- a/drivers/media/platform/soc_camera/soc_camera_platform.c
->> +++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
->> @@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
->>  static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
->>  {
->>  	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
->> +
->>  	return container_of(subdev, struct soc_camera_platform_priv, subdev);
->>  }
->>  
->>  static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
->>  {
->>  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
->> +
->>  	return p->set_capture(p, enable);
->>  }
->>  
->> -- 
->> 1.8.2
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 968a64b..1b7e0e1 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -115,7 +115,8 @@ eregenable:
+ }
+ EXPORT_SYMBOL(soc_camera_power_on);
+ 
+-int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc *ssdd,
++int soc_camera_power_off(struct device *dev,
++			 struct soc_camera_subdev_desc *ssdd,
+ 			 struct v4l2_clk *clk)
+ {
+ 	int ret = 0;
+@@ -144,7 +145,8 @@ int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc *ssdd
+ }
+ EXPORT_SYMBOL(soc_camera_power_off);
+ 
+-int soc_camera_power_init(struct device *dev, struct soc_camera_subdev_desc *ssdd)
++int soc_camera_power_init(struct device *dev,
++			  struct soc_camera_subdev_desc *ssdd)
+ {
+ 	/* Should not have any effect in synchronous case */
+ 	return devm_regulator_bulk_get(dev, ssdd->sd_pdata.num_regulators,
+@@ -199,7 +201,9 @@ unsigned long soc_camera_apply_board_flags(struct soc_camera_subdev_desc *ssdd,
+ {
+ 	unsigned long f, flags = cfg->flags;
+ 
+-	/* If only one of the two polarities is supported, switch to the opposite */
++	/* If only one of the two polarities is supported,
++	 * switch to the opposite
++	 */
+ 	if (ssdd->flags & SOCAM_SENSOR_INVERT_HSYNC) {
+ 		f = flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		if (f == V4L2_MBUS_HSYNC_ACTIVE_HIGH || f == V4L2_MBUS_HSYNC_ACTIVE_LOW)
+@@ -1430,7 +1434,7 @@ static int soc_camera_async_bound(struct v4l2_async_notifier *notifier,
+ 				  struct v4l2_async_subdev *asd)
+ {
+ 	struct soc_camera_async_client *sasc = container_of(notifier,
+-					struct soc_camera_async_client, notifier);
++				    struct soc_camera_async_client, notifier);
+ 	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
+ 
+ 	if (asd == sasc->sensor && !WARN_ON(icd->control)) {
+@@ -1463,7 +1467,7 @@ static void soc_camera_async_unbind(struct v4l2_async_notifier *notifier,
+ 				    struct v4l2_async_subdev *asd)
+ {
+ 	struct soc_camera_async_client *sasc = container_of(notifier,
+-					struct soc_camera_async_client, notifier);
++				    struct soc_camera_async_client, notifier);
+ 	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
+ 
+ 	if (icd->clk) {
+@@ -1475,7 +1479,7 @@ static void soc_camera_async_unbind(struct v4l2_async_notifier *notifier,
+ static int soc_camera_async_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct soc_camera_async_client *sasc = container_of(notifier,
+-					struct soc_camera_async_client, notifier);
++				    struct soc_camera_async_client, notifier);
+ 	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
+ 
+ 	if (to_soc_camera_control(icd)) {
+@@ -1735,14 +1739,16 @@ static int default_cropcap(struct soc_camera_device *icd,
+ 	return v4l2_subdev_call(sd, video, cropcap, a);
+ }
+ 
+-static int default_g_crop(struct soc_camera_device *icd, struct v4l2_crop *a)
++static int default_g_crop(struct soc_camera_device *icd,
++			  struct v4l2_crop *a)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 
+ 	return v4l2_subdev_call(sd, video, g_crop, a);
+ }
+ 
+-static int default_s_crop(struct soc_camera_device *icd, const struct v4l2_crop *a)
++static int default_s_crop(struct soc_camera_device *icd,
++			  const struct v4l2_crop *a)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 
+@@ -1926,8 +1932,8 @@ static int soc_camera_device_register(struct soc_camera_device *icd)
+ 	icd->host_priv		= NULL;
+ 
+ 	/*
+-	 * Dynamically allocated devices set the bit earlier, but it doesn't hurt setting
+-	 * it again
++	 * Dynamically allocated devices set the bit earlier,
++	 * but it doesn't hurt setting it again
+ 	 */
+ 	i = to_platform_device(icd->pdev)->id;
+ 	if (i < 0)
+-- 
+1.8.2
 
