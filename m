@@ -1,56 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f169.google.com ([209.85.220.169]:34485 "EHLO
-	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbaHDFnN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 01:43:13 -0400
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:51467 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329AbaHJKvy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 06:51:54 -0400
+Received: by mail-wi0-f181.google.com with SMTP id bs8so2900754wib.14
+        for <linux-media@vger.kernel.org>; Sun, 10 Aug 2014 03:51:52 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
-References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
-	<53DF1412.9010506@xs4all.nl>
-	<CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
-Date: Mon, 4 Aug 2014 01:43:12 -0400
-Message-ID: <CAPDOMVg4DYi99jQuZQ3pKbsmrMuzqeOOPscfhgp0HPdmOUvW4w@mail.gmail.com>
-Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
-From: Nick Krause <xerofoify@gmail.com>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Udo van den Heuvel <udovdh@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <1407663691.6912.7.camel@phoenix>
+References: <1407663691.6912.7.camel@phoenix>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 10 Aug 2014 11:51:22 +0100
+Message-ID: <CA+V-a8uXLSC2AyOD3rF2Kc2zXoA_MzxYzr1Y3xyQnf1b9v+mHA@mail.gmail.com>
+Subject: Re: [PATCH] [media] saa6752hs: Convert to devm_kzalloc()
+To: Axel Lin <axel.lin@ingics.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 4, 2014 at 1:38 AM, Dave Airlie <airlied@gmail.com> wrote:
-> On 4 August 2014 15:03, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 08/04/2014 05:25 AM, Nicholas Krause wrote:
->>> This patch changes the call of vb2_buffer_core to use VB2_BUFFER_STATE_ACTIVE
->>> inside the for instead of not setting in correctly to VB2_BUFFER_STATE_ERROR.
->>>
->>> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
->>
->> Dunno what's going on here after reading Dave Airlie's reply, but:
->>
+On Sun, Aug 10, 2014 at 10:41 AM, Axel Lin <axel.lin@ingics.com> wrote:
+> Using the managed function the kfree() calls can be removed from the
+> probe error path and the remove handler.
 >
-> Nick has decided he wants to be a kernel developer, a laudable goal.
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Thanks,
+--Prabhakar Lad
+
+> ---
+>  drivers/media/i2c/saa6752hs.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> He however has decided not to take any advice given to me by a number of other
-> kernel developers on how to work on the kernel. So instead he sends random
-> broken patches to random subsystems in the hope that one will slip past a sleepy
-> maintainer and end up in the kernel.
+> diff --git a/drivers/media/i2c/saa6752hs.c b/drivers/media/i2c/saa6752hs.c
+> index 04e9e55..4024ea6 100644
+> --- a/drivers/media/i2c/saa6752hs.c
+> +++ b/drivers/media/i2c/saa6752hs.c
+> @@ -660,7 +660,7 @@ static const struct v4l2_subdev_ops saa6752hs_ops = {
+>  static int saa6752hs_probe(struct i2c_client *client,
+>                 const struct i2c_device_id *id)
+>  {
+> -       struct saa6752hs_state *h = kzalloc(sizeof(*h), GFP_KERNEL);
+> +       struct saa6752hs_state *h;
+>         struct v4l2_subdev *sd;
+>         struct v4l2_ctrl_handler *hdl;
+>         u8 addr = 0x13;
+> @@ -668,6 +668,8 @@ static int saa6752hs_probe(struct i2c_client *client,
 >
-> He isn't willing to spend his own time learning anything, he is
-> expecting that kernel
-> developers want to spoon feed someone who sends them broken patches.
+>         v4l_info(client, "chip found @ 0x%x (%s)\n",
+>                         client->addr << 1, client->adapter->name);
+> +
+> +       h = devm_kzalloc(&client->dev, sizeof(*h), GFP_KERNEL);
+>         if (h == NULL)
+>                 return -ENOMEM;
+>         sd = &h->sd;
+> @@ -752,7 +754,6 @@ static int saa6752hs_probe(struct i2c_client *client,
+>                 int err = hdl->error;
 >
-> We've asked him to stop, he keeps doing it, then when caught out apologizes
-> with something along the lines, of I'm trying to learn, "idiot
-> mistake", despite having
-> been told to take a step back and try and learn how the kernel works.
+>                 v4l2_ctrl_handler_free(hdl);
+> -               kfree(h);
+>                 return err;
+>         }
+>         v4l2_ctrl_cluster(3, &h->video_bitrate_mode);
+> @@ -767,7 +768,6 @@ static int saa6752hs_remove(struct i2c_client *client)
 >
-> Now we have to waste more maintainer time making sure nobody accidentally
-> merges anything he sends.
+>         v4l2_device_unregister_subdev(sd);
+>         v4l2_ctrl_handler_free(&to_state(sd)->hdl);
+> -       kfree(to_state(sd));
+>         return 0;
+>  }
 >
-> Dave.
-All of my merges are not in the main kernel and have been revoked.
-Cheers Nick
+> --
+> 1.9.1
+>
+>
+>
