@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55271 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751569AbaHJArh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 14/18] [media] xc5000: fix xc5000 suspend
-Date: Sat,  9 Aug 2014 21:47:20 -0300
-Message-Id: <1407631644-11990-15-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3260 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547AbaHJL6Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 17/19] cx23885: fix weird sizes.
+Date: Sun, 10 Aug 2014 13:57:54 +0200
+Message-Id: <1407671876-39386-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After xc5000 stops working, it waits for 5 seconds, waiting
-for a new usage. Only after that it goes to low power mode.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If a suspend event happens before that, a work queue will
-remain active, with causes suspend to crash.
+These values make no sense. All SDTV standards have the same width.
+This seems to be copied from the cx88 driver. Just drop these weird
+values.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/xc5000.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/pci/cx23885/cx23885.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index e135760f7d48..af137046bfe5 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -1229,6 +1229,24 @@ static int xc5000_sleep(struct dvb_frontend *fe)
- 	return 0;
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 99a5fe0..f542ced 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
+ 
+ static inline unsigned int norm_maxw(v4l2_std_id norm)
+ {
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
++	return 720;
  }
  
-+static int xc5000_suspend(struct dvb_frontend *fe)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	int ret;
-+
-+	dprintk(1, "%s()\n", __func__);
-+
-+	cancel_delayed_work(&priv->timer_sleep);
-+
-+	ret = xc5000_tuner_reset(fe);
-+	if (ret != 0)
-+		printk(KERN_ERR
-+			"xc5000: %s() unable to shutdown tuner\n",
-+			__func__);
-+
-+	return 0;
-+}
-+
- static int xc5000_init(struct dvb_frontend *fe)
+ static inline unsigned int norm_maxh(v4l2_std_id norm)
  {
- 	struct xc5000_priv *priv = fe->tuner_priv;
-@@ -1293,6 +1311,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
- 	.release	   = xc5000_release,
- 	.init		   = xc5000_init,
- 	.sleep		   = xc5000_sleep,
-+	.suspend	   = xc5000_suspend,
+-	return (norm & V4L2_STD_625_50) ? 576 : 480;
++	return (norm & V4L2_STD_525_60) ? 480 : 576;
+ }
  
- 	.set_config	   = xc5000_set_config,
- 	.set_params	   = xc5000_set_params,
+ static inline unsigned int norm_swidth(v4l2_std_id norm)
+ {
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
++	return 754;
+ }
 -- 
-1.9.3
+2.0.1
 
