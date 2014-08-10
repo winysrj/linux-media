@@ -1,38 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:47748 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932386AbaHGQqW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 12:46:22 -0400
-Received: by mail-we0-f175.google.com with SMTP id t60so4507303wes.20
-        for <linux-media@vger.kernel.org>; Thu, 07 Aug 2014 09:46:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <53E3A937.8000907@iki.fi>
-References: <1407308704-4120-1-git-send-email-olli.salonen@iki.fi>
-	<53E3A937.8000907@iki.fi>
-Date: Thu, 7 Aug 2014 19:46:20 +0300
-Message-ID: <CAAZRmGxsn5i_ZhpXzsD_AwkkjJBPRG77DOa6UEppqK1MrP37gw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] sp2: Add I2C driver for CIMaX SP2 common interface module
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4882 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbaHJL6U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 07:58:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/19] cx23885: fix querycap
+Date: Sun, 10 Aug 2014 13:57:38 +0200
+Message-Id: <1407671876-39386-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Antti for the review. I'll submit another version of the
-patch in the coming days.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cheers,
--olli
+Set device_caps to fix the v4l2-compliance QUERYCAP complaints.
 
-On 7 August 2014 19:28, Antti Palosaari <crope@iki.fi> wrote:
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
->
-> None of those findings are critical. However I hope you double check and fix
-> if there is any relevant enough.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/cx23885-video.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 91e4cb4..2666ac4 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1146,19 +1146,22 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ static int vidioc_querycap(struct file *file, void  *priv,
+ 	struct v4l2_capability *cap)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct cx23885_dev *dev  = ((struct cx23885_fh *)priv)->dev;
+ 
+ 	strcpy(cap->driver, "cx23885");
+ 	strlcpy(cap->card, cx23885_boards[dev->board].name,
+ 		sizeof(cap->card));
+ 	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
+-	cap->capabilities =
+-		V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_READWRITE     |
+-		V4L2_CAP_STREAMING     |
+-		V4L2_CAP_VBI_CAPTURE;
++	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+ 	if (dev->tuner_type != TUNER_ABSENT)
+-		cap->capabilities |= V4L2_CAP_TUNER;
++		cap->device_caps |= V4L2_CAP_TUNER;
++	if (vdev->vfl_type == VFL_TYPE_VBI)
++		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
++	else
++		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
++	cap->capabilities = cap->device_caps | V4L2_CAP_VBI_CAPTURE |
++		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+-- 
+2.0.1
+
