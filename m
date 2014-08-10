@@ -1,46 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1212 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932150AbaHZGWk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 02:22:40 -0400
-Message-ID: <53FC2759.4020704@xs4all.nl>
-Date: Tue, 26 Aug 2014 08:21:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: ivtv-devel@ivtvdriver.org, Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH for v3.17] cx18: fix kernel oops with tda8290 tuner
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55263 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754AbaHJArl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:41 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 00/18] au0828: Fix suspend/resume
+Date: Sat,  9 Aug 2014 21:47:06 -0300
+Message-Id: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This was caused by an uninitialized setup.config field.
+Suspend/resume can be very tricky. That's the second attempt to fix
+it with au0828.
 
-Based on a suggestion from Devin Heitmueller.
+With this patchset, suspend/resume to ram works fine if the device
+is not being used. After resume, IR, digital TV and analog TV
+keeps working.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Thanks-to: Devin Heitmueller <dheitmueller@kernellabs.com>
-Reported-by: Scott Robinson <scott.robinson55@gmail.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: stable@vger.kernel.org      # for v3.10 and up
----
- drivers/media/pci/cx18/cx18-driver.c | 1 +
- 1 file changed, 1 insertion(+)
+On my tests, however, trying to suspend while watching TV caused
+my test machine to crash. I suspect, however, that the bug could
+be at the USB driver level.
 
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index 716bdc5..83f5074 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -1091,6 +1091,7 @@ static int cx18_probe(struct pci_dev *pci_dev,
- 		setup.addr = ADDR_UNSET;
- 		setup.type = cx->options.tuner;
- 		setup.mode_mask = T_ANALOG_TV;  /* matches TV tuners */
-+		setup.config = NULL;
- 		if (cx->options.radio > 0)
- 			setup.mode_mask |= T_RADIO;
- 		setup.tuner_callback = (setup.type == TUNER_XC2028) ?
+Anyway, before this series, the device even didn't suspend, so
+it is clearly a progress.
+
+Tested on an Odroid-U3 running Tizen with a very light stack. I'll 
+test this also on some x86_64 hardware.
+
+Mauro Carvalho Chehab (16):
+  [media] au0828: avoid race conditions at RC stop
+  [media] au0828: handle IR int during suspend/resume
+  [media] au0828: don't let the IR polling thread to run at suspend
+  [media] au0828: be sure to reenable the bridge and GPIOs on resume
+  [media] au0828: Add suspend code for DVB
+  [media] au0828: properly handle stream on/off state
+  [media] au0828: add suspend/resume code for V4L2
+  [media] au0828: Remove a bad whitespace
+  [media] au0828: use pr_foo macros
+  [media] au0828: add pr_info to track au0828 suspend/resume code
+  [media] dvb-frontend: add core support for tuner suspend/resume
+  [media] xc5000: fix xc5000 suspend
+  [media] au0828: move the code that sets DTV on a separate function
+  [media] xc5000: Split config and set code for analog/radio
+  [media] xc5000: add a resume function
+  [media] xc5000: better name the functions
+
+Shuah Khan (2):
+  [media] au0828: add au0828_rc_*() stubs for VIDEO_AU0828_RC disabled
+    case
+  [media] au0828: remove CONFIG_VIDEO_AU0828_RC scope around
+    au0828_rc_*()
+
+ drivers/media/dvb-core/dvb_frontend.c   |   8 +-
+ drivers/media/dvb-core/dvb_frontend.h   |   2 +
+ drivers/media/tuners/xc5000.c           | 184 +++++++++++++++++++++-----------
+ drivers/media/usb/au0828/au0828-cards.c |  13 ++-
+ drivers/media/usb/au0828/au0828-core.c  |  84 +++++++++++----
+ drivers/media/usb/au0828/au0828-dvb.c   |  85 ++++++++++-----
+ drivers/media/usb/au0828/au0828-i2c.c   |  15 +--
+ drivers/media/usb/au0828/au0828-input.c |  20 +++-
+ drivers/media/usb/au0828/au0828-vbi.c   |   4 +-
+ drivers/media/usb/au0828/au0828-video.c |  90 +++++++++++++---
+ drivers/media/usb/au0828/au0828.h       |  29 +++--
+ drivers/media/v4l2-core/tuner-core.c    |   8 +-
+ 12 files changed, 387 insertions(+), 155 deletions(-)
+
 -- 
-2.1.0.rc1
+1.9.3
 
