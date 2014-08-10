@@ -1,45 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2286 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755514AbaHYMkc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 08:40:32 -0400
-Message-ID: <53FB2E95.7040505@xs4all.nl>
-Date: Mon, 25 Aug 2014 14:39:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
-	robh+dt@kernel.org, grant.likely@linaro.org
-CC: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
-References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-In-Reply-To: <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:55299 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbaHJArh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 07/18] [media] au0828: Add suspend code for DVB
+Date: Sat,  9 Aug 2014 21:47:13 -0300
+Message-Id: <1407631644-11990-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/2014 02:29 PM, Mikhail Ulyanov wrote:
-> This patch contains driver for Renesas R-Car JPEG codec.
-> 
-> Cnanges since v1:
->     - s/g_fmt function simplified
->     - default format for queues added
->     - dumb vidioc functions added to be in compliance with standard api:
->         jpu_s_priority, jpu_g_priority
+The scheduled work should be cancelled during suspend.
 
-Oops, that's a bug elsewhere. Don't add these empty prio ops, this needs to be
-solved in the v4l2 core.
+At resume time, we need to set the frontend again. So,
+add such logic to the driver.
 
-I'll post a patch for this.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c |  2 ++
+ drivers/media/usb/au0828/au0828-dvb.c  | 31 ++++++++++++++++++++++++++++++-
+ drivers/media/usb/au0828/au0828.h      |  2 ++
+ 3 files changed, 34 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/media/usb/au0828/au0828-dvb.c
 
-Regards,
-
-	Hans
-
->     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
->       now in use by the same reason
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 87340a8af7d7..26ec50539dc4 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -290,6 +290,7 @@ static int au0828_suspend(struct usb_interface *interface,
+ 		return 0;
+ 
+ 	au0828_rc_suspend(dev);
++	au0828_dvb_suspend(dev);
+ 
+ 	/* FIXME: should suspend also ATV/DTV */
+ 
+@@ -309,6 +310,7 @@ static int au0828_resume(struct usb_interface *interface)
+ 	au0828_gpio_setup(dev);
+ 
+ 	au0828_rc_resume(dev);
++	au0828_dvb_resume(dev);
+ 
+ 	/* FIXME: should resume also ATV/DTV */
+ 
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+old mode 100644
+new mode 100755
+index d8b5d9480279..7b6e71065aa4
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -23,7 +23,6 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
+-#include <linux/suspend.h>
+ #include <media/v4l2-common.h>
+ #include <media/tuner.h>
+ 
+@@ -618,3 +617,33 @@ int au0828_dvb_register(struct au0828_dev *dev)
+ 
+ 	return 0;
+ }
++
++void au0828_dvb_suspend(struct au0828_dev *dev)
++{
++	struct au0828_dvb *dvb = &dev->dvb;
++
++	if (dvb && dev->urb_streaming) {
++		cancel_work_sync(&dev->restart_streaming);
++
++		/* Stop transport */
++		mutex_lock(&dvb->lock);
++		stop_urb_transfer(dev);
++		au0828_stop_transport(dev, 1);
++		mutex_unlock(&dvb->lock);
++	}
++}
++
++void au0828_dvb_resume(struct au0828_dev *dev)
++{
++	struct au0828_dvb *dvb = &dev->dvb;
++
++	if (dvb && dev->urb_streaming) {
++		au0828_set_frontend(dvb->frontend);
++
++		/* Start transport */
++		mutex_lock(&dvb->lock);
++		au0828_start_transport(dev);
++		start_urb_transfer(dev);
++		mutex_unlock(&dvb->lock);
++	}
++}
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index fd0916e20323..d32234353096 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -316,6 +316,8 @@ void au0828_analog_unregister(struct au0828_dev *dev);
+ /* au0828-dvb.c */
+ extern int au0828_dvb_register(struct au0828_dev *dev);
+ extern void au0828_dvb_unregister(struct au0828_dev *dev);
++void au0828_dvb_suspend(struct au0828_dev *dev);
++void au0828_dvb_resume(struct au0828_dev *dev);
+ 
+ /* au0828-vbi.c */
+ extern struct videobuf_queue_ops au0828_vbi_qops;
+-- 
+1.9.3
 
