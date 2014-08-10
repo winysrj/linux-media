@@ -1,53 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-4-a-1.mail.uk.tiscali.com ([212.74.114.8]:62793
-	"EHLO mk-outboundfilter-4-a-1.mail.uk.tiscali.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752486AbaH0IGu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 04:06:50 -0400
-Message-ID: <1409125664.53fd8d20e78be@netmail.pipex.net>
-Date: Wed, 27 Aug 2014 08:47:44 +0100
-From: franca mcneil <franca@asc.com>
-Reply-to: francamcneil@rediffmail.com
-Subject: Hello
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:55295 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbaHJArh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH v2 03/18] [media] au0828: add au0828_rc_*() stubs for VIDEO_AU0828_RC disabled case
+Date: Sat,  9 Aug 2014 21:47:09 -0300
+Message-Id: <1407631644-11990-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
+References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Shuah Khan <shuah.kh@samsung.com>
 
+Define au0828_rc_*() stubs to avoid compile errors when
+VIDEO_AU0828_RC is disabled and avoid the need to enclose
+au0828_rc_*() in ifdef CONFIG_VIDEO_AU0828_RC in .c files.
 
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828.h | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-
-
-Good Day, Pardon my manner invading your privacy without getting to know you well before now, I summoned courage to
-write you as am aware you from my home town. I had to write you as a result of my health seeking a matured and God
-Minded person to handle Humanitarian Project in my name in Hungary since am unable in my Health condition. 
-
-My name is franca 69 years, I was diagnoses of Breast Cancer years ago which has finally deteriorated to stage 4. My
-Surgeon confirmed less hope for survival in my upcoming surgery even medical report shows less hope of survival.
-prior to my email, it has become a matter of important and necessity to make this decision of reaching out to less
-privileged with my earns. At this point, It's imperative to open up with someone am willing to trust and believe
-with my heart to fulfill my version for less privilege hence my contact to you since you close around.
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 96bec05d7dac..fd0916e20323 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -326,7 +326,14 @@ extern struct videobuf_queue_ops au0828_vbi_qops;
+ 	} while (0)
  
-I need to know you better and see if you can handle a humanitarian project in my name (FRANCA MCNEIL HOME OF THE
-NEEDY) I am willing to give my life endeavor to the poor through a Godly minded person since my hope of surviving
-upcoming surgery is 50/50 chance.If not done, I have just 2 weeks left as stated on my medical report.
-
-PLEASE CAN YOU HANDLE HUMANITARIAN PROJECT IN MY NAME ? MY SURGERY DATE WILL BE ANNOUNCE NEXT WEEK, I will need your
-word to bond my courage considering you for this great assignment from God. 
-
-My contact with you is beyond comprehension was only surfing through directories then came across a link with your
-ads before considering to write you as a remarkable person. 
-
-This must be divine hand of God in answer to my prayers.. God will never mislead me.Please confirm your competency
-to handle this project.You can call or send text anytime +19172319881.Wait to read from you soon
-
-Warm regards
-
-Mrs. franca McNeil
-
+ /* au0828-input.c */
+-int au0828_rc_register(struct au0828_dev *dev);
+-void au0828_rc_unregister(struct au0828_dev *dev);
+-int au0828_rc_suspend(struct au0828_dev *dev);
+-int au0828_rc_resume(struct au0828_dev *dev);
++#ifdef CONFIG_VIDEO_AU0828_RC
++extern int au0828_rc_register(struct au0828_dev *dev);
++extern void au0828_rc_unregister(struct au0828_dev *dev);
++extern int au0828_rc_suspend(struct au0828_dev *dev);
++extern int au0828_rc_resume(struct au0828_dev *dev);
++#else
++static inline int au0828_rc_register(struct au0828_dev *dev) { return 0; }
++static inline void au0828_rc_unregister(struct au0828_dev *dev) { }
++static inline int au0828_rc_suspend(struct au0828_dev *dev) { return 0; }
++static inline int au0828_rc_resume(struct au0828_dev *dev) { return 0; }
++#endif
 -- 
-
+1.9.3
 
