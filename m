@@ -1,80 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:15570 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbaHZMN5 (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64401 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753175AbaHKMTc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 08:13:57 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Laura Abbott <lauraa@codeaurora.org>,
-	Josh Cartwright <joshc@codeaurora.org>,
-	Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: [PATCH 7/7] ARM: DTS: exynos4412-odroid*: enable MFC device
-Date: Tue, 26 Aug 2014 14:09:48 +0200
-Message-id: <1409054988-32758-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
-References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 11 Aug 2014 08:19:32 -0400
+Date: Mon, 11 Aug 2014 13:19:02 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Ian Molton <ian.molton@codethink.co.uk>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+	"robh+dt@kernel.org" <robh+dt@kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"lars@metafoo.de" <lars@metafoo.de>,
+	"shubhrajyoti@ti.com" <shubhrajyoti@ti.com>,
+	"william-towle@codethink.co.uk" <william-towle@codethink.co.uk>
+Subject: Re: [PATCH 2/2] media: adv7604: Add ability to read default input
+ port from DT
+Message-ID: <20140811121902.GA16295@leverpostej>
+References: <1407758719-12474-1-git-send-email-ian.molton@codethink.co.uk>
+ <1407758719-12474-3-git-send-email-ian.molton@codethink.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1407758719-12474-3-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable support for Multimedia Codec (MFC) device for all Exynos4412-based
-Odroid boards.
+On Mon, Aug 11, 2014 at 01:05:19PM +0100, Ian Molton wrote:
+> This patch adds support to the adv7604 driver for reading the default
+> selected input from the Device tree. If none is provided, the driver will not
+> select an input without help from userspace.
+> 
+> Tested-by: William Towle <william.towle@codethink.co.uk>
+> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/adv7604.txt | 5 ++++-
+>  drivers/media/i2c/adv7604.c                             | 9 +++++++--
+>  2 files changed, 11 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> index cc0708c..6e8ace0 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> @@ -41,11 +41,12 @@ Optional Endpoint Properties:
+>  
+>    - hsync-active: Horizontal synchronization polarity. Defaults to active low.
+>    - vsync-active: Vertical synchronization polarity. Defaults to active low.
+> -  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
+> +  - pclk-sample:  Pixel clock polarity. Defaults to output on the falling edge.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+Unrelated whitespace change?
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index adadaf97ac01..3728c667e7ec 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -11,6 +11,24 @@
- #include "exynos4412.dtsi"
- 
- / {
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		mfc_left: region@77000000 {
-+			compatible = "shared-dma-pool";
-+			reusable;
-+			reg = <0x77000000 0x1000000>;
-+		};
-+
-+		mfc_right: region@78000000 {
-+			compatible = "shared-dma-pool";
-+			reusable;
-+			reg = <0x78000000 0x1000000>;
-+		};
-+	};
-+
- 	firmware@0204F000 {
- 		compatible = "samsung,secure-firmware";
- 		reg = <0x0204F000 0x1000>;
-@@ -367,6 +385,12 @@
- 	ehci: ehci@12580000 {
- 		status = "okay";
- 	};
-+
-+	codec@13400000 {
-+		status = "okay";
-+		memory-region = <&mfc_left>, <&mfc_right>;
-+		memory-region-names = "left", "right";
-+	};
- };
- 
- &pinctrl_1 {
--- 
-1.9.2
+>  
+>    If none of hsync-active, vsync-active and pclk-sample is specified the
+>    endpoint will use embedded BT.656 synchronization.
+>  
+> +  - default-input: Select which input is selected after reset.
 
+Valid values are?
+
+>  
+>  Example:
+>  
+> @@ -59,6 +60,8 @@ Example:
+>  		#address-cells = <1>;
+>  		#size-cells = <0>;
+>  
+> +		default-input = <0>;
+> +
+>  		port@0 {
+>  			reg = <0>;
+>  		};
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 9f73a7f..75e1942 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -2732,7 +2732,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+>  	struct v4l2_of_endpoint bus_cfg;
+>  	struct device_node *endpoint;
+>  	struct device_node *np;
+> -	unsigned int flags;
+> +	unsigned int flags, v;
+>  
+>  	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
+>  
+> @@ -2742,6 +2742,12 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+>  		return -EINVAL;
+>  
+>  	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> +
+> +	 if (!of_property_read_u32(endpoint, "default_input", &v))
+
+This doesn't match the binding ('_' vs '-').
+
+Thanks,
+Mark.
