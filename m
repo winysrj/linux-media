@@ -1,119 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1775 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327AbaHNKGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 06:06:46 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7EA6hfn070884
-	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 12:06:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.61.209.179] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 7827F2A2E57
-	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 12:06:39 +0200 (CEST)
-Message-ID: <53EC8A32.8020104@xs4all.nl>
-Date: Thu, 14 Aug 2014 12:06:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:53160 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751992AbaHKLAG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Aug 2014 07:00:06 -0400
+Message-ID: <53E8A226.9090801@iki.fi>
+Date: Mon, 11 Aug 2014 13:59:50 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] cx23885: convert to the latest frameworks, including
- vb2.
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: "nibble.max" <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4 v3] support for DVBSky dvb-s2 usb: Add ts clock and
+ clock polarity, lnb set voltage and lnb ctrl pin for m88ds3103
+References: <201408111222428595683@gmail.com>
+In-Reply-To: <201408111222428595683@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request converts the cx23885 driver to the latest V4L2 core
-frameworks, removing about 1000 lines in the process.
+It is OK.
 
-It now passes the v4l2-compliance tests and, frankly, feels much more
-robust.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-I have tested this with my HVR-1800 board with video (compressed and
-uncompressed), vbi, dvb and alsa.
+Antti
 
-As usual, the vb2 conversion is a beast of a patch. But the vb2 conversion
-affected video, vbi, dvb and alsa, so it's all over the place. And it is
-all or nothing. See the commit log of that patch for some more information.
+On 08/11/2014 07:22 AM, nibble.max wrote:
+> Add ts clock and clock polarity, lnb set voltage and lnb control pin.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+>   drivers/media/dvb-frontends/m88ds3103.c | 72 ++++++++++++++++++++-------------
+>   drivers/media/dvb-frontends/m88ds3103.h | 35 +++++++++++++---
+>   2 files changed, 75 insertions(+), 32 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+> index dfe0c2f..238b04e 100644
+> --- a/drivers/media/dvb-frontends/m88ds3103.c
+> +++ b/drivers/media/dvb-frontends/m88ds3103.c
+> @@ -247,7 +247,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   	u8 u8tmp, u8tmp1, u8tmp2;
+>   	u8 buf[2];
+>   	u16 u16tmp, divide_ratio;
+> -	u32 tuner_frequency, target_mclk, ts_clk;
+> +	u32 tuner_frequency, target_mclk;
+>   	s32 s32tmp;
+>   	dev_dbg(&priv->i2c->dev,
+>   			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
+> @@ -316,9 +316,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   				target_mclk = 144000;
+>   			break;
+>   		case M88DS3103_TS_PARALLEL:
+> -		case M88DS3103_TS_PARALLEL_12:
+> -		case M88DS3103_TS_PARALLEL_16:
+> -		case M88DS3103_TS_PARALLEL_19_2:
+>   		case M88DS3103_TS_CI:
+>   			if (c->symbol_rate < 18000000)
+>   				target_mclk = 96000;
+> @@ -352,33 +349,17 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   	switch (priv->cfg->ts_mode) {
+>   	case M88DS3103_TS_SERIAL:
+>   		u8tmp1 = 0x00;
+> -		ts_clk = 0;
+> -		u8tmp = 0x46;
+> +		u8tmp = 0x06;
+>   		break;
+>   	case M88DS3103_TS_SERIAL_D7:
+>   		u8tmp1 = 0x20;
+> -		ts_clk = 0;
+> -		u8tmp = 0x46;
+> +		u8tmp = 0x06;
+>   		break;
+>   	case M88DS3103_TS_PARALLEL:
+> -		ts_clk = 24000;
+> -		u8tmp = 0x42;
+> -		break;
+> -	case M88DS3103_TS_PARALLEL_12:
+> -		ts_clk = 12000;
+> -		u8tmp = 0x42;
+> -		break;
+> -	case M88DS3103_TS_PARALLEL_16:
+> -		ts_clk = 16000;
+> -		u8tmp = 0x42;
+> -		break;
+> -	case M88DS3103_TS_PARALLEL_19_2:
+> -		ts_clk = 19200;
+> -		u8tmp = 0x42;
+> +		u8tmp = 0x02;
+>   		break;
+>   	case M88DS3103_TS_CI:
+> -		ts_clk = 6000;
+> -		u8tmp = 0x43;
+> +		u8tmp = 0x03;
+>   		break;
+>   	default:
+>   		dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n", __func__);
+> @@ -386,6 +367,9 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   		goto err;
+>   	}
+>
+> +	if (priv->cfg->ts_clk_pol)
+> +		u8tmp |= 0x40;
+> +
+>   	/* TS mode */
+>   	ret = m88ds3103_wr_reg(priv, 0xfd, u8tmp);
+>   	if (ret)
+> @@ -399,8 +383,8 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   			goto err;
+>   	}
+>
+> -	if (ts_clk) {
+> -		divide_ratio = DIV_ROUND_UP(target_mclk, ts_clk);
+> +	if (priv->cfg->ts_clk) {
+> +		divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
+>   		u8tmp1 = divide_ratio / 2;
+>   		u8tmp2 = DIV_ROUND_UP(divide_ratio, 2);
+>   	} else {
+> @@ -411,7 +395,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>
+>   	dev_dbg(&priv->i2c->dev,
+>   			"%s: target_mclk=%d ts_clk=%d divide_ratio=%d\n",
+> -			__func__, target_mclk, ts_clk, divide_ratio);
+> +			__func__, target_mclk, priv->cfg->ts_clk, divide_ratio);
+>
+>   	u8tmp1--;
+>   	u8tmp2--;
+> @@ -1053,6 +1037,39 @@ err:
+>   	return ret;
+>   }
+>
+> +static int m88ds3103_set_voltage(struct dvb_frontend *fe,
+> +	fe_sec_voltage_t voltage)
+> +{
+> +	struct m88ds3103_priv *priv = fe->demodulator_priv;
+> +	u8 data;
+> +
+> +	m88ds3103_rd_reg(priv, 0xa2, &data);
+> +
+> +	data &= ~0x03; /* bit0 V/H, bit1 off/on */
+> +	if (priv->cfg->lnb_en_pol)
+> +		data |= 0x02;
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_18:
+> +		if (priv->cfg->lnb_hv_pol == 0)
+> +			data |= 0x01;
+> +		break;
+> +	case SEC_VOLTAGE_13:
+> +		if (priv->cfg->lnb_hv_pol)
+> +			data |= 0x01;
+> +		break;
+> +	case SEC_VOLTAGE_OFF:
+> +		if (priv->cfg->lnb_en_pol)
+> +			data &= ~0x02;
+> +		else
+> +			data |= 0x02;
+> +		break;
+> +	}
+> +	m88ds3103_wr_reg(priv, 0xa2, data);
+> +
+> +	return 0;
+> +}
+> +
+>   static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+>   		struct dvb_diseqc_master_cmd *diseqc_cmd)
+>   {
+> @@ -1370,6 +1387,7 @@ static struct dvb_frontend_ops m88ds3103_ops = {
+>   	.diseqc_send_burst = m88ds3103_diseqc_send_burst,
+>
+>   	.set_tone = m88ds3103_set_tone,
+> +	.set_voltage = m88ds3103_set_voltage,
+>   };
+>
+>   MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+> diff --git a/drivers/media/dvb-frontends/m88ds3103.h b/drivers/media/dvb-frontends/m88ds3103.h
+> index bbb7e3a..9b3b496 100644
+> --- a/drivers/media/dvb-frontends/m88ds3103.h
+> +++ b/drivers/media/dvb-frontends/m88ds3103.h
+> @@ -47,14 +47,23 @@ struct m88ds3103_config {
+>   	 */
+>   #define M88DS3103_TS_SERIAL             0 /* TS output pin D0, normal */
+>   #define M88DS3103_TS_SERIAL_D7          1 /* TS output pin D7 */
+> -#define M88DS3103_TS_PARALLEL           2 /* 24 MHz, normal */
+> -#define M88DS3103_TS_PARALLEL_12        3 /* 12 MHz */
+> -#define M88DS3103_TS_PARALLEL_16        4 /* 16 MHz */
+> -#define M88DS3103_TS_PARALLEL_19_2      5 /* 19.2 MHz */
+> -#define M88DS3103_TS_CI                 6 /* 6 MHz */
+> +#define M88DS3103_TS_PARALLEL           2 /* TS Parallel mode */
+> +#define M88DS3103_TS_CI                 3 /* TS CI Mode */
+>   	u8 ts_mode;
+>
+>   	/*
+> +	 * TS clk in KHz
+> +	 * Default: 0.
+> +	 */
+> +	u32 ts_clk;
+> +
+> +	/*
+> +	 * TS clk polarity.
+> +	 * Default: 0. 1-active at falling edge; 0-active at rising edge.
+> +	 */
+> +	u8 ts_clk_pol:1;
+> +
+> +	/*
+>   	 * spectrum inversion
+>   	 * Default: 0
+>   	 */
+> @@ -86,6 +95,22 @@ struct m88ds3103_config {
+>   	 * Default: none, must set
+>   	 */
+>   	u8 agc;
+> +
+> +	/*
+> +	 * LNB H/V pin polarity
+> +	 * Default: 0.
+> +	 * 1: pin high set to VOLTAGE_13, pin low to set VOLTAGE_18.
+> +	 * 0: pin high set to VOLTAGE_18, pin low to set VOLTAGE_13.
+> +	 */
+> +	u8 lnb_hv_pol:1;
+> +
+> +	/*
+> +	 * LNB enable pin polarity
+> +	 * Default: 0.
+> +	 * 1: pin high to enable, pin low to disable.
+> +	 * 0: pin high to disable, pin low to enable.
+> +	 */
+> +	u8 lnb_en_pol:1;
+>   };
+>
+>   /*
+>
 
-It also changed the risc code to simplify the code and to get rid of all
-the timeouts that were copied-and-pasted from cx88. If anyone knows of a
-reason for these timeouts, please let me know. I have tried to separate the
-risc code changes from the vb2 changes, but that was impossible to get to
-work with vb1.
-
-Regards,
-
-	Hans
-
-The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
-
-   [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git cx23b
-
-for you to fetch changes up to 295df1a7021a09ccaa3a478acbb4ed1e9fb4a023:
-
-   cx23885: Add busy checks before changing formats (2014-08-14 11:43:36 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (21):
-       vb2: fix wrong gfp flags
-       cx23885: fix querycap
-       cx23885: fix audio input handling
-       cx23885: support v4l2_fh and g/s_priority
-       cx23885: use core locking, switch to unlocked_ioctl.
-       cx23885: convert to the control framework
-       cx23885: convert 417 to the control framework
-       cx23885: fix format colorspace compliance error
-       cx23885: map invalid fields to a valid field.
-       cx23885: drop radio-related dead code
-       cx23885: drop type field from struct cx23885_fh
-       cx23885: drop unused clip fields from struct cx23885_fh
-       cx23885: fmt, width and height are global, not per-fh.
-       cx23885: drop videobuf abuse in cx23885-alsa
-       cx23885: use video_drvdata to get cx23885_dev pointer
-       cx23885: convert to vb2
-       cx23885: fix field handling
-       cx23885: fix weird sizes.
-       cx23885: remove FSF address as per checkpatch
-       cx23885: remove btcx-risc dependency
-       cx23885: Add busy checks before changing formats
-
-  drivers/media/pci/cx23885/Kconfig          |    5 +-
-  drivers/media/pci/cx23885/Makefile         |    1 -
-  drivers/media/pci/cx23885/altera-ci.c      |    8 +-
-  drivers/media/pci/cx23885/altera-ci.h      |    4 -
-  drivers/media/pci/cx23885/cimax2.c         |    4 -
-  drivers/media/pci/cx23885/cimax2.h         |    4 -
-  drivers/media/pci/cx23885/cx23885-417.c    |  501 ++++++++++----------------------
-  drivers/media/pci/cx23885/cx23885-alsa.c   |  109 +++++--
-  drivers/media/pci/cx23885/cx23885-av.c     |    5 -
-  drivers/media/pci/cx23885/cx23885-av.h     |    5 -
-  drivers/media/pci/cx23885/cx23885-cards.c  |    6 -
-  drivers/media/pci/cx23885/cx23885-core.c   |  362 ++++++++---------------
-  drivers/media/pci/cx23885/cx23885-dvb.c    |  136 ++++++---
-  drivers/media/pci/cx23885/cx23885-f300.c   |    4 -
-  drivers/media/pci/cx23885/cx23885-i2c.c    |   12 -
-  drivers/media/pci/cx23885/cx23885-input.c  |    5 -
-  drivers/media/pci/cx23885/cx23885-input.h  |    5 -
-  drivers/media/pci/cx23885/cx23885-ioctl.c  |   10 +-
-  drivers/media/pci/cx23885/cx23885-ioctl.h  |    4 -
-  drivers/media/pci/cx23885/cx23885-ir.c     |    5 -
-  drivers/media/pci/cx23885/cx23885-ir.h     |    5 -
-  drivers/media/pci/cx23885/cx23885-reg.h    |    4 -
-  drivers/media/pci/cx23885/cx23885-vbi.c    |  282 +++++++++---------
-  drivers/media/pci/cx23885/cx23885-video.c  | 1294 +++++++++++++++++++++-------------------------------------------------------------
-  drivers/media/pci/cx23885/cx23885-video.h  |    5 -
-  drivers/media/pci/cx23885/cx23885.h        |  127 +++-----
-  drivers/media/pci/cx23885/cx23888-ir.c     |    5 -
-  drivers/media/pci/cx23885/cx23888-ir.h     |    5 -
-  drivers/media/pci/cx23885/netup-eeprom.c   |    4 -
-  drivers/media/pci/cx23885/netup-eeprom.h   |    4 -
-  drivers/media/pci/cx23885/netup-init.c     |    4 -
-  drivers/media/pci/cx23885/netup-init.h     |    4 -
-  drivers/media/v4l2-core/videobuf2-dma-sg.c |    2 +-
-  33 files changed, 952 insertions(+), 1988 deletions(-)
+-- 
+http://palosaari.fi/
