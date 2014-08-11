@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from HC210-202-87-179.vdslpro.static.apol.com.tw ([210.202.87.179]:47169
-	"EHLO ironport.ite.com.tw" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755141AbaHEFrG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41774 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752328AbaHKNGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Aug 2014 01:47:06 -0400
-Received: from ms2.internal.ite.com.tw (ms2.internal.ite.com.tw [192.168.15.236])
-	by mse.ite.com.tw with ESMTP id s755l2b5003782
-	for <linux-media@vger.kernel.org>; Tue, 5 Aug 2014 13:47:02 +0800 (CST)
-	(envelope-from Bimow.Chen@ite.com.tw)
-Received: from [192.168.190.2] (unknown [192.168.190.2])
-	by ms2.internal.ite.com.tw (Postfix) with ESMTP id 4007C45307
-	for <linux-media@vger.kernel.org>; Tue,  5 Aug 2014 13:46:59 +0800 (CST)
-Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
+	Mon, 11 Aug 2014 09:06:09 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2457260095
+	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 16:06:07 +0300 (EEST)
+Date: Mon, 11 Aug 2014 16:05:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary="=-g7HmastJ+b36B/9XJXcb"
-Date: Tue, 05 Aug 2014 13:48:03 +0800
-Message-ID: <1407217683.2988.9.camel@ite-desktop>
-Mime-Version: 1.0
+Subject: [GIT PULL FOR 3.18] Test pattern controls
+Message-ID: <20140811130534.GH16460@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---=-g7HmastJ+b36B/9XJXcb
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+This set adds V4L2 test pattern controls and support for those in the smiapp
+driver. This pull request is on top of the unlocked controls patches, the
+pull request of which can be found here:
 
+<URL:http://www.spinics.net/lists/linux-media/msg79196.html>
 
-
---=-g7HmastJ+b36B/9XJXcb
-Content-Disposition: attachment; filename="0004-Add-sleep-for-firmware-ready.patch"
-Content-Type: text/x-patch; name="0004-Add-sleep-for-firmware-ready.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00 2001
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-Date: Tue, 5 Aug 2014 11:20:53 +0800
-Subject: [PATCH 4/4] Add sleep for firmware ready.
+Please pull.
 
 
-Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
----
- drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+The following changes since commit c2685f81e4d37ab93523a20246b95a63e47d7fcc:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 7b9b75f..a450cdb 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 	if (ret < 0)
- 		goto err;
- 
-+	msleep(30);
-+
- 	/* firmware loaded, request boot */
- 	req.cmd = CMD_FW_BOOT;
- 	ret = af9035_ctrl_msg(d, &req);
+  smiapp: Set 64-bit integer control using v4l2_ctrl_s_ctrl_int64() (2014-08-01 12:27:42 +0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-test-pattern
+
+for you to fetch changes up to 0c4e05e5269f0ce68e61aa9222ea7da4b08beac9:
+
+  smiapp: Implement the test pattern control (2014-08-01 16:51:10 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (3):
+      v4l: Add test pattern colour component controls
+      smiapp: Add driver-specific test pattern menu item definitions
+      smiapp: Implement the test pattern control
+
+ Documentation/DocBook/media/v4l/controls.xml |   34 +++++++++++
+ drivers/media/i2c/smiapp/smiapp-core.c       |   79 ++++++++++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h            |    4 ++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    4 ++
+ include/uapi/linux/Kbuild                    |    1 +
+ include/uapi/linux/smiapp.h                  |   29 ++++++++++
+ include/uapi/linux/v4l2-controls.h           |    4 ++
+ 7 files changed, 150 insertions(+), 5 deletions(-)
+ create mode 100644 include/uapi/linux/smiapp.h
+
 -- 
-1.7.0.4
+Kind regards,
 
-
---=-g7HmastJ+b36B/9XJXcb--
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
