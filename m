@@ -1,94 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56216 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbaHJCOd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 22:14:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/3] au0828: fix checks if dvb is initialized
-Date: Sat,  9 Aug 2014 23:14:20 -0300
-Message-Id: <1407636862-19394-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
-References: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1769 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711AbaHKCjq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Aug 2014 22:39:46 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7B2dgLE012175
+	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 04:39:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EE5232A2652
+	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 04:39:29 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140811023929.EE5232A2652@tschai.lan>
+Date: Mon, 11 Aug 2014 04:39:29 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev->dvb is always not null, as it is an area at the dev
-memory. So, checking if (dev->dvb) is always true.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Instead of this stupid check, what the code wants to do is
-to know if the DVB was successully registered.
+Results of the daily build of media_tree:
 
-Fix it by checking, instead, for dvb->frontend. It should
-also be sure that this var will be NULL if the device was
-not properly initialized.
+date:		Mon Aug 11 04:00:24 CEST 2014
+git branch:	test
+git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.15-7.slh.3-amd64
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/au0828/au0828-dvb.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index ee45990c0be1..bc4ea5397e92 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -267,7 +267,7 @@ static int au0828_dvb_start_feed(struct dvb_demux_feed *feed)
- 	if (!demux->dmx.frontend)
- 		return -EINVAL;
- 
--	if (dvb) {
-+	if (dvb->frontend) {
- 		mutex_lock(&dvb->lock);
- 		dvb->start_count++;
- 		dprintk(1, "%s(), start_count: %d, stop_count: %d\n", __func__,
-@@ -296,7 +296,7 @@ static int au0828_dvb_stop_feed(struct dvb_demux_feed *feed)
- 
- 	dprintk(1, "%s()\n", __func__);
- 
--	if (dvb) {
-+	if (dvb->frontend) {
- 		cancel_work_sync(&dev->restart_streaming);
- 
- 		mutex_lock(&dvb->lock);
-@@ -526,8 +526,7 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
- 		for (i = 0; i < URB_COUNT; i++)
- 			kfree(dev->dig_transfer_buffer[i]);
- 	}
--
--
-+	dvb->frontend = NULL;
- }
- 
- /* All the DVB attach calls go here, this function get's modified
-@@ -608,6 +607,7 @@ int au0828_dvb_register(struct au0828_dev *dev)
- 	if (ret < 0) {
- 		if (dvb->frontend->ops.release)
- 			dvb->frontend->ops.release(dvb->frontend);
-+		dvb->frontend = NULL;
- 		return ret;
- 	}
- 
-@@ -618,7 +618,7 @@ void au0828_dvb_suspend(struct au0828_dev *dev)
- {
- 	struct au0828_dvb *dvb = &dev->dvb;
- 
--	if (dvb && dev->urb_streaming) {
-+	if (dvb->frontend && dev->urb_streaming) {
- 		pr_info("stopping DVB\n");
- 
- 		cancel_work_sync(&dev->restart_streaming);
-@@ -635,7 +635,7 @@ void au0828_dvb_resume(struct au0828_dev *dev)
- {
- 	struct au0828_dvb *dvb = &dev->dvb;
- 
--	if (dvb && dev->urb_streaming) {
-+	if (dvb->frontend && dev->urb_streaming) {
- 		pr_info("resuming DVB\n");
- 
- 		au0828_set_frontend(dvb->frontend);
--- 
-1.9.3
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
