@@ -1,86 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43838 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbaHRRFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Aug 2014 13:05:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-usb@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Michael Grzeschik <mgr@pengutronix.de>
-Subject: [PATCH 1/2] usb: gadget: f_uvc: Store EP0 control request state during setup stage
-Date: Mon, 18 Aug 2014 19:06:16 +0200
-Message-Id: <1408381577-31901-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1408381577-31901-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1408381577-31901-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from waechter.wiz.at ([95.129.203.138]:41220 "EHLO waechter.wiz.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753465AbaHKO63 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Aug 2014 10:58:29 -0400
+From: Matthias Waechter <matthias@waechter.wiz.at>
+To: linux-media@vger.kernel.org
+Cc: Matthias Waechter <matthias@waechter.wiz.at>
+Subject: [PATCH] Fixed reference counting int saa716x drivers
+Date: Mon, 11 Aug 2014 16:50:36 +0200
+Message-Id: <1407768636-11145-1-git-send-email-matthias@waechter.wiz.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To handle class requests received on ep0, the driver needs to access the
-length and direction of the request after the setup stage. It currently
-stores them in a v4l2 event during the setup stage, and then copies them
-from the event structure to the driver internal state structure when the
-event is dequeued.
-
-This two-steps approach isn't necessary. Simplify the driver by storing
-the needed information in the driver internal state structure directly
-during the setup stage.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Without this patch applied, saa716x_core takes all reference counts and leaves the
+specific modules like saa716x_budget without a use tick. This leads to the situation
+that while the application is running, saa716x_budget still has a reference count of
+zero and can be unloaded, which freezes the kernel immediately. It is necessary for
+dvb_register_adapter to get a reference to the real adapter-specific module to avoid
+this case.
 ---
- drivers/usb/gadget/function/f_uvc.c    |  6 ++++++
- drivers/usb/gadget/function/uvc_v4l2.c | 19 +------------------
- 2 files changed, 7 insertions(+), 18 deletions(-)
+ drivers/media/pci/saa716x/saa716x_adap.c    | 2 +-
+ drivers/media/pci/saa716x/saa716x_budget.c  | 1 +
+ drivers/media/pci/saa716x/saa716x_ff_main.c | 1 +
+ drivers/media/pci/saa716x/saa716x_hybrid.c  | 1 +
+ drivers/media/pci/saa716x/saa716x_priv.h    | 1 +
+ 5 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index ff4340a..e9d625b 100644
---- a/drivers/usb/gadget/function/f_uvc.c
-+++ b/drivers/usb/gadget/function/f_uvc.c
-@@ -251,6 +251,12 @@ uvc_function_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
- 	if (le16_to_cpu(ctrl->wLength) > UVC_MAX_REQUEST_SIZE)
- 		return -EINVAL;
+diff --git a/drivers/media/pci/saa716x/saa716x_adap.c b/drivers/media/pci/saa716x/saa716x_adap.c
+index 0550a4d..807ab83 100644
+--- a/drivers/media/pci/saa716x/saa716x_adap.c
++++ b/drivers/media/pci/saa716x/saa716x_adap.c
+@@ -99,7 +99,7 @@ int saa716x_dvb_init(struct saa716x_dev *saa716x)
+ 		dprintk(SAA716x_DEBUG, 1, "dvb_register_adapter");
+ 		if (dvb_register_adapter(&saa716x_adap->dvb_adapter,
+ 					 "SAA716x dvb adapter",
+-					 THIS_MODULE,
++					 saa716x->module,
+ 					 &saa716x->pdev->dev,
+ 					 adapter_nr) < 0) {
  
-+	/* Tell the complete callback to generate an event for the next request
-+	 * that will be enqueued by UVCIOC_SEND_RESPONSE.
-+	 */
-+	uvc->event_setup_out = !(ctrl->bRequestType & USB_DIR_IN);
-+	uvc->event_length = le16_to_cpu(ctrl->wLength);
-+
- 	memset(&v4l2_event, 0, sizeof(v4l2_event));
- 	v4l2_event.type = UVC_EVENT_SETUP;
- 	memcpy(&uvc_event->req, ctrl, sizeof(uvc_event->req));
-diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index bcd71ce..f22b878 100644
---- a/drivers/usb/gadget/function/uvc_v4l2.c
-+++ b/drivers/usb/gadget/function/uvc_v4l2.c
-@@ -271,25 +271,8 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+diff --git a/drivers/media/pci/saa716x/saa716x_budget.c b/drivers/media/pci/saa716x/saa716x_budget.c
+index 9f46c61..c8efc05 100644
+--- a/drivers/media/pci/saa716x/saa716x_budget.c
++++ b/drivers/media/pci/saa716x/saa716x_budget.c
+@@ -73,6 +73,7 @@ static int saa716x_budget_pci_probe(struct pci_dev *pdev, const struct pci_devic
+ 	saa716x->verbose	= verbose;
+ 	saa716x->int_type	= int_type;
+ 	saa716x->pdev		= pdev;
++	saa716x->module		= THIS_MODULE;
+ 	saa716x->config		= (struct saa716x_config *) pci_id->driver_data;
  
- 	/* Events */
- 	case VIDIOC_DQEVENT:
--	{
--		struct v4l2_event *event = arg;
--
--		ret = v4l2_event_dequeue(&handle->vfh, event,
-+		return v4l2_event_dequeue(&handle->vfh, arg,
- 					 file->f_flags & O_NONBLOCK);
--		if (ret == 0 && event->type == UVC_EVENT_SETUP) {
--			struct uvc_event *uvc_event = (void *)&event->u.data;
--
--			/* Tell the complete callback to generate an event for
--			 * the next request that will be enqueued by
--			 * uvc_event_write.
--			 */
--			uvc->event_setup_out =
--				!(uvc_event->req.bRequestType & USB_DIR_IN);
--			uvc->event_length = uvc_event->req.wLength;
--		}
--
--		return ret;
--	}
+ 	err = saa716x_pci_init(saa716x);
+diff --git a/drivers/media/pci/saa716x/saa716x_ff_main.c b/drivers/media/pci/saa716x/saa716x_ff_main.c
+index 5916c80..04538ab 100644
+--- a/drivers/media/pci/saa716x/saa716x_ff_main.c
++++ b/drivers/media/pci/saa716x/saa716x_ff_main.c
+@@ -986,6 +986,7 @@ static int saa716x_ff_pci_probe(struct pci_dev *pdev, const struct pci_device_id
+ 	saa716x->verbose	= verbose;
+ 	saa716x->int_type	= int_type;
+ 	saa716x->pdev		= pdev;
++	saa716x->module		= THIS_MODULE;
+ 	saa716x->config		= (struct saa716x_config *) pci_id->driver_data;
  
- 	case VIDIOC_SUBSCRIBE_EVENT:
- 	{
+ 	err = saa716x_pci_init(saa716x);
+diff --git a/drivers/media/pci/saa716x/saa716x_hybrid.c b/drivers/media/pci/saa716x/saa716x_hybrid.c
+index 0229419..f76b123 100644
+--- a/drivers/media/pci/saa716x/saa716x_hybrid.c
++++ b/drivers/media/pci/saa716x/saa716x_hybrid.c
+@@ -63,6 +63,7 @@ static int saa716x_hybrid_pci_probe(struct pci_dev *pdev, const struct pci_devic
+ 	saa716x->verbose	= verbose;
+ 	saa716x->int_type	= int_type;
+ 	saa716x->pdev		= pdev;
++	saa716x->module		= THIS_MODULE;
+ 	saa716x->config		= (struct saa716x_config *) pci_id->driver_data;
+ 
+ 	err = saa716x_pci_init(saa716x);
+diff --git a/drivers/media/pci/saa716x/saa716x_priv.h b/drivers/media/pci/saa716x/saa716x_priv.h
+index 0c9355b..1665fe3 100644
+--- a/drivers/media/pci/saa716x/saa716x_priv.h
++++ b/drivers/media/pci/saa716x/saa716x_priv.h
+@@ -127,6 +127,7 @@ struct saa716x_adapter {
+ struct saa716x_dev {
+ 	struct saa716x_config		*config;
+ 	struct pci_dev			*pdev;
++	struct module			*module;
+ 
+ 	int				num; /* device count */
+ 	int				verbose;
 -- 
-1.8.5.5
+2.0.2
 
