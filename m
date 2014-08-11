@@ -1,76 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.thunk.org ([74.207.234.97]:43129 "EHLO imap.thunk.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751913AbaHDLsP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Aug 2014 07:48:15 -0400
-Date: Mon, 4 Aug 2014 07:48:11 -0400
-From: Theodore Ts'o <tytso@mit.edu>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicholas Krause <xerofoify@gmail.com>, udovdh@xs4all.nl,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] v4l2: Change call of function in videobuf2-core.c
-Message-ID: <20140804114811.GZ24826@thunk.org>
-References: <1407122751-30689-1-git-send-email-xerofoify@gmail.com>
- <53DF1412.9010506@xs4all.nl>
- <CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41943 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753133AbaHKNbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Aug 2014 09:31:49 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id AF8C660093
+	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 16:31:47 +0300 (EEST)
+Date: Mon, 11 Aug 2014 16:31:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FIXES FOR 3.17] smiapp: Fix power down for multiple users
+Message-ID: <20140811133145.GI16460@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPM=9tx-pkadgGJ98BuBHpkj=bvo+8ks76ro7UE5d=xWB4EN0A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 04, 2014 at 03:38:20PM +1000, Dave Airlie wrote:
-> 
-> Nick has decided he wants to be a kernel developer, a laudable goal.
-> 
-> He however has decided not to take any advice given to me by a number of other
-> kernel developers on how to work on the kernel. So instead he sends random
-> broken patches to random subsystems in the hope that one will slip past a sleepy
-> maintainer and end up in the kernel.
+Hi Mauro,
 
-So far, he has tried to do this with the ext4, btrfs, scsi, and usb
-subsystems.  I'm probably missing a few.  I suspect he's jumping
-around to different subsystems hoping to find one where his reputation
-hasn't been blackened yet by his refusal to deeply understand kernel
-code (or to test to see if it compiles, never mind trying to boot a
-kernel with that patch and exercise the modified code) before starting
-to try to "help".
+The smiapp driver failed to properly count its users that needed to access
+it, and it ended up powering off the sensor whenever a user went away,
+leading to multiple power down sequences being executed if the device had
+more than one user.
 
-Other theories besides the one that Dave has advocated that he's
-trying to write a University Thesis on trolling the kernel development
-process (either by seeing if an obviously broken patch could be snuck
-past the peer review system, or to see if he can try to get someone to
-lose their temper much like Linus is supposed to do all the time ---
-not realizing that this only happens to people who really should know
-better, not to clueless newbies), are that he's a badly written AI
-chatbot, or just a clueless high school student with more tenacity
-than one usually expects at that age.  Or maybe he's trying to win a
-bet, or is trying to get extra credit or to complete some course
-assignment by getting a patch into the kernel.  Or maybe this is just
-the universe trying to demonstrate exactly how true the
-Dunning-Krueger effect really is....
+Please pull.
 
-> He isn't willing to spend his own time learning anything, he is
-> expecting that kernel
-> developers want to spoon feed someone who sends them broken patches.
-> 
-> We've asked him to stop, he keeps doing it, then when caught out apologizes
-> with something along the lines, of I'm trying to learn, "idiot
-> mistake", despite having
-> been told to take a step back and try and learn how the kernel works.
-> 
-> Now we have to waste more maintainer time making sure nobody accidentally
-> merges anything he sends.
+The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
 
-Indeed; if you see any patches from Nick on other mailing lists which
-you follow, it's a good idea to check and see if said patch is garbage
---- to date, his track record has been remarkably consistent.
+  [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
 
-But please do it in the nicest way possible, just in case he's a
-reddit troll or some "journalist" trying to get headline bait by
-getting a kernel developer to flame him to a crisp.
+are available in the git repository at:
 
-							- Ted
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-power
+
+for you to fetch changes up to 97cb4201257c508f96b69bd7a386705e48e5c13d:
+
+  smiapp: Fix power count handling (2014-08-11 16:09:40 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (1):
+      smiapp: Fix power count handling
+
+ drivers/media/i2c/smiapp/smiapp-core.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
