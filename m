@@ -1,114 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2041 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105AbaHPCjA (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:34179 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546AbaHKNpc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 22:39:00 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7G2cu8K050059
-	for <linux-media@vger.kernel.org>; Sat, 16 Aug 2014 04:38:58 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 728112A2E57
-	for <linux-media@vger.kernel.org>; Sat, 16 Aug 2014 04:38:50 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140816023850.728112A2E57@tschai.lan>
-Date: Sat, 16 Aug 2014 04:38:50 +0200 (CEST)
+	Mon, 11 Aug 2014 09:45:32 -0400
+Message-id: <53E8C8F7.2070101@samsung.com>
+Date: Mon, 11 Aug 2014 15:45:27 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2 flash
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
+ <53CCF59E.3070200@iki.fi> <53DF9C2A.8060403@samsung.com>
+ <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
+ <53E8C4BA.6050805@samsung.com>
+In-reply-to: <53E8C4BA.6050805@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+> On 08/11/2014 02:26 PM, Sakari Ailus wrote:
+>>
+>> Hi Jacek,
+>>
 
-Results of the daily build of media_tree:
+...
 
-date:		Sat Aug 16 04:00:18 CEST 2014
-git branch:	test
-git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.16-0.slh.2-amd64
+>>>>> +static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
+>>>>> +{
+>>>>> +    struct v4l2_flash *v4l2_flash = v4l2_ctrl_to_v4l2_flash(c);
+>>>>> +    struct led_classdev_flash *flash = v4l2_flash->flash;
+>>>>> +    struct v4l2_flash_ctrl *ctrl = &v4l2_flash->ctrl;
+>>>>> +    struct v4l2_flash_ctrl_config *config = &v4l2_flash->config;
+>>>>> +    enum led_brightness torch_brightness;
+>>>>> +    bool external_strobe;
+>>>>> +    int ret;
+>>>>> +
+>>>>> +    switch (c->id) {
+>>>>> +    case V4L2_CID_FLASH_LED_MODE:
+>>>>> +        switch (c->val) {
+>>>>> +        case V4L2_FLASH_LED_MODE_NONE:
+>>>>> +            call_flash_op(v4l2_flash, torch_brightness_set,
+>>>>> +                            &flash->led_cdev, 0);
+>>>>> +            return call_flash_op(v4l2_flash, strobe_set, flash,
+>>>>> +                            false);
+>>>>> +        case V4L2_FLASH_LED_MODE_FLASH:
+>>>>> +            /* Turn off torch LED */
+>>>>> +            call_flash_op(v4l2_flash, torch_brightness_set,
+>>>>> +                            &flash->led_cdev, 0);
+>>>>> +            external_strobe = (ctrl->source->val ==
+>>>>> +                    V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
+>>>>> +            return call_flash_op(v4l2_flash, external_strobe_set,
+>>>>> +                        flash, external_strobe);
+>>>>> +        case V4L2_FLASH_LED_MODE_TORCH:
+>>>>> +            /* Stop flash strobing */
+>>>>> +            ret = call_flash_op(v4l2_flash, strobe_set, flash,
+>>>>> +                            false);
+>>>>> +            if (ret)
+>>>>> +                return ret;
+>>>>> +
+>>>>> +            torch_brightness =
+>>>>> +                v4l2_flash_intensity_to_led_brightness(
+>>>>> +                        &config->torch_intensity,
+>>>>> +                        ctrl->torch_intensity->val);
+>>>>> +            call_flash_op(v4l2_flash, torch_brightness_set,
+>>>>> +                    &flash->led_cdev, torch_brightness);
+>>>>> +            return ret;
+>>>>> +        }
+>>>>> +        break;
+>>>>> +    case V4L2_CID_FLASH_STROBE_SOURCE:
+>>>>> +        external_strobe = (c->val ==
+>>>>> V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
+>>>>
+>>>> Is the external_strobe argument match exactly to the strobe source
+>>>> control? You seem to assume that in g_volatile_ctrl() above. I think
+>>>> having it the either way is fine but not both. :-)
+>>>
+>>> The STROBE_SOURCE_EXTERNAL control state is volatile if a flash device
+>>> depends on muxes that route strobe signals to more then one flash
+>>> device. In such a case it behaves similarly to FLASH_STROBE control,
+>>> i.e. it activates external strobe only for the flash timeout period.
+>>> I touched this issue in the cover letter of this patch series,
+>>> paragraph 2.
+>>
+>> I meant that flash->external_strobe is directly used as
+>> V4L2_CID_FLASH_STROBE_SOURCE. Are the two guaranteed to be the same?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Yes, the external_strobe sysfs attribute is mapped to it.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best Regards,
+Jacek Anaszewski
