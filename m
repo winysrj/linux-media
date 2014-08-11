@@ -1,86 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59575 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316AbaHYRMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 13:12:15 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:60498 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbaHKMFj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Aug 2014 08:05:39 -0400
+From: Ian Molton <ian.molton@codethink.co.uk>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 01/12] airspy: fix error handling on start streaming
-Date: Mon, 25 Aug 2014 20:11:47 +0300
-Message-Id: <1408986718-3881-1-git-send-email-crope@iki.fi>
+Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	robh+dt@kernel.org, devicetree@vger.kernel.org, lars@metafoo.de,
+	shubhrajyoti@ti.com, william-towle@codethink.co.uk,
+	ian.molton@codethink.co.uk
+Subject: [PATCH 2/2] media: adv7604: Add ability to read default input port from DT
+Date: Mon, 11 Aug 2014 13:05:19 +0100
+Message-Id: <1407758719-12474-3-git-send-email-ian.molton@codethink.co.uk>
+In-Reply-To: <1407758719-12474-1-git-send-email-ian.molton@codethink.co.uk>
+References: <1407758719-12474-1-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Free all reserved USB buffers and URBs on failure. Return all queued
-buffers to vb2 with state queued on error case.
+This patch adds support to the adv7604 driver for reading the default
+selected input from the Device tree. If none is provided, the driver will not
+select an input without help from userspace.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
 ---
- drivers/media/usb/airspy/airspy.c | 36 +++++++++++++++++++++++++++++-------
- 1 file changed, 29 insertions(+), 7 deletions(-)
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt | 5 ++++-
+ drivers/media/i2c/adv7604.c                             | 9 +++++++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-index cb0e515..56a1ae0 100644
---- a/drivers/media/usb/airspy/airspy.c
-+++ b/drivers/media/usb/airspy/airspy.c
-@@ -540,27 +540,49 @@ static int airspy_start_streaming(struct vb2_queue *vq, unsigned int count)
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index cc0708c..6e8ace0 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -41,11 +41,12 @@ Optional Endpoint Properties:
  
- 	mutex_lock(&s->v4l2_lock);
+   - hsync-active: Horizontal synchronization polarity. Defaults to active low.
+   - vsync-active: Vertical synchronization polarity. Defaults to active low.
+-  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
++  - pclk-sample:  Pixel clock polarity. Defaults to output on the falling edge.
  
--	set_bit(POWER_ON, &s->flags);
--
- 	s->sequence = 0;
+   If none of hsync-active, vsync-active and pclk-sample is specified the
+   endpoint will use embedded BT.656 synchronization.
  
-+	set_bit(POWER_ON, &s->flags);
++  - default-input: Select which input is selected after reset.
+ 
+ Example:
+ 
+@@ -59,6 +60,8 @@ Example:
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
++		default-input = <0>;
 +
- 	ret = airspy_alloc_stream_bufs(s);
- 	if (ret)
--		goto err;
-+		goto err_clear_bit;
+ 		port@0 {
+ 			reg = <0>;
+ 		};
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 9f73a7f..75e1942 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2732,7 +2732,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	struct v4l2_of_endpoint bus_cfg;
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+-	unsigned int flags;
++	unsigned int flags, v;
  
- 	ret = airspy_alloc_urbs(s);
- 	if (ret)
--		goto err;
-+		goto err_free_stream_bufs;
+ 	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
  
- 	ret = airspy_submit_urbs(s);
- 	if (ret)
--		goto err;
-+		goto err_free_urbs;
+@@ -2742,6 +2742,12 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 		return -EINVAL;
  
- 	/* start hardware streaming */
- 	ret = airspy_ctrl_msg(s, CMD_RECEIVER_MODE, 1, 0, NULL, 0);
- 	if (ret)
--		goto err;
--err:
-+		goto err_kill_urbs;
+ 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
 +
-+	goto exit_mutex_unlock;
++	 if (!of_property_read_u32(endpoint, "default_input", &v))
++		state->pdata.default_input = v;
++	else
++		state->pdata.default_input = -1;
 +
-+err_kill_urbs:
-+	airspy_kill_urbs(s);
-+err_free_urbs:
-+	airspy_free_urbs(s);
-+err_free_stream_bufs:
-+	airspy_free_stream_bufs(s);
-+err_clear_bit:
-+	clear_bit(POWER_ON, &s->flags);
-+
-+	/* return all queued buffers to vb2 */
-+	{
-+		struct airspy_frame_buf *buf, *tmp;
-+
-+		list_for_each_entry_safe(buf, tmp, &s->queued_bufs, list) {
-+			list_del(&buf->list);
-+			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		}
-+	}
-+
-+exit_mutex_unlock:
- 	mutex_unlock(&s->v4l2_lock);
+ 	of_node_put(endpoint);
  
- 	return ret;
+ 	flags = bus_cfg.bus.parallel.flags;
+@@ -2780,7 +2786,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	/* Hardcode the remaining platform data fields. */
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+-	state->pdata.default_input = -1;
+ 	state->pdata.blank_data = 1;
+ 	state->pdata.alt_data_sat = 1;
+ 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
 -- 
-http://palosaari.fi/
+1.9.1
 
