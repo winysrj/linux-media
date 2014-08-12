@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:39951 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbaHMMOs (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:51563 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751274AbaHLLCl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 08:14:48 -0400
-Date: Wed, 13 Aug 2014 13:14:35 +0100
-From: Ian Molton <ian.molton@codethink.co.uk>
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-	"robh+dt@kernel.org" <robh+dt@kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"lars@metafoo.de" <lars@metafoo.de>,
-	"shubhrajyoti@ti.com" <shubhrajyoti@ti.com>,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH 2/2] media: adv7604: Add ability to read default input
- port from DT
-Message-Id: <20140813131435.e0da6946bcd69e04a2305ef9@codethink.co.uk>
-In-Reply-To: <20140811121902.GA16295@leverpostej>
-References: <1407758719-12474-1-git-send-email-ian.molton@codethink.co.uk>
-	<1407758719-12474-3-git-send-email-ian.molton@codethink.co.uk>
-	<20140811121902.GA16295@leverpostej>
+	Tue, 12 Aug 2014 07:02:41 -0400
+Date: Tue, 12 Aug 2014 13:02:37 +0200
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] video: describe data bus formats
+Message-ID: <20140812130237.36ec613e@bbrezillon>
+In-Reply-To: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 11 Aug 2014 13:19:02 +0100
-Mark Rutland <mark.rutland@arm.com> wrote:
+Hi,
 
-> > -  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
-> > +  - pclk-sample:  Pixel clock polarity. Defaults to output on the falling edge.
+On Tue, 22 Jul 2014 14:23:42 +0200
+Boris BREZILLON <boris.brezillon@free-electrons.com> wrote:
+
+> Hello,
 > 
-> Unrelated whitespace change?
-
-Is there a sensible way to get miniscule whitespace changes in?
-
-> >    If none of hsync-active, vsync-active and pclk-sample is specified the
-> >    endpoint will use embedded BT.656 synchronization.
-> >  
-> > +  - default-input: Select which input is selected after reset.
+> This patch series is a proposal to describe the different data formats used
+> by HW components to connect with each other.
 > 
-> Valid values are?
-
-Chip dependent. 0 for 7611, 0-1 for 7612, I expect there are other chips in the family with differing numbers of inputs.
-
-> > +	 if (!of_property_read_u32(endpoint, "default_input", &v))
+> This is just a copy of the existing V4L2_MBUS_FMT defintions with a neutral
+> name so that it can be used by V4L2 and DRM/KMS subsystem.
 > 
-> This doesn't match the binding ('_' vs '-').
+> This series also makes use of this video_bus_format enum in the DRM/KMS
+> subsystem to define the data fomats supported on the connector <-> device
+> link.
+> 
+> The video bus formats are not documented yet (and I don't know where this doc
+> should be stored), but I'm pretty sure this version won't be the last one ;-).
 
-Good catch!
+Laurent, Thierry (and other DRM/KMS folks), any comments on this
+series ?
 
+I'd really like to get the HLCDC driver mainlined for 3.18 and it
+depends on this series now...
+
+Best Regards,
+
+Boris
 -- 
-Ian Molton <ian.molton@codethink.co.uk>
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
