@@ -1,104 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:40153 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701AbaHVAiJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 20:38:09 -0400
-Date: Fri, 22 Aug 2014 08:37:35 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:devel 499/499] warning: (VIDEO_TIMBERDALE) selects TIMB_DMA which has unmet direct dependencies (DMADEVICES && ..)
-Message-ID: <53f690cf.jzKEXKaoyQsstgq9%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49204 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755234AbaHLVub (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 17:50:31 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 02/10] [media] as102: get rid of FSF mail address
+Date: Tue, 12 Aug 2014 18:50:16 -0300
+Message-Id: <1407880224-374-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1407880224-374-1-git-send-email-m.chehab@samsung.com>
+References: <1407880224-374-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git devel
-head:   2558eeda5cd75649a1159aadca530a990b81c4ee
-commit: 2558eeda5cd75649a1159aadca530a990b81c4ee [499/499] [media] enable COMPILE_TEST for media drivers
-config: make ARCH=s390 allmodconfig
+Make checkpatch happier by removing FSF mail address.
 
-All error/warnings:
+No functional changes.
 
-warning: (VIDEO_TIMBERDALE) selects TIMB_DMA which has unmet direct dependencies (DMADEVICES && MFD_TIMBERDALE)
-   drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_prepare_addr':
->> drivers/media/platform/exynos-gsc/gsc-core.c:855:2: warning: format '%X' expects argument of type 'unsigned int', but argument 3 has type 'dma_addr_t' [-Wformat=]
-     pr_debug("ADDR: y= 0x%X  cb= 0x%X cr= 0x%X ret= %d",
-     ^
->> drivers/media/platform/exynos-gsc/gsc-core.c:855:2: warning: format '%X' expects argument of type 'unsigned int', but argument 4 has type 'dma_addr_t' [-Wformat=]
->> drivers/media/platform/exynos-gsc/gsc-core.c:855:2: warning: format '%X' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
---
-   drivers/media/platform/exynos-gsc/gsc-regs.c: In function 'gsc_hw_set_input_addr':
->> drivers/media/platform/exynos-gsc/gsc-regs.c:93:2: warning: format '%X' expects argument of type 'unsigned int', but argument 4 has type 'dma_addr_t' [-Wformat=]
-     pr_debug("src_buf[%d]: 0x%X, cb: 0x%X, cr: 0x%X", index,
-     ^
->> drivers/media/platform/exynos-gsc/gsc-regs.c:93:2: warning: format '%X' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
->> drivers/media/platform/exynos-gsc/gsc-regs.c:93:2: warning: format '%X' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t' [-Wformat=]
-   drivers/media/platform/exynos-gsc/gsc-regs.c: In function 'gsc_hw_set_output_addr':
->> drivers/media/platform/exynos-gsc/gsc-regs.c:104:2: warning: format '%X' expects argument of type 'unsigned int', but argument 4 has type 'dma_addr_t' [-Wformat=]
-     pr_debug("dst_buf[%d]: 0x%X, cb: 0x%X, cr: 0x%X",
-     ^
->> drivers/media/platform/exynos-gsc/gsc-regs.c:104:2: warning: format '%X' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
->> drivers/media/platform/exynos-gsc/gsc-regs.c:104:2: warning: format '%X' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t' [-Wformat=]
---
-   drivers/media/platform/s3c-camif/camif-capture.c: In function 'camif_prepare_addr':
->> drivers/media/platform/s3c-camif/camif-capture.c:283:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
-     pr_debug("DMA address: y: %#x  cb: %#x cr: %#x\n",
-     ^
->> drivers/media/platform/s3c-camif/camif-capture.c:283:2: warning: format '%x' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t' [-Wformat=]
->> drivers/media/platform/s3c-camif/camif-capture.c:283:2: warning: format '%x' expects argument of type 'unsigned int', but argument 7 has type 'dma_addr_t' [-Wformat=]
---
-   drivers/media/platform/s3c-camif/camif-regs.c: In function 'camif_hw_set_output_addr':
->> drivers/media/platform/s3c-camif/camif-regs.c:217:2: warning: format '%X' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t' [-Wformat=]
-     pr_debug("dst_buf[%d]: %#X, cb: %#X, cr: %#X\n",
-     ^
->> drivers/media/platform/s3c-camif/camif-regs.c:217:2: warning: format '%X' expects argument of type 'unsigned int', but argument 7 has type 'dma_addr_t' [-Wformat=]
->> drivers/media/platform/s3c-camif/camif-regs.c:217:2: warning: format '%X' expects argument of type 'unsigned int', but argument 8 has type 'dma_addr_t' [-Wformat=]
---
-   drivers/media/platform/soc_camera/atmel-isi.c: In function 'start_streaming':
-   drivers/media/platform/soc_camera/atmel-isi.c:397:26: warning: large integer implicitly truncated to unsigned type [-Woverflow]
-     isi_writel(isi, ISI_INTDIS, ~0UL);
-                             ^
-   drivers/media/platform/soc_camera/atmel-isi.c: In function 'atmel_isi_probe':
->> drivers/media/platform/soc_camera/atmel-isi.c:981:26: warning: passing argument 3 of 'dma_alloc_coherent' from incompatible pointer type
-     isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
-                             ^
-   In file included from include/linux/dma-mapping.h:82:0,
-                    from include/linux/dma-buf.h:31,
-                    from include/media/videobuf2-core.h:19,
-                    from include/media/soc_camera.h:21,
-                    from drivers/media/platform/soc_camera/atmel-isi.c:26:
-   arch/s390/include/asm/dma-mapping.h:59:92: note: expected 'dma_addr_t *' but argument is of type 'u32 *'
-    static inline void *dma_alloc_coherent(struct device *dev, size_t size,
-                                                                                               ^
---
->> ERROR: "omap_stop_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_start_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_dma_link_lch" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_set_dma_dest_burst_mode" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_set_dma_src_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_request_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_set_dma_transfer_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_set_dma_dest_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
->> ERROR: "omap_free_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-   ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_overlay_manager" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_num_overlay_managers" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_overlay" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omapdss_is_initialized" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dispc_register_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omapdss_get_version" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_put_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_next_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dispc_unregister_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omapdss_compat_uninit" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
-   ERROR: "omap_dss_get_num_overlays" [drivers/media/platform/omap/omap-vout.ko] undefined!
->> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_display.ko] undefined!
->> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/usb/as102/as102_drv.c        | 4 ----
+ drivers/media/usb/as102/as102_drv.h        | 4 ----
+ drivers/media/usb/as102/as102_fe.c         | 4 ----
+ drivers/media/usb/as102/as102_fw.c         | 4 ----
+ drivers/media/usb/as102/as102_fw.h         | 4 ----
+ drivers/media/usb/as102/as102_usb_drv.c    | 4 ----
+ drivers/media/usb/as102/as102_usb_drv.h    | 4 ----
+ drivers/media/usb/as102/as10x_cmd.c        | 4 ----
+ drivers/media/usb/as102/as10x_cmd.h        | 4 ----
+ drivers/media/usb/as102/as10x_cmd_cfg.c    | 4 ----
+ drivers/media/usb/as102/as10x_cmd_stream.c | 4 ----
+ drivers/media/usb/as102/as10x_handle.h     | 4 ----
+ drivers/media/usb/as102/as10x_types.h      | 4 ----
+ 13 files changed, 52 deletions(-)
+
+diff --git a/drivers/media/usb/as102/as102_drv.c b/drivers/media/usb/as102/as102_drv.c
+index e0ee618e607a..d90a6651f03e 100644
+--- a/drivers/media/usb/as102/as102_drv.c
++++ b/drivers/media/usb/as102/as102_drv.c
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+diff --git a/drivers/media/usb/as102/as102_drv.h b/drivers/media/usb/as102/as102_drv.h
+index 49d0c4259b00..d6e08e23b366 100644
+--- a/drivers/media/usb/as102/as102_drv.h
++++ b/drivers/media/usb/as102/as102_drv.h
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/usb.h>
+diff --git a/drivers/media/usb/as102/as102_fe.c b/drivers/media/usb/as102/as102_fe.c
+index 67e55b84493f..29a6d38f91a9 100644
+--- a/drivers/media/usb/as102/as102_fe.c
++++ b/drivers/media/usb/as102/as102_fe.c
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #include "as102_drv.h"
+ #include "as10x_types.h"
+diff --git a/drivers/media/usb/as102/as102_fw.c b/drivers/media/usb/as102/as102_fw.c
+index f33f752c0aad..07d08c49f4d4 100644
+--- a/drivers/media/usb/as102/as102_fw.c
++++ b/drivers/media/usb/as102/as102_fw.c
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+diff --git a/drivers/media/usb/as102/as102_fw.h b/drivers/media/usb/as102/as102_fw.h
+index 4bfc6849d95a..2732b784216d 100644
+--- a/drivers/media/usb/as102/as102_fw.h
++++ b/drivers/media/usb/as102/as102_fw.h
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #define MAX_FW_PKT_SIZE	64
+ 
+diff --git a/drivers/media/usb/as102/as102_usb_drv.c b/drivers/media/usb/as102/as102_usb_drv.c
+index 86f83b9b1118..43133df771ff 100644
+--- a/drivers/media/usb/as102/as102_usb_drv.c
++++ b/drivers/media/usb/as102/as102_usb_drv.c
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+diff --git a/drivers/media/usb/as102/as102_usb_drv.h b/drivers/media/usb/as102/as102_usb_drv.h
+index 1ad1ec52b11e..4fb1baa8cac0 100644
+--- a/drivers/media/usb/as102/as102_usb_drv.h
++++ b/drivers/media/usb/as102/as102_usb_drv.h
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifndef _AS102_USB_DRV_H_
+ #define _AS102_USB_DRV_H_
+diff --git a/drivers/media/usb/as102/as10x_cmd.c b/drivers/media/usb/as102/as10x_cmd.c
+index 9e49f15a7c9f..8868c52500ee 100644
+--- a/drivers/media/usb/as102/as10x_cmd.c
++++ b/drivers/media/usb/as102/as10x_cmd.c
+@@ -12,10 +12,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/media/usb/as102/as10x_cmd.h b/drivers/media/usb/as102/as10x_cmd.h
+index e21ec6c702a9..1c9ea2c2175e 100644
+--- a/drivers/media/usb/as102/as10x_cmd.h
++++ b/drivers/media/usb/as102/as10x_cmd.h
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifndef _AS10X_CMD_H_
+ #define _AS10X_CMD_H_
+diff --git a/drivers/media/usb/as102/as10x_cmd_cfg.c b/drivers/media/usb/as102/as10x_cmd_cfg.c
+index b1e300d88753..833463343ada 100644
+--- a/drivers/media/usb/as102/as10x_cmd_cfg.c
++++ b/drivers/media/usb/as102/as10x_cmd_cfg.c
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/media/usb/as102/as10x_cmd_stream.c b/drivers/media/usb/as102/as10x_cmd_stream.c
+index 1088ca1fe92f..126aea976639 100644
+--- a/drivers/media/usb/as102/as10x_cmd_stream.c
++++ b/drivers/media/usb/as102/as10x_cmd_stream.c
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+ #include <linux/kernel.h>
+diff --git a/drivers/media/usb/as102/as10x_handle.h b/drivers/media/usb/as102/as10x_handle.h
+index 5638b191b780..e535fffbcd94 100644
+--- a/drivers/media/usb/as102/as10x_handle.h
++++ b/drivers/media/usb/as102/as10x_handle.h
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifdef __KERNEL__
+ struct as10x_bus_adapter_t;
+diff --git a/drivers/media/usb/as102/as10x_types.h b/drivers/media/usb/as102/as10x_types.h
+index af26e057d9a2..f82d51e542e3 100644
+--- a/drivers/media/usb/as102/as10x_types.h
++++ b/drivers/media/usb/as102/as10x_types.h
+@@ -11,10 +11,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifndef _AS10X_TYPES_H_
+ #define _AS10X_TYPES_H_
+-- 
+1.9.3
+
