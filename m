@@ -1,63 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:61359 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaHPUdX (ORCPT
+Received: from pindarots.xs4all.nl ([82.161.210.87]:58503 "EHLO
+	pindarots.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426AbaHLRXS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Aug 2014 16:33:23 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andreas Ruprecht <rupran@einserver.de>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: davinci: remove unneeded dependency ARCH_OMAP3
-Date: Sat, 16 Aug 2014 21:33:18 +0100
-Message-Id: <1408221198-27458-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 12 Aug 2014 13:23:18 -0400
+Message-ID: <53EA4D7D.80105@xs4all.nl>
+Date: Tue, 12 Aug 2014 19:23:09 +0200
+From: Udo van den Heuvel <udovdh@xs4all.nl>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: USB list <linux-usb@vger.kernel.org>, linux-media@vger.kernel.org
+Subject: Re: 3.15.6 USB issue with pwc cam
+References: <53DCE329.4030106@xs4all.nl> <2923628.39nbDsJU79@avalon> <53E391E3.2050808@xs4all.nl> <53EA2DA2.4060605@redhat.com>
+In-Reply-To: <53EA2DA2.4060605@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch removes unneeded dependency of ARCH_OMAP3
-on VIDEO_DM6446_CCDC.
-Also the top level platform Makefile descended into
-davinci/ without any dependency so just drop the
-dependency obj-y, as obj-$(CONFIG_ARCH_DAVINCI)
-already exists.
+On 2014-08-12 17:07, Hans de Goede wrote:
+> for you. Might be fixed by this commit:
+> https://git.kernel.org/cgit/linux/kernel/git/gregkh/usb.git/commit/drivers/usb/host?h=usb-next&id=3213b151387df0b95f4eada104f68eb1c1409cb3
 
-Reported-by: Andreas Ruprecht <rupran@einserver.de>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/Makefile        | 2 --
- drivers/media/platform/davinci/Kconfig | 2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+That commit already appears to be in my kernel tree.
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index e5269da..13aef34 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -47,8 +47,6 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
- 
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- 
--obj-y	+= davinci/
--
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
- 
- ccflags-y += -I$(srctree)/drivers/media/i2c
-diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
-index afb3aec..298e1ee 100644
---- a/drivers/media/platform/davinci/Kconfig
-+++ b/drivers/media/platform/davinci/Kconfig
-@@ -26,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
- 
- config VIDEO_DM6446_CCDC
- 	tristate "TI DM6446 CCDC video capture driver"
--	depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
-+	depends on VIDEO_V4L2 && ARCH_DAVINCI
- 	select VIDEOBUF_DMA_CONTIG
- 	help
- 	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
--- 
-1.9.1
+Kind regards,
+Udo
 
