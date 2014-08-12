@@ -1,47 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:51607 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936274AbaH1JH0 (ORCPT
+Received: from pindarots.xs4all.nl ([82.161.210.87]:55324 "EHLO
+	pindarots.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752685AbaHLQb7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 05:07:26 -0400
-Received: by mail-pa0-f41.google.com with SMTP id lj1so1720468pab.28
-        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 02:07:24 -0700 (PDT)
-Message-ID: <53FEF144.6060106@gmail.com>
-Date: Thu, 28 Aug 2014 18:07:16 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+	Tue, 12 Aug 2014 12:31:59 -0400
+Message-ID: <53EA4177.7000406@xs4all.nl>
+Date: Tue, 12 Aug 2014 18:31:51 +0200
+From: Udo van den Heuvel <udovdh@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
- for APIv5
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi>
-In-Reply-To: <53FE1EF5.5060007@iki.fi>
-Content-Type: text/plain; charset=iso-8859-15
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	USB list <linux-usb@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: 3.15.6 USB issue with pwc cam
+References: <53DCE329.4030106@xs4all.nl> <53EA2DA2.4060605@redhat.com> <53EA350F.2040403@xs4all.nl> <6676742.btapbsDqkp@avalon> <53EA4057.4020103@xs4all.nl>
+In-Reply-To: <53EA4057.4020103@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-moikka,
-thanks for the comment.
+On 2014-08-12 18:27, Hans Verkuil wrote:
+> It was a bit confusing, but he has two problems: one pwc, one (the warning) for
+> uvc.
 
-> I have feeling DVBv5 API is aimed to transfer data via property cached.
-> I haven't done much driver for DVBv5 statistics, but recently I
-> implemented CNR (DVBv5 stats) to Si2168 driver and it just writes all
-> the values directly to property cache. I expect RF strength (RSSI) is
-> just similar.
+Indeed.
+Do I need to provide additional info to help find the root cause(s)?
 
-Currently, the demod of PT3 card (tc90522) gets RSSI data from
-the connected tuner (mxl301rf) via tuner_ops.get_signal_strength_dbm()
-and sets property cache in fe->ops.get_frontend() (which is called
-before returning property cache value by dvb_frontend_ioctl_properties()). 
-If the tuner driver should set property cache directly,
-when is the right timing to do so?
-In fe->ops.tuner_ops.get_status() ?
-or in the old fe->ops.tuner_ops.get_signal_strength()?
-or Should I change get_signal_strength_dbm(fe, s64 *) to
-update_signal_strength(fe) and let the tuner driver set property cache there?
-
---
-akihiro
-
+Kind regards,
+Udo
 
