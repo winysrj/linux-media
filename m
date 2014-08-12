@@ -1,116 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1910 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756696AbaH0Clj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 22:41:39 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7R2fZ6G006752
-	for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 04:41:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 921202A2E5A
-	for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 04:41:21 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140827024121.921202A2E5A@tschai.lan>
-Date: Wed, 27 Aug 2014 04:41:21 +0200 (CEST)
+Received: from mail.kapsi.fi ([217.30.184.167]:58865 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751548AbaHLXVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 19:21:41 -0400
+Message-ID: <53EAA180.2000602@iki.fi>
+Date: Wed, 13 Aug 2014 02:21:36 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/6] si2168: add ts_mode setting and move to si2168_init
+References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Results of the daily build of media_tree:
+Antti
 
-date:		Wed Aug 27 04:00:18 CEST 2014
-git branch:	test
-git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-0.slh.2-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+On 08/11/2014 10:58 PM, Olli Salonen wrote:
+> Luis Alves submitted a TS mode patch to si2168 earlier, but the patch was rejected due to a small issue. Here is a working version. Also, setting of TS mode is moved from si2168_set_frontend to si2168_init.
+>
+> This patch adds the TS mode as a config option for the si2168 demod:
+> - ts_mode added to config struct.
+> - Possible (interesting) values are
+>     * Parallel mode = 0x06
+>     * Serial mode = 0x03
+>
+> Currently the modules using this demod only use parallel mode. Patches for these modules later in this patch series.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/si2168.c      | 17 ++++++++++-------
+>   drivers/media/dvb-frontends/si2168.h      |  6 ++++++
+>   drivers/media/dvb-frontends/si2168_priv.h |  1 +
+>   3 files changed, 17 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 8f81d97..0eb0e4e 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -297,13 +297,6 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> -	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
+> -	cmd.wlen = 6;
+> -	cmd.rlen = 4;
+> -	ret = si2168_cmd_execute(s, &cmd);
+> -	if (ret)
+> -		goto err;
+> -
+>   	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
+>   	cmd.wlen = 6;
+>   	cmd.rlen = 4;
+> @@ -465,6 +458,15 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	dev_info(&s->client->dev, "%s: found a '%s' in warm state\n",
+>   			KBUILD_MODNAME, si2168_ops.info.name);
+>
+> +	/* set ts mode */
+> +	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
+> +	cmd.args[4] |= s->ts_mode;
+> +	cmd.wlen = 6;
+> +	cmd.rlen = 4;
+> +	ret = si2168_cmd_execute(s, &cmd);
+> +	if (ret)
+> +		goto err;
+> +
+>   	s->active = true;
+>
+>   	return 0;
+> @@ -633,6 +635,7 @@ static int si2168_probe(struct i2c_client *client,
+>
+>   	*config->i2c_adapter = s->adapter;
+>   	*config->fe = &s->fe;
+> +	s->ts_mode = config->ts_mode;
+>
+>   	i2c_set_clientdata(client, s);
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
+> index 3c5b5ab..e086d67 100644
+> --- a/drivers/media/dvb-frontends/si2168.h
+> +++ b/drivers/media/dvb-frontends/si2168.h
+> @@ -34,6 +34,12 @@ struct si2168_config {
+>   	 * returned by driver
+>   	 */
+>   	struct i2c_adapter **i2c_adapter;
+> +
+> +	/* TS mode */
+> +	u8 ts_mode;
+>   };
+>
+> +#define SI2168_TS_PARALLEL	0x06
+> +#define SI2168_TS_SERIAL	0x03
+> +
+>   #endif
+> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+> index ebbf502..0f83284 100644
+> --- a/drivers/media/dvb-frontends/si2168_priv.h
+> +++ b/drivers/media/dvb-frontends/si2168_priv.h
+> @@ -36,6 +36,7 @@ struct si2168 {
+>   	fe_delivery_system_t delivery_system;
+>   	fe_status_t fe_status;
+>   	bool active;
+> +	u8 ts_mode;
+>   };
+>
+>   /* firmare command struct */
+>
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
