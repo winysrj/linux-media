@@ -1,95 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52176 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755349AbaHERA0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Michael Olbrich <m.olbrich@pengutronix.de>
-Subject: [PATCH 12/15] [media] coda: fix timestamp list handling
-Date: Tue,  5 Aug 2014 19:00:17 +0200
-Message-Id: <1407258020-12078-13-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
-References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-pd0-f185.google.com ([209.85.192.185]:64754 "EHLO
+	mail-pd0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752808AbaHLIvH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 04:51:07 -0400
+Received: by mail-pd0-f185.google.com with SMTP id g10so2001533pdj.12
+        for <linux-media@vger.kernel.org>; Tue, 12 Aug 2014 01:51:06 -0700 (PDT)
+Date: Tue, 12 Aug 2014 01:51:05 -0700 (PDT)
+From: anuroop.kamu@gmail.com
+To: linux-sunxi@googlegroups.com
+Cc: anuroop.kamu@gmail.com, linux-media@vger.kernel.org,
+	thomas.schorpp@gmail.com
+Message-Id: <b4010238-2ee0-4559-9aed-d5d55687cd28@googlegroups.com>
+In-Reply-To: <53E9C88B.7050400@gmail.com>
+References: <520BC1EF.9030204@gmail.com> <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
+ <53E9C88B.7050400@gmail.com>
+Subject: Re: [PATCH v4 2/2] [stage/sunxi-3.4] Add support for Allwinner
+ (DVB/ATSC) Transport Stream Controller(s) (TSC)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_4506_2102012201.1407833465254"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lock modification of the timestamp list with bitstream_mutex and do not
-try to remove a timestamp element if the list is empty. This can happen
-if the userspace feeds us garbage or multiple encoded frames in a single
-buffer.
+------=_Part_4506_2102012201.1407833465254
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 28 +++++++++++++++++++---------
- drivers/media/platform/coda/coda-common.c |  2 ++
- 2 files changed, 21 insertions(+), 9 deletions(-)
+On Tuesday, August 12, 2014 1:26:01 PM UTC+5:30, Thomas Schorpp wrote:
+> Am 12.08.2014 um 08:25 schrieb anuroop.kamu@gmail.com:
+> 
+> > On Wednesday, August 14, 2013 11:14:15 PM UTC+5:30, Thomas Schorpp wrote:
+> 
+> >> OK, with the patched fex file and devices.c from
+> 
+> >>
+> 
+> >> [linux-sunxi] [PATCH v2 1/1] [sunxi-boards/a20] Add support for Allwinner (DVB/ATSC) Transport Stream Controller(s) (TSC)
+> 
+> >>
+> 
+> >> [PATCH v2 1/1] [stage/sunxi-3.4] sw_nand: sunxi devices core using wrong MMIO region range, overlaps TSC/TSI register base address 0x01c04000
+> 
+> >>
+> 
+> >> and the driver patches from this topic here
+> 
+> >>
+> 
+> >>
+> 
+> >
+> 
+> >>
+> 
+> >> the driver basically loads and inits:
+> 
+> 
+> 
+> >
+> 
+> > please forgive me if my questions are wrong. I am fairly new to android & Allwinner platform.
+> 
+> 
+> 
+> 1. The tscdrv.c code (my linux-sunxi port, too) is (c) AW proprietary, You need to contact AW support (+ for a complete TSC Manual).
+> 
+> 
+> 
+> 2. I've suspended my TSC project until a complete A20 TSC manual is available or I get the time for register probe rev. engineering.
+> 
+> 
+> 
+> 3. https://groups.google.com/forum/#!topic/android-porting/EMAG4RUlOjI
+> 
+> 
+> 
+> "Now we are planning to integrate a TV chip with this (DVB-T) . Allwinner has TS control block and a sample driver along with it."
+> 
+> 
+> 
+> Who is "we"?
+> 
+> 
+> 
+> I don't support Android OS platform, nor do "we" support closed source product developers from hidden proprietary products manufacturers
+> 
+> usually not releasing derivated works of GPL'd code back to "us" or the android-porting project with their products,
+> 
+> especially not for free. Please refer to the known consultant companies if Your company needs "help".
+> 
+> 
+> 
+> Please, tell Your Boss there's a big difference between "help" and valuable expensive engineering project consulting, thank You.
+> 
+> Code maybe free under GPL (only the without warranty version) but consulting for it is not, and violating the GPL is breaking the law, worldwide.
+> 
+> 
+> 
+> This is the second request directly adressed to me off-list from a commercial company to work for free for them,
+> 
+> I will drop any further to the JUNK Mail folder without notice.
+> 
+> 
+> 
+> >
+> 
+> > thanks a lot
+> 
+> > Anuroop
+> 
+> >
+> 
+> 
+> 
+> thanks A LOT :-//
+> 
+> y
+> 
+> tom
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 529cc3e..18fa369 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1699,18 +1699,28 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		v4l2_err(&dev->v4l2_dev,
- 			 "decoded frame index out of range: %d\n", decoded_idx);
- 	} else {
--		ts = list_first_entry(&ctx->timestamp_list,
--				      struct coda_timestamp, list);
--		list_del(&ts->list);
- 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
- 		val -= ctx->sequence_offset;
--		if (val != (ts->sequence & 0xffff)) {
--			v4l2_err(&dev->v4l2_dev,
--				 "sequence number mismatch (%d(%d) != %d)\n",
--				 val, ctx->sequence_offset, ts->sequence);
-+		mutex_lock(&ctx->bitstream_mutex);
-+		if (!list_empty(&ctx->timestamp_list)) {
-+			ts = list_first_entry(&ctx->timestamp_list,
-+					      struct coda_timestamp, list);
-+			list_del(&ts->list);
-+			if (val != (ts->sequence & 0xffff)) {
-+				v4l2_err(&dev->v4l2_dev,
-+					 "sequence number mismatch (%d(%d) != %d)\n",
-+					 val, ctx->sequence_offset,
-+					 ts->sequence);
-+			}
-+			ctx->frame_timestamps[decoded_idx] = *ts;
-+			kfree(ts);
-+		} else {
-+			v4l2_err(&dev->v4l2_dev, "empty timestamp list!\n");
-+			memset(&ctx->frame_timestamps[decoded_idx], 0,
-+			       sizeof(struct coda_timestamp));
-+			ctx->frame_timestamps[decoded_idx].sequence = val;
- 		}
--		ctx->frame_timestamps[decoded_idx] = *ts;
--		kfree(ts);
-+		mutex_unlock(&ctx->bitstream_mutex);
- 
- 		val = coda_read(dev, CODA_RET_DEC_PIC_TYPE) & 0x7;
- 		if (val == 0)
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 0f8a2c9..e84b320 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1116,12 +1116,14 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
- 		struct coda_timestamp *ts;
- 
-+		mutex_lock(&ctx->bitstream_mutex);
- 		while (!list_empty(&ctx->timestamp_list)) {
- 			ts = list_first_entry(&ctx->timestamp_list,
- 					      struct coda_timestamp, list);
- 			list_del(&ts->list);
- 			kfree(ts);
- 		}
-+		mutex_unlock(&ctx->bitstream_mutex);
- 		kfifo_init(&ctx->bitstream_fifo,
- 			ctx->bitstream.vaddr, ctx->bitstream.size);
- 		ctx->runcounter = 0;
--- 
-2.0.1
+I am sorry Tom. I was trying to build the AW TSC for SMDT. 
+hope you forgive me for my mistakes.
 
+-thanks
+Anuroop
+------=_Part_4506_2102012201.1407833465254--
