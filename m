@@ -1,79 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:36229 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080AbaHTNop (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:45 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Stephen Warren <swarren@nvidia.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v5 04/10] DT: leds: Add flash led devices related properties
-Date: Wed, 20 Aug 2014 15:44:13 +0200
-Message-id: <1408542259-415-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44790 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752357AbaHLXZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 19:25:23 -0400
+Message-ID: <53EAA25F.7030007@iki.fi>
+Date: Wed, 13 Aug 2014 02:25:19 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/6] cxusb: add ts mode setting for TechnoTrend CT2-4400
+References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi> <1407787095-2167-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407787095-2167-3-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Addition of a LED Flash Class extension entails the need for flash led
-specific device tree properties. The properties being added are:
-iout-torch, iout-flash, iout-indicator and flash-timeout.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Stephen Warren <swarren@nvidia.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/leds/common.txt |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Antti
 
-diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-index 2d88816..40f4b9a 100644
---- a/Documentation/devicetree/bindings/leds/common.txt
-+++ b/Documentation/devicetree/bindings/leds/common.txt
-@@ -3,6 +3,17 @@ Common leds properties.
- Optional properties for child nodes:
- - label : The label for this LED.  If omitted, the label is
-   taken from the node name (excluding the unit address).
-+- iout-torch : Array of maximum intensities in microamperes of the torch
-+	led currents in order from sub-led 0 to N-1, where N is the number
-+	of torch sub-leds exposed by the device
-+- iout-flash : Array of maximum intensities in microamperes of the flash
-+	led currents in order from sub-led 0 to N-1, where N is the number
-+	of flash sub-leds exposed by the device
-+- iout-indicator : Array of maximum intensities in microamperes of
-+	the indicator led currents in order from sub-led 0 to N-1,
-+	where N is the number of indicator sub-leds exposed by the device
-+- flash-timeout : timeout in microseconds after which flash led
-+	is turned off
- 
- - linux,default-trigger :  This parameter, if present, is a
-     string defining the trigger assigned to the LED.  Current triggers are:
-@@ -19,5 +30,10 @@ Examples:
- system-status {
- 	label = "Status";
- 	linux,default-trigger = "heartbeat";
-+	iout-torch = <500 500>;
-+	iout-flash = <1000 1000>;
-+	iout-indicator = <100 100>;
-+	flash-timeout = <1000>;
-+
- 	...
- };
+On 08/11/2014 10:58 PM, Olli Salonen wrote:
+> TS mode must be set in the existing TechnoTrend CT2-4400 driver.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb/cxusb.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index 16bc579..87842e9 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -1369,6 +1369,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>   	/* attach frontend */
+>   	si2168_config.i2c_adapter = &adapter;
+>   	si2168_config.fe = &adap->fe_adap[0].fe;
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+>   	memset(&info, 0, sizeof(struct i2c_board_info));
+>   	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+>   	info.addr = 0x64;
+>
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
