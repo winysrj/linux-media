@@ -1,44 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [117.192.104.190] ([117.192.104.190]:51704 "EHLO suman"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751205AbaHIQs4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 12:48:56 -0400
-From: Suman Kumar <suman@inforcecomputing.com>
-To: g.liakhovetski@gmx.de
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, suman@inforcecomputing.com
-Subject: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a Missing blank line coding style issue
-Date: Sat,  9 Aug 2014 22:10:21 +0530
-Message-Id: <1407602421-14214-1-git-send-email-suman@inforcecomputing.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41177 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752603AbaHLX1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 19:27:34 -0400
+Message-ID: <53EAA2E3.1060206@iki.fi>
+Date: Wed, 13 Aug 2014 02:27:31 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/6] cx23885: add i2c client handling into dvb_unregister
+ and state
+References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi> <1407787095-2167-4-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407787095-2167-4-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-    Fixes a coding style issue reported by checkpatch.pl
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
----
- drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
- 1 file changed, 2 insertions(+)
+Antti
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
-index ceaddfb..fe15a80 100644
---- a/drivers/media/platform/soc_camera/soc_camera_platform.c
-+++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
-@@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
- static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
- {
- 	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
-+
- 	return container_of(subdev, struct soc_camera_platform_priv, subdev);
- }
- 
- static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
-+
- 	return p->set_capture(p, enable);
- }
- 
+On 08/11/2014 10:58 PM, Olli Salonen wrote:
+> Prepare cx23885 driver for handling I2C client that is needed for certain demodulators and tuners (for example Si2168 and Si2157). I2C client for tuner and demod stored in state and unregistering of the I2C devices added into dvb_unregister.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/pci/cx23885/cx23885-dvb.c | 16 ++++++++++++++++
+>   drivers/media/pci/cx23885/cx23885.h     |  3 +++
+>   2 files changed, 19 insertions(+)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 968fecc..2608155 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -1643,6 +1643,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
+>   int cx23885_dvb_unregister(struct cx23885_tsport *port)
+>   {
+>   	struct videobuf_dvb_frontend *fe0;
+> +	struct i2c_client *client;
+>
+>   	/* FIXME: in an error condition where the we have
+>   	 * an expected number of frontends (attach problem)
+> @@ -1651,6 +1652,21 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
+>   	 * This comment only applies to future boards IF they
+>   	 * implement MFE support.
+>   	 */
+> +
+> +	/* remove I2C client for tuner */
+> +	client = port->i2c_client_tuner;
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +
+> +	/* remove I2C client for demodulator */
+> +	client = port->i2c_client_demod;
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +
+>   	fe0 = videobuf_dvb_get_frontend(&port->frontends, 1);
+>   	if (fe0 && fe0->dvb.frontend)
+>   		videobuf_dvb_unregister_bus(&port->frontends);
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index 0e086c0..1040b3e 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -326,6 +326,9 @@ struct cx23885_tsport {
+>   	/* Workaround for a temp dvb_frontend that the tuner can attached to */
+>   	struct dvb_frontend analog_fe;
+>
+> +	struct i2c_client *i2c_client_demod;
+> +	struct i2c_client *i2c_client_tuner;
+> +
+>   	int (*set_frontend)(struct dvb_frontend *fe);
+>   };
+>
+>
+
 -- 
-1.8.2
-
+http://palosaari.fi/
