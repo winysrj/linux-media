@@ -1,135 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1255 "EHLO
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4140 "EHLO
 	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751358AbaHJRbt (ORCPT
+	with ESMTP id S1752866AbaHLPjM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 13:31:49 -0400
-Message-ID: <53E7AC53.7050006@xs4all.nl>
-Date: Sun, 10 Aug 2014 19:30:59 +0200
+	Tue, 12 Aug 2014 11:39:12 -0400
+Message-ID: <53EA350F.2040403@xs4all.nl>
+Date: Tue, 12 Aug 2014 17:38:55 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [PATCH 0/3] Another series of PM fixes for au0828
-References: <1407636862-19394-1-git-send-email-m.chehab@samsung.com> <53E78CC1.1030905@xs4all.nl> <20140810140515.513d5ec8.m.chehab@samsung.com>
-In-Reply-To: <20140810140515.513d5ec8.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+To: Hans de Goede <hdegoede@redhat.com>,
+	Udo van den Heuvel <udovdh@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: USB list <linux-usb@vger.kernel.org>, linux-media@vger.kernel.org
+Subject: Re: 3.15.6 USB issue with pwc cam
+References: <53DCE329.4030106@xs4all.nl> <2923628.39nbDsJU79@avalon> <53E391E3.2050808@xs4all.nl> <53EA2DA2.4060605@redhat.com>
+In-Reply-To: <53EA2DA2.4060605@redhat.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2014 07:05 PM, Mauro Carvalho Chehab wrote:
-> Hi Hans,
+On 08/12/2014 05:07 PM, Hans de Goede wrote:
+> Hi Udo,
 > 
-> Em Sun, 10 Aug 2014 17:16:17 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> On 08/07/2014 04:49 PM, Udo van den Heuvel wrote:
+>> On 2014-08-04 11:17, Laurent Pinchart wrote:
+>>> (CC'ing Hans de Goede, the pwc maintainer, and the linux-media mailing list)
 > 
->> Hi Mauro,
->>
->> The following are just some general remarks regarding PM and au0828, it's
->> not specific to this patch series. I'm just brainstorming here...
->>
->> It's unfortunate that the au0828 isn't using vb2 yet. I would be interested in
->> seeing what can be done in vb2 to help implement suspend/resume. Basically vb2
->> has already most (all?) of the information it needs to handle this. Ideally all
->> you need to do in the driver is to call vb2_suspend or vb2_resume and vb2 will
->> take care of the rest, calling start/stop_streaming as needed. Some work would
->> have to be done there to ensure buffers are queued/dequeued to the right queues
->> and in the right state.
+> Thanks for the bug report. I've been looking into this, and there
+> seem to be 2 problems:
 > 
-> I guess one of the problems with any core-provided method is to ensure that
-> the tuner is initialized and locked before it, in order to avoid filling
-> buffers from the wrong channel.
+> 1: xhci_hcd 0000:02:00.0: ERROR: unexpected command completion code 0x11.
 > 
-> Btw, this is one unsolved problem that we face with PM on media: we
-> need to assure that resume will follow a precise init order:
-> 	- All core subsystems are initialized before everything else;
-> 	- The firmwares are loaded;
-> 	- The I2C gates are in the right state;
-> 	- The tuner is set;
-> 	- The gpio's are properly configured;
-> 	- The analog and/or the digital demodulator are properly
-> 	  configured;
+> This seems to be what is causing things to not work with a usb-3 port
+> for you. Might be fixed by this commit:
+> https://git.kernel.org/cgit/linux/kernel/git/gregkh/usb.git/commit/drivers/usb/host?h=usb-next&id=3213b151387df0b95f4eada104f68eb1c1409cb3
 > 
-> Only after that, the driver (and VB2) can be resumed.
+> Can you please do "lspci -nn", and then copy and paste the output here,
+> so that we can see what sort of xhci controller you've (and try to reproduce
+> the problem).
+> 
+> 2: The triggering of a WARN_ON in __vb2_queue_cancel() when called on
+> streamoff. I've been looking at the code and I cannot figure out why this
+> is triggering I'm afraid.
 
-Those items are certainly out-of-scope of vb2 and are device specific.
+You can ignore this one.
 
-> A proper PM support will require lots of changes at the media core, and
-> likely on other subsystems. We (I, Shuah and some people I'm hiring)
-> are looking into those issues, but a proper fix with proper core support
-> will take some time.
-> 
->> So vb2 would handle all the DMA/streaming aspects of suspend/resume, thus
->> simplifying the driver.
-> 
-> The changes will be minimal. Just one patch would be affected:
-> 	https://patchwork.linuxtv.org/patch/25277/
-> 
-> IMHO, for USB drivers, the best strategy for suspend/resume is the one
-> taken on au0828, e. g. at suspend:
-> 	- stop DMA;
-> 	- cancel the pending URB;
-> 	- stop any pending kthread;
-> 	- call vb2_discard_done() to discard any pending buffers
-> 	  (I think VB1 doesn't have anything similar);
-
-With proper vb2 support stop DMA, cancel pending USB and vb2_discard_done
-would all be done by vb2. The first two would be done in the stop_streaming
-vb2 op.
-
-> 
-> And, at resume, restart them.
-> 
-> We could provide a core support to cancel the pending URBs, but most 
-> of the stuff are driver-specific, because the core doesn't have
-> any code to handle USB streams on a generic way (well, gspca has,
-> but it doesn't cover the DVB specifics).
-> 
-> I started writing a URB handling abstraction for the tm6000 driver
-> that I wanted to add at the core, but I didn't finish making it
-> generic enough. Moving it to core and porting the existing drivers
-> to use it would take a lot of time and effort. Not sure if it is
-> worth nowadays.
-> 
-> What I'm trying to say is that most of the issues related to
-> suspend/resume aren't at the streaming engine (being VB1, VB2
-> or a driver-specific one). Once we fix the main issues subsystem-wide,
-> then we can have a clearer view if are there anything we could do at
-> VB2 level.
-> 
->> Is it perhaps an idea to convert au0828 to vb2 in order to pursue this further?
->>
->> Besides, converting to vb2 tends to get rid of a substantial amount of code
->> which makes it much easier to work with.
-> 
-> I don't think that converting au0828 to vb2 would help to improve
-> the suspend issues. Ok, should do it anyway at long term, as we want
-> one day to get rid of VB1, but we should take some care with this driver.
-> It has workarounds for several hardware bugs that cause the stream to
-> stop working under not well known situations. There are even two
-> threads there to detect and apply such workarounds when stream
-> suddenly stops without a (known) reason.
-
-These types of weird errors are exactly why I would recommend to port to
-vb2. The sequence of events is very clear and systematic in vb2, whereas it
-will drive you bonkers if you try to understand the flow in vb1. I do not
-trust *any* driver that uses vb1. There is no way drivers can cover all
-corner cases since vb1 is one of the craziest pieces of code I've ever seen.
-Especially since it doesn't look crazy at first glance, that's what makes
-it such a nasty framework.
-
-I've ported quite a few drivers by now to vb2 and in all cases things that
-used to be flaky (or just plain broken) suddenly started working. This may
-or may not apply to au0828, but it will certainly make the code a lot
-easier to understand. Particularly crucial steps such as when the streaming
-starts and stops is very well defined in vb2. Ditto for resource handling (who
-'owns' the stream) which is handled by vb2 as well.
-
-Just my 5 cents, of course.
+The uvc driver is doing messy things with vb2 which causes this warning. That
+said, it will not break things for you. It is just a warning that the driver
+needs to be improved.
 
 Regards,
 
 	Hans
+
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> 
+> 
+>>>
+>>> On Saturday 02 August 2014 15:10:01 Udo van den Heuvel wrote:
+>>>> Hello,
+>>>>
+>>>> I moved a PWC webcam to a USB3 port, and this happened:
+>>
+>> I get similar stuff when trying to use a Logitech C615 cam.
+>> See attachment for full dmesg of errors but excerpt below:
+>>
+>> [80346.835015] xhci_hcd 0000:02:00.0: ERROR: unexpected command
+>> completion code 0x11.
+>> [80346.835027] usb 6-2: Not enough bandwidth for altsetting 11
+>> [80346.835137] ------------[ cut here ]------------
+>> [80346.835155] WARNING: CPU: 3 PID: 20594 at
+>> drivers/media/v4l2-core/videobuf2-core.c:2011
+>> __vb2_queue_cancel+0x102/0x170 [videobuf2_core]()
+>> [80346.835158] Modules linked in: uvcvideo cdc_acm bnep bluetooth fuse
+>> edac_core cpufreq_userspace ipt_REJECT nf_conntrack_netbios_ns
+>> nf_conntrack_broadcast iptable_filter ip6t_REJECT ipt_MASQUERADE
+>> xt_tcpudp nf_conntrack_ipv6 iptable_nat nf_defrag_ipv6 nf_conntrack_ipv4
+>> nf_defrag_ipv4 nf_nat_ipv4 nf_nat xt_conntrack nf_conntrack ip_tables
+>> ip6table_filter ip6_tables x_tables eeprom it87 hwmon_vid ext2
+>> snd_usb_audio snd_usbmidi_lib snd_hwdep snd_rawmidi ppdev pwc
+>> videobuf2_vmalloc videobuf2_memops kvm_amd kvm v4l2_common
+>> videobuf2_core snd_hda_codec_realtek snd_hda_codec_generic videodev
+>> snd_hda_intel snd_hda_controller cp210x snd_hda_codec usbserial snd_seq
+>> snd_seq_device microcode snd_pcm parport_serial parport_pc parport
+>> snd_timer k10temp snd evdev i2c_piix4 button acpi_cpufreq nfsd
+>> auth_rpcgss oid_registry
+>> [80346.835218]  nfs_acl lockd sunrpc binfmt_misc autofs4 hid_generic
+>> usbhid ohci_pci ehci_pci ehci_hcd ohci_hcd radeon sr_mod cdrom fbcon
+>> bitblit cfbfillrect softcursor cfbimgblt cfbcopyarea font i2c_algo_bit
+>> xhci_hcd backlight drm_kms_helper ttm drm fb fbdev
+>> [80346.835250] CPU: 3 PID: 20594 Comm: skype Tainted: G        W
+>> 3.15.8 #6
+>> [80346.835254] Hardware name: Gigabyte Technology Co., Ltd. To be filled
+>> by O.E.M./F2A85X-UP4, BIOS F5a 04/30/2013
+>> [80346.835257]  0000000000000000 0000000079d580f4 ffffffff814f2373
+>> 0000000000000000
+>> [80346.835262]  ffffffff81069fe1 0000000000000000 ffff88040ec532e8
+>> 0000000000000000
+>> [80346.835267]  ffff88040ec530d8 ffff8803f0c46f00 ffffffffa041d832
+>> ffff88040ec530d8
+>> [80346.835272] Call Trace:
+>> [80346.835283]  [<ffffffff814f2373>] ? dump_stack+0x4a/0x75
+>> [80346.835289]  [<ffffffff81069fe1>] ? warn_slowpath_common+0x81/0xb0
+>> [80346.835299]  [<ffffffffa041d832>] ? __vb2_queue_cancel+0x102/0x170
+>> [videobuf2_core]
+>> [80346.835307]  [<ffffffffa041f53d>] ? vb2_internal_streamoff+0x1d/0x50
+>> [videobuf2_core]
+>> [80346.835314]  [<ffffffffa06140d5>] ? uvc_queue_enable+0x75/0xb0 [uvcvideo]
+>> [80346.835321]  [<ffffffffa0619091>] ? uvc_video_enable+0x141/0x1a0
+>> [uvcvideo]
+>> [80346.835327]  [<ffffffffa0615e1f>] ? uvc_v4l2_do_ioctl+0xd6f/0x1580
+>> [uvcvideo]
+>> [80346.835339]  [<ffffffffa0448bc0>] ? video_usercopy+0x1f0/0x490 [videodev]
+>> [80346.835345]  [<ffffffffa06150b0>] ?
+>> uvc_v4l2_set_streamparm.isra.12+0x1c0/0x1c0 [uvcvideo]
+>> [80346.835352]  [<ffffffff81091d9f>] ? preempt_count_add+0x3f/0x90
+>> [80346.835356]  [<ffffffff814f73ee>] ? _raw_spin_lock+0xe/0x30
+>> [80346.835360]  [<ffffffff814f748d>] ? _raw_spin_unlock+0xd/0x30
+>> [80346.835367]  [<ffffffff8110f77e>] ? __pte_alloc+0xce/0x170
+>> [80346.835376]  [<ffffffffa04447df>] ? v4l2_ioctl+0x11f/0x160 [videodev]
+>> [80346.835386]  [<ffffffffa04527b6>] ? do_video_ioctl+0x246/0x1330
+>> [videodev]
+>> [80346.835392]  [<ffffffff8111999a>] ? mmap_region+0x15a/0x5a0
+>> [80346.835402]  [<ffffffffa0453922>] ? v4l2_compat_ioctl32+0x82/0xb8
+>> [videodev]
+>> [80346.835408]  [<ffffffff81186182>] ? compat_SyS_ioctl+0x132/0x1120
+>> [80346.835414]  [<ffffffff81105833>] ? vm_mmap_pgoff+0xe3/0x120
+>> [80346.835421]  [<ffffffff814f97c5>] ? cstar_dispatch+0x7/0x1a
+>> [80346.835424] ---[ end trace 44e3d272b6c91a71 ]---
+>> [80346.835427] ------------[ cut here ]------------
+>>
+>>
+>> What is wrong here?
+>>
+>> Kind regards,
+>> Udo
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
