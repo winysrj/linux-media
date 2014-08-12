@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34583 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934092AbaHZJNr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 05:13:47 -0400
-Message-ID: <1409044417.2911.29.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper
- functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Date: Tue, 26 Aug 2014 11:13:37 +0200
-In-Reply-To: <3263560.xPJs935yYQ@avalon>
-References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
-	 <1794623.zNambAqeEh@avalon>
-	 <1408981277.3191.80.camel@paszta.hi.pengutronix.de>
-	 <3263560.xPJs935yYQ@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:59002 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284AbaHLX3C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Aug 2014 19:29:02 -0400
+Message-ID: <53EAA339.9000007@iki.fi>
+Date: Wed, 13 Aug 2014 02:28:57 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 5/6] cx23855: add frontend set voltage function into state
+References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi> <1407787095-2167-5-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1407787095-2167-5-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Am Montag, den 25.08.2014, 17:47 +0200 schrieb Laurent Pinchart:
-> > Yes, I think this is slightly over the edge. Is room for a function to
-> > accompany the preexisting v4l2_fill_pix_format (say,
-> > v4l2_fill_pix_format_size) to set both the bytesperline and sizeimage
-> > values in a struct v4l2_pix_format?
-> 
-> That sounds sensible to me, provided it would be used by drivers of course. I 
-> wouldn't remove v4l2_bytesperline() and v4l2_sizeimage(), as the values might 
-> be needed by drivers in places where a v4l2_pix_format structure isn't 
-> available.
+Antti
 
-I think about four of the drivers I've looked at so far could use such a
-function, but it probably won't be useful for the majority.
+On 08/11/2014 10:58 PM, Olli Salonen wrote:
+> Setting the LNB voltage requires setting some GPIOs on the cx23885 with some boards before calling the actual set_voltage function in the demod driver. Add a function pointer into state for that case.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/pci/cx23885/cx23885.h | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index 1040b3e..e60ff7f 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -330,6 +330,8 @@ struct cx23885_tsport {
+>   	struct i2c_client *i2c_client_tuner;
+>
+>   	int (*set_frontend)(struct dvb_frontend *fe);
+> +	int (*fe_set_voltage)(struct dvb_frontend *fe,
+> +				fe_sec_voltage_t voltage);
+>   };
+>
+>   struct cx23885_kernel_ir {
+>
 
-> > Also, is anybody bothered by the v4l2_pix_format / v4l2_pixfmt
-> > similarity in name?
-> 
-> How about renaming v4l2_pixfmt to v4l2_pix_format_info ?
-
-Thanks, but v4l2_pix_format is a userspace API structure. I fear
-renaming v4l2_pixfmt to v4l2_pix_format_anything would rather strengthen
-that association, while I'd like to achieve the opposite.
-
-regards
-Philipp
-
+-- 
+http://palosaari.fi/
