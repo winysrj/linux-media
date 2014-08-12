@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:47191 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbaHUJZ1 (ORCPT
+Received: from mail-qg0-f52.google.com ([209.85.192.52]:33704 "EHLO
+	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753469AbaHLHz7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 05:25:27 -0400
-Received: by mail-pa0-f44.google.com with SMTP id eu11so13921563pac.3
-        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 02:25:26 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH v2 3/3] [media] rc: remove change_protocol in rc-ir-raw.c
-Date: Thu, 21 Aug 2014 17:24:45 +0800
-Message-Id: <1408613086-12538-4-git-send-email-zhangfei.gao@linaro.org>
-In-Reply-To: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org>
-References: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org>
+	Tue, 12 Aug 2014 03:55:59 -0400
+Received: by mail-qg0-f52.google.com with SMTP id f51so9107763qge.39
+        for <linux-media@vger.kernel.org>; Tue, 12 Aug 2014 00:55:59 -0700 (PDT)
+Message-ID: <53E9C88B.7050400@gmail.com>
+Date: Tue, 12 Aug 2014 09:55:55 +0200
+From: thomas schorpp <thomas.schorpp@gmail.com>
+Reply-To: thomas.schorpp@gmail.com
+MIME-Version: 1.0
+To: anuroop.kamu@gmail.com, linux-sunxi@googlegroups.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 2/2] [stage/sunxi-3.4] Add support for Allwinner (DVB/ATSC)
+ Transport Stream Controller(s) (TSC)
+References: <520BC1EF.9030204@gmail.com> <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
+In-Reply-To: <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With commit 4924a311a62f ("[media] rc-core: rename ir-raw.c"),
-empty change_protocol was introduced.
-As a result, rc_register_device will set dev->enabled_protocols
-addording to rc_map->rc_type, which prevent using all protocols.
+Am 12.08.2014 um 08:25 schrieb anuroop.kamu@gmail.com:
+> On Wednesday, August 14, 2013 11:14:15 PM UTC+5:30, Thomas Schorpp wrote:
+>> OK, with the patched fex file and devices.c from
+>>
+>> [linux-sunxi] [PATCH v2 1/1] [sunxi-boards/a20] Add support for Allwinner (DVB/ATSC) Transport Stream Controller(s) (TSC)
+>>
+>> [PATCH v2 1/1] [stage/sunxi-3.4] sw_nand: sunxi devices core using wrong MMIO region range, overlaps TSC/TSI register base address 0x01c04000
+>>
+>> and the driver patches from this topic here
+>>
+>>
+>
+>>
+>> the driver basically loads and inits:
 
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- drivers/media/rc/rc-ir-raw.c |    7 -------
- 1 file changed, 7 deletions(-)
+>
+> please forgive me if my questions are wrong. I am fairly new to android & Allwinner platform.
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index e8fff2a..a118539 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -240,12 +240,6 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
- 
--static int change_protocol(struct rc_dev *dev, u64 *rc_type)
--{
--	/* the caller will update dev->enabled_protocols */
--	return 0;
--}
--
- /*
-  * Used to (un)register raw event clients
-  */
-@@ -263,7 +257,6 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	dev->raw->dev = dev;
- 	dev->enabled_protocols = ~0;
--	dev->change_protocol = change_protocol;
- 	rc = kfifo_alloc(&dev->raw->kfifo,
- 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
- 			 GFP_KERNEL);
--- 
-1.7.9.5
+1. The tscdrv.c code (my linux-sunxi port, too) is (c) AW proprietary, You need to contact AW support (+ for a complete TSC Manual).
+
+2. I've suspended my TSC project until a complete A20 TSC manual is available or I get the time for register probe rev. engineering.
+
+3. https://groups.google.com/forum/#!topic/android-porting/EMAG4RUlOjI
+
+"Now we are planning to integrate a TV chip with this (DVB-T) . Allwinner has TS control block and a sample driver along with it."
+
+Who is "we"?
+
+I don't support Android OS platform, nor do "we" support closed source product developers from hidden proprietary products manufacturers
+usually not releasing derivated works of GPL'd code back to "us" or the android-porting project with their products,
+especially not for free. Please refer to the known consultant companies if Your company needs "help".
+
+Please, tell Your Boss there's a big difference between "help" and valuable expensive engineering project consulting, thank You.
+Code maybe free under GPL (only the without warranty version) but consulting for it is not, and violating the GPL is breaking the law, worldwide.
+
+This is the second request directly adressed to me off-list from a commercial company to work for free for them,
+I will drop any further to the JUNK Mail folder without notice.
+
+>
+> thanks a lot
+> Anuroop
+>
+
+thanks A LOT :-//
+y
+tom
 
