@@ -1,46 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:39286 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbaHTTLv (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37439 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbaHMQkl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 15:11:51 -0400
-Received: by mail-la0-f41.google.com with SMTP id s18so7730284lam.0
-        for <linux-media@vger.kernel.org>; Wed, 20 Aug 2014 12:11:49 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: g.liakhovetski@gmx.de, mchehab@samsung.com,
-	linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH resend] rcar_vin: fix error message in rcar_vin_get_formats()
-Date: Wed, 20 Aug 2014 23:11:46 +0400
-Message-ID: <2757286.QhObRprPE4@wasted.cogentembedded.com>
+	Wed, 13 Aug 2014 12:40:41 -0400
+Message-ID: <53EB9507.3010300@infradead.org>
+Date: Wed, 13 Aug 2014 09:40:39 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Jim Davis <jim.epost@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Holger Waechtler <holger@convergence.de>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: randconfig build error with next-20140813, in drivers/media/pci/ttpci/av7110_ir.c
+References: <CA+r1ZhgkWwnhJYEfm461pesWEMb6rTuYqHtAD5ZZLVm7-_BmCw@mail.gmail.com>
+In-Reply-To: <CA+r1ZhgkWwnhJYEfm461pesWEMb6rTuYqHtAD5ZZLVm7-_BmCw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dev_err() call is supposed to output <width>x<height> in decimal but one of
-the format specifiers is "%x" instead of "%u" (most probably due  to a typo).
+On 08/13/14 09:23, Jim Davis wrote:
+> Building with the attached random configuration file,
+> 
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `input_sync':
+> av7110_ir.c:(.text+0x1223ac): undefined reference to `input_event'
+> drivers/built-in.o: In function `av7110_emit_key':
+> av7110_ir.c:(.text+0x12247c): undefined reference to `input_event'
+> av7110_ir.c:(.text+0x122495): undefined reference to `input_event'
+> av7110_ir.c:(.text+0x122569): undefined reference to `input_event'
+> av7110_ir.c:(.text+0x1225a7): undefined reference to `input_event'
+> drivers/built-in.o:av7110_ir.c:(.text+0x122629): more undefined
+> references to `input_event' follow
+> drivers/built-in.o: In function `av7110_ir_init':
+> (.text+0x1227e4): undefined reference to `input_allocate_device'
+> drivers/built-in.o: In function `av7110_ir_init':
+> (.text+0x12298f): undefined reference to `input_register_device'
+> drivers/built-in.o: In function `av7110_ir_init':
+> (.text+0x12299e): undefined reference to `input_free_device'
+> drivers/built-in.o: In function `av7110_ir_exit':
+> (.text+0x122a94): undefined reference to `input_unregister_device'
+> make: *** [vmlinux] Error 1
+> 
 
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+I reported this on Feb. 14 and July 11 of 2014.  :(
 
----
-The patch is against the 'media_tree.git' repo's 'fixes' branch.
-Resending with Mauro's current address...
 
- drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-===================================================================
---- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
-+++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -981,7 +981,7 @@ static int rcar_vin_get_formats(struct s
- 
- 		if (shift == 3) {
- 			dev_err(dev,
--				"Failed to configure the client below %ux%x\n",
-+				"Failed to configure the client below %ux%u\n",
- 				mf.width, mf.height);
- 			return -EIO;
- 		}
+-- 
+~Randy
