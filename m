@@ -1,104 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:25412 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048AbaHTNmU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40914 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071AbaHNLmW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:42:20 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v5 1/4] leds: Improve and export led_update_brightness
-Date: Wed, 20 Aug 2014 15:41:55 +0200
-Message-id: <1408542118-32723-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 14 Aug 2014 07:42:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: media-workshop@linuxtv.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	dev@lists.tizen.org, gstreamer-announce@lists.freedesktop.org
+Subject: Re: [media-workshop] [ANNOUNCE] Linux Kernel Media mini-summit on Oct, 16-17 in =?UTF-8?B?RMO8c3NlbGRvcmYs?= Germany
+Date: Thu, 14 Aug 2014 13:43:01 +0200
+Message-ID: <1876821.kasfsvqvRP@avalon>
+In-Reply-To: <20140813101411.15ca3a00.m.chehab@samsung.com>
+References: <20140813101411.15ca3a00.m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-led_update_brightness helper function used to be exploited only locally
-in the led-class.c module, where its result was being passed to the
-brightness_show sysfs callback. With the introduction of v4l2-flash
-subdevice the same functionality becomes required for reading current
-brightness from a LED device. This patch adds checking of return value
-of the brightness_get callback and moves the led_update_brightness()
-function to the LED subsystem public API.
+Hi Mauro,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- drivers/leds/led-class.c |    6 ------
- drivers/leds/led-core.c  |   16 ++++++++++++++++
- include/linux/leds.h     |   10 ++++++++++
- 3 files changed, 26 insertions(+), 6 deletions(-)
+On Wednesday 13 August 2014 10:14:11 Mauro Carvalho Chehab wrote:
+> Hi,
+> 
+> As there are still too things to be discussed in order to improve media
+> stuff, and most of the developers nowadays are located in Europe and
+> usually go to ELCE, we're scheduling a two day mini-summit in Düsseldorf,
+> Germany, on Thrusday/Friday.
+> 
+> There is a perfect opportunity to discuss the media Kernel-Userspace
+> API improvements that are required for newer devices to work.
+> So, we hope to have there the major Kernel contributors to the media
+> subsystem, and some people working on userspace, in order to be sure that
+> we'll match the needs required on userspace.
+> 
+> In order to properly organize the event, I need the name of the
+> developers interested on joining us, plus the themes proposed for
+> discussions.
+> 
+> As usual, we'll be using the media-workshop@linuxtv.org ML for specific
+> discussions about that, so the ones interested on participate are
+> requested to subscribe it.
 
-diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
-index f4e5bb4..6f82a76 100644
---- a/drivers/leds/led-class.c
-+++ b/drivers/leds/led-class.c
-@@ -23,12 +23,6 @@
- 
- static struct class *leds_class;
- 
--static void led_update_brightness(struct led_classdev *led_cdev)
--{
--	if (led_cdev->brightness_get)
--		led_cdev->brightness = led_cdev->brightness_get(led_cdev);
--}
--
- static ssize_t brightness_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
-index 8380eb7..466ce5a 100644
---- a/drivers/leds/led-core.c
-+++ b/drivers/leds/led-core.c
-@@ -127,3 +127,19 @@ void led_set_brightness(struct led_classdev *led_cdev,
- 	__led_set_brightness(led_cdev, brightness);
- }
- EXPORT_SYMBOL(led_set_brightness);
-+
-+int led_update_brightness(struct led_classdev *led_cdev)
-+{
-+	int ret = 0;
-+
-+	if (led_cdev->brightness_get) {
-+		ret = led_cdev->brightness_get(led_cdev);
-+		if (ret >= 0) {
-+			led_cdev->brightness = ret;
-+			return 0;
-+		}
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(led_update_brightness);
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index bc221d11..cc85b16 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -139,6 +139,16 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
-  */
- extern void led_set_brightness(struct led_classdev *led_cdev,
- 			       enum led_brightness brightness);
-+/**
-+ * led_update_brightness - update LED brightness
-+ * @led_cdev: the LED to query
-+ *
-+ * Get an LED's current brightness and update led_cdev->brightness
-+ * member with the obtained value.
-+ *
-+ * Returns: 0 on success or negative error value on failure
-+ */
-+extern int led_update_brightness(struct led_classdev *led_cdev);
- 
- /*
-  * LED Triggers
+Thank you for organizing this. I'll be in Düsseldorf the whole week for ELCE 
+and LPC, and I will need to attend the IOMMU microconference at LPC on Friday 
+the 17th in the afternoon. Apart from that I'm interested and happy to 
+participate in the media mini-summit.
+
+Regarding topics, I'm thinking about runtime reconfiguration of pipelines, but 
+it's a bit early to tell. I have customer demand for that, but no exact 
+schedule yet, so it might be too early.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
