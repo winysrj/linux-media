@@ -1,215 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:36248 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733AbaHTNov (ORCPT
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:36388 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbaHNH0b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:51 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v5 05/10] DT: Add documentation for LED Class Flash Manger
-Date: Wed, 20 Aug 2014 15:44:14 +0200
-Message-id: <1408542259-415-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 14 Aug 2014 03:26:31 -0400
+Received: by mail-yk0-f177.google.com with SMTP id 79so685504ykr.8
+        for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 00:26:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1408000262-2774-1-git-send-email-panpan1.liu@samsung.com>
+References: <1408000262-2774-1-git-send-email-panpan1.liu@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Thu, 14 Aug 2014 16:25:51 +0900
+Message-ID: <CAMm-=zC5dHBarzoz+EdRd8oUU4WiJ1O-aKgZFybkveFroHVo1g@mail.gmail.com>
+Subject: Re: [PATCH] videobuf2-core: modify the num of users
+To: panpan liu <panpan1.liu@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-arm-kernel@lists.infradead.org,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch documents LED Class Flash Manager
-related bindings.
+On Thu, Aug 14, 2014 at 4:11 PM, panpan liu <panpan1.liu@samsung.com> wrote:
+> If num_users returns 1 or more than 1, that means we are not the
+> only user of the plane's memory.
+>
+> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- .../bindings/leds/leds-flash-manager.txt           |  163 ++++++++++++++++++++
- 1 file changed, 163 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-flash-manager.txt
+NACK.
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-flash-manager.txt b/Documentation/devicetree/bindings/leds/leds-flash-manager.txt
-new file mode 100644
-index 0000000..d36aca2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-flash-manager.txt
-@@ -0,0 +1,163 @@
-+* LED Flash Manager
-+
-+Flash manager is a part of LED Flash Class. It maintains
-+all the flash led devices which have their external strobe
-+signals routed through multiplexing devices.
-+The multiplexers are aggregated in the standalone 'flash_muxes'
-+node as subnodes which are referenced by the flash led devices.
-+
-+
-+flash_muxes node
-+----------------
-+
-+muxN subnode
-+------------
-+
-+There must be at least one muxN subnode, where N is the identifier
-+of the node, present in the flash_muxes node. One muxN node
-+represents one multiplexer.
-+
-+Required properties (mutually exclusive):
-+- gpios		: specifies the gpio pins used to set the states
-+		  of mux selectors, LSB first
-+- mux-async	: phandle to the node of the multiplexing device
-+
-+
-+
-+flash led device node
-+---------------------
-+
-+Following subnodes must be added to the LED Flash Class device
-+tree node described in Documentation/devicetree/bindings/leds/common.txt.
-+
-+
-+gate-software-strobe subnode
-+----------------------------
-+
-+The node defines multiplexer settings that need to be applied if
-+software strobe signal is to be routed to the flash led device.
-+
-+Required properties:
-+- mux		: phandle to the muxN node defined
-+		  in the flash_muxes node
-+- mux-line-id	: mux line identifier
-+
-+Optional subnodes:
-+- gate-software-strobe : if there are many multiplexers to configure,
-+			 they can be recursively nested.
-+
-+
-+gate-external-strobeN subnode
-+-----------------------------
-+
-+The node defines multiplexer settings that need to be applied if
-+external strobe signal is to be routed to the flash led device.
-+A flash led device can have many external strobe signal sources.
-+
-+Required properties:
-+- mux			: phandle to the muxN node defined
-+			  in the flash_muxes node
-+- mux-line-id		: mux line identifier
-+Optional properties:
-+- strobe-provider	: phandle to the device providing the
-+			  strobe signal. It is expected only
-+			  on the first level node. The referenced
-+			  node is expected to have 'compatible'
-+			  property, as providers are labelled
-+			  with it in the LED subsystem
-+
-+Optional subnodes:
-+- gate-external-strobeN	: if there are many multiplexers to configure,
-+			  they can be recursively nested.
-+
-+
-+Example:
-+
-+Following board configuration is assumed in this example:
-+
-+    ---------- ----------
-+    | FLASH1 | | FLASH2 |
-+    ---------- ----------
-+           \(0)   /(1)
-+          ----------
-+          |  MUX1  |
-+          ----------
-+              |
-+          ----------
-+          |  MUX2  |
-+          ----------
-+           /(0)   \(1)
-+      ----------  --------------------
-+      |  MUX3  |  | SOC FLASHEN GPIO |
-+      ----------  --------------------
-+       /(0)   \(1)
-+----------- -----------
-+| SENSOR1 | | SENSOR2 |
-+----------- -----------
-+
-+
-+dummy_mux: led_mux {
-+	compatible = "led-async-mux";
-+};
-+
-+flash_muxes {
-+	flash_mux1: mux1 {
-+                gpios = <&gpj1 1 0>, <&gpj1 2 0>;
-+	};
-+
-+	flash_mux2: mux2 {
-+		mux-async = <&dummy_mux>;
-+	};
-+
-+	flash_mux3: mux3 {
-+                gpios = <&gpl1 1 0>, <&gpl1 2 0>;
-+	};
-+};
-+
-+max77693-flash {
-+	compatible = "maxim,max77693-flash";
-+
-+	//other device specific properties here
-+
-+	gate-software-strobe {
-+		mux = <&flash_mux1>;
-+		mux-line-id = <0>;
-+
-+		gate-software-strobe {
-+			mux = <&flash_mux2>;
-+			mux-line-id = <1>;
-+		};
-+	};
-+
-+	gate-external-strobe1 {
-+		strobe-provider = <&s5c73m3_spi>;
-+		mux = <&flash_mux1>;
-+		mux-line-id = <0>;
-+
-+		gate-external-strobe1 {
-+			mux = <&flash_mux2>;
-+			mux-line-id = <0>;
-+
-+			gate-external-strobe1 {
-+				mux = <&flash_mux3>;
-+				mux-line-id = <0>;
-+			};
-+		};
-+	};
-+
-+	gate-external-strobe2 {
-+		strobe-provider = <&s5k6a3>;
-+		mux = <&flash_mux1>;
-+		mux-line-id = <0>;
-+
-+		gate-external-strobe2 {
-+			mux = <&flash_mux2>;
-+			mux-line-id = <0>;
-+
-+			gate-external-strobe2 {
-+				mux = <&flash_mux3>;
-+				mux-line-id = <1>;
-+			};
-+		};
-+	};
-+};
+Please read the function documentation and how it is used. If the
+number of users is 1, we are the only user and should be able to free
+the queue. This will make us unable to do so.
+
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index c359006..d3a4b8f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -625,7 +625,7 @@ static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
+>                  * case anyway. If num_users() returns more than 1,
+>                  * we are not the only user of the plane's memory.
+>                  */
+> -               if (mem_priv && call_memop(vb, num_users, mem_priv) > 1)
+> +               if (mem_priv && call_memop(vb, num_users, mem_priv) >= 1)
+>                         return true;
+>         }
+>         return false;
+> --
+> 1.7.9.5
+
 -- 
-1.7.9.5
-
+Thanks,
+Pawel Osciak
