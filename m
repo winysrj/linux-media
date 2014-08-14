@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53768 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751470AbaH2BNf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 21:13:35 -0400
-Message-ID: <53FFD3BA.1000009@iki.fi>
-Date: Fri, 29 Aug 2014 04:13:30 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Kaya Saman <SamanKaya@netscape.net>,
-	"P. van Gaans" <w3ird_n3rd@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: Advice on DVB-S/S2 card and CAM support
-References: <53D58EDF.1090102@netscape.net> <53FEA63E.9020208@gmx.net> <53FF406B.9040001@netscape.net>
-In-Reply-To: <53FF406B.9040001@netscape.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3794 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754668AbaHNJyW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 05:54:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 08/20] cx23885: map invalid fields to a valid field.
+Date: Thu, 14 Aug 2014 11:53:53 +0200
+Message-Id: <1408010045-24016-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/28/2014 05:44 PM, Kaya Saman wrote:
-> In my research I got suggested the Digital Devices line of products:
->
-> http://www.digitaldevices.de/
->
-> They are German so hopefully the quality will be extremely good and they
-> all seem natively supported.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Not natively supported. In my understanding ddbridge DVB-S/S2 is 
-supported, but CAM/CI has some problems as it is implemented differently 
-than kernel.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/cx23885-video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-regards
-Antti
-
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index ad02912..9bb19fd 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -948,7 +948,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
+ 	default:
+-		return -EINVAL;
++		field = V4L2_FIELD_INTERLACED;
++		break;
+ 	}
+ 
+ 	f->fmt.pix.field = field;
 -- 
-http://palosaari.fi/
+2.1.0.rc1
+
