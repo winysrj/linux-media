@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4926 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261AbaHTW7p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 12/29] kinect: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:11 +0200
-Message-Id: <1408575568-20562-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga02.intel.com ([134.134.136.20]:22951 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752368AbaHNNK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 09:10:57 -0400
+Message-ID: <53ECB86D.6090102@linux.intel.com>
+Date: Thu, 14 Aug 2014 16:23:57 +0300
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+MIME-Version: 1.0
+To: Udo van den Heuvel <udovdh@xs4all.nl>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	USB list <linux-usb@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: 3.15.6 USB issue with pwc cam
+References: <53DCE329.4030106@xs4all.nl> <53EA2DA2.4060605@redhat.com> <53EA350F.2040403@xs4all.nl> <6676742.btapbsDqkp@avalon> <53EA4057.4020103@xs4all.nl> <53EA4177.7000406@xs4all.nl>
+In-Reply-To: <53EA4177.7000406@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/12/2014 07:31 PM, Udo van den Heuvel wrote:
+> On 2014-08-12 18:27, Hans Verkuil wrote:
+>> It was a bit confusing, but he has two problems: one pwc, one (the warning) for
+>> uvc.
+> 
+> Indeed.
+> Do I need to provide additional info to help find the root cause(s)?
+> 
+>
 
-drivers/media/usb/gspca/kinect.c:151:19: warning: incorrect type in assignment (different base types)
-drivers/media/usb/gspca/kinect.c:152:19: warning: incorrect type in assignment (different base types)
-drivers/media/usb/gspca/kinect.c:153:19: warning: incorrect type in assignment (different base types)
-drivers/media/usb/gspca/kinect.c:191:13: warning: restricted __le16 degrades to integer
-drivers/media/usb/gspca/kinect.c:217:16: warning: incorrect type in assignment (different base types)
-drivers/media/usb/gspca/kinect.c:218:16: warning: incorrect type in assignment (different base types)
+Could you help me take a look at the xhci side.
 
-Note that this fixes a real bug where cpu_to_le16 was used instead of the correct
-le16_to_cpu.
+The error:
+[53009.847233] xhci_hcd 0000:02:00.0: ERROR: unexpected command completion code 0x11.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/gspca/kinect.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Means we got a parameter error, one of the values the xhci driver sends to the controller
+in the configure endpoint command is invalid.
 
-diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
-index 45bc1f5..3cb30a3 100644
---- a/drivers/media/usb/gspca/kinect.c
-+++ b/drivers/media/usb/gspca/kinect.c
-@@ -51,9 +51,9 @@ struct pkt_hdr {
- 
- struct cam_hdr {
- 	uint8_t magic[2];
--	uint16_t len;
--	uint16_t cmd;
--	uint16_t tag;
-+	__le16 len;
-+	__le16 cmd;
-+	__le16 tag;
- };
- 
- /* specific webcam descriptor */
-@@ -188,9 +188,9 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
- 		       rhdr->tag, chdr->tag);
- 		return -1;
- 	}
--	if (cpu_to_le16(rhdr->len) != (actual_len/2)) {
-+	if (le16_to_cpu(rhdr->len) != (actual_len/2)) {
- 		pr_err("send_cmd: Bad len %04x != %04x\n",
--		       cpu_to_le16(rhdr->len), (int)(actual_len/2));
-+		       le16_to_cpu(rhdr->len), (int)(actual_len/2));
- 		return -1;
- 	}
- 
-@@ -211,7 +211,7 @@ static int write_register(struct gspca_dev *gspca_dev, uint16_t reg,
- 			uint16_t data)
- {
- 	uint16_t reply[2];
--	uint16_t cmd[2];
-+	__le16 cmd[2];
- 	int res;
- 
- 	cmd[0] = cpu_to_le16(reg);
--- 
-2.1.0.rc1
+This error is causing the "Not enough bandwidth" entries in the log as well, not
+really a bandwidth error.
 
+Can you add dynamic debugging, mount debugfs, and do:
+echo -n 'module xhci_hcd =p' > /sys/kernel/debug/dynamic_debug/control
+
+Then plug in your usb, and send me the output. 
+It should print out the whole input context (all parameters) used in the configure endpoint command 
+
+-Mathias
