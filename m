@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:33674 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751060AbaHaE6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Aug 2014 00:58:06 -0400
-Date: Sun, 31 Aug 2014 06:58:01 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-To: Jim Davis <jim.epost@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"m.chehab" <m.chehab@samsung.com>, hans.verkuil@cisco.com,
-	felipensp@gmail.com, mkrufky@linuxtv.org, crazycat69@narod.ru,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: randconfig build error with next-20140829, in
-	drivers/media/usb/dvb-usb/technisat-usb2.c
-Message-ID: <20140831045801.GL3347@wotan.suse.de>
-References: <CA+r1ZhhfV+fLKY6X0fp2QevQGZMx4g=okSeZjPN9Z3LZJqykGg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+r1ZhhfV+fLKY6X0fp2QevQGZMx4g=okSeZjPN9Z3LZJqykGg@mail.gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2033 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689AbaHNJyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 05:54:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 17/20] cx23885: fix weird sizes.
+Date: Thu, 14 Aug 2014 11:54:02 +0200
+Message-Id: <1408010045-24016-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 29, 2014 at 09:19:42AM -0700, Jim Davis wrote:
-> Building with the attached random configuration file,
-> 
->   LD      init/built-in.o
-> drivers/built-in.o: In function `technisat_usb2_set_voltage':
-> technisat-usb2.c:(.text+0x3b4919): undefined reference to `stv090x_set_gpio'
-> make: *** [vmlinux] Error 1
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is because MEDIA_SUBDRV_AUTOSELECT is designed to let you
-pick and choose, technically we should just have:
+These values make no sense. All SDTV standards have the same width.
+This seems to be copied from the cx88 driver. Just drop these weird
+values.
 
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index c5d9566..5a4e82e 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -313,7 +313,7 @@ config DVB_USB_AZ6027
- config DVB_USB_TECHNISAT_USB2
- 	tristate "Technisat DVB-S/S2 USB2.0 support"
- 	depends on DVB_USB
--	select DVB_STV090x if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV090x
- 	select DVB_STV6110x if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to support the Technisat USB2 DVB-S/S2 device
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/cx23885.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-and that would fix the issue you saw but then again if we do that
-we might as well also do the same for DVB_STV6110x and a slew of
-different Kconfig entries on that file.
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 99a5fe0..f542ced 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
+ 
+ static inline unsigned int norm_maxw(v4l2_std_id norm)
+ {
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
++	return 720;
+ }
+ 
+ static inline unsigned int norm_maxh(v4l2_std_id norm)
+ {
+-	return (norm & V4L2_STD_625_50) ? 576 : 480;
++	return (norm & V4L2_STD_525_60) ? 480 : 576;
+ }
+ 
+ static inline unsigned int norm_swidth(v4l2_std_id norm)
+ {
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
++	return 754;
+ }
+-- 
+2.1.0.rc1
 
-Someone needs to make a judgement call and either fix all these
-Kconfig entries or document that MEDIA_SUBDRV_AUTOSELECT will
-let you shoot yourself in the foot at build time. Then what
-I recommend in the meantime is simply to not trust randomconfig
-builds unless you are always enabling MEDIA_SUBDRV_AUTOSELECT.
-
-I think its fair to expect for 'make randomconfig' to give you
-a configuration that lets you build things without issue so
-I see this more of an issue with MEDIA_SUBDRV_AUTOSELECT and
-this sloppy embedded craze.
-
-  Luis
