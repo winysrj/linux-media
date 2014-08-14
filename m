@@ -1,76 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44079 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755709AbaHZVzS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33195 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750737AbaHNEem (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:18 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 09/35] [media] atmel-isi: tag dma_addr_t as such
-Date: Tue, 26 Aug 2014 18:54:45 -0300
-Message-Id: <1409090111-8290-10-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 14 Aug 2014 00:34:42 -0400
+Date: Thu, 14 Aug 2014 07:34:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2
+ flash
+Message-ID: <20140814043436.GM16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
+ <53CCF59E.3070200@iki.fi>
+ <53DF9C2A.8060403@samsung.com>
+ <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
+ <53E8C4BA.6050805@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53E8C4BA.6050805@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using u32 for DMA address, use the proper
-Kernel type for it.
+Hi Jacek,
 
-   drivers/media/platform/soc_camera/atmel-isi.c: In function 'atmel_isi_probe':
->> drivers/media/platform/soc_camera/atmel-isi.c:981:26: warning: passing argument 3 of 'dma_alloc_attrs' from incompatible pointer type
-     isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
-                             ^
+On Mon, Aug 11, 2014 at 03:27:22PM +0200, Jacek Anaszewski wrote:
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+...
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 3408b045b3f1..f87012b15b28 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -54,7 +54,7 @@ static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
- struct isi_dma_desc {
- 	struct list_head list;
- 	struct fbd *p_fbd;
--	u32 fbd_phys;
-+	dma_addr_t fbd_phys;
- };
- 
- /* Frame buffer data */
-@@ -75,7 +75,7 @@ struct atmel_isi {
- 
- 	/* Allocate descriptors for dma buffer use */
- 	struct fbd			*p_fb_descriptors;
--	u32				fb_descriptors_phys;
-+	dma_addr_t			fb_descriptors_phys;
- 	struct				list_head dma_desc_head;
- 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
- 
-@@ -169,7 +169,7 @@ static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
- 		isi->active = list_entry(isi->video_buffer_list.next,
- 					struct frame_buffer, list);
- 		isi_writel(isi, ISI_DMA_C_DSCR,
--			isi->active->p_dma_desc->fbd_phys);
-+			(u32)isi->active->p_dma_desc->fbd_phys);
- 		isi_writel(isi, ISI_DMA_C_CTRL,
- 			ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
- 		isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
-@@ -346,7 +346,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
- 		return;
- 	}
- 
--	isi_writel(isi, ISI_DMA_C_DSCR, buffer->p_dma_desc->fbd_phys);
-+	isi_writel(isi, ISI_DMA_C_DSCR, (u32)buffer->p_dma_desc->fbd_phys);
- 	isi_writel(isi, ISI_DMA_C_CTRL, ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
- 	isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
- 
+> >>>>diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
+> >>>>new file mode 100644
+> >>>>index 0000000..effa46b
+> >>>>--- /dev/null
+> >>>>+++ b/include/media/v4l2-flash.h
+> >>>>@@ -0,0 +1,137 @@
+> >>>>+/*
+> >>>>+ * V4L2 Flash LED sub-device registration helpers.
+> >>>>+ *
+> >>>>+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
+> >>>>+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>+ *
+> >>>>+ * This program is free software; you can redistribute it and/or modify
+> >>>>+ * it under the terms of the GNU General Public License version 2 as
+> >>>>+ * published by the Free Software Foundation."
+> >>>>+ */
+> >>>>+
+> >>>>+#ifndef _V4L2_FLASH_H
+> >>>>+#define _V4L2_FLASH_H
+> >>>>+
+> >>>>+#include <media/v4l2-ctrls.h>
+> >>>>+#include <media/v4l2-device.h>
+> >>>>+#include <media/v4l2-dev.h>le
+> >>>>+#include <media/v4l2-event.h>
+> >>>>+#include <media/v4l2-ioctl.h>
+> >>>>+
+> >>>>+struct led_classdev_flash;
+> >>>>+struct led_classdev;
+> >>>>+enum led_brightness;
+> >>>>+
+> >>>>+struct v4l2_flash_ops {
+> >>>>+	int (*torch_brightness_set)(struct led_classdev *led_cdev,
+> >>>>+					enum led_brightness brightness);
+> >>>>+	int (*torch_brightness_update)(struct led_classdev *led_cdev);
+> >>>>+	int (*flash_brightness_set)(struct led_classdev_flash *flash,
+> >>>>+					u32 brightness);
+> >>>>+	int (*flash_brightness_update)(struct led_classdev_flash *flash);
+> >>>>+	int (*strobe_set)(struct led_classdev_flash *flash, bool state);
+> >>>>+	int (*strobe_get)(struct led_classdev_flash *flash, bool *state);
+> >>>>+	int (*timeout_set)(struct led_classdev_flash *flash, u32 timeout);
+> >>>>+	int (*indicator_brightness_set)(struct led_classdev_flash *flash,
+> >>>>+					u32 brightness);
+> >>>>+	int (*indicator_brightness_update)(struct led_classdev_flash *flash);
+> >>>>+	int (*external_strobe_set)(struct led_classdev_flash *flash,
+> >>>>+					bool enable);
+> >>>>+	int (*fault_get)(struct led_classdev_flash *flash, u32 *fault);
+> >>>>+	void (*sysfs_lock)(struct led_classdev *led_cdev);
+> >>>>+	void (*sysfs_unlock)(struct led_classdev *led_cdev);
+> >>>
+> >>>These functions are not driver specific and there's going to be just one
+> >>>implementation (I suppose). Could you refresh my memory regarding why
+> >>>the LED framework functions aren't called directly?
+> >>
+> >>These ops are required to make possible building led-class-flash as
+> >>a kernel module.
+> >
+> >Assuming you'd use the actual implementation directly, what would be the
+> >dependencies? I don't think the LED flash framework has any callbacks
+> >towards the V4L2 (LED) flash framework, does it? Please correct my
+> >understanding if I'm missing something. In Makefile format, assume all
+> >targets are .PHONY:
+> >
+> >led-flash-api: led-api
+> >
+> >v4l2-flash: led-flash-api
+> >
+> >driver: led-flash-api v4l2-flash
+> 
+> LED Class Flash driver gains V4L2 Flash API when
+> CONFIG_V4L2_FLASH_LED_CLASS is defined. This is accomplished in
+> the probe function by either calling v4l2_flash_init function
+> or the macro of this name, when the CONFIG_V4L2_FLASH_LED_CLASS
+> macro isn't defined.
+> 
+> If the v4l2-flash.c was to call the LED API directly, then the
+> led-class-flash module symbols would have to be available at
+> v4l2-flash.o linking time.
+
+Is this an issue? EXPORT_SYMBOL_GPL() for the relevant symbols should be
+enough.
+
+> This requirement cannot be met if the led-class-flash is built
+> as a module.
+> 
+> Use of function pointers in the v4l2-flash.c allows to compile it
+> into the kernel and enables the possibility of adding the V4L2 Flash
+> support conditionally, during driver probing.
+
+I'd simply decide this during kernel compilation time. If you want
+something, just enable it. v4l2_flash_init() is called directly by the
+driver in any case, so unless that is also called through a wrapper the
+driver is still directly dependent on it.
+
 -- 
-1.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
