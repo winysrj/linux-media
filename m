@@ -1,158 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2045 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaH2GaW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33215 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750747AbaHNEja (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Aug 2014 02:30:22 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7T6UJrL097117
-	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:30:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C275B2A0757
-	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:30:16 +0200 (CEST)
-Message-ID: <54001DF8.2070503@xs4all.nl>
-Date: Fri, 29 Aug 2014 08:30:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 14 Aug 2014 00:39:30 -0400
+Date: Thu, 14 Aug 2014 07:39:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com
+Subject: Re: [PATCH/RFC v4 06/21] leds: add API for setting torch brightness
+Message-ID: <20140814043925.GN16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
+ <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
+ <53DF7E0E.2060705@samsung.com>
+ <20140804125019.GA16460@valkosipuli.retiisi.org.uk>
+ <53E37B29.2080106@samsung.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] Add vivid test driver, remove old vivi test
- driver
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53E37B29.2080106@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Bryan and Richard,
 
-This adds the new vivid driver as a replacement for the old vivi.
+Your opinion would be much appreciated to a question myself and Jacek were
+pondering. Please see below.
 
-This pull request is identical to the v2 patch series posted earlier:
+On Thu, Aug 07, 2014 at 03:12:09PM +0200, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 08/04/2014 02:50 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >Thank you for your continued efforts on this!
+> >
+> >On Mon, Aug 04, 2014 at 02:35:26PM +0200, Jacek Anaszewski wrote:
+> >>On 07/16/2014 11:54 PM, Sakari Ailus wrote:
+> >>>Hi Jacek,
+> >>>
+> >>>Jacek Anaszewski wrote:
+> >>>...
+> >>>>diff --git a/include/linux/leds.h b/include/linux/leds.h
+> >>>>index 1a130cc..9bea9e6 100644
+> >>>>--- a/include/linux/leds.h
+> >>>>+++ b/include/linux/leds.h
+> >>>>@@ -44,11 +44,21 @@ struct led_classdev {
+> >>>>  #define LED_BLINK_ONESHOT_STOP    (1 << 18)
+> >>>>  #define LED_BLINK_INVERT    (1 << 19)
+> >>>>  #define LED_SYSFS_LOCK        (1 << 20)
+> >>>>+#define LED_DEV_CAP_TORCH    (1 << 21)
+> >>>>
+> >>>>      /* Set LED brightness level */
+> >>>>      /* Must not sleep, use a workqueue if needed */
+> >>>>      void        (*brightness_set)(struct led_classdev *led_cdev,
+> >>>>                        enum led_brightness brightness);
+> >>>>+    /*
+> >>>>+     * Set LED brightness immediately - it is required for flash led
+> >>>>+     * devices as they require setting torch brightness to have
+> >>>>immediate
+> >>>>+     * effect. brightness_set op cannot be used for this purpose because
+> >>>>+     * the led drivers schedule a work queue task in it to allow for
+> >>>>+     * being called from led-triggers, i.e. from the timer irq context.
+> >>>>+     */
+> >>>
+> >>>Do we need to classify actual devices based on this? I think it's rather
+> >>>a different API behaviour between the LED and the V4L2 APIs.
+> >>>
+> >>>On devices that are slow to control, the behaviour should be asynchronous
+> >>>over the LED API and synchronous when accessed through the V4L2 API. How
+> >>>about implementing the work queue, as I have suggested, in the
+> >>>framework, so
+> >>>that individual drivers don't need to care about this and just implement
+> >>>the
+> >>>synchronous variant of this op? A flag could be added to distinguish
+> >>>devices
+> >>>that are fast so that the work queue isn't needed.
+> >>>
+> >>>It'd be nice to avoid individual drivers having to implement multiple
+> >>>ops to
+> >>>do the same thing, just for differing user space interfacs.
+> >>>
+> >>
+> >>It is not only the matter of a device controller speed. If a flash
+> >>device is to be made accessible from the LED subsystem, then it
+> >>should be also compatible with led-triggers. Some of led-triggers
+> >>call brightness_set op from the timer irq context and thus no
+> >>locking in the callback can occur. This requirement cannot be
+> >>met i.e. if i2c bus is to be used. This is probably the primary
+> >>reason for scheduling work queue tasks in brightness_set op.
+> >>
+> >>Having the above in mind, setting a brightness in a work queue
+> >>task must be possible for all LED Class Flash drivers, regardless
+> >>whether related devices have fast or slow controller.
+> >>
+> >>Let's recap the cost of possible solutions then:
+> >>
+> >>1) Moving the work queues to the LED framework
+> >>
+> >>   - it would probably require extending led_set_brightness and
+> >>     __led_set_brightness functions by a parameter indicating whether it
+> >>     should call brightness_set op in the work queue task or directly;
+> >>   - all existing triggers would have to be updated accordingly;
+> >>   - work queues would have to be removed from all the LED drivers;
+> >>
+> >>2) adding led_set_torch_brightness API
+> >>
+> >>   - no modifications in existing drivers and triggers would be required
+> >>   - instead, only the modifications from the discussed patch would
+> >>     be required
+> >>
+> >>Solution 1 looks cleaner but requires much more modifications.
+> >
+> >How about a combination of the two, i.e. option 1 with the old op remaining
+> >there for compatibility with the old drivers (with a comment telling it's
+> >deprecated)?
+> >
+> >This way new drivers will benefit from having to implement this just once,
+> >and modifications to the existing drivers could be left for later.
+> 
+> It's OK for me, but the opinion from the LED side guys is needed here
+> as well.
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/81354
+Ping.
 
-except for the final patch that removes the vivi driver which is new to this
-pull request.
+> >The downside is that any old drivers wouldn't get V4L2 flash API but that's
+> >entirely acceptable in my opinion since these would hardly be needed in use
+> >cases that would benefit from V4L2 flash API.
+> 
+> In the version 4 of the patch set I changed the implementation, so that
+> a flash led driver must call led_classdev_flash_register to get
+> registered as a LED Flash Class device and v4l2_flash_init to get
+> V4L2 Flash API. In effect old drivers will have no chance to get V4L2
+> Flash API either way.
 
-One question: the vivid driver (like the vivi driver) is not build by default.
-Should that be changed? In my opinion this driver should be enabled by distros,
-so I am in favor of changing Kconfig. Let me know if you agree and I'll make a
-follow up patch or you can change this yourself.
+-- 
+Kind regards,
 
-Regards,
-
-	Hans
-
-The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
-
-  [media] media: ttpci: fix av7110 build to be compatible with CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git vivid2
-
-for you to fetch changes up to d5f410f54e87ba420de839dec4e806707cc2aff2:
-
-  vivi: remove driver, it's replaced by vivid. (2014-08-25 13:49:53 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (13):
-      vb2: fix multiplanar read() with non-zero data_offset
-      vivid.txt: add documentation for the vivid driver
-      vivid: add core driver code
-      vivid: add the control handling code
-      vivid: add the video capture and output parts
-      vivid: add VBI capture and output code
-      vivid: add the kthread code that controls the video rate
-      vivid: add a simple framebuffer device for overlay testing
-      vivid: add the Test Pattern Generator
-      vivid: add support for radio receivers and transmitters
-      vivid: add support for software defined radio
-      vivid: enable the vivid driver
-      vivi: remove driver, it's replaced by vivid.
-
- Documentation/video4linux/vivid.txt               | 1109 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/Kconfig                    |   15 +-
- drivers/media/platform/Makefile                   |    2 +-
- drivers/media/platform/vivi.c                     | 1542 -----------------------------------------------------------------
- drivers/media/platform/vivid/Kconfig              |   19 +
- drivers/media/platform/vivid/Makefile             |    6 +
- drivers/media/platform/vivid/vivid-core.c         | 1390 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-core.h         |  520 ++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-ctrls.c        | 1502 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-ctrls.h        |   34 ++
- drivers/media/platform/vivid/vivid-kthread-cap.c  |  885 +++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-kthread-cap.h  |   26 ++
- drivers/media/platform/vivid/vivid-kthread-out.c  |  304 +++++++++++++
- drivers/media/platform/vivid/vivid-kthread-out.h  |   26 ++
- drivers/media/platform/vivid/vivid-osd.c          |  400 +++++++++++++++++
- drivers/media/platform/vivid/vivid-osd.h          |   27 ++
- drivers/media/platform/vivid/vivid-radio-common.c |  189 ++++++++
- drivers/media/platform/vivid/vivid-radio-common.h |   40 ++
- drivers/media/platform/vivid/vivid-radio-rx.c     |  287 ++++++++++++
- drivers/media/platform/vivid/vivid-radio-rx.h     |   31 ++
- drivers/media/platform/vivid/vivid-radio-tx.c     |  141 ++++++
- drivers/media/platform/vivid/vivid-radio-tx.h     |   29 ++
- drivers/media/platform/vivid/vivid-rds-gen.c      |  165 +++++++
- drivers/media/platform/vivid/vivid-rds-gen.h      |   53 +++
- drivers/media/platform/vivid/vivid-sdr-cap.c      |  499 +++++++++++++++++++++
- drivers/media/platform/vivid/vivid-sdr-cap.h      |   34 ++
- drivers/media/platform/vivid/vivid-tpg-colors.c   |  310 +++++++++++++
- drivers/media/platform/vivid/vivid-tpg-colors.h   |   64 +++
- drivers/media/platform/vivid/vivid-tpg.c          | 1439 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-tpg.h          |  438 +++++++++++++++++++
- drivers/media/platform/vivid/vivid-vbi-cap.c      |  356 +++++++++++++++
- drivers/media/platform/vivid/vivid-vbi-cap.h      |   40 ++
- drivers/media/platform/vivid/vivid-vbi-gen.c      |  248 +++++++++++
- drivers/media/platform/vivid/vivid-vbi-gen.h      |   33 ++
- drivers/media/platform/vivid/vivid-vbi-out.c      |  247 +++++++++++
- drivers/media/platform/vivid/vivid-vbi-out.h      |   34 ++
- drivers/media/platform/vivid/vivid-vid-cap.c      | 1729 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-vid-cap.h      |   71 +++
- drivers/media/platform/vivid/vivid-vid-common.c   |  571 ++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-vid-common.h   |   61 +++
- drivers/media/platform/vivid/vivid-vid-out.c      | 1205 +++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-vid-out.h      |   57 +++
- drivers/media/v4l2-core/videobuf2-core.c          |    6 +
- 43 files changed, 14628 insertions(+), 1556 deletions(-)
- create mode 100644 Documentation/video4linux/vivid.txt
- delete mode 100644 drivers/media/platform/vivi.c
- create mode 100644 drivers/media/platform/vivid/Kconfig
- create mode 100644 drivers/media/platform/vivid/Makefile
- create mode 100644 drivers/media/platform/vivid/vivid-core.c
- create mode 100644 drivers/media/platform/vivid/vivid-core.h
- create mode 100644 drivers/media/platform/vivid/vivid-ctrls.c
- create mode 100644 drivers/media/platform/vivid/vivid-ctrls.h
- create mode 100644 drivers/media/platform/vivid/vivid-kthread-cap.c
- create mode 100644 drivers/media/platform/vivid/vivid-kthread-cap.h
- create mode 100644 drivers/media/platform/vivid/vivid-kthread-out.c
- create mode 100644 drivers/media/platform/vivid/vivid-kthread-out.h
- create mode 100644 drivers/media/platform/vivid/vivid-osd.c
- create mode 100644 drivers/media/platform/vivid/vivid-osd.h
- create mode 100644 drivers/media/platform/vivid/vivid-radio-common.c
- create mode 100644 drivers/media/platform/vivid/vivid-radio-common.h
- create mode 100644 drivers/media/platform/vivid/vivid-radio-rx.c
- create mode 100644 drivers/media/platform/vivid/vivid-radio-rx.h
- create mode 100644 drivers/media/platform/vivid/vivid-radio-tx.c
- create mode 100644 drivers/media/platform/vivid/vivid-radio-tx.h
- create mode 100644 drivers/media/platform/vivid/vivid-rds-gen.c
- create mode 100644 drivers/media/platform/vivid/vivid-rds-gen.h
- create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.c
- create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.h
- create mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
- create mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
- create mode 100644 drivers/media/platform/vivid/vivid-tpg.c
- create mode 100644 drivers/media/platform/vivid/vivid-tpg.h
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-cap.c
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-cap.h
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-gen.c
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-gen.h
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-out.c
- create mode 100644 drivers/media/platform/vivid/vivid-vbi-out.h
- create mode 100644 drivers/media/platform/vivid/vivid-vid-cap.c
- create mode 100644 drivers/media/platform/vivid/vivid-vid-cap.h
- create mode 100644 drivers/media/platform/vivid/vivid-vid-common.c
- create mode 100644 drivers/media/platform/vivid/vivid-vid-common.h
- create mode 100644 drivers/media/platform/vivid/vivid-vid-out.c
- create mode 100644 drivers/media/platform/vivid/vivid-vid-out.h
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
