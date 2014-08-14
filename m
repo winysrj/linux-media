@@ -1,60 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52213 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755913AbaHERAf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2776 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753902AbaHNMQy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 08:16:54 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7ECGplW027386
+	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 14:16:53 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.cisco.com (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id CBCC72A2E57
+	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 14:16:46 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/15] [media] coda: add an intermediate debug level
-Date: Tue,  5 Aug 2014 19:00:15 +0200
-Message-Id: <1407258020-12078-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
-References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCHv2 0/2] Add driver for tw68xx PCI grabber boards
+Date: Thu, 14 Aug 2014 14:16:46 +0200
+Message-Id: <1408018608-7858-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dumping all register accesses drowns other debugging messages
-in the log. Add a less verbose debug level.
+Changes since v1:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+- Fix warning that Mauro found (and why didn't I get that warning?)
+- Replaced dprintk by either dev_dbg or dev_err. But this means I need to
+  retest the driver when I'm back from the LinuxCon to be sure I'm not
+  getting any spurious DMA errors.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6020e33..7311452 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -58,7 +58,7 @@
- 
- int coda_debug;
- module_param(coda_debug, int, 0644);
--MODULE_PARM_DESC(coda_debug, "Debug level (0-1)");
-+MODULE_PARM_DESC(coda_debug, "Debug level (0-2)");
- 
- struct coda_fmt {
- 	char *name;
-@@ -67,7 +67,7 @@ struct coda_fmt {
- 
- void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- {
--	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-+	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
- 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
- 	writel(data, dev->regs_base + reg);
- }
-@@ -76,7 +76,7 @@ unsigned int coda_read(struct coda_dev *dev, u32 reg)
- {
- 	u32 data;
- 	data = readl(dev->regs_base + reg);
--	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-+	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
- 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
- 	return data;
- }
--- 
-2.0.1
+Add support for the tw68 driver. The driver has been out-of-tree for many
+years on gitorious: https://gitorious.org/tw68/tw68-v2
+
+I have refactored and ported that driver to the latest V4L2 core frameworks.
+
+Tested with my Techwell tw6805a and tw6816 grabber boards.
+
+Note that there is no audio support. If anyone is interested in adding alsa
+support, please contact me. It's definitely doable.
+
+These devices are quite common and people are using the out-of-tree driver,
+so it would be nice to have proper support for this in the mainline kernel.
+
+Regards,
+
+	Hans
 
