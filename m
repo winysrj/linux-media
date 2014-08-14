@@ -1,648 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35195 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428AbaHIWr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 18:47:26 -0400
-Message-ID: <53E6A4FB.8060204@iki.fi>
-Date: Sun, 10 Aug 2014 01:47:23 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4925 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754530AbaHNMNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 08:13:15 -0400
+Message-ID: <53ECA7CB.7070201@xs4all.nl>
+Date: Thu, 14 Aug 2014 14:12:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 1/4] sp2: Add I2C driver for CIMaX SP2 common interface
- module
-References: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407481598-24598-1-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH for v3.17] videobuf2-dma-sg: fix for wrong GFP mask to
+ sg_alloc_table_from_pages
+References: <53DB85AA.3010207@xs4all.nl> <20140814090911.22806913.m.chehab@samsung.com>
+In-Reply-To: <20140814090911.22806913.m.chehab@samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+My apologies, I forgot about that one. I agree, let's wait until the 3.17 fixes
+are merged and I'll respin this series then.
 
-Antti
+Regards,
 
-On 08/08/2014 10:06 AM, Olli Salonen wrote:
-> Driver for the CIMaX SP2 common interface chip. It is very much based on
-> the existing cimax2 driver for cx23885, but should be more reusable. The
-> product has been sold with name Atmel T90FJR as well and the data sheets
-> for that chip seem to be publicly available.
->
-> It seems that the USB device that I have and the cx23885 based devices will
-> need to interact differently with the chip for the CAM operations. Thus
-> there is one callback function that is passed on to the sp2 driver
-> (see function sp2_ci_op_cam for that one).
->
-> IRQ functionality is not included currently (not needed by USB devices
-> and I don't have a PCIe device for development).
->
-> This is the second version of the patch series after review by Antti
-> Palosaari.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->   drivers/media/dvb-frontends/Kconfig    |   7 +
->   drivers/media/dvb-frontends/Makefile   |   1 +
->   drivers/media/dvb-frontends/sp2.c      | 441 +++++++++++++++++++++++++++++++++
->   drivers/media/dvb-frontends/sp2.h      |  53 ++++
->   drivers/media/dvb-frontends/sp2_priv.h |  50 ++++
->   5 files changed, 552 insertions(+)
->   create mode 100644 drivers/media/dvb-frontends/sp2.c
->   create mode 100644 drivers/media/dvb-frontends/sp2.h
->   create mode 100644 drivers/media/dvb-frontends/sp2_priv.h
->
-> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> index fe0ddcc..c38c936 100644
-> --- a/drivers/media/dvb-frontends/Kconfig
-> +++ b/drivers/media/dvb-frontends/Kconfig
-> @@ -720,6 +720,13 @@ config DVB_A8293
->   	depends on DVB_CORE && I2C
->   	default m if !MEDIA_SUBDRV_AUTOSELECT
->
-> +config DVB_SP2
-> +	tristate "CIMaX SP2"
-> +	depends on DVB_CORE && I2C
-> +	default m if !MEDIA_SUBDRV_AUTOSELECT
-> +	help
-> +	  CIMaX SP2/SP2HF Common Interface module.
-> +
->   config DVB_LGS8GL5
->   	tristate "Silicon Legend LGS-8GL5 demodulator (OFDM)"
->   	depends on DVB_CORE && I2C
-> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-> index edf103d..3498b95 100644
-> --- a/drivers/media/dvb-frontends/Makefile
-> +++ b/drivers/media/dvb-frontends/Makefile
-> @@ -107,6 +107,7 @@ obj-$(CONFIG_DVB_DRXK) += drxk.o
->   obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
->   obj-$(CONFIG_DVB_SI2165) += si2165.o
->   obj-$(CONFIG_DVB_A8293) += a8293.o
-> +obj-$(CONFIG_DVB_SP2) += sp2.o
->   obj-$(CONFIG_DVB_TDA10071) += tda10071.o
->   obj-$(CONFIG_DVB_RTL2830) += rtl2830.o
->   obj-$(CONFIG_DVB_RTL2832) += rtl2832.o
-> diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
-> new file mode 100644
-> index 0000000..9b684d5
-> --- /dev/null
-> +++ b/drivers/media/dvb-frontends/sp2.c
-> @@ -0,0 +1,441 @@
-> +/*
-> + * CIMaX SP2/SP2HF (Atmel T90FJR) CI driver
-> + *
-> + * Copyright (C) 2014 Olli Salonen <olli.salonen@iki.fi>
-> + *
-> + * Heavily based on CIMax2(R) SP2 driver in conjunction with NetUp Dual
-> + * DVB-S2 CI card (cimax2) with following copyrights:
-> + *
-> + *  Copyright (C) 2009 NetUP Inc.
-> + *  Copyright (C) 2009 Igor M. Liplianin <liplianin@netup.ru>
-> + *  Copyright (C) 2009 Abylay Ospan <aospan@netup.ru>
-> + *
-> + *    This program is free software; you can redistribute it and/or modify
-> + *    it under the terms of the GNU General Public License as published by
-> + *    the Free Software Foundation; either version 2 of the License, or
-> + *    (at your option) any later version.
-> + *
-> + *    This program is distributed in the hope that it will be useful,
-> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *    GNU General Public License for more details.
-> + */
-> +
-> +#include "sp2_priv.h"
-> +
-> +static int sp2_read_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
-> +{
-> +	int ret;
-> +	struct i2c_client *client = s->client;
-> +	struct i2c_adapter *adap = client->adapter;
-> +	struct i2c_msg msg[] = {
-> +		{
-> +			.addr = client->addr,
-> +			.flags = 0,
-> +			.buf = &reg,
-> +			.len = 1
-> +		}, {
-> +			.addr = client->addr,
-> +			.flags	= I2C_M_RD,
-> +			.buf = buf,
-> +			.len = len
-> +		}
-> +	};
-> +
-> +	ret = i2c_transfer(adap, msg, 2);
-> +
-> +	if (ret != 2) {
-> +		dev_err(&client->dev, "i2c read error, reg = 0x%02x, status = %d\n",
-> +				reg, ret);
-> +		if (ret < 0)
-> +			return ret;
-> +		else
-> +			return -EIO;
-> +	}
-> +
-> +	dev_dbg(&s->client->dev, "addr=0x%04x, reg = 0x%02x, data = %02x\n",
-> +				client->addr, reg, buf[0]);
-> +
-> +	return 0;
-> +}
-> +
-> +static int sp2_write_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
-> +{
-> +	int ret;
-> +	u8 buffer[35];
-> +	struct i2c_client *client = s->client;
-> +	struct i2c_adapter *adap = client->adapter;
-> +	struct i2c_msg msg = {
-> +		.addr = client->addr,
-> +		.flags = 0,
-> +		.buf = &buffer[0],
-> +		.len = len + 1
-> +	};
-> +
-> +	if ((len + 1) > sizeof(buffer)) {
-> +		dev_err(&client->dev, "i2c wr reg=%02x: len=%d is too big!\n",
-> +				reg, len);
-> +		return -EINVAL;
-> +	}
-> +
-> +	buffer[0] = reg;
-> +	memcpy(&buffer[1], buf, len);
-> +
-> +	ret = i2c_transfer(adap, &msg, 1);
-> +
-> +	if (ret != 1) {
-> +		dev_err(&client->dev, "i2c write error, reg = 0x%02x, status = %d\n",
-> +				reg, ret);
-> +		if (ret < 0)
-> +			return ret;
-> +		else
-> +			return -EIO;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int sp2_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot, u8 acs,
-> +			u8 read, int addr, u8 data)
-> +{
-> +	struct sp2 *s = en50221->data;
-> +	u8 store;
-> +	int mem, ret;
-> +	int (*ci_op_cam)(void*, u8, int, u8, int*) = s->ci_control;
-> +
-> +	dev_dbg(&s->client->dev, "slot=%d, acs=0x%02x, addr=0x%04x, data = 0x%02x",
-> +			slot, acs, addr, data);
-> +
-> +	if (slot != 0)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * change module access type between IO space and attribute memory
-> +	 * when needed
-> +	 */
-> +	if (s->module_access_type != acs) {
-> +		ret = sp2_read_i2c(s, 0x00, &store, 1);
-> +
-> +		if (ret)
-> +			return ret;
-> +
-> +		store &= ~(SP2_MOD_CTL_ACS1 | SP2_MOD_CTL_ACS0);
-> +		store |= acs;
-> +
-> +		ret = sp2_write_i2c(s, 0x00, &store, 1);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	s->module_access_type = acs;
-> +
-> +	/* implementation of ci_op_cam is device specific */
-> +	if (ci_op_cam) {
-> +		ret = ci_op_cam(s->priv, read, addr, data, &mem);
-> +	} else {
-> +		dev_err(&s->client->dev, "callback not defined");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (read) {
-> +		dev_dbg(&s->client->dev, "cam read, addr=0x%04x, data = 0x%04x",
-> +				addr, mem);
-> +		return mem;
-> +	} else {
-> +		return 0;
-> +	}
-> +}
-> +
-> +int sp2_ci_read_attribute_mem(struct dvb_ca_en50221 *en50221,
-> +				int slot, int addr)
-> +{
-> +	return sp2_ci_op_cam(en50221, slot, SP2_CI_ATTR_ACS,
-> +			SP2_CI_RD, addr, 0);
-> +}
-> +
-> +int sp2_ci_write_attribute_mem(struct dvb_ca_en50221 *en50221,
-> +				int slot, int addr, u8 data)
-> +{
-> +	return sp2_ci_op_cam(en50221, slot, SP2_CI_ATTR_ACS,
-> +			SP2_CI_WR, addr, data);
-> +}
-> +
-> +int sp2_ci_read_cam_control(struct dvb_ca_en50221 *en50221,
-> +				int slot, u8 addr)
-> +{
-> +	return sp2_ci_op_cam(en50221, slot, SP2_CI_IO_ACS,
-> +			SP2_CI_RD, addr, 0);
-> +}
-> +
-> +int sp2_ci_write_cam_control(struct dvb_ca_en50221 *en50221,
-> +				int slot, u8 addr, u8 data)
-> +{
-> +	return sp2_ci_op_cam(en50221, slot, SP2_CI_IO_ACS,
-> +			SP2_CI_WR, addr, data);
-> +}
-> +
-> +int sp2_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
-> +{
-> +	struct sp2 *s = en50221->data;
-> +	u8 buf;
-> +	int ret;
-> +
-> +	dev_dbg(&s->client->dev, "slot: %d\n", slot);
-> +
-> +	if (slot != 0)
-> +		return -EINVAL;
-> +
-> +	/* RST on */
-> +	buf = SP2_MOD_CTL_RST;
-> +	ret = sp2_write_i2c(s, 0x00, &buf, 1);
-> +
-> +	if (ret)
-> +		return ret;
-> +
-> +	usleep_range(500, 600);
-> +
-> +	/* RST off */
-> +	buf = 0x00;
-> +	ret = sp2_write_i2c(s, 0x00, &buf, 1);
-> +
-> +	if (ret)
-> +		return ret;
-> +
-> +	msleep(1000);
-> +
-> +	return 0;
-> +}
-> +
-> +int sp2_ci_slot_shutdown(struct dvb_ca_en50221 *en50221, int slot)
-> +{
-> +	struct sp2 *s = en50221->data;
-> +
-> +	dev_dbg(&s->client->dev, "slot:%d\n", slot);
-> +
-> +	/* not implemented */
-> +	return 0;
-> +}
-> +
-> +int sp2_ci_slot_ts_enable(struct dvb_ca_en50221 *en50221, int slot)
-> +{
-> +	struct sp2 *s = en50221->data;
-> +	u8 buf;
-> +
-> +	dev_dbg(&s->client->dev, "slot:%d\n", slot);
-> +
-> +	if (slot != 0)
-> +		return -EINVAL;
-> +
-> +	sp2_read_i2c(s, 0x00, &buf, 1);
-> +
-> +	/* disable bypass and enable TS */
-> +	buf |= (SP2_MOD_CTL_TSOEN | SP2_MOD_CTL_TSIEN);
-> +	return sp2_write_i2c(s, 0, &buf, 1);
-> +}
-> +
-> +int sp2_ci_poll_slot_status(struct dvb_ca_en50221 *en50221,
-> +				int slot, int open)
-> +{
-> +	struct sp2 *s = en50221->data;
-> +	u8 buf[2];
-> +	int ret;
-> +
-> +	dev_dbg(&s->client->dev, "slot:%d open:%d\n", slot, open);
-> +
-> +	/*
-> +	 * CAM module INSERT/REMOVE processing. Slow operation because of i2c
-> +	 * transfers. Throttle read to one per sec.
-> +	 */
-> +	if (time_after(jiffies, s->next_status_checked_time)) {
-> +		ret = sp2_read_i2c(s, 0x00, buf, 1);
-> +		s->next_status_checked_time = jiffies +	msecs_to_jiffies(1000);
-> +
-> +		if (ret)
-> +			return 0;
-> +
-> +		if (buf[0] & SP2_MOD_CTL_DET)
-> +			s->status = DVB_CA_EN50221_POLL_CAM_PRESENT |
-> +					DVB_CA_EN50221_POLL_CAM_READY;
-> +		else
-> +			s->status = 0;
-> +	}
-> +
-> +	return s->status;
-> +}
-> +
-> +int sp2_init(struct sp2 *s)
-> +{
-> +	int ret = 0;
-> +	u8 buf;
-> +	u8 cimax_init[34] = {
-> +		0x00, /* module A control*/
-> +		0x00, /* auto select mask high A */
-> +		0x00, /* auto select mask low A */
-> +		0x00, /* auto select pattern high A */
-> +		0x00, /* auto select pattern low A */
-> +		0x44, /* memory access time A, 600 ns */
-> +		0x00, /* invert input A */
-> +		0x00, /* RFU */
-> +		0x00, /* RFU */
-> +		0x00, /* module B control*/
-> +		0x00, /* auto select mask high B */
-> +		0x00, /* auto select mask low B */
-> +		0x00, /* auto select pattern high B */
-> +		0x00, /* auto select pattern low B */
-> +		0x44, /* memory access time B, 600 ns */
-> +		0x00, /* invert input B */
-> +		0x00, /* RFU */
-> +		0x00, /* RFU */
-> +		0x00, /* auto select mask high Ext */
-> +		0x00, /* auto select mask low Ext */
-> +		0x00, /* auto select pattern high Ext */
-> +		0x00, /* auto select pattern low Ext */
-> +		0x00, /* RFU */
-> +		0x02, /* destination - module A */
-> +		0x01, /* power control reg, VCC power on */
-> +		0x00, /* RFU */
-> +		0x00, /* int status read only */
-> +		0x00, /* Interrupt Mask Register */
-> +		0x05, /* EXTINT=active-high, INT=push-pull */
-> +		0x00, /* USCG1 */
-> +		0x04, /* ack active low */
-> +		0x00, /* LOCK = 0 */
-> +		0x22, /* unknown */
-> +		0x00, /* synchronization? */
-> +	};
-> +
-> +	dev_dbg(&s->client->dev, "\n");
-> +
-> +	s->ca.owner = THIS_MODULE;
-> +	s->ca.read_attribute_mem = sp2_ci_read_attribute_mem;
-> +	s->ca.write_attribute_mem = sp2_ci_write_attribute_mem;
-> +	s->ca.read_cam_control = sp2_ci_read_cam_control;
-> +	s->ca.write_cam_control = sp2_ci_write_cam_control;
-> +	s->ca.slot_reset = sp2_ci_slot_reset;
-> +	s->ca.slot_shutdown = sp2_ci_slot_shutdown;
-> +	s->ca.slot_ts_enable = sp2_ci_slot_ts_enable;
-> +	s->ca.poll_slot_status = sp2_ci_poll_slot_status;
-> +	s->ca.data = s;
-> +	s->module_access_type = 0;
-> +
-> +	/* initialize all regs */
-> +	ret = sp2_write_i2c(s, 0x00, &cimax_init[0], 34);
-> +	if (ret)
-> +		goto err;
-> +
-> +	/* lock registers */
-> +	buf = 1;
-> +	ret = sp2_write_i2c(s, 0x1f, &buf, 1);
-> +	if (ret)
-> +		goto err;
-> +
-> +	/* power on slots */
-> +	ret = sp2_write_i2c(s, 0x18, &buf, 1);
-> +	if (ret)
-> +		goto err;
-> +
-> +	ret = dvb_ca_en50221_init(s->dvb_adap, &s->ca, 0, 1);
-> +	if (ret)
-> +		goto err;
-> +
-> +	return 0;
-> +
-> +err:
-> +	dev_dbg(&s->client->dev, "init failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
-> +int sp2_exit(struct i2c_client *client)
-> +{
-> +	struct sp2 *s;
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	if (client == NULL)
-> +		return 0;
-> +
-> +	s = i2c_get_clientdata(client);
-> +	if (s == NULL)
-> +		return 0;
-> +
-> +	if (s->ca.data == NULL)
-> +		return 0;
-> +
-> +	dvb_ca_en50221_release(&s->ca);
-> +
-> +	return 0;
-> +}
-> +
-> +static int sp2_probe(struct i2c_client *client,
-> +		const struct i2c_device_id *id)
-> +{
-> +	struct sp2_config *cfg = client->dev.platform_data;
-> +	struct sp2 *s;
-> +	int ret;
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	s = kzalloc(sizeof(struct sp2), GFP_KERNEL);
-> +	if (!s) {
-> +		ret = -ENOMEM;
-> +		dev_err(&client->dev, "kzalloc() failed\n");
-> +		goto err;
-> +	}
-> +
-> +	s->client = client;
-> +	s->dvb_adap = cfg->dvb_adap;
-> +	s->priv = cfg->priv;
-> +	s->ci_control = cfg->ci_control;
-> +
-> +	i2c_set_clientdata(client, s);
-> +
-> +	ret = sp2_init(s);
-> +	if (ret)
-> +		goto err;
-> +
-> +	dev_info(&s->client->dev, "CIMaX SP2 successfully attached\n");
-> +	return 0;
-> +err:
-> +	dev_dbg(&client->dev, "init failed=%d\n", ret);
-> +	kfree(s);
-> +
-> +	return ret;
-> +}
-> +
-> +static int sp2_remove(struct i2c_client *client)
-> +{
-> +	struct si2157 *s = i2c_get_clientdata(client);
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	sp2_exit(client);
-> +	if (s != NULL)
-> +		kfree(s);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id sp2_id[] = {
-> +	{"sp2", 0},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(i2c, sp2_id);
-> +
-> +static struct i2c_driver sp2_driver = {
-> +	.driver = {
-> +		.owner	= THIS_MODULE,
-> +		.name	= "sp2",
-> +	},
-> +	.probe		= sp2_probe,
-> +	.remove		= sp2_remove,
-> +	.id_table	= sp2_id,
-> +};
-> +
-> +module_i2c_driver(sp2_driver);
-> +
-> +MODULE_DESCRIPTION("CIMaX SP2/HF CI driver");
-> +MODULE_AUTHOR("Olli Salonen <olli.salonen@iki.fi>");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb-frontends/sp2.h b/drivers/media/dvb-frontends/sp2.h
-> new file mode 100644
-> index 0000000..6cceea0
-> --- /dev/null
-> +++ b/drivers/media/dvb-frontends/sp2.h
-> @@ -0,0 +1,53 @@
-> +/*
-> + * CIMaX SP2/HF CI driver
-> + *
-> + * Copyright (C) 2014 Olli Salonen <olli.salonen@iki.fi>
-> + *
-> + *    This program is free software; you can redistribute it and/or modify
-> + *    it under the terms of the GNU General Public License as published by
-> + *    the Free Software Foundation; either version 2 of the License, or
-> + *    (at your option) any later version.
-> + *
-> + *    This program is distributed in the hope that it will be useful,
-> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *    GNU General Public License for more details.
-> + */
-> +
-> +#ifndef SP2_H
-> +#define SP2_H
-> +
-> +#include <linux/kconfig.h>
-> +#include "dvb_ca_en50221.h"
-> +
-> +/*
-> + * I2C address
-> + * 0x40 (port 0)
-> + * 0x41 (port 1)
-> + */
-> +struct sp2_config {
-> +	/* dvb_adapter to attach the ci to */
-> +	struct dvb_adapter *dvb_adap;
-> +
-> +	/* function ci_control handles the device specific ci ops */
-> +	void *ci_control;
-> +
-> +	/* priv is passed back to function ci_control */
-> +	void *priv;
-> +};
-> +
-> +extern int sp2_ci_read_attribute_mem(struct dvb_ca_en50221 *en50221,
-> +					int slot, int addr);
-> +extern int sp2_ci_write_attribute_mem(struct dvb_ca_en50221 *en50221,
-> +					int slot, int addr, u8 data);
-> +extern int sp2_ci_read_cam_control(struct dvb_ca_en50221 *en50221,
-> +					int slot, u8 addr);
-> +extern int sp2_ci_write_cam_control(struct dvb_ca_en50221 *en50221,
-> +					int slot, u8 addr, u8 data);
-> +extern int sp2_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot);
-> +extern int sp2_ci_slot_shutdown(struct dvb_ca_en50221 *en50221, int slot);
-> +extern int sp2_ci_slot_ts_enable(struct dvb_ca_en50221 *en50221, int slot);
-> +extern int sp2_ci_poll_slot_status(struct dvb_ca_en50221 *en50221,
-> +					int slot, int open);
-> +
-> +#endif
-> diff --git a/drivers/media/dvb-frontends/sp2_priv.h b/drivers/media/dvb-frontends/sp2_priv.h
-> new file mode 100644
-> index 0000000..37fef7b
-> --- /dev/null
-> +++ b/drivers/media/dvb-frontends/sp2_priv.h
-> @@ -0,0 +1,50 @@
-> +/*
-> + * CIMaX SP2/HF CI driver
-> + *
-> + * Copyright (C) 2014 Olli Salonen <olli.salonen@iki.fi>
-> + *
-> + *    This program is free software; you can redistribute it and/or modify
-> + *    it under the terms of the GNU General Public License as published by
-> + *    the Free Software Foundation; either version 2 of the License, or
-> + *    (at your option) any later version.
-> + *
-> + *    This program is distributed in the hope that it will be useful,
-> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *    GNU General Public License for more details.
-> + */
-> +
-> +#ifndef SP2_PRIV_H
-> +#define SP2_PRIV_H
-> +
-> +#include "sp2.h"
-> +#include "dvb_frontend.h"
-> +
-> +/* state struct */
-> +struct sp2 {
-> +	int status;
-> +	struct i2c_client *client;
-> +	struct dvb_adapter *dvb_adap;
-> +	struct dvb_ca_en50221 ca;
-> +	int module_access_type;
-> +	unsigned long next_status_checked_time;
-> +	void *priv;
-> +	void *ci_control;
-> +};
-> +
-> +#define SP2_CI_ATTR_ACS		0x00
-> +#define SP2_CI_IO_ACS		0x04
-> +#define SP2_CI_WR		0
-> +#define SP2_CI_RD		1
-> +
-> +/* Module control register (0x00 module A, 0x09 module B) bits */
-> +#define SP2_MOD_CTL_DET		0x01
-> +#define SP2_MOD_CTL_AUTO	0x02
-> +#define SP2_MOD_CTL_ACS0	0x04
-> +#define SP2_MOD_CTL_ACS1	0x08
-> +#define SP2_MOD_CTL_HAD		0x10
-> +#define SP2_MOD_CTL_TSIEN	0x20
-> +#define SP2_MOD_CTL_TSOEN	0x40
-> +#define SP2_MOD_CTL_RST		0x80
-> +
-> +#endif
->
+	Hans
 
--- 
-http://palosaari.fi/
+On 08/14/2014 02:09 PM, Mauro Carvalho Chehab wrote:
+> Hi Hans,
+>
+> Please re-check your git pull request for this tree:
+> 	git://linuxtv.org/hverkuil/media_tree.git cx23b
+>
+> You added this patch, but with a different (bad) subject, without any
+> comments, without c/c to stable and without Marek's ack. So, there's
+> something wrong there.
+>
+> Also, I think we should first merge this patch for 3.17 before pulling
+> the cx23885 patchset.
+>
+> Regards,
+> Mauro
+>
+>
+> Em Fri, 01 Aug 2014 14:18:50 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+>> sg_alloc_table_from_pages() only allocates a sg_table, so it should just use
+>> GFP_KERNEL, not gfp_flags. If gfp_flags contains __GFP_DMA32 then mm/sl[au]b.c
+>> will call BUG_ON:
+>>
+>> [  358.027515] ------------[ cut here ]------------
+>> [  358.027546] kernel BUG at mm/slub.c:1416!
+>> [  358.027558] invalid opcode: 0000 [#1] PREEMPT SMP
+>> [  358.027576] Modules linked in: mt2131 s5h1409 tda8290 tuner cx25840 cx23885 btcx_risc altera_ci tda18271 altera_stapl videobuf2_dvb tveeprom cx2341x videobuf2_dma_sg dvb_core rc_core videobuf2_memops videobuf2_core nouveau zr36067 videocodec v4l2_common videodev media x86_pkg_temp_thermal cfbfillrect cfbimgblt cfbcopyarea ttm drm_kms_helper processor button isci
+>> [  358.027712] CPU: 19 PID: 3654 Comm: cat Not tainted 3.16.0-rc6-telek #167
+>> [  358.027723] Hardware name: ASUSTeK COMPUTER INC. Z9PE-D8 WS/Z9PE-D8 WS, BIOS 5404 02/10/2014
+>> [  358.027741] task: ffff880897c7d960 ti: ffff88089b4d4000 task.ti: ffff88089b4d4000
+>> [  358.027753] RIP: 0010:[<ffffffff81196040>]  [<ffffffff81196040>] new_slab+0x280/0x320
+>> [  358.027776] RSP: 0018:ffff88089b4d7ae8  EFLAGS: 00010002
+>> [  358.027787] RAX: ffff880897c7d960 RBX: 0000000000000000 RCX: ffff88089b4d7b50
+>> [  358.027798] RDX: 00000000ffffffff RSI: 0000000000000004 RDI: ffff88089f803b00
+>> [  358.027809] RBP: ffff88089b4d7bb8 R08: 0000000000000000 R09: 0000000100400040
+>> [  358.027821] R10: 0000160000000000 R11: ffff88109bc02c40 R12: 0000000000000001
+>> [  358.027832] R13: ffff88089f8000c0 R14: ffff88089f803b00 R15: ffff8810bfcf4be0
+>> [  358.027845] FS:  00007f83fe5c0700(0000) GS:ffff8810bfce0000(0000) knlGS:0000000000000000
+>> [  358.027858] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>> [  358.027868] CR2: 0000000001dfd568 CR3: 0000001097d5a000 CR4: 00000000000407e0
+>> [  358.027878] Stack:
+>> [  358.027885]  ffffffff81198860 ffff8810bfcf4be0 ffff880897c7d960 0000000000001b00
+>> [  358.027905]  ffff880897c7d960 0000000000000000 ffff8810bfcf4bf0 0000000000000000
+>> [  358.027924]  0000000000000000 0000000100000100 ffffffff813ef84a 00000004ffffffff
+>> [  358.027944] Call Trace:
+>> [  358.027956]  [<ffffffff81198860>] ? __slab_alloc+0x400/0x4e0
+>> [  358.027973]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
+>> [  358.027985]  [<ffffffff81198f17>] __kmalloc+0x127/0x150
+>> [  358.027997]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
+>> [  358.028009]  [<ffffffff813ef84a>] sg_kmalloc+0x1a/0x30
+>> [  358.028023]  [<ffffffff813eff84>] __sg_alloc_table+0x74/0x180
+>> [  358.028035]  [<ffffffff813ef830>] ? sg_kfree+0x20/0x20
+>> [  358.028048]  [<ffffffff813f00af>] sg_alloc_table+0x1f/0x60
+>> [  358.028061]  [<ffffffff813f0174>] sg_alloc_table_from_pages+0x84/0x1f0
+>> [  358.028077]  [<ffffffffa007c3f9>] vb2_dma_sg_alloc+0x159/0x230 [videobuf2_dma_sg]
+>> [  358.028095]  [<ffffffffa003d55a>] __vb2_queue_alloc+0x10a/0x680 [videobuf2_core]
+>> [  358.028113]  [<ffffffffa003e110>] __reqbufs.isra.14+0x220/0x3e0 [videobuf2_core]
+>> [  358.028130]  [<ffffffffa003e79d>] __vb2_init_fileio+0xbd/0x380 [videobuf2_core]
+>> [  358.028147]  [<ffffffffa003f563>] __vb2_perform_fileio+0x5b3/0x6e0 [videobuf2_core]
+>> [  358.028164]  [<ffffffffa003f871>] vb2_fop_read+0xb1/0x100 [videobuf2_core]
+>> [  358.028184]  [<ffffffffa06dd2e5>] v4l2_read+0x65/0xb0 [videodev]
+>> [  358.028198]  [<ffffffff811a243f>] vfs_read+0x8f/0x170
+>> [  358.028210]  [<ffffffff811a30a1>] SyS_read+0x41/0xb0
+>> [  358.028224]  [<ffffffff818f02e9>] system_call_fastpath+0x16/0x1b
+>> [  358.028234] Code: 66 90 e9 dc fd ff ff 0f 1f 40 00 41 8b 4d 68 e9 d5 fe ff ff 0f 1f 80 00 00 00 00 f0 41 80 4d 00 40 e9 03 ff ff ff 0f 1f 44 00 00 <0f> 0b 66 0f 1f 44 00 00 44 89 c6 4c 89 45 d0 e8 0c 82 ff ff 48
+>> [  358.028415] RIP  [<ffffffff81196040>] new_slab+0x280/0x320
+>> [  358.028432]  RSP <ffff88089b4d7ae8>
+>> [  358.032208] ---[ end trace 6443240199c706e4 ]---
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: stable@vger.kernel.org      # for v3.13 and up
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> index adefc31..9b163a4 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -113,7 +113,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>   		goto fail_pages_alloc;
+>>
+>>   	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>> -			buf->num_pages, 0, size, gfp_flags);
+>> +			buf->num_pages, 0, size, GFP_KERNEL);
+>>   	if (ret)
+>>   		goto fail_table_alloc;
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
