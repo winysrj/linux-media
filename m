@@ -1,54 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:46394 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751816AbaHHFKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Aug 2014 01:10:06 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1XFcRH-0008Vt-Ul
-	for linux-media@vger.kernel.org; Fri, 08 Aug 2014 07:10:04 +0200
-Received: from nautilus.laiva.org ([62.142.120.74])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 07:10:03 +0200
-Received: from olli.salonen by nautilus.laiva.org with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 07:10:03 +0200
-To: linux-media@vger.kernel.org
-From: Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH 3/4] support for DVBSky dvb-s2 usb: add dvb-usb-v2 driver for DVBSky dvb-s2 box
-Date: Fri, 8 Aug 2014 05:02:46 +0000 (UTC)
-Message-ID: <loom.20140808T065921-607@post.gmane.org>
-References: <201408061236404537660@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4227 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753820AbaHNKoD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 06:44:03 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7EAhxSK083092
+	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 12:44:01 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.209.179] (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id 721D92A2E57
+	for <linux-media@vger.kernel.org>; Thu, 14 Aug 2014 12:43:55 +0200 (CEST)
+Message-ID: <53EC92EE.5050607@xs4all.nl>
+Date: Thu, 14 Aug 2014 12:43:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Various fixes
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+Hi Mauro,
 
-nibble.max <nibble.max <at> gmail.com> writes:
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig
-b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index 66645b0..8107c8d 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
->  <at>  <at>  -141,3 +141,9  <at>  <at>  config DVB_USB_RTL28XXU
->  	help
->  	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
-> 
-> +config DVB_USB_DVBSKY
-> +	tristate "DVBSky USB support"
-> +	depends on DVB_USB_V2
-> +	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
-> +	help
-> +	  Say Y here to support the USB receivers from DVBSky.
+Various fixes for v3.18.
 
-Shouldn't the MEDIA_TUNER_M88TS2022 also be selected in Kconfig?
+Please take a good look at the 'videobuf2: fix lockdep warning'. Locking issues
+are always complex and an extra pair of eyeballs doesn't hurt. I also have been
+in two minds whether it should go into 3.17 or 3.18, but I think it is better to
+have it go through a longer test period. But I can be convinced to go for 3.17
+as well :-)
 
-Cheers,
--olli
+Regards,
 
+	Hans
 
+The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
 
+   [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git for-v3.18a
+
+for you to fetch changes up to 481a56ce8ef5dc6670ffcd87e58903323d23d0f3:
+
+   usbtv: add audio support (2014-08-14 12:29:39 +0200)
+
+----------------------------------------------------------------
+Andreas Ruprecht (1):
+       drivers: media: pci: Makefile: Remove duplicate subdirectory from obj-y
+
+Axel Lin (1):
+       saa6752hs: Convert to devm_kzalloc()
+
+Dan Carpenter (1):
+       vmalloc_sg: off by one in error handling
+
+Federico Simoncelli (1):
+       usbtv: add audio support
+
+Geert Uytterhoeven (2):
+       cx25840: Spelling s/compuations/computations/
+       cx23885: Spelling s/compuations/computations/
+
+Hans Verkuil (3):
+       videobuf2: fix lockdep warning
+       DocBook media: fix order of v4l2_edid fields
+       vb2: use pr_info instead of pr_debug
+
+  Documentation/DocBook/media/v4l/vidioc-g-edid.xml |  12 +--
+  drivers/media/i2c/cx25840/cx25840-ir.c            |   2 +-
+  drivers/media/i2c/saa6752hs.c                     |   6 +-
+  drivers/media/pci/Makefile                        |   1 -
+  drivers/media/pci/cx23885/cx23888-ir.c            |   2 +-
+  drivers/media/usb/usbtv/Makefile                  |   3 +-
+  drivers/media/usb/usbtv/usbtv-audio.c             | 384 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  drivers/media/usb/usbtv/usbtv-core.c              |  16 +++-
+  drivers/media/usb/usbtv/usbtv-video.c             |   9 +-
+  drivers/media/usb/usbtv/usbtv.h                   |  21 ++++-
+  drivers/media/v4l2-core/videobuf-dma-sg.c         |   6 +-
+  drivers/media/v4l2-core/videobuf2-core.c          |  58 ++++--------
+  include/media/videobuf2-core.h                    |   2 +
+  13 files changed, 460 insertions(+), 62 deletions(-)
+  create mode 100644 drivers/media/usb/usbtv/usbtv-audio.c
