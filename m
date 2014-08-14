@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4564 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220AbaHTW7n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/29] dibusb: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:02 +0200
-Message-Id: <1408575568-20562-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ns1.unf.edu.ar ([170.210.232.249]:55136 "EHLO pak.unf.edu.ar"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752578AbaHNQgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Aug 2014 12:36:38 -0400
+Message-ID: <f50ec0af6553dde61e685b1e8d365ae1.squirrel@webmail.unf.edu.ar>
+Date: Thu, 14 Aug 2014 13:31:14 -0300
+Subject: NOTICE
+From: "Head Quarter Western Union and Money Gram Transfer" <info@wu.org>
+Reply-To: wu_headquarter@outlook.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Top of the day to you all from the Head Quarter Western Union and Money
+Gram Transfer.
 
-drivers/media/usb/dvb-usb/dibusb-common.c:261:40: warning: restricted __le16 degrades to integer
-drivers/media/usb/dvb-usb/dibusb-common.c:262:52: warning: restricted __le16 degrades to integer
-drivers/media/usb/dvb-usb/dibusb-common.c:300:40: warning: restricted __le16 degrades to integer
-drivers/media/usb/dvb-usb/dibusb-common.c:301:44: warning: restricted __le16 degrades to integer
-drivers/media/usb/dvb-usb/dibusb-common.c:313:47: warning: restricted __le16 degrades to integer
-drivers/media/usb/dvb-usb/dibusb-common.c:314:47: warning: restricted __le16 degrades to integer
+Dear User
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/dvb-usb/dibusb-common.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+This is to inform all our users that the high rate of scam has been coming
+so much and we are receive complains from beach Transfer office that our
+customer has been send money to differed country as a result of scam. So
+we have decided to upgrade our system for security reasons.
 
-diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-index 6d68af0..ef3a8f7 100644
---- a/drivers/media/usb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -258,8 +258,8 @@ static struct dib3000mc_config mod3000p_dib3000p_config = {
- 
- int dibusb_dib3000mc_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	if (adap->dev->udev->descriptor.idVendor  == USB_VID_LITEON &&
--			adap->dev->udev->descriptor.idProduct ==
-+	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
-+	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) ==
- 			USB_PID_LITEON_DVB_T_WARM) {
- 		msleep(1000);
- 	}
-@@ -297,8 +297,8 @@ int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct i2c_adapter *tun_i2c;
- 
- 	// First IF calibration for Liteon Sticks
--	if (adap->dev->udev->descriptor.idVendor  == USB_VID_LITEON &&
--		adap->dev->udev->descriptor.idProduct == USB_PID_LITEON_DVB_T_WARM) {
-+	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
-+	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_LITEON_DVB_T_WARM) {
- 
- 		dibusb_read_eeprom_byte(adap->dev,0x7E,&a);
- 		dibusb_read_eeprom_byte(adap->dev,0x7F,&b);
-@@ -310,8 +310,8 @@ int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
- 		else
- 			warn("LITE-ON DVB-T: Strange IF1 calibration :%2X %2X\n", a, b);
- 
--	} else if (adap->dev->udev->descriptor.idVendor  == USB_VID_DIBCOM &&
--		   adap->dev->udev->descriptor.idProduct == USB_PID_DIBCOM_MOD3001_WARM) {
-+	} else if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_DIBCOM &&
-+		   le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_DIBCOM_MOD3001_WARM) {
- 		u8 desc;
- 		dibusb_read_eeprom_byte(adap->dev, 7, &desc);
- 		if (desc == 2) {
--- 
-2.1.0.rc1
+Dear customer for security reason if any payment is been made via Western
+Union or MoneyGram you are been advise to send us the scan copy of the
+payment slip and the information of the payment for verification.
+
+For Western Union or MoneyGarm verification:
+
+Name of sender:
+Name of Receiver:
+Address of sender:
+Address of Receiver:
+Amount sent:
+MTCN (Money Transfer Control Number) OR Reference number:
+Country from which payment was made:
+Country from which payment is about to be receive:
+Test question and answer if any required:
+
+Once this informations are receive verification take place and we will get
+back to you as soon as the payment is been verified.
+
+Thanks for your understanding and we look forward to serve you better.
 
