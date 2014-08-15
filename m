@@ -1,89 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50860 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756080AbaHVK63 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:58:29 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL FINAL 09/21] cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
-Date: Fri, 22 Aug 2014 13:58:01 +0300
-Message-Id: <1408705093-5167-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
-References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38847 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750725AbaHOEsu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Aug 2014 00:48:50 -0400
+Date: Fri, 15 Aug 2014 07:48:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
+Message-ID: <20140815044811.GP16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <20140806065358.GC16460@valkosipuli.retiisi.org.uk>
+ <53E336FA.2050306@samsung.com>
+ <20140814050338.GO16460@valkosipuli.retiisi.org.uk>
+ <53EC90D9.6080702@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53EC90D9.6080702@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+On Thu, Aug 14, 2014 at 12:35:05PM +0200, Jacek Anaszewski wrote:
+> On 08/14/2014 07:03 AM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Thu, Aug 07, 2014 at 10:21:14AM +0200, Jacek Anaszewski wrote:
+> >>On 08/06/2014 08:53 AM, Sakari Ailus wrote:
+> >>>Hi Jacek,
+> >>>
+> >>>On Fri, Jul 11, 2014 at 04:04:03PM +0200, Jacek Anaszewski wrote:
+> >>>...
+> >>>>1) Who should register V4L2 Flash sub-device?
+> >>>>
+> >>>>LED Flash Class devices, after introduction of the Flash Manager,
+> >>>>are not tightly coupled with any media controller. They are maintained
+> >>>>by the Flash Manager and made available for dynamic assignment to
+> >>>>any media system they are connected to through multiplexing devices.
+> >>>>
+> >>>>In the proposed rough solution, when support for V4L2 Flash sub-devices
+> >>>>is enabled, there is a v4l2_device created for them to register in.
+> >>>>This however implies that V4L2 Flash device will not be available
+> >>>>in any media controller, which calls its existence into question.
+> >>>>
+> >>>>Therefore I'd like to consult possible ways of solving this issue.
+> >>>>The option I see is implementing a mechanism for moving V4L2 Flash
+> >>>>sub-devices between media controllers. A V4L2 Flash sub-device
+> >>>>would initially be assigned to one media system in the relevant
+> >>>>device tree binding, but it could be dynamically reassigned to
+> >>>>the other one. However I'm not sure if media controller design
+> >>>>is prepared for dynamic modifications of its graph and how many
+> >>>>modifications in the existing drivers this solution would require.
+> >>>
+> >>>Do you have a use case where you would need to strobe a flash from multiple
+> >>>media devices at different times, or is this entirely theoretical? Typically
+> >>>flash controllers are connected to a single source of hardware strobe (if
+> >>>there's one) since the flash LEDs are in fact mounted next to a specific
+> >>>camera sensor.
+> >>
+> >>I took into account such arrangements in response to your message
+> >>[1], where you were considering configurations like "one flash but
+> >>two
+> >>cameras", "one camera and two flashes". And you also called for
+> >>proposing generic solution.
+> >>
+> >>One flash and two (or more) cameras case is easily conceivable -
+> >>You even mentioned stereo cameras. One camera and many flashes
+> >>arrangement might be useful in case of some professional devices which
+> >>might be designed so that they would be able to apply different scene
+> >>lighting. I haven't heard about such devices, but as you said
+> >>such a configuration isn't unthinkable.
+> >>
+> >>>If this is a real issue the way to solve it would be to have a single media
+> >>>device instead of many.
+> >>
+> >>I was considering adding media device, that would be a representation
+> >>of a flash manager, gathering all the registered flashes. Nonetheless,
+> >>finally I came to conclusion that a v4l2-device alone should suffice,
+> >>just to provide a Flash Manager representation allowing for
+> >>v4l2-flash sub-devices to register in.
+> >>All the features provided by the media device are useless in case
+> >>of a set of V4L2 Flash sub-devices. They couldn't have any linkage
+> >>in such a device. The only benefit from having media device gathering
+> >>V4L2 Flash devices would be possibility of listing them.
+> >
+> >Not quite so. The flash is associated to the sensor (and lens) using the
+> >group ID in the Media controller. The user space doesn't need to "know" this
+> >association.
+> >
+> >More complex use cases such as the above may need extensions to the Media
+> >controller API.
+> 
+> I think that I have unnecessarily complicated the issue. Generally
+> there will be always one media controller created for all camera
+> sensors available in the system. If there is a single media controller
+> then we can easily use async subdev registration API. A media-dev
+> driver would have to parse list of flash device phandles from
+> the ISP device's DT node and register them as async sub-devices.
 
-Read MAC address from the EEPROM.
+Currently the media device is created by a driver which is most of the time
+the ISP driver on embedded systems. This driver is also responsible for
+registering the flash device (nodes) to the media device. So "will" is the
+word, I think.
 
-This version two corrects a flaw in the result code returning that
-did exist in the first version.
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb/cxusb.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
-
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 4ab3459..187d529 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -673,6 +673,39 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
- 	{ 0x0025, KEY_POWER },
- };
- 
-+static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
-+{
-+	u8 wbuf[2];
-+	u8 rbuf[6];
-+	int ret;
-+	struct i2c_msg msg[] = {
-+		{
-+			.addr = 0x51,
-+			.flags = 0,
-+			.buf = wbuf,
-+			.len = 2,
-+		}, {
-+			.addr = 0x51,
-+			.flags = I2C_M_RD,
-+			.buf = rbuf,
-+			.len = 6,
-+		}
-+	};
-+
-+	wbuf[0] = 0x1e;
-+	wbuf[1] = 0x00;
-+	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
-+
-+	if (ret == 2) {
-+		memcpy(mac, rbuf, 6);
-+		return 0;
-+	} else {
-+		if (ret < 0)
-+			return ret;
-+		return -EIO;
-+	}
-+}
-+
- static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
- 					u8 data, int *mem)
- {
-@@ -2316,6 +2349,8 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
- 	.size_of_priv     = sizeof(struct cxusb_state),
- 
- 	.num_adapters = 1,
-+	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
-+
- 	.adapter = {
- 		{
- 		.num_frontends = 1,
 -- 
-http://palosaari.fi/
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
