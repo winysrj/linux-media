@@ -1,73 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42836 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431AbaHPMxt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Aug 2014 08:53:49 -0400
-Message-ID: <53EF5457.5080808@iki.fi>
-Date: Sat, 16 Aug 2014 14:53:43 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"nibble.max" <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	"olli.salonen" <olli.salonen@iki.fi>
-Subject: Re: [PATCH] m88ts2022: fix high symbol rate transponders missing
- on 32bit platform.
-References: <201408161412275930052@gmail.com> <20140816093854.39be5017.m.chehab@samsung.com>
-In-Reply-To: <20140816093854.39be5017.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f202.google.com ([209.85.192.202]:58968 "EHLO
+	mail-pd0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbaHOTJH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Aug 2014 15:09:07 -0400
+Received: by mail-pd0-f202.google.com with SMTP id w10so765426pde.1
+        for <linux-media@vger.kernel.org>; Fri, 15 Aug 2014 12:09:06 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH v2 1/2] [media] V4L: Add camera pan/tilt speed controls
+Date: Fri, 15 Aug 2014 12:08:44 -0700
+Message-Id: <1408129724-17669-1-git-send-email-vpalatin@chromium.org>
+In-Reply-To: <CACHYQ-rtHfVmF4DstxhWe0zWNH3ujjniVBwONBGW3f4Uw=rvkg@mail.gmail.com>
+References: <CACHYQ-rtHfVmF4DstxhWe0zWNH3ujjniVBwONBGW3f4Uw=rvkg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
+camera by setting its rotation speed around its axis.
 
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+---
+Changes from v1:
+- update the documentation wording according to Pawel suggestion.
 
-On 08/16/2014 02:38 PM, Mauro Carvalho Chehab wrote:
-> Em Sat, 16 Aug 2014 14:12:32 +0800
-> "nibble.max" <nibble.max@gmail.com> escreveu:
->
->> The current m88ts2022 driver will miss the following high symbol rate transponders on Telstar 18 138.0.
->> 12385 H 43200,
->> 12690 H 43200,
->> 12538 V 41250...
->> the code for f_3db_hz will overflow for the high symbol rate.
->> for example, symbol rate=41250 KS/s
->> symbol_rate * 135UL = 5568750000(1 4BEC 61B0), the value is larger than unsigned int on 32bit platform.
->> that makes the wrong result.
->> Exchanging the div and mul position fixs it.
->>
->> Signed-off-by: Nibble Max <nibble.max@gmail.com>
->> ---
->>   drivers/media/tuners/m88ts2022.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
->> index 40c42de..65c8acc 100644
->> --- a/drivers/media/tuners/m88ts2022.c
->> +++ b/drivers/media/tuners/m88ts2022.c
->> @@ -314,7 +314,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
->>   	div_min = gdiv28 * 78 / 100;
->>   	div_max = clamp_val(div_max, 0U, 63U);
->>
->> -	f_3db_hz = c->symbol_rate * 135UL / 200UL;
->> +	f_3db_hz = (c->symbol_rate / 200UL) * 135UL;
->
-> Hmm... wouldn't this make worse for low symbol rates?
->
-> IMHO, the better is to use a u64 instead, and do_div64().
->
->>   	f_3db_hz +=  2000000U + (frequency_offset_khz * 1000U);
->>   	f_3db_hz = clamp(f_3db_hz, 7000000U, 40000000U);
->>
+ Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
+ Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+ include/uapi/linux/v4l2-controls.h           |  2 ++
+ 4 files changed, 35 insertions(+)
 
-I will look that more carefully on end of next week, go through possible 
-symbol rates and rounding errors.
-
-Maybe it should be something like that (didn't test any way, may not 
-even compile):
-f_3db_hz = div_u64((u64) (c->symbol_rate * 135), 200);
-
-Antti
-
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index eee6f0f..21910e9 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.17</title>
++      <orderedlist>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
++ <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 47198ee..be88e64 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3914,6 +3914,27 @@ by exposure, white balance or focus controls.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control turns the
++camera horizontally at the specific speed. The unit is undefined. A
++positive value moves the camera to the right (clockwise when viewed
++from above), a negative value to the left. A value of zero stops the motion
++if one is in progress and has no effect otherwise.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control turns the
++camera vertically at the specified speed. The unit is undefined. A
++positive value moves the camera up, a negative value down. A value of zero
++stops the motion if one is in progress and has no effect otherwise.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 55c6832..57ddaf4 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -787,6 +787,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_AUTO_FOCUS_STOP:		return "Auto Focus, Stop";
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
+ 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
++	case V4L2_CID_PAN_SPEED:		return "Pan, Speed";
++	case V4L2_CID_TILT_SPEED:		return "Tilt, Speed";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2ac5597..5576044 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -745,6 +745,8 @@ enum v4l2_auto_focus_range {
+ 	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
+ };
+ 
++#define V4L2_CID_PAN_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+32)
++#define V4L2_CID_TILT_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+33)
+ 
+ /* FM Modulator class control IDs */
+ 
 -- 
-http://palosaari.fi/
+2.1.0.rc2.206.gedb03e5
+
