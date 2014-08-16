@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2033 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689AbaHNJyY (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58876 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233AbaHPAIA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 17/20] cx23885: fix weird sizes.
-Date: Thu, 14 Aug 2014 11:54:02 +0200
-Message-Id: <1408010045-24016-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 15 Aug 2014 20:08:00 -0400
+Message-ID: <53EEA0DF.6090903@infradead.org>
+Date: Fri, 15 Aug 2014 17:07:59 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: kbuild test robot <fengguang.wu@intel.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:devel 498/499] av7110.c:undefined reference to
+ `av7110_ir_exit'
+References: <53ee83cb.H8pPJAwEaBRBZftj%fengguang.wu@intel.com>
+In-Reply-To: <53ee83cb.H8pPJAwEaBRBZftj%fengguang.wu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/15/14 15:03, kbuild test robot wrote:
+> tree:   git://linuxtv.org/media_tree.git devel
+> head:   f1d2fd677f61bf4d649098317497db11a958a021
+> commit: 277c0ffaea64c71c39f03b9ee6818de600c38fc3 [498/499] [media] media: ttpci: build av7110_ir.c only when allowed by CONFIG_INPUT_EVDEV
+> config: x86_64-randconfig-s1-08160530 (attached as .config)
 
-These values make no sense. All SDTV standards have the same width.
-This seems to be copied from the cx88 driver. Just drop these weird
-values.
+Argh, thanks, fix is on the way.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 99a5fe0..f542ced 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
- 
- static inline unsigned int norm_maxw(v4l2_std_id norm)
- {
--	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
-+	return 720;
- }
- 
- static inline unsigned int norm_maxh(v4l2_std_id norm)
- {
--	return (norm & V4L2_STD_625_50) ? 576 : 480;
-+	return (norm & V4L2_STD_525_60) ? 480 : 576;
- }
- 
- static inline unsigned int norm_swidth(v4l2_std_id norm)
- {
--	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
-+	return 754;
- }
+> All error/warnings:
+> 
+>    drivers/built-in.o: In function `av7110_detach':
+>>> av7110.c:(.text+0x228d4a): undefined reference to `av7110_ir_exit'
+>    drivers/built-in.o: In function `arm_thread':
+>>> av7110.c:(.text+0x22a404): undefined reference to `av7110_check_ir_config'
+>>> av7110.c:(.text+0x22a626): undefined reference to `av7110_check_ir_config'
+>    drivers/built-in.o: In function `av7110_attach':
+>>> av7110.c:(.text+0x22b08c): undefined reference to `av7110_ir_init'
+> 
+> ---
+> 0-DAY kernel build testing backend              Open Source Technology Center
+> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> 
+
+
 -- 
-2.1.0.rc1
-
+~Randy
