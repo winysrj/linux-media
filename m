@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:36219 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbaHTNod (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:61359 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576AbaHPUdX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:33 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v5 01/10] Documentation: leds: Add description of LED Flash
- Class extension
-Date: Wed, 20 Aug 2014 15:44:10 +0200
-Message-id: <1408542259-415-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+	Sat, 16 Aug 2014 16:33:23 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andreas Ruprecht <rupran@einserver.de>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: davinci: remove unneeded dependency ARCH_OMAP3
+Date: Sat, 16 Aug 2014 21:33:18 +0100
+Message-Id: <1408221198-27458-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The documentation being added contains overall description of the
-LED Flash Class and the related sysfs attributes. There are also
-chapters devoted specifically to the Flash Manager feature.
+this patch removes unneeded dependency of ARCH_OMAP3
+on VIDEO_DM6446_CCDC.
+Also the top level platform Makefile descended into
+davinci/ without any dependency so just drop the
+dependency obj-y, as obj-$(CONFIG_ARCH_DAVINCI)
+already exists.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Reported-by: Andreas Ruprecht <rupran@einserver.de>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- Documentation/leds/leds-class-flash.txt |   54 +++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
- create mode 100644 Documentation/leds/leds-class-flash.txt
+ drivers/media/platform/Makefile        | 2 --
+ drivers/media/platform/davinci/Kconfig | 2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-new file mode 100644
-index 0000000..8a9c17e
---- /dev/null
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -0,0 +1,54 @@
-+
-+Flash LED handling under Linux
-+==============================
-+
-+Some LED devices support two modes - torch and flash. In order to enable
-+support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
-+in the kernel config. A flash LED driver must register in the LED subsystem
-+with led_classdev_flash_register to gain flash capabilities.
-+
-+Following sysfs attributes are exposed for controlling flash led devices:
-+
-+	- flash_brightness - flash LED brightness in microamperes (RW)
-+	- max_flash_brightness - maximum available flash LED brightness (RO)
-+	- indicator_brightness - privacy LED brightness in microamperes (RW)
-+	- max_indicator_brightness - maximum privacy LED brightness in
-+				     microamperes (RO)
-+	- flash_timeout - flash strobe duration in microseconds (RW)
-+	- max_flash_timeout - maximum available flash strobe duration (RO)
-+	- flash_strobe - flash strobe state (RW)
-+	- external_strobe - some devices expose dedicated hardware pins for
-+			    triggering a flash LED - this attribute allows to
-+			    set this mode (RW)
-+	- flash_fault - bitmask of flash faults that may have occurred,
-+			possible flags are:
-+		* 0x01 - flash controller voltage to the flash LED has exceeded
-+			 the limit specific to the flash controller
-+		* 0x02 - the flash strobe was still on when the timeout set by
-+			 the user has expired; not all flash controllers may
-+			 set this in all such conditions
-+		* 0x04 - the flash controller has overheated
-+		* 0x08 - the short circuit protection of the flash controller
-+			 has been triggered
-+		* 0x10 - current in the LED power supply has exceeded the limit
-+			 specific to the flash controller
-+		* 0x40 - flash controller voltage to the flash LED has been
-+			 below the minimum limit specific to the flash
-+		* 0x80 - the input voltage of the flash controller is below
-+			 the limit under which strobing the flash at full
-+			 current will not be possible. The condition persists
-+			 until this flag is no longer set
-+		* 0x100 - the temperature of the LED has exceeded its allowed
-+			  upper limit
-+
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config. The driver must call v4l2_flash_init function
-+to get registered in the V4L2 subsystem. On remove v4l2_flash_release function
-+has to be called (see <media/v4l2-flash.h>).
-+
-+After proper initialization V4L2 Flash sub-device is created. The sub-device
-+exposes a number of V4L2 controls. When the V4L2_CID_FLASH_LED_MODE control
-+is set to V4L2_FLASH_LED_MODE_TORCH or V4L2_FLASH_LED_MODE_FLASH the
-+LED subsystem sysfs interface becomes unavailable. The interface can be
-+unlocked by setting the mode back to V4L2_FLASH_LED_MODE_NONE.
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index e5269da..13aef34 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -47,8 +47,6 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+ 
+ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+ 
+-obj-y	+= davinci/
+-
+ obj-$(CONFIG_ARCH_OMAP)	+= omap/
+ 
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index afb3aec..298e1ee 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -26,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
+ 
+ config VIDEO_DM6446_CCDC
+ 	tristate "TI DM6446 CCDC video capture driver"
+-	depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
++	depends on VIDEO_V4L2 && ARCH_DAVINCI
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
 -- 
-1.7.9.5
+1.9.1
 
