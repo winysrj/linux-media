@@ -1,45 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:56090 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935216AbaH0Pb5 (ORCPT
+Received: from mail-we0-f179.google.com ([74.125.82.179]:48844 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbaHPUhy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 11:31:57 -0400
-Received: by mail-pa0-f51.google.com with SMTP id ey11so508605pad.24
-        for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 08:31:56 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend for APIv5
-Date: Thu, 28 Aug 2014 00:29:12 +0900
-Message-Id: <1409153356-1887-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
+	Sat, 16 Aug 2014 16:37:54 -0400
+Received: by mail-we0-f179.google.com with SMTP id u57so3473148wes.24
+        for <linux-media@vger.kernel.org>; Sat, 16 Aug 2014 13:37:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1408122629-19634-1-git-send-email-rupran@einserver.de>
+References: <1408122629-19634-1-git-send-email-rupran@einserver.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Aug 2014 21:37:22 +0100
+Message-ID: <CA+V-a8syMAQXW1qvjZK=eVf+aVLE2SGPrjXL7jA1__iaPnf09w@mail.gmail.com>
+Subject: Re: [PATCH] drivers: media: platform: Makefile: Add build dependency
+ for davinci/
+To: Andreas Ruprecht <rupran@einserver.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Hi Andreas,
 
-fe->ops.tuner_ops.get_rf_strength() reports its result in u16,
-while in DVB APIv5 it should be reported in s64 and by 0.001dBm.
+On Fri, Aug 15, 2014 at 6:10 PM, Andreas Ruprecht <rupran@einserver.de> wrote:
+> In the davinci/ subdirectory, all drivers but one depend on
+> CONFIG_ARCH_DAVINCI. The only exception, selected by CONFIG_VIDEO_DM6446_CCDC,
+> is also available on CONFIG_ARCH_OMAP3.
+>
+> Thus, it is not necessary to always descend into davinci/. It is sufficient to
+> do this only if CONFIG_ARCH_OMAP3 or CONFIG_ARCH_DAVINCI is selected. While the
+> latter is already present, this patch changes the dependency from obj-y to
+> obj-$(CONFIG_ARCH_OMAP3).
+>
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- drivers/media/dvb-core/dvb_frontend.h | 2 ++
- 1 file changed, 2 insertions(+)
+I have submitted a proper fix [1], so NACK.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 816269e..f6222b5 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -222,6 +222,8 @@ struct dvb_tuner_ops {
- #define TUNER_STATUS_STEREO 2
- 	int (*get_status)(struct dvb_frontend *fe, u32 *status);
- 	int (*get_rf_strength)(struct dvb_frontend *fe, u16 *strength);
-+	/** get signal strengh in 0.001dBm, in accordance with APIv5 */
-+	int (*get_rf_strength_dbm)(struct dvb_frontend *fe, s64 *strength);
- 	int (*get_afc)(struct dvb_frontend *fe, s32 *afc);
- 
- 	/** These are provided separately from set_params in order to facilitate silicon
--- 
-2.1.0
+[1] https://patchwork.kernel.org/patch/4730111/
 
+Regards,
+--Prabhakar Lad
+
+> Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
+> ---
+>  drivers/media/platform/Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index e5269da..d32e79a 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -47,7 +47,7 @@ obj-$(CONFIG_SOC_CAMERA)              += soc_camera/
+>
+>  obj-$(CONFIG_VIDEO_RENESAS_VSP1)       += vsp1/
+>
+> -obj-y  += davinci/
+> +obj-$(CONFIG_ARCH_OMAP3)       += davinci/
+>
+>  obj-$(CONFIG_ARCH_OMAP)        += omap/
+>
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
