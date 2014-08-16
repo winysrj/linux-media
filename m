@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43345 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754822AbaHVByW (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:51410 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998AbaHPG0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 21:54:22 -0400
-Date: Fri, 22 Aug 2014 10:54:18 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: m.chehab@samsung.com, magnus.damm@gmail.com, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	laurent.pinchart@ideasonboard.com, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [3/6] ARM: shmobile: r8a7790: Add JPU device node.
-Message-ID: <20140822015418.GD9099@verge.net.au>
-References: <1408452653-14067-4-git-send-email-mikhail.ulyanov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1408452653-14067-4-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	Sat, 16 Aug 2014 02:26:44 -0400
+Received: by mail-pa0-f41.google.com with SMTP id rd3so4594554pab.0
+        for <linux-media@vger.kernel.org>; Fri, 15 Aug 2014 23:26:35 -0700 (PDT)
+Date: Sat, 16 Aug 2014 14:26:35 +0800
+From: "nibble.max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"olli.salonen" <olli.salonen@iki.fi>
+Subject: [PATCH] m88ts2022: fix high symbol rate transponders missing on 32bit platform.
+Message-ID: <201408161426307340191@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 19, 2014 at 04:50:50PM +0400, Mikhail Ulyanov wrote:
-> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+The current m88ts2022 driver will miss the following high symbol rate transponders on Telstar 18 138.0.
+12385 H 43200, 
+12690 H 43200,
+12538 V 41250...
+the code for f_3db_hz will overflow for the high symbol rate.
+for example, symbol rate=41250 KS/s
+symbol_rate * 135UL = 5568750000(1 4BEC 61B0), the value is larger than unsigned int on 32bit platform. 
+that makes the wrong result.
+Exchanging the div and mul position fixs it.
 
-Please add a changelog.
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
+---
+ drivers/media/tuners/m88ts2022.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please repost this once the binding used below has been
-accepted by the maintainer.
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index 40c42de..65c8acc 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -314,7 +314,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	div_min = gdiv28 * 78 / 100;
+ 	div_max = clamp_val(div_max, 0U, 63U);
+ 
+-	f_3db_hz = c->symbol_rate * 135UL / 200UL;
++	f_3db_hz = (c->symbol_rate / 200UL) * 135UL;
+ 	f_3db_hz +=  2000000U + (frequency_offset_khz * 1000U);
+ 	f_3db_hz = clamp(f_3db_hz, 7000000U, 40000000U);
 
-Please CC both Magnus Damm and I when you resubmit this or
-post and likewise for any other sshmobile patches.
+-- 
+1.9.1
 
-Thanks
-
-> 
-> ---
-> arch/arm/boot/dts/r8a7790.dtsi | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
-> index 61fd193..c8bc048 100644
-> --- a/arch/arm/boot/dts/r8a7790.dtsi
-> +++ b/arch/arm/boot/dts/r8a7790.dtsi
-> @@ -600,6 +600,13 @@
->  		status = "disabled";
->  	};
->  
-> +	jpu: jpeg-codec@fe980000 {
-> +		compatible = "renesas,jpu-r8a7790";
-> +		reg = <0 0xfe980000 0 0x10300>;
-> +		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
-> +	};
-> +
->  	clocks {
->  		#address-cells = <2>;
->  		#size-cells = <2>;
