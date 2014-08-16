@@ -1,75 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51104 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755950AbaHVMKJ (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:49737 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbaHPNbR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 08:10:09 -0400
-Message-ID: <1408709398.1274.17.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 5/8] of: Add of_graph_get_port_by_id function
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Date: Fri, 22 Aug 2014 14:09:58 +0200
-In-Reply-To: <2335139.eKsPusnO4R@avalon>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
-	 <1408453366-1366-6-git-send-email-p.zabel@pengutronix.de>
-	 <2335139.eKsPusnO4R@avalon>
-Content-Type: text/plain; charset="UTF-8"
+	Sat, 16 Aug 2014 09:31:17 -0400
+Received: by mail-pd0-f172.google.com with SMTP id y13so4794506pdi.31
+        for <linux-media@vger.kernel.org>; Sat, 16 Aug 2014 06:31:13 -0700 (PDT)
+Date: Sat, 16 Aug 2014 21:31:05 +0800
+From: "Max Xiang" <nibble.max@gmail.com>
+To: "Mauro Carvalho Chehab" <m.chehab@samsung.com>
+Cc: "Antti Palosaari" <crope@iki.fi>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	"olli.salonen" <olli.salonen@iki.fi>
+References: <201408161412275930052@gmail.com>
+Subject: Re: Re: [PATCH] m88ts2022: fix high symbol rate transponders missing on32bit platform.
+Message-ID: <201408162131013597260@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="=====001_Dragon877687681000_====="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This is a multi-part message in MIME format.
 
-Thank you for the comments.
+--=====001_Dragon877687681000_=====
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 
-Am Mittwoch, den 20.08.2014, 22:13 +0200 schrieb Laurent Pinchart:
-[...]
-> > +	struct device_node *port = NULL;
-> > +	int port_id;
-> > +
-> > +	while (true) {
-> > +		port = of_get_next_child(node, port);
-> > +		if (!port)
-> > +			return NULL;
-> > +		if (of_node_cmp(port->name, "port") != 0)
-> > +			continue;
-> > +		if (of_property_read_u32(port, "reg", &port_id)) {
-> > +			if (!id)
-> > +				return port;
-> > +		} else {
-> > +			if (id == port_id)
-> > +				return port;
-> > +		}
-> 
-> Nitpicking here, I would have written this
-> 
-> 		int port_id = 0;
-> 
-> 		port = of_get_next_child(node, port);
-> 		if (!port)
-> 			return NULL;
-> 		if (of_node_cmp(port->name, "port") != 0)
-> 			continue;
-> 		of_property_read_u32(port, "reg", &port_id);
-> 		if (id == port_id)
-> 			return port;
-> 
-> That saves 8 bytes with my ARM cross-compiler (at the expense of using two 
-> extra local registers).
-> 
-> Please free to ignore this is you find your code layout easier to read.
+>Em Sat, 16 Aug 2014 14:12:32 +0800
+>"nibble.max" <nibble.max@gmail.com> escreveu:
+>
+>> The current m88ts2022 driver will miss the following high symbol rate transponders on Telstar 18 138.0.
+>> 12385 H 43200, 
+>> 12690 H 43200,
+>> 12538 V 41250...
+>> the code for f_3db_hz will overflow for the high symbol rate.
+>> for example, symbol rate=41250 KS/s
+>> symbol_rate * 135UL = 5568750000(1 4BEC 61B0), the value is larger than unsigned int on 32bit platform. 
+>> that makes the wrong result.
+>> Exchanging the div and mul position fixs it.
+>> 
+>> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+>> ---
+>>  drivers/media/tuners/m88ts2022.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>> 
+>> diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+>> index 40c42de..65c8acc 100644
+>> --- a/drivers/media/tuners/m88ts2022.c
+>> +++ b/drivers/media/tuners/m88ts2022.c
+>> @@ -314,7 +314,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+>>  	div_min = gdiv28 * 78 / 100;
+>>  	div_max = clamp_val(div_max, 0U, 63U);
+>>  
+>> -	f_3db_hz = c->symbol_rate * 135UL / 200UL;
+>> +	f_3db_hz = (c->symbol_rate / 200UL) * 135UL;
+>
+>Hmm... wouldn't this make worse for low symbol rates?
+>
+The unit of symbol rate for Satellite is KS/s(1000S/s).
+So it is safe to divide 200 at the first.
+>IMHO, the better is to use a u64 instead, and do_div64().
+>
+>>  	f_3db_hz +=  2000000U + (frequency_offset_khz * 1000U);
+>>  	f_3db_hz = clamp(f_3db_hz, 7000000U, 40000000U);
+>> 
+>
+>Regards,
+>-- 
+>
+>Cheers,
+>Mauro
+--=====001_Dragon877687681000_=====
+Content-Type: text/x-vcard;
+	name="nibble.max(3).vcf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="nibble.max(3).vcf"
 
-No, that does look sensible to me. I'll follow your suggestions and
-resend the series.
+QkVHSU46VkNBUkQNClZFUlNJT046Mi4xDQpOOm5pYmJsZS5tYXg7DQpGTjpuaWJibGUubWF4DQpF
+TUFJTDtQUkVGO0lOVEVSTkVUOm5pYmJsZS5tYXhAZ21haWwuY29tDQpSRVY6MjAxNDA4MTZUMjEz
+MTAxWg0KRU5EOlZDQVJEDQo=
 
-regards
-Philipp
+--=====001_Dragon877687681000_=====--
 
