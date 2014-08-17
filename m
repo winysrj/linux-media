@@ -1,171 +1,190 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3240 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753216AbaHTW7q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 14/29] ngene: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:13 +0200
-Message-Id: <1408575568-20562-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <pfcomptech@gmail.com>) id 1XIuma-0007ts-3v
+	for linux-dvb@linuxtv.org; Sun, 17 Aug 2014 09:21:41 +0200
+Received: from mail-qc0-f172.google.com ([209.85.216.172])
+	by mail.tu-berlin.de (exim-4.72/mailfrontend-6) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1XIumY-0001H6-5v; Sun, 17 Aug 2014 09:21:40 +0200
+Received: by mail-qc0-f172.google.com with SMTP id i8so3777314qcq.31
+	for <linux-dvb@linuxtv.org>; Sun, 17 Aug 2014 00:21:36 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 17 Aug 2014 17:21:36 +1000
+Message-ID: <CAOriPhKtXuS=bO5Sn7zrvbaLoZDA2xmQNrzyW1T+5FSUcn73WA@mail.gmail.com>
+From: Paul Freeman <pfcomptech@gmail.com>
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary=001a11c22b02ceaa100500ce1add
+Subject: [linux-dvb] Updated scan and channels.conf files for au-Melbourne
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--001a11c22b02ceaa100500ce1add
+Content-Type: multipart/alternative; boundary=001a11c22b02ceaa0b0500ce1adb
 
-drivers/media/pci/ngene/ngene-core.c:188:27: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:190:25: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:199:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:260:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:263:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:282:32: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:283:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:284:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:285:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:286:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:287:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:288:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:292:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:293:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:294:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:295:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:296:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:297:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:303:17: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:316:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:368:17: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:372:9: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1160:28: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1199:20: warning: incorrect type in assignment (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1213:30: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1214:30: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1223:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1225:24: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1227:31: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1296:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1297:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1298:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1299:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1300:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1301:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1302:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1363:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1365:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1376:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1391:17: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-core.c:1596:18: warning: Using plain integer as NULL pointer
-drivers/media/pci/ngene/ngene-core.c:1615:9: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-cards.c:699:29: warning: Using plain integer as NULL pointer
-drivers/media/pci/ngene/ngene-cards.c:699:32: warning: Using plain integer as NULL pointer
-drivers/media/pci/ngene/ngene-cards.c:699:35: warning: Using plain integer as NULL pointer
-drivers/media/pci/ngene/ngene-cards.c:699:38: warning: Using plain integer as NULL pointer
-drivers/media/pci/ngene/ngene-dvb.c:84:59: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/pci/ngene/ngene-dvb.c:93:20: warning: incorrect type in initializer (incompatible argument 2 (different address spaces))
-drivers/media/pci/ngene/ngene-dvb.c:94:20: warning: incorrect type in initializer (incompatible argument 2 (different address spaces))
-drivers/media/pci/ngene/ngene-dvb.c:100:20: warning: Using plain integer as NULL pointer
+--001a11c22b02ceaa0b0500ce1adb
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/ngene/ngene-cards.c |  2 +-
- drivers/media/pci/ngene/ngene-core.c  | 14 ++++++--------
- drivers/media/pci/ngene/ngene-dvb.c   |  5 ++---
- drivers/media/pci/ngene/ngene.h       |  2 +-
- 4 files changed, 10 insertions(+), 13 deletions(-)
+Attached are the updated dvb-t scan and channels.conf files for Melbourne,
+Australia (au-Melbourne).  The  main changes are for the SBS channel
+frequency update from early 2014.
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 9e82d21..039bed3 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -696,7 +696,7 @@ static struct ngene_info ngene_info_m780 = {
- 	.demod_attach   = { NULL, demod_attach_lg330x },
- 
- 	/* Ensure these are NULL else the frame will call them (as funcs) */
--	.tuner_attach   = { 0, 0, 0, 0 },
-+	.tuner_attach   = { NULL, NULL, NULL, NULL },
- 	.fe_config      = { NULL, &aver_m780 },
- 	.avf            = { 0 },
- 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 826228c..05886c1 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -57,15 +57,13 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- #define dprintk	if (debug) printk
- 
--#define ngwriteb(dat, adr)         writeb((dat), (char *)(dev->iomem + (adr)))
--#define ngwritel(dat, adr)         writel((dat), (char *)(dev->iomem + (adr)))
--#define ngwriteb(dat, adr)         writeb((dat), (char *)(dev->iomem + (adr)))
-+#define ngwriteb(dat, adr)         writeb((dat), dev->iomem + (adr))
-+#define ngwritel(dat, adr)         writel((dat), dev->iomem + (adr))
-+#define ngwriteb(dat, adr)         writeb((dat), dev->iomem + (adr))
- #define ngreadl(adr)               readl(dev->iomem + (adr))
- #define ngreadb(adr)               readb(dev->iomem + (adr))
--#define ngcpyto(adr, src, count)   memcpy_toio((char *) \
--				   (dev->iomem + (adr)), (src), (count))
--#define ngcpyfrom(dst, adr, count) memcpy_fromio((dst), (char *) \
--				   (dev->iomem + (adr)), (count))
-+#define ngcpyto(adr, src, count)   memcpy_toio(dev->iomem + (adr), (src), (count))
-+#define ngcpyfrom(dst, adr, count) memcpy_fromio((dst), dev->iomem + (adr), (count))
- 
- /****************************************************************************/
- /* nGene interrupt handler **************************************************/
-@@ -1593,7 +1591,7 @@ static void cxd_detach(struct ngene *dev)
- 
- 	dvb_ca_en50221_release(ci->en);
- 	kfree(ci->en);
--	ci->en = 0;
-+	ci->en = NULL;
- }
- 
- /***********************************/
-diff --git a/drivers/media/pci/ngene/ngene-dvb.c b/drivers/media/pci/ngene/ngene-dvb.c
-index fcb16a6..a8a4045 100644
---- a/drivers/media/pci/ngene/ngene-dvb.c
-+++ b/drivers/media/pci/ngene/ngene-dvb.c
-@@ -47,7 +47,7 @@
- /* COMMAND API interface ****************************************************/
- /****************************************************************************/
- 
--static ssize_t ts_write(struct file *file, const char *buf,
-+static ssize_t ts_write(struct file *file, const char __user *buf,
- 			size_t count, loff_t *ppos)
- {
- 	struct dvb_device *dvbdev = file->private_data;
-@@ -64,7 +64,7 @@ static ssize_t ts_write(struct file *file, const char *buf,
- 	return count;
- }
- 
--static ssize_t ts_read(struct file *file, char *buf,
-+static ssize_t ts_read(struct file *file, char __user *buf,
- 		       size_t count, loff_t *ppos)
- {
- 	struct dvb_device *dvbdev = file->private_data;
-@@ -97,7 +97,6 @@ static const struct file_operations ci_fops = {
- };
- 
- struct dvb_device ngene_dvbdev_ci = {
--	.priv    = 0,
- 	.readers = -1,
- 	.writers = -1,
- 	.users   = -1,
-diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
-index 22c39ff..51e2fbd 100644
---- a/drivers/media/pci/ngene/ngene.h
-+++ b/drivers/media/pci/ngene/ngene.h
-@@ -737,7 +737,7 @@ typedef void (tx_cb_t)(struct ngene *, u32);
- struct ngene {
- 	int                   nr;
- 	struct pci_dev       *pci_dev;
--	unsigned char        *iomem;
-+	unsigned char __iomem *iomem;
- 
- 	/*struct i2c_adapter  i2c_adapter;*/
- 
--- 
-2.1.0.rc1
+Regards
 
+Paul
+
+--001a11c22b02ceaa0b0500ce1adb
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div><div>Attached are the updated dvb-t scan and channels=
+.conf files for Melbourne, Australia (au-Melbourne).=C2=A0 The=C2=A0 main c=
+hanges are for the SBS channel frequency update from early 2014.<br><br></d=
+iv>Regards<br>
+<br></div>Paul<br></div>
+
+--001a11c22b02ceaa0b0500ce1adb--
+
+--001a11c22b02ceaa100500ce1add
+Content-Type: application/octet-stream; name="channels.conf.au-Melbourne"
+Content-Disposition: attachment; filename="channels.conf.au-Melbourne"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hyy1ocq40
+
+NyBEaWdpdGFsKFNldmVuIE5ldHdvcmspOjE3NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lE
+VEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VB
+UkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo3Njk6NzcwOjEzMjgKNyBEaWdpdGFsIDEo
+U2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpG
+RUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZB
+TF8xXzE2OkhJRVJBUkNIWV9OT05FOjc2OTo3NzA6MTMyOQo3VFdPKFNldmVuIE5ldHdvcmspOjE3
+NzUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpR
+QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlf
+Tk9ORTo4MDE6ODAyOjEzMzAKN21hdGUoU2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lP
+Tl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJ
+T05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjgxNzo4MTk6MTMz
+MQo3IERpZ2l0YWwoU2V2ZW4gTmV0d29yayk6MTc3NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRX
+SURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpH
+VUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjc2OTo3NzA6MTMzMgpUVjRNRToxNzc1
+MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFN
+XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05P
+TkU6ODgxOjg4MjoxMzM1CkZyZXNoIElkZWFzIFRWIChTZXZlbiBOZXR3b3JrKToxNzc1MDAwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
+QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6ODk3
+Ojg5ODoxMzM2ClNCUyBPTkUoU0JTKToxODQ1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
+XzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
+X0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxNjE6ODE6Nzg1ClNCUyBUV08oU0JTKToxODQ1
+MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFN
+XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9O
+RToxNjI6ODM6Nzg2ClNCUyAzKFNCUyk6MTg0NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURU
+SF83X01IWjpGRUNfMl8zOkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFS
+RF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTYxOjgxOjc4NwpOSVRWKFNCUyk6MTg0NTAw
+MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfMl8zOkZFQ19OT05FOlFBTV82
+NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6
+MTY0Ojg3Ojc4OApTQlMgSEQoU0JTKToxODQ1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
+XzdfTUhaOkZFQ18yXzM6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
+X0lOVEVSVkFMXzFfODpISUVSQVJDSFlfTk9ORToxMDI6MTAzOjc4OQpTQlMgUmFkaW8gMShTQlMp
+OjE4NDUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfTk9O
+RTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNI
+WV9OT05FOjA6MjAxOjc5OApTQlMgUmFkaW8gMihTQlMpOjE4NDUwMDAwMDpJTlZFUlNJT05fQVVU
+TzpCQU5EV0lEVEhfN19NSFo6RkVDXzJfMzpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01P
+REVfOEs6R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjA6MjAyOjc5OQpTQlMgUmFk
+aW8gMyhTQlMpOjE4NDUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzJf
+MzpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV84
+OkhJRVJBUkNIWV9OT05FOjA6MjAzOjgwMApOaW5lIE1lbGJvdXJuZShOaW5lIE5ldHdvcmsgQXVz
+dHJhbGlhKToxOTE2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6
+RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6
+SElFUkFSQ0hZX05PTkU6NTE5OjcyMDoxMDcyCkdFTShOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKTox
+OTE2MjUwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6
+UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZ
+X05PTkU6NTEyOjY1MDoxMDczCkdPIShOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKToxOTE2MjUwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
+QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE3
+OjcwMDoxMDc0CkVYVFJBKE5pbmUgTmV0d29yayBBdXN0cmFsaWEpOjE5MTYyNTAwMDpJTlZFUlNJ
+T05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNT
+SU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MjA6NzMwOjEw
+NzUKRVhUUkEgMihOaW5lIE5ldHdvcmsgQXVzdHJhbGlhKToxOTE2MjUwMDA6SU5WRVJTSU9OX0FV
+VE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9N
+T0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTIxOjc0MDoxMDc2Ck9O
+RShUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUha
+OkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVS
+VkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE0OjY3MjoxNTg1ClRFTiBEaWdpdGFsKFRlbiBNZWxi
+b3VybmUpOjIxOTUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpG
+RUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpI
+SUVSQVJDSFlfTk9ORTo1MTI6NjUwOjE1ODkKVFZTTihUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6
+SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRS
+QU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE4
+OjY5MDoxNTkwCk9ORShUZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFO
+RFdJRFRIXzdfTUhaOkZFQ18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhL
+OkdVQVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6NTE0OjY3MjoxNTkxCkVMRVZFTihU
+ZW4gTWVsYm91cm5lKToyMTk1MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzdfTUhaOkZF
+Q18zXzQ6RkVDX05PTkU6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFM
+XzFfMTY6SElFUkFSQ0hZX05PTkU6NTE2OjY4MToxNTkyClNwcmVlVFYoVGVuIE1lbGJvdXJuZSk6
+MjE5NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF83X01IWjpGRUNfM180OkZFQ19OT05F
+OlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNI
+WV9OT05FOjUyMDo3MDA6MTU5MwpBQkMgTmV3cyAyNChBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05f
+QVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9O
+X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORToyMzE0OjIzMTU6NTYw
+CkFCQyhBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNf
+NDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8x
+NjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjU2MQpBQkMyIC8gQUJDNChBQkMpOjIyNjUwMDAwMDpJ
+TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJB
+TlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORToyMzA3
+OjIzMDg6NTYyCkFCQyhBQkMpOjIyNjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19N
+SFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5U
+RVJWQUxfMV8xNjpISUVSQVJDSFlfTk9ORTo1MTI6NjUwOjU2MwpEb3VibGUgSihBQkMpOjIyNjUw
+MDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRQU1f
+NjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlfTk9O
+RTowOjIzMTc6NTY2CkFCQyBKYXp6KEFCQyk6MjI2NTAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRX
+SURUSF83X01IWjpGRUNfM180OkZFQ19OT05FOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpH
+VUFSRF9JTlRFUlZBTF8xXzE2OkhJRVJBUkNIWV9OT05FOjA6MjMxODo1NjcKQUJDMyhBQkMpOjIy
+NjUwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpR
+QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV8xNjpISUVSQVJDSFlf
+Tk9ORToyMzExOjIzMTI6NTY0CkMzMShDMzEpOjU1NzYyNTAwMDpJTlZFUlNJT05fQVVUTzpCQU5E
+V0lEVEhfN19NSFo6RkVDXzNfNDpGRUNfTk9ORTpRUFNLOlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdV
+QVJEX0lOVEVSVkFMXzFfMTY6SElFUkFSQ0hZX05PTkU6MTAxOjEwMjozNTg1Cg==
+--001a11c22b02ceaa100500ce1add
+Content-Type: application/octet-stream; name="scan.au-Melbourne"
+Content-Disposition: attachment; filename="scan.au-Melbourne"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hyy1ocqn1
+
+Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
+d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
+CiMhIDx3X3NjYW4+IDIwMTMwMzMxIDEgMCBURVJSRVNUUklBTCBBVSA8L3dfc2Nhbj4KIy0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQojIGxvY2F0aW9uIGFuZCBwcm92aWRlcjogPEF1c3RyYWxpYS9NZWxi
+b3VybmU+CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDE0LTA4LTE3CiMgcHJvdmlkZWQgYnkg
+KG9wdCkgICAgOiA8cGZjb21wdGVjaCBhdCBnbWFpbC5jb20+CiMKIyBUWzJdIFtwbHBfaWRdIFtz
+eXN0ZW1faWRdIDxmcmVxPiA8Ync+IDxmZWNfaGk+IDxmZWNfbG8+IDxtb2Q+IDx0bT4gPGd1YXJk
+PiA8aGk+IFsjIGNvbW1lbnRdCiMtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVCAxNzc1MDAwMDAgN01I
+eiAgMy80IE5PTkUgICAgUUFNNjQgICA4ayAxLzE2IE5PTkUgICAgICAjIFNldmVuIE5ldHdvcmsK
+VCAxODQ1MDAwMDAgN01IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4ayAgMS84IE5PTkUgICAgICAj
+IFNCUyBNZWxib3VybmUKVCAxOTE2MjUwMDAgN01IeiAgMy80IE5PTkUgICAgUUFNNjQgICA4ayAx
+LzE2IE5PTkUgICAgICAjIE5pbmUgTmV0d29yayBBdXN0cmFsaWEKVCAyMTk1MDAwMDAgN01IeiAg
+My80IE5PTkUgICAgUUFNNjQgICA4ayAxLzE2IE5PTkUgICAgICAjIE5ldHdvcmsgVEVOClQgMjI2
+NTAwMDAwIDdNSHogIDMvNCBOT05FICAgIFFBTTY0ICAgOGsgMS8xNiBOT05FICAgICAgIyBBQkMg
+TWVsYm91cm5lClQgNTU3NjI1MDAwIDdNSHogIDMvNCBOT05FICAgICBRUFNLICAgOGsgMS8xNiBO
+T05FICAgICAgIyBDMzEK
+--001a11c22b02ceaa100500ce1add
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--001a11c22b02ceaa100500ce1add--
