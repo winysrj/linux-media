@@ -1,133 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33195 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750737AbaHNEem (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60246 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbaHRMEg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 00:34:42 -0400
-Date: Thu, 14 Aug 2014 07:34:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2
- flash
-Message-ID: <20140814043436.GM16460@valkosipuli.retiisi.org.uk>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
- <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
- <53CCF59E.3070200@iki.fi>
- <53DF9C2A.8060403@samsung.com>
- <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
- <53E8C4BA.6050805@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53E8C4BA.6050805@samsung.com>
+	Mon, 18 Aug 2014 08:04:36 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/2] au0828: explicitly identify boards with analog TV
+Date: Mon, 18 Aug 2014 06:51:28 -0500
+Message-Id: <1408362689-25583-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1408362689-25583-1-git-send-email-m.chehab@samsung.com>
+References: <1408362689-25583-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Right now, the au0828 driver uses .tuner to detect if analog
+tv is being used or not. By not filling .tuner fields at the
+board struct, the I2C core can't do decisions based on it.
 
-On Mon, Aug 11, 2014 at 03:27:22PM +0200, Jacek Anaszewski wrote:
+So, add a field to explicitly tell when analog TV is supported.
 
-...
+No functional changes.
 
-> >>>>diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-> >>>>new file mode 100644
-> >>>>index 0000000..effa46b
-> >>>>--- /dev/null
-> >>>>+++ b/include/media/v4l2-flash.h
-> >>>>@@ -0,0 +1,137 @@
-> >>>>+/*
-> >>>>+ * V4L2 Flash LED sub-device registration helpers.
-> >>>>+ *
-> >>>>+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-> >>>>+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>+ *
-> >>>>+ * This program is free software; you can redistribute it and/or modify
-> >>>>+ * it under the terms of the GNU General Public License version 2 as
-> >>>>+ * published by the Free Software Foundation."
-> >>>>+ */
-> >>>>+
-> >>>>+#ifndef _V4L2_FLASH_H
-> >>>>+#define _V4L2_FLASH_H
-> >>>>+
-> >>>>+#include <media/v4l2-ctrls.h>
-> >>>>+#include <media/v4l2-device.h>
-> >>>>+#include <media/v4l2-dev.h>le
-> >>>>+#include <media/v4l2-event.h>
-> >>>>+#include <media/v4l2-ioctl.h>
-> >>>>+
-> >>>>+struct led_classdev_flash;
-> >>>>+struct led_classdev;
-> >>>>+enum led_brightness;
-> >>>>+
-> >>>>+struct v4l2_flash_ops {
-> >>>>+	int (*torch_brightness_set)(struct led_classdev *led_cdev,
-> >>>>+					enum led_brightness brightness);
-> >>>>+	int (*torch_brightness_update)(struct led_classdev *led_cdev);
-> >>>>+	int (*flash_brightness_set)(struct led_classdev_flash *flash,
-> >>>>+					u32 brightness);
-> >>>>+	int (*flash_brightness_update)(struct led_classdev_flash *flash);
-> >>>>+	int (*strobe_set)(struct led_classdev_flash *flash, bool state);
-> >>>>+	int (*strobe_get)(struct led_classdev_flash *flash, bool *state);
-> >>>>+	int (*timeout_set)(struct led_classdev_flash *flash, u32 timeout);
-> >>>>+	int (*indicator_brightness_set)(struct led_classdev_flash *flash,
-> >>>>+					u32 brightness);
-> >>>>+	int (*indicator_brightness_update)(struct led_classdev_flash *flash);
-> >>>>+	int (*external_strobe_set)(struct led_classdev_flash *flash,
-> >>>>+					bool enable);
-> >>>>+	int (*fault_get)(struct led_classdev_flash *flash, u32 *fault);
-> >>>>+	void (*sysfs_lock)(struct led_classdev *led_cdev);
-> >>>>+	void (*sysfs_unlock)(struct led_classdev *led_cdev);
-> >>>
-> >>>These functions are not driver specific and there's going to be just one
-> >>>implementation (I suppose). Could you refresh my memory regarding why
-> >>>the LED framework functions aren't called directly?
-> >>
-> >>These ops are required to make possible building led-class-flash as
-> >>a kernel module.
-> >
-> >Assuming you'd use the actual implementation directly, what would be the
-> >dependencies? I don't think the LED flash framework has any callbacks
-> >towards the V4L2 (LED) flash framework, does it? Please correct my
-> >understanding if I'm missing something. In Makefile format, assume all
-> >targets are .PHONY:
-> >
-> >led-flash-api: led-api
-> >
-> >v4l2-flash: led-flash-api
-> >
-> >driver: led-flash-api v4l2-flash
-> 
-> LED Class Flash driver gains V4L2 Flash API when
-> CONFIG_V4L2_FLASH_LED_CLASS is defined. This is accomplished in
-> the probe function by either calling v4l2_flash_init function
-> or the macro of this name, when the CONFIG_V4L2_FLASH_LED_CLASS
-> macro isn't defined.
-> 
-> If the v4l2-flash.c was to call the LED API directly, then the
-> led-class-flash module symbols would have to be available at
-> v4l2-flash.o linking time.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-cards.c | 10 +++-------
+ drivers/media/usb/au0828/au0828.h       |  1 +
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-Is this an issue? EXPORT_SYMBOL_GPL() for the relevant symbols should be
-enough.
-
-> This requirement cannot be met if the led-class-flash is built
-> as a module.
-> 
-> Use of function pointers in the v4l2-flash.c allows to compile it
-> into the kernel and enables the possibility of adding the V4L2 Flash
-> support conditionally, during driver probing.
-
-I'd simply decide this during kernel compilation time. If you want
-something, just enable it. v4l2_flash_init() is called directly by the
-driver in any case, so unless that is also called through a wrapper the
-driver is still directly dependent on it.
-
+diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+index 2c6b7da137ed..8f2fc2fe6a89 100644
+--- a/drivers/media/usb/au0828/au0828-cards.c
++++ b/drivers/media/usb/au0828/au0828-cards.c
+@@ -46,6 +46,7 @@ struct au0828_board au0828_boards[] = {
+ 		.name	= "Hauppauge HVR850",
+ 		.tuner_type = TUNER_XC5000,
+ 		.tuner_addr = 0x61,
++		.has_analog = 1,
+ 		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+ 		.input = {
+ 			{
+@@ -72,12 +73,7 @@ struct au0828_board au0828_boards[] = {
+ 		.tuner_type = TUNER_XC5000,
+ 		.tuner_addr = 0x61,
+ 		.has_ir_i2c = 1,
+-		/* The au0828 hardware i2c implementation does not properly
+-		   support the xc5000's i2c clock stretching.  So we need to
+-		   lower the clock frequency enough where the 15us clock
+-		   stretch fits inside of a normal clock cycle, or else the
+-		   au0828 fails to set the STOP bit.  A 30 KHz clock puts the
+-		   clock pulse width at 18us */
++		.has_analog = 1,
+ 		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+ 		.input = {
+ 			{
+@@ -232,7 +228,7 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
+ 	}
+ 
+ 	/* Setup tuners */
+-	if (dev->board.tuner_type != TUNER_ABSENT) {
++	if (dev->board.tuner_type != TUNER_ABSENT && dev->board.has_analog) {
+ 		/* Load the tuner module, which does the attach */
+ 		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+ 				"tuner", dev->board.tuner_addr, NULL);
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 96bec05d7dac..20b82ba5be6c 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -89,6 +89,7 @@ struct au0828_board {
+ 	unsigned char tuner_addr;
+ 	unsigned char i2c_clk_divider;
+ 	unsigned char has_ir_i2c:1;
++	unsigned char has_analog:1;
+ 	struct au0828_input input[AU0828_MAX_INPUT];
+ 
+ };
 -- 
-Kind regards,
+1.9.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
