@@ -1,71 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:33704 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469AbaHLHz7 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1826 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118AbaHRMe2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 03:55:59 -0400
-Received: by mail-qg0-f52.google.com with SMTP id f51so9107763qge.39
-        for <linux-media@vger.kernel.org>; Tue, 12 Aug 2014 00:55:59 -0700 (PDT)
-Message-ID: <53E9C88B.7050400@gmail.com>
-Date: Tue, 12 Aug 2014 09:55:55 +0200
-From: thomas schorpp <thomas.schorpp@gmail.com>
-Reply-To: thomas.schorpp@gmail.com
+	Mon, 18 Aug 2014 08:34:28 -0400
+Message-ID: <53F1F2A3.9060801@xs4all.nl>
+Date: Mon, 18 Aug 2014 12:33:39 +0000
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: anuroop.kamu@gmail.com, linux-sunxi@googlegroups.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 2/2] [stage/sunxi-3.4] Add support for Allwinner (DVB/ATSC)
- Transport Stream Controller(s) (TSC)
-References: <520BC1EF.9030204@gmail.com> <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
-In-Reply-To: <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] au0828: explicitly identify boards with analog TV
+References: <1408362689-25583-1-git-send-email-m.chehab@samsung.com> <1408362689-25583-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1408362689-25583-2-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 12.08.2014 um 08:25 schrieb anuroop.kamu@gmail.com:
-> On Wednesday, August 14, 2013 11:14:15 PM UTC+5:30, Thomas Schorpp wrote:
->> OK, with the patched fex file and devices.c from
->>
->> [linux-sunxi] [PATCH v2 1/1] [sunxi-boards/a20] Add support for Allwinner (DVB/ATSC) Transport Stream Controller(s) (TSC)
->>
->> [PATCH v2 1/1] [stage/sunxi-3.4] sw_nand: sunxi devices core using wrong MMIO region range, overlaps TSC/TSI register base address 0x01c04000
->>
->> and the driver patches from this topic here
->>
->>
->
->>
->> the driver basically loads and inits:
+On 08/18/2014 11:51 AM, Mauro Carvalho Chehab wrote:
+> Right now, the au0828 driver uses .tuner to detect if analog
+> tv is being used or not. By not filling .tuner fields at the
+> board struct, the I2C core can't do decisions based on it.
+> 
+> So, add a field to explicitly tell when analog TV is supported.
+> 
+> No functional changes.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-cards.c | 10 +++-------
+>  drivers/media/usb/au0828/au0828.h       |  1 +
+>  2 files changed, 4 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+> index 2c6b7da137ed..8f2fc2fe6a89 100644
+> --- a/drivers/media/usb/au0828/au0828-cards.c
+> +++ b/drivers/media/usb/au0828/au0828-cards.c
+> @@ -46,6 +46,7 @@ struct au0828_board au0828_boards[] = {
+>  		.name	= "Hauppauge HVR850",
+>  		.tuner_type = TUNER_XC5000,
+>  		.tuner_addr = 0x61,
+> +		.has_analog = 1,
+>  		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+>  		.input = {
+>  			{
+> @@ -72,12 +73,7 @@ struct au0828_board au0828_boards[] = {
+>  		.tuner_type = TUNER_XC5000,
+>  		.tuner_addr = 0x61,
+>  		.has_ir_i2c = 1,
+> -		/* The au0828 hardware i2c implementation does not properly
+> -		   support the xc5000's i2c clock stretching.  So we need to
+> -		   lower the clock frequency enough where the 15us clock
+> -		   stretch fits inside of a normal clock cycle, or else the
+> -		   au0828 fails to set the STOP bit.  A 30 KHz clock puts the
+> -		   clock pulse width at 18us */
 
->
-> please forgive me if my questions are wrong. I am fairly new to android & Allwinner platform.
+Why was this comment block dropped? The commit message makes no mention of it.
 
-1. The tscdrv.c code (my linux-sunxi port, too) is (c) AW proprietary, You need to contact AW support (+ for a complete TSC Manual).
 
-2. I've suspended my TSC project until a complete A20 TSC manual is available or I get the time for register probe rev. engineering.
+> +		.has_analog = 1,
+>  		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
+>  		.input = {
+>  			{
+> @@ -232,7 +228,7 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
+>  	}
+>  
+>  	/* Setup tuners */
+> -	if (dev->board.tuner_type != TUNER_ABSENT) {
+> +	if (dev->board.tuner_type != TUNER_ABSENT && dev->board.has_analog) {
 
-3. https://groups.google.com/forum/#!topic/android-porting/EMAG4RUlOjI
+This tests against TUNER_ABSENT and, even after applying patch 2, the 'Unknown
+Board' struct still specifies UNSET instead of TUNER_ABSENT. Can you change
+that as well in patch 2?
 
-"Now we are planning to integrate a TV chip with this (DVB-T) . Allwinner has TS control block and a sample driver along with it."
+This UNSET/TUNER_ABSENT confusion is similar to what I found in cx23885. I think
+there are several drivers that are all inconsistent in how they handle this.
 
-Who is "we"?
+Regards,
 
-I don't support Android OS platform, nor do "we" support closed source product developers from hidden proprietary products manufacturers
-usually not releasing derivated works of GPL'd code back to "us" or the android-porting project with their products,
-especially not for free. Please refer to the known consultant companies if Your company needs "help".
+	Hans
 
-Please, tell Your Boss there's a big difference between "help" and valuable expensive engineering project consulting, thank You.
-Code maybe free under GPL (only the without warranty version) but consulting for it is not, and violating the GPL is breaking the law, worldwide.
-
-This is the second request directly adressed to me off-list from a commercial company to work for free for them,
-I will drop any further to the JUNK Mail folder without notice.
-
->
-> thanks a lot
-> Anuroop
->
-
-thanks A LOT :-//
-y
-tom
+>  		/* Load the tuner module, which does the attach */
+>  		sd = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+>  				"tuner", dev->board.tuner_addr, NULL);
+> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+> index 96bec05d7dac..20b82ba5be6c 100644
+> --- a/drivers/media/usb/au0828/au0828.h
+> +++ b/drivers/media/usb/au0828/au0828.h
+> @@ -89,6 +89,7 @@ struct au0828_board {
+>  	unsigned char tuner_addr;
+>  	unsigned char i2c_clk_divider;
+>  	unsigned char has_ir_i2c:1;
+> +	unsigned char has_analog:1;
+>  	struct au0828_input input[AU0828_MAX_INPUT];
+>  
+>  };
+> 
 
