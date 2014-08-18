@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47533 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43837 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733AbaHVS5q (ORCPT
+	with ESMTP id S1751091AbaHRRFs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 14:57:46 -0400
+	Mon, 18 Aug 2014 13:05:48 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>, Jan Kara <jack@suse.cz>,
-	m.szyprowski@samsung.com, pawel@osciak.com
-Subject: Re: [PATCH] videobuf2-core: take mmap_sem before calling __qbuf_userptr
-Date: Fri, 22 Aug 2014 20:58:24 +0200
-Message-ID: <4145315.i0HCALftfB@avalon>
-In-Reply-To: <53F78565.5000502@xs4all.nl>
-References: <53F78565.5000502@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-usb@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Michael Grzeschik <mgr@pengutronix.de>
+Subject: [PATCH 0/2] Move UVC gagdet to video_ioctl2
+Date: Mon, 18 Aug 2014 19:06:15 +0200
+Message-Id: <1408381577-31901-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-Thank you for the patch.
+This small patch series replaces manual handling of V4L2 ioctls in the UVC
+gadget function driver with the video_ioctl2 infrastructure. This simplifies
+the driver and brings support for V4L2 tracing features.
 
-On Friday 22 August 2014 18:01:09 Hans Verkuil wrote:
-> Commit f035eb4e976ef5a059e30bc91cfd310ff030a7d3 (videobuf2: fix lockdep
-> warning) unfortunately removed the mmap_sem lock that is needed around the
-> call to __qbuf_userptr. Amazingly nobody noticed this until Jan Kara
-> pointed this out to me.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Jan Kara <jack@suse.cz>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 5b808e2..2f6ac7e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1591,6 +1591,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
-> static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer
-> *b) {
->  	struct vb2_queue *q = vb->vb2_queue;
-> +	struct rw_semaphore *mmap_sem;
+The series is based on top of Michael Grzeschik's "usb: gadget/uvc: remove
+DRIVER_VERSION{,_NUMBER}" patch. The result can be found at
 
-I don't want to to be included in the category of the "amazing reviewers who 
-don't notice obvious issues" twice in a row, so I'll point out the obvious 
-lack of initialization of the mmap_sem variable :-)
+	git://linuxtv.org/pinchartl/media.git uvc/gadget
 
->  	int ret;
-> 
->  	ret = __verify_length(vb, b);
-> @@ -1627,7 +1628,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const
-> struct v4l2_buffer *b) ret = __qbuf_mmap(vb, b);
->  		break;
->  	case V4L2_MEMORY_USERPTR:
-> +		down_read(mmap_sem);
->  		ret = __qbuf_userptr(vb, b);
-> +		up_read(mmap_sem);
->  		break;
->  	case V4L2_MEMORY_DMABUF:
->  		ret = __qbuf_dmabuf(vb, b);
+The patches have been compile-tested only so far. I'd appreciate if someone
+could test them on real hardware.
+
+Laurent Pinchart (2):
+  usb: gadget: f_uvc: Store EP0 control request state during setup stage
+  usb: gadget: f_uvc: Move to video_ioctl2
+
+ drivers/usb/gadget/function/f_uvc.c    |   7 +
+ drivers/usb/gadget/function/uvc_v4l2.c | 315 ++++++++++++++++-----------------
+ 2 files changed, 164 insertions(+), 158 deletions(-)
 
 -- 
 Regards,
