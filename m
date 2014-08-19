@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56974 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751490AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/14] af9035: make checkpatch.pl happy
-Date: Sat,  9 Aug 2014 23:27:10 +0300
-Message-Id: <1407616032-2722-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51135 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119AbaHSNC6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Aug 2014 09:02:58 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Tue, 19 Aug 2014 15:02:41 +0200
+Message-Id: <1408453366-1366-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Correct issues reported by checkpatch.pl.
+Decrementing the reference count of the previous endpoint node allows to
+use the of_graph_get_next_endpoint function in a for_each_... style macro.
+Prior to this patch, all current users of this function that actually pass
+a non-NULL prev parameter should be changed to not decrement the passed
+prev argument's refcount themselves.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/of/base.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 85f2c4b..f37cf7d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -536,6 +536,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 	u8 tmp;
- 	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
- 	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf };
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index d8574ad..a49b5628 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+  * @prev: previous endpoint node, or NULL to get first
+  *
+  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+- * of the passed @prev node is not decremented, the caller have to use
+- * of_node_put() on it when done.
++ * of the passed @prev node is decremented.
+  */
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *prev)
+@@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+ 			      __func__, prev->full_name))
+ 			return NULL;
+-
+-		/*
+-		 * Avoid dropping prev node refcount to 0 when getting the next
+-		 * child below.
+-		 */
+-		of_node_get(prev);
+ 	}
  
- 	/*
-@@ -974,6 +975,7 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
- static int af9035_get_adapter_count(struct dvb_usb_device *d)
- {
- 	struct state *state = d_to_priv(d);
-+
- 	return state->dual_mode + 1;
- }
- 
-@@ -982,6 +984,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret;
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	if (!state->af9033_config[adap->id].tuner) {
-@@ -1068,6 +1071,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_frontend *fe;
- 	struct i2c_msg msg[1];
- 	u8 tuner_addr;
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	/*
-@@ -1393,6 +1397,7 @@ static int af9035_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
- 		struct usb_data_stream_properties *stream)
- {
- 	struct dvb_usb_device *d = fe_to_d(fe);
-+
- 	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, fe_to_adap(fe)->id);
- 
- 	if (d->udev->speed == USB_SPEED_FULL)
-@@ -1554,7 +1559,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 							RC_MAP_IT913X_V1) },
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
--		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
-+		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)",
-+		NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a05,
- 		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_HAUPPAUGE, 0xf900,
+ 	while (1) {
 -- 
-http://palosaari.fi/
+2.1.0.rc1
 
