@@ -1,44 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:35951 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810AbaHJVeV (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51139 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbaHSNC7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 17:34:21 -0400
-Received: by mail-qc0-f175.google.com with SMTP id w7so993239qcr.6
-        for <linux-media@vger.kernel.org>; Sun, 10 Aug 2014 14:34:21 -0700 (PDT)
-Received: from [192.168.0.35] (cpe-071-077-206-066.ec.res.rr.com. [71.77.206.66])
-        by mx.google.com with ESMTPSA id r91sm11710647qgd.12.2014.08.10.14.34.17
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 10 Aug 2014 14:34:20 -0700 (PDT)
-In-Reply-To: <15fe468e-0c2e-4b81-8a4e-6e3529e57046@email.android.com>
-References: <15fe468e-0c2e-4b81-8a4e-6e3529e57046@email.android.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Fwd: Re: CX23885 error during boot
-From: Andy Walls <andy@silverblocksystems.net>
-Date: Sun, 10 Aug 2014 17:34:01 -0400
-To: linux-media@vger.kernel.org
-Message-ID: <108ecfec-d9ba-4f7f-b9f0-155905338e16@email.android.com>
+	Tue, 19 Aug 2014 09:02:59 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 5/8] of: Add of_graph_get_port_by_id function
+Date: Tue, 19 Aug 2014 15:02:43 +0200
+Message-Id: <1408453366-1366-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds a function to get a port device tree node by port id,
+or reg property value.
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/of/base.c        | 30 ++++++++++++++++++++++++++++++
+ include/linux/of_graph.h |  7 +++++++
+ 2 files changed, 37 insertions(+)
 
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index a49b5628..6044c15 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2053,6 +2053,36 @@ int of_graph_parse_endpoint(const struct device_node *node,
+ EXPORT_SYMBOL(of_graph_parse_endpoint);
+ 
+ /**
++ * of_graph_get_port_by_id() - get the port matching a given id
++ * @parent: pointer to the parent device node
++ * @id: id of the port
++ *
++ * Return: A 'port' node pointer with refcount incremented.The caller
++ * has to use of_node_put() on it when done.
++ */
++struct device_node *of_graph_get_port_by_id(struct device_node *node, int id)
++{
++	struct device_node *port = NULL;
++	int port_id;
++
++	while (true) {
++		port = of_get_next_child(node, port);
++		if (!port)
++			return NULL;
++		if (of_node_cmp(port->name, "port") != 0)
++			continue;
++		if (of_property_read_u32(port, "reg", &port_id)) {
++			if (!id)
++				return port;
++		} else {
++			if (id == port_id)
++				return port;
++		}
++	}
++}
++EXPORT_SYMBOL(of_graph_get_port_by_id);
++
++/**
+  * of_graph_get_next_endpoint() - get next endpoint node
+  * @parent: pointer to the parent device node
+  * @prev: previous endpoint node, or NULL to get first
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index 2890a4c..24ceb4b 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -33,6 +33,7 @@ struct of_endpoint {
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
++struct device_node *of_graph_get_port_by_id(struct device_node *node, int id);
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *of_graph_get_remote_port_parent(
+@@ -46,6 +47,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
+ }
+ 
++static inline struct device_node *of_graph_get_port_by_id(
++					struct device_node *node, int id)
++{
++	return NULL;
++}
++
+ static inline struct device_node *of_graph_get_next_endpoint(
+ 					const struct device_node *parent,
+ 					struct device_node *previous)
+-- 
+2.1.0.rc1
 
->
->Dear Media Community:
->  Since switching to CentOS7 and the 3.10.0-123 kernel as listed below:
->> Linux mythbox.lightfoot.us 3.10.0-123.6.3.el7.x86_64 #1 SMP Wed Aug
->> 6 21:12:36 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
->
->	I keep getting the following in dmesg related to my Hauppage Video
->Card at bootup.  The error seems to have no affect on operation, but I
->am curious if there is something to be done to resolve it?
-
-You have the wrong firmware image for the CX23417 MPEG encoder chip connected to the CX23885.  Update it to the proper file.  If you dont use the card for compressed analog video, it doesnt matter.
-
-Regards,
-Andy
