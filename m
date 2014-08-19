@@ -1,56 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60949 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751433AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/14] af9035: enable AF9033 demod clock source for IT9135
-Date: Sat,  9 Aug 2014 23:27:05 +0300
-Message-Id: <1407616032-2722-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:64934 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012AbaHSMxK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Aug 2014 08:53:10 -0400
+Received: by mail-lb0-f180.google.com with SMTP id v6so5359641lbi.39
+        for <linux-media@vger.kernel.org>; Tue, 19 Aug 2014 05:53:09 -0700 (PDT)
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: m.chehab@samsung.com, horms@verge.net.au, magnus.damm@gmail.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com
+Cc: laurent.pinchart@ideasonboard.com, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Subject: [PATCH 6/6] devicetree: bindings: Document Renesas JPEG Processing Unit.
+Date: Tue, 19 Aug 2014 16:50:53 +0400
+Message-Id: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Integrated RF tuner of IT9135 is connected to demod clock source
-named dyn0_clk. Enable that clock source in order to provide stable
-clock early enough.
-
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/media/renesas,jpu.txt      | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,jpu.txt
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index c82beac..8ac0423 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -647,16 +647,19 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
- 	state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
- 
--	/* eeprom memory mapped location */
- 	if (state->chip_type == 0x9135) {
-+		/* feed clock for integrated RF tuner */
-+		state->af9033_config[0].dyn0_clk = true;
-+		state->af9033_config[1].dyn0_clk = true;
+diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+new file mode 100644
+index 0000000..44b07df
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+@@ -0,0 +1,23 @@
++* Renesas VSP1 Video Processing Engine
 +
- 		if (state->chip_version == 0x02) {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
- 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_60;
--			tmp16 = 0x00461d;
-+			tmp16 = 0x00461d; /* eeprom memory mapped location */
- 		} else {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
- 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_38;
--			tmp16 = 0x00461b;
-+			tmp16 = 0x00461b; /* eeprom memory mapped location */
- 		}
- 
- 		/* check if eeprom exists */
++The JPEG processing unit (JPU) incorporates the JPEG codec with an encoding
++and decoding function conforming to the JPEG baseline process, so that the JPU
++can encode image data and decode JPEG data quickly.
++It can be found in the Renesas R-Car first and second generation SoCs.
++
++Required properties:
++  - compatible: should containg one of the following:
++			- "renesas,jpu-r8a7790" for R-Car H2
++			- "renesas,jpu-r8a7791" for R-Car M2
++
++  - reg: Base address and length of the registers block for the JPU.
++  - interrupts: JPU interrupt specifier.
++  - clocks: A phandle + clock-specifier pair for the JPU functional clock.
++
++Example: R8A7790 (R-Car H2) JPU node
++	jpeg-codec@fe980000 {
++		compatible = "renesas,jpu-r8a7790";
++		reg = <0 0xfe980000 0 0x10300>;
++		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
++	};
 -- 
-http://palosaari.fi/
+2.1.0.rc1
 
