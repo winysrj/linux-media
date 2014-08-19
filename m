@@ -1,114 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1769 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711AbaHKCjq (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:40745 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950AbaHSMxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 22:39:46 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7B2dgLE012175
-	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 04:39:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EE5232A2652
-	for <linux-media@vger.kernel.org>; Mon, 11 Aug 2014 04:39:29 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140811023929.EE5232A2652@tschai.lan>
-Date: Mon, 11 Aug 2014 04:39:29 +0200 (CEST)
+	Tue, 19 Aug 2014 08:53:08 -0400
+Received: by mail-lb0-f179.google.com with SMTP id v6so5397396lbi.10
+        for <linux-media@vger.kernel.org>; Tue, 19 Aug 2014 05:53:07 -0700 (PDT)
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: m.chehab@samsung.com, horms@verge.net.au, magnus.damm@gmail.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com
+Cc: laurent.pinchart@ideasonboard.com, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Subject: [PATCH 4/6] ARM: shmobile: r8a7791: Add JPU clock dt and CPG define.
+Date: Tue, 19 Aug 2014 16:50:51 +0400
+Message-Id: <1408452653-14067-5-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+---
+ arch/arm/boot/dts/r8a7791.dtsi            | 6 +++---
+ include/dt-bindings/clock/r8a7791-clock.h | 1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/arch/arm/boot/dts/r8a7791.dtsi b/arch/arm/boot/dts/r8a7791.dtsi
+index 152c75c..c2d0c6e 100644
+--- a/arch/arm/boot/dts/r8a7791.dtsi
++++ b/arch/arm/boot/dts/r8a7791.dtsi
+@@ -889,16 +889,16 @@
+ 		mstp1_clks: mstp1_clks@e6150134 {
+ 			compatible = "renesas,r8a7791-mstp-clocks", "renesas,cpg-mstp-clocks";
+ 			reg = <0 0xe6150134 0 4>, <0 0xe6150038 0 4>;
+-			clocks = <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
++			clocks = <&m2_clk>, <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
+ 				 <&cp_clk>, <&zs_clk>, <&zs_clk>, <&zs_clk>;
+ 			#clock-cells = <1>;
+ 			renesas,clock-indices = <
+-				R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 R8A7791_CLK_TMU2
++				R8A7791_CLK_JPU R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 R8A7791_CLK_TMU2
+ 				R8A7791_CLK_CMT0 R8A7791_CLK_TMU0 R8A7791_CLK_VSP1_DU1
+ 				R8A7791_CLK_VSP1_DU0 R8A7791_CLK_VSP1_S
+ 			>;
+ 			clock-output-names =
+-				"tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
++				"jpu", "tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
+ 				"vsp1-du0", "vsp1-sy";
+ 		};
+ 		mstp2_clks: mstp2_clks@e6150138 {
+diff --git a/include/dt-bindings/clock/r8a7791-clock.h b/include/dt-bindings/clock/r8a7791-clock.h
+index f0d4d10..58c3f49 100644
+--- a/include/dt-bindings/clock/r8a7791-clock.h
++++ b/include/dt-bindings/clock/r8a7791-clock.h
+@@ -25,6 +25,7 @@
+ #define R8A7791_CLK_MSIOF0		0
+ 
+ /* MSTP1 */
++#define R8A7791_CLK_JPU		6
+ #define R8A7791_CLK_TMU1		11
+ #define R8A7791_CLK_TMU3		21
+ #define R8A7791_CLK_TMU2		22
+-- 
+2.1.0.rc1
 
-date:		Mon Aug 11 04:00:24 CEST 2014
-git branch:	test
-git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-7.slh.3-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
