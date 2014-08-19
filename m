@@ -1,46 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49195 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755196AbaHLVub (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51142 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149AbaHSNC7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 17:50:31 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 10/10] Add missing viterbi lock
-Date: Tue, 12 Aug 2014 18:50:24 -0300
-Message-Id: <1407880224-374-11-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407880224-374-1-git-send-email-m.chehab@samsung.com>
-References: <1407880224-374-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 19 Aug 2014 09:02:59 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 8/8] imx-drm: use for_each_endpoint_of_node macro in imx_drm_encoder_parse_of
+Date: Tue, 19 Aug 2014 15:02:46 +0200
+Message-Id: <1408453366-1366-9-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/as102_fe.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Using the for_each_... macro should make the code bit shorter and
+easier to read.
 
-diff --git a/drivers/media/dvb-frontends/as102_fe.c b/drivers/media/dvb-frontends/as102_fe.c
-index b272e4ea1860..ef4c3c667782 100644
---- a/drivers/media/dvb-frontends/as102_fe.c
-+++ b/drivers/media/dvb-frontends/as102_fe.c
-@@ -325,11 +325,12 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
- 		break;
- 	case TUNE_STATUS_STREAM_DETECTED:
--		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_SYNC;
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_SYNC |
-+			  FE_HAS_VITERBI;
- 		break;
- 	case TUNE_STATUS_STREAM_TUNED:
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_SYNC |
--			FE_HAS_LOCK;
-+			  FE_HAS_LOCK | FE_HAS_VITERBI;
- 		break;
- 	default:
- 		*status = TUNE_STATUS_NOT_TUNED;
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/staging/imx-drm/imx-drm-core.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 9b5222c..460d785 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -438,17 +438,13 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	struct drm_encoder *encoder, struct device_node *np)
+ {
+ 	struct imx_drm_device *imxdrm = drm->dev_private;
+-	struct device_node *ep = NULL;
++	struct device_node *ep;
+ 	uint32_t crtc_mask = 0;
+-	int i;
++	int i = 0;
+ 
+-	for (i = 0; ; i++) {
++	for_each_endpoint_of_node(np, ep) {
+ 		u32 mask;
+ 
+-		ep = of_graph_get_next_endpoint(np, ep);
+-		if (!ep)
+-			break;
+-
+ 		mask = imx_drm_find_crtc_mask(imxdrm, ep);
+ 
+ 		/*
+@@ -457,14 +453,15 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 		 * not been registered yet.  Defer probing, and hope that
+ 		 * the required CRTC is added later.
+ 		 */
+-		if (mask == 0)
++		if (mask == 0) {
++			of_node_put(ep);
+ 			return -EPROBE_DEFER;
++		}
+ 
+ 		crtc_mask |= mask;
++		i++;
+ 	}
+ 
+-	if (ep)
+-		of_node_put(ep);
+ 	if (i == 0)
+ 		return -ENOENT;
+ 
 -- 
-1.9.3
+2.1.0.rc1
 
