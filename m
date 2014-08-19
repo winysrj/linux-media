@@ -1,96 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:60473 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750831AbaHDUCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 16:02:23 -0400
-Received: by mail-we0-f170.google.com with SMTP id w62so8314331wes.29
-        for <linux-media@vger.kernel.org>; Mon, 04 Aug 2014 13:02:19 -0700 (PDT)
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [RFC PATCH] uvcvideo: Add quirk to force the Oculus DK2 IR tracker to grayscale
-Date: Mon,  4 Aug 2014 22:02:15 +0200
-Message-Id: <1407182535-7622-1-git-send-email-philipp.zabel@gmail.com>
+Received: from dehamd003.servertools24.de ([31.47.254.18]:49702 "EHLO
+	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752202AbaHSNxn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Aug 2014 09:53:43 -0400
+Message-ID: <53F356E4.30602@ladisch.de>
+Date: Tue, 19 Aug 2014 15:53:40 +0200
+From: Clemens Ladisch <clemens@ladisch.de>
+MIME-Version: 1.0
+To: Federico Simoncelli <federico.simoncelli@gmail.com>
+CC: Lubomir Rintel <lkundrak@v3.sk>, alsa-devel@alsa-project.org,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	Federico Simoncelli <fsimonce@redhat.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [alsa-devel] [PATCH] usbtv: add audio support
+References: <1407303961.26078.1.camel@v3.sk>
+	<1407793342-18540-1-git-send-email-federico.simoncelli@gmail.com>
+In-Reply-To: <1407793342-18540-1-git-send-email-federico.simoncelli@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a quirk to force Y8 pixel format even if the camera reports
-half-width YUYV.
+Federico Simoncelli wrote:
+> +++ b/drivers/media/usb/usbtv/usbtv-audio.c
+> ...
+> +#include <sound/ac97_codec.h>
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
----
-The Oculus Rift DK2 comes with an IR webcam that lies about the pixel
-format and frame size it produces. This is a quick hack to make it
-produce proper greyscale images.
----
- drivers/media/usb/uvc/uvc_driver.c | 19 +++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   |  1 +
- 2 files changed, 20 insertions(+)
+What do you need this header for?
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f8135f4..322a674 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -352,6 +352,10 @@ static int uvc_parse_format(struct uvc_device *dev,
- 
- 		/* Find the format descriptor from its GUID. */
- 		fmtdesc = uvc_format_by_guid(&buffer[5]);
-+		if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
-+			WARN_ON(!fmtdesc || fmtdesc->fcc != V4L2_PIX_FMT_YUYV);
-+			fmtdesc = &uvc_fmts[9];
-+		}
- 
- 		if (fmtdesc != NULL) {
- 			strlcpy(format->name, fmtdesc->name,
-@@ -366,6 +370,10 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		}
- 
- 		format->bpp = buffer[21];
-+		if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
-+			WARN_ON(format->bpp != 16);
-+			format->bpp /= 2;
-+		}
- 		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
- 			ftype = UVC_VS_FRAME_UNCOMPRESSED;
- 		} else {
-@@ -475,6 +483,8 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		frame->bFrameIndex = buffer[3];
- 		frame->bmCapabilities = buffer[4];
- 		frame->wWidth = get_unaligned_le16(&buffer[5]);
-+		if (dev->quirks & UVC_QUIRK_FORCE_Y8)
-+			frame->wWidth *= 2;
- 		frame->wHeight = get_unaligned_le16(&buffer[7]);
- 		frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
- 		frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
-@@ -2486,6 +2496,15 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
- 				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-+	/* Oculus VR Positional Tracker DK2 */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x2833,
-+	  .idProduct		= 0x0201,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
- 	/* Generic USB Video Class */
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
- 	{}
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index b1f69a6..1252040 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -147,6 +147,7 @@
- #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
- #define UVC_QUIRK_PROBE_DEF		0x00000100
- #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
-+#define UVC_QUIRK_FORCE_Y8		0x00000400
- 
- /* Format flags */
- #define UVC_FMT_FLAG_COMPRESSED		0x00000001
--- 
-2.0.1
+> +static struct snd_pcm_hardware snd_usbtv_digital_hw = {
+> +	...
+> +	.period_bytes_min = 11059,
+> +	.period_bytes_max = 13516,
+> +	.periods_max = 98,
+> +	.buffer_bytes_max = 62720 * 8, /* value in usbaudio.c */
 
+Where do these values come from?  (There is no "usbaudio.c" file.)
+
+> +static int snd_usbtv_pcm_close(struct snd_pcm_substream *substream)
+> +{
+> +	if (atomic_read(&chip->snd_stream)) {
+> +		atomic_set(&chip->snd_stream, 0);
+
+Doing _two_ atomic operations is racy.
+
+You probably want a function like test_and_clear_bit().
+
+> +		schedule_work(&chip->snd_trigger);
+
+The device must be closed when the .close callback returns.
+
+> +static void usbtv_audio_urb_received(struct urb *urb)
+> +{
+> +	struct usbtv *chip = urb->context;
+> +	struct snd_pcm_substream *substream = chip->snd_substream;
+> +	struct snd_pcm_runtime *runtime = substream->runtime;
+> +	size_t i, frame_bytes, chunk_length, buffer_pos, period_pos;
+> +	int period_elapsed;
+> +	void *urb_current;
+> +
+> +	if (!atomic_read(&chip->snd_stream))
+> +		return;
+
+And what if the device is closed in the middle of this function?
+
+> +	snd_pcm_stream_lock(substream);
+> +
+> +	chip->snd_buffer_pos = buffer_pos;
+> +	chip->snd_period_pos = period_pos;
+> +
+> +	snd_pcm_stream_unlock(substream);
+
+What is the purpose of this lock (besides introducing the
+chance of a deadlock)?
+
+> +static int usbtv_audio_start(struct usbtv *chip)
+> +{
+> ...
+> +	chip->snd_bulk_urb = usb_alloc_urb(0, GFP_KERNEL);
+> +	if (chip->snd_bulk_urb == NULL)
+> +		goto err_alloc_urb;
+> +
+> +	pipe = usb_rcvbulkpipe(chip->udev, USBTV_AUDIO_ENDP);
+> +
+> +	chip->snd_bulk_urb->transfer_buffer = kzalloc(
+
+Mapping this buffer repeatedly is inefficient.
+Better use usb_alloc_coherent().
+
+> +		USBTV_AUDIO_URBSIZE, GFP_KERNEL);
+> +	if (chip->snd_bulk_urb->transfer_buffer == NULL)
+> +		goto err_transfer_buffer;
+> +
+> +	usb_fill_bulk_urb(chip->snd_bulk_urb, chip->udev, pipe,
+> +		chip->snd_bulk_urb->transfer_buffer, USBTV_AUDIO_URBSIZE,
+> +		usbtv_audio_urb_received, chip);
+> +
+> +	/* starting the stream */
+> +	usbtv_set_regs(chip, setup, ARRAY_SIZE(setup));
+> +
+> +	usb_clear_halt(chip->udev, pipe);
+
+Allocating resources should be done in the .hw_params and/or .prepare
+callbacks.  The .trigger callback should do as little as possible.
+
+> +	usb_submit_urb(chip->snd_bulk_urb, GFP_ATOMIC);
+
+For this single call, you don't need a workqueue.
+
+> +static int usbtv_audio_stop(struct usbtv *chip)
+> +{
+> ...
+> +	if (chip->snd_bulk_urb) {
+> +		usb_kill_urb(chip->snd_bulk_urb);
+> +		kfree(chip->snd_bulk_urb->transfer_buffer);
+> +		usb_free_urb(chip->snd_bulk_urb);
+> +		chip->snd_bulk_urb = NULL;
+> +	}
+> +
+> +	usbtv_set_regs(chip, setup, ARRAY_SIZE(setup));
+
+Freeing resources should be done in the .hw_free and .close callbacks.
+
+> +void usbtv_audio_suspend(struct usbtv *usbtv)
+> +{
+> +	if (atomic_read(&usbtv->snd_stream) && usbtv->snd_bulk_urb)
+
+Both tests are racy.
+
+> +static int snd_usbtv_card_trigger(struct snd_pcm_substream *substream, int cmd)
+> +...
+> +	case SNDRV_PCM_TRIGGER_RESUME:
+
+This driver does not actually support resuming a PCM device from the
+position where it stopped playing.
+
+> +	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+
+This driver does not actually support pausing a PCM device.
+You must at least set the correct SNDRC_PCM_INFO_ flags.
+
+> +int usbtv_audio_init(struct usbtv *usbtv)
+> +	...
+> +	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS,
+> +		snd_dma_continuous_data(GFP_KERNEL), USBTV_AUDIO_BUFFER,
+> +		USBTV_AUDIO_BUFFER);
+
+You are not doing DMA to the ALSA buffer, so there is no need for it to
+be physically contiguous.  Better use a vmalloc()-ed buffer.
+
+> +++ b/drivers/media/usb/usbtv/usbtv.h
+> +#define USBTV_AUDIO_URBSIZE	20480
+> +#define USBTV_AUDIO_BUFFER	65536
+
+Where do these values come from?
+
+> @@ -91,9 +96,23 @@ struct usbtv {
+> +	size_t snd_buffer_pos;
+> +	size_t snd_period_pos;
+
+Why size_t?
+
+
+Regards,
+Clemens
