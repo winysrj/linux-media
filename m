@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:49841 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbaHHFhE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 01:37:04 -0400
-Received: by mail-pd0-f173.google.com with SMTP id w10so6429777pde.4
-        for <linux-media@vger.kernel.org>; Thu, 07 Aug 2014 22:37:04 -0700 (PDT)
-Date: Fri, 8 Aug 2014 13:37:08 +0800
-From: "nibble.max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201408061236404537660@gmail.com>
-Subject: Re: Re: [PATCH 3/4] support for DVBSky dvb-s2 usb: add dvb-usb-v2 driver for DVBSky dvb-s2 box
-Message-ID: <201408081337062501153@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51201 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753134AbaHSNDF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Aug 2014 09:03:05 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/8] [media] soc_camera: Do not decrement endpoint node refcount in the loop
+Date: Tue, 19 Aug 2014 15:02:39 +0200
+Message-Id: <1408453366-1366-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Olli,
->Hi Max,
->
->nibble.max <nibble.max <at> gmail.com> writes:
->> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig
->b/drivers/media/usb/dvb-usb-v2/Kconfig
->> index 66645b0..8107c8d 100644
->> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
->> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
->>  <at>  <at>  -141,3 +141,9  <at>  <at>  config DVB_USB_RTL28XXU
->>  	help
->>  	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
->> 
->> +config DVB_USB_DVBSKY
->> +	tristate "DVBSky USB support"
->> +	depends on DVB_USB_V2
->> +	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
->> +	help
->> +	  Say Y here to support the USB receivers from DVBSky.
->
->Shouldn't the MEDIA_TUNER_M88TS2022 also be selected in Kconfig?
-Yes, I miss it. It should be selected in Kconfig.
-Thanks.
->
->Cheers,
->-olli
->
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In preparation for a following patch, stop decrementing the endpoint node
+refcount in the loop. This temporarily leaks a reference to the endpoint node,
+which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+of its prev argument instead.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..f752489 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,11 +1696,11 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
+ 
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+ 			dev_err(dev, "multiple subdevices aren't supported yet!\n");
++			of_node_put(epn);
+ 			break;
+ 		}
+ 	}
+-- 
+2.1.0.rc1
 
