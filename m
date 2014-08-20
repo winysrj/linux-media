@@ -1,58 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45307 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756466AbaHVPcV (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3025 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753329AbaHTW7s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 11:32:21 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] dvb_frontend: estimate bandwidth also for DVB-S/S2/Turbo
-Date: Fri, 22 Aug 2014 10:32:15 -0500
-Message-Id: <1408721535-21675-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 20 Aug 2014 18:59:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 29/29] lirc_dev: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:59:28 +0200
+Message-Id: <1408575568-20562-30-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The needed bandwidth can be estimated using the symbol rate and
-the rolloff factor. This could be useful for the frontend drivers,
-as they don't need to calculate it themselves.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+drivers/media/rc/lirc_dev.c:598:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:606:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:616:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:625:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:634:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:643:26: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/lirc_dev.c:739:45: warning: cast removes address space of expression
+drivers/media/rc/lirc_dev.c:739:58: warning: incorrect type in argument 1 (different address spaces)
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/media/rc/lirc_dev.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index a5810391af61..c862ad732d9e 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2072,6 +2072,23 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- 	case SYS_DVBC_ANNEX_C:
- 		rolloff = 113;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index dc5cbff..249d2fb 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -595,7 +595,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+-		result = put_user(ir->d.features, (__u32 *)arg);
++		result = put_user(ir->d.features, (__u32 __user *)arg);
  		break;
-+	case SYS_DVBS:
-+	case SYS_TURBO:
-+		rolloff = 135;
-+		break;
-+	case SYS_DVBS2:
-+		switch (c->rolloff) {
-+		case ROLLOFF_20:
-+			rolloff = 120;
-+			break;
-+		case ROLLOFF_25:
-+			rolloff = 125;
-+			break;
-+		default:
-+		case ROLLOFF_35:
-+			rolloff = 135;
-+		}
-+		break;
+ 	case LIRC_GET_REC_MODE:
+ 		if (!(ir->d.features & LIRC_CAN_REC_MASK)) {
+@@ -605,7 +605,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 		result = put_user(LIRC_REC2MODE
+ 				  (ir->d.features & LIRC_CAN_REC_MASK),
+-				  (__u32 *)arg);
++				  (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_SET_REC_MODE:
+ 		if (!(ir->d.features & LIRC_CAN_REC_MASK)) {
+@@ -613,7 +613,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			break;
+ 		}
+ 
+-		result = get_user(mode, (__u32 *)arg);
++		result = get_user(mode, (__u32 __user *)arg);
+ 		if (!result && !(LIRC_MODE2REC(mode) & ir->d.features))
+ 			result = -EINVAL;
+ 		/*
+@@ -622,7 +622,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		 */
+ 		break;
+ 	case LIRC_GET_LENGTH:
+-		result = put_user(ir->d.code_length, (__u32 *)arg);
++		result = put_user(ir->d.code_length, (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_GET_MIN_TIMEOUT:
+ 		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+@@ -631,7 +631,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			break;
+ 		}
+ 
+-		result = put_user(ir->d.min_timeout, (__u32 *)arg);
++		result = put_user(ir->d.min_timeout, (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_GET_MAX_TIMEOUT:
+ 		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+@@ -640,7 +640,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			break;
+ 		}
+ 
+-		result = put_user(ir->d.max_timeout, (__u32 *)arg);
++		result = put_user(ir->d.max_timeout, (__u32 __user *)arg);
+ 		break;
  	default:
- 		break;
- 	}
+ 		result = -EINVAL;
+@@ -736,7 +736,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 			}
+ 		} else {
+ 			lirc_buffer_read(ir->buf, buf);
+-			ret = copy_to_user((void *)buffer+written, buf,
++			ret = copy_to_user((void __user *)buffer+written, buf,
+ 					   ir->buf->chunk_size);
+ 			if (!ret)
+ 				written += ir->buf->chunk_size;
 -- 
-1.9.3
+2.1.0.rc1
 
