@@ -1,363 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38746 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751480AbaHDE3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Aug 2014 00:29:49 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 7/9] tda18212: rename state from 'priv' to 's'
-Date: Mon,  4 Aug 2014 07:29:29 +0300
-Message-Id: <1407126571-21629-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1407126571-21629-1-git-send-email-crope@iki.fi>
-References: <1407126571-21629-1-git-send-email-crope@iki.fi>
+Received: from mailout4.samsung.com ([203.254.224.34]:25428 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752199AbaHTNma (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 09:42:30 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v5 3/4] leds: add API for setting torch brightness
+Date: Wed, 20 Aug 2014 15:41:57 +0200
+Message-id: <1408542118-32723-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename driver state pointer to 's' through whole driver, just
-because I like use shortest possible name for such common struct
-used everywhere in the driver.
+This patch prepares ground for addition of LED Flash Class extension to
+the LED subsystem. Since turning the torch on must have guaranteed
+immediate effect the brightness_set op can't be used for it. Drivers must
+schedule a work queue task in this op to be compatible with led-triggers,
+which call brightess_set from timer irqs. In order to address this
+limitation a torch_brightness_set op and led_set_torch_brightness API
+is introduced. Setting brightness sysfs attribute will result in calling
+brightness_set op for LED Class devices and torch_brightness_set op for
+LED Flash Class devices, whereas triggers will still call brightness
+op in both cases.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/tuners/tda18212.c | 104 ++++++++++++++++++++--------------------
- 1 file changed, 51 insertions(+), 53 deletions(-)
+ drivers/leds/led-class.c |    9 +++++++--
+ drivers/leds/led-core.c  |   14 ++++++++++++++
+ include/linux/leds.h     |   21 +++++++++++++++++++++
+ 3 files changed, 42 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index 5d1d785..95a5ebf 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -23,7 +23,7 @@
- /* Max transfer size done by I2C transfer functions */
- #define MAX_XFER_SIZE  64
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index 0bc0ba9..f640da9 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -56,9 +56,14 @@ static ssize_t brightness_store(struct device *dev,
  
--struct tda18212_priv {
-+struct tda18212 {
- 	struct tda18212_config cfg;
- 	struct i2c_client *client;
+ 	if (state == LED_OFF)
+ 		led_trigger_remove(led_cdev);
+-	__led_set_brightness(led_cdev, state);
  
-@@ -31,14 +31,13 @@ struct tda18212_priv {
- };
- 
- /* write multiple registers */
--static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
--	int len)
-+static int tda18212_wr_regs(struct tda18212 *s, u8 reg, u8 *val, int len)
- {
- 	int ret;
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = priv->client->addr,
-+			.addr = s->client->addr,
- 			.flags = 0,
- 			.len = 1 + len,
- 			.buf = buf,
-@@ -46,7 +45,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	};
- 
- 	if (1 + len > sizeof(buf)) {
--		dev_warn(&priv->client->dev,
-+		dev_warn(&s->client->dev,
- 				"i2c wr reg=%04x: len=%d is too big!\n",
- 				reg, len);
- 		return -EINVAL;
-@@ -55,11 +54,11 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	buf[0] = reg;
- 	memcpy(&buf[1], val, len);
- 
--	ret = i2c_transfer(priv->client->adapter, msg, 1);
-+	ret = i2c_transfer(s->client->adapter, msg, 1);
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->client->dev,
-+		dev_warn(&s->client->dev,
- 				"i2c wr failed=%d reg=%02x len=%d\n",
- 				ret, reg, len);
- 		ret = -EREMOTEIO;
-@@ -68,19 +67,18 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+-	ret = size;
++	if (led_cdev->flags & LED_DEV_CAP_TORCH)
++		ret = led_set_torch_brightness(led_cdev, state);
++	else
++		__led_set_brightness(led_cdev, state);
++
++	if (!ret)
++		ret = size;
+ unlock:
+ #ifdef CONFIG_V4L2_FLASH_LED_CLASS
+ 	mutex_unlock(&led_cdev->led_lock);
+diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+index 4649ea5..093265f 100644
+--- a/drivers/leds/led-core.c
++++ b/drivers/leds/led-core.c
+@@ -144,6 +144,20 @@ int led_update_brightness(struct led_classdev *led_cdev)
  }
+ EXPORT_SYMBOL(led_update_brightness);
  
- /* read multiple registers */
--static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
--	int len)
-+static int tda18212_rd_regs(struct tda18212 *s, u8 reg, u8 *val, int len)
++int led_set_torch_brightness(struct led_classdev *led_cdev,
++				enum led_brightness brightness)
++{
++	int ret = 0;
++
++	led_cdev->brightness = min(brightness, led_cdev->max_brightness);
++
++	if (!(led_cdev->flags & LED_SUSPENDED))
++		ret = led_cdev->torch_brightness_set(led_cdev,
++						     led_cdev->brightness);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(led_set_torch_brightness);
++
+ /* Caller must ensure led_cdev->led_lock held */
+ void led_sysfs_lock(struct led_classdev *led_cdev)
  {
- 	int ret;
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[2] = {
- 		{
--			.addr = priv->client->addr,
-+			.addr = s->client->addr,
- 			.flags = 0,
- 			.len = 1,
- 			.buf = &reg,
- 		}, {
--			.addr = priv->client->addr,
-+			.addr = s->client->addr,
- 			.flags = I2C_M_RD,
- 			.len = len,
- 			.buf = buf,
-@@ -88,18 +86,18 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	};
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index ef343f1..df0715c 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -43,11 +43,21 @@ struct led_classdev {
+ #define LED_BLINK_ONESHOT_STOP	(1 << 18)
+ #define LED_BLINK_INVERT	(1 << 19)
+ #define LED_SYSFS_LOCK		(1 << 20)
++#define LED_DEV_CAP_TORCH	(1 << 21)
  
- 	if (len > sizeof(buf)) {
--		dev_warn(&priv->client->dev,
-+		dev_warn(&s->client->dev,
- 				"i2c rd reg=%04x: len=%d is too big!\n",
- 				reg, len);
- 		return -EINVAL;
- 	}
+ 	/* Set LED brightness level */
+ 	/* Must not sleep, use a workqueue if needed */
+ 	void		(*brightness_set)(struct led_classdev *led_cdev,
+ 					  enum led_brightness brightness);
++	/*
++	 * Set LED brightness immediately - it is required for flash led
++	 * devices as they require setting torch brightness to have immediate
++	 * effect. brightness_set op cannot be used for this purpose because
++	 * the led drivers schedule a work queue task in it to allow for
++	 * being called from led-triggers, i.e. from the timer irq context.
++	 */
++	int		(*torch_brightness_set)(struct led_classdev *led_cdev,
++					enum led_brightness brightness);
+ 	/* Get LED brightness level */
+ 	enum led_brightness (*brightness_get)(struct led_classdev *led_cdev);
  
--	ret = i2c_transfer(priv->client->adapter, msg, 2);
-+	ret = i2c_transfer(s->client->adapter, msg, 2);
- 	if (ret == 2) {
- 		memcpy(val, buf, len);
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->client->dev,
-+		dev_warn(&s->client->dev,
- 				"i2c rd failed=%d reg=%02x len=%d\n",
- 				ret, reg, len);
- 		ret = -EREMOTEIO;
-@@ -109,26 +107,26 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- }
+@@ -156,6 +166,17 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
+ extern int led_update_brightness(struct led_classdev *led_cdev);
  
- /* write single register */
--static int tda18212_wr_reg(struct tda18212_priv *priv, u8 reg, u8 val)
-+static int tda18212_wr_reg(struct tda18212 *s, u8 reg, u8 val)
- {
--	return tda18212_wr_regs(priv, reg, &val, 1);
-+	return tda18212_wr_regs(s, reg, &val, 1);
- }
- 
- /* read single register */
--static int tda18212_rd_reg(struct tda18212_priv *priv, u8 reg, u8 *val)
-+static int tda18212_rd_reg(struct tda18212 *s, u8 reg, u8 *val)
- {
--	return tda18212_rd_regs(priv, reg, val, 1);
-+	return tda18212_rd_regs(s, reg, val, 1);
- }
- 
- #if 0 /* keep, useful when developing driver */
--static void tda18212_dump_regs(struct tda18212_priv *priv)
-+static void tda18212_dump_regs(struct tda18212 *s)
- {
- 	int i;
- 	u8 buf[256];
- 
- 	#define TDA18212_RD_LEN 32
- 	for (i = 0; i < sizeof(buf); i += TDA18212_RD_LEN)
--		tda18212_rd_regs(priv, i, &buf[i], TDA18212_RD_LEN);
-+		tda18212_rd_regs(s, i, &buf[i], TDA18212_RD_LEN);
- 
- 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 32, 1, buf,
- 		sizeof(buf), true);
-@@ -139,7 +137,7 @@ static void tda18212_dump_regs(struct tda18212_priv *priv)
- 
- static int tda18212_set_params(struct dvb_frontend *fe)
- {
--	struct tda18212_priv *priv = fe->tuner_priv;
-+	struct tda18212 *s = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i;
- 	u32 if_khz;
-@@ -168,7 +166,7 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 		[ATSC_QAM] = { 0x7d, 0x20, 0x63 },
- 	};
- 
--	dev_dbg(&priv->client->dev,
-+	dev_dbg(&s->client->dev,
- 			"delivery_system=%d frequency=%d bandwidth_hz=%d\n",
- 			c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
-@@ -178,25 +176,25 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 
- 	switch (c->delivery_system) {
- 	case SYS_ATSC:
--		if_khz = priv->cfg.if_atsc_vsb;
-+		if_khz = s->cfg.if_atsc_vsb;
- 		i = ATSC_VSB;
- 		break;
- 	case SYS_DVBC_ANNEX_B:
--		if_khz = priv->cfg.if_atsc_qam;
-+		if_khz = s->cfg.if_atsc_qam;
- 		i = ATSC_QAM;
- 		break;
- 	case SYS_DVBT:
- 		switch (c->bandwidth_hz) {
- 		case 6000000:
--			if_khz = priv->cfg.if_dvbt_6;
-+			if_khz = s->cfg.if_dvbt_6;
- 			i = DVBT_6;
- 			break;
- 		case 7000000:
--			if_khz = priv->cfg.if_dvbt_7;
-+			if_khz = s->cfg.if_dvbt_7;
- 			i = DVBT_7;
- 			break;
- 		case 8000000:
--			if_khz = priv->cfg.if_dvbt_8;
-+			if_khz = s->cfg.if_dvbt_8;
- 			i = DVBT_8;
- 			break;
- 		default:
-@@ -207,15 +205,15 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 	case SYS_DVBT2:
- 		switch (c->bandwidth_hz) {
- 		case 6000000:
--			if_khz = priv->cfg.if_dvbt2_6;
-+			if_khz = s->cfg.if_dvbt2_6;
- 			i = DVBT2_6;
- 			break;
- 		case 7000000:
--			if_khz = priv->cfg.if_dvbt2_7;
-+			if_khz = s->cfg.if_dvbt2_7;
- 			i = DVBT2_7;
- 			break;
- 		case 8000000:
--			if_khz = priv->cfg.if_dvbt2_8;
-+			if_khz = s->cfg.if_dvbt2_8;
- 			i = DVBT2_8;
- 			break;
- 		default:
-@@ -225,7 +223,7 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 		break;
- 	case SYS_DVBC_ANNEX_A:
- 	case SYS_DVBC_ANNEX_C:
--		if_khz = priv->cfg.if_dvbc;
-+		if_khz = s->cfg.if_dvbc;
- 		i = DVBC_8;
- 		break;
- 	default:
-@@ -233,15 +231,15 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 		goto error;
- 	}
- 
--	ret = tda18212_wr_reg(priv, 0x23, bw_params[i][2]);
-+	ret = tda18212_wr_reg(s, 0x23, bw_params[i][2]);
- 	if (ret)
- 		goto error;
- 
--	ret = tda18212_wr_reg(priv, 0x06, 0x00);
-+	ret = tda18212_wr_reg(s, 0x06, 0x00);
- 	if (ret)
- 		goto error;
- 
--	ret = tda18212_wr_reg(priv, 0x0f, bw_params[i][0]);
-+	ret = tda18212_wr_reg(s, 0x0f, bw_params[i][0]);
- 	if (ret)
- 		goto error;
- 
-@@ -254,12 +252,12 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 	buf[6] = ((c->frequency / 1000) >>  0) & 0xff;
- 	buf[7] = 0xc1;
- 	buf[8] = 0x01;
--	ret = tda18212_wr_regs(priv, 0x12, buf, sizeof(buf));
-+	ret = tda18212_wr_regs(s, 0x12, buf, sizeof(buf));
- 	if (ret)
- 		goto error;
- 
- 	/* actual IF rounded as it is on register */
--	priv->if_frequency = buf[3] * 50 * 1000;
-+	s->if_frequency = buf[3] * 50 * 1000;
- 
- exit:
- 	if (fe->ops.i2c_gate_ctrl)
-@@ -268,15 +266,15 @@ exit:
- 	return ret;
- 
- error:
--	dev_dbg(&priv->client->dev, "failed=%d\n", ret);
-+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	goto exit;
- }
- 
- static int tda18212_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	struct tda18212_priv *priv = fe->tuner_priv;
-+	struct tda18212 *s = fe->tuner_priv;
- 
--	*frequency = priv->if_frequency;
-+	*frequency = s->if_frequency;
- 
- 	return 0;
- }
-@@ -299,27 +297,27 @@ static int tda18212_probe(struct i2c_client *client,
- {
- 	struct tda18212_config *cfg = client->dev.platform_data;
- 	struct dvb_frontend *fe = cfg->fe;
--	struct tda18212_priv *priv;
-+	struct tda18212 *s;
- 	int ret;
- 	u8 chip_id = chip_id;
- 	char *version;
- 
--	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
--	if (!priv) {
-+	s = kzalloc(sizeof(*s), GFP_KERNEL);
-+	if (!s) {
- 		ret = -ENOMEM;
- 		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
--	memcpy(&priv->cfg, cfg, sizeof(struct tda18212_config));
--	priv->client = client;
-+	memcpy(&s->cfg, cfg, sizeof(struct tda18212_config));
-+	s->client = client;
- 
- 	/* check if the tuner is there */
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
- 
--	ret = tda18212_rd_reg(priv, 0x00, &chip_id);
--	dev_dbg(&priv->client->dev, "chip_id=%02x\n", chip_id);
-+	ret = tda18212_rd_reg(s, 0x00, &chip_id);
-+	dev_dbg(&s->client->dev, "chip_id=%02x\n", chip_id);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
-@@ -339,31 +337,31 @@ static int tda18212_probe(struct i2c_client *client,
- 		goto err;
- 	}
- 
--	dev_info(&priv->client->dev,
-+	dev_info(&s->client->dev,
- 			"NXP TDA18212HN/%s successfully identified\n", version);
- 
--	fe->tuner_priv = priv;
-+	fe->tuner_priv = s;
- 	memcpy(&fe->ops.tuner_ops, &tda18212_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
--	i2c_set_clientdata(client, priv);
-+	i2c_set_clientdata(client, s);
- 
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
--	kfree(priv);
-+	kfree(s);
- 	return ret;
- }
- 
- static int tda18212_remove(struct i2c_client *client)
- {
--	struct tda18212_priv *priv = i2c_get_clientdata(client);
--	struct dvb_frontend *fe = priv->cfg.fe;
-+	struct tda18212 *s = i2c_get_clientdata(client);
-+	struct dvb_frontend *fe = s->cfg.fe;
- 
- 	dev_dbg(&client->dev, "\n");
- 
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
--	kfree(priv);
-+	kfree(s);
- 
- 	return 0;
- }
+ /**
++ * led_set_torch_brightness - set torch LED brightness
++ * @led_cdev: the LED to set
++ * @brightness: the brightness to set it to
++ *
++ * Returns: 0 on success or negative error value on failure
++ *
++ * Set a torch LED's brightness.
++ */
++extern int led_set_torch_brightness(struct led_classdev *led_cdev,
++					enum led_brightness brightness);
++/**
+  * led_sysfs_lock - lock LED sysfs interface
+  * @led_cdev: the LED to set
+  *
 -- 
-http://palosaari.fi/
+1.7.9.5
 
