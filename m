@@ -1,427 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:48047 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaHaCjv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44091 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751240AbaHTOlq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Aug 2014 22:39:51 -0400
-Received: by mail-pa0-f47.google.com with SMTP id hz1so9332403pad.20
-        for <linux-media@vger.kernel.org>; Sat, 30 Aug 2014 19:39:51 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
-	arnd@arndb.de, varkabhadram@gmail.com, haifeng.yan@linaro.org,
-	jchxue@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, Guoxiong Yan <yanguoxiong@huawei.com>,
-	Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH v4 2/2] rc: Introduce hix5hd2 IR transmitter driver
-Date: Sun, 31 Aug 2014 10:39:10 +0800
-Message-Id: <1409452751-17463-3-git-send-email-zhangfei.gao@linaro.org>
-In-Reply-To: <1409452751-17463-1-git-send-email-zhangfei.gao@linaro.org>
-References: <1409452751-17463-1-git-send-email-zhangfei.gao@linaro.org>
+	Wed, 20 Aug 2014 10:41:46 -0400
+Date: Wed, 20 Aug 2014 17:41:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2
+ flash
+Message-ID: <20140820144110.GT16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
+ <53CCF59E.3070200@iki.fi>
+ <53DF9C2A.8060403@samsung.com>
+ <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
+ <53E8C4BA.6050805@samsung.com>
+ <20140814043436.GM16460@valkosipuli.retiisi.org.uk>
+ <53EC7278.6040101@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53EC7278.6040101@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guoxiong Yan <yanguoxiong@huawei.com>
+Hi Jacek,
 
-IR transmitter driver for Hisilicon hix5hd2 soc
+On Thu, Aug 14, 2014 at 10:25:28AM +0200, Jacek Anaszewski wrote:
+> On 08/14/2014 06:34 AM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Mon, Aug 11, 2014 at 03:27:22PM +0200, Jacek Anaszewski wrote:
+> >
+> >...
+> >
+> >>>>>>diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
+> >>>>>>new file mode 100644
+> >>>>>>index 0000000..effa46b
+> >>>>>>--- /dev/null
+> >>>>>>+++ b/include/media/v4l2-flash.h
+> >>>>>>@@ -0,0 +1,137 @@
+> >>>>>>+/*
+> >>>>>>+ * V4L2 Flash LED sub-device registration helpers.
+> >>>>>>+ *
+> >>>>>>+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
+> >>>>>>+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>>>+ *
+> >>>>>>+ * This program is free software; you can redistribute it and/or modify
+> >>>>>>+ * it under the terms of the GNU General Public License version 2 as
+> >>>>>>+ * published by the Free Software Foundation."
+> >>>>>>+ */
+> >>>>>>+
+> >>>>>>+#ifndef _V4L2_FLASH_H
+> >>>>>>+#define _V4L2_FLASH_H
+> >>>>>>+
+> >>>>>>+#include <media/v4l2-ctrls.h>
+> >>>>>>+#include <media/v4l2-device.h>
+> >>>>>>+#include <media/v4l2-dev.h>le
+> >>>>>>+#include <media/v4l2-event.h>
+> >>>>>>+#include <media/v4l2-ioctl.h>
+> >>>>>>+
+> >>>>>>+struct led_classdev_flash;
+> >>>>>>+struct led_classdev;
+> >>>>>>+enum led_brightness;
+> >>>>>>+
+> >>>>>>+struct v4l2_flash_ops {
+> >>>>>>+	int (*torch_brightness_set)(struct led_classdev *led_cdev,
+> >>>>>>+					enum led_brightness brightness);
+> >>>>>>+	int (*torch_brightness_update)(struct led_classdev *led_cdev);
+> >>>>>>+	int (*flash_brightness_set)(struct led_classdev_flash *flash,
+> >>>>>>+					u32 brightness);
+> >>>>>>+	int (*flash_brightness_update)(struct led_classdev_flash *flash);
+> >>>>>>+	int (*strobe_set)(struct led_classdev_flash *flash, bool state);
+> >>>>>>+	int (*strobe_get)(struct led_classdev_flash *flash, bool *state);
+> >>>>>>+	int (*timeout_set)(struct led_classdev_flash *flash, u32 timeout);
+> >>>>>>+	int (*indicator_brightness_set)(struct led_classdev_flash *flash,
+> >>>>>>+					u32 brightness);
+> >>>>>>+	int (*indicator_brightness_update)(struct led_classdev_flash *flash);
+> >>>>>>+	int (*external_strobe_set)(struct led_classdev_flash *flash,
+> >>>>>>+					bool enable);
+> >>>>>>+	int (*fault_get)(struct led_classdev_flash *flash, u32 *fault);
+> >>>>>>+	void (*sysfs_lock)(struct led_classdev *led_cdev);
+> >>>>>>+	void (*sysfs_unlock)(struct led_classdev *led_cdev);
+> >>>>>
+> >>>>>These functions are not driver specific and there's going to be just one
+> >>>>>implementation (I suppose). Could you refresh my memory regarding why
+> >>>>>the LED framework functions aren't called directly?
+> >>>>
+> >>>>These ops are required to make possible building led-class-flash as
+> >>>>a kernel module.
+> >>>
+> >>>Assuming you'd use the actual implementation directly, what would be the
+> >>>dependencies? I don't think the LED flash framework has any callbacks
+> >>>towards the V4L2 (LED) flash framework, does it? Please correct my
+> >>>understanding if I'm missing something. In Makefile format, assume all
+> >>>targets are .PHONY:
+> >>>
+> >>>led-flash-api: led-api
+> >>>
+> >>>v4l2-flash: led-flash-api
+> >>>
+> >>>driver: led-flash-api v4l2-flash
+> >>
+> >>LED Class Flash driver gains V4L2 Flash API when
+> >>CONFIG_V4L2_FLASH_LED_CLASS is defined. This is accomplished in
+> >>the probe function by either calling v4l2_flash_init function
+> >>or the macro of this name, when the CONFIG_V4L2_FLASH_LED_CLASS
+> >>macro isn't defined.
+> >>
+> >>If the v4l2-flash.c was to call the LED API directly, then the
+> >>led-class-flash module symbols would have to be available at
+> >>v4l2-flash.o linking time.
+> >
+> >Is this an issue? EXPORT_SYMBOL_GPL() for the relevant symbols should be
+> >enough.
+> 
+> It isn't enough. If I call e.g. led_set_flash_brightness
+> directly from v4l2-flash.c and configure led-class-flash to be built as
+> a module then I am getting "undefined reference to
+> led_set_flash_brightness" error during linking phase.
 
-By default all protocols are disabled.
-For example nec decoder can be enabled by either
-1. ir-keytable -p nec
-2. echo nec > /sys/class/rc/rc0/protocols
-See see Documentation/ABI/testing/sysfs-class-rc
+You should not. You also should change the check as (unless you've changed
+it already):
 
-Signed-off-by: Guoxiong Yan <yanguoxiong@huawei.com>
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- drivers/media/rc/Kconfig      |   10 ++
- drivers/media/rc/Makefile     |    1 +
- drivers/media/rc/ir-hix5hd2.c |  343 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 354 insertions(+)
- create mode 100644 drivers/media/rc/ir-hix5hd2.c
+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 5e626af..01e5f7a 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -164,6 +164,16 @@ config IR_ENE
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called ene_ir.
- 
-+config IR_HIX5HD2
-+	tristate "Hisilicon hix5hd2 IR remote control"
-+	depends on RC_CORE
-+	help
-+	 Say Y here if you want to use hisilicon hix5hd2 remote control.
-+	 To compile this driver as a module, choose M here: the module will be
-+	 called ir-hix5hd2.
-+
-+	 If you're not sure, select N here
-+
- config IR_IMON
- 	tristate "SoundGraph iMON Receiver and Display"
- 	depends on USB_ARCH_HAS_HCD
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 9f9843a1..0989f94 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
- 
- # stand-alone IR receivers/transmitters
- obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
-+obj-$(CONFIG_IR_HIX5HD2) += ir-hix5hd2.o
- obj-$(CONFIG_IR_IMON) += imon.o
- obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
- obj-$(CONFIG_IR_MCEUSB) += mceusb.o
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-new file mode 100644
-index 0000000..64f8257
---- /dev/null
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -0,0 +1,343 @@
-+/*
-+ * Copyright (c) 2014 Linaro Ltd.
-+ * Copyright (c) 2014 Hisilicon Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/regmap.h>
-+#include <media/rc-core.h>
-+
-+#define IR_ENABLE		0x00
-+#define IR_CONFIG		0x04
-+#define CNT_LEADS		0x08
-+#define CNT_LEADE		0x0c
-+#define CNT_SLEADE		0x10
-+#define CNT0_B			0x14
-+#define CNT1_B			0x18
-+#define IR_BUSY			0x1c
-+#define IR_DATAH		0x20
-+#define IR_DATAL		0x24
-+#define IR_INTM			0x28
-+#define IR_INTS			0x2c
-+#define IR_INTC			0x30
-+#define IR_START		0x34
-+
-+/* interrupt mask */
-+#define INTMS_SYMBRCV		(BIT(24) | BIT(8))
-+#define INTMS_TIMEOUT		(BIT(25) | BIT(9))
-+#define INTMS_OVERFLOW		(BIT(26) | BIT(10))
-+#define INT_CLR_OVERFLOW	BIT(18)
-+#define INT_CLR_TIMEOUT		BIT(17)
-+#define INT_CLR_RCV		BIT(16)
-+#define INT_CLR_RCVTIMEOUT	(BIT(16) | BIT(17))
-+
-+#define IR_CLK			0x48
-+#define IR_CLK_ENABLE		BIT(4)
-+#define IR_CLK_RESET		BIT(5)
-+
-+#define IR_CFG_WIDTH_MASK	0xffff
-+#define IR_CFG_WIDTH_SHIFT	16
-+#define IR_CFG_FORMAT_MASK	0x3
-+#define IR_CFG_FORMAT_SHIFT	14
-+#define IR_CFG_INT_LEVEL_MASK	0x3f
-+#define IR_CFG_INT_LEVEL_SHIFT	8
-+/* only support raw mode */
-+#define IR_CFG_MODE_RAW		BIT(7)
-+#define IR_CFG_FREQ_MASK	0x7f
-+#define IR_CFG_FREQ_SHIFT	0
-+#define IR_CFG_INT_THRESHOLD	1
-+/* symbol start from low to high, symbol stream end at high*/
-+#define IR_CFG_SYMBOL_FMT	0
-+#define IR_CFG_SYMBOL_MAXWIDTH	0x3e80
-+
-+#define IR_HIX5HD2_NAME		"hix5hd2-ir"
-+
-+struct hix5hd2_ir_priv {
-+	int			irq;
-+	void			*base;
-+	struct device		*dev;
-+	struct rc_dev		*rdev;
-+	struct regmap		*regmap;
-+	struct clk		*clock;
-+	unsigned long		rate;
-+};
-+
-+static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
-+{
-+	u32 val;
-+
-+	regmap_read(dev->regmap, IR_CLK, &val);
-+	if (on) {
-+		val &= ~IR_CLK_RESET;
-+		val |= IR_CLK_ENABLE;
-+	} else {
-+		val &= ~IR_CLK_ENABLE;
-+		val |= IR_CLK_RESET;
-+	}
-+	regmap_write(dev->regmap, IR_CLK, val);
-+}
-+
-+static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
-+{
-+	int timeout = 10000;
-+	u32 val, rate;
-+
-+	writel_relaxed(0x01, priv->base + IR_ENABLE);
-+	while (readl_relaxed(priv->base + IR_BUSY)) {
-+		if (timeout--) {
-+			udelay(1);
-+		} else {
-+			dev_err(priv->dev, "IR_BUSY timeout\n");
-+			return -ETIMEDOUT;
-+		}
-+	}
-+
-+	/* Now only support raw mode, with symbol start from low to high */
-+	rate = DIV_ROUND_CLOSEST(priv->rate, 1000000);
-+	val = IR_CFG_SYMBOL_MAXWIDTH & IR_CFG_WIDTH_MASK << IR_CFG_WIDTH_SHIFT;
-+	val |= IR_CFG_SYMBOL_FMT & IR_CFG_FORMAT_MASK << IR_CFG_FORMAT_SHIFT;
-+	val |= (IR_CFG_INT_THRESHOLD - 1) & IR_CFG_INT_LEVEL_MASK
-+	       << IR_CFG_INT_LEVEL_SHIFT;
-+	val |= IR_CFG_MODE_RAW;
-+	val |= (rate - 1) & IR_CFG_FREQ_MASK << IR_CFG_FREQ_SHIFT;
-+	writel_relaxed(val, priv->base + IR_CONFIG);
-+
-+	writel_relaxed(0x00, priv->base + IR_INTM);
-+	/* write arbitrary value to start  */
-+	writel_relaxed(0x01, priv->base + IR_START);
-+	return 0;
-+}
-+
-+static int hix5hd2_ir_open(struct rc_dev *rdev)
-+{
-+	struct hix5hd2_ir_priv *priv = rdev->priv;
-+
-+	hix5hd2_ir_enable(priv, true);
-+	return hix5hd2_ir_config(priv);
-+}
-+
-+static void hix5hd2_ir_close(struct rc_dev *rdev)
-+{
-+	struct hix5hd2_ir_priv *priv = rdev->priv;
-+
-+	hix5hd2_ir_enable(priv, false);
-+}
-+
-+static irqreturn_t hix5hd2_ir_rx_interrupt(int irq, void *data)
-+{
-+	u32 symb_num, symb_val, symb_time;
-+	u32 data_l, data_h;
-+	u32 irq_sr, i;
-+	struct hix5hd2_ir_priv *priv = data;
-+
-+	irq_sr = readl_relaxed(priv->base + IR_INTS);
-+	if (irq_sr & INTMS_OVERFLOW) {
-+		/*
-+		 * we must read IR_DATAL first, then we can clean up
-+		 * IR_INTS availably since logic would not clear
-+		 * fifo when overflow, drv do the job
-+		 */
-+		ir_raw_event_reset(priv->rdev);
-+		symb_num = readl_relaxed(priv->base + IR_DATAH);
-+		for (i = 0; i < symb_num; i++)
-+			readl_relaxed(priv->base + IR_DATAL);
-+
-+		writel_relaxed(INT_CLR_OVERFLOW, priv->base + IR_INTC);
-+		dev_info(priv->dev, "overflow, level=%d\n",
-+			 IR_CFG_INT_THRESHOLD);
-+	}
-+
-+	if ((irq_sr & INTMS_SYMBRCV) || (irq_sr & INTMS_TIMEOUT)) {
-+		DEFINE_IR_RAW_EVENT(ev);
-+
-+		symb_num = readl_relaxed(priv->base + IR_DATAH);
-+		for (i = 0; i < symb_num; i++) {
-+			symb_val = readl_relaxed(priv->base + IR_DATAL);
-+			data_l = ((symb_val & 0xffff) * 10);
-+			data_h =  ((symb_val >> 16) & 0xffff) * 10;
-+			symb_time = (data_l + data_h) / 10;
-+
-+			ev.duration = US_TO_NS(data_l);
-+			ev.pulse = true;
-+			ir_raw_event_store(priv->rdev, &ev);
-+
-+			if (symb_time < IR_CFG_SYMBOL_MAXWIDTH) {
-+				ev.duration = US_TO_NS(data_h);
-+				ev.pulse = false;
-+				ir_raw_event_store(priv->rdev, &ev);
-+			} else {
-+				ir_raw_event_set_idle(priv->rdev, true);
-+			}
-+		}
-+
-+		if (irq_sr & INTMS_SYMBRCV)
-+			writel_relaxed(INT_CLR_RCV, priv->base + IR_INTC);
-+		if (irq_sr & INTMS_TIMEOUT)
-+			writel_relaxed(INT_CLR_TIMEOUT, priv->base + IR_INTC);
-+	}
-+
-+	/* Empty software fifo */
-+	ir_raw_event_handle(priv->rdev);
-+	return IRQ_HANDLED;
-+}
-+
-+static int hix5hd2_ir_probe(struct platform_device *pdev)
-+{
-+	struct rc_dev *rdev;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct hix5hd2_ir_priv *priv;
-+	struct device_node *node = pdev->dev.of_node;
-+	const char *map_name;
-+	int ret;
-+
-+	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	priv->regmap = syscon_regmap_lookup_by_phandle(node,
-+						       "hisilicon,power-syscon");
-+	if (IS_ERR(priv->regmap)) {
-+		dev_err(dev, "no power-reg\n");
-+		return -EINVAL;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	priv->base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(priv->base))
-+		return PTR_ERR(priv->base);
-+
-+	priv->irq = platform_get_irq(pdev, 0);
-+	if (priv->irq < 0) {
-+		dev_err(dev, "irq can not get\n");
-+		return priv->irq;
-+	}
-+
-+	rdev = rc_allocate_device();
-+	if (!rdev)
-+		return -ENOMEM;
-+
-+	priv->clock = devm_clk_get(dev, NULL);
-+	if (IS_ERR(priv->clock)) {
-+		dev_err(dev, "clock not found\n");
-+		ret = PTR_ERR(priv->clock);
-+		goto err;
-+	}
-+	clk_prepare_enable(priv->clock);
-+	priv->rate = clk_get_rate(priv->clock);
-+
-+	rdev->driver_type = RC_DRIVER_IR_RAW;
-+	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->priv = priv;
-+	rdev->open = hix5hd2_ir_open;
-+	rdev->close = hix5hd2_ir_close;
-+	rdev->driver_name = IR_HIX5HD2_NAME;
-+	map_name = of_get_property(node, "linux,rc-map-name", NULL);
-+	rdev->map_name = map_name ?: RC_MAP_EMPTY;
-+	rdev->input_name = IR_HIX5HD2_NAME;
-+	rdev->input_phys = IR_HIX5HD2_NAME "/input0";
-+	rdev->input_id.bustype = BUS_HOST;
-+	rdev->input_id.vendor = 0x0001;
-+	rdev->input_id.product = 0x0001;
-+	rdev->input_id.version = 0x0100;
-+	rdev->rx_resolution = US_TO_NS(10);
-+	rdev->timeout = US_TO_NS(IR_CFG_SYMBOL_MAXWIDTH * 10);
-+
-+	ret = rc_register_device(rdev);
-+	if (ret < 0)
-+		goto clkerr;
-+
-+	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
-+			     IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
-+		dev_err(dev, "IRQ %d register failed\n", priv->irq);
-+		ret = -EINVAL;
-+		goto regerr;
-+	}
-+
-+	priv->rdev = rdev;
-+	priv->dev = dev;
-+	platform_set_drvdata(pdev, priv);
-+
-+	return ret;
-+
-+regerr:
-+	rc_unregister_device(rdev);
-+	rdev = NULL;
-+clkerr:
-+	clk_disable_unprepare(priv->clock);
-+err:
-+	rc_free_device(rdev);
-+	dev_err(dev, "Unable to register device (%d)\n", ret);
-+	return ret;
-+}
-+
-+static int hix5hd2_ir_remove(struct platform_device *pdev)
-+{
-+	struct hix5hd2_ir_priv *priv = platform_get_drvdata(pdev);
-+
-+	clk_disable_unprepare(priv->clock);
-+	rc_unregister_device(priv->rdev);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int hix5hd2_ir_suspend(struct device *dev)
-+{
-+	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
-+
-+	clk_disable_unprepare(priv->clock);
-+	hix5hd2_ir_enable(priv, false);
-+
-+	return 0;
-+}
-+
-+static int hix5hd2_ir_resume(struct device *dev)
-+{
-+	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
-+
-+	hix5hd2_ir_enable(priv, true);
-+	clk_prepare_enable(priv->clock);
-+
-+	writel_relaxed(0x01, priv->base + IR_ENABLE);
-+	writel_relaxed(0x00, priv->base + IR_INTM);
-+	writel_relaxed(0xff, priv->base + IR_INTC);
-+	writel_relaxed(0x01, priv->base + IR_START);
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(hix5hd2_ir_pm_ops, hix5hd2_ir_suspend,
-+			 hix5hd2_ir_resume);
-+
-+static struct of_device_id hix5hd2_ir_table[] = {
-+	{ .compatible = "hisilicon,hix5hd2-ir", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, hix5hd2_ir_table);
-+
-+static struct platform_driver hix5hd2_ir_driver = {
-+	.driver = {
-+		.name = IR_HIX5HD2_NAME,
-+		.of_match_table = hix5hd2_ir_table,
-+		.pm     = &hix5hd2_ir_pm_ops,
-+	},
-+	.probe = hix5hd2_ir_probe,
-+	.remove = hix5hd2_ir_remove,
-+};
-+
-+module_platform_driver(hix5hd2_ir_driver);
-+
-+MODULE_DESCRIPTION("IR controller driver for hix5hd2 platforms");
-+MODULE_AUTHOR("Guoxiong Yan <yanguoxiong@huawei.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:hix5hd2-ir");
+This will evaluate to non-zero if the macro arguent or the argument
+postfixed with "_MODULE" is defined.
+
+> It happens because the linker doesn't take into account
+> led-flash-class.ko symbols. It is reasonable because initially
+> the kernel boots up without led-flash-class.ko module and
+> the processor wouldn't know the address to jump to in the
+> result of calling a led API function.
+> The led-class-flash.ko binary code is loaded into memory not
+> sooner than after executing "insmod led-class-flash.ko".
+> 
+> After linking dynamically with kernel the LED API function
+> addresses are relocated, and the LED Flash Class core can
+> initialize the v4l2_flash_ops structure. Then every LED Flash Class
+> driver can obtain the address of this structure with
+> led_get_v4l2_flash_ops and pass it to the v4l2_flash_init.
+> 
+> >>This requirement cannot be met if the led-class-flash is built
+> >>as a module.
+> >>
+> >>Use of function pointers in the v4l2-flash.c allows to compile it
+> >>into the kernel and enables the possibility of adding the V4L2 Flash
+> >>support conditionally, during driver probing.
+> >
+> >I'd simply decide this during kernel compilation time. If you want
+> >something, just enable it. v4l2_flash_init() is called directly by the
+> >driver in any case, so unless that is also called through a wrapper the
+> >driver is still directly dependent on it.
+> 
+> The problem is that v4l2-flash.o would have to depend on
+> led-class-flash.o, which when built as a module isn't available
+> during v4l2-flash.o linking time. In order to avoid v4l2-flash.o linking
+> problem, it would have to be built as a module.
+
+Modules can depend on other modules, that's not an issue. All dependencies
+will themselves be modules as well, i.e. if led-class-flash.o is a module,
+so will be v4l2-flash.o as well --- as the former depends on the latter.
+
+> Nevertheless, in this arrangement, the CONFIG_V4L2_FLASH_LED_CLASS
+> macro would be defined only in v4l2-flash.ko module, and
+> a LED Flash Class driver couldn't check whether V4L2 Flash support
+> is enabled. Its dependence on v4l2-flash.o would have to be fixed,
+> which is not what we want.
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
