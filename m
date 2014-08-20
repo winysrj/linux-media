@@ -1,201 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:43851
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756820AbaH0RHv (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3553 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753252AbaHTW7r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 13:07:51 -0400
-Date: Wed, 27 Aug 2014 19:07:45 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: kbuild test robot <fengguang.wu@intel.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-cc: kbuild@01.org, linux-media@vger.kernel.org,
-	dan.carpenter@oracle.com
-Subject: Re: [linuxtv-media:devel 497/499] drivers/media/platform/s5p-mfc/s5p_mfc.c:454:2-5:
- WARNING: Use BUG_ON
-In-Reply-To: <53fe0d6b.ILcqU401zWlsffkn%fengguang.wu@intel.com>
-Message-ID: <alpine.DEB.2.10.1408271905180.7069@hadrien>
-References: <53fe0d6b.ILcqU401zWlsffkn%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-2061299566-1409159221=:7069"
-Content-ID: <alpine.DEB.2.10.1408271907120.7069@hadrien>
+	Wed, 20 Aug 2014 18:59:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 27/29] imon: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:59:26 +0200
+Message-Id: <1408575568-20562-28-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---8323329-2061299566-1409159221=:7069
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-ID: <alpine.DEB.2.10.1408271907121.7069@hadrien>
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1343:44: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1407:36: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1512:28: warning: cast to restricted __be64
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
+drivers/media/rc/imon.c:1516:28: warning: cast to restricted __be32
 
-The bug_on one doesn't look like a good idea, but the returnvar one would
-make the code a little simpler.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/rc/imon.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-julia
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 7115e68..20ab7d2 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1340,7 +1340,7 @@ static void imon_pad_to_keys(struct imon_context *ictx, unsigned char *buf)
+ 				}
+ 				buf[2] = dir & 0xFF;
+ 				buf[3] = (dir >> 8) & 0xFF;
+-				scancode = be32_to_cpu(*((u32 *)buf));
++				scancode = be32_to_cpu(*((__be32 *)buf));
+ 			}
+ 		} else {
+ 			/*
+@@ -1404,7 +1404,7 @@ static void imon_pad_to_keys(struct imon_context *ictx, unsigned char *buf)
+ 			}
+ 			buf[2] = dir & 0xFF;
+ 			buf[3] = (dir >> 8) & 0xFF;
+-			scancode = be32_to_cpu(*((u32 *)buf));
++			scancode = be32_to_cpu(*((__be32 *)buf));
+ 		} else {
+ 			/*
+ 			 * Hack alert: instead of using keycodes, we have
+@@ -1509,11 +1509,11 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 
+ 	/* Figure out what key was pressed */
+ 	if (len == 8 && buf[7] == 0xee) {
+-		scancode = be64_to_cpu(*((u64 *)buf));
++		scancode = be64_to_cpu(*((__be64 *)buf));
+ 		ktype = IMON_KEY_PANEL;
+ 		kc = imon_panel_key_lookup(scancode);
+ 	} else {
+-		scancode = be32_to_cpu(*((u32 *)buf));
++		scancode = be32_to_cpu(*((__be32 *)buf));
+ 		if (ictx->rc_type == RC_BIT_RC6_MCE) {
+ 			ktype = IMON_KEY_IMON;
+ 			if (buf[0] == 0x80)
+-- 
+2.1.0.rc1
 
-On Thu, 28 Aug 2014, kbuild test robot wrote:
-
-> TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> CC: linux-media@vger.kernel.org
->
-> Hi Mauro,
->
-> First bad commit (maybe != root cause):
->
-> tree:   git://linuxtv.org/media_tree.git devel
-> head:   38a0731165250a0a77eff7b90ea3156d44cc7d66
-> commit: 7155043c2d027c9c848c3d09badb5af2894ed652 [497/499] [media] enable COMPILE_TEST for media drivers
-> :::::: branch date: 19 hours ago
-> :::::: commit date: 19 hours ago
->
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:454:2-5: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:333:3-6: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:406:2-5: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:548:3-6: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:556:3-6: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:509:2-5: WARNING: Use BUG_ON
-> >> drivers/media/platform/s5p-mfc/s5p_mfc.c:634:4-7: WARNING: Use BUG_ON
-> --
-> >> drivers/media/platform/davinci/vpfe_capture.c:946:5-8: Unneeded variable: "ret". Return "0" on line 951
->
-> Please consider folding the attached diff :-)
->
-> ---
-> 0-DAY kernel build testing backend              Open Source Technology Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
->
---8323329-2061299566-1409159221=:7069
-Content-Type: TEXT/X-DIFF; NAME="bugon:s5p_mfc.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.DEB.2.10.1408271907010.7069@hadrien>
-Content-Description: 
-Content-Disposition: ATTACHMENT; FILENAME="bugon:s5p_mfc.patch"
-
-RnJvbTogRmVuZ2d1YW5nIFd1IDxmZW5nZ3Vhbmcud3VAaW50ZWwuY29tPg0K
-U3ViamVjdDogW1BBVENIXSBmaXggY29jY2luZWxsZSB3YXJuaW5ncw0KVE86
-IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bS5jaGVoYWJAc2Ftc3VuZy5jb20+
-DQpDQzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxtLmNoZWhhYkBzYW1zdW5n
-LmNvbT4NCkNDOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcgDQpDQzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnIA0KQ0M6IGxp
-bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcgDQpDQzogZGV2aWNldHJlZUB2
-Z2VyLmtlcm5lbC5vcmcgDQoNCmRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVw
-LW1mYy9zNXBfbWZjLmM6NDU0OjItNTogV0FSTklORzogVXNlIEJVR19PTg0K
-ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zNXAtbWZjL3M1cF9tZmMuYzozMzM6
-My02OiBXQVJOSU5HOiBVc2UgQlVHX09ODQpkcml2ZXJzL21lZGlhL3BsYXRm
-b3JtL3M1cC1tZmMvczVwX21mYy5jOjQwNjoyLTU6IFdBUk5JTkc6IFVzZSBC
-VUdfT04NCmRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLW1mYy9zNXBfbWZj
-LmM6NTQ4OjMtNjogV0FSTklORzogVXNlIEJVR19PTg0KZHJpdmVycy9tZWRp
-YS9wbGF0Zm9ybS9zNXAtbWZjL3M1cF9tZmMuYzo1NTY6My02OiBXQVJOSU5H
-OiBVc2UgQlVHX09ODQpkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC1tZmMv
-czVwX21mYy5jOjUwOToyLTU6IFdBUk5JTkc6IFVzZSBCVUdfT04NCmRyaXZl
-cnMvbWVkaWEvcGxhdGZvcm0vczVwLW1mYy9zNXBfbWZjLmM6NjM0OjQtNzog
-V0FSTklORzogVXNlIEJVR19PTg0KDQogVXNlIEJVR19PTiBpbnN0ZWFkIG9m
-IGEgaWYgY29uZGl0aW9uIGZvbGxvd2VkIGJ5IEJVRy4NCg0KU2VtYW50aWMg
-cGF0Y2ggaW5mb3JtYXRpb246DQogVGhpcyBtYWtlcyBhbiBlZmZvcnQgdG8g
-ZmluZCBjYXNlcyB3aGVyZSBCVUcoKSBmb2xsb3dzIGFuIGlmDQogY29uZGl0
-aW9uIG9uIGFuIGV4cHJlc3Npb24gYW5kIHJlcGxhY2VzIHRoZSBpZiBjb25k
-aXRpb24gYW5kIEJVRygpDQogd2l0aCBhIEJVR19PTiBoYXZpbmcgdGhlIGNv
-bmRpdGlvbmFsIGV4cHJlc3Npb24gb2YgdGhlIGlmIHN0YXRlbWVudA0KIGFz
-IGFyZ3VtZW50Lg0KDQpHZW5lcmF0ZWQgYnk6IHNjcmlwdHMvY29jY2luZWxs
-ZS9taXNjL2J1Z29uLmNvY2NpDQoNCkNDOiBNYXVybyBDYXJ2YWxobyBDaGVo
-YWIgPG0uY2hlaGFiQHNhbXN1bmcuY29tPg0KU2lnbmVkLW9mZi1ieTogRmVu
-Z2d1YW5nIFd1IDxmZW5nZ3Vhbmcud3VAaW50ZWwuY29tPg0KLS0tDQoNClBs
-ZWFzZSB0YWtlIHRoZSBwYXRjaCBvbmx5IGlmIGl0J3MgYSBwb3NpdGl2ZSB3
-YXJuaW5nLiBUaGFua3MhDQoNCiBzNXBfbWZjLmMgfCAgIDIxICsrKysrKyst
-LS0tLS0tLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMo
-KyksIDE0IGRlbGV0aW9ucygtKQ0KDQotLS0gYS9kcml2ZXJzL21lZGlhL3Bs
-YXRmb3JtL3M1cC1tZmMvczVwX21mYy5jDQorKysgYi9kcml2ZXJzL21lZGlh
-L3BsYXRmb3JtL3M1cC1tZmMvczVwX21mYy5jDQpAQCAtMzI5LDggKzMyOSw3
-IEBAIHN0YXRpYyB2b2lkIHM1cF9tZmNfaGFuZGxlX2ZyYW1lKHN0cnVjdA0K
-IAkJY3R4LT5zdGF0ZSA9IE1GQ0lOU1RfUkVTX0NIQU5HRV9JTklUOw0KIAkJ
-czVwX21mY19od19jYWxsKGRldi0+bWZjX29wcywgY2xlYXJfaW50X2ZsYWdz
-LCBkZXYpOw0KIAkJd2FrZV91cF9jdHgoY3R4LCByZWFzb24sIGVycik7DQot
-CQlpZiAodGVzdF9hbmRfY2xlYXJfYml0KDAsICZkZXYtPmh3X2xvY2spID09
-IDApDQotCQkJQlVHKCk7DQorCQlCVUdfT04odGVzdF9hbmRfY2xlYXJfYml0
-KDAsICZkZXYtPmh3X2xvY2spID09IDApOw0KIAkJczVwX21mY19jbG9ja19v
-ZmYoKTsNCiAJCXM1cF9tZmNfaHdfY2FsbChkZXYtPm1mY19vcHMsIHRyeV9y
-dW4sIGRldik7DQogCQlyZXR1cm47DQpAQCAtNDAyLDggKzQwMSw3IEBAIGxl
-YXZlX2hhbmRsZV9mcmFtZToNCiAJCWNsZWFyX3dvcmtfYml0KGN0eCk7DQog
-CXM1cF9tZmNfaHdfY2FsbChkZXYtPm1mY19vcHMsIGNsZWFyX2ludF9mbGFn
-cywgZGV2KTsNCiAJd2FrZV91cF9jdHgoY3R4LCByZWFzb24sIGVycik7DQot
-CWlmICh0ZXN0X2FuZF9jbGVhcl9iaXQoMCwgJmRldi0+aHdfbG9jaykgPT0g
-MCkNCi0JCUJVRygpOw0KKwlCVUdfT04odGVzdF9hbmRfY2xlYXJfYml0KDAs
-ICZkZXYtPmh3X2xvY2spID09IDApOw0KIAlzNXBfbWZjX2Nsb2NrX29mZigp
-Ow0KIAkvKiBpZiBzdXNwZW5kaW5nLCB3YWtlIHVwIGRldmljZSBhbmQgZG8g
-bm90IHRyeV9ydW4gYWdhaW4qLw0KIAlpZiAodGVzdF9iaXQoMCwgJmRldi0+
-ZW50ZXJfc3VzcGVuZCkpDQpAQCAtNDUwLDggKzQ0OCw3IEBAIHN0YXRpYyB2
-b2lkIHM1cF9tZmNfaGFuZGxlX2Vycm9yKHN0cnVjdA0KIAkJCWJyZWFrOw0K
-IAkJfQ0KIAl9DQotCWlmICh0ZXN0X2FuZF9jbGVhcl9iaXQoMCwgJmRldi0+
-aHdfbG9jaykgPT0gMCkNCi0JCUJVRygpOw0KKwlCVUdfT04odGVzdF9hbmRf
-Y2xlYXJfYml0KDAsICZkZXYtPmh3X2xvY2spID09IDApOw0KIAlzNXBfbWZj
-X2h3X2NhbGwoZGV2LT5tZmNfb3BzLCBjbGVhcl9pbnRfZmxhZ3MsIGRldik7
-DQogCXM1cF9tZmNfY2xvY2tfb2ZmKCk7DQogCXdha2VfdXBfZGV2KGRldiwg
-cmVhc29uLCBlcnIpOw0KQEAgLTUwNSw4ICs1MDIsNyBAQCBzdGF0aWMgdm9p
-ZCBzNXBfbWZjX2hhbmRsZV9zZXFfZG9uZShzdHJ1DQogCX0NCiAJczVwX21m
-Y19od19jYWxsKGRldi0+bWZjX29wcywgY2xlYXJfaW50X2ZsYWdzLCBkZXYp
-Ow0KIAljbGVhcl93b3JrX2JpdChjdHgpOw0KLQlpZiAodGVzdF9hbmRfY2xl
-YXJfYml0KDAsICZkZXYtPmh3X2xvY2spID09IDApDQotCQlCVUcoKTsNCisJ
-QlVHX09OKHRlc3RfYW5kX2NsZWFyX2JpdCgwLCAmZGV2LT5od19sb2NrKSA9
-PSAwKTsNCiAJczVwX21mY19jbG9ja19vZmYoKTsNCiAJczVwX21mY19od19j
-YWxsKGRldi0+bWZjX29wcywgdHJ5X3J1biwgZGV2KTsNCiAJd2FrZV91cF9j
-dHgoY3R4LCByZWFzb24sIGVycik7DQpAQCAtNTQ0LDE2ICs1NDAsMTQgQEAg
-c3RhdGljIHZvaWQgczVwX21mY19oYW5kbGVfaW5pdF9idWZmZXJzKA0KIAkJ
-fSBlbHNlIHsNCiAJCQljdHgtPmRwYl9mbHVzaF9mbGFnID0gMDsNCiAJCX0N
-Ci0JCWlmICh0ZXN0X2FuZF9jbGVhcl9iaXQoMCwgJmRldi0+aHdfbG9jaykg
-PT0gMCkNCi0JCQlCVUcoKTsNCisJCUJVR19PTih0ZXN0X2FuZF9jbGVhcl9i
-aXQoMCwgJmRldi0+aHdfbG9jaykgPT0gMCk7DQogDQogCQlzNXBfbWZjX2Ns
-b2NrX29mZigpOw0KIA0KIAkJd2FrZV91cCgmY3R4LT5xdWV1ZSk7DQogCQlz
-NXBfbWZjX2h3X2NhbGwoZGV2LT5tZmNfb3BzLCB0cnlfcnVuLCBkZXYpOw0K
-IAl9IGVsc2Ugew0KLQkJaWYgKHRlc3RfYW5kX2NsZWFyX2JpdCgwLCAmZGV2
-LT5od19sb2NrKSA9PSAwKQ0KLQkJCUJVRygpOw0KKwkJQlVHX09OKHRlc3Rf
-YW5kX2NsZWFyX2JpdCgwLCAmZGV2LT5od19sb2NrKSA9PSAwKTsNCiANCiAJ
-CXM1cF9tZmNfY2xvY2tfb2ZmKCk7DQogDQpAQCAtNjMwLDggKzYyNCw3IEBA
-IHN0YXRpYyBpcnFyZXR1cm5fdCBzNXBfbWZjX2lycShpbnQgaXJxLA0KIAkJ
-CQltZmNfZXJyKCJwb3N0X2ZyYW1lX3N0YXJ0KCkgZmFpbGVkXG4iKTsNCiAJ
-CQlzNXBfbWZjX2h3X2NhbGwoZGV2LT5tZmNfb3BzLCBjbGVhcl9pbnRfZmxh
-Z3MsIGRldik7DQogCQkJd2FrZV91cF9jdHgoY3R4LCByZWFzb24sIGVycik7
-DQotCQkJaWYgKHRlc3RfYW5kX2NsZWFyX2JpdCgwLCAmZGV2LT5od19sb2Nr
-KSA9PSAwKQ0KLQkJCQlCVUcoKTsNCisJCQlCVUdfT04odGVzdF9hbmRfY2xl
-YXJfYml0KDAsICZkZXYtPmh3X2xvY2spID09IDApOw0KIAkJCXM1cF9tZmNf
-Y2xvY2tfb2ZmKCk7DQogCQkJczVwX21mY19od19jYWxsKGRldi0+bWZjX29w
-cywgdHJ5X3J1biwgZGV2KTsNCiAJCX0gZWxzZSB7DQo=
-
---8323329-2061299566-1409159221=:7069
-Content-Type: TEXT/X-DIFF; NAME="returnvar:vpfe_capture.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.DEB.2.10.1408271907011.7069@hadrien>
-Content-Description: 
-Content-Disposition: ATTACHMENT; FILENAME="returnvar:vpfe_capture.patch"
-
-RnJvbTogRmVuZ2d1YW5nIFd1IDxmZW5nZ3Vhbmcud3VAaW50ZWwuY29tPg0K
-U3ViamVjdDogW1BBVENIXSBmaXggY29jY2luZWxsZSB3YXJuaW5ncw0KVE86
-IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bS5jaGVoYWJAc2Ftc3VuZy5jb20+
-DQpDQzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxtLmNoZWhhYkBzYW1zdW5n
-LmNvbT4NCkNDOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcgDQpDQzog
-ZGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZUBsaW51eC5kYXZpbmNpZHNwLmNv
-bSANCkNDOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnIA0KDQpkcml2
-ZXJzL21lZGlhL3BsYXRmb3JtL2RhdmluY2kvdnBmZV9jYXB0dXJlLmM6OTQ2
-OjUtODogVW5uZWVkZWQgdmFyaWFibGU6ICJyZXQiLiBSZXR1cm4gIjAiIG9u
-IGxpbmUgOTUxDQoNCg0KIFJlbW92ZXMgdW5uZWVkZWQgdmFyaWFibGUgdXNl
-ZCB0byBzdG9yZSByZXR1cm4gdmFsdWUuDQoNCkdlbmVyYXRlZCBieTogc2Ny
-aXB0cy9jb2NjaW5lbGxlL21pc2MvcmV0dXJudmFyLmNvY2NpDQoNCkNDOiBN
-YXVybyBDYXJ2YWxobyBDaGVoYWIgPG0uY2hlaGFiQHNhbXN1bmcuY29tPg0K
-U2lnbmVkLW9mZi1ieTogRmVuZ2d1YW5nIFd1IDxmZW5nZ3Vhbmcud3VAaW50
-ZWwuY29tPg0KLS0tDQoNClBsZWFzZSB0YWtlIHRoZSBwYXRjaCBvbmx5IGlm
-IGl0J3MgYSBwb3NpdGl2ZSB3YXJuaW5nLiBUaGFua3MhDQoNCiB2cGZlX2Nh
-cHR1cmUuYyB8ICAgIDMgKy0tDQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0
-aW9uKCspLCAyIGRlbGV0aW9ucygtKQ0KDQotLS0gYS9kcml2ZXJzL21lZGlh
-L3BsYXRmb3JtL2RhdmluY2kvdnBmZV9jYXB0dXJlLmMNCisrKyBiL2RyaXZl
-cnMvbWVkaWEvcGxhdGZvcm0vZGF2aW5jaS92cGZlX2NhcHR1cmUuYw0KQEAg
-LTk0MywxMiArOTQzLDExIEBAIHN0YXRpYyBpbnQgdnBmZV9nX2ZtdF92aWRf
-Y2FwKHN0cnVjdCBmaWwNCiAJCQkJc3RydWN0IHY0bDJfZm9ybWF0ICpmbXQp
-DQogew0KIAlzdHJ1Y3QgdnBmZV9kZXZpY2UgKnZwZmVfZGV2ID0gdmlkZW9f
-ZHJ2ZGF0YShmaWxlKTsNCi0JaW50IHJldCA9IDA7DQogDQogCXY0bDJfZGJn
-KDEsIGRlYnVnLCAmdnBmZV9kZXYtPnY0bDJfZGV2LCAidnBmZV9nX2ZtdF92
-aWRfY2FwXG4iKTsNCiAJLyogRmlsbCBpbiB0aGUgaW5mb3JtYXRpb24gYWJv
-dXQgZm9ybWF0ICovDQogCSpmbXQgPSB2cGZlX2Rldi0+Zm10Ow0KLQlyZXR1
-cm4gcmV0Ow0KKwlyZXR1cm4gMDsNCiB9DQogDQogc3RhdGljIGludCB2cGZl
-X2VudW1fZm10X3ZpZF9jYXAoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgICpw
-cml2LA0K
-
---8323329-2061299566-1409159221=:7069--
