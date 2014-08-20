@@ -1,42 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:29468 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbaHDJKz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 05:10:55 -0400
-Date: Mon, 4 Aug 2014 12:10:24 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Martin Kepplinger <martink@posteo.de>
-Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com
-Subject: Re: [PATCH] staging: media: as102: replace custom dprintk() with
- dev_dbg()
-Message-ID: <20140804091023.GP4856@mwanda>
-References: <1407077661-2411-1-git-send-email-martink@posteo.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1407077661-2411-1-git-send-email-martink@posteo.de>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2723 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333AbaHTW7s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 18:59:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 26/29] si2165: fix sparse warning
+Date: Thu, 21 Aug 2014 00:59:25 +0200
+Message-Id: <1408575568-20562-27-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 03, 2014 at 04:54:21PM +0200, Martin Kepplinger wrote:
-> @@ -447,6 +457,13 @@ static uint8_t as102_fe_get_code_rate(fe_code_rate_t arg)
->  static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
->  			  struct dtv_frontend_properties *params)
->  {
-> +	struct dvb_frontend *fe;
-> +	struct as102_dev_t *dev;
-> +
-> +	fe = container_of(params, struct dvb_frontend, dtv_property_cache);
-> +	dev = (struct as102_dev_t *) fe->tuner_priv;
-> +	if (dev == NULL)
-> +		dev_err(&dev->bus_adap.usb_dev->dev, "No device found\n");
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-NULL dereference in printing error message.  I think smatch or
-coccinelle would detect this although I haven't tried either.
+drivers/media/dvb-frontends/si2165.c:329:16: warning: odd constant _Bool cast (ffffffffffffffea becomes 1)
 
-This is the typical bug for this kind of patch.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-frontends/si2165.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-regards,
-dan carpenter
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 3a2d6c5..4386092 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -312,7 +312,7 @@ static u32 si2165_get_fe_clk(struct si2165_state *state)
+ 	return state->adc_clk;
+ }
+ 
+-static bool si2165_wait_init_done(struct si2165_state *state)
++static int si2165_wait_init_done(struct si2165_state *state)
+ {
+ 	int ret = -EINVAL;
+ 	u8 val = 0;
+-- 
+2.1.0.rc1
+
