@@ -1,45 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:42518 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412AbaHMRfS (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4931 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752846AbaHTW7j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 13:35:18 -0400
-Received: by mail-la0-f43.google.com with SMTP id hr17so61654lab.2
-        for <linux-media@vger.kernel.org>; Wed, 13 Aug 2014 10:35:17 -0700 (PDT)
-Message-ID: <53EBA1D2.4070301@cogentembedded.com>
-Date: Wed, 13 Aug 2014 21:35:14 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Ian Molton <ian.molton@codethink.co.uk>
-CC: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are
- returned to error state before stopping.
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>	<1404812474-7627-3-git-send-email-ian.molton@codethink.co.uk>	<53DFEF99.7040503@cogentembedded.com> <20140813183055.dbc44b7fa03f39aaa8b149c6@codethink.co.uk>
-In-Reply-To: <20140813183055.dbc44b7fa03f39aaa8b149c6@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Aug 2014 18:59:39 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7KMxZ61088004
+	for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 00:59:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 194CC2A2E5A
+	for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 00:59:30 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 00/29] Sparse fixes
+Date: Thu, 21 Aug 2014 00:58:59 +0200
+Message-Id: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+After attending a session on coccinelle, smatch and sparse I got inspired
+to clean up a lot of sparse warnings.
 
-On 08/13/2014 09:30 PM, Ian Molton wrote:
-
->>      Fixed kernel WARNINGs for me! \o/
->>      Ian, perhaps it makes sense for me to take these patches into my hands?
-
-> I'm planning to respin these tomorrow - is that OK?
-
-    Yes.
-
-> I have test hardware with two different frontends here.
-
-    I'm sorry, what do you mean by frontends?
-
-> -Ian
-
-WBR, Sergei
+Most are trivial, but I found a true bug in kinect. Also a lot of these
+fixes relate to big/little endian.
 
