@@ -1,53 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34452 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932910AbaHYPN0 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:36219 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752898AbaHTNod (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 11:13:26 -0400
-Message-ID: <1408979594.3191.68.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2 2/3] usb: gadget/uvc: also handle v4l2 ioctl ENUM_FMT
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Michael Grzeschik <mgr@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	linux-usb@vger.kernel.org, balbi@ti.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Date: Mon, 25 Aug 2014 17:13:14 +0200
-In-Reply-To: <1558910.c27BVhDgdW@avalon>
-References: <1407512339-8433-1-git-send-email-m.grzeschik@pengutronix.de>
-	 <7518802.YGX5leEVlJ@avalon> <20140825135957.GG22481@pengutronix.de>
-	 <1558910.c27BVhDgdW@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Aug 2014 09:44:33 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v5 01/10] Documentation: leds: Add description of LED Flash
+ Class extension
+Date: Wed, 20 Aug 2014 15:44:10 +0200
+Message-id: <1408542259-415-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes. There are also
+chapters devoted specifically to the Flash Manager feature.
 
-Am Montag, den 25.08.2014, 16:48 +0200 schrieb Laurent Pinchart:
-[...]
-> > > > > Format descriptions are currently duplicated in every driver, causing
-> > > > > higher memory usage and different descriptions for the same format
-> > > > > depending on the driver. Hans, should we try to fix this ?
-> > > > 
-> > > > Yes, we should. It's been on my todo list for ages, but at a very low
-> > > > priority. I'm not planning to work on this in the near future, but if
-> > > > someone else wants to work on this, then just go ahead.
-> > > 
-> > > Michael, would you like to give this a try, or should I do it ?
-> > 
-> > It seems Philipp is already taking the chance! :)
-> 
-> Perfect timing, I wonder if that's just a coincidence ;-)
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   54 +++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-It felt like my own idea this weekend, but I strongly suspect that I
-took up enough information to trigger it, when scanning mail last week.
-
-I shouldn't be so fast to dismiss uvc/gadget mails as "Michael's
-business"...
-
-regards
-Philipp
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..8a9c17e
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,54 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. In order to enable
++support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
++in the kernel config. A flash LED driver must register in the LED subsystem
++with led_classdev_flash_register to gain flash capabilities.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- indicator_brightness - privacy LED brightness in microamperes (RW)
++	- max_indicator_brightness - maximum privacy LED brightness in
++				     microamperes (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- external_strobe - some devices expose dedicated hardware pins for
++			    triggering a flash LED - this attribute allows to
++			    set this mode (RW)
++	- flash_fault - bitmask of flash faults that may have occurred,
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call v4l2_flash_init function
++to get registered in the V4L2 subsystem. On remove v4l2_flash_release function
++has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls. When the V4L2_CID_FLASH_LED_MODE control
++is set to V4L2_FLASH_LED_MODE_TORCH or V4L2_FLASH_LED_MODE_FLASH the
++LED subsystem sysfs interface becomes unavailable. The interface can be
++unlocked by setting the mode back to V4L2_FLASH_LED_MODE_NONE.
+-- 
+1.7.9.5
 
