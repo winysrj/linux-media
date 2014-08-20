@@ -1,56 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:46560 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933914AbaH0Rdr (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:40326 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbaHTNpS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 13:33:47 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140827105838.GA6522@sudip-PC>
-References: <CA+r1Zhh5n3p8Zg+Uvqvjeb3S859iejXkqStnnOuezTTm9UCT8g@mail.gmail.com>
-	<20140827105838.GA6522@sudip-PC>
-Date: Wed, 27 Aug 2014 10:33:46 -0700
-Message-ID: <CA+r1Zhh10fMu4yvFwz__5wt1X3hUZeOpy5yviXy7NY_w+Ugb6w@mail.gmail.com>
-Subject: Re: randconfig build error with next-20140826, in Documentation/video4linux
-From: Jim Davis <jim.epost@gmail.com>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"m.chehab" <m.chehab@samsung.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-doc <linux-doc@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 20 Aug 2014 09:45:18 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Subject: [PATCH/RFC v5 10/10] ARM: dts: add aat1290 current regulator device
+ node
+Date: Wed, 20 Aug 2014 15:44:19 +0200
+Message-id: <1408542259-415-11-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 27, 2014 at 3:58 AM, Sudip Mukherjee
-<sudipm.mukherjee@gmail.com> wrote:
+Add device node for AAT1290 1.5A Step-Up Current Regulator
+for Flash LEDs along with flash_muxes node containing
+information about a multiplexer that is used for switching
+between software and external strobe signal source.
 
-> Hi,
-> I tried to build next-20140826 with your given config file . But for me everything was fine.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+---
+ arch/arm/boot/dts/exynos4412-trats2.dts |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-Well, you should be able to reproduce it.  Do these steps work for you?
+diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
+index 5e066cd..2106a1d 100644
+--- a/arch/arm/boot/dts/exynos4412-trats2.dts
++++ b/arch/arm/boot/dts/exynos4412-trats2.dts
+@@ -781,4 +781,28 @@
+ 		pulldown-ohm = <100000>; /* 100K */
+ 		io-channels = <&adc 2>;  /* Battery temperature */
+ 	};
++
++	flash_muxes {
++		flash_mux1: mux1 {
++			gpios = <&gpj1 0 0>;
++		};
++	};
++
++	aat1290: aat1290 {
++		compatible = "skyworks,aat1290";
++		gpios = <&gpj1 1 0>, <&gpj1 2 0>;
++		flash-timeout = <1940000>;
++		status = "okay";
++
++		gate-software-strobe {
++			mux = <&flash_mux1>;
++			mux-line-id = <0>;
++		};
++
++		gate-external-strobe {
++			strobe-provider = <&s5c73m3_spi>;
++			mux = <&flash_mux1>;
++			mux-line-id = <1>;
++		};
++	};
+ };
+-- 
+1.7.9.5
 
-jim@krebstar:~/linux2$ git checkout next-20140826
-HEAD is now at 1c9e4561f3b2... Add linux-next specific files for 20140826
-jim@krebstar:~/linux2$ git clean -fdx
-jim@krebstar:~/linux2$ cp ~/randconfig-1409069188.txt .config
-jim@krebstar:~/linux2$ make oldconfig
-  HOSTCC  scripts/basic/fixdep
-  HOSTCC  scripts/kconfig/conf.o
-  SHIPPED scripts/kconfig/zconf.tab.c
-  SHIPPED scripts/kconfig/zconf.lex.c
-  SHIPPED scripts/kconfig/zconf.hash.c
-  HOSTCC  scripts/kconfig/zconf.tab.o
-  HOSTLD  scripts/kconfig/conf
-scripts/kconfig/conf --oldconfig Kconfig
-#
-# configuration written to .config
-#
-jim@krebstar:~/linux2$ make -j4 >buildlog.txt 2>&1
-jim@krebstar:~/linux2$ grep ERROR buildlog.txt
-ERROR: "vb2_ops_wait_finish"
-[Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
-
-(followed by many more similar lines).
