@@ -1,45 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41728 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603AbaHXRBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Aug 2014 13:01:23 -0400
-Message-ID: <53FA1A5A.8090100@iki.fi>
-Date: Sun, 24 Aug 2014 20:01:14 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Jeff Mahoney <jeffm@suse.com>
-Subject: [GIT PULL 3.17] FIX: remove SPI select from Kconfig
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:36229 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080AbaHTNop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 09:44:45 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Stephen Warren <swarren@nvidia.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v5 04/10] DT: leds: Add flash led devices related properties
+Date: Wed, 20 Aug 2014 15:44:13 +0200
+Message-id: <1408542259-415-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, that should go to *3.17*.
+Addition of a LED Flash Class extension entails the need for flash led
+specific device tree properties. The properties being added are:
+iout-torch, iout-flash, iout-indicator and flash-timeout.
 
-Antti
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ Documentation/devicetree/bindings/leds/common.txt |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-
-The following changes since commit 1baa466e84975a595b2c3cd10af1100c807ebab5:
-
-   [media] media: ttpci: fix av7110 build to be compatible with 
-CONFIG_INPUT_EVDEV (2014-08-15 21:26:26 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git spi_kconfig
-
-for you to fetch changes up to 4bc2dcd2937b2a05e744e8842fd16a9dce31812b:
-
-   Kconfig: do not select SPI bus on sub-driver auto-select (2014-08-22 
-19:45:05 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (1):
-       Kconfig: do not select SPI bus on sub-driver auto-select
-
-  drivers/media/Kconfig | 1 -
-  1 file changed, 1 deletion(-)
-
+diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+index 2d88816..40f4b9a 100644
+--- a/Documentation/devicetree/bindings/leds/common.txt
++++ b/Documentation/devicetree/bindings/leds/common.txt
+@@ -3,6 +3,17 @@ Common leds properties.
+ Optional properties for child nodes:
+ - label : The label for this LED.  If omitted, the label is
+   taken from the node name (excluding the unit address).
++- iout-torch : Array of maximum intensities in microamperes of the torch
++	led currents in order from sub-led 0 to N-1, where N is the number
++	of torch sub-leds exposed by the device
++- iout-flash : Array of maximum intensities in microamperes of the flash
++	led currents in order from sub-led 0 to N-1, where N is the number
++	of flash sub-leds exposed by the device
++- iout-indicator : Array of maximum intensities in microamperes of
++	the indicator led currents in order from sub-led 0 to N-1,
++	where N is the number of indicator sub-leds exposed by the device
++- flash-timeout : timeout in microseconds after which flash led
++	is turned off
+ 
+ - linux,default-trigger :  This parameter, if present, is a
+     string defining the trigger assigned to the LED.  Current triggers are:
+@@ -19,5 +30,10 @@ Examples:
+ system-status {
+ 	label = "Status";
+ 	linux,default-trigger = "heartbeat";
++	iout-torch = <500 500>;
++	iout-flash = <1000 1000>;
++	iout-indicator = <100 100>;
++	flash-timeout = <1000>;
++
+ 	...
+ };
 -- 
-http://palosaari.fi/
+1.7.9.5
+
