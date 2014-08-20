@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32316 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932344AbaHELF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Aug 2014 07:05:57 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id A464D20231
-	for <linux-media@vger.kernel.org>; Tue,  5 Aug 2014 14:05:03 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] smiapp: Fix power count handling
-Date: Tue,  5 Aug 2014 14:05:01 +0300
-Message-Id: <1407236701-12778-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33538 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280AbaHTTM6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 15:12:58 -0400
+Received: by mail-lb0-f171.google.com with SMTP id l4so7241937lbv.30
+        for <linux-media@vger.kernel.org>; Wed, 20 Aug 2014 12:12:57 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: g.liakhovetski@gmx.de, m.chehab@samsung.com,
+	linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH resend] rcar_vin: fix error message in rcar_vin_get_formats()
+Date: Wed, 20 Aug 2014 23:12:54 +0400
+Message-ID: <1487353.2gPEFjuLHa@wasted.cogentembedded.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sensor may be powered by either one of its sub-devices being accessed
-from the user space (an open file handle) or by its s_power() op being
-called with non-zero on argument. The driver counts the users and if any
-reason to keep the device powered exists it will be powered.
+The dev_err() call is supposed to output <width>x<height> in decimal but one of
+the format specifiers is "%x" instead of "%u" (most probably due  to a typo).
 
-However, a faulty condition was used in recognising the need to power off
-the sensor, leading it to be powered off every time any of its uses went
-away.
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+The patch is against the 'media_tree.git' repo's 'fixes' branch.
+Resending with Mauro's current address (again)...
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 94ae3a3..a9c6f9b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1400,19 +1400,12 @@ static int smiapp_set_power(struct v4l2_subdev *subdev, int on)
- 
- 	mutex_lock(&sensor->power_mutex);
- 
--	/*
--	 * If the power count is modified from 0 to != 0 or from != 0
--	 * to 0, update the power state.
--	 */
--	if (!sensor->power_count == !on)
--		goto out;
--
--	if (on) {
-+	if (on && !sensor->power_count) {
- 		/* Power on and perform initialisation. */
- 		ret = smiapp_power_on(sensor);
- 		if (ret < 0)
- 			goto out;
--	} else {
-+	} else if (!on && sensor->power_count == 1) {
- 		smiapp_power_off(sensor);
- 	}
- 
--- 
-1.8.3.2
+ drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+===================================================================
+--- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
++++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -981,7 +981,7 @@ static int rcar_vin_get_formats(struct s
+ 
+ 		if (shift == 3) {
+ 			dev_err(dev,
+-				"Failed to configure the client below %ux%x\n",
++				"Failed to configure the client below %ux%u\n",
+ 				mf.width, mf.height);
+ 			return -EIO;
+ 		}
