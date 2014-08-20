@@ -1,51 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:57489 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081AbaHZTlI (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40824 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008AbaHTUMG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 15:41:08 -0400
-Received: by mail-wg0-f49.google.com with SMTP id k14so14883944wgh.8
-        for <linux-media@vger.kernel.org>; Tue, 26 Aug 2014 12:41:06 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 26 Aug 2014 16:41:06 -0300
-Message-ID: <CAOdi6ibuE_WM8_Hw6ZHHBcTkAhVV_adzL1CqcZuAdrSv+So6_g@mail.gmail.com>
-Subject: Instability when using One Touch Video Capture conexant dongle with
- several xHCI hubs. There is one eHCI hub where it is stable
-From: Rodrigo Severo <rodrigo@fabricadeideias.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Wed, 20 Aug 2014 16:12:06 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/5] [media] enable COMPILE_TEST for MX2 eMMa-PrP driver
+Date: Wed, 20 Aug 2014 15:11:53 -0500
+Message-Id: <1408565517-22034-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+By allowing compilation on all archs, we can use static
+analysis tools to test this driver.
 
+In order to do that, replace asm/sizes.h by its generic
+name (linux/sizes.h), with should keep doing the right
+thing.
 
-I have been trying to set several USB Video Grabbers on a few
-machines. The Video Grabbers are "Oner Touch Video Capture" dongles
-from Diammond Multimedia, a Connexant device with device ID 1f4d:0102.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/Kconfig       | 3 ++-
+ drivers/media/platform/mx2_emmaprp.c | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-On an old machine with "Advanced Micro Devices, Inc. [AMD/ATI]
-SB7x0/SB8x0/SB9x0 USB EHCI Controller" I have three Video Grabbers,
-one on each USB hub, working flawlessly.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 6d86646d9743..66566c920fe9 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -185,7 +185,8 @@ config VIDEO_SAMSUNG_S5P_MFC
+ 
+ config VIDEO_MX2_EMMAPRP
+ 	tristate "MX2 eMMa-PrP support"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
++	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on SOC_IMX27 || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	help
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index fa8f7cabe364..4971ff21f82b 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -27,7 +27,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-dma-contig.h>
+-#include <asm/sizes.h>
++#include <linux/sizes.h>
+ 
+ #define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
+ 
+-- 
+1.9.3
 
-My problem is that I can't find a new machine where these devices are
-also stable. I'm compiling a list of USB hubs where they aren't
-stable. In all of them, I get tons of TX lenght quirk messages like
-"xhci_hcd 0000:01:00.0: WARN Successful completion on short TX: needs
-XHCI_TRUST_TX_LENGTH quirk?". Activating the TX quirk workaround for
-these SUB hubs prevents the messages from being logged but
-unfortunatelly the video grabbers keep being randomly disconnected
-when recording.
-
-I have already seem this same behaviour with the following xHCI hubs:
-
-* Renesas uPD720201 - ID 0x1912:0x0014
-* Renesas uPD720202 - ID 0x1912:0x0015
-* AsMedia ASM1042A - ID 0x1b21:0x1142
-
-Can someone help me further diagnose thi issue? I'm kind of lost right now.
-
-
-Regards,
-
-Rodrigo Severo
