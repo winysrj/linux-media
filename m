@@ -1,205 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54607 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681AbaHaSSm convert rfc822-to-8bit (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:60634 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161AbaHTNmY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Aug 2014 14:18:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-i2c@vger.kernel.org, lars@metafoo.de, w.sang@pengutronix.de,
-	hverkuil@xs4all.nl, mark.rutland@arm.com
-Subject: Re: [PATCH v2 2/2] adv7604: Use DT parsing in dummy creation
-Date: Sun, 31 Aug 2014 20:18:58 +0300
-Message-ID: <2204455.3fKSNVsp04@avalon>
-In-Reply-To: <1409325303-15906-2-git-send-email-jean-michel.hautbois@vodalys.com>
-References: <1409325303-15906-1-git-send-email-jean-michel.hautbois@vodalys.com> <1409325303-15906-2-git-send-email-jean-michel.hautbois@vodalys.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Wed, 20 Aug 2014 09:42:24 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v5 2/4] leds: implement sysfs interface locking mechanism
+Date: Wed, 20 Aug 2014 15:41:56 +0200
+Message-id: <1408542118-32723-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+Add a mechanism for locking LED subsystem sysfs interface.
+This patch prepares ground for addition of LED Flash Class
+extension, whose API will be integrated with V4L2 Flash API.
+Such a fusion enforces introducing a locking scheme, which
+will secure consistent access to the LED Flash Class device.
 
-Thank you for the patch.
+The mechanism being introduced allows for disabling LED
+subsystem sysfs interface by calling led_sysfs_lock function
+and enabling it by calling led_sysfs_unlock. The functions
+alter the LED_SYSFS_LOCK flag state and must be called
+under mutex lock. The state of the lock is checked with use
+of led_sysfs_is_locked function. Such a design allows for
+providing immediate feedback to the user space on whether
+the LED Flash Class device is available or is under V4L2 Flash
+sub-device control.
 
-On Friday 29 August 2014 17:15:03 Jean-Michel Hautbois wrote:
-> This patch uses DT in order to parse addresses for dummy devices of adv7604.
-> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
-> I²C ports. Each map has it own I²C address and acts
-> as a standard slave device on the I²C bus.
-> 
-> If nothing is defined, it uses default addresses.
-> The main prupose is using two adv76xx on the same i2c bus.
-> 
-> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> ---
->  .../devicetree/bindings/media/i2c/adv7604.txt      | 17 +++++-
->  drivers/media/i2c/adv7604.c                        | 60 ++++++++++++-------
->  2 files changed, 55 insertions(+), 22 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
-> c27cede..8486b5c 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -10,8 +10,12 @@ Required Properties:
-> 
->    - compatible: Must contain one of the following
->      - "adi,adv7611" for the ADV7611
-> +    - "adi,adv7604" for the ADV7604
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/leds/led-class.c    |   23 ++++++++++++++++++++---
+ drivers/leds/led-core.c     |   18 ++++++++++++++++++
+ drivers/leds/led-triggers.c |   15 ++++++++++++---
+ include/linux/leds.h        |   32 ++++++++++++++++++++++++++++++++
+ 4 files changed, 82 insertions(+), 6 deletions(-)
 
-Addition of ADV7604 support is unrelated to the subject and needs to be split 
-into a separate patch.
-
-> -  - reg: I2C slave address
-> +  - reg: I2C slave addresses
-> +    The ADV7604 has thirteen 256-byte maps that can be accessed via the
-> main
-> +    I²C ports. Each map has it own I²C address and acts
-> +    as a standard slave device on the I²C bus.
-> 
->    - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
->      detection pins, one per HDMI input. The active flag indicates the GPIO
-> @@ -32,6 +36,12 @@ The digital output port node must contain at least one
-> endpoint. Optional Properties:
-> 
->    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-> +  - reg-names : Names of maps with programmable addresses.
-> +		It can contain any map needing another address than default one.
-> +		Possible maps names are :
-> +ADV7604 : "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe",
-> "rep",
-> +		"edid", "hdmi", "test", "cp", "vdp"
-> +ADV7611 : "main", "cec", "infoframe", "afe", "rep", "edid", "hdmi", "cp"
-> 
->  Optional Endpoint Properties:
-> 
-> @@ -50,7 +60,10 @@ Example:
-> 
->  	hdmi_receiver@4c {
->  		compatible = "adi,adv7611";
-> -		reg = <0x4c>;
-> +		/* edid page will be accessible @ 0x66 on i2c bus */
-> +		/* other maps keep their default addresses */
-> +		reg = <0x4c 0x66>;
-> +		reg-names = "main", "edid";
-> 
->  		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
->  		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index d4fa213..56037dd 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -326,6 +326,22 @@ static const struct adv7604_video_standards
-> adv7604_prim_mode_hdmi_gr[] = { { },
->  };
-> 
-> +static const char const *adv7604_secondary_names[] = {
-> +	"main", /* ADV7604_PAGE_IO */
-> +	"avlink", /* ADV7604_PAGE_AVLINK */
-> +	"cec", /* ADV7604_PAGE_CEC */
-> +	"infoframe", /* ADV7604_PAGE_INFOFRAME */
-> +	"esdp", /* ADV7604_PAGE_ESDP */
-> +	"dpp", /* ADV7604_PAGE_DPP */
-> +	"afe", /* ADV7604_PAGE_AFE */
-> +	"rep", /* ADV7604_PAGE_REP */
-> +	"edid", /* ADV7604_PAGE_EDID */
-> +	"hdmi", /* ADV7604_PAGE_HDMI */
-> +	"test", /* ADV7604_PAGE_TEST */
-> +	"cp", /* ADV7604_PAGE_CP */
-> +	"vdp" /* ADV7604_PAGE_VDP */
-> +};
-> +
->  /* -----------------------------------------------------------------------
-> */
-> 
->  static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
-> @@ -2528,13 +2544,31 @@ static void adv7604_unregister_clients(struct
-> adv7604_state *state) }
-> 
->  static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
-> -							u8 addr, u8 io_reg)
-> +						unsigned int i)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct adv7604_platform_data *pdata = client->dev.platform_data;
-> +	unsigned int io_reg = 0xf2 + i;
-> +	unsigned int default_addr = io_read(sd, io_reg) >> 1;
-
-This modifies the behaviour of the driver. It previously used fixed default 
-addresses in the DT case, and now defaults to whatever has been programmed in 
-the chip. This might not be an issue in itself, but it should be documented in 
-the commit message (and possibly split to a separate patch).
-
-> +	struct i2c_client *new_client;
-> +
-> +	if (IS_ENABLED(CONFIG_OF)) {
-> +		/* Try to find it in DT */
-> +		new_client = i2c_new_secondary_device(client,
-> +			adv7604_secondary_names[i], default_addr);
-> +	} else if (pdata) {
-> +		if (pdata->i2c_addresses[i])
-> +			new_client = i2c_new_dummy(client->adapter,
-> +						pdata->i2c_addresses[i]);
-> +		else
-> +			new_client = i2c_new_dummy(client->adapter,
-> +						default_addr);
-> +	}
-> 
-> -	if (addr)
-> -		io_write(sd, io_reg, addr << 1);
-> -	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-> +	if (new_client)
-> +		io_write(sd, io_reg, new_client->addr << 1);
-> +
-> +	return new_client;
->  }
-> 
->  static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
-> @@ -2677,6 +2711,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
-> 
->  static struct of_device_id adv7604_of_id[] __maybe_unused = {
->  	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(of, adv7604_of_id);
-> @@ -2717,20 +2752,6 @@ static int adv7604_parse_dt(struct adv7604_state
-> *state) /* Disable the interrupt for now as no DT-based board uses it. */
-> state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
-> 
-> -	/* Use the default I2C addresses. */
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
-> -
->  	/* Hardcode the remaining platform data fields. */
->  	state->pdata.disable_pwrdnb = 0;
->  	state->pdata.disable_cable_det_rst = 0;
-> @@ -2891,8 +2912,7 @@ static int adv7604_probe(struct i2c_client *client,
->  			continue;
-> 
->  		state->i2c_clients[i] =
-> -			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
-> -					     0xf2 + i);
-> +			adv7604_dummy_client(sd, i);
->  		if (state->i2c_clients[i] == NULL) {
->  			err = -ENOMEM;
->  			v4l2_err(sd, "failed to create i2c client %u\n", i);
-
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index 6f82a76..0bc0ba9 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -39,17 +39,31 @@ static ssize_t brightness_store(struct device *dev,
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+ 	unsigned long state;
+-	ssize_t ret = -EINVAL;
++	ssize_t ret;
++
++#ifdef CONFIG_V4L2_FLASH_LED_CLASS
++	mutex_lock(&led_cdev->led_lock);
++
++	if (led_sysfs_is_locked(led_cdev)) {
++		ret = -EBUSY;
++		goto unlock;
++	}
++#endif
+ 
+ 	ret = kstrtoul(buf, 10, &state);
+ 	if (ret)
+-		return ret;
++		goto unlock;
+ 
+ 	if (state == LED_OFF)
+ 		led_trigger_remove(led_cdev);
+ 	__led_set_brightness(led_cdev, state);
+ 
+-	return size;
++	ret = size;
++unlock:
++#ifdef CONFIG_V4L2_FLASH_LED_CLASS
++	mutex_unlock(&led_cdev->led_lock);
++#endif
++	return ret;
+ }
+ static DEVICE_ATTR_RW(brightness);
+ 
+@@ -215,6 +229,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+ #ifdef CONFIG_LEDS_TRIGGERS
+ 	init_rwsem(&led_cdev->trigger_lock);
+ #endif
++	mutex_init(&led_cdev->led_lock);
+ 	/* add to the list of leds */
+ 	down_write(&leds_list_lock);
+ 	list_add_tail(&led_cdev->node, &leds_list);
+@@ -266,6 +281,8 @@ void led_classdev_unregister(struct led_classdev *led_cdev)
+ 	down_write(&leds_list_lock);
+ 	list_del(&led_cdev->node);
+ 	up_write(&leds_list_lock);
++
++	mutex_destroy(&led_cdev->led_lock);
+ }
+ EXPORT_SYMBOL_GPL(led_classdev_unregister);
+ 
+diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+index 466ce5a..4649ea5 100644
+--- a/drivers/leds/led-core.c
++++ b/drivers/leds/led-core.c
+@@ -143,3 +143,21 @@ int led_update_brightness(struct led_classdev *led_cdev)
+ 	return ret;
+ }
+ EXPORT_SYMBOL(led_update_brightness);
++
++/* Caller must ensure led_cdev->led_lock held */
++void led_sysfs_lock(struct led_classdev *led_cdev)
++{
++	lockdep_assert_held(&led_cdev->led_lock);
++
++	led_cdev->flags |= LED_SYSFS_LOCK;
++}
++EXPORT_SYMBOL_GPL(led_sysfs_lock);
++
++/* Caller must ensure led_cdev->led_lock held */
++void led_sysfs_unlock(struct led_classdev *led_cdev)
++{
++	lockdep_assert_held(&led_cdev->led_lock);
++
++	led_cdev->flags &= ~LED_SYSFS_LOCK;
++}
++EXPORT_SYMBOL_GPL(led_sysfs_unlock);
+diff --git a/drivers/leds/led-triggers.c b/drivers/leds/led-triggers.c
+index c3734f1..d391a5d 100644
+--- a/drivers/leds/led-triggers.c
++++ b/drivers/leds/led-triggers.c
+@@ -37,6 +37,11 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 	char trigger_name[TRIG_NAME_MAX];
+ 	struct led_trigger *trig;
+ 	size_t len;
++	int ret = count;
++
++#ifdef CONFIG_V4L2_FLASH_LED_CLASS
++	mutex_lock(&led_cdev->led_lock);
++#endif
+ 
+ 	trigger_name[sizeof(trigger_name) - 1] = '\0';
+ 	strncpy(trigger_name, buf, sizeof(trigger_name) - 1);
+@@ -47,7 +52,7 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 
+ 	if (!strcmp(trigger_name, "none")) {
+ 		led_trigger_remove(led_cdev);
+-		return count;
++		goto exit_unlock;
+ 	}
+ 
+ 	down_read(&triggers_list_lock);
+@@ -58,12 +63,16 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 			up_write(&led_cdev->trigger_lock);
+ 
+ 			up_read(&triggers_list_lock);
+-			return count;
++			goto exit_unlock;
+ 		}
+ 	}
+ 	up_read(&triggers_list_lock);
+ 
+-	return -EINVAL;
++exit_unlock:
++#ifdef CONFIG_V4L2_FLASH_LED_CLASS
++	mutex_unlock(&led_cdev->led_lock);
++#endif
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(led_trigger_store);
+ 
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index cc85b16..ef343f1 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -13,6 +13,7 @@
+ #define __LINUX_LEDS_H_INCLUDED
+ 
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ #include <linux/rwsem.h>
+ #include <linux/spinlock.h>
+ #include <linux/workqueue.h>
+@@ -41,6 +42,7 @@ struct led_classdev {
+ #define LED_BLINK_ONESHOT	(1 << 17)
+ #define LED_BLINK_ONESHOT_STOP	(1 << 18)
+ #define LED_BLINK_INVERT	(1 << 19)
++#define LED_SYSFS_LOCK		(1 << 20)
+ 
+ 	/* Set LED brightness level */
+ 	/* Must not sleep, use a workqueue if needed */
+@@ -84,6 +86,9 @@ struct led_classdev {
+ 	/* true if activated - deactivate routine uses it to do cleanup */
+ 	bool			activated;
+ #endif
++
++	/* Ensures consistent access to the LED Flash Class device */
++	struct mutex		led_lock;
+ };
+ 
+ extern int led_classdev_register(struct device *parent,
+@@ -150,6 +155,33 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
+  */
+ extern int led_update_brightness(struct led_classdev *led_cdev);
+ 
++/**
++ * led_sysfs_lock - lock LED sysfs interface
++ * @led_cdev: the LED to set
++ *
++ * Lock the LED's sysfs interface
++ */
++extern void led_sysfs_lock(struct led_classdev *led_cdev);
++
++/**
++ * led_sysfs_unlock - unlock LED sysfs interface
++ * @led_cdev: the LED to set
++ *
++ * Unlock the LED's sysfs interface
++ */
++extern void led_sysfs_unlock(struct led_classdev *led_cdev);
++
++/**
++ * led_sysfs_is_locked
++ * @led_cdev: the LED to query
++ *
++ * Returns: true if the sysfs interface of the led is locked
++ */
++static inline bool led_sysfs_is_locked(struct led_classdev *led_cdev)
++{
++	return led_cdev->flags & LED_SYSFS_LOCK;
++}
++
+ /*
+  * LED Triggers
+  */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
