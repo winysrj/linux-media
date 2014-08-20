@@ -1,85 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38653 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752114AbaHVK60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:58:26 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL FINAL 00/21] misc DTV stuff for 3.18
-Date: Fri, 22 Aug 2014 13:57:52 +0300
-Message-Id: <1408705093-5167-1-git-send-email-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46004 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753252AbaHTXGo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 19:06:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Cc: m.chehab@samsung.com, horms@verge.net.au, magnus.damm@gmail.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/6] ARM: shmobile: r8a7791: Add JPU clock dt and CPG define.
+Date: Thu, 21 Aug 2014 01:07:25 +0200
+Message-ID: <1671726.SQHuEtA4A1@avalon>
+In-Reply-To: <1408452653-14067-5-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408452653-14067-5-git-send-email-mikhail.ulyanov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-I picked these from patchwork and this is just final review before
-PULL request I will send very shortly. I don't expect any change
-requests at this late, without a very good reason :)
+Hi Mikhail,
 
-However, I could add some tags until Mauro PULLs to master.
+Thank you for the patch.
 
-regards
-Antti
+On Tuesday 19 August 2014 16:50:51 Mikhail Ulyanov wrote:
 
-Antti Palosaari (10):
-  dvb-usb-v2: remove dvb_usb_device NULL check
-  msi2500: remove unneeded local pointer on msi2500_isoc_init()
-  m88ts2022: fix 32bit overflow on filter calc
-  m88ts2022: fix coding style issues
-  m88ts2022: rename device state (priv => s)
-  m88ts2022: clean up logging
-  m88ts2022: convert to RegMap I2C API
-  m88ts2022: change parameter type of m88ts2022_cmd
-  m88ds3103: change .set_voltage() implementation
-  m88ds3103: fix coding style issues
+A commit message would be nice.
 
-CrazyCat (1):
-  si2168: DVB-T2 PLP selection implemented
+> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
 
-Olli Salonen (9):
-  si2168: clean logging
-  si2157: clean logging
-  si2168: add ts_mode setting and move to si2168_init
-  em28xx: add ts mode setting for PCTV 292e
-  cxusb: add ts mode setting for TechnoTrend CT2-4400
-  sp2: Add I2C driver for CIMaX SP2 common interface module
-  cxusb: Add support for TechnoTrend TT-connect CT2-4650 CI
-  cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
-  si2157: Add support for delivery system SYS_ATSC
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-nibble.max (1):
-  m88ds3103: implement set voltage and TS clock
-
- drivers/media/dvb-core/dvb-usb-ids.h       |   1 +
- drivers/media/dvb-frontends/Kconfig        |   7 +
- drivers/media/dvb-frontends/Makefile       |   1 +
- drivers/media/dvb-frontends/m88ds3103.c    | 101 +++++--
- drivers/media/dvb-frontends/m88ds3103.h    |  35 ++-
- drivers/media/dvb-frontends/si2168.c       | 101 ++++---
- drivers/media/dvb-frontends/si2168.h       |   6 +
- drivers/media/dvb-frontends/si2168_priv.h  |   1 +
- drivers/media/dvb-frontends/sp2.c          | 441 +++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/sp2.h          |  53 ++++
- drivers/media/dvb-frontends/sp2_priv.h     |  50 ++++
- drivers/media/tuners/Kconfig               |   1 +
- drivers/media/tuners/m88ts2022.c           | 355 +++++++++--------------
- drivers/media/tuners/m88ts2022_priv.h      |   5 +-
- drivers/media/tuners/si2157.c              |  55 ++--
- drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c |   2 +-
- drivers/media/usb/dvb-usb/Kconfig          |   2 +-
- drivers/media/usb/dvb-usb/cxusb.c          | 128 ++++++++-
- drivers/media/usb/dvb-usb/cxusb.h          |   4 +
- drivers/media/usb/em28xx/em28xx-dvb.c      |   5 +-
- drivers/media/usb/msi2500/msi2500.c        |   9 +-
- 21 files changed, 1022 insertions(+), 341 deletions(-)
- create mode 100644 drivers/media/dvb-frontends/sp2.c
- create mode 100644 drivers/media/dvb-frontends/sp2.h
- create mode 100644 drivers/media/dvb-frontends/sp2_priv.h
+> ---
+>  arch/arm/boot/dts/r8a7791.dtsi            | 6 +++---
+>  include/dt-bindings/clock/r8a7791-clock.h | 1 +
+>  2 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/r8a7791.dtsi b/arch/arm/boot/dts/r8a7791.dtsi
+> index 152c75c..c2d0c6e 100644
+> --- a/arch/arm/boot/dts/r8a7791.dtsi
+> +++ b/arch/arm/boot/dts/r8a7791.dtsi
+> @@ -889,16 +889,16 @@
+>  		mstp1_clks: mstp1_clks@e6150134 {
+>  			compatible = "renesas,r8a7791-mstp-clocks", "renesas,cpg-mstp-
+clocks";
+>  			reg = <0 0xe6150134 0 4>, <0 0xe6150038 0 4>;
+> -			clocks = <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
+> +			clocks = <&m2_clk>, <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
+>  				 <&cp_clk>, <&zs_clk>, <&zs_clk>, <&zs_clk>;
+>  			#clock-cells = <1>;
+>  			renesas,clock-indices = <
+> -				R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 R8A7791_CLK_TMU2
+> +				R8A7791_CLK_JPU R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 
+R8A7791_CLK_TMU2
+>  				R8A7791_CLK_CMT0 R8A7791_CLK_TMU0 R8A7791_CLK_VSP1_DU1
+>  				R8A7791_CLK_VSP1_DU0 R8A7791_CLK_VSP1_S
+> 
+>  			>;
+> 
+>  			clock-output-names =
+> -				"tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
+> +				"jpu", "tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
+>  				"vsp1-du0", "vsp1-sy";
+>  		};
+>  		mstp2_clks: mstp2_clks@e6150138 {
+> diff --git a/include/dt-bindings/clock/r8a7791-clock.h
+> b/include/dt-bindings/clock/r8a7791-clock.h index f0d4d10..58c3f49 100644
+> --- a/include/dt-bindings/clock/r8a7791-clock.h
+> +++ b/include/dt-bindings/clock/r8a7791-clock.h
+> @@ -25,6 +25,7 @@
+>  #define R8A7791_CLK_MSIOF0		0
+> 
+>  /* MSTP1 */
+> +#define R8A7791_CLK_JPU		6
+>  #define R8A7791_CLK_TMU1		11
+>  #define R8A7791_CLK_TMU3		21
+>  #define R8A7791_CLK_TMU2		22
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
