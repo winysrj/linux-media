@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:58660 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934031AbaHZIDg (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:40194 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109AbaHTNnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 04:03:36 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140825235720.GB7217@verge.net.au>
-References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
-	<20140825235720.GB7217@verge.net.au>
-Date: Tue, 26 Aug 2014 10:03:34 +0200
-Message-ID: <CAMuHMdW0r-xGJZtc4AFvxMnTu1rdEROf2DvywScC-XhSELFMtQ@mail.gmail.com>
-Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
- Processing Unit.
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Simon Horman <horms@verge.net.au>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 20 Aug 2014 09:43:23 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v5 0/3] LED / flash API integration - V4L2 Flash
+Date: Wed, 20 Aug 2014 15:43:08 +0200
+Message-id: <1408542191-335-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 26, 2014 at 1:57 AM, Simon Horman <horms@verge.net.au> wrote:
-> On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
->> Hi Mikhail,
->>
->> On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov
->> <mikhail.ulyanov@cogentembedded.com> wrote:
->> > +  - compatible: should containg one of the following:
->> > +                       - "renesas,jpu-r8a7790" for R-Car H2
->> > +                       - "renesas,jpu-r8a7791" for R-Car M2
->> > +                       - "renesas,jpu-gen2" for R-Car second generation
->>
->> Isn't "renesas,jpu-gen2" meant as a fallback?
->>
->> I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
->> so we can make the driver match against '7790 and '7791 is we find
->> out about an incompatibility.
->
-> Is there a document that clearly states that there is such a thing
-> as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
+This patch set is the follow-up of the LED / flash API integration
+series [1]. For clarity reasons the patchset has been split into
+five subsets:
 
-We do have a document that describes the "JPEG Processing Unit (JPU)",
-as found in the following members of the "Second Generation R-Car Series
-Products": "R-Car H2", "R-Car M2-W", "R-Car M2-N", and "R-Car V2H".
+- LED Flash Class
+- Flash Manager
+- V4L2 Flash
+- LED Flash Class drivers
+- Documentation
 
-As for other SoCs, M1, H1, and A1 also seem to contain a JPU, but just
-like Mikhail, I don't have enough information to say anything about those.
+The series is based on linux-next-20140820.
 
-Gr{oetje,eeting}s,
+Thanks,
+Jacek Anaszewski
 
-                        Geert
+[1] https://lkml.org/lkml/2014/7/11/914
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Jacek Anaszewski (3):
+  v4l2-ctrls: add control for flash strobe signal providers
+  media: Add registration helpers for V4L2 flash
+  exynos4-is: Add support for v4l2-flash subdevs
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+ Documentation/DocBook/media/v4l/controls.xml  |   11 +
+ drivers/leds/led-class-flash.c                |   25 ++
+ drivers/media/platform/exynos4-is/media-dev.c |   37 +-
+ drivers/media/platform/exynos4-is/media-dev.h |   13 +-
+ drivers/media/v4l2-core/Kconfig               |   11 +
+ drivers/media/v4l2-core/Makefile              |    2 +
+ drivers/media/v4l2-core/v4l2-ctrls.c          |    2 +
+ drivers/media/v4l2-core/v4l2-flash.c          |  577 +++++++++++++++++++++++++
+ include/linux/led-class-flash.h               |   11 +
+ include/media/v4l2-flash.h                    |  121 ++++++
+ include/uapi/linux/v4l2-controls.h            |    2 +
+ 11 files changed, 809 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/media/v4l2-flash.h
+
+-- 
+1.7.9.5
+
