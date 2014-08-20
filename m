@@ -1,32 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1946 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbaHJLSf (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:40175 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752344AbaHTNmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 07:18:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: wbrack@mmm.com.hk
-Subject: [PATCH 0/2] Add driver for tw68xx PCI grabber boards
-Date: Sun, 10 Aug 2014 13:17:11 +0200
-Message-Id: <1407669433-13571-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 20 Aug 2014 09:42:54 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v5 0/2] LED / flash API integration - Flash Manager
+Date: Wed, 20 Aug 2014 15:42:41 +0200
+Message-id: <1408542163-32764-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the tw68 driver. The driver has been out-of-tree for many
-years on gitorious: https://gitorious.org/tw68/tw68-v2
+This patch set is the follow-up of the LED / flash API integration
+series [1]. For clarity reasons the patchset has been split into
+five subsets:
 
-I have refactored and ported that driver to the latest V4L2 core frameworks.
+- LED Flash Class
+- Flash Manager
+- V4L2 Flash
+- LED Flash Class drivers
+- Documentation
 
-Tested with my Techwell tw6805a and tw6816 grabber boards.
+The series is based on linux-next-20140820.
 
-Note that there is no audio support. If anyone is interested in adding alsa
-support, please contact me. It's definitely doable.
+Thanks,
+Jacek Anaszewski
 
-These devices are quite common and people are using the out-of-tree driver,
-so it would be nice to have proper support for this in the mainline kernel.
+[1] https://lkml.org/lkml/2014/7/11/914
 
-Regards,
+Jacek Anaszewski (2):
+  of: add of_node_ncmp wrapper
+  leds: Add Flash Manager functionality
 
-	Hans
+ arch/sparc/include/asm/prom.h        |    1 +
+ drivers/leds/Kconfig                 |   11 +
+ drivers/leds/Makefile                |    4 +
+ drivers/leds/led-class-flash.c       |   19 ++
+ drivers/leds/led-flash-gpio-mux.c    |  102 ++++++
+ drivers/leds/led-flash-manager.c     |  590 ++++++++++++++++++++++++++++++++++
+ drivers/leds/of_led_flash_manager.c  |  155 +++++++++
+ include/linux/led-flash-gpio-mux.h   |   68 ++++
+ include/linux/led-flash-manager.h    |  146 +++++++++
+ include/linux/leds.h                 |    1 +
+ include/linux/of.h                   |    1 +
+ include/linux/of_led_flash_manager.h |   80 +++++
+ 12 files changed, 1178 insertions(+)
+ create mode 100644 drivers/leds/led-flash-gpio-mux.c
+ create mode 100644 drivers/leds/led-flash-manager.c
+ create mode 100644 drivers/leds/of_led_flash_manager.c
+ create mode 100644 include/linux/led-flash-gpio-mux.h
+ create mode 100644 include/linux/led-flash-manager.h
+ create mode 100644 include/linux/of_led_flash_manager.h
+
+-- 
+1.7.9.5
 
