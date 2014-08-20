@@ -1,36 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34718 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233AbaHEWTO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 18:19:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: alaganraj sandhanam <alaganraj.sandhanam@gmail.com>
-Cc: linux-media@vger.kernel.org, sre@debian.org, sakari.ailus@iki.fi
-Subject: Re: omap3isp device tree support
-Date: Wed, 06 Aug 2014 00:19:45 +0200
-Message-ID: <7469714.hULjr0WVDI@avalon>
-In-Reply-To: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com>
-References: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4564 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220AbaHTW7n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 18:59:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/29] dibusb: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:59:02 +0200
+Message-Id: <1408575568-20562-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alagan,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wednesday 06 August 2014 03:36:19 alaganraj sandhanam wrote:
-> Hi Laurent,
-> 
-> I want to test mt9p031 with beagleboard-xm on 3.16 kernel.
-> It seems device tree support for omap3isp is not upstreamed.
-> can you please guide me to validate the same?
+drivers/media/usb/dvb-usb/dibusb-common.c:261:40: warning: restricted __le16 degrades to integer
+drivers/media/usb/dvb-usb/dibusb-common.c:262:52: warning: restricted __le16 degrades to integer
+drivers/media/usb/dvb-usb/dibusb-common.c:300:40: warning: restricted __le16 degrades to integer
+drivers/media/usb/dvb-usb/dibusb-common.c:301:44: warning: restricted __le16 degrades to integer
+drivers/media/usb/dvb-usb/dibusb-common.c:313:47: warning: restricted __le16 degrades to integer
+drivers/media/usb/dvb-usb/dibusb-common.c:314:47: warning: restricted __le16 degrades to integer
 
-DT bindings for the OMAP3 ISP are unfortunately not available yet. Sakari is 
-working on them, but I don't think he an commit to any date yet.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/dvb-usb/dibusb-common.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+index 6d68af0..ef3a8f7 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+@@ -258,8 +258,8 @@ static struct dib3000mc_config mod3000p_dib3000p_config = {
+ 
+ int dibusb_dib3000mc_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+-	if (adap->dev->udev->descriptor.idVendor  == USB_VID_LITEON &&
+-			adap->dev->udev->descriptor.idProduct ==
++	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
++	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) ==
+ 			USB_PID_LITEON_DVB_T_WARM) {
+ 		msleep(1000);
+ 	}
+@@ -297,8 +297,8 @@ int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
+ 	struct i2c_adapter *tun_i2c;
+ 
+ 	// First IF calibration for Liteon Sticks
+-	if (adap->dev->udev->descriptor.idVendor  == USB_VID_LITEON &&
+-		adap->dev->udev->descriptor.idProduct == USB_PID_LITEON_DVB_T_WARM) {
++	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
++	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_LITEON_DVB_T_WARM) {
+ 
+ 		dibusb_read_eeprom_byte(adap->dev,0x7E,&a);
+ 		dibusb_read_eeprom_byte(adap->dev,0x7F,&b);
+@@ -310,8 +310,8 @@ int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
+ 		else
+ 			warn("LITE-ON DVB-T: Strange IF1 calibration :%2X %2X\n", a, b);
+ 
+-	} else if (adap->dev->udev->descriptor.idVendor  == USB_VID_DIBCOM &&
+-		   adap->dev->udev->descriptor.idProduct == USB_PID_DIBCOM_MOD3001_WARM) {
++	} else if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_DIBCOM &&
++		   le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_DIBCOM_MOD3001_WARM) {
+ 		u8 desc;
+ 		dibusb_read_eeprom_byte(adap->dev, 7, &desc);
+ 		if (desc == 2) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0.rc1
 
