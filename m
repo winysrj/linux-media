@@ -1,51 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22951 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752368AbaHNNK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 09:10:57 -0400
-Message-ID: <53ECB86D.6090102@linux.intel.com>
-Date: Thu, 14 Aug 2014 16:23:57 +0300
-From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:46065 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775AbaHTXZu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 19:25:50 -0400
+Received: by mail-wg0-f47.google.com with SMTP id b13so8380185wgh.18
+        for <linux-media@vger.kernel.org>; Wed, 20 Aug 2014 16:25:49 -0700 (PDT)
+From: James Hogan <james.hogan@imgtec.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 01/29] img-ir: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:25:45 +0100
+Message-ID: <29366498.0jAlad3L7u@radagast>
+In-Reply-To: <1408575568-20562-2-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl> <1408575568-20562-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Udo van den Heuvel <udovdh@xs4all.nl>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	USB list <linux-usb@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: 3.15.6 USB issue with pwc cam
-References: <53DCE329.4030106@xs4all.nl> <53EA2DA2.4060605@redhat.com> <53EA350F.2040403@xs4all.nl> <6676742.btapbsDqkp@avalon> <53EA4057.4020103@xs4all.nl> <53EA4177.7000406@xs4all.nl>
-In-Reply-To: <53EA4177.7000406@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/12/2014 07:31 PM, Udo van den Heuvel wrote:
-> On 2014-08-12 18:27, Hans Verkuil wrote:
->> It was a bit confusing, but he has two problems: one pwc, one (the warning) for
->> uvc.
+On Thursday 21 August 2014 00:59:00 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Indeed.
-> Do I need to provide additional info to help find the root cause(s)?
+> drivers/media/rc/img-ir/img-ir-nec.c:111:23: warning: symbol 'img_ir_nec'
+> was not declared. Should it be static?
+> drivers/media/rc/img-ir/img-ir-jvc.c:54:23: warning: symbol 'img_ir_jvc'
+> was not declared. Should it be static?
+> drivers/media/rc/img-ir/img-ir-sony.c:120:23: warning: symbol 'img_ir_sony'
+> was not declared. Should it be static?
+> drivers/media/rc/img-ir/img-ir-sharp.c:75:23: warning: symbol
+> 'img_ir_sharp' was not declared. Should it be static?
+> drivers/media/rc/img-ir/img-ir-sanyo.c:82:23: warning: symbol
+> 'img_ir_sanyo' was not declared. Should it be static?
 > 
->
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Could you help me take a look at the xhci side.
+Acked-by: James Hogan <james.hogan@imgtec.com>
 
-The error:
-[53009.847233] xhci_hcd 0000:02:00.0: ERROR: unexpected command completion code 0x11.
-
-Means we got a parameter error, one of the values the xhci driver sends to the controller
-in the configure endpoint command is invalid.
-
-This error is causing the "Not enough bandwidth" entries in the log as well, not
-really a bandwidth error.
-
-Can you add dynamic debugging, mount debugfs, and do:
-echo -n 'module xhci_hcd =p' > /sys/kernel/debug/dynamic_debug/control
-
-Then plug in your usb, and send me the output. 
-It should print out the whole input context (all parameters) used in the configure endpoint command 
-
--Mathias
+Thanks
+James
