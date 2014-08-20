@@ -1,167 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dehamd003.servertools24.de ([31.47.254.18]:49702 "EHLO
-	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752202AbaHSNxn (ORCPT
+Received: from mout.gmx.net ([212.227.15.19]:49154 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752553AbaHTS5w convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:53:43 -0400
-Message-ID: <53F356E4.30602@ladisch.de>
-Date: Tue, 19 Aug 2014 15:53:40 +0200
-From: Clemens Ladisch <clemens@ladisch.de>
+	Wed, 20 Aug 2014 14:57:52 -0400
+Date: Wed, 20 Aug 2014 20:57:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Media Workshop <media-workshop@linuxtv.org>,
+	dev@lists.tizen.org, gstreamer-announce@lists.freedesktop.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [ANNOUNCE] Linux Kernel Media mini-summit on Oct, 16-17 in
+ =?UTF-8?B?RMO8c3NlbGRvcmYs?= Germany
+In-Reply-To: <20140813101411.15ca3a00.m.chehab@samsung.com>
+Message-ID: <Pine.LNX.4.64.1408202049290.31110@axis700.grange>
+References: <20140813101411.15ca3a00.m.chehab@samsung.com>
 MIME-Version: 1.0
-To: Federico Simoncelli <federico.simoncelli@gmail.com>
-CC: Lubomir Rintel <lkundrak@v3.sk>, alsa-devel@alsa-project.org,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	Federico Simoncelli <fsimonce@redhat.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [alsa-devel] [PATCH] usbtv: add audio support
-References: <1407303961.26078.1.camel@v3.sk>
-	<1407793342-18540-1-git-send-email-federico.simoncelli@gmail.com>
-In-Reply-To: <1407793342-18540-1-git-send-email-federico.simoncelli@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Federico Simoncelli wrote:
-> +++ b/drivers/media/usb/usbtv/usbtv-audio.c
-> ...
-> +#include <sound/ac97_codec.h>
+On Wed, 13 Aug 2014, Mauro Carvalho Chehab wrote:
 
-What do you need this header for?
+> Hi,
+> 
+> As there are still too things to be discussed in order to improve media
+> stuff, and most of the developers nowadays are located in Europe and
+> usually go to ELCE, we're scheduling a two day mini-summit in DÃ¼sseldorf,
+> Germany, on Thrusday/Friday.
+> 
+> There is a perfect opportunity to discuss the media Kernel-Userspace
+> API improvements that are required for newer devices to work.
+> So, we hope to have there the major Kernel contributors to the media
+> subsystem, and some people working on userspace, in order to be sure that
+> we'll match the needs required on userspace.
+> 
+> In order to properly organize the event, I need the name of the
+> developers interested on joining us, plus the themes proposed for
+> discussions.
 
-> +static struct snd_pcm_hardware snd_usbtv_digital_hw = {
-> +	...
-> +	.period_bytes_min = 11059,
-> +	.period_bytes_max = 13516,
-> +	.periods_max = 98,
-> +	.buffer_bytes_max = 62720 * 8, /* value in usbaudio.c */
+I'll likely be able to attend too. ATM I'm working on camera support in 
+Android. I think Hans discussed related topics at the previous summit in 
+the US too, which I didn't manage to attend unfortunately. I'll try to 
+double-check results of those discussions and see which topics I'd be 
+interested in discussing further.
 
-Where do these values come from?  (There is no "usbaudio.c" file.)
+On a related note, since I live something like 80km from the venue, I was 
+thinking about possibly helping to organise a media event in my town - in 
+Aachen, or in Düsseldorf itself or in neighbouring Cologne (Köln). Let me 
+know if there's interest. We could use Saturday the 18th of October for 
+that.
 
-> +static int snd_usbtv_pcm_close(struct snd_pcm_substream *substream)
-> +{
-> +	if (atomic_read(&chip->snd_stream)) {
-> +		atomic_set(&chip->snd_stream, 0);
+Thanks
+Guennadi
 
-Doing _two_ atomic operations is racy.
-
-You probably want a function like test_and_clear_bit().
-
-> +		schedule_work(&chip->snd_trigger);
-
-The device must be closed when the .close callback returns.
-
-> +static void usbtv_audio_urb_received(struct urb *urb)
-> +{
-> +	struct usbtv *chip = urb->context;
-> +	struct snd_pcm_substream *substream = chip->snd_substream;
-> +	struct snd_pcm_runtime *runtime = substream->runtime;
-> +	size_t i, frame_bytes, chunk_length, buffer_pos, period_pos;
-> +	int period_elapsed;
-> +	void *urb_current;
-> +
-> +	if (!atomic_read(&chip->snd_stream))
-> +		return;
-
-And what if the device is closed in the middle of this function?
-
-> +	snd_pcm_stream_lock(substream);
-> +
-> +	chip->snd_buffer_pos = buffer_pos;
-> +	chip->snd_period_pos = period_pos;
-> +
-> +	snd_pcm_stream_unlock(substream);
-
-What is the purpose of this lock (besides introducing the
-chance of a deadlock)?
-
-> +static int usbtv_audio_start(struct usbtv *chip)
-> +{
-> ...
-> +	chip->snd_bulk_urb = usb_alloc_urb(0, GFP_KERNEL);
-> +	if (chip->snd_bulk_urb == NULL)
-> +		goto err_alloc_urb;
-> +
-> +	pipe = usb_rcvbulkpipe(chip->udev, USBTV_AUDIO_ENDP);
-> +
-> +	chip->snd_bulk_urb->transfer_buffer = kzalloc(
-
-Mapping this buffer repeatedly is inefficient.
-Better use usb_alloc_coherent().
-
-> +		USBTV_AUDIO_URBSIZE, GFP_KERNEL);
-> +	if (chip->snd_bulk_urb->transfer_buffer == NULL)
-> +		goto err_transfer_buffer;
-> +
-> +	usb_fill_bulk_urb(chip->snd_bulk_urb, chip->udev, pipe,
-> +		chip->snd_bulk_urb->transfer_buffer, USBTV_AUDIO_URBSIZE,
-> +		usbtv_audio_urb_received, chip);
-> +
-> +	/* starting the stream */
-> +	usbtv_set_regs(chip, setup, ARRAY_SIZE(setup));
-> +
-> +	usb_clear_halt(chip->udev, pipe);
-
-Allocating resources should be done in the .hw_params and/or .prepare
-callbacks.  The .trigger callback should do as little as possible.
-
-> +	usb_submit_urb(chip->snd_bulk_urb, GFP_ATOMIC);
-
-For this single call, you don't need a workqueue.
-
-> +static int usbtv_audio_stop(struct usbtv *chip)
-> +{
-> ...
-> +	if (chip->snd_bulk_urb) {
-> +		usb_kill_urb(chip->snd_bulk_urb);
-> +		kfree(chip->snd_bulk_urb->transfer_buffer);
-> +		usb_free_urb(chip->snd_bulk_urb);
-> +		chip->snd_bulk_urb = NULL;
-> +	}
-> +
-> +	usbtv_set_regs(chip, setup, ARRAY_SIZE(setup));
-
-Freeing resources should be done in the .hw_free and .close callbacks.
-
-> +void usbtv_audio_suspend(struct usbtv *usbtv)
-> +{
-> +	if (atomic_read(&usbtv->snd_stream) && usbtv->snd_bulk_urb)
-
-Both tests are racy.
-
-> +static int snd_usbtv_card_trigger(struct snd_pcm_substream *substream, int cmd)
-> +...
-> +	case SNDRV_PCM_TRIGGER_RESUME:
-
-This driver does not actually support resuming a PCM device from the
-position where it stopped playing.
-
-> +	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-
-This driver does not actually support pausing a PCM device.
-You must at least set the correct SNDRC_PCM_INFO_ flags.
-
-> +int usbtv_audio_init(struct usbtv *usbtv)
-> +	...
-> +	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS,
-> +		snd_dma_continuous_data(GFP_KERNEL), USBTV_AUDIO_BUFFER,
-> +		USBTV_AUDIO_BUFFER);
-
-You are not doing DMA to the ALSA buffer, so there is no need for it to
-be physically contiguous.  Better use a vmalloc()-ed buffer.
-
-> +++ b/drivers/media/usb/usbtv/usbtv.h
-> +#define USBTV_AUDIO_URBSIZE	20480
-> +#define USBTV_AUDIO_BUFFER	65536
-
-Where do these values come from?
-
-> @@ -91,9 +96,23 @@ struct usbtv {
-> +	size_t snd_buffer_pos;
-> +	size_t snd_period_pos;
-
-Why size_t?
-
-
-Regards,
-Clemens
+> As usual, we'll be using the media-workshop@linuxtv.org ML for specific
+> discussions about that, so the ones interested on participate are
+> requested to subscribe it.
+> 
+> Thanks!
+> Mauro
