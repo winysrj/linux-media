@@ -1,114 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1855 "EHLO
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2292 "EHLO
 	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbaHXCTQ (ORCPT
+	with ESMTP id S1752846AbaHTW7s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 22:19:16 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7O2JDbu088139
-	for <linux-media@vger.kernel.org>; Sun, 24 Aug 2014 04:19:15 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E02CB2A2E57
-	for <linux-media@vger.kernel.org>; Sun, 24 Aug 2014 04:19:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 20 Aug 2014 18:59:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140824021902.E02CB2A2E57@tschai.lan>
-Date: Sun, 24 Aug 2014 04:19:02 +0200 (CEST)
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 25/29] stv0367: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:59:24 +0200
+Message-Id: <1408575568-20562-26-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+drivers/media/dvb-frontends/stv0367.c:557:5: warning: symbol 'stv0367cab_RF_LookUp1' was not declared. Should it be static?
+drivers/media/dvb-frontends/stv0367.c:569:5: warning: symbol 'stv0367cab_RF_LookUp2' was not declared. Should it be static?
 
-date:		Sun Aug 24 04:00:16 CEST 2014
-git branch:	test
-git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-0.slh.2-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-frontends/stv0367.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 59b6e66..7645772 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -554,7 +554,7 @@ static struct st_register def0367ter[STV0367TER_NBREGS] = {
+ #define RF_LOOKUP_TABLE_SIZE  31
+ #define RF_LOOKUP_TABLE2_SIZE 16
+ /* RF Level (for RF AGC->AGC1) Lookup Table, depends on the board and tuner.*/
+-s32 stv0367cab_RF_LookUp1[RF_LOOKUP_TABLE_SIZE][RF_LOOKUP_TABLE_SIZE] = {
++static const s32 stv0367cab_RF_LookUp1[RF_LOOKUP_TABLE_SIZE][RF_LOOKUP_TABLE_SIZE] = {
+ 	{/*AGC1*/
+ 		48, 50, 51, 53, 54, 56, 57, 58, 60, 61, 62, 63,
+ 		64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75,
+@@ -566,7 +566,7 @@ s32 stv0367cab_RF_LookUp1[RF_LOOKUP_TABLE_SIZE][RF_LOOKUP_TABLE_SIZE] = {
+ 	}
+ };
+ /* RF Level (for IF AGC->AGC2) Lookup Table, depends on the board and tuner.*/
+-s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_SIZE] = {
++static const s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_SIZE] = {
+ 	{/*AGC2*/
+ 		28, 29, 31, 32, 34, 35, 36, 37,
+ 		38, 39, 40, 41, 42, 43, 44, 45,
+-- 
+2.1.0.rc1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
