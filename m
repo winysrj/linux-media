@@ -1,88 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:31160 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754471AbaHGOEr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Aug 2014 10:04:47 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9X007BBWFYTX20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Aug 2014 10:04:46 -0400 (EDT)
-Date: Thu, 07 Aug 2014 11:04:42 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] au0828-input: Be sure that IR is enabled at polling
-Message-id: <20140807110442.353469bc.m.chehab@samsung.com>
-In-reply-to: <CAGoCfix4h+Fh7PsPnhbn1wWh4-nsdMe-hjJ2B_Wrba8+0G59vg@mail.gmail.com>
-References: <1407419190-10031-1-git-send-email-m.chehab@samsung.com>
- <CAGoCfix4h+Fh7PsPnhbn1wWh4-nsdMe-hjJ2B_Wrba8+0G59vg@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2729 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753336AbaHTW7s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 18:59:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 18/29] mb86a16/mb86a20s: fix sparse warnings
+Date: Thu, 21 Aug 2014 00:59:17 +0200
+Message-Id: <1408575568-20562-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 07 Aug 2014 10:00:31 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Thu, Aug 7, 2014 at 9:46 AM, Mauro Carvalho Chehab
-> <m.chehab@samsung.com> wrote:
-> > When the DVB code sets the frontend, it disables the IR
-> > INT, probably due to some hardware bug, as there's no code
-> > there at au8522 frontend that writes on register 0xe0.
-> >
-> > Fixing it at au8522 code is hard, as it doesn't know if the
-> > IR is enabled or disabled, and just restoring the value of
-> > register 0xe0 could cause other nasty effects. So, better
-> > to add a hack at au0828-input polling interval to enable int,
-> > if disabled.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > ---
-> >  drivers/media/usb/au0828/au0828-input.c | 12 ++++++++++--
-> >  1 file changed, 10 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
-> > index 94d29c2a6fcf..b4475706dfd2 100644
-> > --- a/drivers/media/usb/au0828/au0828-input.c
-> > +++ b/drivers/media/usb/au0828/au0828-input.c
-> > @@ -94,14 +94,19 @@ static int au8522_rc_read(struct au0828_rc *ir, u16 reg, int val,
-> >  static int au8522_rc_andor(struct au0828_rc *ir, u16 reg, u8 mask, u8 value)
-> >  {
-> >         int rc;
-> > -       char buf;
-> > +       char buf, oldbuf;
-> >
-> >         rc = au8522_rc_read(ir, reg, -1, &buf, 1);
-> >         if (rc < 0)
-> >                 return rc;
-> >
-> > +       oldbuf = buf;
-> >         buf = (buf & ~mask) | (value & mask);
-> >
-> > +       /* Nothing to do, just return */
-> > +       if (buf == oldbuf)
-> > +               return 0;
-> > +
-> >         return au8522_rc_write(ir, reg, buf);
-> >  }
-> >
-> > @@ -127,8 +132,11 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
-> >
-> >         /* Check IR int */
-> >         rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
-> > -       if (rc < 0 || !(buf[0] & (1 << 4)))
-> > +       if (rc < 0 || !(buf[0] & (1 << 4))) {
-> > +               /* Be sure that IR is enabled */
-> > +               au8522_rc_set(ir, 0xe0, 1 << 4);
-> 
-> Shouldn't this be a call to au8522_rc_andor()  rather than au8522_rc_set()?
+drivers/media/dvb-frontends/mb86a16.c:31:14: warning: symbol 'verbose' was not declared. Should it be static?
+drivers/media/dvb-frontends/mb86a20s.c:36:4: warning: symbol 'mb86a20s_subchannel' was not declared. Should it be static?
+drivers/media/dvb-frontends/mb86a20s.c:1333:24: warning: symbol 'cnr_qpsk_table' was not declared. Should it be static?
 
-Well, au8522_rc_set is defined as:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-frontends/mb86a16.c  |  2 +-
+ drivers/media/dvb-frontends/mb86a20s.c | 14 +++++++-------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-	#define au8522_rc_set(ir, reg, bit) au8522_rc_andor(ir, (reg), (bit), (bit))
+diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
+index 9ae40ab..1827c0a 100644
+--- a/drivers/media/dvb-frontends/mb86a16.c
++++ b/drivers/media/dvb-frontends/mb86a16.c
+@@ -28,7 +28,7 @@
+ #include "mb86a16.h"
+ #include "mb86a16_priv.h"
+ 
+-unsigned int verbose = 5;
++static unsigned int verbose = 5;
+ module_param(verbose, int, 0644);
+ 
+ #define ABS(x)		((x) < 0 ? (-x) : (x))
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index b931179..e6f165a 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -33,7 +33,7 @@ enum mb86a20s_bandwidth {
+ 	MB86A20S_3SEG = 3,
+ };
+ 
+-u8 mb86a20s_subchannel[] = {
++static u8 mb86a20s_subchannel[] = {
+ 	0xb0, 0xc0, 0xd0, 0xe0,
+ 	0xf0, 0x00, 0x10, 0x20,
+ };
+@@ -1228,7 +1228,7 @@ struct linear_segments {
+  * All tables below return a dB/1000 measurement
+  */
+ 
+-static struct linear_segments cnr_to_db_table[] = {
++static const struct linear_segments cnr_to_db_table[] = {
+ 	{ 19648,     0},
+ 	{ 18187,  1000},
+ 	{ 16534,  2000},
+@@ -1262,7 +1262,7 @@ static struct linear_segments cnr_to_db_table[] = {
+ 	{   788, 30000},
+ };
+ 
+-static struct linear_segments cnr_64qam_table[] = {
++static const struct linear_segments cnr_64qam_table[] = {
+ 	{ 3922688,     0},
+ 	{ 3920384,  1000},
+ 	{ 3902720,  2000},
+@@ -1296,7 +1296,7 @@ static struct linear_segments cnr_64qam_table[] = {
+ 	{  388864, 30000},
+ };
+ 
+-static struct linear_segments cnr_16qam_table[] = {
++static const struct linear_segments cnr_16qam_table[] = {
+ 	{ 5314816,     0},
+ 	{ 5219072,  1000},
+ 	{ 5118720,  2000},
+@@ -1330,7 +1330,7 @@ static struct linear_segments cnr_16qam_table[] = {
+ 	{   95744, 30000},
+ };
+ 
+-struct linear_segments cnr_qpsk_table[] = {
++static const struct linear_segments cnr_qpsk_table[] = {
+ 	{ 2834176,     0},
+ 	{ 2683648,  1000},
+ 	{ 2536960,  2000},
+@@ -1364,7 +1364,7 @@ struct linear_segments cnr_qpsk_table[] = {
+ 	{   11520, 30000},
+ };
+ 
+-static u32 interpolate_value(u32 value, struct linear_segments *segments,
++static u32 interpolate_value(u32 value, const struct linear_segments *segments,
+ 			     unsigned len)
+ {
+ 	u64 tmp64;
+@@ -1448,7 +1448,7 @@ static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 mer, cnr;
+ 	int rc, val, layer;
+-	struct linear_segments *segs;
++	const struct linear_segments *segs;
+ 	unsigned segs_len;
+ 
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+-- 
+2.1.0.rc1
 
-Regards,
-Mauro
