@@ -1,68 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f47.google.com ([209.85.192.47]:49653 "EHLO
-	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbaHQJPL (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3200 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753308AbaHTW7r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Aug 2014 05:15:11 -0400
-Received: by mail-qg0-f47.google.com with SMTP id i50so3643134qgf.34
-        for <linux-media@vger.kernel.org>; Sun, 17 Aug 2014 02:15:10 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 17 Aug 2014 19:15:10 +1000
-Message-ID: <CAOriPh+ACHxUb5pyNWV3H3JVPoWcKQaZitL5E+KWzZTphURgJA@mail.gmail.com>
-Subject: Updated dvb-t/au-Melbourne scan table
-From: Paul Freeman <pfcomptech@gmail.com>
+	Wed, 20 Aug 2014 18:59:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Peter Urbanec <git.dtv-scan-tables@urbanec.net>,
-	Olliver Schinagl <oliver@schinagl.nl>
-Content-Type: multipart/mixed; boundary=047d7bdc8d5ef1c3b10500cfb0b8
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 23/29] dvb_usb_core: fix sparse warning
+Date: Thu, 21 Aug 2014 00:59:22 +0200
+Message-Id: <1408575568-20562-24-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7bdc8d5ef1c3b10500cfb0b8
-Content-Type: text/plain; charset=UTF-8
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Attached is a diff patch file to update dvb-t/au-Melbourne for the new
-transmission frequency for SBS which came into effect in early 2014 as
-well as adding channel 31, a community channel.
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:24:5: warning: symbol 'dvb_usbv2_disable_rc_polling' was not declared. Should it be static?
 
-Could this please be considered for patching the existing file?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 45f5ee9..fc40d67 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -21,7 +21,7 @@
+ 
+ #include "dvb_usb_common.h"
+ 
+-int dvb_usbv2_disable_rc_polling;
++static int dvb_usbv2_disable_rc_polling;
+ module_param_named(disable_rc_polling, dvb_usbv2_disable_rc_polling, int, 0644);
+ MODULE_PARM_DESC(disable_rc_polling,
+ 		"disable remote control polling (default: 0)");
+-- 
+2.1.0.rc1
 
-Paul
-
---047d7bdc8d5ef1c3b10500cfb0b8
-Content-Type: text/plain; charset=US-ASCII; name="scan_au-Melbourne.diff.txt"
-Content-Disposition: attachment; filename="scan_au-Melbourne.diff.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hyy5ouuk0
-
-LS0tIGEvZHZiLXQvYXUtTWVsYm91cm5lCTIwMTQtMDgtMTcgMTg6NDA6MjUuODM5MTczNDUyICsx
-MDAwCisrKyBiL2R2Yi10L2F1LU1lbGJvdXJuZQkyMDE0LTA4LTE3IDE4OjUwOjE2Ljc1MDUyMDI1
-NiArMTAwMApAQCAtMSwxMiArMSwyMyBAQAotIyBBdXN0cmFsaWEgLyBNZWxib3VybmUgKE10IERh
-bmRlbm9uZyB0cmFuc21pdHRlcnMpCi0jIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFu
-c21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKLSMgQUJDCi1UIDIyNjUwMDAw
-MCA3TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQotIyBTZXZlbgotVCAxNzc1MDAwMDAg
-N01IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzE2IE5PTkUKLSMgTmluZQotVCAxOTE2MjUwMDAgN01I
-eiAzLzQgTk9ORSBRQU02NCA4ayAxLzE2IE5PTkUKLSMgVGVuCi1UIDIxOTUwMDAwMCA3TUh6IDMv
-NCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQotIyBTQlMKLVQgNTM2NjI1MDAwIDdNSHogMi8zIE5P
-TkUgUUFNNjQgOGsgMS84IE5PTkUKKyMtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KKyMgZmlsZSBhdXRv
-bWF0aWNhbGx5IGdlbmVyYXRlZCBieSB3X3NjYW4KKyMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1
-bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwpCisjISA8d19zY2FuPiAyMDEzMDMzMSAxIDAgVEVSUkVT
-VFJJQUwgQVUgPC93X3NjYW4+CisjLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCisjIGxvY2F0aW9uIGFu
-ZCBwcm92aWRlcjogQXVzdHJhbGlhIC8gTWVsYm91cm5lIChNdCBEYW5kZW5vbmcgdHJhbnNtaXR0
-ZXJzKQorIyBkYXRlICh5eXl5LW1tLWRkKSAgICA6IDIwMTQtMDgtMTcKKyMgcHJvdmlkZWQgYnkg
-KG9wdCkgICAgOiA8eW91ciBuYW1lIG9yIGVtYWlsIGhlcmU+CisjCisjIFRbMl0gW3BscF9pZF0g
-W3N5c3RlbV9pZF0gPGZyZXE+IDxidz4gPGZlY19oaT4gPGZlY19sbz4gPG1vZD4gPHRtPiA8Z3Vh
-cmQ+IDxoaT4gWyMgY29tbWVudF0KKyMtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KKyMgU2V2ZW4gTmV0
-d29yaworVCAxNzc1MDAwMDAgN01IeiBBVVRPIEFVVE8gUUFNNjQgOGsgMS8xNiBOT05FCisjIFNC
-UyBNZWxib3VybmUKK1QgMTg0NTAwMDAwIDdNSHogQVVUTyBBVVRPIFFBTTY0IDhrIDEvOCBOT05F
-CisjIE5pbmUgTmV0d29yayBBdXN0cmFsaWEKK1QgMTkxNjI1MDAwIDdNSHogQVVUTyBBVVRPIFFB
-TTY0IDhrIDEvMTYgTk9ORQorIyBOZXR3b3JrIFRFTgorVCAyMTk1MDAwMDAgN01IeiBBVVRPIEFV
-VE8gUUFNNjQgOGsgMS8xNiBOT05FCisjIEFCQyBNZWxib3VybmUKK1QgMjI2NTAwMDAwIDdNSHog
-QVVUTyBBVVRPIFFBTTY0IDhrIDEvMTYgTk9ORQorIyBDMzEKK1QgNTU3NjI1MDAwIDdNSHogQVVU
-TyBBVVRPIFFQU0sgOGsgMS8xNiBOT05FCg==
---047d7bdc8d5ef1c3b10500cfb0b8--
