@@ -1,76 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.194]:56420 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932220AbaHKT62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Aug 2014 15:58:28 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: olli@cabbala.net
-Cc: Olli Salonen <olli.salonen@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/6] cx23885: add i2c client handling into dvb_unregister and state
-Date: Mon, 11 Aug 2014 22:58:13 +0300
-Message-Id: <1407787095-2167-4-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
-References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:36258 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbaHTNoz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 09:44:55 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v5 06/10] DT: Add documentation for exynos4-is 'flashes'
+ property
+Date: Wed, 20 Aug 2014 15:44:15 +0200
+Message-id: <1408542259-415-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare cx23885 driver for handling I2C client that is needed for certain demodulators and tuners (for example Si2168 and Si2157). I2C client for tuner and demod stored in state and unregistering of the I2C devices added into dvb_unregister.
+This patch adds a description of 'flashes' property
+to the samsung-fimc.txt.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
 ---
- drivers/media/pci/cx23885/cx23885-dvb.c | 16 ++++++++++++++++
- drivers/media/pci/cx23885/cx23885.h     |  3 +++
- 2 files changed, 19 insertions(+)
+ .../devicetree/bindings/media/samsung-fimc.txt     |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 968fecc..2608155 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1643,6 +1643,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
- int cx23885_dvb_unregister(struct cx23885_tsport *port)
- {
- 	struct videobuf_dvb_frontend *fe0;
-+	struct i2c_client *client;
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 922d6f8..387ef3b 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -40,6 +40,10 @@ should be inactive. For the "active-a" state the camera port A must be activated
+ and the port B deactivated and for the state "active-b" it should be the other
+ way around.
  
- 	/* FIXME: in an error condition where the we have
- 	 * an expected number of frontends (attach problem)
-@@ -1651,6 +1652,21 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
- 	 * This comment only applies to future boards IF they
- 	 * implement MFE support.
- 	 */
++Optional properties:
 +
-+	/* remove I2C client for tuner */
-+	client = port->i2c_client_tuner;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
++- flashes - array of phandles to the available flash led devices
 +
-+	/* remove I2C client for demodulator */
-+	client = port->i2c_client_demod;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
- 	fe0 = videobuf_dvb_get_frontend(&port->frontends, 1);
- 	if (fe0 && fe0->dvb.frontend)
- 		videobuf_dvb_unregister_bus(&port->frontends);
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 0e086c0..1040b3e 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -326,6 +326,9 @@ struct cx23885_tsport {
- 	/* Workaround for a temp dvb_frontend that the tuner can attached to */
- 	struct dvb_frontend analog_fe;
+ The 'camera' node must include at least one 'fimc' child node.
  
-+	struct i2c_client *i2c_client_demod;
-+	struct i2c_client *i2c_client_tuner;
-+
- 	int (*set_frontend)(struct dvb_frontend *fe);
- };
  
+@@ -166,6 +170,7 @@ Example:
+ 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
++		flashes = <&max77693-flash>, <&aat1290>;
+ 		status = "okay";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
 -- 
-1.9.1
+1.7.9.5
 
