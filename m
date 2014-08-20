@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:55226 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbaHSQ3a (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45903 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594AbaHTURE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 12:29:30 -0400
-Received: by mail-oa0-f44.google.com with SMTP id eb12so5397476oac.3
-        for <linux-media@vger.kernel.org>; Tue, 19 Aug 2014 09:29:29 -0700 (PDT)
+	Wed, 20 Aug 2014 16:17:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 6/8] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
+Date: Wed, 20 Aug 2014 22:17:46 +0200
+Message-ID: <35240162.ybqbYegqRc@avalon>
+In-Reply-To: <1408453366-1366-7-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de> <1408453366-1366-7-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1535351.AjE5s3odp7@avalon>
-References: <20140813101411.15ca3a00.m.chehab@samsung.com> <1876821.kasfsvqvRP@avalon>
- <CAPybu_1KuYp7zc2024aaZHb_HYv4iZwBn2A5i6Y_uAVCK=fHVg@mail.gmail.com> <1535351.AjE5s3odp7@avalon>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 19 Aug 2014 18:29:08 +0200
-Message-ID: <CAPybu_02Mksi53EwsNwebGPcEhGf+TDYcyD=nry1tN1Dz7OTqA@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_=5Bmedia=2Dworkshop=5D_=5BANNOUNCE=5D_Linux_Kernel_Media_m?=
-	=?UTF-8?Q?ini=2Dsummit_on_Oct=2C_16=2D17_in_D=C3=BCsseldorf=2C_Germany?=
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	dev@lists.tizen.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	gstreamer-announce@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent
+Hi Philipp,
 
-> Could you elaborate a bit on that last point ? What kind of timestamps would
-> you need, and what are the use cases ?
+Thank you for the patch.
 
-Right now we only have one timestamp field on the buffer structure, it
-might be a good idea to leave space for some more.
+On Tuesday 19 August 2014 15:02:44 Philipp Zabel wrote:
+> Using the for_each_... macro should make the code a bit shorter and
+> easier to read.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-My user case is a camera that is recording a conveyor belt at a very
-high frame rate. Instead of tracking the objects on the image with I
-use one or more encoders on the belt.  The encoder count  is read on
-vsync and kept it on a register(s). When an image is ready, the cpu
-starts the dma and read this "belt timestamps" registers.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-It would be nice to have an standard way to expose this alternative
-timestamps or at least find out if I am the only one with this issue
-and/or how you have solve it :)
-
-
-Best regards!
-
+> ---
+>  drivers/gpu/drm/drm_of.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
+> index 16150a0..024fa77 100644
+> --- a/drivers/gpu/drm/drm_of.c
+> +++ b/drivers/gpu/drm/drm_of.c
+> @@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device
+> *dev, struct device_node *remote_port, *ep = NULL;
+>  	uint32_t possible_crtcs = 0;
+> 
+> -	do {
+> -		ep = of_graph_get_next_endpoint(port, ep);
+> -		if (!ep)
+> -			break;
+> -
+> +	for_each_endpoint_of_node(port, ep) {
+>  		remote_port = of_graph_get_remote_port(ep);
+>  		if (!remote_port) {
+>  			of_node_put(ep);
+> @@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device
+> *dev, possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
+> 
+>  		of_node_put(remote_port);
+> -	} while (1);
+> +	}
+> 
+>  	return possible_crtcs;
+>  }
 
 -- 
-Ricardo Ribalda
+Regards,
+
+Laurent Pinchart
+
