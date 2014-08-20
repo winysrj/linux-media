@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41958 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754191AbaHGK1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Aug 2014 06:27:18 -0400
-Message-ID: <53E35484.5040606@iki.fi>
-Date: Thu, 07 Aug 2014 13:27:16 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "nibble.max" <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] support for DVBSky dvb-s2 usb: add some config andset_voltage
- for m88ds3103
-References: <201408061227374212345@gmail.com> <201408071731141714723@gmail.com>
-In-Reply-To: <201408071731141714723@gmail.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:25703 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbaHTNpP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Aug 2014 09:45:15 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v5 09/10] DT: Add documentation for the Skyworks AAT1290
+Date: Wed, 20 Aug 2014 15:44:18 +0200
+Message-id: <1408542259-415-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-On 08/07/2014 12:31 PM, nibble.max wrote:
->>> @@ -523,6 +508,17 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>>    
->>>    	priv->delivery_system = c->delivery_system;
->>>    
->>> +	if (priv->cfg->start_ctrl) {
->>> +		for (len = 0; len < 30 ; len++) {
->>> +			m88ds3103_read_status(fe, &status);
->>> +			if (status & FE_HAS_LOCK) {
->>> +				priv->cfg->start_ctrl(fe);
->>> +				break;
->>> +			}
->>> +			msleep(20);
->>> +		}
->>> +	}
->>> +
->>
->> What is idea of that start_ctrl logic? It looks ugly. Why it is needed?
->> What is wrong with default DVB-core implementation? You should not need
->> to poll demod lock here and then call streaming control callback from
->> USB driver. If you implement .streaming_ctrl() callback to DVB USB
->> driver, it is called automatically for you.
-> It is nothing with streaming_ctrl of DVB USB driver.
-> It relates with the hardware chip problem.
-> The m88ds3103 will not output ts clock when it powers up at the first time.
-> It starts to output ts clock as soon as it locks the signal.
-> But the slave fifo of Cypress usb chip really need this clock to work.
-> If there is no this clock, the salve fifo will stop.
-> start_ctrl logic is used to restart the salve fifo when the ts clock is valid.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-OK. Then we have to find out some solution... Is there anyone who has a
-nice idea how to signal USB interface driver when demod gains a lock?
-Sure USB driver could poll read_status() too, but it does not sound good
-solution neither.
-
-How about overriding FE .read_status() callback. It is called all the
-time by DVB-core when frontend is open. Hook .read_status() to USB
-interface driver, then call original .read_status() (implemented by
-m88ds3103 driver), and after each call check if status is LOCKED or NOT
-LOCKED. When status changes from NOT LOCKED to LOCKED call that board
-specific routine which restarts TS FIFO. No change for demod driver
-needed at all.
-
-regards
-Antto
-
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..9a9ad15
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,17 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++Required properties:
++
++- compatible : should be "skyworks,aat1290"
++- gpios : two gpio pins in order FLEN, EN/SET
++- skyworks,flash-timeout : maximum flash timeout in microseconds -
++			   it can be calculated using following formula:
++			   T = 8.82 * 10^9 * Ct
++
++Example:
++
++flash_led: flash-led {
++	compatible = "skyworks,aat1290";
++	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
++	flash-timeout = <1940000>;
++}
 -- 
-http://palosaari.fi/
+1.7.9.5
+
