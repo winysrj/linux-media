@@ -1,51 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51136 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127AbaHSNC6 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:60810 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752965AbaHTNog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:02:58 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 4/8] of: Add for_each_endpoint_of_node helper macro
-Date: Tue, 19 Aug 2014 15:02:42 +0200
-Message-Id: <1408453366-1366-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 20 Aug 2014 09:44:36 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v5 02/10] Documentation: leds: Add description of Flash
+ Manager
+Date: Wed, 20 Aug 2014 15:44:11 +0200
+Message-id: <1408542259-415-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note that while of_graph_get_next_endpoint decrements the reference count
-of the child node passed to it, of_node_put(child) still has to be called
-manually when breaking out of the loop.
+The documentation being added contains overall description
+of the Flash Manager functionality and the related sysfs
+attributes.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- include/linux/of_graph.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/leds/leds-class-flash.txt |   64 +++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index befef42..2890a4c 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -26,6 +26,10 @@ struct of_endpoint {
- 	const struct device_node *local_node;
- };
- 
-+#define for_each_endpoint_of_node(parent, child) \
-+	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-+	     child = of_graph_get_next_endpoint(parent, child))
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 8a9c17e..417b984 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -52,3 +52,67 @@ exposes a number of V4L2 controls. When the V4L2_CID_FLASH_LED_MODE control
+ is set to V4L2_FLASH_LED_MODE_TORCH or V4L2_FLASH_LED_MODE_FLASH the
+ LED subsystem sysfs interface becomes unavailable. The interface can be
+ unlocked by setting the mode back to V4L2_FLASH_LED_MODE_NONE.
 +
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
++
++Flash Manager
++=============
++
++Flash LED devices often provide two ways of strobing the flash: software
++(e.g. by setting a bit in a register) and hardware, by asserting dedicated pin,
++which is usually connected to a camera sensor device. There are also flash led
++devices which support only hardware strobing - in such cases a multiplexer
++device is employed to route the flash strobe signal either from the SoC GPIO or
++from the external strobe signal provider, e.g. camera sensor.
++Use of multiplexers allows also to change the flash-sensor connection
++dynamically if there is more than one flash or external strobe signal provider
++available on the board.
++
++In order to address the aforementioned cases the Flash Manager functionality
++has been introduced. Flash Manager is a part of the LED Flash Class.
++It maintains information about flashes, software and external strobe signal
++providers and multiplexers that route strobe signals among them.
++Flash Manager becomes available after defining CONFIG_LEDS_FLASH_MANAGER
++symbol in the kernel config.
++
++A flash led device is registered in the Flash Manager only if its Device Tree
++node contains information about the topology of strobe signals that can be
++routed to the device. The related device node has to be passed int the third
++argument to the led_classdev_flash_register function.
++The device_node is expected to include one gate-software-strobe subnode and
++at least one gate-external-strobeN subnode. Besides that there must defined
++a flash_muxes node aggregating all the multiplexers that can be referenced
++by the flash led devices. (for mote details see Documentation/devicetree/
++bindings/leds/ leds-flash-manager.txt).
++
++Flash manager adds following sysfs attributes to the LED Flash Clash
++device sysfs interface:
++
++	- strobe_provider - id of the external strobe signal provider associated
++                            with the flash led device. It is created only if
++			    there is more than one external strobe signal
++			    provider defined (RW).
++	- strobe_providerN - names of the strobe signal providers available
++			     for the flash led device, where N is the
++			     identifier of a strobe signal provider (RO)
++
++
++LED Flash Class multiplexers
++============================
++
++Multiplexers are an indispensable part of the Flash Manager. Flash Manager has
++its own led_flash_gpio_mux* helpers for creating, releasing and operating on
++the simple gpio driven multiplexers (the ones whose lines are selected by
++changing the state of its selector pins).
++
++It is however possible that a more advanced device will be used for routing
++strobe signals. This kind of devices are known to the Flash Manager as
++"asynchronous muxes" and can be registered in arbitrary moment with use of
++led_flash_manager_bind_async_mux API and unregistered with
++led_flash_manager_unbind_async_mux. (see Documentation/leds/leds-async-mux.c
++for the exemplary implementation of the async mux driver).
++
++If a LED Flash Class device declares dependency on an async mux, then strobing
++the flash, or setting external strobe, will succeed only wnen the async mux
++has been bound to the Flash Manager. Async mux module, once bound, can be
++removed only after all LED Flash Class devices using it are unregistered
++from the Flash Manager.
 -- 
-2.1.0.rc1
+1.7.9.5
 
