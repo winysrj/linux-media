@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52818 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45877 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941AbaH2AOe (ORCPT
+	with ESMTP id S1751468AbaHTT54 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 20:14:34 -0400
+	Wed, 20 Aug 2014 15:57:56 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>, bhupesh.sharma@st.com,
-	bhupesh.sharma@freescale.com
-Subject: Re: Status of g_webcam uvc-gadget
-Date: Fri, 29 Aug 2014 02:15:24 +0200
-Message-ID: <1847240.Wz8HleDqqg@avalon>
-In-Reply-To: <CAPybu_0O2V5Rod3gW7iiTSXBtowf2L8moJ8MY9Drzw1UbzshZg@mail.gmail.com>
-References: <CAPybu_0O2V5Rod3gW7iiTSXBtowf2L8moJ8MY9Drzw1UbzshZg@mail.gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 4/8] of: Add for_each_endpoint_of_node helper macro
+Date: Wed, 20 Aug 2014 21:58:35 +0200
+Message-ID: <8667517.hS1cvPvpF8@avalon>
+In-Reply-To: <1408453366-1366-5-git-send-email-p.zabel@pengutronix.de>
+References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de> <1408453366-1366-5-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Hi Philipp,
 
-On Wednesday 27 August 2014 18:09:13 Ricardo Ribalda Delgado wrote:
-> Hello
+Thank you for the patch.
+
+On Tuesday 19 August 2014 15:02:42 Philipp Zabel wrote:
+> Note that while of_graph_get_next_endpoint decrements the reference count
+> of the child node passed to it, of_node_put(child) still has to be called
+> manually when breaking out of the loop.
+
+I think this is important enough to be mentioned in a comment in of_graph.h.
+
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  include/linux/of_graph.h | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> Is somebody using/supporting g_webcam?
-
-I believe so, as I get kernel patches from time to time.
-
-> The only reference userland server is uvc-gadget from
-> http://git.ideasonboard.org/?p=uvc-gadget.git;a=summary ?
-
-That's the only public userspace implementation I know of. And I should be 
-blamed for not having taken the time to properly review and apply Bhupesh's 
-patches :-/
-
-> I have an industrial fpga camera that speaks v4l2, my plan is to
-> export it as an uvc camera via usb3380 as a debug interface.
+> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+> index befef42..2890a4c 100644
+> --- a/include/linux/of_graph.h
+> +++ b/include/linux/of_graph.h
+> @@ -26,6 +26,10 @@ struct of_endpoint {
+>  	const struct device_node *local_node;
+>  };
+> 
+> +#define for_each_endpoint_of_node(parent, child) \
+> +	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
+> +	     child = of_graph_get_next_endpoint(parent, child))
+> +
+>  #ifdef CONFIG_OF
+>  int of_graph_parse_endpoint(const struct device_node *node,
+>  				struct of_endpoint *endpoint);
 
 -- 
 Regards,
 
 Laurent Pinchart
+
 
