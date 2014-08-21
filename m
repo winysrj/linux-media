@@ -1,75 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44072 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695AbaHZVzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:18 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 03/35] [media] dm644x_ccdc: declare some functions as static
-Date: Tue, 26 Aug 2014 18:54:39 -0300
-Message-Id: <1409090111-8290-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mta-out1.inet.fi ([62.71.2.232]:41455 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754532AbaHUMFM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 08:05:12 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv2] cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
+Date: Thu, 21 Aug 2014 15:05:01 +0300
+Message-Id: <1408622701-10386-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/davinci/dm644x_ccdc.c:133:6: warning: no previous protot
-ype for 'ccdc_setwin' [-Wmissing-prototypes]
- void ccdc_setwin(struct v4l2_rect *image_win,
-      ^
-drivers/media/platform/davinci/dm644x_ccdc.c:373:6: warning: no previous protot
-ype for 'ccdc_config_ycbcr' [-Wmissing-prototypes]
- void ccdc_config_ycbcr(void)
-      ^
-drivers/media/platform/davinci/dm644x_ccdc.c:526:6: warning: no previous protot
-ype for 'ccdc_config_raw' [-Wmissing-prototypes]
- void ccdc_config_raw(void)
-      ^
+Read MAC address from the EEPROM. This version two corrects a flaw in the result code returning that did exist in the first version.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/platform/davinci/dm644x_ccdc.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/usb/dvb-usb/cxusb.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-index 07e98df3d867..b0b9cd54e9e9 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc.c
-+++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-@@ -130,9 +130,9 @@ static void ccdc_enable_vport(int flag)
-  * This function will configure the window size
-  * to be capture in CCDC reg
-  */
--void ccdc_setwin(struct v4l2_rect *image_win,
--		enum ccdc_frmfmt frm_fmt,
--		int ppc)
-+static void ccdc_setwin(struct v4l2_rect *image_win,
-+			enum ccdc_frmfmt frm_fmt,
-+			int ppc)
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index c3a44c7..f631955 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -673,6 +673,39 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+ 	{ 0x0025, KEY_POWER },
+ };
+ 
++static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
++{
++	u8 wbuf[2];
++	u8 rbuf[6];
++	int ret;
++	struct i2c_msg msg[] = {
++		{
++			.addr = 0x51,
++			.flags = 0,
++			.buf = wbuf,
++			.len = 2,
++		}, {
++			.addr = 0x51,
++			.flags = I2C_M_RD,
++			.buf = rbuf,
++			.len = 6,
++		}
++	};
++
++	wbuf[0] = 0x1e;
++	wbuf[1] = 0x00;
++	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
++
++	if (ret == 2) {
++		memcpy(mac, rbuf, 6);
++		return 0;
++	} else {
++		if (ret < 0)
++			return ret;
++		return -EIO;
++	}
++}
++
+ static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
+ 					u8 data, int *mem)
  {
- 	int horz_start, horz_nr_pixels;
- 	int vert_start, vert_nr_lines;
-@@ -370,7 +370,7 @@ static int ccdc_set_params(void __user *params)
-  * ccdc_config_ycbcr()
-  * This function will configure CCDC for YCbCr video capture
-  */
--void ccdc_config_ycbcr(void)
-+static void ccdc_config_ycbcr(void)
- {
- 	struct ccdc_params_ycbcr *params = &ccdc_cfg.ycbcr;
- 	u32 syn_mode;
-@@ -523,7 +523,7 @@ static void ccdc_config_fpc(struct ccdc_fault_pixel *fpc)
-  * ccdc_config_raw()
-  * This function will configure CCDC for Raw capture mode
-  */
--void ccdc_config_raw(void)
-+static void ccdc_config_raw(void)
- {
- 	struct ccdc_params_raw *params = &ccdc_cfg.bayer;
- 	struct ccdc_config_params_raw *config_params =
+@@ -2315,6 +2348,8 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+ 	.size_of_priv     = sizeof(struct cxusb_state),
+ 
+ 	.num_adapters = 1,
++	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
++
+ 	.adapter = {
+ 		{
+ 		.num_frontends = 1,
 -- 
-1.9.3
+1.9.1
 
