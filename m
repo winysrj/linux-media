@@ -1,64 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49914 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079AbaH0JUK (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2789 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774AbaHUCi5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 05:20:10 -0400
-Message-ID: <1409131199.3623.30.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper
- functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de
-Date: Wed, 27 Aug 2014 11:19:59 +0200
-In-Reply-To: <Pine.LNX.4.64.1408262217090.7329@axis700.grange>
-References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
-	 <Pine.LNX.4.64.1408262217090.7329@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 20 Aug 2014 22:38:57 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7L2csTA094157
+	for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 04:38:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 899272A2E5A
+	for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 04:38:48 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140821023848.899272A2E5A@tschai.lan>
+Date: Thu, 21 Aug 2014 04:38:48 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am Dienstag, den 26.08.2014, 22:18 +0200 schrieb Guennadi Liakhovetski:
-> Hi Philipp,
-> 
-> On Mon, 25 Aug 2014, Philipp Zabel wrote:
-> 
-> > This patch adds an array of V4L2 pixel formats and descriptions that can be
-> > used by drivers so that each driver doesn't have to provide its own slightly
-> > different format descriptions for VIDIOC_ENUM_FMT.
-> 
-> In case you missed it, soc-camera is doing something rather similar along 
-> the lines of:
-> 
-> drivers/media/platform/soc_camera/soc_mediabus.c
-> include/media/soc_mediabus.h
-> 
-> Feel free to re-use.
+Results of the daily build of media_tree:
 
-thank you for the pointer. It is unfortunate that there is a bit of
-overlap in the names, but not much in the rest of the information.
-I don't see how the data could be reused in a meaningful way, but maybe
-I should try to match the patterns.
+date:		Thu Aug 21 04:00:16 CEST 2014
+git branch:	test
+git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-0.slh.2-amd64
 
-I like the idea of soc_mbus_find_fmtdesc being called with a driver
-specific lookup array. Although that currently causes drivers to again
-duplicate all the names, it side-steps the issue of a linear lookup in a
-large global array. Maybe a helper to fill this driver specific array
-from the global array would be a good idea for consistency?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-What is the reason for the separation between struct soc_mbus_lookup and
-struct soc_mbus pixelformat (as opposed to including enum
-v4l2_mbus_pixelcode in struct soc_mbus_pixelformat directly)?
+Detailed results are available here:
 
-regards
-Philipp
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
