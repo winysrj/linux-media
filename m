@@ -1,86 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:61286 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823AbaH2PPV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Aug 2014 11:15:21 -0400
-Received: by mail-we0-f169.google.com with SMTP id k48so2335088wev.28
-        for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:15:19 -0700 (PDT)
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-To: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-i2c@vger.kernel.org
-Cc: lars@metafoo.de, w.sang@pengutronix.de, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, mark.rutland@arm.com,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH v2 1/2] Allow DT parsing of secondary devices
-Date: Fri, 29 Aug 2014 17:15:02 +0200
-Message-Id: <1409325303-15906-1-git-send-email-jean-michel.hautbois@vodalys.com>
+Received: from mga01.intel.com ([192.55.52.88]:28418 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbaHUW4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 18:56:06 -0400
+Date: Fri, 22 Aug 2014 06:55:54 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:devel 498/499] ERROR: "omapdss_compat_init"
+ undefined!
+Message-ID: <53f678fa.xHewYZEdCq2Io7qg%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is based on reg and reg-names in DT.
-Example:
+tree:   git://linuxtv.org/media_tree.git devel
+head:   2558eeda5cd75649a1159aadca530a990b81c4ee
+commit: ace9078f1c07b94332e37a5017bb34097e082e54 [498/499] [media] enable COMPILE_TEST for OMAP2 vout
+config: make ARCH=mips allmodconfig
 
-reg = <0x10 0x20 0x30>;
-reg-names = "main", "io", "test";
+All error/warnings:
 
-This function will create dummy devices io and test
-with addresses 0x20 and 0x30 respectively.
+>> ERROR: "omapdss_compat_init" undefined!
+>> ERROR: "omap_dss_get_overlay_manager" undefined!
+>> ERROR: "omap_dss_get_num_overlay_managers" undefined!
+>> ERROR: "omap_dss_get_overlay" undefined!
+>> ERROR: "omapdss_is_initialized" undefined!
+>> ERROR: "omap_dispc_register_isr" undefined!
+>> ERROR: "omapdss_get_version" undefined!
+>> ERROR: "omap_dss_put_device" undefined!
+>> ERROR: "omap_dss_get_next_device" undefined!
+>> ERROR: "omap_dispc_unregister_isr" undefined!
+>> ERROR: "omapdss_compat_uninit" undefined!
+>> ERROR: "omap_dss_get_device" undefined!
+>> ERROR: "omap_dss_get_num_overlays" undefined!
+--
+   In file included from arch/mips/include/asm/page.h:238:0,
+                    from include/linux/mmzone.h:20,
+                    from include/linux/gfp.h:5,
+                    from include/linux/kmod.h:22,
+                    from include/linux/module.h:13,
+                    from drivers/media/platform/omap/omap_voutlib.c:21:
+   drivers/media/platform/omap/omap_voutlib.c: In function 'omap_vout_alloc_buffer':
+   arch/mips/include/asm/page.h:226:50: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
+    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
+                                                     ^
+   include/asm-generic/memory_model.h:30:41: note: in definition of macro '__pfn_to_page'
+    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+                                            ^
+   arch/mips/include/asm/page.h:226:41: note: in expansion of macro 'PFN_DOWN'
+    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
+                                            ^
+>> drivers/media/platform/omap/omap_voutlib.c:313:20: note: in expansion of macro 'virt_to_page'
+       SetPageReserved(virt_to_page(addr));
+                       ^
+   In file included from arch/mips/include/asm/page.h:178:0,
+                    from include/linux/mmzone.h:20,
+                    from include/linux/gfp.h:5,
+                    from include/linux/kmod.h:22,
+                    from include/linux/module.h:13,
+                    from drivers/media/platform/omap/omap_voutlib.c:21:
+   arch/mips/include/asm/io.h:119:29: note: expected 'const volatile void *' but argument is of type 'long unsigned int'
+    static inline unsigned long virt_to_phys(volatile const void *address)
+                                ^
+   In file included from arch/mips/include/asm/page.h:238:0,
+                    from include/linux/mmzone.h:20,
+                    from include/linux/gfp.h:5,
+                    from include/linux/kmod.h:22,
+                    from include/linux/module.h:13,
+                    from drivers/media/platform/omap/omap_voutlib.c:21:
+   drivers/media/platform/omap/omap_voutlib.c: In function 'omap_vout_free_buffer':
+   arch/mips/include/asm/page.h:226:50: warning: passing argument 1 of 'virt_to_phys' makes pointer from integer without a cast
+    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
+                                                     ^
+   include/asm-generic/memory_model.h:30:41: note: in definition of macro '__pfn_to_page'
+    #define __pfn_to_page(pfn) (mem_map + ((pfn) - ARCH_PFN_OFFSET))
+                                            ^
+   arch/mips/include/asm/page.h:226:41: note: in expansion of macro 'PFN_DOWN'
+    #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(virt_to_phys(kaddr)))
+                                            ^
+>> drivers/media/platform/omap/omap_voutlib.c:334:21: note: in expansion of macro 'virt_to_page'
+      ClearPageReserved(virt_to_page(addr));
+                        ^
+   In file included from arch/mips/include/asm/page.h:178:0,
+                    from include/linux/mmzone.h:20,
+                    from include/linux/gfp.h:5,
+                    from include/linux/kmod.h:22,
+                    from include/linux/module.h:13,
+                    from drivers/media/platform/omap/omap_voutlib.c:21:
+   arch/mips/include/asm/io.h:119:29: note: expected 'const volatile void *' but argument is of type 'long unsigned int'
+    static inline unsigned long virt_to_phys(volatile const void *address)
+                                ^
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 ---
- drivers/i2c/i2c-core.c | 20 ++++++++++++++++++++
- include/linux/i2c.h    |  6 ++++++
- 2 files changed, 26 insertions(+)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 632057a..5eb414d 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -798,6 +798,26 @@ struct i2c_client *i2c_new_dummy(struct i2c_adapter *adapter, u16 address)
- }
- EXPORT_SYMBOL_GPL(i2c_new_dummy);
- 
-+struct i2c_client *i2c_new_secondary_device(struct i2c_client *client,
-+						const char *name,
-+						u32 default_addr)
-+{
-+	int i, addr;
-+	struct device_node *np;
-+
-+	np = client->dev.of_node;
-+	i = of_property_match_string(np, "reg-names", name);
-+	if (i >= 0)
-+		of_property_read_u32_index(np, "reg", i, &addr);
-+	else
-+		addr = default_addr;
-+
-+	dev_dbg(&client->adapter->dev, "Address for %s : 0x%x\n", name, addr);
-+	return i2c_new_dummy(client->adapter, addr);
-+}
-+EXPORT_SYMBOL_GPL(i2c_new_secondary_device);
-+
-+
- /* ------------------------------------------------------------------------- */
- 
- /* I2C bus adapters -- one roots each I2C or SMBUS segment */
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index a95efeb..2d143d7 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -322,6 +322,12 @@ extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
- extern struct i2c_client *
- i2c_new_dummy(struct i2c_adapter *adap, u16 address);
- 
-+/* Use reg/reg-names in DT in order to get extra addresses */
-+extern struct i2c_client *
-+i2c_new_secondary_device(struct i2c_client *client,
-+				const char *name,
-+				u32 default_addr);
-+
- extern void i2c_unregister_device(struct i2c_client *);
- #endif /* I2C */
- 
--- 
-2.0.4
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
