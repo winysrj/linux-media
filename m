@@ -1,109 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43338 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:60429 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974AbaHVLIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 07:08:37 -0400
-Message-ID: <53F724B1.4000603@iki.fi>
-Date: Fri, 22 Aug 2014 14:08:33 +0300
+	id S1754501AbaHUMZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 08:25:08 -0400
+Message-ID: <53F5E521.7090600@iki.fi>
+Date: Thu, 21 Aug 2014 15:25:05 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>
-Subject: Re: [GIT PULL FINAL 00/21] misc DTV stuff for 3.18
-References: <1408705093-5167-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
+References: <1408622701-10386-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1408622701-10386-1-git-send-email-olli.salonen@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oops, cut a pull message wrongly and actual tree was missing:
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-The following changes since commit 1baa466e84975a595b2c3cd10af1100c807ebab5:
+I will pick that to my tree and sent pull request today. Those buffer 
+length could be resolved using sizeof(), but I cannot see any wrong with 
+that too so lets be.
 
-   [media] media: ttpci: fix av7110 build to be compatible with 
-CONFIG_INPUT_EVDEV (2014-08-15 21:26:26 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git dtv_misc_3.18
-
-for you to fetch changes up to 04e9307d324343ea6eab9bce0c49457f30250057:
-
-   m88ds3103: fix coding style issues (2014-08-22 13:46:06 +0300)
-
-----------------------------------------------------------------
-
+regards
 Antti
 
 
-On 08/22/2014 01:57 PM, Antti Palosaari wrote:
-> Moikka
-> I picked these from patchwork and this is just final review before
-> PULL request I will send very shortly. I don't expect any change
-> requests at this late, without a very good reason :)
+On 08/21/2014 03:05 PM, Olli Salonen wrote:
+> Read MAC address from the EEPROM. This version two corrects a flaw in the result code returning that did exist in the first version.
 >
-> However, I could add some tags until Mauro PULLs to master.
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb/cxusb.c | 35 +++++++++++++++++++++++++++++++++++
+>   1 file changed, 35 insertions(+)
 >
-> regards
-> Antti
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index c3a44c7..f631955 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -673,6 +673,39 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+>   	{ 0x0025, KEY_POWER },
+>   };
 >
-> Antti Palosaari (10):
->    dvb-usb-v2: remove dvb_usb_device NULL check
->    msi2500: remove unneeded local pointer on msi2500_isoc_init()
->    m88ts2022: fix 32bit overflow on filter calc
->    m88ts2022: fix coding style issues
->    m88ts2022: rename device state (priv => s)
->    m88ts2022: clean up logging
->    m88ts2022: convert to RegMap I2C API
->    m88ts2022: change parameter type of m88ts2022_cmd
->    m88ds3103: change .set_voltage() implementation
->    m88ds3103: fix coding style issues
+> +static int cxusb_tt_ct2_4400_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
+> +{
+> +	u8 wbuf[2];
+> +	u8 rbuf[6];
+> +	int ret;
+> +	struct i2c_msg msg[] = {
+> +		{
+> +			.addr = 0x51,
+> +			.flags = 0,
+> +			.buf = wbuf,
+> +			.len = 2,
+> +		}, {
+> +			.addr = 0x51,
+> +			.flags = I2C_M_RD,
+> +			.buf = rbuf,
+> +			.len = 6,
+> +		}
+> +	};
+> +
+> +	wbuf[0] = 0x1e;
+> +	wbuf[1] = 0x00;
+> +	ret = cxusb_i2c_xfer(&d->i2c_adap, msg, 2);
+> +
+> +	if (ret == 2) {
+> +		memcpy(mac, rbuf, 6);
+> +		return 0;
+> +	} else {
+> +		if (ret < 0)
+> +			return ret;
+> +		return -EIO;
+> +	}
+> +}
+> +
+>   static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
+>   					u8 data, int *mem)
+>   {
+> @@ -2315,6 +2348,8 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+>   	.size_of_priv     = sizeof(struct cxusb_state),
 >
-> CrazyCat (1):
->    si2168: DVB-T2 PLP selection implemented
->
-> Olli Salonen (9):
->    si2168: clean logging
->    si2157: clean logging
->    si2168: add ts_mode setting and move to si2168_init
->    em28xx: add ts mode setting for PCTV 292e
->    cxusb: add ts mode setting for TechnoTrend CT2-4400
->    sp2: Add I2C driver for CIMaX SP2 common interface module
->    cxusb: Add support for TechnoTrend TT-connect CT2-4650 CI
->    cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
->    si2157: Add support for delivery system SYS_ATSC
->
-> nibble.max (1):
->    m88ds3103: implement set voltage and TS clock
->
->   drivers/media/dvb-core/dvb-usb-ids.h       |   1 +
->   drivers/media/dvb-frontends/Kconfig        |   7 +
->   drivers/media/dvb-frontends/Makefile       |   1 +
->   drivers/media/dvb-frontends/m88ds3103.c    | 101 +++++--
->   drivers/media/dvb-frontends/m88ds3103.h    |  35 ++-
->   drivers/media/dvb-frontends/si2168.c       | 101 ++++---
->   drivers/media/dvb-frontends/si2168.h       |   6 +
->   drivers/media/dvb-frontends/si2168_priv.h  |   1 +
->   drivers/media/dvb-frontends/sp2.c          | 441 +++++++++++++++++++++++++++++
->   drivers/media/dvb-frontends/sp2.h          |  53 ++++
->   drivers/media/dvb-frontends/sp2_priv.h     |  50 ++++
->   drivers/media/tuners/Kconfig               |   1 +
->   drivers/media/tuners/m88ts2022.c           | 355 +++++++++--------------
->   drivers/media/tuners/m88ts2022_priv.h      |   5 +-
->   drivers/media/tuners/si2157.c              |  55 ++--
->   drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c |   2 +-
->   drivers/media/usb/dvb-usb/Kconfig          |   2 +-
->   drivers/media/usb/dvb-usb/cxusb.c          | 128 ++++++++-
->   drivers/media/usb/dvb-usb/cxusb.h          |   4 +
->   drivers/media/usb/em28xx/em28xx-dvb.c      |   5 +-
->   drivers/media/usb/msi2500/msi2500.c        |   9 +-
->   21 files changed, 1022 insertions(+), 341 deletions(-)
->   create mode 100644 drivers/media/dvb-frontends/sp2.c
->   create mode 100644 drivers/media/dvb-frontends/sp2.h
->   create mode 100644 drivers/media/dvb-frontends/sp2_priv.h
+>   	.num_adapters = 1,
+> +	.read_mac_address = cxusb_tt_ct2_4400_read_mac_address,
+> +
+>   	.adapter = {
+>   		{
+>   		.num_frontends = 1,
 >
 
 -- 
