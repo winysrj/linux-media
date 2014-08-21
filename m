@@ -1,74 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45646 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861AbaHTOcL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 10:32:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sriram V <vshrirama@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: H3A module on omap4 iss
-Date: Wed, 20 Aug 2014 16:32:51 +0200
-Message-ID: <2048451.TcpJ3DtSY9@avalon>
-In-Reply-To: <CAH9_wRM_CkRSRiaBDprvVONHXuZ2W6GLorqYTyA3G5N8G1Si6A@mail.gmail.com>
-References: <CAH9_wRM_CkRSRiaBDprvVONHXuZ2W6GLorqYTyA3G5N8G1Si6A@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:27053 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754822AbaHUWsH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 18:48:07 -0400
+Date: Fri, 22 Aug 2014 06:47:12 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:devel 499/499] ERROR: "__bad_ndelay" undefined!
+Message-ID: <53f676f0.P3aNjtNdkLtXRJXR%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sriram,
+tree:   git://linuxtv.org/media_tree.git devel
+head:   2558eeda5cd75649a1159aadca530a990b81c4ee
+commit: 2558eeda5cd75649a1159aadca530a990b81c4ee [499/499] [media] enable COMPILE_TEST for media drivers
+config: make ARCH=i386 allmodconfig
 
-On Wednesday 20 August 2014 11:55:12 Sriram V wrote:
-> Hi,
-> 
-> I am planning to work on getting the H3A support (Auto White balance,
-> Auto Exposure and Auto Focus Support) for OMAP4 ISS.
+All error/warnings:
 
-That would be great !
+   ERROR: "omap_stop_dma" undefined!
+   ERROR: "omap_start_dma" undefined!
+   ERROR: "omap_dma_link_lch" undefined!
+   ERROR: "omap_set_dma_dest_burst_mode" undefined!
+   ERROR: "omap_set_dma_src_params" undefined!
+   ERROR: "omap_request_dma" undefined!
+   ERROR: "omap_set_dma_transfer_params" undefined!
+   ERROR: "omap_set_dma_dest_params" undefined!
+   ERROR: "omap_free_dma" undefined!
+>> ERROR: "__bad_ndelay" undefined!
+   ERROR: "omapdss_compat_init" undefined!
+   ERROR: "omap_dss_get_overlay_manager" undefined!
+   ERROR: "omap_dss_get_num_overlay_managers" undefined!
+   ERROR: "omap_dss_get_overlay" undefined!
+   ERROR: "omapdss_is_initialized" undefined!
+   ERROR: "omap_dispc_register_isr" undefined!
+   ERROR: "omapdss_get_version" undefined!
+   ERROR: "omap_dss_put_device" undefined!
+   ERROR: "omap_dss_get_next_device" undefined!
+   ERROR: "omap_dispc_unregister_isr" undefined!
+   ERROR: "omapdss_compat_uninit" undefined!
+   ERROR: "omap_dss_get_device" undefined!
+   ERROR: "omap_dss_get_num_overlays" undefined!
+   ERROR: "vpif_lock" undefined!
+   ERROR: "vpif_lock" undefined!
 
-> I wanted to check if anyone is working to get this module working.
-
-Not to my knowledge. I'm not (at least for now, but I could need H3A support 
-at some point in the future).
-
-> Is OMAP3 H3A similar or same as OMAP4 H3A. Can i make use of the OMAP3 code
-> base for h3a or how complex is this activity?
-
-The AF and AE engines look pretty similar indeed. It would be nice if the 
-OMAP3 ISP AF and AE code could be shared with the OMAP4 ISS driver. That would 
-require some refactoring though. One thing we're missing is standardization of 
-H3A APIs in V4L2, I'd like to see that happen.
-
-> Also, i wanted to how how to test the v4l resizer driver in omap4iss?
-
-Here's the full pipeline configuration I use. Please note that the OMAP4 ISS 
-resizer implementation doesn't support resizing yet, it just hardcodes the 
-resizer ratio to 1:1.
-
-IFMT="SBGGR10"
-ISIZE="1920x1084"
-OFMT="UYVY"
-OSIZE="1920x1080"
-CFMT="YUYV1_5X8"
-
-media-ctl -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS ISP IPIPEIF":0 [1]'
-media-ctl -l '"OMAP4 ISS ISP IPIPEIF":2 -> "OMAP4 ISS ISP IPIPE":0 [1]'
-media-ctl -l '"OMAP4 ISS ISP IPIPE":1 -> "OMAP4 ISS ISP resizer":0 [1]'
-media-ctl -l '"OMAP4 ISS ISP resizer":1 -> "OMAP4 ISS ISP resizer a output":0 
-[1]'
-
-media-ctl -V "\"sensor\":0 [fmt:$IFMT/$ISIZE]"
-media-ctl -V "\"OMAP4 ISS CSI2a\":1 [fmt:$IFMT/$ISIZE]"
-media-ctl -V "\"OMAP4 ISS ISP IPIPEIF\":0 [fmt:$IFMT/$ISIZE]"
-media-ctl -V "\"OMAP4 ISS ISP IPIPE\":0 [fmt:$IFMT/$ISIZE]"
-media-ctl -V "\"OMAP4 ISS ISP IPIPE\":1 [fmt:$OFMT/$OSIZE]"
-media-ctl -V "\"OMAP4 ISS ISP resizer\":0 [fmt:$OFMT/$OSIZE]"
-media-ctl -V "\"OMAP4 ISS ISP resizer\":1 [fmt:$CFMT/$OSIZE]"
-
--- 
-Regards,
-
-Laurent Pinchart
-
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
