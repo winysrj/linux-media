@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2957 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287AbaHYMuZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 08:50:25 -0400
-Message-ID: <53FB30E3.2050304@xs4all.nl>
-Date: Mon, 25 Aug 2014 14:49:39 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
-	robh+dt@kernel.org, grant.likely@linaro.org
-CC: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
-References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <53FB2E95.7040505@xs4all.nl>
-In-Reply-To: <53FB2E95.7040505@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:47381 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754551AbaHUO1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 10:27:19 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] dvb-usb-v2: remove dvb_usb_device NULL check
+Date: Thu, 21 Aug 2014 17:27:03 +0300
+Message-Id: <1408631223-24697-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/2014 02:39 PM, Hans Verkuil wrote:
-> On 08/25/2014 02:29 PM, Mikhail Ulyanov wrote:
->> This patch contains driver for Renesas R-Car JPEG codec.
->>
->> Cnanges since v1:
->>     - s/g_fmt function simplified
->>     - default format for queues added
->>     - dumb vidioc functions added to be in compliance with standard api:
->>         jpu_s_priority, jpu_g_priority
-> 
-> Oops, that's a bug elsewhere. Don't add these empty prio ops, this needs to be
-> solved in the v4l2 core.
-> 
-> I'll post a patch for this.
+Reported by Dan Carpenter:
 
-After some thought I've decided to allow prio handling for m2m devices. It is
-actually useful if some application wants exclusive access to the m2m hardware.
+The patch d10d1b9ac97b: "[media] dvb_usb_v2: use dev_* logging
+macros" from Jun 26, 2012, leads to the following Smatch complaint:
 
-So I will change v4l2-compliance instead.
+drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c:31 dvb_usb_v2_generic_io()
+	 error: we previously assumed 'd' could be null (see line 29)
 
-Regards,
+...
+Remove whole check as it must not happen in any case. Driver is
+totally broken if it does not have valid pointer to device.
 
-	Hans
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
+index 33ff97e..22bdce1 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
+@@ -26,7 +26,7 @@ static int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
+ {
+ 	int ret, actual_length;
+ 
+-	if (!d || !wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
++	if (!wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
+ 			!d->props->generic_bulk_ctrl_endpoint_response) {
+ 		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, -EINVAL);
+ 		return -EINVAL;
+-- 
+http://palosaari.fi/
+
