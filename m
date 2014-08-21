@@ -1,68 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35561 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754941AbaHEPas (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 11:30:48 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9U006OKB396270@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Aug 2014 16:30:45 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH 00/11] CODA Cleanup & fixes
-Date: Tue, 05 Aug 2014 17:30:43 +0200
-Message-id: <0c3001cfb0c2$3952deb0$abf89c10$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp206.alice.it ([82.57.200.102]:48389 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751962AbaHUHmb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 03:42:31 -0400
+Date: Thu, 21 Aug 2014 09:42:24 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 12/29] kinect: fix sparse warnings
+Message-Id: <20140821094224.68a63155e154a7419eb7ea23@ao2.it>
+In-Reply-To: <1408575568-20562-13-git-send-email-hverkuil@xs4all.nl>
+References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+	<1408575568-20562-13-git-send-email-hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On Thu, 21 Aug 2014 00:59:11 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Friday, July 25, 2014 5:08 PM
-> To: linux-media@vger.kernel.org
-> Cc: Mauro Carvalho Chehab; Kamil Debski; Fabio Estevam; Hans Verkuil;
-> Nicolas Dufresne; kernel@pengutronix.de; Philipp Zabel
-> Subject: [PATCH 00/11] CODA Cleanup & fixes
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Hi,
+> drivers/media/usb/gspca/kinect.c:151:19: warning: incorrect type in assignment (different base types)
+> drivers/media/usb/gspca/kinect.c:152:19: warning: incorrect type in assignment (different base types)
+> drivers/media/usb/gspca/kinect.c:153:19: warning: incorrect type in assignment (different base types)
+> drivers/media/usb/gspca/kinect.c:191:13: warning: restricted __le16 degrades to integer
+> drivers/media/usb/gspca/kinect.c:217:16: warning: incorrect type in assignment (different base types)
+> drivers/media/usb/gspca/kinect.c:218:16: warning: incorrect type in assignment (different base types)
 > 
-> the following series applies on top of the previous "Split CODA driver
-> into multiple files" series. It contains various accumulated fixes,
-> including dequeueing of buffers in stop_streaming and after
-> start_streaming failure, a crash fix for the timestamp list handling,
-> better error reporting, and the interrupt request by name in
-> preparation for the second JPEG interrupt on CODA960.
+> Note that this fixes a real bug where cpu_to_le16 was used instead of the correct
+> le16_to_cpu.
 
-I have trouble applying this patch set. Could you make sure that
-it cleanly applies onto Mauro's branch:
-http://git.linuxtv.org/cgit.cgi/mchehab/media-next.git/?
+Right.
 
-I applied the previous series from 23.07.2014, but applying this series
-fails.
+A little background on why I overlooked the issue: libfreenect —which is
+where the code originally comes from— uses the _same_ function for
+cpu_to_* and *_to_cpu conversions, and this is practically OK on common
+architectures even though it is not semantically correct.
 
-You can check my branch with work the series from 23.07.2014 applied here:
-http://git.linuxtv.org/cgit.cgi/kdebski/media_tree_2.git/log/?h=for-v3.17
+Thanks for the fix.
 
 > 
-> regards
-> Philipp
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Best wishes,
+Acked-by: Antonio Ospite <ao2@ao2.it>
+
+> ---
+>  drivers/media/usb/gspca/kinect.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
+> index 45bc1f5..3cb30a3 100644
+> --- a/drivers/media/usb/gspca/kinect.c
+> +++ b/drivers/media/usb/gspca/kinect.c
+> @@ -51,9 +51,9 @@ struct pkt_hdr {
+>  
+>  struct cam_hdr {
+>  	uint8_t magic[2];
+> -	uint16_t len;
+> -	uint16_t cmd;
+> -	uint16_t tag;
+> +	__le16 len;
+> +	__le16 cmd;
+> +	__le16 tag;
+>  };
+>  
+>  /* specific webcam descriptor */
+> @@ -188,9 +188,9 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
+>  		       rhdr->tag, chdr->tag);
+>  		return -1;
+>  	}
+> -	if (cpu_to_le16(rhdr->len) != (actual_len/2)) {
+> +	if (le16_to_cpu(rhdr->len) != (actual_len/2)) {
+>  		pr_err("send_cmd: Bad len %04x != %04x\n",
+> -		       cpu_to_le16(rhdr->len), (int)(actual_len/2));
+> +		       le16_to_cpu(rhdr->len), (int)(actual_len/2));
+>  		return -1;
+>  	}
+>  
+> @@ -211,7 +211,7 @@ static int write_register(struct gspca_dev *gspca_dev, uint16_t reg,
+>  			uint16_t data)
+>  {
+>  	uint16_t reply[2];
+> -	uint16_t cmd[2];
+> +	__le16 cmd[2];
+>  	int res;
+>  
+>  	cmd[0] = cpu_to_le16(reg);
+> -- 
+> 2.1.0.rc1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+Antonio Ospite
+http://ao2.it
 
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
