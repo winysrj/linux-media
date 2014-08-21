@@ -1,94 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:22386 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756759AbaH0Ley convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 07:34:54 -0400
-Date: Wed, 27 Aug 2014 08:34:47 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: zhangfei <zhangfei.gao@linaro.org>
-Cc: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>, arnd@arndb.de,
-	haifeng.yan@linaro.org, jchxue@gmail.com,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] [media] rc: remove change_protocol in rc-ir-raw.c
-Message-id: <20140827083447.6af0157f.m.chehab@samsung.com>
-In-reply-to: <53FD99FA.4030207@linaro.org>
-References: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org>
- <1408613086-12538-4-git-send-email-zhangfei.gao@linaro.org>
- <20140821065006.6d831ec4@concha.lan> <53FD99FA.4030207@linaro.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:38423 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750850AbaHUPRK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 11:17:10 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] msi2500: remove unneeded local pointer on msi2500_isoc_init()
+Date: Thu, 21 Aug 2014 18:16:56 +0300
+Message-Id: <1408634216-2631-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 27 Aug 2014 16:42:34 +0800
-zhangfei <zhangfei.gao@linaro.org> escreveu:
+There is no need to keep local copy of usb_device pointer as we
+have same pointer stored and available easily from device state.
 
-> 
-> 
-> On 08/21/2014 07:50 PM, Mauro Carvalho Chehab wrote:
-> > Em Thu, 21 Aug 2014 17:24:45 +0800
-> > Zhangfei Gao <zhangfei.gao@linaro.org> escreveu:
-> >
-> >> With commit 4924a311a62f ("[media] rc-core: rename ir-raw.c"),
-> >> empty change_protocol was introduced.
-> >
-> > No. This was introduced on this changeset:
-> >
-> > commit da6e162d6a4607362f8478c715c797d84d449f8b
-> > Author: David Härdeman <david@hardeman.nu>
-> > Date:   Thu Apr 3 20:32:16 2014 -0300
-> >
-> >      [media] rc-core: simplify sysfs code
-> >
-> >> As a result, rc_register_device will set dev->enabled_protocols
-> >> addording to rc_map->rc_type, which prevent using all protocols.
-> >
-> > I strongly suspect that this patch will break some things, as
-> > the new code seems to expect that this is always be set.
-> >
-> > See the code at store_protocols(): if this callback is not set,
-> > then it won't allow to disable a protocol.
-> >
-> > Also, this doesn't prevent using all protocols. You can still use
-> > "ir-keytable -p all" to enable all protocols (the "all" protocol
-> > type were introduced recently at the userspace tool).
-> >
-> >  From the way I see, setting the protocol when a table is loaded
-> > is not a bad thing, as:
-> > - if RC tables are loaded, the needed protocol to decode it is
-> >    already known;
-> > - by running just one IR decoder, the IR handling routine will
-> >    be faster and will consume less power;
-> > - on a real case scenario, it is a way more likely that just one
-> >    decoder will ever be needed by the end user.
-> >
-> > So, I think that this is just annoying for developers when are checking
-> > if all decoders are working, by sending keycodes from different IR types
-> > at the same time.
-> >
-> 
-> Thanks Mauro for the kind explanation.
-> 
-> ir-keytable seems also enalbe specific protocol
-> -p, --protocol=PROTOCOL
-> 
-> Currently we use lirc user space decoder/keymap and only need 
-> pulse-length information from kernel.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/msi2500/msi2500.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Well, you can use ir-keytable to disable everything but lirc, not
-compile the other hardware decoders or directly write "lirc" to 
-/sys/class/rc/rc0/protocols (see Documentation/ABI/testing/sysfs-class-rc).
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 26b1334..71e0960 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -501,14 +501,12 @@ static void msi2500_isoc_cleanup(struct msi2500_state *s)
+ /* Both v4l2_lock and vb_queue_lock should be locked when calling this */
+ static int msi2500_isoc_init(struct msi2500_state *s)
+ {
+-	struct usb_device *udev;
+ 	struct urb *urb;
+ 	int i, j, ret;
+ 
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	s->isoc_errors = 0;
+-	udev = s->udev;
+ 
+ 	ret = usb_set_interface(s->udev, 0, 1);
+ 	if (ret)
+@@ -527,10 +525,11 @@ static int msi2500_isoc_init(struct msi2500_state *s)
+ 		dev_dbg(&s->udev->dev, "Allocated URB at 0x%p\n", urb);
+ 
+ 		urb->interval = 1;
+-		urb->dev = udev;
+-		urb->pipe = usb_rcvisocpipe(udev, 0x81);
++		urb->dev = s->udev;
++		urb->pipe = usb_rcvisocpipe(s->udev, 0x81);
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev, ISO_BUFFER_SIZE,
++		urb->transfer_buffer = usb_alloc_coherent(s->udev,
++				ISO_BUFFER_SIZE,
+ 				GFP_KERNEL, &urb->transfer_dma);
+ 		if (urb->transfer_buffer == NULL) {
+ 			dev_err(&s->udev->dev,
+-- 
+http://palosaari.fi/
 
-Anyway, I suggest you to use the hardware decoder instead of lirc,
-as the in-kernel decoders should be lighter than lirc and works pretty
-well, but this is, of course, your decision. 
-
-Btw, it would make sense, IMHO, to have a way to setup LIRC daemon to
-enable LIRC output on a given remote controller, and, optionally,
-disabling the hardware decoders that are needlessly enabled.
-
-Regards,
-Mauro
