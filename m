@@ -1,73 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59958 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433AbaHANzx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 09:55:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: [PATCH 7/8] omap3isp: ccdc: Don't timeout on stream off when the CCDC is stopped
-Date: Fri,  1 Aug 2014 15:46:33 +0200
-Message-Id: <1406900794-9871-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1406900794-9871-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:37129 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754938AbaHUWLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 18:11:32 -0400
+Date: Fri, 22 Aug 2014 06:10:04 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:devel 498/499]
+ drivers/media/platform/omap/omap_vout.c:209:23: warning: cast to pointer
+ from integer of different size
+Message-ID: <53f66e3c.ojG3YRThX0uS1Tvh%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the CCDC is already stopped due to a buffer underrun, the stop
-state machine won't advance in BT.656 mode as no interrupt are generated
-by the stopped CCDC in that mode. Handle this case explicitly in the
-ccdc_disable() function.
+tree:   git://linuxtv.org/media_tree.git devel
+head:   2558eeda5cd75649a1159aadca530a990b81c4ee
+commit: ace9078f1c07b94332e37a5017bb34097e082e54 [498/499] [media] enable COMPILE_TEST for OMAP2 vout
+config: make ARCH=ia64 allmodconfig
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+All warnings:
+
+   drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_uservirt_to_phys':
+>> drivers/media/platform/omap/omap_vout.c:209:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+      return virt_to_phys((void *) virtp);
+                          ^
+   drivers/media/platform/omap/omap_vout.c: In function 'omapvid_setup_overlay':
+>> drivers/media/platform/omap/omap_vout.c:422:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
+     v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+     ^
+   drivers/media/platform/omap/omap_vout.c: In function 'omap_vout_buffer_prepare':
+>> drivers/media/platform/omap/omap_vout.c:796:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+      vout->queued_buf_addr[vb->i] = (u8 *)
+                                     ^
+   In file included from arch/ia64/include/asm/dma-mapping.h:56:0,
+                    from include/linux/dma-mapping.h:82,
+                    from drivers/media/platform/omap/omap_vout.c:40:
+>> drivers/media/platform/omap/omap_vout.c:805:58: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+      dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
+                                                             ^
+   include/asm-generic/dma-mapping-common.h:174:60: note: in definition of macro 'dma_map_single'
+    #define dma_map_single(d, a, s, r) dma_map_single_attrs(d, a, s, r, NULL)
+                                                               ^
+
+vim +209 drivers/media/platform/omap/omap_vout.c
+
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  193  
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  194  	return bpp;
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  195  }
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  196  
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  197  /*
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  198   * omap_vout_uservirt_to_phys: This inline function is used to convert user
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  199   * space virtual address to physical address.
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  200   */
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  201  static u32 omap_vout_uservirt_to_phys(u32 virtp)
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  202  {
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  203  	unsigned long physp = 0;
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  204  	struct vm_area_struct *vma;
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  205  	struct mm_struct *mm = current->mm;
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  206  
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  207  	/* For kernel direct-mapped memory, take the easy way */
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  208  	if (virtp >= PAGE_OFFSET)
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16 @209  		return virt_to_phys((void *) virtp);
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  210  
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  211  	down_read(&current->mm->mmap_sem);
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  212  	vma = find_vma(mm, virtp);
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  213  	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  214  		/* this will catch, kernel-allocated, mmaped-to-usermode
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  215  		   addresses */
+5c7ab634 drivers/media/video/omap/omap_vout.c    Vaibhav Hiremath 2010-04-11  216  		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+55ee64b3 drivers/media/platform/omap/omap_vout.c Al Viro          2012-12-16  217  		up_read(&current->mm->mmap_sem);
+
+:::::: The code at line 209 was first introduced by commit
+:::::: 55ee64b30a38d688232e5eb2860467dddc493573 [media] omap_vout: find_vma() needs ->mmap_sem held
+
+:::::: TO: Al Viro <viro@ZenIV.linux.org.uk>
+:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+
 ---
- drivers/media/platform/omap3isp/ispccdc.c | 4 ++++
- drivers/media/platform/omap3isp/ispccdc.h | 2 ++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index ff2ea2b..ec0a0e8 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1320,6 +1320,8 @@ static void __ccdc_enable(struct isp_ccdc_device *ccdc, int enable)
- 
- 	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PCR,
- 			ISPCCDC_PCR_EN, enable ? ISPCCDC_PCR_EN : 0);
-+
-+	ccdc->running = enable;
- }
- 
- static int ccdc_disable(struct isp_ccdc_device *ccdc)
-@@ -1330,6 +1332,8 @@ static int ccdc_disable(struct isp_ccdc_device *ccdc)
- 	spin_lock_irqsave(&ccdc->lock, flags);
- 	if (ccdc->state == ISP_PIPELINE_STREAM_CONTINUOUS)
- 		ccdc->stopping = CCDC_STOP_REQUEST;
-+	if (!ccdc->running)
-+		ccdc->stopping = CCDC_STOP_FINISHED;
- 	spin_unlock_irqrestore(&ccdc->lock, flags);
- 
- 	ret = wait_event_timeout(ccdc->wait,
-diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
-index 731ecc7..3440a70 100644
---- a/drivers/media/platform/omap3isp/ispccdc.h
-+++ b/drivers/media/platform/omap3isp/ispccdc.h
-@@ -124,6 +124,7 @@ struct ispccdc_lsc {
-  * @lock: Serializes shadow_update with interrupt handler
-  * @wait: Wait queue used to stop the module
-  * @stopping: Stopping state
-+ * @running: Is the CCDC hardware running
-  * @ioctl_lock: Serializes ioctl calls and LSC requests freeing
-  */
- struct isp_ccdc_device {
-@@ -155,6 +156,7 @@ struct isp_ccdc_device {
- 	spinlock_t lock;
- 	wait_queue_head_t wait;
- 	unsigned int stopping;
-+	bool running;
- 	struct mutex ioctl_lock;
- };
- 
--- 
-1.8.5.5
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
