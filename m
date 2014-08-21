@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:40086 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148AbaHYX5Z (ORCPT
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:64803 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854AbaHUQBB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 19:57:25 -0400
-Date: Tue, 26 Aug 2014 08:57:20 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
- Processing Unit.
-Message-ID: <20140825235720.GB7217@verge.net.au>
-References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
- <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
- <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+	Thu, 21 Aug 2014 12:01:01 -0400
+Received: by mail-ig0-f174.google.com with SMTP id c1so13531582igq.13
+        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 09:01:00 -0700 (PDT)
+Date: Thu, 21 Aug 2014 17:00:54 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	SangYoung Son <hello.son@smasung.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH/RFC v5 2/3] leds: Add support for max77693 mfd flash cell
+Message-ID: <20140821160054.GQ4266@lee--X1>
+References: <1408542221-375-1-git-send-email-j.anaszewski@samsung.com>
+ <1408542221-375-3-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1408542221-375-3-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
-> Hi Mikhail,
-> 
-> On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov
-> <mikhail.ulyanov@cogentembedded.com> wrote:
-> > +  - compatible: should containg one of the following:
-> > +                       - "renesas,jpu-r8a7790" for R-Car H2
-> > +                       - "renesas,jpu-r8a7791" for R-Car M2
-> > +                       - "renesas,jpu-gen2" for R-Car second generation
-> 
-> Isn't "renesas,jpu-gen2" meant as a fallback?
-> 
-> I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
-> so we can make the driver match against '7790 and '7791 is we find
-> out about an incompatibility.
+On Wed, 20 Aug 2014, Jacek Anaszewski wrote:
 
-Is there a document that clearly states that there is such a thing
-as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
+> This patch adds led-flash support to Maxim max77693 chipset.
+> A device can be exposed to user space through LED subsystem
+> sysfs interface or through V4L2 subdevice when the support
+> for V4L2 Flash sub-devices is enabled. Device supports up to
+> two leds which can work in flash and torch mode. Leds can
+> be triggered externally or by software.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: SangYoung Son <hello.son@smasung.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  drivers/leds/Kconfig                 |    9 +
+>  drivers/leds/Makefile                |    1 +
+>  drivers/leds/leds-max77693.c         | 1048 ++++++++++++++++++++++++++++++++++
+>  drivers/mfd/max77693.c               |    5 +-
+>  include/linux/mfd/max77693-private.h |   59 ++
+>  include/linux/mfd/max77693.h         |   40 ++
+
+Please break the MFD changes out into a separate patch, I can't (at
+first glace) see any reason why the changed need to be bundled
+together like this.
+
+[...]
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
