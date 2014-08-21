@@ -1,79 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep17.mx.upcmail.net ([62.179.121.37]:63232 "EHLO
-	fep17.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbaHWLuZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 07:50:25 -0400
-Message-ID: <1408794617.7936.2.camel@bjoern-W35xSTQ-370ST>
-Subject: Re: [PATCH 0/5] Digital Devices PCIe bridge update to 0.9.15a
-From: Bjoern <lkml@call-home.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Date: Sat, 23 Aug 2014 13:50:17 +0200
-In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
-References: <1406951335-24026-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mga14.intel.com ([192.55.52.115]:18533 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755064AbaHUW2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 18:28:07 -0400
+Date: Fri, 22 Aug 2014 06:26:39 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:devel 499/499] drivers/built-in.o:(.bss+0xc7ee2c): multiple definition of `debug'
+Message-ID: <53f6721f.dF2Vb824H5VHU+SC%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+tree:   git://linuxtv.org/media_tree.git devel
+head:   2558eeda5cd75649a1159aadca530a990b81c4ee
+commit: 2558eeda5cd75649a1159aadca530a990b81c4ee [499/499] [media] enable COMPILE_TEST for media drivers
+config: make ARCH=i386 allyesconfig
 
-It's been 3 weeks since these patches were submitted - have they been
-merged yet? If not - what's the problem? Who has to check this?
+All error/warnings:
 
-I'm not the only one longing for driver updated support of ddbridge "by
-default", and it would really be nice if there was some "progress" here.
-Antti did a lot of work here for all us ddbridge users.
+>> drivers/built-in.o:(.bss+0xc7ee2c): multiple definition of `debug'
+   arch/x86/built-in.o:(.entry.text+0xf78): first defined here
+   ld: Warning: size of symbol `debug' changed from 86 in arch/x86/built-in.o to 4 in drivers/built-in.o
 
-Regards,
-Bjoern
-
-On Sa, 2014-08-02 at 06:48 +0300, Antti Palosaari wrote:
-> After cold power-on, my device wasn't able to find DuoFlex C/C2/T/T2
-> Expansion card, which I added yesterday. I looked old and new drivers
-> and tried many things, but no success. Old kernel driver was ages,
-> many years, behind manufacturer current Linux driver and there has
-> been a tons of changes. So I ended up upgrading Linux kernel driver
-> to 0.9.15a (it was 0.5).
-> 
-> Now it is very near Digital Devices official driver, only modulator
-> and network streaming stuff is removed and CI is abusing SEC like
-> earlier also.
-> 
-> Few device models are not supported due to missing kernel driver or
-> missing device profile. Those devices are based of following DTV
-> frontend chipsets:
-> MaxLinear MxL5xx
-> STMicroelectronics STV0910
-> STMicroelectronics STV0367
-> 
-> 
-> Tree for testing is here:
-> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=digitaldevices
-> 
-> regards
-> Antti
-> 
-> 
-> Antti Palosaari (5):
->   cxd2843: do not call get_if_frequency() when it is NULL
->   ddbridge: disable driver building
->   ddbridge: remove driver temporarily
->   ddbridge: add needed files from manufacturer driver 0.9.15a
->   ddbridge: clean up driver for release
-> 
->  drivers/media/dvb-frontends/cxd2843.c      |    3 +-
->  drivers/media/pci/ddbridge/Makefile        |    2 -
->  drivers/media/pci/ddbridge/ddbridge-core.c | 3175 +++++++++++++++++++---------
->  drivers/media/pci/ddbridge/ddbridge-i2c.c  |  232 ++
->  drivers/media/pci/ddbridge/ddbridge-regs.h |  347 ++-
->  drivers/media/pci/ddbridge/ddbridge.c      |  456 ++++
->  drivers/media/pci/ddbridge/ddbridge.h      |  407 +++-
->  7 files changed, 3518 insertions(+), 1104 deletions(-)
->  create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
->  create mode 100644 drivers/media/pci/ddbridge/ddbridge.c
-> 
-
-
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
