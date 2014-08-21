@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51135 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753119AbaHSNC6 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:43861 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753468AbaHUIim (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:02:58 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
-Date: Tue, 19 Aug 2014 15:02:41 +0200
-Message-Id: <1408453366-1366-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 21 Aug 2014 04:38:42 -0400
+Message-id: <53F5B00A.8020909@samsung.com>
+Date: Thu, 21 Aug 2014 10:38:34 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2 flash
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
+ <53CCF59E.3070200@iki.fi> <53DF9C2A.8060403@samsung.com>
+ <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
+ <53E8C4BA.6050805@samsung.com>
+ <20140814043436.GM16460@valkosipuli.retiisi.org.uk>
+ <53EC7278.6040101@samsung.com>
+ <20140820144110.GT16460@valkosipuli.retiisi.org.uk>
+In-reply-to: <20140820144110.GT16460@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Decrementing the reference count of the previous endpoint node allows to
-use the of_graph_get_next_endpoint function in a for_each_... style macro.
-Prior to this patch, all current users of this function that actually pass
-a non-NULL prev parameter should be changed to not decrement the passed
-prev argument's refcount themselves.
+Hi Sakari,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/of/base.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+On 08/20/2014 04:41 PM, Sakari Ailus wrote:
+> Hi Jacek,
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index d8574ad..a49b5628 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
-  * @prev: previous endpoint node, or NULL to get first
-  *
-  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-- * of the passed @prev node is not decremented, the caller have to use
-- * of_node_put() on it when done.
-+ * of the passed @prev node is decremented.
-  */
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *prev)
-@@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
- 			      __func__, prev->full_name))
- 			return NULL;
--
--		/*
--		 * Avoid dropping prev node refcount to 0 when getting the next
--		 * child below.
--		 */
--		of_node_get(prev);
- 	}
- 
- 	while (1) {
--- 
-2.1.0.rc1
+[...]
+>>>>
+>>>> LED Class Flash driver gains V4L2 Flash API when
+>>>> CONFIG_V4L2_FLASH_LED_CLASS is defined. This is accomplished in
+>>>> the probe function by either calling v4l2_flash_init function
+>>>> or the macro of this name, when the CONFIG_V4L2_FLASH_LED_CLASS
+>>>> macro isn't defined.
+>>>>
+>>>> If the v4l2-flash.c was to call the LED API directly, then the
+>>>> led-class-flash module symbols would have to be available at
+>>>> v4l2-flash.o linking time.
+>>>
+>>> Is this an issue? EXPORT_SYMBOL_GPL() for the relevant symbols should be
+>>> enough.
+>>
+>> It isn't enough. If I call e.g. led_set_flash_brightness
+>> directly from v4l2-flash.c and configure led-class-flash to be built as
+>> a module then I am getting "undefined reference to
+>> led_set_flash_brightness" error during linking phase.
+>
+> You should not. You also should change the check as (unless you've changed
+> it already):
+>
+> #if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
+>
+> This will evaluate to non-zero if the macro arguent or the argument
+> postfixed with "_MODULE" is defined.
+
+I've missed this macro. Indeed, it is possible to avoid the need
+for ops with it. I will fix it in the next version of the patch set.
+Thanks for the hint.
+
+Best Regards,
+Jacek Anaszewski
 
