@@ -1,64 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52177 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754829AbaHERA0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 13:00:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 11/15] [media] coda: improve allocation error messages
-Date: Tue,  5 Aug 2014 19:00:16 +0200
-Message-Id: <1407258020-12078-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
-References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:49175 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750989AbaHUJZC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 05:25:02 -0400
+Received: by mail-pa0-f41.google.com with SMTP id rd3so13908395pab.0
+        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 02:25:01 -0700 (PDT)
+From: Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH v2 0/3] Introduce hix5hd2 IR transmitter driver
+Date: Thu, 21 Aug 2014 17:24:42 +0800
+Message-Id: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Produce some error messages when internal buffer allocation
-fails, for example because the CMA region is too small.
+v2:
+Rebase to 3.17-rc1, solve two issues:
+a) rc_set_allowed_protocols is deprecated
+b) rc-ir-raw.c add empty change_protocol, which block using all protocol
+For example, when rdev->map_name = RC_MAP_LIRC, ir-nec-decoder can not be used.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 4 +++-
- drivers/media/platform/coda/coda-common.c | 6 +++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Guoxiong Yan (2):
+  rc: Add DT bindings for hix5hd2
+  rc: Introduce hix5hd2 IR transmitter driver
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index fddd10d..529cc3e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1378,8 +1378,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
- 	}
- 
- 	ret = coda_alloc_framebuffers(ctx, q_data_dst, src_fourcc);
--	if (ret < 0)
-+	if (ret < 0) {
-+		v4l2_err(&dev->v4l2_dev, "failed to allocate framebuffers\n");
- 		return ret;
-+	}
- 
- 	/* Tell the decoder how many frame buffers we allocated. */
- 	coda_write(dev, ctx->num_internal_frames, CODA_CMD_SET_FRAME_BUF_NUM);
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 7311452..0f8a2c9 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -971,8 +971,12 @@ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
- {
- 	buf->vaddr = dma_alloc_coherent(&dev->plat_dev->dev, size, &buf->paddr,
- 					GFP_KERNEL);
--	if (!buf->vaddr)
-+	if (!buf->vaddr) {
-+		v4l2_err(&dev->v4l2_dev,
-+			 "Failed to allocate %s buffer of size %u\n",
-+			 name, size);
- 		return -ENOMEM;
-+	}
- 
- 	buf->size = size;
- 
+Zhangfei Gao (1):
+  [media] rc: remove change_protocol in rc-ir-raw.c
+
+ .../devicetree/bindings/media/hix5hd2-ir.txt       |   21 ++
+ drivers/media/rc/Kconfig                           |   11 +
+ drivers/media/rc/Makefile                          |    1 +
+ drivers/media/rc/ir-hix5hd2.c                      |  347 ++++++++++++++++++++
+ drivers/media/rc/rc-ir-raw.c                       |    7 -
+ 5 files changed, 380 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/hix5hd2-ir.txt
+ create mode 100644 drivers/media/rc/ir-hix5hd2.c
+
 -- 
-2.0.1
+1.7.9.5
 
