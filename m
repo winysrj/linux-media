@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.228]:36031 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756256AbaHYSHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 14:07:14 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/3] si2157: change command for sleep
-Date: Mon, 25 Aug 2014 21:07:02 +0300
-Message-Id: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:33082 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556AbaHUQCj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 12:02:39 -0400
+Received: by mail-ie0-f170.google.com with SMTP id rl12so4951386iec.29
+        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 09:02:39 -0700 (PDT)
+Date: Thu, 21 Aug 2014 17:02:32 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	SangYoung Son <hello.son@smasung.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH/RFC v5 1/3] mfd: max77693: Fix register enum name
+Message-ID: <20140821160232.GR4266@lee--X1>
+References: <1408542221-375-1-git-send-email-j.anaszewski@samsung.com>
+ <1408542221-375-2-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1408542221-375-2-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of sending command 13 to the tuner, send command 16 when sleeping. This 
-behaviour is observed when using manufacturer provided binary-only Linux driver 
-for TechnoTrend CT2-4400 (Windows driver does not do power management).
+On Wed, 20 Aug 2014, Jacek Anaszewski wrote:
+> According to the MAX77693 documentation the name of
+> the register is FLASH_STATUS.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: SangYoung Son <hello.son@smasung.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  include/linux/mfd/max77693-private.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-The issue with command 13 is that firmware loading is necessary after that. 
-This is not an issue with tuners that do not require firmware, but resuming 
-from sleep on an Si2158 takes noticeable time as firmware is loaded on resume.
+Applied, thanks.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/tuners/si2157.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+> diff --git a/include/linux/mfd/max77693-private.h b/include/linux/mfd/max77693-private.h
+> index c466ff3..615f121 100644
+> --- a/include/linux/mfd/max77693-private.h
+> +++ b/include/linux/mfd/max77693-private.h
+> @@ -46,7 +46,7 @@ enum max77693_pmic_reg {
+>  	MAX77693_LED_REG_VOUT_FLASH2			= 0x0C,
+>  	MAX77693_LED_REG_FLASH_INT			= 0x0E,
+>  	MAX77693_LED_REG_FLASH_INT_MASK			= 0x0F,
+> -	MAX77693_LED_REG_FLASH_INT_STATUS		= 0x10,
+> +	MAX77693_LED_REG_FLASH_STATUS			= 0x10,
+>  
+>  	MAX77693_PMIC_REG_PMIC_ID1			= 0x20,
+>  	MAX77693_PMIC_REG_PMIC_ID2			= 0x21,
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index efb5cce..c84f7b8 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -197,9 +197,10 @@ static int si2157_sleep(struct dvb_frontend *fe)
- 
- 	s->active = false;
- 
--	memcpy(cmd.args, "\x13", 1);
--	cmd.wlen = 1;
--	cmd.rlen = 0;
-+	/* standby */
-+	memcpy(cmd.args, "\x16\x00", 2);
-+	cmd.wlen = 2;
-+	cmd.rlen = 1;
- 	ret = si2157_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
 -- 
-1.9.1
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
