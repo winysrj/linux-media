@@ -1,135 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:25428 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbaHTNma (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:42:30 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v5 3/4] leds: add API for setting torch brightness
-Date: Wed, 20 Aug 2014 15:41:57 +0200
-Message-id: <1408542118-32723-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46717 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753468AbaHUIwU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 04:52:20 -0400
+Message-ID: <53F5B341.1090401@iki.fi>
+Date: Thu, 21 Aug 2014 11:52:17 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@narod.ru>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] si2168: DVB-T2 PLP selection implemented
+References: <7423442.VCBAbZjIjj@computer>
+In-Reply-To: <7423442.VCBAbZjIjj@computer>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch prepares ground for addition of LED Flash Class extension to
-the LED subsystem. Since turning the torch on must have guaranteed
-immediate effect the brightness_set op can't be used for it. Drivers must
-schedule a work queue task in this op to be compatible with led-triggers,
-which call brightess_set from timer irqs. In order to address this
-limitation a torch_brightness_set op and led_set_torch_brightness API
-is introduced. Setting brightness sysfs attribute will result in calling
-brightness_set op for LED Class devices and torch_brightness_set op for
-LED Flash Class devices, whereas triggers will still call brightness
-op in both cases.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- drivers/leds/led-class.c |    9 +++++++--
- drivers/leds/led-core.c  |   14 ++++++++++++++
- include/linux/leds.h     |   21 +++++++++++++++++++++
- 3 files changed, 42 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
-index 0bc0ba9..f640da9 100644
---- a/drivers/leds/led-class.c
-+++ b/drivers/leds/led-class.c
-@@ -56,9 +56,14 @@ static ssize_t brightness_store(struct device *dev,
- 
- 	if (state == LED_OFF)
- 		led_trigger_remove(led_cdev);
--	__led_set_brightness(led_cdev, state);
- 
--	ret = size;
-+	if (led_cdev->flags & LED_DEV_CAP_TORCH)
-+		ret = led_set_torch_brightness(led_cdev, state);
-+	else
-+		__led_set_brightness(led_cdev, state);
-+
-+	if (!ret)
-+		ret = size;
- unlock:
- #ifdef CONFIG_V4L2_FLASH_LED_CLASS
- 	mutex_unlock(&led_cdev->led_lock);
-diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
-index 4649ea5..093265f 100644
---- a/drivers/leds/led-core.c
-+++ b/drivers/leds/led-core.c
-@@ -144,6 +144,20 @@ int led_update_brightness(struct led_classdev *led_cdev)
- }
- EXPORT_SYMBOL(led_update_brightness);
- 
-+int led_set_torch_brightness(struct led_classdev *led_cdev,
-+				enum led_brightness brightness)
-+{
-+	int ret = 0;
-+
-+	led_cdev->brightness = min(brightness, led_cdev->max_brightness);
-+
-+	if (!(led_cdev->flags & LED_SUSPENDED))
-+		ret = led_cdev->torch_brightness_set(led_cdev,
-+						     led_cdev->brightness);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(led_set_torch_brightness);
-+
- /* Caller must ensure led_cdev->led_lock held */
- void led_sysfs_lock(struct led_classdev *led_cdev)
- {
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index ef343f1..df0715c 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -43,11 +43,21 @@ struct led_classdev {
- #define LED_BLINK_ONESHOT_STOP	(1 << 18)
- #define LED_BLINK_INVERT	(1 << 19)
- #define LED_SYSFS_LOCK		(1 << 20)
-+#define LED_DEV_CAP_TORCH	(1 << 21)
- 
- 	/* Set LED brightness level */
- 	/* Must not sleep, use a workqueue if needed */
- 	void		(*brightness_set)(struct led_classdev *led_cdev,
- 					  enum led_brightness brightness);
-+	/*
-+	 * Set LED brightness immediately - it is required for flash led
-+	 * devices as they require setting torch brightness to have immediate
-+	 * effect. brightness_set op cannot be used for this purpose because
-+	 * the led drivers schedule a work queue task in it to allow for
-+	 * being called from led-triggers, i.e. from the timer irq context.
-+	 */
-+	int		(*torch_brightness_set)(struct led_classdev *led_cdev,
-+					enum led_brightness brightness);
- 	/* Get LED brightness level */
- 	enum led_brightness (*brightness_get)(struct led_classdev *led_cdev);
- 
-@@ -156,6 +166,17 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
- extern int led_update_brightness(struct led_classdev *led_cdev);
- 
- /**
-+ * led_set_torch_brightness - set torch LED brightness
-+ * @led_cdev: the LED to set
-+ * @brightness: the brightness to set it to
-+ *
-+ * Returns: 0 on success or negative error value on failure
-+ *
-+ * Set a torch LED's brightness.
-+ */
-+extern int led_set_torch_brightness(struct led_classdev *led_cdev,
-+					enum led_brightness brightness);
-+/**
-  * led_sysfs_lock - lock LED sysfs interface
-  * @led_cdev: the LED to set
-  *
+On 08/17/2014 12:33 AM, CrazyCat wrote:
+> DVB-T2 PLP selection implemented for Si2168 demod.
+> Tested with PCTV 292e.
+>
+> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+> ---
+>   drivers/media/dvb-frontends/si2168.c | 16 ++++++++++++++--
+>   1 file changed, 14 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 37f3f92..9c41281 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -168,10 +168,10 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>   	u8 bandwidth, delivery_system;
+>
+>   	dev_dbg(&s->client->dev,
+> -			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u\n",
+> +			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
+>   			__func__, c->delivery_system, c->modulation,
+>   			c->frequency, c->bandwidth_hz, c->symbol_rate,
+> -			c->inversion);
+> +			c->inversion, c->stream_id);
+>
+>   	if (!s->active) {
+>   		ret = -EAGAIN;
+> @@ -235,6 +235,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> +	if (c->delivery_system == SYS_DVBT2) {
+> +		/* select PLP */
+> +		cmd.args[0] = 0x52;
+> +		cmd.args[1] = c->stream_id & 0xff;
+> +		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
+> +		cmd.wlen = 3;
+> +		cmd.rlen = 1;
+> +		ret = si2168_cmd_execute(s, &cmd);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+>   	memcpy(cmd.args, "\x51\x03", 2);
+>   	cmd.wlen = 2;
+>   	cmd.rlen = 12;
+>
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
