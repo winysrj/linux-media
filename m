@@ -1,94 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48650 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752320AbaHCMFI (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3924 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753883AbaHUUTz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Aug 2014 08:05:08 -0400
-Date: Sun, 3 Aug 2014 15:04:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: davinci: vpif: fix array out of bound warnings
-Message-ID: <20140803120432.GZ16460@valkosipuli.retiisi.org.uk>
-References: <1405701111-26983-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1405701111-26983-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 21 Aug 2014 16:19:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 10/12] em28xx: fix sparse warnings
+Date: Thu, 21 Aug 2014 22:19:34 +0200
+Message-Id: <1408652376-39525-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, Jul 18, 2014 at 05:31:51PM +0100, Lad, Prabhakar wrote:
-> This patch fixes following array out of bound warnings,
-> 
-> drivers/media/platform/davinci/vpif_display.c: In function 'vpif_remove':
-> drivers/media/platform/davinci/vpif_display.c:1389:36: warning: iteration
-> 1u invokes undefined behavior [-Waggressive-loop-optimizations]
->    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->                                     ^
-> drivers/media/platform/davinci/vpif_display.c:1385:2: note: containing loop
->   for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
->   ^
-> drivers/media/platform/davinci/vpif_capture.c: In function 'vpif_remove':
-> drivers/media/platform/davinci/vpif_capture.c:1581:36: warning: iteration
-> 1u invokes undefined behavior [-Waggressive-loop-optimizations]
->    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->                                     ^
-> drivers/media/platform/davinci/vpif_capture.c:1577:2: note: containing loop
->   for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
->   ^
-> drivers/media/platform/davinci/vpif_capture.c:1580:23: warning: array subscript
-> is above array bounds [-Warray-bounds]
->    common = &ch->common[i];
-> 
-> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c | 2 +-
->  drivers/media/platform/davinci/vpif_display.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index 2f90f0d..3a85238 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1577,7 +1577,7 @@ static int vpif_remove(struct platform_device *device)
->  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
-> -		common = &ch->common[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
+drivers/media/usb/em28xx/em28xx-core.c:297:16: warning: cast to restricted __le16
+drivers/media/usb/em28xx/em28xx-cards.c:2249:20: warning: symbol 'em28xx_bcount' was not declared. Should it be static?
 
-You could refer to the alloc_ctz directly w/o extra local variables. Also
-local variables that are only used inside the loop could be declared there
-as well.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 2 +-
+ drivers/media/usb/em28xx/em28xx-core.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
->  		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-> index 0bd6dcb..6c6bd6b 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -1385,7 +1385,7 @@ static int vpif_remove(struct platform_device *device)
->  	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
-> -		common = &ch->common[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
->  		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index a7e24848..230d6a2 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2246,7 +2246,7 @@ struct em28xx_board em28xx_boards[] = {
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
+ 
+-const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
++static const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+ 
+ /* table of devices that work with this driver */
+ struct usb_device_id em28xx_id_table[] = {
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 523d7e9..225a735 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -279,7 +279,7 @@ int em28xx_read_ac97(struct em28xx *dev, u8 reg)
+ {
+ 	int ret;
+ 	u8 addr = (reg & 0x7f) | 0x80;
+-	u16 val;
++	__le16 val;
+ 
+ 	ret = em28xx_is_ac97_ready(dev);
+ 	if (ret < 0)
 -- 
-Kind regards,
+2.1.0.rc1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
