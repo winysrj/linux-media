@@ -1,105 +1,553 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:64082 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbaHDMfb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 08:35:31 -0400
-Message-id: <53DF7E0E.2060705@samsung.com>
-Date: Mon, 04 Aug 2014 14:35:26 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH/RFC v4 06/21] leds: add API for setting torch brightness
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
- <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
- <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
-In-reply-to: <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:36064 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756116AbaHVK6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:32 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 18/21] m88ts2022: convert to RegMap I2C API
+Date: Fri, 22 Aug 2014 13:58:10 +0300
+Message-Id: <1408705093-5167-19-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Use RegMap to cover I2C register routines.
 
-On 07/16/2014 11:54 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> Jacek Anaszewski wrote:
-> ...
->> diff --git a/include/linux/leds.h b/include/linux/leds.h
->> index 1a130cc..9bea9e6 100644
->> --- a/include/linux/leds.h
->> +++ b/include/linux/leds.h
->> @@ -44,11 +44,21 @@ struct led_classdev {
->>   #define LED_BLINK_ONESHOT_STOP    (1 << 18)
->>   #define LED_BLINK_INVERT    (1 << 19)
->>   #define LED_SYSFS_LOCK        (1 << 20)
->> +#define LED_DEV_CAP_TORCH    (1 << 21)
->>
->>       /* Set LED brightness level */
->>       /* Must not sleep, use a workqueue if needed */
->>       void        (*brightness_set)(struct led_classdev *led_cdev,
->>                         enum led_brightness brightness);
->> +    /*
->> +     * Set LED brightness immediately - it is required for flash led
->> +     * devices as they require setting torch brightness to have
->> immediate
->> +     * effect. brightness_set op cannot be used for this purpose because
->> +     * the led drivers schedule a work queue task in it to allow for
->> +     * being called from led-triggers, i.e. from the timer irq context.
->> +     */
->
-> Do we need to classify actual devices based on this? I think it's rather
-> a different API behaviour between the LED and the V4L2 APIs.
->
-> On devices that are slow to control, the behaviour should be asynchronous
-> over the LED API and synchronous when accessed through the V4L2 API. How
-> about implementing the work queue, as I have suggested, in the
-> framework, so
-> that individual drivers don't need to care about this and just implement
-> the
-> synchronous variant of this op? A flag could be added to distinguish
-> devices
-> that are fast so that the work queue isn't needed.
->
-> It'd be nice to avoid individual drivers having to implement multiple
-> ops to
-> do the same thing, just for differing user space interfacs.
->
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/Kconfig          |   1 +
+ drivers/media/tuners/m88ts2022.c      | 231 ++++++++++------------------------
+ drivers/media/tuners/m88ts2022_priv.h |   2 +
+ 3 files changed, 69 insertions(+), 165 deletions(-)
 
-It is not only the matter of a device controller speed. If a flash
-device is to be made accessible from the LED subsystem, then it
-should be also compatible with led-triggers. Some of led-triggers
-call brightness_set op from the timer irq context and thus no
-locking in the callback can occur. This requirement cannot be
-met i.e. if i2c bus is to be used. This is probably the primary
-reason for scheduling work queue tasks in brightness_set op.
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index d79fd1c..8319996 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -226,6 +226,7 @@ config MEDIA_TUNER_FC2580
+ config MEDIA_TUNER_M88TS2022
+ 	tristate "Montage M88TS2022 silicon tuner"
+ 	depends on MEDIA_SUPPORT && I2C
++	select REGMAP_I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Montage M88TS2022 silicon tuner driver.
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index dd179ff..04d3979 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -18,120 +18,12 @@
+ 
+ #include "m88ts2022_priv.h"
+ 
+-/* write multiple registers */
+-static int m88ts2022_wr_regs(struct m88ts2022 *s,
+-		u8 reg, const u8 *val, int len)
+-{
+-#define MAX_WR_LEN 3
+-#define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
+-	int ret;
+-	u8 buf[MAX_WR_XFER_LEN];
+-	struct i2c_msg msg[1] = {
+-		{
+-			.addr = s->client->addr,
+-			.flags = 0,
+-			.len = 1 + len,
+-			.buf = buf,
+-		}
+-	};
+-
+-	if (WARN_ON(len > MAX_WR_LEN))
+-		return -EINVAL;
+-
+-	buf[0] = reg;
+-	memcpy(&buf[1], val, len);
+-
+-	ret = i2c_transfer(s->client->adapter, msg, 1);
+-	if (ret == 1) {
+-		ret = 0;
+-	} else {
+-		dev_warn(&s->client->dev,
+-				"i2c wr failed=%d reg=%02x len=%d\n",
+-				ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
+-
+-	return ret;
+-}
+-
+-/* read multiple registers */
+-static int m88ts2022_rd_regs(struct m88ts2022 *s, u8 reg,
+-		u8 *val, int len)
+-{
+-#define MAX_RD_LEN 1
+-#define MAX_RD_XFER_LEN (MAX_RD_LEN)
+-	int ret;
+-	u8 buf[MAX_RD_XFER_LEN];
+-	struct i2c_msg msg[2] = {
+-		{
+-			.addr = s->client->addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = &reg,
+-		}, {
+-			.addr = s->client->addr,
+-			.flags = I2C_M_RD,
+-			.len = len,
+-			.buf = buf,
+-		}
+-	};
+-
+-	if (WARN_ON(len > MAX_RD_LEN))
+-		return -EINVAL;
+-
+-	ret = i2c_transfer(s->client->adapter, msg, 2);
+-	if (ret == 2) {
+-		memcpy(val, buf, len);
+-		ret = 0;
+-	} else {
+-		dev_warn(&s->client->dev,
+-				"i2c rd failed=%d reg=%02x len=%d\n",
+-				ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
+-
+-	return ret;
+-}
+-
+-/* write single register */
+-static int m88ts2022_wr_reg(struct m88ts2022 *s, u8 reg, u8 val)
+-{
+-	return m88ts2022_wr_regs(s, reg, &val, 1);
+-}
+-
+-/* read single register */
+-static int m88ts2022_rd_reg(struct m88ts2022 *s, u8 reg, u8 *val)
+-{
+-	return m88ts2022_rd_regs(s, reg, val, 1);
+-}
+-
+-/* write single register with mask */
+-static int m88ts2022_wr_reg_mask(struct m88ts2022 *s,
+-		u8 reg, u8 val, u8 mask)
+-{
+-	int ret;
+-	u8 u8tmp;
+-
+-	/* no need for read if whole reg is written */
+-	if (mask != 0xff) {
+-		ret = m88ts2022_rd_regs(s, reg, &u8tmp, 1);
+-		if (ret)
+-			return ret;
+-
+-		val &= mask;
+-		u8tmp &= ~mask;
+-		val |= u8tmp;
+-	}
+-
+-	return m88ts2022_wr_regs(s, reg, &val, 1);
+-}
+-
+ static int m88ts2022_cmd(struct dvb_frontend *fe,
+ 		int op, int sleep, u8 reg, u8 mask, u8 val, u8 *reg_val)
+ {
+ 	struct m88ts2022 *s = fe->tuner_priv;
+ 	int ret, i;
+-	u8 u8tmp;
++	unsigned int utmp;
+ 	struct m88ts2022_reg_val reg_vals[] = {
+ 		{0x51, 0x1f - op},
+ 		{0x51, 0x1f},
+@@ -145,7 +37,7 @@ static int m88ts2022_cmd(struct dvb_frontend *fe,
+ 				i, op, reg, mask, val);
+ 
+ 		for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
+-			ret = m88ts2022_wr_reg(s, reg_vals[i].reg,
++			ret = regmap_write(s->regmap, reg_vals[i].reg,
+ 					reg_vals[i].val);
+ 			if (ret)
+ 				goto err;
+@@ -153,16 +45,16 @@ static int m88ts2022_cmd(struct dvb_frontend *fe,
+ 
+ 		usleep_range(sleep * 1000, sleep * 10000);
+ 
+-		ret = m88ts2022_rd_reg(s, reg, &u8tmp);
++		ret = regmap_read(s->regmap, reg, &utmp);
+ 		if (ret)
+ 			goto err;
+ 
+-		if ((u8tmp & mask) != val)
++		if ((utmp & mask) != val)
+ 			break;
+ 	}
+ 
+ 	if (reg_val)
+-		*reg_val = u8tmp;
++		*reg_val = utmp;
+ err:
+ 	return ret;
+ }
+@@ -172,7 +64,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	struct m88ts2022 *s = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+-	unsigned int frequency_khz, frequency_offset_khz, f_3db_hz;
++	unsigned int utmp, frequency_khz, frequency_offset_khz, f_3db_hz;
+ 	unsigned int f_ref_khz, f_vco_khz, div_ref, div_out, pll_n, gdiv28;
+ 	u8 buf[3], u8tmp, cap_code, lpf_gm, lpf_mxdiv, div_max, div_min;
+ 	u16 u16tmp;
+@@ -204,7 +96,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 
+ 	buf[0] = u8tmp;
+ 	buf[1] = 0x40;
+-	ret = m88ts2022_wr_regs(s, 0x10, buf, 2);
++	ret = regmap_bulk_write(s->regmap, 0x10, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -223,7 +115,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	buf[0] = (u16tmp >> 8) & 0x3f;
+ 	buf[1] = (u16tmp >> 0) & 0xff;
+ 	buf[2] = div_ref - 8;
+-	ret = m88ts2022_wr_regs(s, 0x01, buf, 3);
++	ret = regmap_bulk_write(s->regmap, 0x01, buf, 3);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -236,17 +128,17 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_rd_reg(s, 0x14, &u8tmp);
++	ret = regmap_read(s->regmap, 0x14, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	u8tmp &= 0x7f;
+-	if (u8tmp < 64) {
+-		ret = m88ts2022_wr_reg_mask(s, 0x10, 0x80, 0x80);
++	utmp &= 0x7f;
++	if (utmp < 64) {
++		ret = regmap_update_bits(s->regmap, 0x10, 0x80, 0x80);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = m88ts2022_wr_reg(s, 0x11, 0x6f);
++		ret = regmap_write(s->regmap, 0x11, 0x6f);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -255,13 +147,13 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	ret = m88ts2022_rd_reg(s, 0x14, &u8tmp);
++	ret = regmap_read(s->regmap, 0x14, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	u8tmp &= 0x1f;
+-	if (u8tmp > 19) {
+-		ret = m88ts2022_wr_reg_mask(s, 0x10, 0x00, 0x02);
++	utmp &= 0x1f;
++	if (utmp > 19) {
++		ret = regmap_update_bits(s->regmap, 0x10, 0x02, 0x00);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -270,26 +162,26 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x25, 0x00);
++	ret = regmap_write(s->regmap, 0x25, 0x00);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x27, 0x70);
++	ret = regmap_write(s->regmap, 0x27, 0x70);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x41, 0x09);
++	ret = regmap_write(s->regmap, 0x41, 0x09);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x08, 0x0b);
++	ret = regmap_write(s->regmap, 0x08, 0x0b);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* filters */
+ 	gdiv28 = DIV_ROUND_CLOSEST(f_ref_khz * 1694U, 1000000U);
+ 
+-	ret = m88ts2022_wr_reg(s, 0x04, gdiv28);
++	ret = regmap_write(s->regmap, 0x04, gdiv28);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -299,7 +191,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 
+ 	cap_code = u8tmp & 0x3f;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x41, 0x0d);
++	ret = regmap_write(s->regmap, 0x41, 0x0d);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -327,11 +219,11 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 		lpf_mxdiv = DIV_ROUND_CLOSEST(++lpf_gm * LPF_COEFF * f_ref_khz, f_3db_hz);
+ 	lpf_mxdiv = clamp_val(lpf_mxdiv, 0U, div_max);
+ 
+-	ret = m88ts2022_wr_reg(s, 0x04, lpf_mxdiv);
++	ret = regmap_write(s->regmap, 0x04, lpf_mxdiv);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x06, lpf_gm);
++	ret = regmap_write(s->regmap, 0x06, lpf_gm);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -341,7 +233,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 
+ 	cap_code = u8tmp & 0x3f;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x41, 0x09);
++	ret = regmap_write(s->regmap, 0x41, 0x09);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -353,15 +245,15 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	cap_code = (cap_code + u8tmp) / 2;
+ 
+ 	u8tmp = cap_code | 0x80;
+-	ret = m88ts2022_wr_reg(s, 0x25, u8tmp);
++	ret = regmap_write(s->regmap, 0x25, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x27, 0x30);
++	ret = regmap_write(s->regmap, 0x27, 0x30);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x08, 0x09);
++	ret = regmap_write(s->regmap, 0x08, 0x09);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -396,11 +288,11 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "\n");
+ 
+-	ret = m88ts2022_wr_reg(s, 0x00, 0x01);
++	ret = regmap_write(s->regmap, 0x00, 0x01);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x00, 0x03);
++	ret = regmap_write(s->regmap, 0x00, 0x03);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -410,7 +302,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 		break;
+ 	case M88TS2022_CLOCK_OUT_ENABLED:
+ 		u8tmp = 0x70;
+-		ret = m88ts2022_wr_reg(s, 0x05, s->cfg.clock_out_div);
++		ret = regmap_write(s->regmap, 0x05, s->cfg.clock_out_div);
+ 		if (ret)
+ 			goto err;
+ 		break;
+@@ -421,7 +313,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	ret = m88ts2022_wr_reg(s, 0x42, u8tmp);
++	ret = regmap_write(s->regmap, 0x42, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -430,12 +322,12 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 	else
+ 		u8tmp = 0x6c;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x62, u8tmp);
++	ret = regmap_write(s->regmap, 0x62, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
+-		ret = m88ts2022_wr_reg(s, reg_vals[i].reg, reg_vals[i].val);
++		ret = regmap_write(s->regmap, reg_vals[i].reg, reg_vals[i].val);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -452,7 +344,7 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "\n");
+ 
+-	ret = m88ts2022_wr_reg(s, 0x00, 0x00);
++	ret = regmap_write(s->regmap, 0x00, 0x00);
+ 	if (ret)
+ 		goto err;
+ err:
+@@ -485,29 +377,28 @@ static int m88ts2022_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+ 	struct m88ts2022 *s = fe->tuner_priv;
+ 	int ret;
+-	u8 u8tmp;
+ 	u16 gain, u16tmp;
+-	unsigned int gain1, gain2, gain3;
++	unsigned int utmp, gain1, gain2, gain3;
+ 
+-	ret = m88ts2022_rd_reg(s, 0x3d, &u8tmp);
++	ret = regmap_read(s->regmap, 0x3d, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	gain1 = (u8tmp >> 0) & 0x1f;
++	gain1 = (utmp >> 0) & 0x1f;
+ 	gain1 = clamp(gain1, 0U, 15U);
+ 
+-	ret = m88ts2022_rd_reg(s, 0x21, &u8tmp);
++	ret = regmap_read(s->regmap, 0x21, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	gain2 = (u8tmp >> 0) & 0x1f;
++	gain2 = (utmp >> 0) & 0x1f;
+ 	gain2 = clamp(gain2, 2U, 16U);
+ 
+-	ret = m88ts2022_rd_reg(s, 0x66, &u8tmp);
++	ret = regmap_read(s->regmap, 0x66, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	gain3 = (u8tmp >> 3) & 0x07;
++	gain3 = (utmp >> 3) & 0x07;
+ 	gain3 = clamp(gain3, 0U, 6U);
+ 
+ 	gain = gain1 * 265 + gain2 * 338 + gain3 * 285;
+@@ -546,7 +437,12 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	struct dvb_frontend *fe = cfg->fe;
+ 	struct m88ts2022 *s;
+ 	int ret;
+-	u8 chip_id, u8tmp;
++	u8 u8tmp;
++	unsigned int utmp;
++	static const struct regmap_config regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++	};
+ 
+ 	s = kzalloc(sizeof(*s), GFP_KERNEL);
+ 	if (!s) {
+@@ -557,33 +453,38 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 
+ 	memcpy(&s->cfg, cfg, sizeof(struct m88ts2022_config));
+ 	s->client = client;
++	s->regmap = devm_regmap_init_i2c(client, &regmap_config);
++	if (IS_ERR(s->regmap)) {
++		ret = PTR_ERR(s->regmap);
++		goto err;
++	}
+ 
+ 	/* check if the tuner is there */
+-	ret = m88ts2022_rd_reg(s, 0x00, &u8tmp);
++	ret = regmap_read(s->regmap, 0x00, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	if ((u8tmp & 0x03) == 0x00) {
+-		ret = m88ts2022_wr_reg(s, 0x00, 0x01);
+-		if (ret < 0)
++	if ((utmp & 0x03) == 0x00) {
++		ret = regmap_write(s->regmap, 0x00, 0x01);
++		if (ret)
+ 			goto err;
+ 
+ 		usleep_range(2000, 50000);
+ 	}
+ 
+-	ret = m88ts2022_wr_reg(s, 0x00, 0x03);
++	ret = regmap_write(s->regmap, 0x00, 0x03);
+ 	if (ret)
+ 		goto err;
+ 
+ 	usleep_range(2000, 50000);
+ 
+-	ret = m88ts2022_rd_reg(s, 0x00, &chip_id);
++	ret = regmap_read(s->regmap, 0x00, &utmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_dbg(&s->client->dev, "chip_id=%02x\n", chip_id);
++	dev_dbg(&s->client->dev, "chip_id=%02x\n", utmp);
+ 
+-	switch (chip_id) {
++	switch (utmp) {
+ 	case 0xc3:
+ 	case 0x83:
+ 		break;
+@@ -597,7 +498,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 		break;
+ 	case M88TS2022_CLOCK_OUT_ENABLED:
+ 		u8tmp = 0x70;
+-		ret = m88ts2022_wr_reg(s, 0x05, s->cfg.clock_out_div);
++		ret = regmap_write(s->regmap, 0x05, s->cfg.clock_out_div);
+ 		if (ret)
+ 			goto err;
+ 		break;
+@@ -608,7 +509,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 		goto err;
+ 	}
+ 
+-	ret = m88ts2022_wr_reg(s, 0x42, u8tmp);
++	ret = regmap_write(s->regmap, 0x42, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -617,12 +518,12 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	else
+ 		u8tmp = 0x6c;
+ 
+-	ret = m88ts2022_wr_reg(s, 0x62, u8tmp);
++	ret = regmap_write(s->regmap, 0x62, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* sleep */
+-	ret = m88ts2022_wr_reg(s, 0x00, 0x00);
++	ret = regmap_write(s->regmap, 0x00, 0x00);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/media/tuners/m88ts2022_priv.h b/drivers/media/tuners/m88ts2022_priv.h
+index cbc9e2b..a67afe3 100644
+--- a/drivers/media/tuners/m88ts2022_priv.h
++++ b/drivers/media/tuners/m88ts2022_priv.h
+@@ -18,10 +18,12 @@
+ #define M88TS2022_PRIV_H
+ 
+ #include "m88ts2022.h"
++#include <linux/regmap.h>
+ 
+ struct m88ts2022 {
+ 	struct m88ts2022_config cfg;
+ 	struct i2c_client *client;
++	struct regmap *regmap;
+ 	struct dvb_frontend *fe;
+ 	u32 frequency_khz;
+ };
+-- 
+http://palosaari.fi/
 
-Having the above in mind, setting a brightness in a work queue
-task must be possible for all LED Class Flash drivers, regardless
-whether related devices have fast or slow controller.
-
-Let's recap the cost of possible solutions then:
-
-1) Moving the work queues to the LED framework
-
-   - it would probably require extending led_set_brightness and
-     __led_set_brightness functions by a parameter indicating whether it
-     should call brightness_set op in the work queue task or directly;
-   - all existing triggers would have to be updated accordingly;
-   - work queues would have to be removed from all the LED drivers;
-
-2) adding led_set_torch_brightness API
-
-   - no modifications in existing drivers and triggers would be required
-   - instead, only the modifications from the discussed patch would
-     be required
-
-Solution 1 looks cleaner but requires much more modifications.
-
-Best Regards,
-Jacek Anaszewski
