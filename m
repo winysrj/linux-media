@@ -1,106 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1475 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753216AbaHTW7m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:60184 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751701AbaHVAeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 20:34:00 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/29] solo6x10: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:01 +0200
-Message-Id: <1408575568-20562-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/6] m88ts2022: fix coding style issues
+Date: Fri, 22 Aug 2014 03:33:36 +0300
+Message-Id: <1408667621-12072-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fix coding style issues pointed out by checkpatch.pl.
 
-drivers/media/pci/solo6x10/solo6x10-disp.c:184:24: warning: incorrect type in assignment (different base types)
-drivers/media/pci/solo6x10/solo6x10-disp.c:223:32: warning: incorrect type in assignment (different base types)
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/solo6x10/solo6x10-disp.c   | 4 ++--
- drivers/media/pci/solo6x10/solo6x10-eeprom.c | 8 ++++----
- drivers/media/pci/solo6x10/solo6x10.h        | 4 ++--
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/tuners/m88ts2022.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-disp.c b/drivers/media/pci/solo6x10/solo6x10-disp.c
-index 5ea9cac..11c98f0 100644
---- a/drivers/media/pci/solo6x10/solo6x10-disp.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-disp.c
-@@ -172,7 +172,7 @@ static void solo_vout_config(struct solo_dev *solo_dev)
- static int solo_dma_vin_region(struct solo_dev *solo_dev, u32 off,
- 			       u16 val, int reg_size)
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index 7a62097..f51b107 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -176,6 +176,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	unsigned int f_ref_khz, f_vco_khz, div_ref, div_out, pll_n, gdiv28;
+ 	u8 buf[3], u8tmp, cap_code, lpf_gm, lpf_mxdiv, div_max, div_min;
+ 	u16 u16tmp;
++
+ 	dev_dbg(&priv->client->dev,
+ 			"%s: frequency=%d symbol_rate=%d rolloff=%d\n",
+ 			__func__, c->frequency, c->symbol_rate, c->rolloff);
+@@ -393,6 +394,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 		{0x24, 0x02},
+ 		{0x12, 0xa0},
+ 	};
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+ 	ret = m88ts2022_wr_reg(priv, 0x00, 0x01);
+@@ -448,6 +450,7 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
  {
--	u16 *buf;
-+	__le16 *buf;
- 	const int n = 64, size = n * sizeof(*buf);
- 	int i, ret = 0;
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
+ 	int ret;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
  
-@@ -211,7 +211,7 @@ int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
+ 	ret = m88ts2022_wr_reg(priv, 0x00, 0x00);
+@@ -462,6 +465,7 @@ err:
+ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
  {
- 	const unsigned size = sizeof(u16) * 64;
- 	u32 off = SOLO_MOT_FLAG_AREA + ch * SOLO_MOT_THRESH_SIZE * 2;
--	u16 *buf;
-+	__le16 *buf;
- 	int x, y;
- 	int ret = 0;
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
  
-diff --git a/drivers/media/pci/solo6x10/solo6x10-eeprom.c b/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-index af40b3a..da25ce4 100644
---- a/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-eeprom.c
-@@ -100,7 +100,7 @@ unsigned int solo_eeprom_ewen(struct solo_dev *solo_dev, int w_en)
- 	return retval;
- }
- 
--unsigned short solo_eeprom_read(struct solo_dev *solo_dev, int loc)
-+__be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc)
+ 	*frequency = priv->frequency_khz;
+@@ -471,6 +475,7 @@ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static int m88ts2022_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
  {
- 	int read_cmd = loc | (EE_READ_CMD << ADDR_LEN);
- 	unsigned short retval = 0;
-@@ -117,11 +117,11 @@ unsigned short solo_eeprom_read(struct solo_dev *solo_dev, int loc)
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
  
- 	solo_eeprom_reg_write(solo_dev, ~EE_CS);
- 
--	return retval;
-+	return (__force __be16)retval;
- }
- 
- int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
--		      unsigned short data)
-+		      __be16 data)
+ 	*frequency = 0; /* Zero-IF */
+@@ -642,6 +647,7 @@ static int m88ts2022_remove(struct i2c_client *client)
  {
- 	int write_cmd = loc | (EE_WRITE_CMD << ADDR_LEN);
- 	unsigned int retval;
-@@ -130,7 +130,7 @@ int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
- 	solo_eeprom_cmd(solo_dev, write_cmd);
+ 	struct m88ts2022_priv *priv = i2c_get_clientdata(client);
+ 	struct dvb_frontend *fe = priv->cfg.fe;
++
+ 	dev_dbg(&client->dev, "%s:\n", __func__);
  
- 	for (i = 15; i >= 0; i--) {
--		unsigned int dataval = (data >> i) & 1;
-+		unsigned int dataval = ((__force unsigned)data >> i) & 1;
- 
- 		solo_eeprom_reg_write(solo_dev, EE_ENB);
- 		solo_eeprom_reg_write(solo_dev,
-diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
-index c6154b0..72017b7 100644
---- a/drivers/media/pci/solo6x10/solo6x10.h
-+++ b/drivers/media/pci/solo6x10/solo6x10.h
-@@ -394,9 +394,9 @@ int solo_osd_print(struct solo_enc_dev *solo_enc);
- 
- /* EEPROM commands */
- unsigned int solo_eeprom_ewen(struct solo_dev *solo_dev, int w_en);
--unsigned short solo_eeprom_read(struct solo_dev *solo_dev, int loc);
-+__be16 solo_eeprom_read(struct solo_dev *solo_dev, int loc);
- int solo_eeprom_write(struct solo_dev *solo_dev, int loc,
--		      unsigned short data);
-+		      __be16 data);
- 
- /* JPEG Qp functions */
- void solo_s_jpeg_qp(struct solo_dev *solo_dev, unsigned int ch,
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
 -- 
-2.1.0.rc1
+http://palosaari.fi/
 
