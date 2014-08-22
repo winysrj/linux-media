@@ -1,113 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.228]:36031 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933037AbaHYSHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 14:07:30 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 3/3] si2168: avoid firmware loading if it has been loaded previously
-Date: Mon, 25 Aug 2014 21:07:04 +0300
-Message-Id: <1408990024-1642-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
-References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3610 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932329AbaHVRWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 13:22:42 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7MHMcol004856
+	for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 19:22:40 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [172.20.26.89] (unknown [208.59.64.2])
+	by tschai.lan (Postfix) with ESMTPSA id 042252A2E57
+	for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 19:22:29 +0200 (CEST)
+Message-ID: <53F77C5B.5090608@xs4all.nl>
+Date: Fri, 22 Aug 2014 17:22:35 +0000
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.18] Various fixes
+References: <53EC92EE.5050607@xs4all.nl>
+In-Reply-To: <53EC92EE.5050607@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a variable to keep track if firmware is loaded or not and skip parts of the 
-initialization if fw is already loaded. Resume from sleep with a different 
-command compared to initial power up and run command 85 after resume command. 
-This behaviour is observed when using manufacturer provided binary-only si2168 
-driver for TechnoTrend CT2-4400.
+On 08/14/2014 10:43 AM, Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> Various fixes for v3.18.
+> 
+> Please take a good look at the 'videobuf2: fix lockdep warning'. Locking issues
+> are always complex and an extra pair of eyeballs doesn't hurt. I also have been
+> in two minds whether it should go into 3.17 or 3.18, but I think it is better to
+> have it go through a longer test period. But I can be convinced to go for 3.17
+> as well :-)
+> 
+> Regards,
+> 
+>     Hans
+> 
+> The following changes since commit 0f3bf3dc1ca394a8385079a5653088672b65c5c4:
+> 
+>   [media] cx23885: fix UNSET/TUNER_ABSENT confusion (2014-08-01 15:30:59 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v3.18a
+> 
+> for you to fetch changes up to 481a56ce8ef5dc6670ffcd87e58903323d23d0f3:
+> 
+>   usbtv: add audio support (2014-08-14 12:29:39 +0200)
+> 
+> ----------------------------------------------------------------
+> Andreas Ruprecht (1):
+>       drivers: media: pci: Makefile: Remove duplicate subdirectory from obj-y
+> 
+> Axel Lin (1):
+>       saa6752hs: Convert to devm_kzalloc()
+> 
+> Dan Carpenter (1):
+>       vmalloc_sg: off by one in error handling
+> 
+> Federico Simoncelli (1):
+>       usbtv: add audio support
+> 
+> Geert Uytterhoeven (2):
+>       cx25840: Spelling s/compuations/computations/
+>       cx23885: Spelling s/compuations/computations/
+> 
+> Hans Verkuil (3):
+>       videobuf2: fix lockdep warning
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c      | 31 ++++++++++++++++++++++++++++---
- drivers/media/dvb-frontends/si2168_priv.h |  1 +
- 2 files changed, 29 insertions(+), 3 deletions(-)
+This one is wrong, I'll post a v5 for it today.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 55a4212..a0797fd 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -363,6 +363,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 
- 	dev_dbg(&s->client->dev, "\n");
- 
-+	/* initialize */
- 	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
- 	cmd.wlen = 13;
- 	cmd.rlen = 0;
-@@ -370,6 +371,26 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	if (s->fw_loaded) {
-+		/* resume */
-+		memcpy(cmd.args, "\xc0\x06\x08\x0f\x00\x20\x21\x01", 8);
-+		cmd.wlen = 8;
-+		cmd.rlen = 1;
-+		ret = si2168_cmd_execute(s, &cmd);
-+		if (ret)
-+			goto err;
-+
-+		memcpy(cmd.args, "\x85", 1);
-+		cmd.wlen = 1;
-+		cmd.rlen = 1;
-+		ret = si2168_cmd_execute(s, &cmd);
-+		if (ret)
-+			goto err;
-+
-+		goto warm;
-+	}
-+
-+	/* power up */
- 	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
- 	cmd.wlen = 8;
- 	cmd.rlen = 1;
-@@ -466,9 +487,6 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	dev_info(&s->client->dev, "found a '%s' in warm state\n",
--			si2168_ops.info.name);
--
- 	/* set ts mode */
- 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
- 	cmd.args[4] |= s->ts_mode;
-@@ -478,6 +496,12 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	s->fw_loaded = true;
-+
-+warm:
-+	dev_info(&s->client->dev, "found a '%s' in warm state\n",
-+			si2168_ops.info.name);
-+
- 	s->active = true;
- 
- 	return 0;
-@@ -645,6 +669,7 @@ static int si2168_probe(struct i2c_client *client,
- 	*config->i2c_adapter = s->adapter;
- 	*config->fe = &s->fe;
- 	s->ts_mode = config->ts_mode;
-+	s->fw_loaded = false;
- 
- 	i2c_set_clientdata(client, s);
- 
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 0f83284..e13983e 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -36,6 +36,7 @@ struct si2168 {
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
- 	bool active;
-+	bool fw_loaded;
- 	u8 ts_mode;
- };
- 
--- 
-1.9.1
+Regards,
+
+	Hans
+
+>       DocBook media: fix order of v4l2_edid fields
+>       vb2: use pr_info instead of pr_debug
+> 
+>  Documentation/DocBook/media/v4l/vidioc-g-edid.xml |  12 +--
+>  drivers/media/i2c/cx25840/cx25840-ir.c            |   2 +-
+>  drivers/media/i2c/saa6752hs.c                     |   6 +-
+>  drivers/media/pci/Makefile                        |   1 -
+>  drivers/media/pci/cx23885/cx23888-ir.c            |   2 +-
+>  drivers/media/usb/usbtv/Makefile                  |   3 +-
+>  drivers/media/usb/usbtv/usbtv-audio.c             | 384 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/usb/usbtv/usbtv-core.c              |  16 +++-
+>  drivers/media/usb/usbtv/usbtv-video.c             |   9 +-
+>  drivers/media/usb/usbtv/usbtv.h                   |  21 ++++-
+>  drivers/media/v4l2-core/videobuf-dma-sg.c         |   6 +-
+>  drivers/media/v4l2-core/videobuf2-core.c          |  58 ++++--------
+>  include/media/videobuf2-core.h                    |   2 +
+>  13 files changed, 460 insertions(+), 62 deletions(-)
+>  create mode 100644 drivers/media/usb/usbtv/usbtv-audio.c
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
