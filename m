@@ -1,38 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17756 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:46003 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751253AbaHDPZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Aug 2014 11:25:20 -0400
-Message-ID: <53DFA5D1.70502@redhat.com>
-Date: Mon, 04 Aug 2014 17:25:05 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?0JDQu9C10LrRgdCw0L3QtNGAINCR0LXRgNGB0LXQvdC10LI=?=
-	<bay@hackerdom.ru>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Antonio Ospite <ao2@ao2.it>,
-	Alexsey Shestacov <wingrime@linux-sunxi.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PULL patches for 3.17]: 2 gspca patches + sunxi cir support
-References: <53B16CDF.6040702@redhat.com> <CAPomEdzz0sLM2siMXNBbNZ849bSXxKDYYkXtSaAp=seJ7yj2ww@mail.gmail.com>
-In-Reply-To: <CAPomEdzz0sLM2siMXNBbNZ849bSXxKDYYkXtSaAp=seJ7yj2ww@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1756090AbaHVK6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:30 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 12/21] dvb-usb-v2: remove dvb_usb_device NULL check
+Date: Fri, 22 Aug 2014 13:58:04 +0300
+Message-Id: <1408705093-5167-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Reported by Dan Carpenter:
 
-On 08/04/2014 03:47 PM, Александр Берсенев wrote:
-> Hello,
-> 
-> any news with this patch?
+The patch d10d1b9ac97b: "[media] dvb_usb_v2: use dev_* logging
+macros" from Jun 26, 2012, leads to the following Smatch complaint:
 
-I assume you mean the sunxi-cir patch ? It has been
-pulled into the media tree a while back, and should show
-up in 3.17-rc1.
+drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c:31 dvb_usb_v2_generic_io()
+	 error: we previously assumed 'd' could be null (see line 29)
 
-Regards,
+...
+Remove whole check as it must not happen in any case. Driver is
+totally broken if it does not have valid pointer to device.
 
-Hans
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
+index 33ff97e..22bdce1 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
+@@ -26,7 +26,7 @@ static int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
+ {
+ 	int ret, actual_length;
+ 
+-	if (!d || !wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
++	if (!wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
+ 			!d->props->generic_bulk_ctrl_endpoint_response) {
+ 		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, -EINVAL);
+ 		return -EINVAL;
+-- 
+http://palosaari.fi/
+
