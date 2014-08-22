@@ -1,114 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3747 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755774AbaHVCi5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 22:38:57 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7M2csXb087776
-	for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 04:38:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DCFF32A2E57
-	for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 04:38:46 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140822023846.DCFF32A2E57@tschai.lan>
-Date: Fri, 22 Aug 2014 04:38:46 +0200 (CEST)
+Received: from mail.kapsi.fi ([217.30.184.167]:35676 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752042AbaHVKkT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:40:19 -0400
+Message-ID: <53F71E10.6050007@iki.fi>
+Date: Fri, 22 Aug 2014 13:40:16 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 6/6] m88ds3103: change .set_voltage() implementation
+References: <1408667621-12072-1-git-send-email-crope@iki.fi> <201408221119057340205@gmail.com>
+In-Reply-To: <201408221119057340205@gmail.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Moikka
+Sure I can change that flag from voltage_en to voltage_dis. Mostly I
+just wanted to get rid of those if () statements and bit operations when
+handling boolean type flags.
 
-Results of the daily build of media_tree:
+regards
+Antti
 
-date:		Fri Aug 22 04:00:17 CEST 2014
-git branch:	test
-git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-0.slh.2-amd64
+On 08/22/2014 06:19 AM, Nibble Max wrote:
+> 
+> It is easier to understand for using "voltage_dis" to keep the same logic for voltage selection and off/on.
+> 
+>> Add some error checking and implement functionality a little bit
+>> differently.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>> drivers/media/dvb-frontends/m88ds3103.c | 50 ++++++++++++++++++++++-----------
+>> 1 file changed, 34 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+>> index 238b04e..d8fbdfd 100644
+>> --- a/drivers/media/dvb-frontends/m88ds3103.c
+>> +++ b/drivers/media/dvb-frontends/m88ds3103.c
+>> @@ -1038,36 +1038,54 @@ err:
+>> }
+>>
+>> static int m88ds3103_set_voltage(struct dvb_frontend *fe,
+>> -	fe_sec_voltage_t voltage)
+>> +	fe_sec_voltage_t fe_sec_voltage)
+>> {
+>> 	struct m88ds3103_priv *priv = fe->demodulator_priv;
+>> -	u8 data;
+>> +	int ret;
+>> +	u8 u8tmp;
+>> +	bool voltage_sel, voltage_en;
+> bool voltage_sel, voltage_dis;
+>>
+>> -	m88ds3103_rd_reg(priv, 0xa2, &data);
+>> +	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
+>> +			fe_sec_voltage);
+>>
+>> -	data &= ~0x03; /* bit0 V/H, bit1 off/on */
+>> -	if (priv->cfg->lnb_en_pol)
+>> -		data |= 0x02;
+>> +	if (!priv->warm) {
+>> +		ret = -EAGAIN;
+>> +		goto err;
+>> +	}
+>>
+>> -	switch (voltage) {
+>> +	switch (fe_sec_voltage) {
+>> 	case SEC_VOLTAGE_18:
+>> -		if (priv->cfg->lnb_hv_pol == 0)
+>> -			data |= 0x01;
+>> +		voltage_sel = 1;
+>> +		voltage_en = 1;
+> voltage_dis = 0;
+>> 		break;
+>> 	case SEC_VOLTAGE_13:
+>> -		if (priv->cfg->lnb_hv_pol)
+>> -			data |= 0x01;
+>> +		voltage_sel = 0;
+>> +		voltage_en = 1;
+> voltage_dis = 0;
+>> 		break;
+>> 	case SEC_VOLTAGE_OFF:
+>> -		if (priv->cfg->lnb_en_pol)
+>> -			data &= ~0x02;
+>> -		else
+>> -			data |= 0x02;
+>> +		voltage_sel = 0;
+>> +		voltage_en = 0;
+> voltage_dis = 1;
+>> 		break;
+>> +	default:
+>> +		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
+>> +				__func__);
+>> +		ret = -EINVAL;
+>> +		goto err;
+>> 	}
+>> -	m88ds3103_wr_reg(priv, 0xa2, data);
+>> +
+>> +	/* output pin polarity */
+>> +	voltage_sel ^= priv->cfg->lnb_hv_pol;
+>> +	voltage_en ^= !priv->cfg->lnb_en_pol;
+> voltage_dis ^= priv->cfg->lnb_en_pol;
+>> +
+>> +	u8tmp = voltage_en << 1 | voltage_sel << 0;
+> u8tmp = voltage_dis << 1 | voltage_sel << 0;
+>> +	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
+>> +	if (ret)
+>> +		goto err;
+>>
+>> 	return 0;
+>> +err:
+>> +	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+>> +	return ret;
+>> }
+>>
+>> static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+>> -- 
+>> http://palosaari.fi/
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
