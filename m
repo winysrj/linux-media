@@ -1,104 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51638 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:53142 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753229AbaHVLEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 07:04:33 -0400
-Message-ID: <53F723BD.5090905@iki.fi>
-Date: Fri, 22 Aug 2014 14:04:29 +0300
+	id S1755982AbaHVMuH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 08:50:07 -0400
+Message-ID: <53F73C7B.3080901@iki.fi>
+Date: Fri, 22 Aug 2014 15:50:03 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Olli Salonen <olli.salonen@iki.fi>,
-	"nibble.max" <nibble.max@gmail.com>,
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
 	Evgeny Plehov <EvgenyPlehov@ukr.net>
-Subject: [GIT PULL 3.18] misc DTV changes
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Subject: Re: [GIT PULL FINAL 01/21] si2168: clean logging
+References: <1408705093-5167-1-git-send-email-crope@iki.fi> <1408705093-5167-2-git-send-email-crope@iki.fi> <20140822064748.70691346.m.chehab@samsung.com> <53F733FB.7080507@iki.fi> <20140822072856.47b021e5.m.chehab@samsung.com>
+In-Reply-To: <20140822072856.47b021e5.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A lot of DTV changes related to drivers I maintain.
 
-There is one new driver from Olli:
-sp2: Add I2C driver for CIMaX SP2 common interface module
+
+On 08/22/2014 03:28 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 22 Aug 2014 15:13:47 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 08/22/2014 02:47 PM, Mauro Carvalho Chehab wrote:
+>>> Hi Antti,
+>>>
+>>> Please don't add "GIT PULL" on patches. That breaks my scripts, as they
+>>> will run a completely different logic when those magic words are there
+>>> on a message at patchwork.
+>>>
+>>> Also, the word "FINAL" makes me nervous... That means that you sent me
+>>> a non-final pull request?
+>>
+>> I didn't find better term. Also for eyes it wasn't proper term, but
+>> there is no such prefix which fits that case:
+>> http://lwn.net/Articles/529490/
+>
+> What is written there is:
+>
+> 	Once your patches have been reviewed/acked you can post either a pull request
+> 	("[GIT PULL]") or use the "[FINAL PATCH x/y]" tag if you don't have a public
+> 	git tree.
+>
+> E. g. either send git pull or tag the patches as final, *if* the person
+> sending the patches doesn't have a public git tree (although, in practice,
+> I think that nobody is using FINAL on patches nowadays).
+>
+> I don't have any issue if someone uses "FINAL" on patches, but what
+> turns on a red flag is when someone uses "FINAL" on a git pull request,
+> because a pull request should be sent only when the patches are already ok.
+>
+> In other words, a FINAL word on a GIT PULL makes me wander that there
+> is a previous pull request that is bad, but it doesn't give any glue
+> about what pull request is broken.
+>
+> Is it the case of this pull request? If so, what previous pull
+> request is broken?
+>
+> I would rather strongly prefer that, in the case that you sent a previous
+> pull request that should be discarded, that you would reply to the
+> original GIT PULL request thread with a NACK for me to be aware that
+> I should discard it at patchwork.
+
+There was no previous pull request. I just decided to send whole pull 
+request to mailing list for last minute review, like they do on stable 
+cases. But sure I could next time just pick patches and send pull 
+request only.
 
 regards
 Antti
-
-
-The following changes since commit 1baa466e84975a595b2c3cd10af1100c807ebab5:
-
-   [media] media: ttpci: fix av7110 build to be compatible with 
-CONFIG_INPUT_EVDEV (2014-08-15 21:26:26 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git dtv_misc_3.18
-
-for you to fetch changes up to 04e9307d324343ea6eab9bce0c49457f30250057:
-
-   m88ds3103: fix coding style issues (2014-08-22 13:46:06 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (10):
-       dvb-usb-v2: remove dvb_usb_device NULL check
-       msi2500: remove unneeded local pointer on msi2500_isoc_init()
-       m88ts2022: fix 32bit overflow on filter calc
-       m88ts2022: fix coding style issues
-       m88ts2022: rename device state (priv => s)
-       m88ts2022: clean up logging
-       m88ts2022: convert to RegMap I2C API
-       m88ts2022: change parameter type of m88ts2022_cmd
-       m88ds3103: change .set_voltage() implementation
-       m88ds3103: fix coding style issues
-
-CrazyCat (1):
-       si2168: DVB-T2 PLP selection implemented
-
-Olli Salonen (9):
-       si2168: clean logging
-       si2157: clean logging
-       si2168: add ts_mode setting and move to si2168_init
-       em28xx: add ts mode setting for PCTV 292e
-       cxusb: add ts mode setting for TechnoTrend CT2-4400
-       sp2: Add I2C driver for CIMaX SP2 common interface module
-       cxusb: Add support for TechnoTrend TT-connect CT2-4650 CI
-       cxusb: Add read_mac_address for TT CT2-4400 and CT2-4650
-       si2157: Add support for delivery system SYS_ATSC
-
-nibble.max (1):
-       m88ds3103: implement set voltage and TS clock
-
-  drivers/media/dvb-core/dvb-usb-ids.h       |   1 +
-  drivers/media/dvb-frontends/Kconfig        |   7 +++
-  drivers/media/dvb-frontends/Makefile       |   1 +
-  drivers/media/dvb-frontends/m88ds3103.c    | 101 
-++++++++++++++++++++++---------
-  drivers/media/dvb-frontends/m88ds3103.h    |  35 +++++++++--
-  drivers/media/dvb-frontends/si2168.c       | 101 
-+++++++++++++++++--------------
-  drivers/media/dvb-frontends/si2168.h       |   6 ++
-  drivers/media/dvb-frontends/si2168_priv.h  |   1 +
-  drivers/media/dvb-frontends/sp2.c          | 441 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/dvb-frontends/sp2.h          |  53 ++++++++++++++++
-  drivers/media/dvb-frontends/sp2_priv.h     |  50 ++++++++++++++++
-  drivers/media/tuners/Kconfig               |   1 +
-  drivers/media/tuners/m88ts2022.c           | 355 
-+++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------------
-  drivers/media/tuners/m88ts2022_priv.h      |   5 +-
-  drivers/media/tuners/si2157.c              |  55 ++++++++---------
-  drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c |   2 +-
-  drivers/media/usb/dvb-usb/Kconfig          |   2 +-
-  drivers/media/usb/dvb-usb/cxusb.c          | 128 
-++++++++++++++++++++++++++++++++++++++-
-  drivers/media/usb/dvb-usb/cxusb.h          |   4 ++
-  drivers/media/usb/em28xx/em28xx-dvb.c      |   5 +-
-  drivers/media/usb/msi2500/msi2500.c        |   9 ++-
-  21 files changed, 1022 insertions(+), 341 deletions(-)
-  create mode 100644 drivers/media/dvb-frontends/sp2.c
-  create mode 100644 drivers/media/dvb-frontends/sp2.h
-  create mode 100644 drivers/media/dvb-frontends/sp2_priv.h
 
 -- 
 http://palosaari.fi/
