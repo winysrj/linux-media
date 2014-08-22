@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54503 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:47523 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751055AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
+	id S1756101AbaHVK6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:31 -0400
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/14] af9033: feed clock to RF tuner
-Date: Sat,  9 Aug 2014 23:27:02 +0300
-Message-Id: <1407616032-2722-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 15/21] m88ts2022: fix coding style issues
+Date: Fri, 22 Aug 2014 13:58:07 +0300
+Message-Id: <1408705093-5167-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IT9135 RF tuner clock is coming from demodulator. We need enable it
-early in demod init, before any tuner I/O. Currently it is enabled
-by tuner driver itself, but it is too late and performance will be
-reduced as some registers are not updated correctly. Clock is
-disabled automatically when demod is put onto sleep.
+Fix coding style issues pointed out by checkpatch.pl.
 
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/af9033.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/media/tuners/m88ts2022.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index be4bec2..5c90ea6 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -314,6 +314,19 @@ static int af9033_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
-+	/* feed clock to RF tuner */
-+	switch (state->cfg.tuner) {
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+		ret = af9033_wr_reg(state, 0x80fba8, 0x00);
-+		if (ret < 0)
-+			goto err;
-+	}
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index 7a62097..f51b107 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -176,6 +176,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	unsigned int f_ref_khz, f_vco_khz, div_ref, div_out, pll_n, gdiv28;
+ 	u8 buf[3], u8tmp, cap_code, lpf_gm, lpf_mxdiv, div_max, div_min;
+ 	u16 u16tmp;
 +
- 	/* settings for TS interface */
- 	if (state->cfg.ts_mode == AF9033_TS_MODE_USB) {
- 		ret = af9033_wr_reg_mask(state, 0x80f9a5, 0x00, 0x01);
+ 	dev_dbg(&priv->client->dev,
+ 			"%s: frequency=%d symbol_rate=%d rolloff=%d\n",
+ 			__func__, c->frequency, c->symbol_rate, c->rolloff);
+@@ -393,6 +394,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 		{0x24, 0x02},
+ 		{0x12, 0xa0},
+ 	};
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+ 	ret = m88ts2022_wr_reg(priv, 0x00, 0x01);
+@@ -448,6 +450,7 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
+ {
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
+ 	int ret;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+ 	ret = m88ts2022_wr_reg(priv, 0x00, 0x00);
+@@ -462,6 +465,7 @@ err:
+ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+ 	*frequency = priv->frequency_khz;
+@@ -471,6 +475,7 @@ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static int m88ts2022_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct m88ts2022_priv *priv = fe->tuner_priv;
++
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+ 	*frequency = 0; /* Zero-IF */
+@@ -642,6 +647,7 @@ static int m88ts2022_remove(struct i2c_client *client)
+ {
+ 	struct m88ts2022_priv *priv = i2c_get_clientdata(client);
+ 	struct dvb_frontend *fe = priv->cfg.fe;
++
+ 	dev_dbg(&client->dev, "%s:\n", __func__);
+ 
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
 -- 
 http://palosaari.fi/
 
