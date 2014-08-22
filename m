@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59002 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751284AbaHLX3C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 19:29:02 -0400
-Message-ID: <53EAA339.9000007@iki.fi>
-Date: Wed, 13 Aug 2014 02:28:57 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 5/6] cx23855: add frontend set voltage function into state
-References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi> <1407787095-2167-5-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407787095-2167-5-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:45307 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756466AbaHVPcV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 11:32:21 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] dvb_frontend: estimate bandwidth also for DVB-S/S2/Turbo
+Date: Fri, 22 Aug 2014 10:32:15 -0500
+Message-Id: <1408721535-21675-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+The needed bandwidth can be estimated using the symbol rate and
+the rolloff factor. This could be useful for the frontend drivers,
+as they don't need to calculate it themselves.
 
-Antti
+Reported-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-On 08/11/2014 10:58 PM, Olli Salonen wrote:
-> Setting the LNB voltage requires setting some GPIOs on the cx23885 with some boards before calling the actual set_voltage function in the demod driver. Add a function pointer into state for that case.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->   drivers/media/pci/cx23885/cx23885.h | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-> index 1040b3e..e60ff7f 100644
-> --- a/drivers/media/pci/cx23885/cx23885.h
-> +++ b/drivers/media/pci/cx23885/cx23885.h
-> @@ -330,6 +330,8 @@ struct cx23885_tsport {
->   	struct i2c_client *i2c_client_tuner;
->
->   	int (*set_frontend)(struct dvb_frontend *fe);
-> +	int (*fe_set_voltage)(struct dvb_frontend *fe,
-> +				fe_sec_voltage_t voltage);
->   };
->
->   struct cx23885_kernel_ir {
->
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index a5810391af61..c862ad732d9e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2072,6 +2072,23 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
+ 	case SYS_DVBC_ANNEX_C:
+ 		rolloff = 113;
+ 		break;
++	case SYS_DVBS:
++	case SYS_TURBO:
++		rolloff = 135;
++		break;
++	case SYS_DVBS2:
++		switch (c->rolloff) {
++		case ROLLOFF_20:
++			rolloff = 120;
++			break;
++		case ROLLOFF_25:
++			rolloff = 125;
++			break;
++		default:
++		case ROLLOFF_35:
++			rolloff = 135;
++		}
++		break;
+ 	default:
+ 		break;
+ 	}
 -- 
-http://palosaari.fi/
+1.9.3
+
