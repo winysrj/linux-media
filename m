@@ -1,103 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:45356 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751154AbaHaLfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Aug 2014 07:35:31 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, m.chehab@samsung.com, crope@iki.fi,
-	zzam@gentoo.org
-Subject: [PATCH 2/7] si2165: enable Si2161 support
-Date: Sun, 31 Aug 2014 13:35:07 +0200
-Message-Id: <1409484912-19300-3-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
-References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:56637 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756243AbaHVNlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 09:41:52 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NAP00G5PNDR9K10@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 22 Aug 2014 09:41:51 -0400 (EDT)
+Date: Fri, 22 Aug 2014 08:41:48 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>
+Subject: Re: [GIT PULL FINAL 01/21] si2168: clean logging
+Message-id: <20140822084148.5a788226.m.chehab@samsung.com>
+In-reply-to: <53F73C7B.3080901@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+ <1408705093-5167-2-git-send-email-crope@iki.fi>
+ <20140822064748.70691346.m.chehab@samsung.com> <53F733FB.7080507@iki.fi>
+ <20140822072856.47b021e5.m.chehab@samsung.com> <53F73C7B.3080901@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Additionally print chip name with revision symbolically.
-This is a preparation for supporting new Hauppauge WinTV-HVR-900-H based
-on cx231xx.
+Em Fri, 22 Aug 2014 15:50:03 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c | 39 +++++++++++++++++++++++++-----------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+> 
+> 
+> On 08/22/2014 03:28 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 22 Aug 2014 15:13:47 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 08/22/2014 02:47 PM, Mauro Carvalho Chehab wrote:
+> >>> Hi Antti,
+> >>>
+> >>> Please don't add "GIT PULL" on patches. That breaks my scripts, as they
+> >>> will run a completely different logic when those magic words are there
+> >>> on a message at patchwork.
+> >>>
+> >>> Also, the word "FINAL" makes me nervous... That means that you sent me
+> >>> a non-final pull request?
+> >>
+> >> I didn't find better term. Also for eyes it wasn't proper term, but
+> >> there is no such prefix which fits that case:
+> >> http://lwn.net/Articles/529490/
+> >
+> > What is written there is:
+> >
+> > 	Once your patches have been reviewed/acked you can post either a pull request
+> > 	("[GIT PULL]") or use the "[FINAL PATCH x/y]" tag if you don't have a public
+> > 	git tree.
+> >
+> > E. g. either send git pull or tag the patches as final, *if* the person
+> > sending the patches doesn't have a public git tree (although, in practice,
+> > I think that nobody is using FINAL on patches nowadays).
+> >
+> > I don't have any issue if someone uses "FINAL" on patches, but what
+> > turns on a red flag is when someone uses "FINAL" on a git pull request,
+> > because a pull request should be sent only when the patches are already ok.
+> >
+> > In other words, a FINAL word on a GIT PULL makes me wander that there
+> > is a previous pull request that is bad, but it doesn't give any glue
+> > about what pull request is broken.
+> >
+> > Is it the case of this pull request? If so, what previous pull
+> > request is broken?
+> >
+> > I would rather strongly prefer that, in the case that you sent a previous
+> > pull request that should be discarded, that you would reply to the
+> > original GIT PULL request thread with a NACK for me to be aware that
+> > I should discard it at patchwork.
+> 
+> There was no previous pull request. 
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 65e0dc9..fe4e8f2 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -1,5 +1,5 @@
- /*
--    Driver for Silicon Labs SI2165 DVB-C/-T Demodulator
-+    Driver for Silicon Labs Si2161 DVB-T and Si2165 DVB-C/-T Demodulator
- 
-     Copyright (C) 2013-2014 Matthias Schwarzott <zzam@gentoo.org>
- 
-@@ -916,7 +916,7 @@ static void si2165_release(struct dvb_frontend *fe)
- 
- static struct dvb_frontend_ops si2165_ops = {
- 	.info = {
--		.name = "Silicon Labs Si2165",
-+		.name = "Silicon Labs ",
- 		.caps =	FE_CAN_FEC_1_2 |
- 			FE_CAN_FEC_2_3 |
- 			FE_CAN_FEC_3_4 |
-@@ -956,6 +956,8 @@ struct dvb_frontend *si2165_attach(const struct si2165_config *config,
- 	int n;
- 	int io_ret;
- 	u8 val;
-+	char rev_char;
-+	const char *chip_name;
- 
- 	if (config == NULL || i2c == NULL)
- 		goto error;
-@@ -1005,22 +1007,35 @@ struct dvb_frontend *si2165_attach(const struct si2165_config *config,
- 	if (io_ret < 0)
- 		goto error;
- 
--	dev_info(&state->i2c->dev, "%s: hardware revision 0x%02x, chip type 0x%02x\n",
--		 KBUILD_MODNAME, state->chip_revcode, state->chip_type);
-+	if (state->chip_revcode < 26)
-+		rev_char = 'A' + state->chip_revcode;
-+	else
-+		rev_char = '?';
- 
--	/* It is a guess that register 0x0118 (chip type?) can be used to
--	 * differ between si2161, si2163 and si2165
--	 * Only si2165 has been tested.
--	 */
--	if (state->chip_type == 0x07) {
-+	switch (state->chip_type) {
-+	case 0x06:
-+		chip_name = "Si2161";
-+		state->has_dvbt = true;
-+		break;
-+	case 0x07:
-+		chip_name = "Si2165";
- 		state->has_dvbt = true;
- 		state->has_dvbc = true;
--	} else {
--		dev_err(&state->i2c->dev, "%s: Unsupported chip.\n",
--			KBUILD_MODNAME);
-+		break;
-+	default:
-+		dev_err(&state->i2c->dev, "%s: Unsupported Silicon Labs chip (type %d, rev %d)\n",
-+			KBUILD_MODNAME, state->chip_type, state->chip_revcode);
- 		goto error;
- 	}
- 
-+	dev_info(&state->i2c->dev,
-+		"%s: Detected Silicon Labs %s-%c (type %d, rev %d)\n",
-+		KBUILD_MODNAME, chip_name, rev_char, state->chip_type,
-+		state->chip_revcode);
-+
-+	strlcat(state->frontend.ops.info.name, chip_name,
-+			sizeof(state->frontend.ops.info.name));
-+
- 	n = 0;
- 	if (state->has_dvbt) {
- 		state->frontend.ops.delsys[n++] = SYS_DVBT;
--- 
-2.1.0
+Ah! OK, then.
 
+> I just decided to send whole pull 
+> request to mailing list for last minute review, like they do on stable 
+> cases. But sure I could next time just pick patches and send pull 
+> request only.
+
+Please send in separate. The patches should be sent to the ML for people
+to review with "PATCH" at their titles, while the pull request should
+have "GIT PULL" at the subject. That helps both patch reviewers and
+automatic scripts to do the right thing.
+
+Thanks!
+Mauro
