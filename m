@@ -1,223 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3020 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653AbaHNJyT (ORCPT
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:58830 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753984AbaHVDTL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 04/20] cx23885: use core locking, switch to unlocked_ioctl.
-Date: Thu, 14 Aug 2014 11:53:49 +0200
-Message-Id: <1408010045-24016-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 21 Aug 2014 23:19:11 -0400
+Received: by mail-pa0-f42.google.com with SMTP id lf10so15933477pab.29
+        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 20:19:10 -0700 (PDT)
+Date: Fri, 22 Aug 2014 11:19:11 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <1408667621-12072-1-git-send-email-crope@iki.fi>
+Subject: Re: [PATCH 6/6] m88ds3103: change .set_voltage() implementation
+Message-ID: <201408221119057340205@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Enable core locking which allows us to safely switch to unlocked_ioctl.
+It is easier to understand for using "voltage_dis" to keep the same logic for voltage selection and off/on.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-417.c   |  5 ++--
- drivers/media/pci/cx23885/cx23885-video.c | 43 +++++++------------------------
- 2 files changed, 12 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index b65de33..395f7a9 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1235,9 +1235,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	dev->encodernorm = cx23885_tvnorms[i];
- 
- 	/* Have the drier core notify the subdevices */
--	mutex_lock(&dev->lock);
- 	cx23885_set_tvnorm(dev, id);
--	mutex_unlock(&dev->lock);
- 
- 	return 0;
- }
-@@ -1661,7 +1659,7 @@ static struct v4l2_file_operations mpeg_fops = {
- 	.read	       = mpeg_read,
- 	.poll          = mpeg_poll,
- 	.mmap	       = mpeg_mmap,
--	.ioctl	       = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
-@@ -1770,6 +1768,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
- 	dev->v4l_device = cx23885_video_dev_alloc(tsport,
- 		dev->pci, &cx23885_mpeg_template, "mpeg");
- 	video_set_drvdata(dev->v4l_device, dev);
-+	dev->v4l_device->lock = &dev->lock;
- 	err = video_register_device(dev->v4l_device,
- 		VFL_TYPE_GRABBER, -1);
- 	if (err < 0) {
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index d575bfc..ba93e29 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -345,6 +345,7 @@ static struct video_device *cx23885_vdev_init(struct cx23885_dev *dev,
- 	*vfd = *template;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
-+	vfd->lock = &dev->lock;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s (%s)",
- 		 cx23885_boards[dev->board].name, type);
- 	video_set_drvdata(vfd, dev);
-@@ -381,17 +382,14 @@ static int res_get(struct cx23885_dev *dev, struct cx23885_fh *fh,
- 		return 1;
- 
- 	/* is it free? */
--	mutex_lock(&dev->lock);
- 	if (dev->resources & bit) {
- 		/* no, someone else uses it */
--		mutex_unlock(&dev->lock);
- 		return 0;
- 	}
- 	/* it's free, grab it */
- 	fh->resources  |= bit;
- 	dev->resources |= bit;
- 	dprintk(1, "res: get %d\n", bit);
--	mutex_unlock(&dev->lock);
- 	return 1;
- }
- 
-@@ -411,11 +409,9 @@ static void res_free(struct cx23885_dev *dev, struct cx23885_fh *fh,
- 	BUG_ON((fh->resources & bits) != bits);
- 	dprintk(1, "%s()\n", __func__);
- 
--	mutex_lock(&dev->lock);
- 	fh->resources  &= ~bits;
- 	dev->resources &= ~bits;
- 	dprintk(1, "res: put %d\n", bits);
--	mutex_unlock(&dev->lock);
- }
- 
- int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
-@@ -1272,9 +1268,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
- 	dprintk(1, "%s()\n", __func__);
- 
--	mutex_lock(&dev->lock);
- 	cx23885_set_tvnorm(dev, tvnorms);
--	mutex_unlock(&dev->lock);
- 
- 	return 0;
- }
-@@ -1364,13 +1358,11 @@ int cx23885_set_input(struct file *file, void *priv, unsigned int i)
- 	if (INPUT(i)->type == 0)
- 		return -EINVAL;
- 
--	mutex_lock(&dev->lock);
- 	cx23885_video_mux(dev, i);
- 
- 	/* By default establish the default audio input for the card also */
- 	/* Caller is free to use VIDIOC_S_AUDIO to override afterwards */
- 	cx23885_audio_mux(dev, i);
--	mutex_unlock(&dev->lock);
- 	return 0;
- }
- 
-@@ -1544,7 +1536,6 @@ static int cx23885_set_freq(struct cx23885_dev *dev, const struct v4l2_frequency
- 	if (unlikely(f->tuner != 0))
- 		return -EINVAL;
- 
--	mutex_lock(&dev->lock);
- 	dev->freq = f->frequency;
- 
- 	/* I need to mute audio here */
-@@ -1561,8 +1552,6 @@ static int cx23885_set_freq(struct cx23885_dev *dev, const struct v4l2_frequency
- 	ctrl.value = 0;
- 	cx23885_set_control(dev, &ctrl);
- 
--	mutex_unlock(&dev->lock);
--
- 	return 0;
- }
- 
-@@ -1580,7 +1569,6 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- 		.frequency = f->frequency
- 	};
- 
--	mutex_lock(&dev->lock);
- 	dev->freq = f->frequency;
- 
- 	/* I need to mute audio here */
-@@ -1594,7 +1582,6 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- 
- 	vfe = videobuf_dvb_get_frontend(&dev->ts2.frontends, 1);
- 	if (!vfe) {
--		mutex_unlock(&dev->lock);
- 		return -EINVAL;
- 	}
- 
-@@ -1619,8 +1606,6 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- 	ctrl.value = 0;
- 	cx23885_set_control(dev, &ctrl);
- 
--	mutex_unlock(&dev->lock);
--
- 	return 0;
- }
- 
-@@ -1742,7 +1727,7 @@ static const struct v4l2_file_operations video_fops = {
- 	.read	       = video_read,
- 	.poll          = video_poll,
- 	.mmap	       = video_mmap,
--	.ioctl	       = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops video_ioctl_ops = {
-@@ -1791,14 +1776,6 @@ static struct video_device cx23885_video_template = {
- 	.tvnorms              = CX23885_NORMS,
- };
- 
--static const struct v4l2_file_operations radio_fops = {
--	.owner         = THIS_MODULE,
--	.open          = video_open,
--	.release       = video_release,
--	.ioctl         = video_ioctl2,
--};
--
--
- void cx23885_video_unregister(struct cx23885_dev *dev)
- {
- 	dprintk(1, "%s()\n", __func__);
-@@ -1909,6 +1886,14 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 		}
- 	}
- 
-+	/* initial device configuration */
-+	mutex_lock(&dev->lock);
-+	cx23885_set_tvnorm(dev, dev->tvnorm);
-+	init_controls(dev);
-+	cx23885_video_mux(dev, 0);
-+	cx23885_audio_mux(dev, 0);
-+	mutex_unlock(&dev->lock);
-+
- 	/* register Video device */
- 	dev->video_dev = cx23885_vdev_init(dev, dev->pci,
- 		&cx23885_video_template, "video");
-@@ -1938,14 +1923,6 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 	/* Register ALSA audio device */
- 	dev->audio_dev = cx23885_audio_register(dev);
- 
--	/* initial device configuration */
--	mutex_lock(&dev->lock);
--	cx23885_set_tvnorm(dev, dev->tvnorm);
--	init_controls(dev);
--	cx23885_video_mux(dev, 0);
--	cx23885_audio_mux(dev, 0);
--	mutex_unlock(&dev->lock);
--
- 	return 0;
- 
- fail_unreg:
--- 
-2.1.0.rc1
+>Add some error checking and implement functionality a little bit
+>differently.
+>
+>Signed-off-by: Antti Palosaari <crope@iki.fi>
+>---
+> drivers/media/dvb-frontends/m88ds3103.c | 50 ++++++++++++++++++++++-----------
+> 1 file changed, 34 insertions(+), 16 deletions(-)
+>
+>diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+>index 238b04e..d8fbdfd 100644
+>--- a/drivers/media/dvb-frontends/m88ds3103.c
+>+++ b/drivers/media/dvb-frontends/m88ds3103.c
+>@@ -1038,36 +1038,54 @@ err:
+> }
+> 
+> static int m88ds3103_set_voltage(struct dvb_frontend *fe,
+>-	fe_sec_voltage_t voltage)
+>+	fe_sec_voltage_t fe_sec_voltage)
+> {
+> 	struct m88ds3103_priv *priv = fe->demodulator_priv;
+>-	u8 data;
+>+	int ret;
+>+	u8 u8tmp;
+>+	bool voltage_sel, voltage_en;
+bool voltage_sel, voltage_dis;
+> 
+>-	m88ds3103_rd_reg(priv, 0xa2, &data);
+>+	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
+>+			fe_sec_voltage);
+> 
+>-	data &= ~0x03; /* bit0 V/H, bit1 off/on */
+>-	if (priv->cfg->lnb_en_pol)
+>-		data |= 0x02;
+>+	if (!priv->warm) {
+>+		ret = -EAGAIN;
+>+		goto err;
+>+	}
+> 
+>-	switch (voltage) {
+>+	switch (fe_sec_voltage) {
+> 	case SEC_VOLTAGE_18:
+>-		if (priv->cfg->lnb_hv_pol == 0)
+>-			data |= 0x01;
+>+		voltage_sel = 1;
+>+		voltage_en = 1;
+voltage_dis = 0;
+> 		break;
+> 	case SEC_VOLTAGE_13:
+>-		if (priv->cfg->lnb_hv_pol)
+>-			data |= 0x01;
+>+		voltage_sel = 0;
+>+		voltage_en = 1;
+voltage_dis = 0;
+> 		break;
+> 	case SEC_VOLTAGE_OFF:
+>-		if (priv->cfg->lnb_en_pol)
+>-			data &= ~0x02;
+>-		else
+>-			data |= 0x02;
+>+		voltage_sel = 0;
+>+		voltage_en = 0;
+voltage_dis = 1;
+> 		break;
+>+	default:
+>+		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
+>+				__func__);
+>+		ret = -EINVAL;
+>+		goto err;
+> 	}
+>-	m88ds3103_wr_reg(priv, 0xa2, data);
+>+
+>+	/* output pin polarity */
+>+	voltage_sel ^= priv->cfg->lnb_hv_pol;
+>+	voltage_en ^= !priv->cfg->lnb_en_pol;
+voltage_dis ^= priv->cfg->lnb_en_pol;
+>+
+>+	u8tmp = voltage_en << 1 | voltage_sel << 0;
+u8tmp = voltage_dis << 1 | voltage_sel << 0;
+>+	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
+>+	if (ret)
+>+		goto err;
+> 
+> 	return 0;
+>+err:
+>+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+>+	return ret;
+> }
+> 
+> static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+>-- 
+>http://palosaari.fi/
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
