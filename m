@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54025 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbaHMAfx (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:34230 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932159AbaHVQmH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 20:35:53 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] as102-fe: Add a release function
-Date: Tue, 12 Aug 2014 21:35:44 -0300
-Message-Id: <1407890144-12899-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 22 Aug 2014 12:42:07 -0400
+Received: by mail-lb0-f179.google.com with SMTP id v6so9706774lbi.10
+        for <linux-media@vger.kernel.org>; Fri, 22 Aug 2014 09:42:04 -0700 (PDT)
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH] drivers: media: b2c2: flexcop.h: Fix typo in include guard
+Date: Fri, 22 Aug 2014 18:41:56 +0200
+Message-Id: <1408725716-2695-1-git-send-email-linux@rasmusvillemoes.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed to free state and for dvb_detach() to be
-called.
+Three trailing underscores is one too many.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- drivers/media/dvb-frontends/as102_fe.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/common/b2c2/flexcop.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/as102_fe.c b/drivers/media/dvb-frontends/as102_fe.c
-index ef4c3c667782..493665899565 100644
---- a/drivers/media/dvb-frontends/as102_fe.c
-+++ b/drivers/media/dvb-frontends/as102_fe.c
-@@ -407,6 +407,14 @@ static int as102_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
- 				      state->elna_cfg);
- }
+diff --git a/drivers/media/common/b2c2/flexcop.h b/drivers/media/common/b2c2/flexcop.h
+index 897b10c..8942bda 100644
+--- a/drivers/media/common/b2c2/flexcop.h
++++ b/drivers/media/common/b2c2/flexcop.h
+@@ -4,7 +4,7 @@
+  * see flexcop.c for copyright information
+  */
+ #ifndef __FLEXCOP_H__
+-#define __FLEXCOP_H___
++#define __FLEXCOP_H__
  
-+static void as102_fe_release(struct dvb_frontend *fe)
-+{
-+	struct as102_state *state = fe->demodulator_priv;
-+
-+	kfree(state);
-+}
-+
-+
- static struct dvb_frontend_ops as102_fe_ops = {
- 	.delsys = { SYS_DVBT },
- 	.info = {
-@@ -436,6 +444,7 @@ static struct dvb_frontend_ops as102_fe_ops = {
- 	.read_signal_strength	= as102_fe_read_signal_strength,
- 	.read_ucblocks		= as102_fe_read_ucblocks,
- 	.ts_bus_ctrl		= as102_fe_ts_bus_ctrl,
-+	.release		= as102_fe_release,
- };
- 
- struct dvb_frontend *as102_attach(const char *name,
+ #define FC_LOG_PREFIX "b2c2-flexcop"
+ #include "flexcop-common.h"
 -- 
-1.9.3
+2.0.4
 
