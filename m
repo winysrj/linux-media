@@ -1,81 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39237 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753338AbaHFGyg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Aug 2014 02:54:36 -0400
-Date: Wed, 6 Aug 2014 09:53:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com
-Subject: Re: [PATCH/RFC v4 00/21] LED / flash API integration
-Message-ID: <20140806065358.GC16460@valkosipuli.retiisi.org.uk>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34284 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752937AbaHVAeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 20:34:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 6/6] m88ds3103: change .set_voltage() implementation
+Date: Fri, 22 Aug 2014 03:33:41 +0300
+Message-Id: <1408667621-12072-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1408667621-12072-1-git-send-email-crope@iki.fi>
+References: <1408667621-12072-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Add some error checking and implement functionality a little bit
+differently.
 
-On Fri, Jul 11, 2014 at 04:04:03PM +0200, Jacek Anaszewski wrote:
-...
-> 1) Who should register V4L2 Flash sub-device?
-> 
-> LED Flash Class devices, after introduction of the Flash Manager,
-> are not tightly coupled with any media controller. They are maintained
-> by the Flash Manager and made available for dynamic assignment to
-> any media system they are connected to through multiplexing devices.
-> 
-> In the proposed rough solution, when support for V4L2 Flash sub-devices
-> is enabled, there is a v4l2_device created for them to register in.
-> This however implies that V4L2 Flash device will not be available
-> in any media controller, which calls its existence into question.
-> 
-> Therefore I'd like to consult possible ways of solving this issue.
-> The option I see is implementing a mechanism for moving V4L2 Flash
-> sub-devices between media controllers. A V4L2 Flash sub-device
-> would initially be assigned to one media system in the relevant
-> device tree binding, but it could be dynamically reassigned to
-> the other one. However I'm not sure if media controller design
-> is prepared for dynamic modifications of its graph and how many
-> modifications in the existing drivers this solution would require.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/m88ds3103.c | 50 ++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 16 deletions(-)
 
-Do you have a use case where you would need to strobe a flash from multiple
-media devices at different times, or is this entirely theoretical? Typically
-flash controllers are connected to a single source of hardware strobe (if
-there's one) since the flash LEDs are in fact mounted next to a specific
-camera sensor.
-
-If this is a real issue the way to solve it would be to have a single media
-device instead of many.
-
-> 2) Consequences of locking the Flash Manager during flash strobe
-> 
-> In case a LED Flash Class device depends on muxes involved in
-> routing the other LED Flash Class device's strobe signals,
-> the Flash Manager must be locked for the time of strobing
-> to prevent reconfiguration of the strobe signal routing
-> by the other device.
-
-I wouldn't be concerned of this in particular. It's more important we do
-actully have V4L2 flash API supported by LED flash drivers and that they do
-implement the API correctly.
-
-It's at least debatable whether you should try to prevent user space from
-doing silly things or not. With complex devices it may relatively easily
-lead to wrecking havoc with actual use cases which we certainly do not want.
-
-In this case, if you just prevent changing the routing (do you have a use
-case for it?) while strobing, someone else could still change the routing
-just before you strobe.
-
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 238b04e..d8fbdfd 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1038,36 +1038,54 @@ err:
+ }
+ 
+ static int m88ds3103_set_voltage(struct dvb_frontend *fe,
+-	fe_sec_voltage_t voltage)
++	fe_sec_voltage_t fe_sec_voltage)
+ {
+ 	struct m88ds3103_priv *priv = fe->demodulator_priv;
+-	u8 data;
++	int ret;
++	u8 u8tmp;
++	bool voltage_sel, voltage_en;
+ 
+-	m88ds3103_rd_reg(priv, 0xa2, &data);
++	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
++			fe_sec_voltage);
+ 
+-	data &= ~0x03; /* bit0 V/H, bit1 off/on */
+-	if (priv->cfg->lnb_en_pol)
+-		data |= 0x02;
++	if (!priv->warm) {
++		ret = -EAGAIN;
++		goto err;
++	}
+ 
+-	switch (voltage) {
++	switch (fe_sec_voltage) {
+ 	case SEC_VOLTAGE_18:
+-		if (priv->cfg->lnb_hv_pol == 0)
+-			data |= 0x01;
++		voltage_sel = 1;
++		voltage_en = 1;
+ 		break;
+ 	case SEC_VOLTAGE_13:
+-		if (priv->cfg->lnb_hv_pol)
+-			data |= 0x01;
++		voltage_sel = 0;
++		voltage_en = 1;
+ 		break;
+ 	case SEC_VOLTAGE_OFF:
+-		if (priv->cfg->lnb_en_pol)
+-			data &= ~0x02;
+-		else
+-			data |= 0x02;
++		voltage_sel = 0;
++		voltage_en = 0;
+ 		break;
++	default:
++		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
++				__func__);
++		ret = -EINVAL;
++		goto err;
+ 	}
+-	m88ds3103_wr_reg(priv, 0xa2, data);
++
++	/* output pin polarity */
++	voltage_sel ^= priv->cfg->lnb_hv_pol;
++	voltage_en ^= !priv->cfg->lnb_en_pol;
++
++	u8tmp = voltage_en << 1 | voltage_sel << 0;
++	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
++	if (ret)
++		goto err;
+ 
+ 	return 0;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
+ }
+ 
+ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
 -- 
-Kind regards,
+http://palosaari.fi/
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
