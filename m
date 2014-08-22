@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4959 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbaHJLSk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 07:18:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:39655 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756061AbaHVK6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:31 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: wbrack@mmm.com.hk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] MAINTAINERS: add tw68 entry
-Date: Sun, 10 Aug 2014 13:17:13 +0200
-Message-Id: <1407669433-13571-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407669433-13571-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407669433-13571-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 13/21] msi2500: remove unneeded local pointer on msi2500_isoc_init()
+Date: Fri, 22 Aug 2014 13:58:05 +0300
+Message-Id: <1408705093-5167-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There is no need to keep local copy of usb_device pointer as we
+have same pointer stored and available easily from device state.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/usb/msi2500/msi2500.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4cdf24c..2b06a8e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9199,6 +9199,14 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
- F:	drivers/media/usb/tm6000/
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 26b1334..71e0960 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -501,14 +501,12 @@ static void msi2500_isoc_cleanup(struct msi2500_state *s)
+ /* Both v4l2_lock and vb_queue_lock should be locked when calling this */
+ static int msi2500_isoc_init(struct msi2500_state *s)
+ {
+-	struct usb_device *udev;
+ 	struct urb *urb;
+ 	int i, j, ret;
  
-+TW68 VIDEO4LINUX DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/pci/tw68/
-+
- TPM DEVICE DRIVER
- M:	Peter Huewe <peterhuewe@gmx.de>
- M:	Ashley Lai <ashley@ashleylai.com>
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	s->isoc_errors = 0;
+-	udev = s->udev;
+ 
+ 	ret = usb_set_interface(s->udev, 0, 1);
+ 	if (ret)
+@@ -527,10 +525,11 @@ static int msi2500_isoc_init(struct msi2500_state *s)
+ 		dev_dbg(&s->udev->dev, "Allocated URB at 0x%p\n", urb);
+ 
+ 		urb->interval = 1;
+-		urb->dev = udev;
+-		urb->pipe = usb_rcvisocpipe(udev, 0x81);
++		urb->dev = s->udev;
++		urb->pipe = usb_rcvisocpipe(s->udev, 0x81);
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev, ISO_BUFFER_SIZE,
++		urb->transfer_buffer = usb_alloc_coherent(s->udev,
++				ISO_BUFFER_SIZE,
+ 				GFP_KERNEL, &urb->transfer_dma);
+ 		if (urb->transfer_buffer == NULL) {
+ 			dev_err(&s->udev->dev,
 -- 
-2.0.1
+http://palosaari.fi/
 
