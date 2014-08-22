@@ -1,128 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1099 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407AbaHYLap (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 07:30:45 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7PBUdin055867
-	for <linux-media@vger.kernel.org>; Mon, 25 Aug 2014 13:30:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from test-media.192.168.1.1 (test [192.168.1.27])
-	by tschai.lan (Postfix) with ESMTPSA id F25992A2E5A
-	for <linux-media@vger.kernel.org>; Mon, 25 Aug 2014 13:30:27 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:36499 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756071AbaHVK6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:30 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCHv2 00/12] vivid: Virtual Video Test Driver
-Date: Mon, 25 Aug 2014 13:30:11 +0200
-Message-Id: <1408966223-5221-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 08/21] cxusb: Add support for TechnoTrend TT-connect CT2-4650 CI
+Date: Fri, 22 Aug 2014 13:58:00 +0300
+Message-Id: <1408705093-5167-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In July I posted a 'vivi, the next generation' patch series:
+From: Olli Salonen <olli.salonen@iki.fi>
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg76758.html
+TechnoTrend TT-connect CT2-4650 CI (0b48:3012) is an USB DVB-T2/C tuner with
+the following components:
 
-However, since that time I realized that rather than building on top of the
-old vivi, it would be much better to create a new, much more generic driver.
-This vivid test driver no longer emulates just video capture, but also
-video output, vbi capture/output, radio receivers/transmitters and SDR capture.
-There is even support for testing capture and output overlays.
+ USB interface: Cypress CY7C68013A-56LTXC
+ Demodulator: Silicon Labs Si2168-A20
+ Tuner: Silicon Labs Si2158-A20
+ CI chip: CIMaX SP2HF
 
-Up to 64 vivid instances can be created, each with up to 16 inputs and 16 outputs.
+The firmware for the tuner is the same as for TechnoTrend TT-TVStick CT2-4400.
+See https://www.mail-archive.com/linux-media@vger.kernel.org/msg76944.html
 
-Each input can be a webcam, TV capture device, S-Video capture device or an HDMI
-capture device. Each output can be an S-Video output device or an HDMI output
-device.
+The demodulator needs a firmware that can be extracted from the Windows drivers.
+File ttConnect4650_64.sys should be extracted from
+http://www.tt-downloads.de/bda-treiber_4.1.0.4.zip (MD5 sum below).
 
-These inputs and outputs act exactly as a real hardware device would behave. This
-allows you to use this driver as a test input for application development, since
-you can test the various features without requiring special hardware.
+3464bfc37a47b4032568718bacba23fb  ttConnect4650_64.sys
 
-Some of the features supported by this driver are:
+Then the firmware can be extracted:
+dd if=ttConnect4650_64.sys ibs=1 skip=273376 count=6424 of=dvb-demod-si2168-a20-01.fw
 
-- Support for read()/write(), MMAP, USERPTR and DMABUF streaming I/O.
-- A large list of test patterns and variations thereof
-- Working brightness, contrast, saturation and hue controls
-- Support for the alpha color component
-- Full colorspace support, including limited/full RGB range
-- All possible control types are present
-- Support for various pixel aspect ratios and video aspect ratios
-- Error injection to test what happens if errors occur
-- Supports crop/compose/scale in any combination for both input and output
-- Can emulate up to 4K resolutions
-- All Field settings are supported for testing interlaced capturing
-- Supports all standard YUV and RGB formats, including two multiplanar YUV formats
-- Raw and Sliced VBI capture and output support
-- Radio receiver and transmitter support, including RDS support
-- Software defined radio (SDR) support
-- Capture and output overlay support
+The SP2 CI module requires a definition of a function cxusb_tt_ct2_4650_ci_ctrl
+that is passed on to the SP2 driver and called back for CAM operations.
 
-This driver is big, but I believe that for the most part I managed to keep
-the code clean (I'm biased, though). I've split it up in several parts to
-make reviewing easier. The first patch is a vb2 fix I posted earlier, but
-patchwork failed to pick it up (probably because it was missing a Signed-of-by
-line), so I'm posting it again. The second patch is an extensive document
-that describes the features currently implemented. After that the driver code
-is posted and in the last patch the driver is hooked into Kconfig/Makefile.
+[crope@iki.fi: meld USB ID define patch to this]
 
-This goal is for this to go in for 3.18, so I expect I'll likely to a v2 at
-least since I am still improving the driver and it will be a while before
-we can merge code for v3.18.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h |  1 +
+ drivers/media/usb/dvb-usb/Kconfig    |  2 +-
+ drivers/media/usb/dvb-usb/cxusb.c    | 92 +++++++++++++++++++++++++++++++++++-
+ drivers/media/usb/dvb-usb/cxusb.h    |  4 ++
+ 4 files changed, 97 insertions(+), 2 deletions(-)
 
-As far as I am concerned the vivi driver can be removed once this driver is
-merged.
-
-Two questions which I am sure will be raised by reviewers:
-
-1) Why add support for capture and output overlays? Isn't that obsolete?
-
-First of all, we have drivers that support it and it is really nice to be
-able to test whether it still works. I found several issues, some in the core,
-when it comes to overlay support, so at the very least it will help to
-prevent regressions until the time comes that we actually remove this API.
-
-Secondly, this driver was created not just to help applications to test their
-code, but also to help in understanding and verifying the API. In order to do
-that you need to be able to test it. Which is difficult since hardware that
-supports this is rare.
-
-I have mentioned in the documentation that the overlay support is there
-primarily for API testing and that its use in new drivers is questionable.
-
-2) Why add video loop support, doesn't that make abuse possible?
-
-I think video loop support is a great feature as it allows you to test
-video output since without it you have no idea what the video you give to
-the driver actually looks like. So just from the perspective of testing your
-application I believe this is an essential feature.
-
-There are a few reasons why I think that this is unlikely to lead to abuse:
-
-- the video loop functionality has to be enabled explicitly via a control of
-  the video output device.
-- the video capture and output resolution and formats have to match exactly
-- by default the OSD text will be placed over the looped video. This can be
-  turned off via a control of the video capture device.
-- the number of resolutions is currently fixed to SDTV and the CEA-861 and
-  VESA DMT timings. So 'random' resolutions are not supported. Although to
-  be fair, this is something I intend to add. However, if I do that then I
-  will require that the configured DV timings of the input and output are
-  identical before the video loop is possible.
-
-Taken altogether I do not think this is something that lends itself easily
-for abuse since this won't work out-of-the-box.
-
-Regards,
-
-	Hans
-
-Changes since v1:
-
-- Fixed 'sinus/cosinus' typo to sine/cosine.
-- Various fixes all over the place.
-- Moved all controls relating to test patterns, error injection, etc. to
-  the 'Vivid Controls' control class.
-- Rebased to v3.17-rc1.
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 5135a09..b7a9b98 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -244,6 +244,7 @@
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+ #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
++#define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI		0x3012
+ #define USB_PID_TECHNOTREND_TVSTICK_CT2_4400		0x3014
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2	0x0081
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 10aef21..41d3eb9 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -130,7 +130,7 @@ config DVB_USB_CXUSB
+ 
+ 	  Medion MD95700 hybrid USB2.0 device.
+ 	  DViCO FusionHDTV (Bluebird) USB2.0 devices
+-	  TechnoTrend TVStick CT2-4400
++	  TechnoTrend TVStick CT2-4400 and CT2-4650 CI devices
+ 
+ config DVB_USB_M920X
+ 	tristate "Uli m920x DVB-T USB2.0 support"
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 87842e9..4ab3459 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -44,6 +44,7 @@
+ #include "atbm8830.h"
+ #include "si2168.h"
+ #include "si2157.h"
++#include "sp2.h"
+ 
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  80
+@@ -672,6 +673,37 @@ static struct rc_map_table rc_map_d680_dmb_table[] = {
+ 	{ 0x0025, KEY_POWER },
+ };
+ 
++static int cxusb_tt_ct2_4650_ci_ctrl(void *priv, u8 read, int addr,
++					u8 data, int *mem)
++{
++	struct dvb_usb_device *d = priv;
++	u8 wbuf[3];
++	u8 rbuf[2];
++	int ret;
++
++	wbuf[0] = (addr >> 8) & 0xff;
++	wbuf[1] = addr & 0xff;
++
++	if (read) {
++		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_READ, wbuf, 2, rbuf, 2);
++	} else {
++		wbuf[2] = data;
++		ret = cxusb_ctrl_msg(d, CMD_SP2_CI_WRITE, wbuf, 3, rbuf, 1);
++	}
++
++	if (ret)
++		goto err;
++
++	if (read)
++		*mem = rbuf[1];
++
++	return 0;
++err:
++	deb_info("%s: ci usb write returned %d\n", __func__, ret);
++	return ret;
++
++}
++
+ static int cxusb_dee1601_demod_init(struct dvb_frontend* fe)
+ {
+ 	static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x28 };
+@@ -1350,9 +1382,12 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 	struct i2c_adapter *adapter;
+ 	struct i2c_client *client_demod;
+ 	struct i2c_client *client_tuner;
++	struct i2c_client *client_ci;
+ 	struct i2c_board_info info;
+ 	struct si2168_config si2168_config;
+ 	struct si2157_config si2157_config;
++	struct sp2_config sp2_config;
++	u8 o[2], i;
+ 
+ 	/* reset the tuner */
+ 	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
+@@ -1409,6 +1444,48 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 
+ 	st->i2c_client_tuner = client_tuner;
+ 
++	/* initialize CI */
++	if (d->udev->descriptor.idProduct ==
++		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
++
++		memcpy(o, "\xc0\x01", 2);
++		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
++		msleep(100);
++
++		memcpy(o, "\xc0\x00", 2);
++		cxusb_ctrl_msg(d, CMD_GPIO_WRITE, o, 2, &i, 1);
++		msleep(100);
++
++		memset(&sp2_config, 0, sizeof(sp2_config));
++		sp2_config.dvb_adap = &adap->dvb_adap;
++		sp2_config.priv = d;
++		sp2_config.ci_control = cxusb_tt_ct2_4650_ci_ctrl;
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
++		info.addr = 0x40;
++		info.platform_data = &sp2_config;
++		request_module(info.type);
++		client_ci = i2c_new_device(&d->i2c_adap, &info);
++		if (client_ci == NULL || client_ci->dev.driver == NULL) {
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			return -ENODEV;
++		}
++		if (!try_module_get(client_ci->dev.driver->owner)) {
++			i2c_unregister_device(client_ci);
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			return -ENODEV;
++		}
++
++		st->i2c_client_ci = client_ci;
++
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1538,6 +1615,13 @@ static void cxusb_disconnect(struct usb_interface *intf)
+ 	struct cxusb_state *st = d->priv;
+ 	struct i2c_client *client;
+ 
++	/* remove I2C client for CI */
++	client = st->i2c_client_ci;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	/* remove I2C client for tuner */
+ 	client = st->i2c_client_tuner;
+ 	if (client) {
+@@ -1577,6 +1661,7 @@ static struct usb_device_id cxusb_table [] = {
+ 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_CONEXANT_D680_DMB) },
+ 	{ USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_D689) },
+ 	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_TVSTICK_CT2_4400) },
++	{ USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) },
+ 	{}		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE (usb, cxusb_table);
+@@ -2266,13 +2351,18 @@ static struct dvb_usb_device_properties cxusb_tt_ct2_4400_properties = {
+ 		.rc_interval    = 150,
+ 	},
+ 
+-	.num_device_descs = 1,
++	.num_device_descs = 2,
+ 	.devices = {
+ 		{
+ 			"TechnoTrend TVStick CT2-4400",
+ 			{ NULL },
+ 			{ &cxusb_table[20], NULL },
+ 		},
++		{
++			"TechnoTrend TT-connect CT2-4650 CI",
++			{ NULL },
++			{ &cxusb_table[21], NULL },
++		},
+ 	}
+ };
+ 
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 527ff79..29f3e2e 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -28,10 +28,14 @@
+ #define CMD_ANALOG        0x50
+ #define CMD_DIGITAL       0x51
+ 
++#define CMD_SP2_CI_WRITE  0x70
++#define CMD_SP2_CI_READ   0x71
++
+ struct cxusb_state {
+ 	u8 gpio_write_state[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++	struct i2c_client *i2c_client_ci;
+ };
+ 
+ #endif
+-- 
+http://palosaari.fi/
 
