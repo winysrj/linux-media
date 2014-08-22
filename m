@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:60083 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751871AbaHIRgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 13:36:25 -0400
-Date: Sat, 9 Aug 2014 19:36:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Suman Kumar <suman@inforcecomputing.com>
-cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a
- Missing blank line coding style issue
-In-Reply-To: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com>
-Message-ID: <Pine.LNX.4.64.1408091934100.20541@axis700.grange>
-References: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2035 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365AbaHVXcF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 19:32:05 -0400
+Message-ID: <53F7D2D3.4070809@xs4all.nl>
+Date: Fri, 22 Aug 2014 23:31:31 +0000
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: LMML <linux-media@vger.kernel.org>
+CC: Jan Kara <jack@suse.cz>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	m.szyprowski@samsung.com, pawel@osciak.com
+Subject: [PATCHv2] videobuf2-core: take mmap_sem before calling __qbuf_userptr
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Suman,
+(Changes since v1: fix the embarrassing bug where mmap_sem wasn't initialized)
 
-On Sat, 9 Aug 2014, Suman Kumar wrote:
+Commit f035eb4e976ef5a059e30bc91cfd310ff030a7d3 (videobuf2: fix lockdep warning)
+unfortunately removed the mmap_sem lock that is needed around the call to
+__qbuf_userptr. Amazingly nobody noticed this (especially me as the author)
+until Jan Kara pointed this out to me.
 
->     Fixes a coding style issue reported by checkpatch.pl
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks for your patch. To my taste checkpatch.pl has unfortunately become 
-too noisy with meaningless / unimportant warnings like this one. Is this 
-in CodingStyle? If not, my intention is to drop this. However, Mauro may 
-override by either taking this himself or asking me to apply this.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5b808e2..a0ab6af 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1591,6 +1591,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	struct rw_semaphore *mmap_sem;
+ 	int ret;
+ 
+ 	ret = __verify_length(vb, b);
+@@ -1627,7 +1628,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
++		mmap_sem = &current->mm->mmap_sem;
++		down_read(mmap_sem);
+ 		ret = __qbuf_userptr(vb, b);
++		up_read(mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+-- 
+2.0.1
 
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
-> ---
->  drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
-> index ceaddfb..fe15a80 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera_platform.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
-> @@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
->  static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
->  {
->  	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
-> +
->  	return container_of(subdev, struct soc_camera_platform_priv, subdev);
->  }
->  
->  static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
-> +
->  	return p->set_capture(p, enable);
->  }
->  
-> -- 
-> 1.8.2
-> 
