@@ -1,61 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:40319 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078AbaHNFWk (ORCPT
+Received: from nautilus.laiva.org ([62.142.120.74]:53200 "EHLO
+	nautilus.laiva.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932574AbaHVQ5v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 01:22:40 -0400
-Received: by mail-wi0-f177.google.com with SMTP id ho1so1730463wib.16
-        for <linux-media@vger.kernel.org>; Wed, 13 Aug 2014 22:22:38 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 14 Aug 2014 08:22:38 +0300
-Message-ID: <CAAZRmGyJkCcBSsyYHW_dCUCPvM4aKcwy4gPGosLa7zc7m_cTqg@mail.gmail.com>
-Subject: Re: [PATCH 2/6] em28xx: add ts mode setting for PCTV 461e
+	Fri, 22 Aug 2014 12:57:51 -0400
 From: Olli Salonen <olli.salonen@iki.fi>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] MAINTAINERS: add sp2 entry
+Date: Fri, 22 Aug 2014 19:50:42 +0300
+Message-Id: <1408726242-23337-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Indeed, the patch is correct, but the description should say:
+Add a maintainer for the new CIMaX SP2 driver.
 
-em28xx: add ts mode setting for PCTV 292e
-TS mode must be set in the existing PCTV 292e driver.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Thanks for your reviews!
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4cdf24c..6139b66 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8451,6 +8451,14 @@ F:	include/sound/dmaengine_pcm.h
+ F:	sound/core/pcm_dmaengine.c
+ F:	sound/soc/soc-generic-dmaengine-pcm.c
+ 
++SP2 MEDIA DRIVER
++M:	Olli Salonen <olli.salonen@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/dvb-frontends/sp2*
++
+ SPARC + UltraSPARC (sparc/sparc64)
+ M:	"David S. Miller" <davem@davemloft.net>
+ L:	sparclinux@vger.kernel.org
+-- 
+1.7.0.4
 
-On 13 August 2014 02:23, Antti Palosaari <crope@iki.fi> wrote:
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
->
-> PCTV 461e is satellite receiver whilst that one should be PCTV 292e. I will
-> fix the type, no new patch needed.
->
-> Antti
->
->
-> On 08/11/2014 10:58 PM, Olli Salonen wrote:
->>
->> TS mode must be set in the existing PCTV 461e driver.
->>
->> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->> ---
->>   drivers/media/usb/em28xx/em28xx-dvb.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c
->> b/drivers/media/usb/em28xx/em28xx-dvb.c
->> index d8e9760..0645793 100644
->> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->> @@ -1535,6 +1535,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
->>                         /* attach demod */
->>                         si2168_config.i2c_adapter = &adapter;
->>                         si2168_config.fe = &dvb->fe[0];
->> +                       si2168_config.ts_mode = SI2168_TS_PARALLEL;
->>                         memset(&info, 0, sizeof(struct i2c_board_info));
->>                         strlcpy(info.type, "si2168", I2C_NAME_SIZE);
->>                         info.addr = 0x64;
->>
->
-> --
-> http://palosaari.fi/
