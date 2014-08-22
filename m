@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd19416.kasserver.com ([85.13.139.185]:51821 "EHLO
-	dd19416.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344AbaH0KYu (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1279 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932410AbaHVSBd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 06:24:50 -0400
-Message-ID: <53FDB1EE.6010107@herbrechtsmeier.net>
-Date: Wed, 27 Aug 2014 12:24:46 +0200
-From: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+	Fri, 22 Aug 2014 14:01:33 -0400
+Message-ID: <53F78565.5000502@xs4all.nl>
+Date: Fri, 22 Aug 2014 18:01:09 +0000
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Problems with the omap3isp
-References: <53C4FC99.9050308@herbrechtsmeier.net> <3376696.nE771YBFja@avalon> <53DF513D.7010501@herbrechtsmeier.net> <5795344.auXD3SfuqM@avalon>
-In-Reply-To: <5795344.auXD3SfuqM@avalon>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: LMML <linux-media@vger.kernel.org>
+CC: Jan Kara <jack@suse.cz>, m.szyprowski@samsung.com,
+	pawel@osciak.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] videobuf2-core: take mmap_sem before calling __qbuf_userptr
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Commit f035eb4e976ef5a059e30bc91cfd310ff030a7d3 (videobuf2: fix lockdep warning)
+unfortunately removed the mmap_sem lock that is needed around the call to
+__qbuf_userptr. Amazingly nobody noticed this until Jan Kara pointed this out
+to me.
 
-Am 04.08.2014 um 17:25 schrieb Laurent Pinchart:
-> On Monday 04 August 2014 11:24:13 Stefan Herbrechtsmeier wrote:
->> Hi Laurent,
->>
->> thank you very much for your help.
->>
->> The problem is cross talk on the camera flex cable of the Gumstix Overo.
->> The XCLKA signal is beside PCLK and VS.
-> Right, I should have mentioned that. It's a know issue, and there's not much
-> that can be done about it without a hardware redesign. A ground (or power
-> supply) signal should really have been inserted on each side of the XCLKA and
-> PCLK signals.
-Exists a list about knowing issues with the Gumstix Overo? Because I 
-have some problems with the MMC3 too.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
->> Additionally the OV5647 camera tristate all outputs by default. This leads
->> to HS_VS_IRQ interrupts.
-> This should be taken care of by pull-up or pull-down resistors on the camera
-> signals. I've disabled them with the Caspa camera given the low drive strength
-> of the buffer on the camera board, but you could enable them on your system.
-I have manually rework my camera adapter and change the camera clock 
-from XCLKA to XCLKB. Additionally I have enable the pull-ups in my 
-device tree. Now the camera sensor from the Raspberry Pi camera module 
-works together with the Gumstix Overo.
-
-Thank you for your help,
-   Stefan
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5b808e2..2f6ac7e 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1591,6 +1591,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	struct rw_semaphore *mmap_sem;
+ 	int ret;
+ 
+ 	ret = __verify_length(vb, b);
+@@ -1627,7 +1628,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
++		down_read(mmap_sem);
+ 		ret = __qbuf_userptr(vb, b);
++		up_read(mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+-- 
+2.0.1
 
