@@ -1,72 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46717 "EHLO mail.kapsi.fi"
+Received: from mga01.intel.com ([192.55.52.88]:43474 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753468AbaHUIwU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 04:52:20 -0400
-Message-ID: <53F5B341.1090401@iki.fi>
-Date: Thu, 21 Aug 2014 11:52:17 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1752757AbaHVA0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 20:26:08 -0400
+Date: Fri, 22 Aug 2014 08:25:22 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:devel 498/499] ERROR: "omapdss_compat_init"
+ [drivers/media/platform/omap/omap-vout.ko] undefined!
+Message-ID: <53f68df2.FMHNlJtoZwQGwn/b%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: CrazyCat <crazycat69@narod.ru>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] si2168: DVB-T2 PLP selection implemented
-References: <7423442.VCBAbZjIjj@computer>
-In-Reply-To: <7423442.VCBAbZjIjj@computer>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+tree:   git://linuxtv.org/media_tree.git devel
+head:   2558eeda5cd75649a1159aadca530a990b81c4ee
+commit: ace9078f1c07b94332e37a5017bb34097e082e54 [498/499] [media] enable COMPILE_TEST for OMAP2 vout
+config: make ARCH=s390 allmodconfig
 
+All error/warnings:
 
-On 08/17/2014 12:33 AM, CrazyCat wrote:
-> DVB-T2 PLP selection implemented for Si2168 demod.
-> Tested with PCTV 292e.
->
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-> ---
->   drivers/media/dvb-frontends/si2168.c | 16 ++++++++++++++--
->   1 file changed, 14 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 37f3f92..9c41281 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -168,10 +168,10 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->   	u8 bandwidth, delivery_system;
->
->   	dev_dbg(&s->client->dev,
-> -			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u\n",
-> +			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
->   			__func__, c->delivery_system, c->modulation,
->   			c->frequency, c->bandwidth_hz, c->symbol_rate,
-> -			c->inversion);
-> +			c->inversion, c->stream_id);
->
->   	if (!s->active) {
->   		ret = -EAGAIN;
-> @@ -235,6 +235,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> +	if (c->delivery_system == SYS_DVBT2) {
-> +		/* select PLP */
-> +		cmd.args[0] = 0x52;
-> +		cmd.args[1] = c->stream_id & 0xff;
-> +		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
-> +		cmd.wlen = 3;
-> +		cmd.rlen = 1;
-> +		ret = si2168_cmd_execute(s, &cmd);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
->   	memcpy(cmd.args, "\x51\x03", 2);
->   	cmd.wlen = 2;
->   	cmd.rlen = 12;
->
+>> ERROR: "omapdss_compat_init" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_overlay_manager" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_num_overlay_managers" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_overlay" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omapdss_is_initialized" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dispc_register_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omapdss_get_version" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_put_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_next_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dispc_unregister_isr" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omapdss_compat_uninit" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_device" [drivers/media/platform/omap/omap-vout.ko] undefined!
+>> ERROR: "omap_dss_get_num_overlays" [drivers/media/platform/omap/omap-vout.ko] undefined!
 
--- 
-http://palosaari.fi/
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
