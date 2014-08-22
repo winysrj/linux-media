@@ -1,113 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36155 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933301AbaH0JaX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 05:30:23 -0400
-Message-ID: <1409131814.3623.40.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC v2] [media] v4l2: add V4L2 pixel format array and helper
- functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Date: Wed, 27 Aug 2014 11:30:14 +0200
-In-Reply-To: <1684313.SfePcxMsjg@avalon>
-References: <1409043654-12252-1-git-send-email-p.zabel@pengutronix.de>
-	 <1684313.SfePcxMsjg@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:32913 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752983AbaHVAeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 20:34:01 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/6] m88ts2022: change parameter type of m88ts2022_cmd
+Date: Fri, 22 Aug 2014 03:33:40 +0300
+Message-Id: <1408667621-12072-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1408667621-12072-1-git-send-email-crope@iki.fi>
+References: <1408667621-12072-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+It is driver internal function and does not need anything from
+frontend structure. Due to that change parameter type to driver
+state which is better for driver internal functions.
 
-thank you for the comments.
+Also remove one unused variable from state itself.
 
-Am Dienstag, den 26.08.2014, 12:01 +0200 schrieb Laurent Pinchart:
-[...]
-> > +};
-> > +
-> > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc)
-> > +{
-> > +	int i;
-> 
-> The loop counter is always positive, it can be an unsigned int.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/m88ts2022.c      | 21 ++++++++++-----------
+ drivers/media/tuners/m88ts2022_priv.h |  1 -
+ 2 files changed, 10 insertions(+), 12 deletions(-)
 
-I'll change that.
-
-> > +	for (i = 0; i < ARRAY_SIZE(v4l2_pixfmts); i++) {
-> > +		if (v4l2_pixfmts[i].pixelformat == fourcc)
-> > +			return v4l2_pixfmts + i;
-> > +	}
-> 
-> We currently have 123 pixel formats defined, and that number will keep 
-> increasing. I wonder if something more efficient than an O(n) array lookup 
-> would be worth it.
-
-How about a function similar to soc_mbus_find_fmtdesc that uses an array
-provided by the driver:
-
-const struct v4l2_pixfmt_info *v4l2_find_pixfmt(u32 pixelformat,
-		const struct v4l2_pixfmt_info *array, unsigned int len)
-{
-	unsigned int i;
-
-	for (i = 0; i < len; i++) {
-		if (pixelformat == array[i].pixelformat)
-			return array + i;
-	}
-
-	return NULL;
-}
-
-And a function to fill this driver specific array from the global array
-once:
-
-void v4l2_init_pixfmt_array(struct v4l2_pixfmt_info *array, int len)
-{
-	unsigned int i;
-
-	for (i = 0; i < len; i++)
-		array[i] = *v4l2_pixfmt_by_fourcc(array[i].pixelformat);
-}
-
-A driver could then do the following:
-
-static struct v4l2_pixfmt_info driver_formats[] = {
-	{ .pixelformat = V4L2_PIX_FMT_YUYV },
-	{ .pixelformat = V4L2_PIX_FMT_YUV420 },
-};
-
-int driver_probe(...)
-{
-	...
-	v4l2_init_pixfmt_array(driver_formats,
-			ARRAY_SIZE(driver_formats));
-	...
-}
-
-[...]
-> > +unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt, unsigned int
-> > width,
-> > +			    unsigned int height)
-> > +{
-> 
-> A small comment would be useful here to explain why we don't round up in the 
-> second case.
-
-Agreed, I think the YUV410 case is a good example for this.
-
-[...]
-> > +/**
-> > + * struct v4l2_pixfmt - internal V4L2 pixel format description
-> 
-> Maybe struct v4l2_pixfmt_info ?
-
-That's fine with me.
-
-regards
-Philipp
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index 04d3979..90e1a35 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -18,10 +18,9 @@
+ 
+ #include "m88ts2022_priv.h"
+ 
+-static int m88ts2022_cmd(struct dvb_frontend *fe,
+-		int op, int sleep, u8 reg, u8 mask, u8 val, u8 *reg_val)
++static int m88ts2022_cmd(struct m88ts2022 *s, int op, int sleep, u8 reg,
++		u8 mask, u8 val, u8 *reg_val)
+ {
+-	struct m88ts2022 *s = fe->tuner_priv;
+ 	int ret, i;
+ 	unsigned int utmp;
+ 	struct m88ts2022_reg_val reg_vals[] = {
+@@ -124,7 +123,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 			s->frequency_khz, s->frequency_khz - c->frequency,
+ 			f_vco_khz, pll_n, div_ref, div_out);
+ 
+-	ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
++	ret = m88ts2022_cmd(s, 0x10, 5, 0x15, 0x40, 0x00, NULL);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -142,7 +141,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
++		ret = m88ts2022_cmd(s, 0x10, 5, 0x15, 0x40, 0x00, NULL);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -158,7 +157,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	ret = m88ts2022_cmd(fe, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
++	ret = m88ts2022_cmd(s, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -185,7 +184,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
++	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -195,7 +194,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
++	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -227,7 +226,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
++	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -237,7 +236,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
++	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -257,7 +256,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = m88ts2022_cmd(fe, 0x01, 20, 0x21, 0xff, 0x00, NULL);
++	ret = m88ts2022_cmd(s, 0x01, 20, 0x21, 0xff, 0x00, NULL);
+ 	if (ret)
+ 		goto err;
+ err:
+diff --git a/drivers/media/tuners/m88ts2022_priv.h b/drivers/media/tuners/m88ts2022_priv.h
+index a67afe3..a0e22fa 100644
+--- a/drivers/media/tuners/m88ts2022_priv.h
++++ b/drivers/media/tuners/m88ts2022_priv.h
+@@ -24,7 +24,6 @@ struct m88ts2022 {
+ 	struct m88ts2022_config cfg;
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
+-	struct dvb_frontend *fe;
+ 	u32 frequency_khz;
+ };
+ 
+-- 
+http://palosaari.fi/
 
