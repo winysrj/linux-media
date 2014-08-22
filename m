@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:47897 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213AbaHWQnJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 12:43:09 -0400
-Received: by mail-wi0-f181.google.com with SMTP id bs8so868666wib.14
-        for <linux-media@vger.kernel.org>; Sat, 23 Aug 2014 09:43:08 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Gregor Jasny <gjasny@googlemail.com>
-Subject: [PATCH 4/5] libdvbv5: Make dvb_xxx_charset const strings
-Date: Sat, 23 Aug 2014 18:42:42 +0200
-Message-Id: <1408812163-18309-5-git-send-email-gjasny@googlemail.com>
-In-Reply-To: <1408812163-18309-1-git-send-email-gjasny@googlemail.com>
-References: <1408812163-18309-1-git-send-email-gjasny@googlemail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:33366 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756459AbaHVPYK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 11:24:10 -0400
+Message-ID: <53F76097.8020800@suse.com>
+Date: Fri, 22 Aug 2014 11:24:07 -0400
+From: Jeff Mahoney <jeffm@suse.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Kernel Maling List <linux-kernel@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Autoselecting SPI for MEDIA_SUBDRV_AUTOSELECT?
+References: <53F75B26.2020101@suse.com> <53F75F02.2030300@iki.fi>
+In-Reply-To: <53F75F02.2030300@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
----
- lib/libdvbv5/parse_string.c | 13 +++++++------
- lib/libdvbv5/parse_string.h |  8 ++++----
- 2 files changed, 11 insertions(+), 10 deletions(-)
+On Fri Aug 22 11:17:22 2014, Antti Palosaari wrote:
+> Moikka!
+>
+> On 08/22/2014 06:00 PM, Jeff Mahoney wrote:
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>>
+>> Hi Antti -
+>>
+>> Commit e4462ffc160 ([media] Kconfig: sub-driver auto-select SPI bus)
+>> enables CONFIG_SPI globally for a driver that won't even be enabled in
+>> many cases.
+>>
+>> Is there a reason USB_MSI2500 doesn't select SPI instead of
+>> MEDIA_SUBDRV_AUTOSELECT?
+>
+> Nothing but I decided to set it similarly as I2C, another more common
+> bus. IIRC same was for I2C_MUX too.
+>
+> You could still disable media subdriver autoselect and then disable
+> SPI and select all the media drivers (excluding MSSi2500) manually.
+>
+> I have feeling that media auto-select was added to select everything
+> needed for media.
 
-diff --git a/lib/libdvbv5/parse_string.c b/lib/libdvbv5/parse_string.c
-index db47c3a..081b2f8 100644
---- a/lib/libdvbv5/parse_string.c
-+++ b/lib/libdvbv5/parse_string.c
-@@ -35,8 +35,8 @@
- 
- #define CS_OPTIONS "//TRANSLIT"
- 
--char *dvb_default_charset = "iso-8859-1";
--char *dvb_output_charset = "utf-8";
-+const char *dvb_default_charset = "iso-8859-1";
-+const char *dvb_output_charset = "utf-8";
- 
- struct charset_conv {
- 	unsigned len;
-@@ -308,7 +308,7 @@ void iconv_to_charset(struct dvb_v5_fe_parms *parms,
- 		      size_t destlen,
- 		      const unsigned char *src,
- 		      size_t len,
--		      char *type, char *output_charset)
-+		      const char *type, const char *output_charset)
- {
- 	char out_cs[strlen(output_charset) + 1 + sizeof(CS_OPTIONS)];
- 	char *p = dest;
-@@ -331,7 +331,7 @@ void iconv_to_charset(struct dvb_v5_fe_parms *parms,
- 
- static void charset_conversion(struct dvb_v5_fe_parms *parms, char **dest, const unsigned char *s,
- 			       size_t len,
--			       char *type, char *output_charset)
-+			       const char *type, const char *output_charset)
- {
- 	size_t destlen = len * 3;
- 	int need_conversion = 1;
-@@ -371,10 +371,11 @@ static void charset_conversion(struct dvb_v5_fe_parms *parms, char **dest, const
- 
- void parse_string(struct dvb_v5_fe_parms *parms, char **dest, char **emph,
- 		  const unsigned char *src, size_t len,
--		  char *default_charset, char *output_charset)
-+		  const char *default_charset, const char *output_charset)
- {
- 	size_t destlen, i, len2 = 0;
--	char *p, *p2, *type = default_charset;
-+	char *p, *p2;
-+	const char *type = default_charset;
- 	unsigned char *tmp1 = NULL, *tmp2 = NULL;
- 	const unsigned char *s;
- 	int emphasis = 0;
-diff --git a/lib/libdvbv5/parse_string.h b/lib/libdvbv5/parse_string.h
-index e269ff3..48ae6ec 100644
---- a/lib/libdvbv5/parse_string.h
-+++ b/lib/libdvbv5/parse_string.h
-@@ -28,14 +28,14 @@ void iconv_to_charset(struct dvb_v5_fe_parms *parms,
- 		      size_t destlen,
- 		      const unsigned char *src,
- 		      size_t len,
--		      char *type, char *output_charset);
-+		      const char *type, const char *output_charset);
- 
- void parse_string(struct dvb_v5_fe_parms *parms, char **dest, char **emph,
- 		  const unsigned char *src, size_t len,
--		  char *default_charset, char *output_charset);
-+		  const char *default_charset, const char *output_charset);
- 
--extern char *dvb_default_charset;
--extern char *dvb_output_charset;
-+extern const char *dvb_default_charset;
-+extern const char *dvb_output_charset;
- 
- #if HAVE_VISIBILITY
- #pragma GCC visibility pop
--- 
-2.1.0
+Ok, that makes sense. I suppose I'll still need to enable SPI just for 
+this device and disable every other SPI device anyway. I'll live.
 
+Thanks,
+
+-Jeff
+
+--
+Jeff Mahoney
+SUSE Labs
