@@ -1,16 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.202]:37176 "EHLO kirsi1.inet.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:60019 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753132AbaHEMAm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Aug 2014 08:00:42 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
+	id S1756052AbaHVK60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 06:58:26 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] si2168: clean logging
-Date: Tue,  5 Aug 2014 14:54:08 +0300
-Message-Id: <1407239648-22606-1-git-send-email-olli.salonen@iki.fi>
+Cc: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL FINAL 01/21] si2168: clean logging
+Date: Fri, 22 Aug 2014 13:57:53 +0300
+Message-Id: <1408705093-5167-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+From: Olli Salonen <olli.salonen@iki.fi>
 
 Same thing for si2168 as Antti did earlier for tda18212:
 
@@ -19,6 +26,8 @@ are done by kernel logging system when dev_xxx logging is used and
 driver is proper I2C driver.
 
 Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
  drivers/media/dvb-frontends/si2168.c | 70 +++++++++++++++++-------------------
  1 file changed, 33 insertions(+), 37 deletions(-)
@@ -246,5 +255,5 @@ index 8f81d97..59a4218 100644
  	i2c_del_mux_adapter(s->adapter);
  
 -- 
-1.9.1
+http://palosaari.fi/
 
