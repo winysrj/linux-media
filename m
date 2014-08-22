@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:45313 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755687AbaHAWQ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Aug 2014 18:16:27 -0400
-Received: by mail-lb0-f171.google.com with SMTP id l4so3700530lbv.30
-        for <linux-media@vger.kernel.org>; Fri, 01 Aug 2014 15:16:25 -0700 (PDT)
-Message-ID: <53DC11BD.6060409@cogentembedded.com>
-Date: Sat, 02 Aug 2014 02:16:29 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:56239 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753883AbaHVB45 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Aug 2014 21:56:57 -0400
+Date: Fri, 22 Aug 2014 10:56:54 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	m.chehab@samsung.com, magnus.damm@gmail.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/6] ARM: shmobile: r8a7791: Add JPU clock dt and CPG
+ define.
+Message-ID: <20140822015653.GE9099@verge.net.au>
+References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <1408452653-14067-5-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <1671726.SQHuEtA4A1@avalon>
 MIME-Version: 1.0
-To: Ian Molton <ian.molton@codethink.co.uk>
-CC: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 3/4] media: rcar_vin: Fix race condition terminating stream
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>	<1404812474-7627-4-git-send-email-ian.molton@codethink.co.uk>	<53BC17D6.2070607@cogentembedded.com> <20140710111523.17ae9078e53001c18bdf6eac@codethink.co.uk>
-In-Reply-To: <20140710111523.17ae9078e53001c18bdf6eac@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1671726.SQHuEtA4A1@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Thu, Aug 21, 2014 at 01:07:25AM +0200, Laurent Pinchart wrote:
+> Hi Mikhail,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 19 August 2014 16:50:51 Mikhail Ulyanov wrote:
+> 
+> A commit message would be nice.
+> 
+> > Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On 07/10/2014 02:15 PM, Ian Molton wrote:
+Thanks, I have queued this up.
 
->>> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
->>> Signed-off-by: William Towle <william.towle@codethink.co.uk>
->>> ---
->>>    drivers/media/platform/soc_camera/rcar_vin.c | 43 ++++++++++++++++++----------
->>>    1 file changed, 28 insertions(+), 15 deletions(-)
-
->>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
->>> index 06ce705..aeda4e2 100644
->>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> [...]
->>> @@ -462,7 +485,6 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
->>>    	struct rcar_vin_priv *priv = ici->priv;
->>>    	unsigned int i;
->>>    	int buf_in_use = 0;
->>> -
->>>    	spin_lock_irq(&priv->lock);
-
->>      This seems like a random whitespace change. This empty should be present.
-
-> Agreed.
-
->> [...]
->>> @@ -517,12 +527,15 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
->>>
->>>    	spin_lock_irq(&priv->lock);
->>>
->>> +	rcar_vin_wait_stop_streaming(priv);
->>> +
->>>    	for (i = 0; i < vq->num_buffers; ++i)
->>>    		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
->>>    			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
->>>
->>>    	list_for_each_safe(buf_head, tmp, &priv->capture)
->>>    		list_del_init(buf_head);
->>> +
->>
->>      Also quite a random "drove-by" change.
-
-> Agreed.
-
-> Any further comments? If not, I can re-spin this ready for upstreaming.
-
-    There has been no further comments but you've never re-appeared. :-(
-Now I'm about to test these patches...
-
-WBR, Sergei
-
+> 
+> > ---
+> >  arch/arm/boot/dts/r8a7791.dtsi            | 6 +++---
+> >  include/dt-bindings/clock/r8a7791-clock.h | 1 +
+> >  2 files changed, 4 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/r8a7791.dtsi b/arch/arm/boot/dts/r8a7791.dtsi
+> > index 152c75c..c2d0c6e 100644
+> > --- a/arch/arm/boot/dts/r8a7791.dtsi
+> > +++ b/arch/arm/boot/dts/r8a7791.dtsi
+> > @@ -889,16 +889,16 @@
+> >  		mstp1_clks: mstp1_clks@e6150134 {
+> >  			compatible = "renesas,r8a7791-mstp-clocks", "renesas,cpg-mstp-
+> clocks";
+> >  			reg = <0 0xe6150134 0 4>, <0 0xe6150038 0 4>;
+> > -			clocks = <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
+> > +			clocks = <&m2_clk>, <&p_clk>, <&p_clk>, <&p_clk>, <&rclk_clk>,
+> >  				 <&cp_clk>, <&zs_clk>, <&zs_clk>, <&zs_clk>;
+> >  			#clock-cells = <1>;
+> >  			renesas,clock-indices = <
+> > -				R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 R8A7791_CLK_TMU2
+> > +				R8A7791_CLK_JPU R8A7791_CLK_TMU1 R8A7791_CLK_TMU3 
+> R8A7791_CLK_TMU2
+> >  				R8A7791_CLK_CMT0 R8A7791_CLK_TMU0 R8A7791_CLK_VSP1_DU1
+> >  				R8A7791_CLK_VSP1_DU0 R8A7791_CLK_VSP1_S
+> > 
+> >  			>;
+> > 
+> >  			clock-output-names =
+> > -				"tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
+> > +				"jpu", "tmu1", "tmu3", "tmu2", "cmt0", "tmu0", "vsp1-du1",
+> >  				"vsp1-du0", "vsp1-sy";
+> >  		};
+> >  		mstp2_clks: mstp2_clks@e6150138 {
+> > diff --git a/include/dt-bindings/clock/r8a7791-clock.h
+> > b/include/dt-bindings/clock/r8a7791-clock.h index f0d4d10..58c3f49 100644
+> > --- a/include/dt-bindings/clock/r8a7791-clock.h
+> > +++ b/include/dt-bindings/clock/r8a7791-clock.h
+> > @@ -25,6 +25,7 @@
+> >  #define R8A7791_CLK_MSIOF0		0
+> > 
+> >  /* MSTP1 */
+> > +#define R8A7791_CLK_JPU		6
+> >  #define R8A7791_CLK_TMU1		11
+> >  #define R8A7791_CLK_TMU3		21
+> >  #define R8A7791_CLK_TMU2		22
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
