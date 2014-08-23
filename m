@@ -1,64 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52330 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731AbaH1MCi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 08:02:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Problems with the omap3isp
-Date: Thu, 28 Aug 2014 14:03:27 +0200
-Message-ID: <6301052.X8pjVEUngK@avalon>
-In-Reply-To: <53FDB1EE.6010107@herbrechtsmeier.net>
-References: <53C4FC99.9050308@herbrechtsmeier.net> <5795344.auXD3SfuqM@avalon> <53FDB1EE.6010107@herbrechtsmeier.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:47145 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373AbaHWOFe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Aug 2014 10:05:34 -0400
+Message-ID: <53F89FAC.4080708@iki.fi>
+Date: Sat, 23 Aug 2014 17:05:32 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Bjoern <lkml@call-home.ch>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Digital Devices PCIe bridge update to 0.9.15a
+References: <1406951335-24026-1-git-send-email-crope@iki.fi> <1408794617.7936.2.camel@bjoern-W35xSTQ-370ST>
+In-Reply-To: <1408794617.7936.2.camel@bjoern-W35xSTQ-370ST>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+Moikka
+That patchset is simply far away from merge. Tons of issues to be fixed. 
+It is huge amount of work to get that all in. I could estimate one month 
+full time work even my experience is not enough. And I simply don't want 
+to waste that much money from my pockets, it is many thousand euros. So 
+I do it, if I do, on my schedule.
 
-On Wednesday 27 August 2014 12:24:46 Stefan Herbrechtsmeier wrote:
-> Am 04.08.2014 um 17:25 schrieb Laurent Pinchart:
-> > On Monday 04 August 2014 11:24:13 Stefan Herbrechtsmeier wrote:
-> >> Hi Laurent,
-> >> 
-> >> thank you very much for your help.
-> >> 
-> >> The problem is cross talk on the camera flex cable of the Gumstix Overo.
-> >> The XCLKA signal is beside PCLK and VS.
-> > 
-> > Right, I should have mentioned that. It's a know issue, and there's not
-> > much that can be done about it without a hardware redesign. A ground (or
-> > power supply) signal should really have been inserted on each side of the
-> > XCLKA and PCLK signals.
-> 
-> Exists a list about knowing issues with the Gumstix Overo? Because I
-> have some problems with the MMC3 too.
+There is many separate issues which needs to be done. It is not 
+something one people should do all. For example mainlining that 
+DVB-T/T2/C/C2 demod driver. Another thing is DVB-C2 API, which is not 
+much coding, but a lot of specification. You need to read and 
+*understand* DVB-C2 spec and on some level other specs (mostly DVB-T2) 
+in order to add missing pieces correctly to DVB API. If you are not 
+coder, start here.
 
-Not to my knowledge. This crosstalk issue is something I've discovered and 
-reported to Gumstix a couple of years ago.
 
-> >> Additionally the OV5647 camera tristate all outputs by default. This
-> >> leads to HS_VS_IRQ interrupts.
-> > 
-> > This should be taken care of by pull-up or pull-down resistors on the
-> > camera signals. I've disabled them with the Caspa camera given the low
-> > drive strength of the buffer on the camera board, but you could enable
-> > them on your system.
+Antti
+
+
+
+On 08/23/2014 02:50 PM, Bjoern wrote:
+> Hi all,
 >
-> I have manually rework my camera adapter and change the camera clock
-> from XCLKA to XCLKB. Additionally I have enable the pull-ups in my
-> device tree. Now the camera sensor from the Raspberry Pi camera module
-> works together with the Gumstix Overo.
-
-Great. Any chance to see a driver for the ov5647 being submitted to the linux-
-media mailing list ? :-)
+> It's been 3 weeks since these patches were submitted - have they been
+> merged yet? If not - what's the problem? Who has to check this?
+>
+> I'm not the only one longing for driver updated support of ddbridge "by
+> default", and it would really be nice if there was some "progress" here.
+> Antti did a lot of work here for all us ddbridge users.
+>
+> Regards,
+> Bjoern
+>
+> On Sa, 2014-08-02 at 06:48 +0300, Antti Palosaari wrote:
+>> After cold power-on, my device wasn't able to find DuoFlex C/C2/T/T2
+>> Expansion card, which I added yesterday. I looked old and new drivers
+>> and tried many things, but no success. Old kernel driver was ages,
+>> many years, behind manufacturer current Linux driver and there has
+>> been a tons of changes. So I ended up upgrading Linux kernel driver
+>> to 0.9.15a (it was 0.5).
+>>
+>> Now it is very near Digital Devices official driver, only modulator
+>> and network streaming stuff is removed and CI is abusing SEC like
+>> earlier also.
+>>
+>> Few device models are not supported due to missing kernel driver or
+>> missing device profile. Those devices are based of following DTV
+>> frontend chipsets:
+>> MaxLinear MxL5xx
+>> STMicroelectronics STV0910
+>> STMicroelectronics STV0367
+>>
+>>
+>> Tree for testing is here:
+>> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=digitaldevices
+>>
+>> regards
+>> Antti
+>>
+>>
+>> Antti Palosaari (5):
+>>    cxd2843: do not call get_if_frequency() when it is NULL
+>>    ddbridge: disable driver building
+>>    ddbridge: remove driver temporarily
+>>    ddbridge: add needed files from manufacturer driver 0.9.15a
+>>    ddbridge: clean up driver for release
+>>
+>>   drivers/media/dvb-frontends/cxd2843.c      |    3 +-
+>>   drivers/media/pci/ddbridge/Makefile        |    2 -
+>>   drivers/media/pci/ddbridge/ddbridge-core.c | 3175 +++++++++++++++++++---------
+>>   drivers/media/pci/ddbridge/ddbridge-i2c.c  |  232 ++
+>>   drivers/media/pci/ddbridge/ddbridge-regs.h |  347 ++-
+>>   drivers/media/pci/ddbridge/ddbridge.c      |  456 ++++
+>>   drivers/media/pci/ddbridge/ddbridge.h      |  407 +++-
+>>   7 files changed, 3518 insertions(+), 1104 deletions(-)
+>>   create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
+>>   create mode 100644 drivers/media/pci/ddbridge/ddbridge.c
+>>
+>
+>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
