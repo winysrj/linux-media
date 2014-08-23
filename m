@@ -1,122 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35058 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbaHFIpf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 04:45:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	sasha.levin@oracle.com
-Subject: Re: [PATCHv3] videobuf2: fix lockdep warning
-Date: Wed, 06 Aug 2014 10:46:04 +0200
-Message-ID: <7218932.ogQRVaqRSh@avalon>
-In-Reply-To: <53E1CECB.40600@xs4all.nl>
-References: <53E0B84E.3050803@xs4all.nl> <9597115.RDDXHorZIT@avalon> <53E1CECB.40600@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from fep23.mx.upcmail.net ([62.179.121.43]:43899 "EHLO
+	fep23.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260AbaHWVKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Aug 2014 17:10:41 -0400
+Message-ID: <1408828233.11985.1.camel@bjoern-W35xSTQ-370ST>
+Subject: Re: [PATCH 0/5] Digital Devices PCIe bridge update to 0.9.15a
+From: Bjoern <lkml@call-home.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Date: Sat, 23 Aug 2014 23:10:33 +0200
+In-Reply-To: <53F89FAC.4080708@iki.fi>
+References: <1406951335-24026-1-git-send-email-crope@iki.fi>
+	 <1408794617.7936.2.camel@bjoern-W35xSTQ-370ST> <53F89FAC.4080708@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Ok, got it. I just thought it was replacing the current driver with the
+new one - and that seemed to be it. Didn't know there was such a lot of
+work left before it's merged :o
 
-On Wednesday 06 August 2014 08:44:27 Hans Verkuil wrote:
-> On 08/06/2014 12:15 AM, Laurent Pinchart wrote:
-> > On Tuesday 05 August 2014 12:56:14 Hans Verkuil wrote:
-> >> Changes since v2: use a mutex instead of a spinlock due to possible
-> >> sleeps inside the mmap memop. Use the mutex when buffers are
-> >> allocated/freed, so it's a much coarser lock.
-> >> 
-> >> The following lockdep warning has been there ever since commit
-> > 
-> >> a517cca6b24fc54ac209e44118ec8962051662e3 one year ago:
-> > [snip]
-> > 
-> >> The reason is that vb2_fop_mmap and vb2_fop_get_unmapped_area take the
-> >> core lock while they are called with the mmap_sem semaphore held. But
-> >> elsewhere in the code the core lock is taken first but calls to
-> >> copy_to/from_user() can take the mmap_sem semaphore as well, potentially
-> >> causing a classical A-B/B-A deadlock.
-> >> 
-> >> However, the mmap/get_unmapped_area calls really shouldn't take the core
-> >> lock at all. So what would happen if they don't take the core lock
-> >> anymore?
-> >> 
-> >> There are two situations that need to be taken into account: calling mmap
-> >> while new buffers are being added and calling mmap while buffers are
-> >> being deleted.
-> >> 
-> >> The first case works almost fine without a lock: in all cases mmap relies
-> >> on correctly filled-in q->num_buffers/q->num_planes values and those are
-> >> only updated by reqbufs and create_buffers *after* any new buffers have
-> >> been initialized completely. Except in one case: if an error occurred
-> >> while allocating the buffers it will increase num_buffers and rely on
-> >> __vb2_queue_free to decrease it again. So there is a short period where
-> >> the buffer information may be wrong.
-> >> 
-> >> The second case definitely does pose a problem: buffers may be in the
-> >> process of being deleted, without the internal structure being updated.
-> >> 
-> >> In order to fix this a new mutex is added to vb2_queue that is taken when
-> >> buffers are allocated or deleted, and in vb2_mmap. That way vb2_mmap
-> >> won't get stale buffer data. Note that this is a problem only for
-> >> MEMORY_MMAP, so even though __qbuf_userptr and __qbuf_dmabuf also mess
-> >> around with buffers (mem_priv in particular), this doesn't clash with
-> >> vb2_mmap or vb2_get_unmapped_area since those are MMAP specific.
-> >> 
-> >> As an additional bonus the hack in __buf_prepare, the USERPTR case, can
-> >> be removed as well since mmap() no longer takes the core lock.
-> >> 
-> >> All in all a much cleaner solution.
-> >> 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > with one small comment, please see below.
-> > 
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 56 +++++++++-----------------
-> >>  include/media/videobuf2-core.h           |  2 ++
-> >>  2 files changed, 21 insertions(+), 37 deletions(-)
-> > 
-> > [snip]
-> > 
-> >> diff --git a/include/media/videobuf2-core.h
-> >> b/include/media/videobuf2-core.h index fc910a6..ae1289b 100644
-> >> --- a/include/media/videobuf2-core.h
-> >> +++ b/include/media/videobuf2-core.h
-> >> @@ -366,6 +366,7 @@ struct v4l2_fh;
-> >>   *		cannot be started unless at least this number of buffers
-> >>   *		have been queued into the driver.
-> >>   *
-> >> + * @queue_lock:	private mutex used when buffers are
-> >> allocated/freed/mmapped
-> >
-> > queue_lock sounds a bit too generic to me, it might confuse readers into
-> > thinking the lock protects the whole queue.
+Sorry and good luck!
+
+-Bjoern
+
+
+On Sa, 2014-08-23 at 17:05 +0300, Antti Palosaari wrote:
+> Moikka
+> That patchset is simply far away from merge. Tons of issues to be fixed. 
+> It is huge amount of work to get that all in. I could estimate one month 
+> full time work even my experience is not enough. And I simply don't want 
+> to waste that much money from my pockets, it is many thousand euros. So 
+> I do it, if I do, on my schedule.
 > 
-> How about mmap_lock?
+> There is many separate issues which needs to be done. It is not 
+> something one people should do all. For example mainlining that 
+> DVB-T/T2/C/C2 demod driver. Another thing is DVB-C2 API, which is not 
+> much coding, but a lot of specification. You need to read and 
+> *understand* DVB-C2 spec and on some level other specs (mostly DVB-T2) 
+> in order to add missing pieces correctly to DVB API. If you are not 
+> coder, start here.
+> 
+> 
+> Antti
+> 
+> 
+> 
+> On 08/23/2014 02:50 PM, Bjoern wrote:
+> > Hi all,
+> >
+> > It's been 3 weeks since these patches were submitted - have they been
+> > merged yet? If not - what's the problem? Who has to check this?
+> >
+> > I'm not the only one longing for driver updated support of ddbridge "by
+> > default", and it would really be nice if there was some "progress" here.
+> > Antti did a lot of work here for all us ddbridge users.
+> >
+> > Regards,
+> > Bjoern
+> >
+> > On Sa, 2014-08-02 at 06:48 +0300, Antti Palosaari wrote:
+> >> After cold power-on, my device wasn't able to find DuoFlex C/C2/T/T2
+> >> Expansion card, which I added yesterday. I looked old and new drivers
+> >> and tried many things, but no success. Old kernel driver was ages,
+> >> many years, behind manufacturer current Linux driver and there has
+> >> been a tons of changes. So I ended up upgrading Linux kernel driver
+> >> to 0.9.15a (it was 0.5).
+> >>
+> >> Now it is very near Digital Devices official driver, only modulator
+> >> and network streaming stuff is removed and CI is abusing SEC like
+> >> earlier also.
+> >>
+> >> Few device models are not supported due to missing kernel driver or
+> >> missing device profile. Those devices are based of following DTV
+> >> frontend chipsets:
+> >> MaxLinear MxL5xx
+> >> STMicroelectronics STV0910
+> >> STMicroelectronics STV0367
+> >>
+> >>
+> >> Tree for testing is here:
+> >> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=digitaldevices
+> >>
+> >> regards
+> >> Antti
+> >>
+> >>
+> >> Antti Palosaari (5):
+> >>    cxd2843: do not call get_if_frequency() when it is NULL
+> >>    ddbridge: disable driver building
+> >>    ddbridge: remove driver temporarily
+> >>    ddbridge: add needed files from manufacturer driver 0.9.15a
+> >>    ddbridge: clean up driver for release
+> >>
+> >>   drivers/media/dvb-frontends/cxd2843.c      |    3 +-
+> >>   drivers/media/pci/ddbridge/Makefile        |    2 -
+> >>   drivers/media/pci/ddbridge/ddbridge-core.c | 3175 +++++++++++++++++++---------
+> >>   drivers/media/pci/ddbridge/ddbridge-i2c.c  |  232 ++
+> >>   drivers/media/pci/ddbridge/ddbridge-regs.h |  347 ++-
+> >>   drivers/media/pci/ddbridge/ddbridge.c      |  456 ++++
+> >>   drivers/media/pci/ddbridge/ddbridge.h      |  407 +++-
+> >>   7 files changed, 3518 insertions(+), 1104 deletions(-)
+> >>   create mode 100644 drivers/media/pci/ddbridge/ddbridge-i2c.c
+> >>   create mode 100644 drivers/media/pci/ddbridge/ddbridge.c
+> >>
+> >
+> >
+> 
 
-That sounds better.
-
-> >>   * @memory:	current memory type used
-> >>   * @bufs:	videobuf buffer structures
-> >>   * @num_buffers: number of allocated/used buffers
-> >> @@ -399,6 +400,7 @@ struct vb2_queue {
-> >>  	u32				min_buffers_needed;
-> >>  
-> >>  /* private: internal use only */
-> >> +	struct mutex			queue_lock;
-> >>  	enum v4l2_memory		memory;
-> >>  	struct vb2_buffer		*bufs[VIDEO_MAX_FRAME];
-> >>  	unsigned int			num_buffers;
-
--- 
-Regards,
-
-Laurent Pinchart
 
