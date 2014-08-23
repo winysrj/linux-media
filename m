@@ -1,52 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:53460 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754028AbaHEIH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 04:07:27 -0400
-Received: by mail-ob0-f172.google.com with SMTP id wn1so410111obc.17
-        for <linux-media@vger.kernel.org>; Tue, 05 Aug 2014 01:07:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1407153257.3979.30.camel@paszta.hi.pengutronix.de>
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
- <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
- <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Tue, 5 Aug 2014 10:07:11 +0200
-Message-ID: <CAL8zT=i1KSUKWnsbC2iero8Y8e8iDH+chhVA_KvnRKNHg==zKw@mail.gmail.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Steve Longerbeam <slongerbeam@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1079 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbaHWCUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 22:20:10 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7N2K6iU055553
+	for <linux-media@vger.kernel.org>; Sat, 23 Aug 2014 04:20:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 660A52A2E57
+	for <linux-media@vger.kernel.org>; Sat, 23 Aug 2014 04:19:57 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140823021957.660A52A2E57@tschai.lan>
+Date: Sat, 23 Aug 2014 04:19:57 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-08-04 13:54 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Hi Tim,
->
-> Am Sonntag, den 03.08.2014, 23:14 -0700 schrieb Tim Harvey:
->> Philipp,
->>
->> It is unfortunate that the lack of the media device framework is
->> holding back acceptance of Steve's patches. Is this something that can
->> be added later? Does your patchset which you posted for reference
->> resolve this issue and perhaps is something that everyone could agree
->> on for a starting point?
->
-> We should take this step by step. First I'd like to get Steve's ipu-v3
-> series in, those don't have any major issues and are a prerequisite for
-> the media patches anyway.
->
-> The capture patches had a few more issues than just missing media device
-> support. But this is indeed the biggest one, especially where it
-> involves a userspace interface that we don't want to have to support in
-> the future.
-> My RFC series wasn't without problems either. I'll work on the IPU this
-> week and then post another RFC.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Are the capture patches using v4l2_async_notifier_register() ?
-I can help integrating/testing all these patches, if you want...
+Results of the daily build of media_tree:
 
-JM
+date:		Sat Aug 23 04:00:36 CEST 2014
+git branch:	test
+git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-0.slh.2-amd64
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
