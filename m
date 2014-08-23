@@ -1,67 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60856 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751329AbaH1QJp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 12:09:45 -0400
-Message-ID: <1409242175.2696.108.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC v2] [media] v4l2: add V4L2 pixel format array and helper
- functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Thu, 28 Aug 2014 18:09:35 +0200
-In-Reply-To: <2323863.aLBeKZnVsL@avalon>
-References: <1409043654-12252-1-git-send-email-p.zabel@pengutronix.de>
-	 <1684313.SfePcxMsjg@avalon>
-	 <1409131814.3623.40.camel@paszta.hi.pengutronix.de>
-	 <2323863.aLBeKZnVsL@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from cantor2.suse.de ([195.135.220.15]:41651 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751748AbaHWAGU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Aug 2014 20:06:20 -0400
+Message-ID: <53F7DAF8.4060702@suse.com>
+Date: Fri, 22 Aug 2014 20:06:16 -0400
+From: Jeff Mahoney <jeffm@suse.com>
+MIME-Version: 1.0
+To: Randy Dunlap <rdunlap@infradead.org>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Kconfig: do not select SPI bus on sub-driver auto-select
+References: <1408726929-3924-1-git-send-email-crope@iki.fi> <53F77835.7050406@suse.com> <53F7D374.3050804@infradead.org>
+In-Reply-To: <53F7D374.3050804@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Fri Aug 22 19:34:12 2014, Randy Dunlap wrote:
+> On 08/22/14 10:04, Jeff Mahoney wrote:
+>> On Fri Aug 22 13:02:09 2014, Antti Palosaari wrote:
+>>> We should not select SPI bus when sub-driver auto-select is
+>>> selected. That option is meant for auto-selecting all possible
+>>> ancillary drivers used for selected board driver. Ancillary
+>>> drivers should define needed dependencies itself.
+>>>
+>>> I2C and I2C_MUX are still selected here for a reason described on
+>>> commit 347f7a3763601d7b466898d1f10080b7083ac4a3
+>>>
+>>> Reverts commit e4462ffc1602d9df21c00a0381dca9080474e27a
+>>>
+>>> Reported-by: Jeff Mahoney <jeffm@suse.com>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>  drivers/media/Kconfig | 1 -
+>>>  1 file changed, 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+>>> index f60bad4..3c89fcb 100644
+>>> --- a/drivers/media/Kconfig
+>>> +++ b/drivers/media/Kconfig
+>>> @@ -182,7 +182,6 @@ config MEDIA_SUBDRV_AUTOSELECT
+>>>  	depends on HAS_IOMEM
+>>>  	select I2C
+>>>  	select I2C_MUX
+>>> -	select SPI
+>>>  	default y
+>>>  	help
+>>>  	  By default, a media driver auto-selects all possible ancillary
+>>
+>> FWIW, in the patch I used locally, I also did a 'select SPI' in the
+>> MSI2500 driver since it wouldn't otherwise be obvious that a USB device
+>> depends on SPI.
+>
+> It already has depends on SPI.  That should be enough.
+>
 
-Am Donnerstag, den 28.08.2014, 14:24 +0200 schrieb Laurent Pinchart:
-> > A driver could then do the following:
-> > 
-> > static struct v4l2_pixfmt_info driver_formats[] = {
-> > 	{ .pixelformat = V4L2_PIX_FMT_YUYV },
-> > 	{ .pixelformat = V4L2_PIX_FMT_YUV420 },
-> > };
-> > 
-> > int driver_probe(...)
-> > {
-> > 	...
-> > 	v4l2_init_pixfmt_array(driver_formats,
-> > 			ARRAY_SIZE(driver_formats));
-> > 	...
-> > }
-> 
-> Good question. This option consumes more memory, and prevents the driver-
-> specific format info arrays to be const, which bothers me a bit.
+Yeah. My point was more that if you want support for that device, you'd 
+have to know it uses SPI internally already.
 
-Also, this wouldn't help drivers that don't want to take these
-additional steps, which probably includes a lot of camera drivers with
-only a few formats.
+-Jeff
 
-> On the other hand it allows drivers to override some of the default
-> values for odd cases.
-
-Hm, but those cases don't have to use the v4l2_pixfmt_info at all.
-
-> I won't nack this approach, but I'm wondering whether a better
-> solution wouldn't be possible. Hans, Mauro, Guennadi, any opinion ?
-
-We could keep the global v4l2_pixfmt_info array sorted by fourcc value
-and do a binary search (would have to be kept in mind when adding new
-formats) or build a hash table (more complicated code, consumes memory).
-
-regards
-Philipp
-
+--
+Jeff Mahoney
+SUSE Labs
