@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep12.mx.upcmail.net ([62.179.121.32]:47957 "EHLO
-	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513AbaHBLOK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Aug 2014 07:14:10 -0400
-Message-ID: <1406978043.2504.17.camel@bjoern-W35xSTQ-370ST>
-Subject: Re: ddbridge -- kernel 3.15.6
-From: Bjoern <lkml@call-home.ch>
-To: Georgi Chorbadzhiyski <gf@unixsol.org>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
-	Thomas Kaiser <thomas@kaiser-linux.li>
-Date: Sat, 02 Aug 2014 13:14:03 +0200
-In-Reply-To: <1406977344.2504.15.camel@bjoern-W35xSTQ-370ST>
-References: <53C920FB.1040501@grumpydevil.homelinux.org>
-	 <53CAAF9D.6000507@kaiser-linux.li>
-	 <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST>
-	 <21465.62099.786583.416351@morden.metzler>
-	 <1406868897.2548.15.camel@bjoern-W35xSTQ-370ST>
-	 <53DB20E4.7020803@unixsol.org>
-	 <1406977344.2504.15.camel@bjoern-W35xSTQ-370ST>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:41728 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752603AbaHXRBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Aug 2014 13:01:23 -0400
+Message-ID: <53FA1A5A.8090100@iki.fi>
+Date: Sun, 24 Aug 2014 20:01:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+CC: Jeff Mahoney <jeffm@suse.com>
+Subject: [GIT PULL 3.17] FIX: remove SPI select from Kconfig
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sa, 2014-08-02 at 13:02 +0200, Bjoern wrote:
-> Once that is done I will give an update here - send me an email and I'll
-> give you a link where you can get the patches from (unless that's also
-> allowed here in the ML?). Yes, in the long term I would indeed also
-> submit them here but I have ZERO knowledge how that is done here...
-> 
-> Best regards,
-> Bjoern
-> 
-Looks like Antti beat me to it by some hours ;) So then I'll stop my
-attempts and let him do this :)
+Mauro, that should go to *3.17*.
 
--Bjoern
+Antti
 
+
+The following changes since commit 1baa466e84975a595b2c3cd10af1100c807ebab5:
+
+   [media] media: ttpci: fix av7110 build to be compatible with 
+CONFIG_INPUT_EVDEV (2014-08-15 21:26:26 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git spi_kconfig
+
+for you to fetch changes up to 4bc2dcd2937b2a05e744e8842fd16a9dce31812b:
+
+   Kconfig: do not select SPI bus on sub-driver auto-select (2014-08-22 
+19:45:05 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       Kconfig: do not select SPI bus on sub-driver auto-select
+
+  drivers/media/Kconfig | 1 -
+  1 file changed, 1 deletion(-)
+
+-- 
+http://palosaari.fi/
