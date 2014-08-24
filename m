@@ -1,81 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35940 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754600AbaHEPjz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Aug 2014 11:39:55 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9U006U2BIG6270@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Aug 2014 16:39:52 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, 'Michael Olbrich' <m.olbrich@pengutronix.de>
-References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
- <1405678965-10473-6-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1405678965-10473-6-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH v2 05/11] [media] coda: use CODA_MAX_FRAME_SIZE everywhere
-Date: Tue, 05 Aug 2014 17:39:55 +0200
-Message-id: <0c3e01cfb0c3$826397b0$872ac710$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1855 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751477AbaHXCTQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Aug 2014 22:19:16 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7O2JDbu088139
+	for <linux-media@vger.kernel.org>; Sun, 24 Aug 2014 04:19:15 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E02CB2A2E57
+	for <linux-media@vger.kernel.org>; Sun, 24 Aug 2014 04:19:02 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140824021902.E02CB2A2E57@tschai.lan>
+Date: Sun, 24 Aug 2014 04:19:02 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Checkpatch:
-------------------------------
-WARNING: line over 80 characters
-#41: FILE: drivers/media/platform/coda.c:3109:
-+		if (coda_get_bitstream_payload(ctx) >= CODA_MAX_FRAME_SIZE -
-512)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+Results of the daily build of media_tree:
 
+date:		Sun Aug 24 04:00:16 CEST 2014
+git branch:	test
+git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-0.slh.2-amd64
 
-> -----Original Message-----
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Friday, July 18, 2014 12:23 PM
-> To: linux-media@vger.kernel.org
-> Cc: Mauro Carvalho Chehab; Kamil Debski; Fabio Estevam; Hans Verkuil;
-> Nicolas Dufresne; kernel@pengutronix.de; Michael Olbrich; Philipp Zabel
-> Subject: [PATCH v2 05/11] [media] coda: use CODA_MAX_FRAME_SIZE
-> everywhere
-> 
-> From: Michael Olbrich <m.olbrich@pengutronix.de>
-> 
-> Without this changing CODA_MAX_FRAME_SIZE to anything other than
-> 0x100000 can break the bitstram handling
-> 
-> Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/coda.c
-> b/drivers/media/platform/coda.c index 917727e..141ec29 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -3106,7 +3106,7 @@ static void coda_finish_decode(struct coda_ctx
-> *ctx)
->  	 * by up to 512 bytes
->  	 */
->  	if (ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) {
-> -		if (coda_get_bitstream_payload(ctx) >= 0x100000 - 512)
-> +		if (coda_get_bitstream_payload(ctx) >= CODA_MAX_FRAME_SIZE
-> - 512)
->  			kfifo_init(&ctx->bitstream_fifo,
->  				ctx->bitstream.vaddr, ctx->bitstream.size);
->  	}
-> --
-> 2.0.1
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
