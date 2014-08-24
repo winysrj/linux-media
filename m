@@ -1,47 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:50327 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbaHIRWp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 13:22:45 -0400
-Received: by mail-pa0-f52.google.com with SMTP id bj1so8881923pad.39
-        for <linux-media@vger.kernel.org>; Sat, 09 Aug 2014 10:22:44 -0700 (PDT)
-From: Suman Kumar <suman@inforcecomputing.com>
-To: g.liakhovetski@gmx.de
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, suman@inforcecomputing.com,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH] staging: soc_camera: soc_camera_platform.c: Fixed a Missing blank line coding style issue
-Date: Sat,  9 Aug 2014 22:52:32 +0530
-Message-Id: <1407604952-15492-1-git-send-email-suman@inforcecomputing.com>
+Received: from mail-sg1on0130.outbound.protection.outlook.com ([134.170.132.130]:31393
+	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752499AbaHXNAT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Aug 2014 09:00:19 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: regression - missing fence.h
+Date: Sun, 24 Aug 2014 12:44:30 +0000
+Message-ID: <650ff72a9af3461b8981e3c415b76f41@SIXPR04MB304.apcprd04.prod.outlook.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-    Fixes a coding style issue reported by checkpatch.pl
+I'm building v4l against Debian Jessie (3.14.15) and I am getting this:
 
-Signed-off-by: Suman Kumar <suman@inforcecomputing.com>
----
- drivers/media/platform/soc_camera/soc_camera_platform.c | 2 ++
- 1 file changed, 2 insertions(+)
+"
+In file included from /usr/local/src/media_build/v4l/../linux/include/media/videobuf2-core.h:19:0,
+                 from /usr/local/src/media_build/v4l/mcam-core.h:13,
+                 from /usr/local/src/media_build/v4l/cafe-driver.c:35:
+/usr/local/src/media_build/v4l/../linux/include/linux/dma-buf.h:33:25: fatal error: linux/fence.h: No such file or directory
+ #include <linux/fence.h>
+"
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
-index ceaddfb..fe15a80 100644
---- a/drivers/media/platform/soc_camera/soc_camera_platform.c
-+++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
-@@ -27,12 +27,14 @@ struct soc_camera_platform_priv {
- static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
- {
- 	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
-+
- 	return container_of(subdev, struct soc_camera_platform_priv, subdev);
- }
- 
- static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
-+
- 	return p->set_capture(p, enable);
- }
- 
--- 
-1.8.2
+Any suggestions before I go digging? It worked previously.
+
+Thanks
+
+James
 
