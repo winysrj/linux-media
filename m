@@ -1,72 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60563 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:34755 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755155AbaHZAg4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 20:36:56 -0400
-Message-ID: <53FBD6A0.7000405@iki.fi>
-Date: Tue, 26 Aug 2014 03:36:48 +0300
+	id S1756125AbaHYRMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 13:12:16 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Bimow Chen <Bimow.Chen@ite.com.tw>,
-	Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [GIT PULL stable] IT9135 changes
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 11/12] rtl2832_sdr: enhance sample rate debug calculation precision
+Date: Mon, 25 Aug 2014 20:11:57 +0300
+Message-Id: <1408986718-3881-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1408986718-3881-1-git-send-email-crope@iki.fi>
+References: <1408986718-3881-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-Could you pull these and send to stable as tagged per each patch. That 
-patch set mainly increases sensitivity of the IT9135 chipset. It must be 
-considered as a regression because IT9135 driver was replaced by AF9035 
-(USB IF) + AF9033 (DVB-T demod) + IT913x (RF tuner) drivers starting 
-from kernel 3.15.
+Sample rate calculation gives a little bit too large results because
+in real life there was around one milliseconds (~one usb packet) too
+much data for given time. Calculate time more accurate in order to
+provide better results.
 
-I did a bunch of measurements with IT9135AX and IT9135BX devices. 
-Sensitivity increases around 5 dB.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832_sdr.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-I measured -81dBm for IT9135BX and -79dBm for IT9135AX. Windows driver 
-performs a little bit better still - for both chip versions around -82dBm.
-
-I didn't noticed any sensitivity difference between old and new firmware.
-
-regards
-Antti
-
-
-The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
-
-   [media] media: ttpci: fix av7110 build to be compatible with 
-CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git it9135_sensitivity_regression
-
-for you to fetch changes up to 4a6845470d614a857c507c8f212c3d4b2c4b3dca:
-
-   af9035: new IDs: add support for PCTV 78e and PCTV 79e (2014-08-26 
-03:15:30 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (1):
-       af9033: feed clock to RF tuner
-
-Bimow Chen (2):
-       af9033: update IT9135 tuner inittabs
-       it913x: init tuner on attach
-
-Malcolm Priestley (1):
-       af9035: new IDs: add support for PCTV 78e and PCTV 79e
-
-  drivers/media/dvb-core/dvb-usb-ids.h      |  2 ++
-  drivers/media/dvb-frontends/af9033.c      | 13 +++++++++++++
-  drivers/media/dvb-frontends/af9033_priv.h | 20 +++++++++-----------
-  drivers/media/tuners/tuner_it913x.c       |  6 ++++++
-  drivers/media/usb/dvb-usb-v2/af9035.c     |  4 ++++
-  5 files changed, 34 insertions(+), 11 deletions(-)
-
-
+diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+index ba305a0..4f75753 100644
+--- a/drivers/media/dvb-frontends/rtl2832_sdr.c
++++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+@@ -365,17 +365,19 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 		dst_len = 0;
+ 	}
+ 
+-	/* calculate samping rate and output it in 10 seconds intervals */
++	/* calculate sample rate and output it in 10 seconds intervals */
+ 	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
+-#define MSECS 10000UL
++		#define MSECS 10000UL
++		unsigned int msecs = jiffies_to_msecs(jiffies -
++				s->jiffies_next + msecs_to_jiffies(MSECS));
+ 		unsigned int samples = s->sample - s->sample_measured;
+ 
+ 		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
+ 		s->sample_measured = s->sample;
+ 		dev_dbg(&s->udev->dev,
+-				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
+-				src_len, samples, MSECS,
+-				samples * 1000UL / MSECS);
++				"slen=%u samples=%u msecs=%u sample rate=%lu\n",
++				src_len, samples, msecs,
++				samples * 1000UL / msecs);
+ 	}
+ 
+ 	/* total number of I+Q pairs */
 -- 
 http://palosaari.fi/
+
