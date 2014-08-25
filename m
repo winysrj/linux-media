@@ -1,119 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40673 "EHLO mail.kapsi.fi"
+Received: from mta-out1.inet.fi ([62.71.2.228]:36031 "EHLO kirsi1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752440AbaHWHq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Aug 2014 03:46:56 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S933037AbaHYSHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 14:07:30 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] HackRF SDR driver - v4l2-compliance test report
-Date: Sat, 23 Aug 2014 10:46:39 +0300
-Message-Id: <1408780000-18431-1-git-send-email-crope@iki.fi>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/3] si2168: avoid firmware loading if it has been loaded previously
+Date: Mon, 25 Aug 2014 21:07:04 +0300
+Message-Id: <1408990024-1642-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
+References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[crope@localhost v4l2-compliance]$ ./v4l2-compliance -S /dev/swradio0 
-Driver Info:
-	Driver name   : hackrf
-	Card type     : HackRF One
-	Bus info      : usb-0000:00:13.2-2
-	Driver version: 3.16.0
-	Capabilities  : 0x85310000
-		SDR Capture
-		Tuner
-		Read/Write
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x05310000
-		SDR Capture
-		Tuner
-		Read/Write
-		Streaming
-		Extended Pix Format
+Add a variable to keep track if firmware is loaded or not and skip parts of the 
+initialization if fw is already loaded. Resume from sleep with a different 
+command compared to initial power up and run command 85 after resume command. 
+This behaviour is observed when using manufacturer provided binary-only si2168 
+driver for TechnoTrend CT2-4400.
 
-Compliance test for device /dev/swradio0 (not using libv4l2):
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c      | 31 ++++++++++++++++++++++++++++---
+ drivers/media/dvb-frontends/si2168_priv.h |  1 +
+ 2 files changed, 29 insertions(+), 3 deletions(-)
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second sdr open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 2
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERYCTRL/MENU: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK (Not Supported)
-
-
-Total: 38, Succeeded: 38, Failed: 0, Warnings: 0
-[crope@localhost v4l2-compliance]$ 
-
-
-
-Antti Palosaari (1):
-  hackrf: HackRF SDR driver
-
- drivers/media/usb/Kconfig         |    3 +-
- drivers/media/usb/Makefile        |    3 +-
- drivers/media/usb/hackrf/Kconfig  |   10 +
- drivers/media/usb/hackrf/Makefile |    1 +
- drivers/media/usb/hackrf/hackrf.c | 1130 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 1145 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/usb/hackrf/Kconfig
- create mode 100644 drivers/media/usb/hackrf/Makefile
- create mode 100644 drivers/media/usb/hackrf/hackrf.c
-
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 55a4212..a0797fd 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -363,6 +363,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "\n");
+ 
++	/* initialize */
+ 	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
+ 	cmd.wlen = 13;
+ 	cmd.rlen = 0;
+@@ -370,6 +371,26 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	if (s->fw_loaded) {
++		/* resume */
++		memcpy(cmd.args, "\xc0\x06\x08\x0f\x00\x20\x21\x01", 8);
++		cmd.wlen = 8;
++		cmd.rlen = 1;
++		ret = si2168_cmd_execute(s, &cmd);
++		if (ret)
++			goto err;
++
++		memcpy(cmd.args, "\x85", 1);
++		cmd.wlen = 1;
++		cmd.rlen = 1;
++		ret = si2168_cmd_execute(s, &cmd);
++		if (ret)
++			goto err;
++
++		goto warm;
++	}
++
++	/* power up */
+ 	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
+ 	cmd.wlen = 8;
+ 	cmd.rlen = 1;
+@@ -466,9 +487,6 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_info(&s->client->dev, "found a '%s' in warm state\n",
+-			si2168_ops.info.name);
+-
+ 	/* set ts mode */
+ 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
+ 	cmd.args[4] |= s->ts_mode;
+@@ -478,6 +496,12 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	s->fw_loaded = true;
++
++warm:
++	dev_info(&s->client->dev, "found a '%s' in warm state\n",
++			si2168_ops.info.name);
++
+ 	s->active = true;
+ 
+ 	return 0;
+@@ -645,6 +669,7 @@ static int si2168_probe(struct i2c_client *client,
+ 	*config->i2c_adapter = s->adapter;
+ 	*config->fe = &s->fe;
+ 	s->ts_mode = config->ts_mode;
++	s->fw_loaded = false;
+ 
+ 	i2c_set_clientdata(client, s);
+ 
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 0f83284..e13983e 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -36,6 +36,7 @@ struct si2168 {
+ 	fe_delivery_system_t delivery_system;
+ 	fe_status_t fe_status;
+ 	bool active;
++	bool fw_loaded;
+ 	u8 ts_mode;
+ };
+ 
 -- 
-http://palosaari.fi/
+1.9.1
 
