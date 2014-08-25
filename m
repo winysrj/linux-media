@@ -1,118 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58865 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbaHLXVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 19:21:41 -0400
-Message-ID: <53EAA180.2000602@iki.fi>
-Date: Wed, 13 Aug 2014 02:21:36 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49827 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932350AbaHYPqp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 11:46:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper functions
+Date: Mon, 25 Aug 2014 17:47:28 +0200
+Message-ID: <3263560.xPJs935yYQ@avalon>
+In-Reply-To: <1408981277.3191.80.camel@paszta.hi.pengutronix.de>
+References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de> <1794623.zNambAqeEh@avalon> <1408981277.3191.80.camel@paszta.hi.pengutronix.de>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] si2168: add ts_mode setting and move to si2168_init
-References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi Philipp,
 
-Antti
+On Monday 25 August 2014 17:41:17 Philipp Zabel wrote:
+> Am Montag, den 25.08.2014, 17:13 +0200 schrieb Laurent Pinchart:
+> [...]
+> 
+> >>>> +static inline unsigned int v4l2_sizeimage(const struct v4l2_pixfmt
+> >>>> *fmt,
+> >>>> +					  unsigned int width,
+> >>>> +					  unsigned int height)
+> >>>> +{
+> >>>> +	return width * height * fmt->bpp_image / 8;
+> >>> 
+> >>> Ditto: return height * v4l2_bytesperline(fmt, width);
+> >> 
+> >> I can't use v4l2_bytesperline because that might be zero for macroblock
+> >> tiled formats and uses the wrong bpp value for planar formats with
+> >> subsampled chroma.
+> >> 
+> >> This nearly works:
+> >>     return height * DIV_ROUND_UP(width * fmt->bpp_image, 8)
+> > 
+> > Isn't that exactly height * v4l2_bytesperline(fmt, width) ?
+> 
+> Only if bpp_image == bpp_line ...
 
+Oops, I've missed that subtle difference, sorry.
 
-On 08/11/2014 10:58 PM, Olli Salonen wrote:
-> Luis Alves submitted a TS mode patch to si2168 earlier, but the patch was rejected due to a small issue. Here is a working version. Also, setting of TS mode is moved from si2168_set_frontend to si2168_init.
->
-> This patch adds the TS mode as a config option for the si2168 demod:
-> - ts_mode added to config struct.
-> - Possible (interesting) values are
->     * Parallel mode = 0x06
->     * Serial mode = 0x03
->
-> Currently the modules using this demod only use parallel mode. Patches for these modules later in this patch series.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->   drivers/media/dvb-frontends/si2168.c      | 17 ++++++++++-------
->   drivers/media/dvb-frontends/si2168.h      |  6 ++++++
->   drivers/media/dvb-frontends/si2168_priv.h |  1 +
->   3 files changed, 17 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 8f81d97..0eb0e4e 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -297,13 +297,6 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> -	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
-> -	cmd.wlen = 6;
-> -	cmd.rlen = 4;
-> -	ret = si2168_cmd_execute(s, &cmd);
-> -	if (ret)
-> -		goto err;
-> -
->   	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
->   	cmd.wlen = 6;
->   	cmd.rlen = 4;
-> @@ -465,6 +458,15 @@ static int si2168_init(struct dvb_frontend *fe)
->   	dev_info(&s->client->dev, "%s: found a '%s' in warm state\n",
->   			KBUILD_MODNAME, si2168_ops.info.name);
->
-> +	/* set ts mode */
-> +	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
-> +	cmd.args[4] |= s->ts_mode;
-> +	cmd.wlen = 6;
-> +	cmd.rlen = 4;
-> +	ret = si2168_cmd_execute(s, &cmd);
-> +	if (ret)
-> +		goto err;
-> +
->   	s->active = true;
->
->   	return 0;
-> @@ -633,6 +635,7 @@ static int si2168_probe(struct i2c_client *client,
->
->   	*config->i2c_adapter = s->adapter;
->   	*config->fe = &s->fe;
-> +	s->ts_mode = config->ts_mode;
->
->   	i2c_set_clientdata(client, s);
->
-> diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-> index 3c5b5ab..e086d67 100644
-> --- a/drivers/media/dvb-frontends/si2168.h
-> +++ b/drivers/media/dvb-frontends/si2168.h
-> @@ -34,6 +34,12 @@ struct si2168_config {
->   	 * returned by driver
->   	 */
->   	struct i2c_adapter **i2c_adapter;
-> +
-> +	/* TS mode */
-> +	u8 ts_mode;
->   };
->
-> +#define SI2168_TS_PARALLEL	0x06
-> +#define SI2168_TS_SERIAL	0x03
-> +
->   #endif
-> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-> index ebbf502..0f83284 100644
-> --- a/drivers/media/dvb-frontends/si2168_priv.h
-> +++ b/drivers/media/dvb-frontends/si2168_priv.h
-> @@ -36,6 +36,7 @@ struct si2168 {
->   	fe_delivery_system_t delivery_system;
->   	fe_status_t fe_status;
->   	bool active;
-> +	u8 ts_mode;
->   };
->
->   /* firmare command struct */
->
+> >> For the planar 4:2:0 subsampled formats and Y41P (bpp_image == 12),
+> >> width has to be even, so that is ok.
+> >> Most other formats have a bpp_image that is divisible by 8, but there
+> >> are the 4:1:0 subsampled formats (bpp_image == 9). Those would round up
+> >> width to a multiple of eight, even though it only has to be a multiple
+> >> 
+> >> of four. I'd fall back to:
+> >>     if (fmt->bpp_image == fmt->bpp_line) {
+> >>     
+> >>         return height * DIV_ROUND_UP(width * fmt->bpp_image, 8);
+> 
+> ... as is the case here. I'll use v4l2_bytesperline, then.
+> 
+> >>     } else {
+> >>     
+> >>         /* we know that v4l2_bytesperline doesn't round for planar */
+> >>         return height * width * fmt->bpp_image / 8;
+> >>     
+> >>     }
+> > 
+> > Isn't that growing slightly too big for an inline function ?
+> 
+> Yes, I think this is slightly over the edge. Is room for a function to
+> accompany the preexisting v4l2_fill_pix_format (say,
+> v4l2_fill_pix_format_size) to set both the bytesperline and sizeimage
+> values in a struct v4l2_pix_format?
+
+That sounds sensible to me, provided it would be used by drivers of course. I 
+wouldn't remove v4l2_bytesperline() and v4l2_sizeimage(), as the values might 
+be needed by drivers in places where a v4l2_pix_format structure isn't 
+available.
+
+> Also, is anybody bothered by the v4l2_pix_format / v4l2_pixfmt
+> similarity in name?
+
+How about renaming v4l2_pixfmt to v4l2_pix_format_info ?
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
