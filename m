@@ -1,104 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:33892 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbaHZMNx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49579 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932172AbaHYLwz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 08:13:53 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Laura Abbott <lauraa@codeaurora.org>,
-	Josh Cartwright <joshc@codeaurora.org>,
-	Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: [PATCH 0/7] CMA & device tree, another approach
-Date: Tue, 26 Aug 2014 14:09:41 +0200
-Message-id: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 25 Aug 2014 07:52:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper functions
+Date: Mon, 25 Aug 2014 13:53:36 +0200
+Message-ID: <3446937.ynTUdOVVZH@avalon>
+In-Reply-To: <53FB2045.1020504@xs4all.nl>
+References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de> <53FB2045.1020504@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Monday 25 August 2014 13:38:45 Hans Verkuil wrote:
+> Hi Philipp,
+> 
+> I have to think a bit more about the format names, but in the meantime I
+> have two other suggestions:
+> 
+> On 08/25/2014 12:33 PM, Philipp Zabel wrote:
+> > This patch adds an array of V4L2 pixel formats and descriptions that can
+> > be used by drivers so that each driver doesn't have to provide its own
+> > slightly different format descriptions for VIDIOC_ENUM_FMT.
 
-This is another approach to finish support for reserved memory regions
-defined in device tree. Previous attempts 
-(http://lists.linaro.org/pipermail/linaro-mm-sig/2014-February/003738.html
-and https://lkml.org/lkml/2014/7/14/108) ended in merging parts of the
-code and documentation. Merged patches allow to reserve memory, but
-there is still no reserved memory drivers nor any code that actually
-uses reserved memory regions.
+I've started working on this recently as well, so I can only agree with the 
+idea.
 
-The final conclusion from the above mentioned threads is that there is
-no automated reserved memory initialization. All drivers that want to
-use reserved memory, should initialize it on their own.
+> > Each array entry also includes two bits per pixel values (for a single
+> > line and one for the whole image) that can be used to determine the
+> > v4l2_pix_format bytesperline and sizeimage values and whether the format
+> > is planar or compressed.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> > I have started to convert some drivers on a boring train ride, but it
+> > occurred to me that I probably should get some feedback before carrying
+> > on with this:
+> > http://git.pengutronix.de/?p=pza/linux.git;a=shortlog;h=refs/heads/topic/
+> > media-pixfmt
+> > ---
+> > 
+> >  drivers/media/v4l2-core/v4l2-common.c | 488 +++++++++++++++++++++++++++++
+> >  include/media/v4l2-common.h           |  44 +++
+> >  2 files changed, 532 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-common.c
+> > b/drivers/media/v4l2-core/v4l2-common.c index ccaa38f..41692df 100644
+> > --- a/drivers/media/v4l2-core/v4l2-common.c
+> > +++ b/drivers/media/v4l2-core/v4l2-common.c
+> > @@ -533,3 +533,491 @@ void v4l2_get_timestamp(struct timeval *tv)
+> > 
+> >  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+> >  
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+> > 
+> > +
+> > +static const struct v4l2_pixfmt v4l2_pixfmts[] = {
+> 
+> <snip>
+> 
+> > +};
+> > +
+> > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc)
+> > +{
+> > +	int i;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(v4l2_pixfmts); i++) {
+> > +		if (v4l2_pixfmts[i].pixelformat == fourcc)
+> > +			return v4l2_pixfmts + i;
+> > +	}
+> > +
+> > +	return NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_pixfmt_by_fourcc);
+> > +
+> > +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc)
+> > +{
+> > +	const struct v4l2_pixfmt *fmt;
+> > +
+> > +	fmt = v4l2_pixfmt_by_fourcc(fourcc);
+> > +	if (!fmt)
+> > +		return -EINVAL;
+> > +
+> > +	strlcpy((char *)f->description, fmt->name, sizeof(f->description));
+> > +	f->pixelformat = fmt->pixelformat;
+> > +	f->flags = (fmt->bpp_image == 0) ? V4L2_FMT_FLAG_COMPRESSED : 0;
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_fill_fmtdesc);
+> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> > index 48f9748..27b084f 100644
+> > --- a/include/media/v4l2-common.h
+> > +++ b/include/media/v4l2-common.h
+> > @@ -204,4 +204,48 @@ const struct v4l2_frmsize_discrete
+> > *v4l2_find_nearest_format(> 
+> >  void v4l2_get_timestamp(struct timeval *tv);
+> > 
+> > +/**
+> > + * struct v4l2_pixfmt - internal V4L2 pixel format description
+> > + * @name: format description to be returned by enum_fmt
+> > + * @pixelformat: v4l2 pixel format fourcc
+> > + * @bpp_line: bits per pixel, averaged over a line (of the first plane
+> > + *            for planar formats), used to calculate bytesperline
+> > + *            Zero for compressed and macroblock tiled formats.
+> > + * @bpp_image: bits per pixel, averaged over the whole image. This is
+> > used to
+> > + *             calculate sizeimage for uncompressed formats.
+> > + *             Zero for compressed formats.
+> 
+> I would add a 'planes' field as well for use with formats that use
+> non-contiguous planes.
+> 
+> > + */
+> > +struct v4l2_pixfmt {
+> > +	const char	*name;
+> > +	u32		pixelformat;
+> > +	u8		bpp_line;
+> > +	u8		bpp_image;
+> > +};
+> > +
+> > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc);
+> > +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc);
+> > +
+> > +static inline unsigned int v4l2_bytesperline(const struct v4l2_pixfmt
+> > *fmt, +					     unsigned int width)
+> > +{
+> > +	return width * fmt->bpp_line / 8;
+> 
+> Round up: return (width * fmt->bpp_line + 7) / 8;
 
-This patch series provides two driver for reserved memory regions (one
-based on CMA and one based on dma_coherent allocator). The main
-improvement comparing to the previous version is removal of automated
-reserved memory for every device and support for named memory regions.
+DIV_ROUND_UP(width * fmt->bpp_line, 8) ?
 
-Support for more than one reserved memory region can be considered as a
-separate DMA address space, so support for more than one region per
-device has been implemented the same way as support for separate IO/DMA
-address spaces in my Exynos IOMMU dma-mapping proposal:
-http://thread.gmane.org/gmane.linux.kernel.samsung-soc/36079
-
-Best regards
-Marek Szyprowski
-Samsung R&D Institute Poland
-
-Changes since '[PATCH v2 RESEND 0/4] CMA & device tree, once again' version:
-(https://lkml.org/lkml/2014/7/14/108)
-- added return error value to of_reserved_mem_device_init()
-- added support for named memory regions (so more than one region can be
-  defined per device)
-- added usage example - converted custom reserved memory code used by
-  s5p-mfc driver to the generic reserved memory handling code
-
-Patch summary:
-
-Marek Szyprowski (7):
-  drivers: of: add return value to of_reserved_mem_device_init
-  drivers: of: add support for named memory regions
-  drivers: dma-coherent: add initialization from device tree
-  drivers: dma-contiguous: add initialization from device tree
-  media: s5p-mfc: replace custom reserved memory init code with generic
-    one
-  ARM: Exynos: convert MFC to generic reserved memory bindings
-  ARM: DTS: exynos4412-odroid*: enable MFC device
-
- .../devicetree/bindings/media/s5p-mfc.txt          |  16 +--
- .../bindings/reserved-memory/reserved-memory.txt   |   6 +-
- arch/arm/boot/dts/exynos4210-origen.dts            |  22 +++-
- arch/arm/boot/dts/exynos4210-smdkv310.dts          |  22 +++-
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |  24 ++++
- arch/arm/boot/dts/exynos4412-origen.dts            |  22 +++-
- arch/arm/boot/dts/exynos4412-smdk4412.dts          |  22 +++-
- arch/arm/boot/dts/exynos5250-arndale.dts           |  22 +++-
- arch/arm/boot/dts/exynos5250-smdk5250.dts          |  22 +++-
- arch/arm/boot/dts/exynos5420-arndale-octa.dts      |  22 +++-
- arch/arm/boot/dts/exynos5420-smdk5420.dts          |  22 +++-
- arch/arm/mach-exynos/exynos.c                      |  18 ---
- arch/arm/mach-exynos/mfc.h                         |  16 ---
- arch/arm/plat-samsung/Kconfig                      |   5 -
- arch/arm/plat-samsung/Makefile                     |   1 -
- arch/arm/plat-samsung/s5p-dev-mfc.c                |  94 --------------
- drivers/base/dma-coherent.c                        | 138 ++++++++++++++++++---
- drivers/base/dma-contiguous.c                      |  71 +++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 102 ++++++---------
- drivers/of/of_reserved_mem.c                       | 102 ++++++++++-----
- include/linux/cma.h                                |   3 +
- include/linux/of_reserved_mem.h                    |   9 +-
- mm/cma.c                                           |  62 +++++++--
- 23 files changed, 552 insertions(+), 291 deletions(-)
- delete mode 100644 arch/arm/mach-exynos/mfc.h
- delete mode 100644 arch/arm/plat-samsung/s5p-dev-mfc.c
+> > +}
+> > +
+> > +static inline unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt,
+> > +					  unsigned int width,
+> > +					  unsigned int height)
+> > +{
+> > +	return width * height * fmt->bpp_image / 8;
+> 
+> Ditto: return height * v4l2_bytesperline(fmt, width);
+>
+> > +}
+> > +
+> > +static inline bool v4l2_pixfmt_is_planar(const struct v4l2_pixfmt *fmt)
+> > +{
+> > +	return fmt->bpp_line && (fmt->bpp_line != fmt->bpp_image);
+> > +}
+> > +
+> > +static inline bool v4l2_pixfmt_is_compressed(const struct v4l2_pixfmt
+> > *fmt)
+> > +{
+> > +	return fmt->bpp_image == 0;
+> > +}
+> > +
+> > 
+> >  #endif /* V4L2_COMMON_H_ */
 
 -- 
-1.9.2
+Regards,
+
+Laurent Pinchart
 
