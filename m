@@ -1,122 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:58830 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbaHVDTL (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2286 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755514AbaHYMkc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 23:19:11 -0400
-Received: by mail-pa0-f42.google.com with SMTP id lf10so15933477pab.29
-        for <linux-media@vger.kernel.org>; Thu, 21 Aug 2014 20:19:10 -0700 (PDT)
-Date: Fri, 22 Aug 2014 11:19:11 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <1408667621-12072-1-git-send-email-crope@iki.fi>
-Subject: Re: [PATCH 6/6] m88ds3103: change .set_voltage() implementation
-Message-ID: <201408221119057340205@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+	Mon, 25 Aug 2014 08:40:32 -0400
+Message-ID: <53FB2E95.7040505@xs4all.nl>
+Date: Mon, 25 Aug 2014 14:39:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org
+CC: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
+References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/25/2014 02:29 PM, Mikhail Ulyanov wrote:
+> This patch contains driver for Renesas R-Car JPEG codec.
+> 
+> Cnanges since v1:
+>     - s/g_fmt function simplified
+>     - default format for queues added
+>     - dumb vidioc functions added to be in compliance with standard api:
+>         jpu_s_priority, jpu_g_priority
 
-It is easier to understand for using "voltage_dis" to keep the same logic for voltage selection and off/on.
+Oops, that's a bug elsewhere. Don't add these empty prio ops, this needs to be
+solved in the v4l2 core.
 
->Add some error checking and implement functionality a little bit
->differently.
->
->Signed-off-by: Antti Palosaari <crope@iki.fi>
->---
-> drivers/media/dvb-frontends/m88ds3103.c | 50 ++++++++++++++++++++++-----------
-> 1 file changed, 34 insertions(+), 16 deletions(-)
->
->diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
->index 238b04e..d8fbdfd 100644
->--- a/drivers/media/dvb-frontends/m88ds3103.c
->+++ b/drivers/media/dvb-frontends/m88ds3103.c
->@@ -1038,36 +1038,54 @@ err:
-> }
-> 
-> static int m88ds3103_set_voltage(struct dvb_frontend *fe,
->-	fe_sec_voltage_t voltage)
->+	fe_sec_voltage_t fe_sec_voltage)
-> {
-> 	struct m88ds3103_priv *priv = fe->demodulator_priv;
->-	u8 data;
->+	int ret;
->+	u8 u8tmp;
->+	bool voltage_sel, voltage_en;
-bool voltage_sel, voltage_dis;
-> 
->-	m88ds3103_rd_reg(priv, 0xa2, &data);
->+	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
->+			fe_sec_voltage);
-> 
->-	data &= ~0x03; /* bit0 V/H, bit1 off/on */
->-	if (priv->cfg->lnb_en_pol)
->-		data |= 0x02;
->+	if (!priv->warm) {
->+		ret = -EAGAIN;
->+		goto err;
->+	}
-> 
->-	switch (voltage) {
->+	switch (fe_sec_voltage) {
-> 	case SEC_VOLTAGE_18:
->-		if (priv->cfg->lnb_hv_pol == 0)
->-			data |= 0x01;
->+		voltage_sel = 1;
->+		voltage_en = 1;
-voltage_dis = 0;
-> 		break;
-> 	case SEC_VOLTAGE_13:
->-		if (priv->cfg->lnb_hv_pol)
->-			data |= 0x01;
->+		voltage_sel = 0;
->+		voltage_en = 1;
-voltage_dis = 0;
-> 		break;
-> 	case SEC_VOLTAGE_OFF:
->-		if (priv->cfg->lnb_en_pol)
->-			data &= ~0x02;
->-		else
->-			data |= 0x02;
->+		voltage_sel = 0;
->+		voltage_en = 0;
-voltage_dis = 1;
-> 		break;
->+	default:
->+		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
->+				__func__);
->+		ret = -EINVAL;
->+		goto err;
-> 	}
->-	m88ds3103_wr_reg(priv, 0xa2, data);
->+
->+	/* output pin polarity */
->+	voltage_sel ^= priv->cfg->lnb_hv_pol;
->+	voltage_en ^= !priv->cfg->lnb_en_pol;
-voltage_dis ^= priv->cfg->lnb_en_pol;
->+
->+	u8tmp = voltage_en << 1 | voltage_sel << 0;
-u8tmp = voltage_dis << 1 | voltage_sel << 0;
->+	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
->+	if (ret)
->+		goto err;
-> 
-> 	return 0;
->+err:
->+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
->+	return ret;
-> }
-> 
-> static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
->-- 
->http://palosaari.fi/
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll post a patch for this.
+
+Regards,
+
+	Hans
+
+>     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
+>       now in use by the same reason
 
