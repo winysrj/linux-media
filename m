@@ -1,116 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1786 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932352AbaH1ClI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47549 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287AbaHYMvH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 22:41:08 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7S2f3OW022361
-	for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 04:41:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 866692A0757
-	for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 04:41:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140828024102.866692A0757@tschai.lan>
-Date: Thu, 28 Aug 2014 04:41:02 +0200 (CEST)
+	Mon, 25 Aug 2014 08:51:07 -0400
+Message-ID: <1408971053.3191.39.camel@paszta.hi.pengutronix.de>
+Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper
+ functions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de
+Date: Mon, 25 Aug 2014 14:50:53 +0200
+In-Reply-To: <53FB2045.1020504@xs4all.nl>
+References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
+	 <53FB2045.1020504@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+Am Montag, den 25.08.2014, 13:38 +0200 schrieb Hans Verkuil:
+> Hi Philipp,
+> 
+> I have to think a bit more about the format names, but in the meantime I have
+> two other suggestions:
 
-date:		Thu Aug 28 04:00:19 CEST 2014
-git branch:	test
-git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-1.slh.1-amd64
+Thank you, I haven't spent much thought about the actual descriptions
+yet. Most are just transcribed from the comments in videodev2.h without
+looking at the names used in the drivers.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+[...]
+> > +/**
+> > + * struct v4l2_pixfmt - internal V4L2 pixel format description
+> > + * @name: format description to be returned by enum_fmt
+> > + * @pixelformat: v4l2 pixel format fourcc
+> > + * @bpp_line: bits per pixel, averaged over a line (of the first plane
+> > + *            for planar formats), used to calculate bytesperline
+> > + *            Zero for compressed and macroblock tiled formats.
+> > + * @bpp_image: bits per pixel, averaged over the whole image. This is used to
+> > + *             calculate sizeimage for uncompressed formats.
+> > + *             Zero for compressed formats.
+> 
+> I would add a 'planes' field as well for use with formats that use non-contiguous
+> planes.
 
-Detailed results are available here:
+Good point, I'll add that.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+[...]
+> > +static inline unsigned int v4l2_bytesperline(const struct v4l2_pixfmt *fmt,
+> > +					     unsigned int width)
+> > +{
+> > +	return width * fmt->bpp_line / 8;
+> 
+> Round up: return (width * fmt->bpp_line + 7) / 8;
 
-Full logs are available here:
+Right, I should use DIV_ROUND_UP(width * fmt->bpp_line, 8) here.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> > +}
+> > +
+> > +static inline unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt,
+> > +					  unsigned int width,
+> > +					  unsigned int height)
+> > +{
+> > +	return width * height * fmt->bpp_image / 8;
+> 
+> Ditto: return height * v4l2_bytesperline(fmt, width);
 
-The Media Infrastructure API from this daily build is here:
+I can't use v4l2_bytesperline because that might be zero for macroblock
+tiled formats and uses the wrong bpp value for planar formats with
+subsampled chroma.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+This nearly works:
+    return height * DIV_ROUND_UP(width * fmt->bpp_image, 8)
+
+For the planar 4:2:0 subsampled formats and Y41P (bpp_image == 12),
+width has to be even, so that is ok.
+Most other formats have a bpp_image that is divisible by 8, but there
+are the 4:1:0 subsampled formats (bpp_image == 9). Those would round up
+width to a multiple of eight, even though it only has to be a multiple
+of four. I'd fall back to:
+
+    if (fmt->bpp_image == fmt->bpp_line) {
+        return height * DIV_ROUND_UP(width * fmt->bpp_image, 8);
+    } else {
+        /* we know that v4l2_bytesperline doesn't round for planar */
+        return height * width * fmt->bpp_image / 8;
+    }
+
+regards
+Philipp
+
