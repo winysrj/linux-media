@@ -1,55 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44077 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755702AbaHZVzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:18 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 07/35] [media] ti-vpe: use %pad for dma address
-Date: Tue, 26 Aug 2014 18:54:43 -0300
-Message-Id: <1409090111-8290-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:42474 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755086AbaHYRMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 13:12:15 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/12] airspy: remove unneeded spinlock irq flags initialization
+Date: Mon, 25 Aug 2014 20:11:50 +0300
+Message-Id: <1408986718-3881-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1408986718-3881-1-git-send-email-crope@iki.fi>
+References: <1408986718-3881-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   drivers/media/platform/ti-vpe/vpdma.c: In function 'dump_dtd':
-   include/linux/dynamic_debug.h:64:16: warning: format '%x' expects argument of type 'unsigned int', but argument 3 has type 'dma_addr_t' [-Wformat=]
-     static struct _ddebug  __aligned(8)   \
-                   ^
-   include/linux/dynamic_debug.h:76:2: note: in expansion of macro 'DEFINE_DYNAMIC_DEBUG_METADATA'
-     DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
-     ^
-   include/linux/printk.h:263:2: note: in expansion of macro 'dynamic_pr_debug'
-     dynamic_pr_debug(fmt, ##__VA_ARGS__)
-     ^
->> drivers/media/platform/ti-vpe/vpdma.c:587:2: note: in expansion of macro 'pr_debug'
-     pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
-     ^
+There is no need to init flags before calling spin_lock_irqsave().
+spin_lock_irqsave is a macro which stores value to 'flags'.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/airspy/airspy.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index a51a01359805..6121a0b3c754 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -584,7 +584,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- 		pr_debug("word1: line_length = %d, xfer_height = %d\n",
- 			dtd_get_line_length(dtd), dtd_get_xfer_height(dtd));
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index de9fc52..994c991 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -223,7 +223,7 @@ err:
+ /* Private functions */
+ static struct airspy_frame_buf *airspy_get_next_fill_buf(struct airspy *s)
+ {
+-	unsigned long flags = 0;
++	unsigned long flags;
+ 	struct airspy_frame_buf *buf = NULL;
  
--	pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
-+	pr_debug("word2: start_addr = %pad\n", &dtd->start_addr);
+ 	spin_lock_irqsave(&s->queued_bufs_lock, flags);
+@@ -446,7 +446,7 @@ static int airspy_alloc_urbs(struct airspy *s)
+ /* Must be called with vb_queue_lock hold */
+ static void airspy_cleanup_queued_bufs(struct airspy *s)
+ {
+-	unsigned long flags = 0;
++	unsigned long flags;
  
- 	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
- 		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
+ 	dev_dbg(s->dev, "\n");
+ 
+@@ -506,7 +506,7 @@ static void airspy_buf_queue(struct vb2_buffer *vb)
+ 	struct airspy *s = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct airspy_frame_buf *buf =
+ 			container_of(vb, struct airspy_frame_buf, vb);
+-	unsigned long flags = 0;
++	unsigned long flags;
+ 
+ 	/* Check the device has not disconnected between prep and queuing */
+ 	if (unlikely(!s->udev)) {
 -- 
-1.9.3
+http://palosaari.fi/
 
