@@ -1,462 +1,575 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:60209 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964847AbaH0PcH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 11:32:07 -0400
-Received: by mail-pa0-f44.google.com with SMTP id eu11so500403pac.3
-        for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 08:32:04 -0700 (PDT)
-From: tskd08@gmail.com
+Received: from mail.kapsi.fi ([217.30.184.167]:35930 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754892AbaHYRMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 13:12:15 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH v2 2/5] mxl301rf: add driver for MaxLinear MxL301RF OFDM tuner
-Date: Thu, 28 Aug 2014 00:29:13 +0900
-Message-Id: <1409153356-1887-3-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/12] airspy: logging changes
+Date: Mon, 25 Aug 2014 20:11:49 +0300
+Message-Id: <1408986718-3881-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1408986718-3881-1-git-send-email-crope@iki.fi>
+References: <1408986718-3881-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Kernel logging system needs pointer to usb interface device in
+order to print names and bus numbers properly. There was wrong
+device pointer given and log printings wasn't correct.
 
-This patch adds driver for mxl301rf OFDM tuner chips.
-It is used as an ISDB-T tuner in earthsoft pt3 cards.
+Remove some debug logging from v4l2 ioctl functions. v4l2 core debug
+prints almost same information when enabled.
 
-Note that this driver does not initilize the chip,
-because the initilization sequence / register setting is not disclosed.
-Thus, the driver assumes that the chips are initilized externally
-by its parent board driver before tuner_ops->init() are called,
-like in PT3 driver where the bridge chip contains the init sequence
-in its private memory and provides a command to trigger the sequence.
-
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Changes in v2:
-- use new tuner ops for get_signal_strengh() for DVBv5 API
-- removed automatic frequency adjustment
-- moved static const tables out of function scope
-- extend max acceptable frequency to accept ISDB-Tb
+ drivers/media/usb/airspy/airspy.c | 172 ++++++++++++++------------------------
+ 1 file changed, 61 insertions(+), 111 deletions(-)
 
- drivers/media/tuners/Kconfig    |   7 +
- drivers/media/tuners/Makefile   |   1 +
- drivers/media/tuners/mxl301rf.c | 334 ++++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/mxl301rf.h |  40 +++++
- 4 files changed, 382 insertions(+)
-
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index d79fd1c..cd3f8ee 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -257,4 +257,11 @@ config MEDIA_TUNER_R820T
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Rafael Micro R820T silicon tuner driver.
-+
-+config MEDIA_TUNER_MXL301RF
-+	tristate "MaxLinear MxL301RF tuner"
-+	depends on MEDIA_SUPPORT && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  MaxLinear MxL301RF OFDM tuner driver.
- endmenu
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index 5591699..6d5bf48 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
- obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
- obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
- obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
-+obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index dee1fe2..de9fc52 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -107,6 +107,7 @@ struct airspy {
+ #define USB_STATE_URB_BUF  (1 << 3)
+ 	unsigned long flags;
  
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
-new file mode 100644
-index 0000000..11ac7b8
---- /dev/null
-+++ b/drivers/media/tuners/mxl301rf.c
-@@ -0,0 +1,334 @@
-+/*
-+ * MaxLinear MxL301RF OFDM tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "mxl301rf.h"
-+
-+struct mxl301rf_state {
-+	struct mxl301rf_config cfg;
-+	struct i2c_adapter *i2c;
-+};
-+
-+static int data_write(struct mxl301rf_state *state, const u8 *buf, int len)
-+{
-+	struct i2c_msg msg = {
-+		.addr = state->cfg.addr,
-+		.flags = 0,
-+		.buf = (u8 *)buf,
-+		.len = len,
-+	};
-+
-+	return i2c_transfer(state->i2c, &msg, 1);
-+}
-+
-+static int reg_write(struct mxl301rf_state *state, u8 reg, u8 val)
-+{
-+	u8 buf[2] = { reg, val };
-+
-+	return data_write(state, buf, 2);
-+}
-+
-+static int reg_read(struct mxl301rf_state *state, u8 reg, u8 *val)
-+{
-+	u8 wbuf[2] = { 0xfb, reg };
-+	struct i2c_msg msgs[2] = {
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = 0,
-+			.buf = wbuf,
-+			.len = 2,
-+		},
-+		{
-+			.addr = state->cfg.addr,
-+			.flags = I2C_M_RD,
-+			.buf = val,
-+			.len = 1,
-+		}
-+	};
-+
-+	return i2c_transfer(state->i2c, msgs, ARRAY_SIZE(msgs));
-+}
-+
-+/* tuner_ops */
-+
-+static int mxl301rf_get_status(struct dvb_frontend *fe, u32 *status)
-+{
-+	struct mxl301rf_state *state;
++	struct device *dev;
+ 	struct usb_device *udev;
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+@@ -154,16 +155,15 @@ struct airspy {
+ 	unsigned int sample_measured;
+ };
+ 
+-#define airspy_dbg_usb_control_msg(_udev, _r, _t, _v, _i, _b, _l) { \
++#define airspy_dbg_usb_control_msg(_dev, _r, _t, _v, _i, _b, _l) { \
+ 	char *_direction; \
+ 	if (_t & USB_DIR_IN) \
+ 		_direction = "<<<"; \
+ 	else \
+ 		_direction = ">>>"; \
+-	dev_dbg(&_udev->dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x " \
+-			"%s %*ph\n",  __func__, _t, _r, _v & 0xff, _v >> 8, \
+-			_i & 0xff, _i >> 8, _l & 0xff, _l >> 8, _direction, \
+-			_l, _b); \
++	dev_dbg(_dev, "%02x %02x %02x %02x %02x %02x %02x %02x %s %*ph\n", \
++			_t, _r, _v & 0xff, _v >> 8, _i & 0xff, _i >> 8, \
++			_l & 0xff, _l >> 8, _direction, _l, _b); \
+ }
+ 
+ /* execute firmware command */
+@@ -192,7 +192,7 @@ static int airspy_ctrl_msg(struct airspy *s, u8 request, u16 value, u16 index,
+ 		requesttype = (USB_TYPE_VENDOR | USB_DIR_IN);
+ 		break;
+ 	default:
+-		dev_err(&s->udev->dev, "Unknown command %02x\n", request);
++		dev_err(s->dev, "Unknown command %02x\n", request);
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -203,11 +203,10 @@ static int airspy_ctrl_msg(struct airspy *s, u8 request, u16 value, u16 index,
+ 
+ 	ret = usb_control_msg(s->udev, pipe, request, requesttype, value,
+ 			index, s->buf, size, 1000);
+-	airspy_dbg_usb_control_msg(s->udev, request, requesttype, value,
++	airspy_dbg_usb_control_msg(s->dev, request, requesttype, value,
+ 			index, s->buf, size);
+ 	if (ret < 0) {
+-		dev_err(&s->udev->dev,
+-				"usb_control_msg() failed %d request %02x\n",
++		dev_err(s->dev, "usb_control_msg() failed %d request %02x\n",
+ 				ret, request);
+ 		goto err;
+ 	}
+@@ -258,8 +257,7 @@ static unsigned int airspy_convert_stream(struct airspy *s,
+ 
+ 		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
+ 		s->sample_measured = s->sample;
+-		dev_dbg(&s->udev->dev,
+-				"slen=%d samples=%u msecs=%lu sample rate=%lu\n",
++		dev_dbg(s->dev, "slen=%d samples=%u msecs=%lu sample rate=%lu\n",
+ 				src_len, samples, MSECS,
+ 				samples * 1000UL / MSECS);
+ 	}
+@@ -279,9 +277,8 @@ static void airspy_urb_complete(struct urb *urb)
+ 	struct airspy *s = urb->context;
+ 	struct airspy_frame_buf *fbuf;
+ 
+-	dev_dbg_ratelimited(&s->udev->dev,
+-			"%s: status=%d length=%d/%d errors=%d\n",
+-			__func__, urb->status, urb->actual_length,
++	dev_dbg_ratelimited(s->dev, "status=%d length=%d/%d errors=%d\n",
++			urb->status, urb->actual_length,
+ 			urb->transfer_buffer_length, urb->error_count);
+ 
+ 	switch (urb->status) {
+@@ -293,8 +290,7 @@ static void airspy_urb_complete(struct urb *urb)
+ 	case -ESHUTDOWN:
+ 		return;
+ 	default:            /* error */
+-		dev_err_ratelimited(&s->udev->dev, "URB failed %d\n",
+-				urb->status);
++		dev_err_ratelimited(s->dev, "URB failed %d\n", urb->status);
+ 		break;
+ 	}
+ 
+@@ -305,7 +301,7 @@ static void airspy_urb_complete(struct urb *urb)
+ 		fbuf = airspy_get_next_fill_buf(s);
+ 		if (unlikely(fbuf == NULL)) {
+ 			s->vb_full++;
+-			dev_notice_ratelimited(&s->udev->dev,
++			dev_notice_ratelimited(s->dev,
+ 					"videobuf is full, %d packets dropped\n",
+ 					s->vb_full);
+ 			goto skip;
+@@ -329,7 +325,7 @@ static int airspy_kill_urbs(struct airspy *s)
+ 	int i;
+ 
+ 	for (i = s->urbs_submitted - 1; i >= 0; i--) {
+-		dev_dbg(&s->udev->dev, "%s: kill urb=%d\n", __func__, i);
++		dev_dbg(s->dev, "kill urb=%d\n", i);
+ 		/* stop the URB */
+ 		usb_kill_urb(s->urb_list[i]);
+ 	}
+@@ -343,11 +339,10 @@ static int airspy_submit_urbs(struct airspy *s)
+ 	int i, ret;
+ 
+ 	for (i = 0; i < s->urbs_initialized; i++) {
+-		dev_dbg(&s->udev->dev, "%s: submit urb=%d\n", __func__, i);
++		dev_dbg(s->dev, "submit urb=%d\n", i);
+ 		ret = usb_submit_urb(s->urb_list[i], GFP_ATOMIC);
+ 		if (ret) {
+-			dev_err(&s->udev->dev,
+-					"Could not submit URB no. %d - get them all back\n",
++			dev_err(s->dev, "Could not submit URB no. %d - get them all back\n",
+ 					i);
+ 			airspy_kill_urbs(s);
+ 			return ret;
+@@ -363,8 +358,7 @@ static int airspy_free_stream_bufs(struct airspy *s)
+ 	if (s->flags & USB_STATE_URB_BUF) {
+ 		while (s->buf_num) {
+ 			s->buf_num--;
+-			dev_dbg(&s->udev->dev, "%s: free buf=%d\n",
+-					__func__, s->buf_num);
++			dev_dbg(s->dev, "free buf=%d\n", s->buf_num);
+ 			usb_free_coherent(s->udev, s->buf_size,
+ 					  s->buf_list[s->buf_num],
+ 					  s->dma_addr[s->buf_num]);
+@@ -380,23 +374,20 @@ static int airspy_alloc_stream_bufs(struct airspy *s)
+ 	s->buf_num = 0;
+ 	s->buf_size = BULK_BUFFER_SIZE;
+ 
+-	dev_dbg(&s->udev->dev,
+-			"%s: all in all I will use %u bytes for streaming\n",
+-			__func__,  MAX_BULK_BUFS * BULK_BUFFER_SIZE);
++	dev_dbg(s->dev, "all in all I will use %u bytes for streaming\n",
++			MAX_BULK_BUFS * BULK_BUFFER_SIZE);
+ 
+ 	for (s->buf_num = 0; s->buf_num < MAX_BULK_BUFS; s->buf_num++) {
+ 		s->buf_list[s->buf_num] = usb_alloc_coherent(s->udev,
+ 				BULK_BUFFER_SIZE, GFP_ATOMIC,
+ 				&s->dma_addr[s->buf_num]);
+ 		if (!s->buf_list[s->buf_num]) {
+-			dev_dbg(&s->udev->dev, "%s: alloc buf=%d failed\n",
+-					__func__, s->buf_num);
++			dev_dbg(s->dev, "alloc buf=%d failed\n", s->buf_num);
+ 			airspy_free_stream_bufs(s);
+ 			return -ENOMEM;
+ 		}
+ 
+-		dev_dbg(&s->udev->dev, "%s: alloc buf=%d %p (dma %llu)\n",
+-				__func__, s->buf_num,
++		dev_dbg(s->dev, "alloc buf=%d %p (dma %llu)\n", s->buf_num,
+ 				s->buf_list[s->buf_num],
+ 				(long long)s->dma_addr[s->buf_num]);
+ 		s->flags |= USB_STATE_URB_BUF;
+@@ -413,8 +404,7 @@ static int airspy_free_urbs(struct airspy *s)
+ 
+ 	for (i = s->urbs_initialized - 1; i >= 0; i--) {
+ 		if (s->urb_list[i]) {
+-			dev_dbg(&s->udev->dev, "%s: free urb=%d\n",
+-					__func__, i);
++			dev_dbg(s->dev, "free urb=%d\n", i);
+ 			/* free the URBs */
+ 			usb_free_urb(s->urb_list[i]);
+ 		}
+@@ -430,10 +420,10 @@ static int airspy_alloc_urbs(struct airspy *s)
+ 
+ 	/* allocate the URBs */
+ 	for (i = 0; i < MAX_BULK_BUFS; i++) {
+-		dev_dbg(&s->udev->dev, "%s: alloc urb=%d\n", __func__, i);
++		dev_dbg(s->dev, "alloc urb=%d\n", i);
+ 		s->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
+ 		if (!s->urb_list[i]) {
+-			dev_dbg(&s->udev->dev, "%s: failed\n", __func__);
++			dev_dbg(s->dev, "failed\n");
+ 			for (j = 0; j < i; j++)
+ 				usb_free_urb(s->urb_list[j]);
+ 			return -ENOMEM;
+@@ -458,7 +448,7 @@ static void airspy_cleanup_queued_bufs(struct airspy *s)
+ {
+ 	unsigned long flags = 0;
+ 
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(s->dev, "\n");
+ 
+ 	spin_lock_irqsave(&s->queued_bufs_lock, flags);
+ 	while (!list_empty(&s->queued_bufs)) {
+@@ -478,7 +468,7 @@ static void airspy_disconnect(struct usb_interface *intf)
+ 	struct v4l2_device *v = usb_get_intfdata(intf);
+ 	struct airspy *s = container_of(v, struct airspy, v4l2_dev);
+ 
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(s->dev, "\n");
+ 
+ 	mutex_lock(&s->vb_queue_lock);
+ 	mutex_lock(&s->v4l2_lock);
+@@ -499,7 +489,7 @@ static int airspy_queue_setup(struct vb2_queue *vq,
+ {
+ 	struct airspy *s = vb2_get_drv_priv(vq);
+ 
+-	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
++	dev_dbg(s->dev, "nbuffers=%d\n", *nbuffers);
+ 
+ 	/* Need at least 8 buffers */
+ 	if (vq->num_buffers + *nbuffers < 8)
+@@ -507,8 +497,7 @@ static int airspy_queue_setup(struct vb2_queue *vq,
+ 	*nplanes = 1;
+ 	sizes[0] = PAGE_ALIGN(s->buffersize);
+ 
+-	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
+-			__func__, *nbuffers, sizes[0]);
++	dev_dbg(s->dev, "nbuffers=%d sizes[0]=%d\n", *nbuffers, sizes[0]);
+ 	return 0;
+ }
+ 
+@@ -535,7 +524,7 @@ static int airspy_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct airspy *s = vb2_get_drv_priv(vq);
+ 	int ret;
+ 
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(s->dev, "\n");
+ 
+ 	if (!s->udev)
+ 		return -ENODEV;
+@@ -594,7 +583,7 @@ static void airspy_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct airspy *s = vb2_get_drv_priv(vq);
+ 
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(s->dev, "\n");
+ 
+ 	mutex_lock(&s->v4l2_lock);
+ 
+@@ -626,8 +615,6 @@ static int airspy_querycap(struct file *file, void *fh,
+ {
+ 	struct airspy *s = video_drvdata(file);
+ 
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+-
+ 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
+ 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
+@@ -641,10 +628,6 @@ static int airspy_querycap(struct file *file, void *fh,
+ static int airspy_enum_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_fmtdesc *f)
+ {
+-	struct airspy *s = video_drvdata(file);
+-
+-	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, f->index);
+-
+ 	if (f->index >= NUM_FORMATS)
+ 		return -EINVAL;
+ 
+@@ -659,9 +642,6 @@ static int airspy_g_fmt_sdr_cap(struct file *file, void *priv,
+ {
+ 	struct airspy *s = video_drvdata(file);
+ 
+-	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+-			(char *)&s->pixelformat);
+-
+ 	f->fmt.sdr.pixelformat = s->pixelformat;
+ 	f->fmt.sdr.buffersize = s->buffersize;
+ 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
+@@ -676,9 +656,6 @@ static int airspy_s_fmt_sdr_cap(struct file *file, void *priv,
+ 	struct vb2_queue *q = &s->vb_queue;
+ 	int i;
+ 
+-	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+-			(char *)&f->fmt.sdr.pixelformat);
+-
+ 	if (vb2_is_busy(q))
+ 		return -EBUSY;
+ 
+@@ -703,12 +680,8 @@ static int airspy_s_fmt_sdr_cap(struct file *file, void *priv,
+ static int airspy_try_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+-	struct airspy *s = video_drvdata(file);
+ 	int i;
+ 
+-	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+-			(char *)&f->fmt.sdr.pixelformat);
+-
+ 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
+ 	for (i = 0; i < NUM_FORMATS; i++) {
+ 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
+@@ -726,11 +699,8 @@ static int airspy_try_fmt_sdr_cap(struct file *file, void *priv,
+ static int airspy_s_tuner(struct file *file, void *priv,
+ 		const struct v4l2_tuner *v)
+ {
+-	struct airspy *s = video_drvdata(file);
+ 	int ret;
+ 
+-	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, v->index);
+-
+ 	if (v->index == 0)
+ 		ret = 0;
+ 	else if (v->index == 1)
+@@ -743,11 +713,8 @@ static int airspy_s_tuner(struct file *file, void *priv,
+ 
+ static int airspy_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
+ {
+-	struct airspy *s = video_drvdata(file);
+ 	int ret;
+ 
+-	dev_dbg(&s->udev->dev, "%s: index=%d\n", __func__, v->index);
+-
+ 	if (v->index == 0) {
+ 		strlcpy(v->name, "AirSpy ADC", sizeof(v->name));
+ 		v->type = V4L2_TUNER_ADC;
+@@ -773,18 +740,18 @@ static int airspy_g_frequency(struct file *file, void *priv,
+ 		struct v4l2_frequency *f)
+ {
+ 	struct airspy *s = video_drvdata(file);
+-	int ret  = 0;
+-
+-	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
+-			__func__, f->tuner, f->type);
 +	int ret;
-+	u8 val;
-+
-+	*status = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_read(state, 0x16, &val);  /* check RF Synthesizer lock */
-+	if (ret < 0 || (val & 0x0c) != 0x0c)
-+		return ret;
-+	ret = reg_read(state, 0x16, &val);  /* check REF Synthesizer lock */
-+	if (ret < 0 || (val & 0x03) != 0x03)
-+		return ret;
-+	*status = TUNER_STATUS_LOCKED;
-+	return 0;
-+}
-+
-+/* *strength : [0.001dBm] */
-+static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, s64 *strength)
-+{
-+	struct mxl301rf_state *state;
-+	int ret;
-+	u8 rf_in1, rf_in2, rf_off1, rf_off2;
-+	u16 rf_in, rf_off;
-+
-+	*strength = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_write(state, 0x14, 0x01);
-+	if (ret < 0)
-+		return ret;
-+	usleep_range(1000, 2000);
-+	ret = reg_read(state, 0x18, &rf_in1);
-+	if (ret == 0)
-+		ret = reg_read(state, 0x19, &rf_in2);
-+	if (ret == 0)
-+		ret = reg_read(state, 0xd6, &rf_off1);
-+	if (ret == 0)
-+		ret = reg_read(state, 0xd7, &rf_off2);
-+	if (ret != 0)
-+		return ret;
-+
-+	rf_in = (rf_in2 & 0x07) << 8 | rf_in1;
-+	rf_off = (rf_off2 & 0x0f) << 5 | (rf_off1 >> 3);
-+	*strength = rf_in - rf_off - (113 << 3); /* x8 dBm */
-+	*strength = *strength * 1000 / 8;
-+	return 0;
-+}
-+
-+/* spur shift parameters */
-+struct shf {
-+	u32	freq;		/* Channel center frequency */
-+	u32	ofst_th;	/* Offset frequency threshold */
-+	u8	shf_val;	/* Spur shift value */
-+	u8	shf_dir;	/* Spur shift direction */
-+};
-+
-+static const struct shf shf_tab[] = {
-+	{  64500, 500, 0x92, 0x07 },
-+	{ 191500, 300, 0xe2, 0x07 },
-+	{ 205500, 500, 0x2c, 0x04 },
-+	{ 212500, 500, 0x1e, 0x04 },
-+	{ 226500, 500, 0xd4, 0x07 },
-+	{  99143, 500, 0x9c, 0x07 },
-+	{ 173143, 500, 0xd4, 0x07 },
-+	{ 191143, 300, 0xd4, 0x07 },
-+	{ 207143, 500, 0xce, 0x07 },
-+	{ 225143, 500, 0xce, 0x07 },
-+	{ 243143, 500, 0xd4, 0x07 },
-+	{ 261143, 500, 0xd4, 0x07 },
-+	{ 291143, 500, 0xd4, 0x07 },
-+	{ 339143, 500, 0x2c, 0x04 },
-+	{ 117143, 500, 0x7a, 0x07 },
-+	{ 135143, 300, 0x7a, 0x07 },
-+	{ 153143, 500, 0x01, 0x07 }
-+};
-+
-+static const u8 set_idac[] = {
-+	0x0d, 0x00,
-+	0x0c, 0x67,
-+	0x6f, 0x89,
-+	0x70, 0x0c,
-+	0x6f, 0x8a,
-+	0x70, 0x0e,
-+	0x6f, 0x8b,
-+	0x70, 0x1c,
-+};
-+
-+static int mxl301rf_set_params(struct dvb_frontend *fe)
-+{
-+	u8 tune0[] = {
-+		0x13, 0x00,		/* abort tuning */
-+		0x3b, 0xc0,
-+		0x3b, 0x80,
-+		0x10, 0x95,		/* BW */
-+		0x1a, 0x05,
-+		0x61, 0x00,		/* spur shift value (placeholder) */
-+		0x62, 0xa0		/* spur shift direction (placeholder) */
-+	};
-+	u8 tune1[] = {
-+		0x11, 0x40,		/* RF frequency L (placeholder) */
-+		0x12, 0x0e,		/* RF frequency H (placeholder) */
-+		0x13, 0x01		/* start tune */
-+	};
-+
-+	struct mxl301rf_state *state;
-+	u32 freq;
-+	u16 f;
-+	u32 tmp, div;
-+	int i, ret;
-+
-+	state = fe->tuner_priv;
-+	freq = fe->dtv_property_cache.frequency;
-+
-+	/* spur shift function (for analog) */
-+	for (i = 0; i < ARRAY_SIZE(shf_tab); i++) {
-+		if (freq >= (shf_tab[i].freq - shf_tab[i].ofst_th) * 1000 &&
-+		    freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000) {
-+			tune0[2 * 5 + 1] = shf_tab[i].shf_val;
-+			tune0[2 * 6 + 1] = 0xa0 | shf_tab[i].shf_dir;
-+			break;
-+		}
-+	}
-+	ret = data_write(state, tune0, sizeof(tune0));
-+	if (ret < 0)
-+		goto failed;
-+	usleep_range(3000, 4000);
-+
-+	/* convert freq to 10.6 fixed point float [MHz] */
-+	f = freq / 1000000;
-+	tmp = freq % 1000000;
-+	div = 1000000;
-+	for (i = 0; i < 6; i++) {
-+		f <<= 1;
-+		div >>= 1;
-+		if (tmp > div) {
-+			tmp -= div;
-+			f |= 1;
-+		}
-+	}
-+	if (tmp > 7812)
-+		f++;
-+	tune1[2 * 0 + 1] = f & 0xff;
-+	tune1[2 * 1 + 1] = f >> 8;
-+	ret = data_write(state, tune1, sizeof(tune1));
-+	if (ret < 0)
-+		goto failed;
-+	msleep(31);
-+
-+	ret = reg_write(state, 0x1a, 0x0d);
-+	if (ret < 0)
-+		goto failed;
-+	ret = data_write(state, set_idac, sizeof(set_idac));
-+	if (ret < 0)
-+		goto failed;
-+	return 0;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static const u8 standby_data[] = {
-+	0x01, 0x00, 0x13, 0x00
-+};
-+
-+static int mxl301rf_sleep(struct dvb_frontend *fe)
-+{
-+	struct mxl301rf_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	ret = data_write(fe->tuner_priv, standby_data, sizeof(standby_data));
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int mxl301rf_release(struct dvb_frontend *fe)
-+{
-+	struct mxl301rf_state *state;
-+
-+	state = fe->tuner_priv;
-+	kfree(state);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+
-+/* init sequence is not public.
-+ * the parent must have init'ed the device.
-+ * just wake up here.
-+ */
-+static const u8 wakeup_data[] = {
-+	0x01, 0x01
-+};
-+
-+static int mxl301rf_init(struct dvb_frontend *fe)
-+{
-+	struct mxl301rf_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+
-+	ret = data_write(state, wakeup_data, sizeof(wakeup_data));
-+	if (ret < 0)
-+		goto failed;
-+
-+	/* tune to the initial freq */
-+	if (state->cfg.init_freq > 0) {
-+		u32 f = fe->dtv_property_cache.frequency;
-+
-+		fe->dtv_property_cache.frequency = state->cfg.init_freq;
-+		ret = mxl301rf_set_params(fe);
-+		fe->dtv_property_cache.frequency = f;
-+		if (ret < 0)
-+			goto failed;
-+	}
-+	return 0;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+/* exported functions */
-+
-+static const struct dvb_tuner_ops mxl301rf_ops = {
-+	.info = {
-+		.name = "MaxLinear MxL301RF",
-+
-+		.frequency_min =  93000000,
-+		.frequency_max = 803142857,
-+	},
-+
-+	.release = mxl301rf_release,
-+	.init = mxl301rf_init,
-+	.sleep = mxl301rf_sleep,
-+
-+	.set_params = mxl301rf_set_params,
-+	.get_status = mxl301rf_get_status,
-+	.get_rf_strength_dbm = mxl301rf_get_rf_strength,
-+};
-+
-+
-+struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct mxl301rf_config *cfg)
-+{
-+	struct mxl301rf_state *state;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+
-+	memcpy(&state->cfg, cfg, sizeof(*cfg));
-+	state->i2c = i2c;
-+	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
-+	fe->tuner_priv = state;
-+	dev_info(&i2c->dev, "MaxLinear MxL301RF attached.\n");
-+	return fe;
-+}
-+EXPORT_SYMBOL(mxl301rf_attach);
-+
-+MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
-+MODULE_AUTHOR("Akihiro TSUKADA");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
-new file mode 100644
-index 0000000..8c47e55
---- /dev/null
-+++ b/drivers/media/tuners/mxl301rf.h
-@@ -0,0 +1,40 @@
-+/*
-+ * MaxLinear MxL301RF OFDM tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef MXL301RF_H
-+#define MXL301RF_H
-+
-+#include <linux/kconfig.h>
-+#include "dvb_frontend.h"
-+
-+struct mxl301rf_config {
-+	u8 addr;
-+	u32 init_freq;
-+};
-+
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_MXL301RF)
-+extern struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct mxl301rf_config *cfg);
-+#else
-+static inline struct dvb_frontend *mxl301rf_attach(struct dvb_frontend *fe,
-+		struct i2c_adapter *i2c, const struct mxl301rf_config *cfg)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif /* MXL301RF_H */
+ 
+ 	if (f->tuner == 0) {
+ 		f->type = V4L2_TUNER_ADC;
+ 		f->frequency = s->f_adc;
++		dev_dbg(s->dev, "ADC frequency=%u Hz\n", s->f_adc);
+ 		ret = 0;
+ 	} else if (f->tuner == 1) {
+ 		f->type = V4L2_TUNER_RF;
+ 		f->frequency = s->f_rf;
++		dev_dbg(s->dev, "RF frequency=%u Hz\n", s->f_rf);
++		ret = 0;
+ 	} else {
+ 		ret = -EINVAL;
+ 	}
+@@ -799,22 +766,17 @@ static int airspy_s_frequency(struct file *file, void *priv,
+ 	int ret;
+ 	u8 buf[4];
+ 
+-	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
+-			__func__, f->tuner, f->type, f->frequency);
+-
+ 	if (f->tuner == 0) {
+ 		s->f_adc = clamp_t(unsigned int, f->frequency,
+ 				bands[0].rangelow,
+ 				bands[0].rangehigh);
+-		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+-				__func__, s->f_adc);
++		dev_dbg(s->dev, "ADC frequency=%u Hz\n", s->f_adc);
+ 		ret = 0;
+ 	} else if (f->tuner == 1) {
+ 		s->f_rf = clamp_t(unsigned int, f->frequency,
+ 				bands_rf[0].rangelow,
+ 				bands_rf[0].rangehigh);
+-		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
+-				__func__, s->f_rf);
++		dev_dbg(s->dev, "RF frequency=%u Hz\n", s->f_rf);
+ 		buf[0] = (s->f_rf >>  0) & 0xff;
+ 		buf[1] = (s->f_rf >>  8) & 0xff;
+ 		buf[2] = (s->f_rf >> 16) & 0xff;
+@@ -830,12 +792,8 @@ static int airspy_s_frequency(struct file *file, void *priv,
+ static int airspy_enum_freq_bands(struct file *file, void *priv,
+ 		struct v4l2_frequency_band *band)
+ {
+-	struct airspy *s = video_drvdata(file);
+ 	int ret;
+ 
+-	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
+-			__func__, band->tuner, band->type, band->index);
+-
+ 	if (band->tuner == 0) {
+ 		if (band->index >= ARRAY_SIZE(bands)) {
+ 			ret = -EINVAL;
+@@ -918,10 +876,9 @@ static int airspy_set_lna_gain(struct airspy *s)
+ 	int ret;
+ 	u8 u8tmp;
+ 
+-	dev_dbg(&s->udev->dev, "%s: lna auto=%d->%d val=%d->%d\n",
+-			__func__, s->lna_gain_auto->cur.val,
+-			s->lna_gain_auto->val, s->lna_gain->cur.val,
+-			s->lna_gain->val);
++	dev_dbg(s->dev, "lna auto=%d->%d val=%d->%d\n",
++			s->lna_gain_auto->cur.val, s->lna_gain_auto->val,
++			s->lna_gain->cur.val, s->lna_gain->val);
+ 
+ 	ret = airspy_ctrl_msg(s, CMD_SET_LNA_AGC, 0, s->lna_gain_auto->val,
+ 			&u8tmp, 1);
+@@ -936,7 +893,7 @@ static int airspy_set_lna_gain(struct airspy *s)
+ 	}
+ err:
+ 	if (ret)
+-		dev_dbg(&s->udev->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(s->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -946,10 +903,9 @@ static int airspy_set_mixer_gain(struct airspy *s)
+ 	int ret;
+ 	u8 u8tmp;
+ 
+-	dev_dbg(&s->udev->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
+-			__func__, s->mixer_gain_auto->cur.val,
+-			s->mixer_gain_auto->val, s->mixer_gain->cur.val,
+-			s->mixer_gain->val);
++	dev_dbg(s->dev, "mixer auto=%d->%d val=%d->%d\n",
++			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
++			s->mixer_gain->cur.val, s->mixer_gain->val);
+ 
+ 	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
+ 			&u8tmp, 1);
+@@ -964,7 +920,7 @@ static int airspy_set_mixer_gain(struct airspy *s)
+ 	}
+ err:
+ 	if (ret)
+-		dev_dbg(&s->udev->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(s->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -974,8 +930,7 @@ static int airspy_set_if_gain(struct airspy *s)
+ 	int ret;
+ 	u8 u8tmp;
+ 
+-	dev_dbg(&s->udev->dev, "%s: val=%d->%d\n",
+-			__func__, s->if_gain->cur.val, s->if_gain->val);
++	dev_dbg(s->dev, "val=%d->%d\n", s->if_gain->cur.val, s->if_gain->val);
+ 
+ 	ret = airspy_ctrl_msg(s, CMD_SET_VGA_GAIN, 0, s->if_gain->val,
+ 			&u8tmp, 1);
+@@ -983,7 +938,7 @@ static int airspy_set_if_gain(struct airspy *s)
+ 		goto err;
+ err:
+ 	if (ret)
+-		dev_dbg(&s->udev->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(s->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -1006,8 +961,8 @@ static int airspy_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ret = airspy_set_if_gain(s);
+ 		break;
+ 	default:
+-		dev_dbg(&s->udev->dev, "%s: unknown ctrl: id=%d name=%s\n",
+-				__func__, ctrl->id, ctrl->name);
++		dev_dbg(s->dev, "unknown ctrl: id=%d name=%s\n",
++				ctrl->id, ctrl->name);
+ 		ret = -EINVAL;
+ 	}
+ 
+@@ -1021,15 +976,13 @@ static const struct v4l2_ctrl_ops airspy_ctrl_ops = {
+ static int airspy_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+-	struct usb_device *udev = interface_to_usbdev(intf);
+-	struct airspy *s = NULL;
++	struct airspy *s;
+ 	int ret;
+ 	u8 u8tmp, buf[BUF_SIZE];
+ 
+ 	s = kzalloc(sizeof(struct airspy), GFP_KERNEL);
+ 	if (s == NULL) {
+-		dev_err(&udev->dev,
+-				"Could not allocate memory for airspy state\n");
++		dev_err(&intf->dev, "Could not allocate memory for state\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -1037,7 +990,8 @@ static int airspy_probe(struct usb_interface *intf,
+ 	mutex_init(&s->vb_queue_lock);
+ 	spin_lock_init(&s->queued_bufs_lock);
+ 	INIT_LIST_HEAD(&s->queued_bufs);
+-	s->udev = udev;
++	s->dev = &intf->dev;
++	s->udev = interface_to_usbdev(intf);
+ 	s->f_adc = bands[0].rangelow;
+ 	s->f_rf = bands_rf[0].rangelow;
+ 	s->pixelformat = formats[0].pixelformat;
+@@ -1049,14 +1003,14 @@ static int airspy_probe(struct usb_interface *intf,
+ 		ret = airspy_ctrl_msg(s, CMD_VERSION_STRING_READ, 0, 0,
+ 				buf, BUF_SIZE);
+ 	if (ret) {
+-		dev_err(&s->udev->dev, "Could not detect board\n");
++		dev_err(s->dev, "Could not detect board\n");
+ 		goto err_free_mem;
+ 	}
+ 
+ 	buf[BUF_SIZE - 1] = '\0';
+ 
+-	dev_info(&s->udev->dev, "Board ID: %02x\n", u8tmp);
+-	dev_info(&s->udev->dev, "Firmware version: %s\n", buf);
++	dev_info(s->dev, "Board ID: %02x\n", u8tmp);
++	dev_info(s->dev, "Firmware version: %s\n", buf);
+ 
+ 	/* Init videobuf2 queue structure */
+ 	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
+@@ -1068,7 +1022,7 @@ static int airspy_probe(struct usb_interface *intf,
+ 	s->vb_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	ret = vb2_queue_init(&s->vb_queue);
+ 	if (ret) {
+-		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
++		dev_err(s->dev, "Could not initialize vb2 queue\n");
+ 		goto err_free_mem;
+ 	}
+ 
+@@ -1082,8 +1036,7 @@ static int airspy_probe(struct usb_interface *intf,
+ 	s->v4l2_dev.release = airspy_video_release;
+ 	ret = v4l2_device_register(&intf->dev, &s->v4l2_dev);
+ 	if (ret) {
+-		dev_err(&s->udev->dev,
+-				"Failed to register v4l2-device (%d)\n", ret);
++		dev_err(s->dev, "Failed to register v4l2-device (%d)\n", ret);
+ 		goto err_free_mem;
+ 	}
+ 
+@@ -1103,7 +1056,7 @@ static int airspy_probe(struct usb_interface *intf,
+ 			V4L2_CID_RF_TUNER_IF_GAIN, 0, 15, 1, 0);
+ 	if (s->hdl.error) {
+ 		ret = s->hdl.error;
+-		dev_err(&s->udev->dev, "Could not initialize controls\n");
++		dev_err(s->dev, "Could not initialize controls\n");
+ 		goto err_free_controls;
+ 	}
+ 
+@@ -1115,16 +1068,13 @@ static int airspy_probe(struct usb_interface *intf,
+ 
+ 	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
+ 	if (ret) {
+-		dev_err(&s->udev->dev,
+-				"Failed to register as video device (%d)\n",
++		dev_err(s->dev, "Failed to register as video device (%d)\n",
+ 				ret);
+ 		goto err_unregister_v4l2_dev;
+ 	}
+-	dev_info(&s->udev->dev, "Registered as %s\n",
++	dev_info(s->dev, "Registered as %s\n",
+ 			video_device_node_name(&s->vdev));
+-	dev_notice(&s->udev->dev,
+-			"%s: SDR API is still slightly experimental and functionality changes may follow\n",
+-			KBUILD_MODNAME);
++	dev_notice(s->dev, "SDR API is still slightly experimental and functionality changes may follow\n");
+ 	return 0;
+ 
+ err_free_controls:
 -- 
-2.1.0
+http://palosaari.fi/
 
