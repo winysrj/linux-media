@@ -1,64 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60798 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbaHTNo3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:29 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v5 00/10] LED / flash API integration - documentation
-Date: Wed, 20 Aug 2014 15:44:09 +0200
-Message-id: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mta-out1.inet.fi ([62.71.2.228]:36031 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933037AbaHYSHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 14:07:18 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/3] si2157: avoid firmware loading if it has been loaded previously
+Date: Mon, 25 Aug 2014 21:07:03 +0300
+Message-Id: <1408990024-1642-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
+References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is the follow-up of the LED / flash API integration
-series [1]. For clarity reasons the patchset has been split into
-five subsets:
+Add a variable into state to keep track if firmware has been loaded or not. 
+Skip firmware loading in case it is already loaded (resume from sleep).
 
-- LED Flash Class
-- Flash Manager
-- V4L2 Flash
-- LED Flash Class drivers
-- Documentation
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c      | 11 +++++++++--
+ drivers/media/tuners/si2157_priv.h |  1 +
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-The series is based on linux-next-20140820.
-
-Thanks,
-Jacek Anaszewski
-
-[1] https://lkml.org/lkml/2014/7/11/914
-
-Jacek Anaszewski (10):
-  Documentation: leds: Add description of LED Flash Class extension
-  Documentation: leds: Add description of Flash Manager
-  Documentation: leds: add exemplary asynchronous mux driver
-  DT: leds: Add flash led devices related properties
-  DT: Add documentation for LED Class Flash Manger
-  DT: Add documentation for exynos4-is 'flashes' property
-  DT: Add documentation for the mfd Maxim max77693
-  of: Add Skyworks Solutions, Inc. vendor prefix
-  DT: Add documentation for the Skyworks AAT1290
-  ARM: dts: add aat1290 current regulator device node
-
- Documentation/devicetree/bindings/leds/common.txt  |   16 ++
- .../devicetree/bindings/leds/leds-aat1290.txt      |   17 ++
- .../bindings/leds/leds-flash-manager.txt           |  163 ++++++++++++++++++++
- .../devicetree/bindings/media/samsung-fimc.txt     |    5 +
- Documentation/devicetree/bindings/mfd/max77693.txt |   62 ++++++++
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- Documentation/leds/leds-async-mux.c                |   65 ++++++++
- Documentation/leds/leds-class-flash.txt            |  118 ++++++++++++++
- arch/arm/boot/dts/exynos4412-trats2.dts            |   24 +++
- 9 files changed, 471 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
- create mode 100644 Documentation/devicetree/bindings/leds/leds-flash-manager.txt
- create mode 100644 Documentation/leds/leds-async-mux.c
- create mode 100644 Documentation/leds/leds-class-flash.txt
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index c84f7b8..5901484 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -89,7 +89,10 @@ static int si2157_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "\n");
+ 
+-	/* configure? */
++	if (s->fw_loaded)
++		goto warm;
++
++	/* power up */
+ 	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
+ 	cmd.wlen = 15;
+ 	cmd.rlen = 1;
+@@ -176,9 +179,12 @@ skip_fw_download:
+ 	if (ret)
+ 		goto err;
+ 
+-	s->active = true;
++	s->fw_loaded = true;
+ 
++warm:
++	s->active = true;
+ 	return 0;
++
+ err:
+ 	if (fw)
+ 		release_firmware(fw);
+@@ -320,6 +326,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	s->client = client;
+ 	s->fe = cfg->fe;
+ 	s->inversion = cfg->inversion;
++	s->fw_loaded = false;
+ 	mutex_init(&s->i2c_mutex);
+ 
+ 	/* check if the tuner is there */
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index 3ddab5e..4080a57 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -26,6 +26,7 @@ struct si2157 {
+ 	struct i2c_client *client;
+ 	struct dvb_frontend *fe;
+ 	bool active;
++	bool fw_loaded;
+ 	bool inversion;
+ };
+ 
 -- 
-1.7.9.5
+1.9.1
 
