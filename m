@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59650 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1398 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249AbaHYLa7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 07:30:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/14] af9033: provide dyn0_clk clock source
-Date: Sat,  9 Aug 2014 23:27:04 +0300
-Message-Id: <1407616032-2722-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 12/12] vivid: enable the vivid driver
+Date: Mon, 25 Aug 2014 13:30:23 +0200
+Message-Id: <1408966223-5221-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1408966223-5221-1-git-send-email-hverkuil@xs4all.nl>
+References: <1408966223-5221-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AF903x/IT913x demod provides clock source(s). It seems that this
-clock source is used for integrated RF tuner of IT913x. It is
-enabled by default, but firmware disables it automatically when
-suspend is requested (suspend_flag (0x004c) + trigger_ofsm
-(0x0000)). Automatic disable behavior seems to be similar for both
-AF903x and IT913x I tested, though there is no likely any real
-clock user in a case of AF903x.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Update the Kconfig and Makefile files so this driver can be compiled.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/af9033.c | 10 ++--------
- drivers/media/dvb-frontends/af9033.h |  5 +++++
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/media/platform/Kconfig        |  3 +++
+ drivers/media/platform/Makefile       |  2 ++
+ drivers/media/platform/vivid/Kconfig  | 19 +++++++++++++++++++
+ drivers/media/platform/vivid/Makefile |  6 ++++++
+ 4 files changed, 30 insertions(+)
+ create mode 100644 drivers/media/platform/vivid/Kconfig
+ create mode 100644 drivers/media/platform/vivid/Makefile
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 5c90ea6..2a4dfd2 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -314,14 +314,8 @@ static int af9033_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 6d86646..829a7d7 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -243,6 +243,9 @@ menuconfig V4L_TEST_DRIVERS
+ 	depends on MEDIA_CAMERA_SUPPORT
  
--	/* feed clock to RF tuner */
--	switch (state->cfg.tuner) {
--	case AF9033_TUNER_IT9135_38:
--	case AF9033_TUNER_IT9135_51:
--	case AF9033_TUNER_IT9135_52:
--	case AF9033_TUNER_IT9135_60:
--	case AF9033_TUNER_IT9135_61:
--	case AF9033_TUNER_IT9135_62:
-+	/* clock output */
-+	if (state->cfg.dyn0_clk) {
- 		ret = af9033_wr_reg(state, 0x80fba8, 0x00);
- 		if (ret < 0)
- 			goto err;
-diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
-index 539f4db..b95a6d4 100644
---- a/drivers/media/dvb-frontends/af9033.h
-+++ b/drivers/media/dvb-frontends/af9033.h
-@@ -75,6 +75,11 @@ struct af9033_config {
- 	 * input spectrum inversion
- 	 */
- 	bool spec_inv;
+ if V4L_TEST_DRIVERS
 +
-+	/*
-+	 *
-+	 */
-+	bool dyn0_clk;
- };
++source "drivers/media/platform/vivid/Kconfig"
++
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 4ac4c91..29aee16 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -15,8 +15,10 @@ obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
+ obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
  
+ obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
++
+ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
  
++obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
+ obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
+ 
+ obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
+diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+new file mode 100644
+index 0000000..d71139a
+--- /dev/null
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -0,0 +1,19 @@
++config VIDEO_VIVID
++	tristate "Virtual Video Test Driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
++	select FONT_SUPPORT
++	select FONT_8x16
++	select VIDEOBUF2_VMALLOC
++	default n
++	---help---
++	  Enables a virtual video driver. This driver emulates a webcam,
++	  TV, S-Video and HDMI capture hardware, including VBI support for
++	  the SDTV inputs. Also video output, VBI output, radio receivers,
++	  transmitters and software defined radio capture is emulated.
++
++	  It is highly configurable and is ideal for testing applications.
++	  Error injection is supported to test rare errors that are hard
++	  to reproduce in real hardware.
++
++	  Say Y here if you want to test video apps or debug V4L devices.
++	  When in doubt, say N.
+diff --git a/drivers/media/platform/vivid/Makefile b/drivers/media/platform/vivid/Makefile
+new file mode 100644
+index 0000000..756fc12
+--- /dev/null
++++ b/drivers/media/platform/vivid/Makefile
+@@ -0,0 +1,6 @@
++vivid-objs := vivid-core.o vivid-ctrls.o vivid-vid-common.o vivid-vbi-gen.o \
++		vivid-vid-cap.o vivid-vid-out.o vivid-kthread-cap.o vivid-kthread-out.o \
++		vivid-radio-rx.o vivid-radio-tx.o vivid-radio-common.o \
++		vivid-rds-gen.o vivid-sdr-cap.o vivid-vbi-cap.o vivid-vbi-out.o \
++		vivid-osd.o vivid-tpg.o vivid-tpg-colors.o
++obj-$(CONFIG_VIDEO_VIVID) += vivid.o
 -- 
-http://palosaari.fi/
+2.0.1
 
