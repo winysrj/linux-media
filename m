@@ -1,42 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:47350 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768AbaHYAUb (ORCPT
+Received: from mail-la0-f42.google.com ([209.85.215.42]:63300 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753596AbaHYMfn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Aug 2014 20:20:31 -0400
-Received: by mail-yh0-f46.google.com with SMTP id a41so10397004yho.33
-        for <linux-media@vger.kernel.org>; Sun, 24 Aug 2014 17:20:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1408712967.1274.29.camel@paszta.hi.pengutronix.de>
-References: <20140813101411.15ca3a00.m.chehab@samsung.com> <1408712967.1274.29.camel@paszta.hi.pengutronix.de>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 25 Aug 2014 09:12:43 +0900
-Message-ID: <CAMm-=zBXYzY3E+C-1m+skv7urHJ3hRH0g3znit2brNnNi+7m0w@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_=5BANNOUNCE=5D_Linux_Kernel_Media_mini=2Dsummit_on_Oct?=
-	=?UTF-8?Q?=2C_16=2D17_in_D=C3=BCsseldorf=2C_Germany?=
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Media Workshop <media-workshop@linuxtv.org>,
-	dev@lists.tizen.org, gstreamer-announce@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
+	Mon, 25 Aug 2014 08:35:43 -0400
+Received: by mail-la0-f42.google.com with SMTP id pv20so12823133lab.15
+        for <linux-media@vger.kernel.org>; Mon, 25 Aug 2014 05:35:42 -0700 (PDT)
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk
+Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Subject: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG Processing Unit.
+Date: Mon, 25 Aug 2014 16:35:32 +0400
+Message-Id: <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Documentation for Renesas JPU devicetree node.
 
-On Fri, Aug 22, 2014 at 10:09 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> - Helping userspace to use mem2mem devices; clarification of
->   encoder/decoder handling, clarification of format/size setting
->   in case of dependencies between input and output formats,
->   possibly broad categorisation of mem2mem devices (encoder,
->   decoder, scaler, rotator, csc/filter, ...)
+Changes since v1:
+        - First line typo fixed
+        - "renesas,jpu-gen2" compatability option added
 
-I'm planning a session on codec API, would like to specify it in
-better detail and clear up ambiguities. If you'd have a list of issues
-that should be clarified, it would be very useful to add to
-discussion.
+Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+---
+ .../devicetree/bindings/media/renesas,jpu.txt      | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,jpu.txt
 
+diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+new file mode 100644
+index 0000000..44b07df
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+@@ -0,0 +1,24 @@
++* Renesas JPEG processing unit.
++
++The JPEG processing unit (JPU) incorporates the JPEG codec with an encoding
++and decoding function conforming to the JPEG baseline process, so that the JPU
++can encode image data and decode JPEG data quickly.
++It can be found in the Renesas R-Car second generation SoCs.
++
++Required properties:
++  - compatible: should containg one of the following:
++			- "renesas,jpu-r8a7790" for R-Car H2
++			- "renesas,jpu-r8a7791" for R-Car M2
++			- "renesas,jpu-gen2" for R-Car second generation
++
++  - reg: Base address and length of the registers block for the JPU.
++  - interrupts: JPU interrupt specifier.
++  - clocks: A phandle + clock-specifier pair for the JPU functional clock.
++
++Example: R8A7790 (R-Car H2) JPU node
++	jpeg-codec@fe980000 {
++		compatible = "renesas,jpu-r8a7790";
++		reg = <0 0xfe980000 0 0x10300>;
++		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
++	};
 -- 
-Thanks,
-Pawel
+2.1.0.rc1
+
