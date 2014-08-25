@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35429 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965AbaH0HKK (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34452 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932910AbaHYPN0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 03:10:10 -0400
-Date: Wed, 27 Aug 2014 08:09:43 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Peter Foley <pefoley2@pefoley.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Message-ID: <20140827070943.GQ17528@sirena.org.uk>
-References: <1409073919-27336-1-git-send-email-broonie@kernel.org>
- <53FCDE16.1000205@infradead.org>
- <20140826192624.GN17528@sirena.org.uk>
- <53FCE70A.6000907@infradead.org>
- <53FCE947.6000103@infradead.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zxsahKoLyYcOmAWl"
-Content-Disposition: inline
-In-Reply-To: <53FCE947.6000103@infradead.org>
-Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
+	Mon, 25 Aug 2014 11:13:26 -0400
+Message-ID: <1408979594.3191.68.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v2 2/3] usb: gadget/uvc: also handle v4l2 ioctl ENUM_FMT
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Michael Grzeschik <mgr@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-usb@vger.kernel.org, balbi@ti.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Date: Mon, 25 Aug 2014 17:13:14 +0200
+In-Reply-To: <1558910.c27BVhDgdW@avalon>
+References: <1407512339-8433-1-git-send-email-m.grzeschik@pengutronix.de>
+	 <7518802.YGX5leEVlJ@avalon> <20140825135957.GG22481@pengutronix.de>
+	 <1558910.c27BVhDgdW@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---zxsahKoLyYcOmAWl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Am Montag, den 25.08.2014, 16:48 +0200 schrieb Laurent Pinchart:
+[...]
+> > > > > Format descriptions are currently duplicated in every driver, causing
+> > > > > higher memory usage and different descriptions for the same format
+> > > > > depending on the driver. Hans, should we try to fix this ?
+> > > > 
+> > > > Yes, we should. It's been on my todo list for ages, but at a very low
+> > > > priority. I'm not planning to work on this in the near future, but if
+> > > > someone else wants to work on this, then just go ahead.
+> > > 
+> > > Michael, would you like to give this a try, or should I do it ?
+> > 
+> > It seems Philipp is already taking the chance! :)
+> 
+> Perfect timing, I wonder if that's just a coincidence ;-)
 
-On Tue, Aug 26, 2014 at 01:08:39PM -0700, Randy Dunlap wrote:
-> On 08/26/14 12:59, Randy Dunlap wrote:
-> > On 08/26/14 12:26, Mark Brown wrote:
+It felt like my own idea this weekend, but I strongly suspect that I
+took up enough information to trigger it, when scanning mail last week.
 
-> >> No, it's not - if it's going to depend on COMPILE_TEST at all it need to
-> >> be a hard dependency.
+I shouldn't be so fast to dismiss uvc/gadget mails as "Michael's
+business"...
 
-> > How about just drop COMPILE_TEST?  This code only builds if someone enabled
-> > BUILD_DOCSRC.  That should be enough (along with PCI and some VIDEO kconfig
-> > symbols) to qualify it.
+regards
+Philipp
 
-> I'll add BUILD_DOCSRC to the depends list in the Kconfig file...
-
-OK, that symbol probably does the job - I wasn't aware of it previously.
-
---zxsahKoLyYcOmAWl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJT/YQ0AAoJELSic+t+oim9pOYP/1YNgGu/TXoQFbwEETGP/WjR
-XTsjpzGqnFDYUU3tl0QiX6J9a0JNXJTp7rzY8KjN22w1U4O+3PrEz0DzC8IuRY7Y
-HzCTLQdZfMxcR7ZCNYp7lFxwas4k3ojDEunFKo4AW7FkSR0Rv1ZjJPTLT/lkDtGE
-iC9Jq7gs11pk7IliTmZ9sjBLcRfTGWuSgTFfsHSG3v3jF6nZcX7NkLX7f+tzNJWt
-RLGgQbzih2iUY6XWWn0PoHZ1WQt9GvHnix3g5O+1aqvhQNmVVLRLegaz4TLbyutb
-VXT5Lpop4g0RgHOi6lg9mfMdRP4/x9FtIN0G8xhagLtt5P11QSE224ZzIunHYDrp
-XR6303TIC+KTCrb9wZ/tw5wWvInUqkzayr4SVj9y8W96wXzYfPLnl5S9jm/xllWm
-GInerlGZtUEQYbczNWWungZN8VUpjQCkr5Fr2LzoVvxhw49NC3HRVSedTTK4O+wn
-STJBKkZJg0p25VJSy7fXaFl5BW4nXpz9a9+R3ZC6U41EIx5gqfCAOMaI9cEfRSwv
-5s6x3d5XDu5q9SJuS2XEerAHgDKNsczUVCbBInXRdyIZ2OP9Lq4SUTfCZn5xtrGg
-fImR3vLX1SzJIEoEjkOxj/5KWFo6KaRpD9jnyfs1W5+FrH59/FsIIsZb/TDM5slM
-oxqMK96EBO2OZH+8Bx/l
-=FC9P
------END PGP SIGNATURE-----
-
---zxsahKoLyYcOmAWl--
