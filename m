@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4343 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbaHHM7Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 08:59:24 -0400
-Message-ID: <53E4C996.4060001@xs4all.nl>
-Date: Fri, 08 Aug 2014 14:59:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: [RFC PATCH] vb2: use pr_info instead of pr_debug
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mta-out1.inet.fi ([62.71.2.228]:36031 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756256AbaHYSHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 14:07:14 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/3] si2157: change command for sleep
+Date: Mon, 25 Aug 2014 21:07:02 +0300
+Message-Id: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern kernels enable dynamic printk support, which is fine, except when it is
-combined with a debug module option. Enabling debug in videobuf2-core now produces
-no debugging unless it is also enabled through the dynamic printk support in debugfs.
+Instead of sending command 13 to the tuner, send command 16 when sleeping. This 
+behaviour is observed when using manufacturer provided binary-only Linux driver 
+for TechnoTrend CT2-4400 (Windows driver does not do power management).
 
-Either use a debug module option + pr_info, or use pr_debug without a debug module
-option. In this case the fact that you can set various debug levels is very useful,
-so I believe that for videobuf2-core.c we should use pr_info.
+The issue with command 13 is that firmware loading is necessary after that. 
+This is not an issue with tuners that do not require firmware, but resuming 
+from sleep on an Si2158 takes noticeable time as firmware is loaded on resume.
 
-The mix of the two is very confusing: I've spent too much time already trying to
-figure out why I am not seeing any debug output in the kernel log when I do:
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-	echo 1 >/sys/modules/videobuf2_core/parameters/debug
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 0e3d927..0b59735 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -36,7 +36,7 @@ module_param(debug, int, 0644);
- #define dprintk(level, fmt, arg...)					      \
- 	do {								      \
- 		if (debug >= level)					      \
--			pr_debug("vb2: %s: " fmt, __func__, ## arg); \
-+			pr_info("vb2: %s: " fmt, __func__, ## arg); \
- 	} while (0)
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index efb5cce..c84f7b8 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -197,9 +197,10 @@ static int si2157_sleep(struct dvb_frontend *fe)
  
- #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	s->active = false;
+ 
+-	memcpy(cmd.args, "\x13", 1);
+-	cmd.wlen = 1;
+-	cmd.rlen = 0;
++	/* standby */
++	memcpy(cmd.args, "\x16\x00", 2);
++	cmd.wlen = 2;
++	cmd.rlen = 1;
+ 	ret = si2157_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
+-- 
+1.9.1
+
