@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:59215 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933415AbaH0KKw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44077 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755702AbaHZVzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 06:10:52 -0400
-Received: by mail-pd0-f173.google.com with SMTP id w10so23951307pde.18
-        for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 03:10:49 -0700 (PDT)
-Message-ID: <53FDAE94.8010404@linaro.org>
-Date: Wed, 27 Aug 2014 18:10:28 +0800
-From: zhangfei <zhangfei.gao@linaro.org>
-MIME-Version: 1.0
-To: Sean Young <sean@mess.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?ISO-8859-1?Q?David_?= =?ISO-8859-1?Q?H=E4rdeman?=
-	<david@hardeman.nu>, arnd@arndb.de, haifeng.yan@linaro.org,
-	jchxue@gmail.com, linux-arm-kernel@lists.infradead.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Guoxiong Yan <yanguoxiong@huawei.com>
-Subject: Re: [PATCH v2 2/3] rc: Introduce hix5hd2 IR transmitter driver
-References: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org> <1408613086-12538-3-git-send-email-zhangfei.gao@linaro.org> <20140821100739.GA3252@gofer.mess.org> <53FD9BB7.6080207@linaro.org> <20140827095106.GA2712@gofer.mess.org>
-In-Reply-To: <20140827095106.GA2712@gofer.mess.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Aug 2014 17:55:18 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 07/35] [media] ti-vpe: use %pad for dma address
+Date: Tue, 26 Aug 2014 18:54:43 -0300
+Message-Id: <1409090111-8290-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sean
+   drivers/media/platform/ti-vpe/vpdma.c: In function 'dump_dtd':
+   include/linux/dynamic_debug.h:64:16: warning: format '%x' expects argument of type 'unsigned int', but argument 3 has type 'dma_addr_t' [-Wformat=]
+     static struct _ddebug  __aligned(8)   \
+                   ^
+   include/linux/dynamic_debug.h:76:2: note: in expansion of macro 'DEFINE_DYNAMIC_DEBUG_METADATA'
+     DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
+     ^
+   include/linux/printk.h:263:2: note: in expansion of macro 'dynamic_pr_debug'
+     dynamic_pr_debug(fmt, ##__VA_ARGS__)
+     ^
+>> drivers/media/platform/ti-vpe/vpdma.c:587:2: note: in expansion of macro 'pr_debug'
+     pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
+     ^
 
-On 08/27/2014 05:51 PM, Sean Young wrote:
-> On Wed, Aug 27, 2014 at 04:49:59PM +0800, zhangfei wrote:
->> On 08/21/2014 06:07 PM, Sean Young wrote:
->>> On Thu, Aug 21, 2014 at 05:24:44PM +0800, Zhangfei Gao wrote:
->>> It would be useful is rdev->input_phys, rdev->input_id,
->>> rdev->timeout, rdev->rx_resolution are set correctly.
->>
->> OK, will set rdev->timeout, rdev->rx_resolution
->> Not sure the usage of rdev->input_id, why is it required?
->
-> This is for the EVIOCGID ioctl on the input device which will be created
-> for the rc device. This is used for delivering input events from decoded
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Find EVIOCGID in drivers/input/evdev.c
-Will use same value as sunxi-cir.c & gpio-ir-recv.c, if these value has 
-no special requirement.
-         rcdev->input_id.bustype = BUS_HOST;
-         rcdev->input_id.vendor = 0x0001;
-         rcdev->input_id.product = 0x0001;
-         rcdev->input_id.version = 0x0100;
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index a51a01359805..6121a0b3c754 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -584,7 +584,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ 		pr_debug("word1: line_length = %d, xfer_height = %d\n",
+ 			dtd_get_line_length(dtd), dtd_get_xfer_height(dtd));
+ 
+-	pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
++	pr_debug("word2: start_addr = %pad\n", &dtd->start_addr);
+ 
+ 	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
+ 		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
+-- 
+1.9.3
 
-> IR. There is be no reason to run lircd if you use this method.
-Do you mean kernel decoder is enough to cover?
-We use user space lircd to cosider more flexibility, even some 
-non-standard protocol.
-
-Anyway both method can be supported, depending on whether setting the 
-optional property "linux,rc-map-name" or not.
-
-Thanks
