@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33913 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:44071 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215AbaHZT7I (ORCPT
+	with ESMTP id S1755693AbaHZVzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 15:59:08 -0400
-Message-ID: <53FCE70A.6000907@infradead.org>
-Date: Tue, 26 Aug 2014 12:59:06 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Mark Brown <broonie@kernel.org>
-CC: Peter Foley <pefoley2@pefoley.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linaro-kernel@lists.linaro.org
-Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
-References: <1409073919-27336-1-git-send-email-broonie@kernel.org> <53FCDE16.1000205@infradead.org> <20140826192624.GN17528@sirena.org.uk>
-In-Reply-To: <20140826192624.GN17528@sirena.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Aug 2014 17:55:18 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 05/35] [media] gsc-core: Remove useless test
+Date: Tue, 26 Aug 2014 18:54:41 -0300
+Message-Id: <1409090111-8290-6-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/26/14 12:26, Mark Brown wrote:
-> On Tue, Aug 26, 2014 at 12:20:54PM -0700, Randy Dunlap wrote:
->> On 08/26/14 10:25, Mark Brown wrote:
-> 
->>> index d58101e788fc..65a351d75c95 100644
->>> --- a/Documentation/video4linux/Makefile
->>> +++ b/Documentation/video4linux/Makefile
->>> @@ -1 +1 @@
->>> -obj-m := v4l2-pci-skeleton.o
->>> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
->>> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-> 
->>> +config VIDEO_PCI_SKELETON
->>> +	tristate "Skeleton PCI V4L2 driver"
->>> +	depends on PCI && COMPILE_TEST
-> 
->> 	               && ??  No, don't require COMPILE_TEST.
-> 
-> That's a very deliberate choice.  There's no reason I can see to build
-> this code other than to check that it builds, it's reference code rather
-> than something that someone is expected to actually use in their system.  
-> This seems like a perfect candidate for COMPILE_TEST.
-> 
->> 		However, PCI || COMPILE_TEST would allow it to build on arm64
->> 		if COMPILE_TEST is enabled, guaranteeing build errors.
->> 		Is that what should happen?  I suppose so...
-> 
-> No, it's not - if it's going to depend on COMPILE_TEST at all it need to
-> be a hard dependency.
+drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_probe':
+drivers/media/platform/exynos-gsc/gsc-core.c:1089:2: warning: comparison is alw
+ays false due to limited range of data type [-Wtype-limits]
+  if (gsc->id < 0 || gsc->id >= drv_data->num_entities) {
+  ^
 
-How about just drop COMPILE_TEST?  This code only builds if someone enabled
-BUILD_DOCSRC.  That should be enough (along with PCI and some VIDEO kconfig
-symbols) to qualify it.
+gsc->id is declared as u16, so it should always be a positive
+value.
 
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9d0cc04d7ab7..8d8b3cff8212 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1086,7 +1086,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 	else
+ 		gsc->id = pdev->id;
+ 
+-	if (gsc->id < 0 || gsc->id >= drv_data->num_entities) {
++	if (gsc->id >= drv_data->num_entities) {
+ 		dev_err(dev, "Invalid platform device id: %d\n", gsc->id);
+ 		return -EINVAL;
+ 	}
 -- 
-~Randy
+1.9.3
+
