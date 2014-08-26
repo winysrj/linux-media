@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:51320 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbaHQTaw (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:34391 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435AbaHZRZh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Aug 2014 15:30:52 -0400
-Received: by mail-pa0-f42.google.com with SMTP id lf10so6420769pab.1
-        for <linux-media@vger.kernel.org>; Sun, 17 Aug 2014 12:30:51 -0700 (PDT)
-Message-ID: <53F10296.8080905@gmail.com>
-Date: Mon, 18 Aug 2014 04:29:26 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, james.hogan@imgtec.com
-Subject: Re: [PATCH 4/4] pt3: add support for Earthsoft PT3 ISDB-S/T receiver
- card
-References: <1405352627-22677-1-git-send-email-tskd08@gmail.com> <1405352627-22677-2-git-send-email-tskd08@gmail.com> <1405352627-22677-3-git-send-email-tskd08@gmail.com> <1405352627-22677-4-git-send-email-tskd08@gmail.com> <1405352627-22677-5-git-send-email-tskd08@gmail.com> <20140815131725.6451cbf9.m.chehab@samsung.com>
-In-Reply-To: <20140815131725.6451cbf9.m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 26 Aug 2014 13:25:37 -0400
+From: Mark Brown <broonie@kernel.org>
+To: Peter Foley <pefoley2@pefoley.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
+Date: Tue, 26 Aug 2014 18:25:19 +0100
+Message-Id: <1409073919-27336-1-git-send-email-broonie@kernel.org>
+Subject: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014年08月16日 01:17, Mauro Carvalho Chehab wrote:
-..........
->> +++ b/drivers/media/pci/pt3/pt3.c
-..........
->> +static int pt3_fetch_thread(void *data)
->> +{
->> +	struct pt3_adapter *adap = data;
->> +
->> +#define PT3_FETCH_DELAY (10 * 1000)
->> +#define PT3_INITIAL_DISCARD_BUFS 4
->> +
->> +	pt3_init_dmabuf(adap);
->> +	adap->num_discard = PT3_INITIAL_DISCARD_BUFS;
->> +
->> +	dev_dbg(adap->dvb_adap.device,
->> +		"PT3: [%s] started.\n", adap->thread->comm);
->> +	while (!kthread_should_stop()) {
->> +		pt3_proc_dma(adap);
->> +		usleep_range(PT3_FETCH_DELAY, PT3_FETCH_DELAY + 2000);
->> +	}
->> +	dev_dbg(adap->dvb_adap.device,
->> +		"PT3: [%s] exited.\n", adap->thread->comm);
->> +	adap->thread = NULL;
->> +	return 0;
->> +}
-> 
-> Why do you need a thread here? Having a thread requires some special
-> care, as you need to delete it before suspend, restore at resume
-> (if active) and be sure that it was killed at device removal.
-> 
-> I'm not seeing any of those things on this driver.
+From: Mark Brown <broonie@linaro.org>
 
-PT3 is a dumb device that lacks interrupt,
-so the driver has to poll the DMA buffers regularly to know if
-a DMA has finished.
+Currently arm64 does not support PCI but it does support v4l2. Since the
+PCI skeleton driver is built unconditionally as a module with no dependency
+on PCI this causes build failures for arm64 allmodconfig. Fix this by
+defining a symbol VIDEO_PCI_SKELETON for the skeleton and conditionalising
+the build on that.
 
-I forgot to clean up the thread in remove() and will add it in the v2.
-As with suspend/resume, I can add a check of freezing() like in
-dvb_frontend.c::dvb_frontend_thread(), but if I remember right,
-I had read before that someone pointed out that
-the suspend/resume of DVB is not supported by DVB core,
-and not many of other drivers seem to support it either,
-so I thought I could omit this feature and rely on module re-probing.
-Should I implement power management ops and set them to .driver.pm?
+Signed-off-by: Mark Brown <broonie@linaro.org>
+---
+
+The patch adding the Makefile was added to the Documentation tree,
+either it should be reverted or something like this added on top.
+
+ Documentation/video4linux/Makefile | 2 +-
+ drivers/media/v4l2-core/Kconfig    | 7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/video4linux/Makefile b/Documentation/video4linux/Makefile
+index d58101e788fc..65a351d75c95 100644
+--- a/Documentation/video4linux/Makefile
++++ b/Documentation/video4linux/Makefile
+@@ -1 +1 @@
+-obj-m := v4l2-pci-skeleton.o
++obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 9ca0f8d59a14..2b368f711c9e 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -25,6 +25,13 @@ config VIDEO_FIXED_MINOR_RANGES
+ 
+ 	  When in doubt, say N.
+ 
++config VIDEO_PCI_SKELETON
++	tristate "Skeleton PCI V4L2 driver"
++	depends on PCI && COMPILE_TEST
++	---help---
++	  Enable build of the skeleton PCI driver, used as a reference
++	  when developign new drivers.
++
+ # Used by drivers that need tuner.ko
+ config VIDEO_TUNER
+ 	tristate
+-- 
+2.1.0.rc1
+
