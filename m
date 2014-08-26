@@ -1,183 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:30501 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754687AbaHZMNy (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:59294 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460AbaHZCnB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 08:13:54 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Michal Nazarewicz <mina86@mina86.com>,
+	Mon, 25 Aug 2014 22:43:01 -0400
+Date: Tue, 26 Aug 2014 11:42:57 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
 	Grant Likely <grant.likely@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Laura Abbott <lauraa@codeaurora.org>,
-	Josh Cartwright <joshc@codeaurora.org>,
-	Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: [PATCH 2/7] drivers: of: add support for named memory regions
-Date: Tue, 26 Aug 2014 14:09:43 +0200
-Message-id: <1409054988-32758-3-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
-References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
+ Processing Unit.
+Message-ID: <20140826024257.GB17906@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+ <20140825235720.GB7217@verge.net.au>
+ <2193337.axohMI28rU@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2193337.axohMI28rU@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a code to initialize memory regions also for child devices
-if parent device has "memory-region" and "memory-region-names" device tree
-properties and given device's name matches "<parent_name>:<region_name>"
-template.
+On Tue, Aug 26, 2014 at 02:02:00AM +0200, Laurent Pinchart wrote:
+> Hi Simon,
+> 
+> On Tuesday 26 August 2014 08:57:20 Simon Horman wrote:
+> > On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
+> > > On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov wrote:
+> > > >
+> > > > +  - compatible: should containg one of the following:
+> > > > +                       - "renesas,jpu-r8a7790" for R-Car H2
+> > > > +                       - "renesas,jpu-r8a7791" for R-Car M2
+> > > > +                       - "renesas,jpu-gen2" for R-Car second generation
+> > > 
+> > > Isn't "renesas,jpu-gen2" meant as a fallback?
+> > > 
+> > > I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
+> > > so we can make the driver match against '7790 and '7791 is we find
+> > > out about an incompatibility.
+> > 
+> > Is there a document that clearly states that there is such a thing
+> > as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
+> 
+> How about going the other way around and requesting that document ?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- .../bindings/reserved-memory/reserved-memory.txt   |   6 +-
- drivers/of/of_reserved_mem.c                       | 101 ++++++++++++++-------
- 2 files changed, 74 insertions(+), 33 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-index 3da0ebdba8d9..69d28288ed37 100644
---- a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-+++ b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-@@ -73,7 +73,11 @@ Device node references to reserved memory
- Regions in the /reserved-memory node may be referenced by other device
- nodes by adding a memory-region property to the device node.
- 
--memory-region (optional) - phandle, specifier pairs to children of /reserved-memory
-+memory-region (optional) - arrays of phandles, specifier pairs to children
-+      of /reserved-memory, first phandle is used as a default memory
-+      region
-+memory-region-names (optional) - array of strings with names of memory
-+      regions, used when more than one region has been defined
- 
- Example
- -------
-diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
-index 7e7de03585f9..3ab9446ffa43 100644
---- a/drivers/of/of_reserved_mem.c
-+++ b/drivers/of/of_reserved_mem.c
-@@ -237,32 +237,82 @@ static inline struct reserved_mem *__find_rmem(struct device_node *node)
- 	return NULL;
- }
- 
--/**
-- * of_reserved_mem_device_init() - assign reserved memory region to given device
-- *
-- * This function assign memory region pointed by "memory-region" device tree
-- * property to the given device.
-- */
--int of_reserved_mem_device_init(struct device *dev)
-+static int __rmem_dev_init(struct device *dev, struct device_node *np)
- {
--	struct reserved_mem *rmem;
--	struct device_node *np;
--
--	np = of_parse_phandle(dev->of_node, "memory-region", 0);
--	if (!np)
--		return;
--
--	rmem = __find_rmem(np);
--	of_node_put(np);
--
-+	struct reserved_mem *rmem = __find_rmem(np);
- 	if (!rmem || !rmem->ops || !rmem->ops->device_init)
--		return;
-+		return -EINVAL;
- 
- 	rmem->ops->device_init(rmem, dev);
- 	dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
- 	return 0;
- }
- 
-+static int __rmem_dev_release(struct device *dev, struct device_node *np)
-+{
-+	struct reserved_mem *rmem = __find_rmem(np);
-+	if (!rmem || !rmem->ops)
-+		return -EINVAL;
-+
-+	if (rmem->ops->device_release)
-+		rmem->ops->device_release(rmem, dev);
-+	return 0;
-+}
-+
-+static int __rmem_dev_call(struct device *dev,
-+			int (*func)(struct device *dev, struct device_node *np))
-+{
-+	int ret = -ENODEV;
-+	if (of_get_property(dev->of_node, "memory-region", NULL)) {
-+		struct device_node *np;
-+		np = of_parse_phandle(dev->of_node, "memory-region", 0);
-+		if (!np)
-+			return -ENODEV;
-+		ret = func(dev, np);
-+		of_node_put(np);
-+	} else if (dev->parent &&
-+		   of_get_property(dev->parent->of_node, "memory-region",
-+				   NULL)) {
-+		struct device *parent = dev->parent;
-+		struct device_node *np;
-+		char *name;
-+		int idx;
-+
-+		name = strrchr(dev_name(dev), ':');
-+		if (!name)
-+			return -ENODEV;
-+		name++;
-+
-+		idx = of_property_match_string(parent->of_node,
-+					       "memory-region-names", name);
-+		if (idx < 0)
-+			return -ENODEV;
-+
-+		np = of_parse_phandle(parent->of_node, "memory-region", idx);
-+		if (!np)
-+			return -ENODEV;
-+
-+		ret = func(dev, np);
-+		of_node_put(np);
-+	}
-+	return ret;
-+}
-+
-+/**
-+ * of_reserved_mem_device_init() - assign reserved memory region to given device
-+ *
-+ * This function assigns default memory region pointed by first entry of
-+ * "memory-region" device tree property (if available) to the given device or
-+ * checks if the given device can be used to give access to named memory region
-+ * if parent device has "memory-region" and "memory-region-names" device tree
-+ * properties and given device's name matches "<parent_name>:<region_name>"
-+ * template.
-+ */
-+int of_reserved_mem_device_init(struct device *dev)
-+{
-+	return __rmem_dev_call(dev, __rmem_dev_init);
-+}
-+
- /**
-  * of_reserved_mem_device_release() - release reserved memory device structures
-  *
-@@ -271,18 +321,5 @@ int of_reserved_mem_device_init(struct device *dev)
-  */
- void of_reserved_mem_device_release(struct device *dev)
- {
--	struct reserved_mem *rmem;
--	struct device_node *np;
--
--	np = of_parse_phandle(dev->of_node, "memory-region", 0);
--	if (!np)
--		return;
--
--	rmem = __find_rmem(np);
--	of_node_put(np);
--
--	if (!rmem || !rmem->ops || !rmem->ops->device_release)
--		return;
--
--	rmem->ops->device_release(rmem, dev);
-+	__rmem_dev_call(dev, __rmem_dev_release);
- }
--- 
-1.9.2
-
+Good idea, I will make a request.
