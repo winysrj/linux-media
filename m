@@ -1,64 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45877 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbaHTT54 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44117 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755773AbaHZVzU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 15:57:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 4/8] of: Add for_each_endpoint_of_node helper macro
-Date: Wed, 20 Aug 2014 21:58:35 +0200
-Message-ID: <8667517.hS1cvPvpF8@avalon>
-In-Reply-To: <1408453366-1366-5-git-send-email-p.zabel@pengutronix.de>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de> <1408453366-1366-5-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 26 Aug 2014 17:55:20 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 35/35] [media] omap: be sure that MMU is there for COMPILE_TEST
+Date: Tue, 26 Aug 2014 18:55:11 -0300
+Message-Id: <1409090111-8290-36-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+COMPILE_TEST fail on (some) archs without MMU.
 
-Thank you for the patch.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/omap/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tuesday 19 August 2014 15:02:42 Philipp Zabel wrote:
-> Note that while of_graph_get_next_endpoint decrements the reference count
-> of the child node passed to it, of_node_put(child) still has to be called
-> manually when breaking out of the loop.
-
-I think this is important enough to be mentioned in a comment in of_graph.h.
-
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  include/linux/of_graph.h | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-> index befef42..2890a4c 100644
-> --- a/include/linux/of_graph.h
-> +++ b/include/linux/of_graph.h
-> @@ -26,6 +26,10 @@ struct of_endpoint {
->  	const struct device_node *local_node;
->  };
-> 
-> +#define for_each_endpoint_of_node(parent, child) \
-> +	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-> +	     child = of_graph_get_next_endpoint(parent, child))
-> +
->  #ifdef CONFIG_OF
->  int of_graph_parse_endpoint(const struct device_node *node,
->  				struct of_endpoint *endpoint);
-
+diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+index 2253bf102ed9..05de442d24e4 100644
+--- a/drivers/media/platform/omap/Kconfig
++++ b/drivers/media/platform/omap/Kconfig
+@@ -3,7 +3,7 @@ config VIDEO_OMAP2_VOUT_VRFB
+ 
+ config VIDEO_OMAP2_VOUT
+ 	tristate "OMAP2/OMAP3 V4L2-Display driver"
+-	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
++	depends on ARCH_OMAP2 || ARCH_OMAP3 || (COMPILE_TEST && HAS_MMU)
+ 	select VIDEOBUF_GEN
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.9.3
 
