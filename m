@@ -1,35 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.161]:43463 "EHLO
-	mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbaHRHN2 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15570 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601AbaHZMN5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Aug 2014 03:13:28 -0400
-Received: from [IPv6:2a02:8109:9f00:1a1c:beae:c5ff:fe2c:b8a3] ([2a02:8109:9f00:1a1c:beae:c5ff:fe2c:b8a3])
-	by smtp.strato.de (RZmta 35.8 AUTH)
-	with ESMTPSA id N012d2q7I77DHyr
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	for <linux-media@vger.kernel.org>;
-	Mon, 18 Aug 2014 09:07:13 +0200 (CEST)
-Message-ID: <53F1A621.7050409@stefanringel.de>
-Date: Mon, 18 Aug 2014 09:07:13 +0200
-From: Stefan Ringel <linuxtv@stefanringel.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dtv-scan-tables dvbv5 tables
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Aug 2014 08:13:57 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Laura Abbott <lauraa@codeaurora.org>,
+	Josh Cartwright <joshc@codeaurora.org>,
+	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: [PATCH 7/7] ARM: DTS: exynos4412-odroid*: enable MFC device
+Date: Tue, 26 Aug 2014 14:09:48 +0200
+Message-id: <1409054988-32758-8-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Enable support for Multimedia Codec (MFC) device for all Exynos4412-based
+Odroid boards.
 
-i have problems dtv-scan-tables dvbv5 part.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-1. better a new subdirectory to equalant to dvb (i.e. dvbv5)
-2. the block names must add a index number (format BerlinX -> X is a 
-number, i.e. first block: Berlin1, second block: Berlin2 etc. not first 
-block: Berlin, second block: Berlin), because software can have problems 
-by reading edge block (seeing only the first block or using setting from 
-the next block), all setting must add to edge block (incl. auto-setting 
-parameters)
+diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+index adadaf97ac01..3728c667e7ec 100644
+--- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
++++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+@@ -11,6 +11,24 @@
+ #include "exynos4412.dtsi"
+ 
+ / {
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@77000000 {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x77000000 0x1000000>;
++		};
++
++		mfc_right: region@78000000 {
++			compatible = "shared-dma-pool";
++			reusable;
++			reg = <0x78000000 0x1000000>;
++		};
++	};
++
+ 	firmware@0204F000 {
+ 		compatible = "samsung,secure-firmware";
+ 		reg = <0x0204F000 0x1000>;
+@@ -367,6 +385,12 @@
+ 	ehci: ehci@12580000 {
+ 		status = "okay";
+ 	};
++
++	codec@13400000 {
++		status = "okay";
++		memory-region = <&mfc_left>, <&mfc_right>;
++		memory-region-names = "left", "right";
++	};
+ };
+ 
+ &pinctrl_1 {
+-- 
+1.9.2
+
