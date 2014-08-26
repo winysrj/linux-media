@@ -1,114 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1310 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743AbaHQCi6 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:43489 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932362AbaHZJBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Aug 2014 22:38:58 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7H2ctDf092172
-	for <linux-media@vger.kernel.org>; Sun, 17 Aug 2014 04:38:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AD57C2A2E59
-	for <linux-media@vger.kernel.org>; Sun, 17 Aug 2014 04:38:54 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140817023854.AD57C2A2E59@tschai.lan>
-Date: Sun, 17 Aug 2014 04:38:54 +0200 (CEST)
+	Tue, 26 Aug 2014 05:01:30 -0400
+Date: Tue, 26 Aug 2014 18:01:26 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
+ Processing Unit.
+Message-ID: <20140826090126.GC29667@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+ <20140825235720.GB7217@verge.net.au>
+ <CAMuHMdW0r-xGJZtc4AFvxMnTu1rdEROf2DvywScC-XhSELFMtQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdW0r-xGJZtc4AFvxMnTu1rdEROf2DvywScC-XhSELFMtQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Aug 26, 2014 at 10:03:34AM +0200, Geert Uytterhoeven wrote:
+> On Tue, Aug 26, 2014 at 1:57 AM, Simon Horman <horms@verge.net.au> wrote:
+> > On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
+> >> Hi Mikhail,
+> >>
+> >> On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov
+> >> <mikhail.ulyanov@cogentembedded.com> wrote:
+> >> > +  - compatible: should containg one of the following:
+> >> > +                       - "renesas,jpu-r8a7790" for R-Car H2
+> >> > +                       - "renesas,jpu-r8a7791" for R-Car M2
+> >> > +                       - "renesas,jpu-gen2" for R-Car second generation
+> >>
+> >> Isn't "renesas,jpu-gen2" meant as a fallback?
+> >>
+> >> I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
+> >> so we can make the driver match against '7790 and '7791 is we find
+> >> out about an incompatibility.
+> >
+> > Is there a document that clearly states that there is such a thing
+> > as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
+> 
+> We do have a document that describes the "JPEG Processing Unit (JPU)",
+> as found in the following members of the "Second Generation R-Car Series
+> Products": "R-Car H2", "R-Car M2-W", "R-Car M2-N", and "R-Car V2H".
 
-Results of the daily build of media_tree:
+Oh, that is nice :)
 
-date:		Sun Aug 17 04:00:16 CEST 2014
-git branch:	test
-git hash:	0f3bf3dc1ca394a8385079a5653088672b65c5c4
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.16-0.slh.2-amd64
+>From my point of view that ticks a lot of boxes.
+But I wonder if we can come up with a better name than jpu,-gen2.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> As for other SoCs, M1, H1, and A1 also seem to contain a JPU, but just
+> like Mikhail, I don't have enough information to say anything about those.
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
