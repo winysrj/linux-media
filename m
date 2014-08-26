@@ -1,64 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45046 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754423AbaHGATH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44176 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755802AbaHZVzW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Aug 2014 20:19:07 -0400
-Date: Thu, 7 Aug 2014 03:18:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: alaganraj sandhanam <alaganraj.sandhanam@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, sre@debian.org
-Subject: Re: omap3isp device tree support
-Message-ID: <20140807001859.GD16460@valkosipuli.retiisi.org.uk>
-References: <CALFbYK1kEnB2_3VqpLFNtaJ7hj9UHuhrL0iO_rFHD2VFt8THFw@mail.gmail.com>
- <7469714.hULjr0WVDI@avalon>
- <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALFbYK3YtrDPGxc3UpASk7MgPTBGcd899Crvm1csY8g+j-fehg@mail.gmail.com>
+	Tue, 26 Aug 2014 17:55:22 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 17/35] [media] omap_vout: Get rid of a few warnings
+Date: Tue, 26 Aug 2014 18:54:53 -0300
+Message-Id: <1409090111-8290-18-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alaganraj,
+drivers/media/platform/omap/omap_vout.c: In function 'omapvid_setup_overlay':
+drivers/media/platform/omap/omap_vout.c:372:29: warning: variable 'pixheight' set but not used [-Wunused-but-set-variable]
+  int cropheight, cropwidth, pixheight, pixwidth;
+                             ^
+drivers/media/platform/omap/omap_vout.c: In function 'vidioc_s_ctrl':
+drivers/media/platform/omap/omap_vout.c:1454:24: warning: variable 'ovl' set but not used [-Wunused-but-set-variable]
+   struct omap_overlay *ovl;
+                        ^
+drivers/media/platform/omap/omap_vout.c: In function 'vidioc_reqbufs':
+drivers/media/platform/omap/omap_vout.c:1492:55: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+  if ((req->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) || (req->count < 0))
+                                                       ^
 
-On Wed, Aug 06, 2014 at 04:07:58AM +0530, alaganraj sandhanam wrote:
-> Hi Laurent,
-> 
-> Thanks for the info. what about git://linuxtv.org/pinchartl/media.git
-> omap3isp/dt branch?
-> I took 3 patches from this branch, fixed
-> error: implicit declaration of function ‘v4l2_of_get_next_endpoint’
-> by changing to "of_graph_get_next_endpoint".
-> 
-> while booting i'm getting below msg
-> [    1.558471] of_graph_get_next_endpoint(): no port node found in
-> /ocp/omap3_isp@480bc000
-> [    1.567169] omap3isp 480bc000.omap3_isp: no port node at
-> /ocp/omap3_isp@480bc000
-> 
-> omap3isp/dt is not working branch?
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/omap/omap_vout.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-My patches, while experimental, may be helpful for you. Perhaps. At the
-moment the issue is IOMMU; Hiroshi Doyu had some patches to get that
-attached to the ISP but for various reasons they didn't make it to the
-mainline kernel.
-
-You can find my patches here:
-
-<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/rm696-041-dt>
-
-PLEASE do no clone the entire tree, but add that as a remote to an existing
-tree. The patches are on top of the linux-omap master branch.
-
-I think I've gotten through to sensor sub-device registration with these and
-the smiapp driver. I'll try to send some of the omap3isp and possibly also
-smiapp patches for review soon. It's unlikely to be a complete set, though.
-
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 2d177fa58471..d9258f3d0f8e 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -369,7 +369,7 @@ static int omapvid_setup_overlay(struct omap_vout_device *vout,
+ {
+ 	int ret = 0;
+ 	struct omap_overlay_info info;
+-	int cropheight, cropwidth, pixheight, pixwidth;
++	int cropheight, cropwidth, pixwidth;
+ 
+ 	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0 &&
+ 			(outw != vout->pix.width || outh != vout->pix.height)) {
+@@ -389,12 +389,10 @@ static int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 	if (is_rotation_90_or_270(vout)) {
+ 		cropheight = vout->crop.width;
+ 		cropwidth = vout->crop.height;
+-		pixheight = vout->pix.width;
+ 		pixwidth = vout->pix.height;
+ 	} else {
+ 		cropheight = vout->crop.height;
+ 		cropwidth = vout->crop.width;
+-		pixheight = vout->pix.height;
+ 		pixwidth = vout->pix.width;
+ 	}
+ 
+@@ -1451,12 +1449,10 @@ static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *a)
+ 	}
+ 	case V4L2_CID_VFLIP:
+ 	{
+-		struct omap_overlay *ovl;
+ 		struct omapvideo_info *ovid;
+ 		unsigned int  mirror = a->value;
+ 
+ 		ovid = &vout->vid_info;
+-		ovl = ovid->overlays[0];
+ 
+ 		mutex_lock(&vout->lock);
+ 		if (mirror && ovid->rotation_type == VOUT_ROT_NONE) {
+@@ -1489,7 +1485,7 @@ static int vidioc_reqbufs(struct file *file, void *fh,
+ 	struct omap_vout_device *vout = fh;
+ 	struct videobuf_queue *q = &vout->vbq;
+ 
+-	if ((req->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) || (req->count < 0))
++	if (req->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		return -EINVAL;
+ 	/* if memory is not mmp or userptr
+ 	   return error */
 -- 
-Kind regards,
+1.9.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
