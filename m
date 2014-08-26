@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:36258 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbaHTNoz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44079 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755709AbaHZVzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 09:44:55 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v5 06/10] DT: Add documentation for exynos4-is 'flashes'
- property
-Date: Wed, 20 Aug 2014 15:44:15 +0200
-Message-id: <1408542259-415-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
-References: <1408542259-415-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 26 Aug 2014 17:55:18 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 09/35] [media] atmel-isi: tag dma_addr_t as such
+Date: Tue, 26 Aug 2014 18:54:45 -0300
+Message-Id: <1409090111-8290-10-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a description of 'flashes' property
-to the samsung-fimc.txt.
+Instead of using u32 for DMA address, use the proper
+Kernel type for it.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
+   drivers/media/platform/soc_camera/atmel-isi.c: In function 'atmel_isi_probe':
+>> drivers/media/platform/soc_camera/atmel-isi.c:981:26: warning: passing argument 3 of 'dma_alloc_attrs' from incompatible pointer type
+     isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+                             ^
+
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- .../devicetree/bindings/media/samsung-fimc.txt     |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/soc_camera/atmel-isi.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 922d6f8..387ef3b 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -40,6 +40,10 @@ should be inactive. For the "active-a" state the camera port A must be activated
- and the port B deactivated and for the state "active-b" it should be the other
- way around.
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 3408b045b3f1..f87012b15b28 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -54,7 +54,7 @@ static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
+ struct isi_dma_desc {
+ 	struct list_head list;
+ 	struct fbd *p_fbd;
+-	u32 fbd_phys;
++	dma_addr_t fbd_phys;
+ };
  
-+Optional properties:
-+
-+- flashes - array of phandles to the available flash led devices
-+
- The 'camera' node must include at least one 'fimc' child node.
+ /* Frame buffer data */
+@@ -75,7 +75,7 @@ struct atmel_isi {
  
+ 	/* Allocate descriptors for dma buffer use */
+ 	struct fbd			*p_fb_descriptors;
+-	u32				fb_descriptors_phys;
++	dma_addr_t			fb_descriptors_phys;
+ 	struct				list_head dma_desc_head;
+ 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
  
-@@ -166,6 +170,7 @@ Example:
- 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
-+		flashes = <&max77693-flash>, <&aat1290>;
- 		status = "okay";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
+@@ -169,7 +169,7 @@ static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+ 		isi->active = list_entry(isi->video_buffer_list.next,
+ 					struct frame_buffer, list);
+ 		isi_writel(isi, ISI_DMA_C_DSCR,
+-			isi->active->p_dma_desc->fbd_phys);
++			(u32)isi->active->p_dma_desc->fbd_phys);
+ 		isi_writel(isi, ISI_DMA_C_CTRL,
+ 			ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
+ 		isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
+@@ -346,7 +346,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+ 		return;
+ 	}
+ 
+-	isi_writel(isi, ISI_DMA_C_DSCR, buffer->p_dma_desc->fbd_phys);
++	isi_writel(isi, ISI_DMA_C_DSCR, (u32)buffer->p_dma_desc->fbd_phys);
+ 	isi_writel(isi, ISI_DMA_C_CTRL, ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
+ 	isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
+ 
 -- 
-1.7.9.5
+1.9.3
 
