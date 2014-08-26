@@ -1,62 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1409 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754493AbaHNJyR (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50171 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606AbaHZABR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 01/20] cx23885: fix querycap
-Date: Thu, 14 Aug 2014 11:53:46 +0200
-Message-Id: <1408010045-24016-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 25 Aug 2014 20:01:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Simon Horman <horms@verge.net.au>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG Processing Unit.
+Date: Tue, 26 Aug 2014 02:02 +0200
+Message-ID: <2193337.axohMI28rU@avalon>
+In-Reply-To: <20140825235720.GB7217@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com> <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com> <20140825235720.GB7217@verge.net.au>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Simon,
 
-Set device_caps to fix the v4l2-compliance QUERYCAP complaints.
+On Tuesday 26 August 2014 08:57:20 Simon Horman wrote:
+> On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
+> > On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov wrote:
+> > >
+> > > +  - compatible: should containg one of the following:
+> > > +                       - "renesas,jpu-r8a7790" for R-Car H2
+> > > +                       - "renesas,jpu-r8a7791" for R-Car M2
+> > > +                       - "renesas,jpu-gen2" for R-Car second generation
+> > 
+> > Isn't "renesas,jpu-gen2" meant as a fallback?
+> > 
+> > I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
+> > so we can make the driver match against '7790 and '7791 is we find
+> > out about an incompatibility.
+> 
+> Is there a document that clearly states that there is such a thing
+> as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-video.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+How about going the other way around and requesting that document ?
 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 91e4cb4..2666ac4 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -1146,19 +1146,22 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_querycap(struct file *file, void  *priv,
- 	struct v4l2_capability *cap)
- {
-+	struct video_device *vdev = video_devdata(file);
- 	struct cx23885_dev *dev  = ((struct cx23885_fh *)priv)->dev;
- 
- 	strcpy(cap->driver, "cx23885");
- 	strlcpy(cap->card, cx23885_boards[dev->board].name,
- 		sizeof(cap->card));
- 	sprintf(cap->bus_info, "PCIe:%s", pci_name(dev->pci));
--	cap->capabilities =
--		V4L2_CAP_VIDEO_CAPTURE |
--		V4L2_CAP_READWRITE     |
--		V4L2_CAP_STREAMING     |
--		V4L2_CAP_VBI_CAPTURE;
-+	cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
- 	if (dev->tuner_type != TUNER_ABSENT)
--		cap->capabilities |= V4L2_CAP_TUNER;
-+		cap->device_caps |= V4L2_CAP_TUNER;
-+	if (vdev->vfl_type == VFL_TYPE_VBI)
-+		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
-+	else
-+		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_VBI_CAPTURE |
-+		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
 -- 
-2.1.0.rc1
+Regards,
+
+Laurent Pinchart
 
