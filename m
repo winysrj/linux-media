@@ -1,94 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:37571 "EHLO
-	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbaHLDOA (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2018 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373AbaHZQ5f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Aug 2014 23:14:00 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, ttmesterr@gmail.com,
-	dheitmueller@kernellabs.com, cb.xiong@samsung.com,
-	yongjun_wei@trendmicro.com.cn
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: fix au0828 dvb suspend/resume to call dvb_frontend_suspend/resume
-Date: Mon, 11 Aug 2014 21:13:55 -0600
-Message-Id: <1407813235-30435-1-git-send-email-shuah.kh@samsung.com>
+	Tue, 26 Aug 2014 12:57:35 -0400
+Message-ID: <53FCBC25.1090201@xs4all.nl>
+Date: Tue, 26 Aug 2014 18:56:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mark Brown <broonie@kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: linux-media@vger.kernel.org, linaro-kernel@lists.linaro.org,
+	Mark Brown <broonie@linaro.org>
+Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
+References: <1409071130-22183-1-git-send-email-broonie@kernel.org>
+In-Reply-To: <1409071130-22183-1-git-send-email-broonie@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 doesn't resume correctly and TV tuning fails with
-xc_set_signal_source(0) failed message. Change au0828 dvb
-suspend and resume interfaces to suspend and resume frontend
-during suspend and resume respectively. au0828_dvb_suspend()
-calls dvb_frontend_suspend() which in turn invokes tuner ops
-sleep followed by fe ops sleep. au0828_dvb_resume() calls
-dvb_frontend_resume() which in turn calls fe ops ini follwed
-by tuner ops ini before waking up the frontend. With this change
-HVR950Q suspend and resume work when system gets suspended when
-digital function is tuned to a channel and with active TV stream,
-and after resume it went right back to active TV stream.
+Against which kernel is this? Documentation/video4linux/Makefile doesn't exist
+in either the mainline kernel or the media_tree git repo.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/au0828/au0828-dvb.c |   37 ++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 21 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index 821f86e..50e7c82 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -619,35 +619,30 @@ int au0828_dvb_register(struct au0828_dev *dev)
- 
- void au0828_dvb_suspend(struct au0828_dev *dev)
- {
--	struct au0828_dvb *dvb = &dev->dvb;
--
--	if (dvb->frontend && dev->urb_streaming) {
--		pr_info("stopping DVB\n");
-+	struct au0828_dvb *dvb;
-+	int rc;
- 
--		cancel_work_sync(&dev->restart_streaming);
-+	if (dev == NULL)
-+		return;
- 
--		/* Stop transport */
--		mutex_lock(&dvb->lock);
--		stop_urb_transfer(dev);
--		au0828_stop_transport(dev, 1);
--		mutex_unlock(&dvb->lock);
--		dev->need_urb_start = 1;
-+	dvb = &dev->dvb;
-+	if (dvb->frontend) {
-+		rc = dvb_frontend_suspend(dvb->frontend);
-+		pr_info("au0828_dvb_suspend(): Suspending DVB fe %d\n", rc);
- 	}
- }
- 
- void au0828_dvb_resume(struct au0828_dev *dev)
- {
--	struct au0828_dvb *dvb = &dev->dvb;
--
--	if (dvb->frontend && dev->need_urb_start) {
--		pr_info("resuming DVB\n");
-+	struct au0828_dvb *dvb;
-+	int rc;
- 
--		au0828_set_frontend(dvb->frontend);
-+	if (dev == NULL)
-+		return;
- 
--		/* Start transport */
--		mutex_lock(&dvb->lock);
--		au0828_start_transport(dev);
--		start_urb_transfer(dev);
--		mutex_unlock(&dvb->lock);
-+	dvb = &dev->dvb;
-+	if (dvb->frontend) {
-+		rc = dvb_frontend_resume(dvb->frontend);
-+		pr_info("au0828_dvb_resume(): Resuming DVB fe %d\n", rc);
- 	}
- }
--- 
-1.7.10.4
+	Hans
+
+On 08/26/2014 06:38 PM, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> 
+> Currently arm64 does not support PCI but it does support v4l2. Since the
+> PCI skeleton driver is built unconditionally as a module with no dependency
+> on PCI this causes build failures for arm64 allmodconfig. Fix this by
+> defining a symbol VIDEO_PCI_SKELETON for the skeleton and conditionalising
+> the build on that.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+>  Documentation/video4linux/Makefile | 2 +-
+>  drivers/media/v4l2-core/Kconfig    | 7 +++++++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/video4linux/Makefile b/Documentation/video4linux/Makefile
+> index d58101e788fc..65a351d75c95 100644
+> --- a/Documentation/video4linux/Makefile
+> +++ b/Documentation/video4linux/Makefile
+> @@ -1 +1 @@
+> -obj-m := v4l2-pci-skeleton.o
+> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 9ca0f8d59a14..2b368f711c9e 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -25,6 +25,13 @@ config VIDEO_FIXED_MINOR_RANGES
+>  
+>  	  When in doubt, say N.
+>  
+> +config VIDEO_PCI_SKELETON
+> +	tristate "Skeleton PCI V4L2 driver"
+> +	depends on PCI && COMPILE_TEST
+> +	---help---
+> +	  Enable build of the skeleton PCI driver, used as a reference
+> +	  when developign new drivers.
+> +
+>  # Used by drivers that need tuner.ko
+>  config VIDEO_TUNER
+>  	tristate
+> 
 
