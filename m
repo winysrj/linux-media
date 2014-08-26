@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44116 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755764AbaHZVzU (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34583 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934092AbaHZJNr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:20 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 29/35] [media] enable COMPILE_TEST for MX2 eMMa-PrP driver
-Date: Tue, 26 Aug 2014 18:55:05 -0300
-Message-Id: <1409090111-8290-30-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 26 Aug 2014 05:13:47 -0400
+Message-ID: <1409044417.2911.29.camel@paszta.hi.pengutronix.de>
+Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper
+ functions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Date: Tue, 26 Aug 2014 11:13:37 +0200
+In-Reply-To: <3263560.xPJs935yYQ@avalon>
+References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
+	 <1794623.zNambAqeEh@avalon>
+	 <1408981277.3191.80.camel@paszta.hi.pengutronix.de>
+	 <3263560.xPJs935yYQ@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By allowing compilation on all archs, we can use static
-analysis tools to test this driver.
+Hi Laurent,
 
-In order to do that, replace asm/sizes.h by its generic
-name (linux/sizes.h), with should keep doing the right
-thing.
+Am Montag, den 25.08.2014, 17:47 +0200 schrieb Laurent Pinchart:
+> > Yes, I think this is slightly over the edge. Is room for a function to
+> > accompany the preexisting v4l2_fill_pix_format (say,
+> > v4l2_fill_pix_format_size) to set both the bytesperline and sizeimage
+> > values in a struct v4l2_pix_format?
+> 
+> That sounds sensible to me, provided it would be used by drivers of course. I 
+> wouldn't remove v4l2_bytesperline() and v4l2_sizeimage(), as the values might 
+> be needed by drivers in places where a v4l2_pix_format structure isn't 
+> available.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/platform/Kconfig       | 3 ++-
- drivers/media/platform/mx2_emmaprp.c | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+I think about four of the drivers I've looked at so far could use such a
+function, but it probably won't be useful for the majority.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 6d86646d9743..66566c920fe9 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -185,7 +185,8 @@ config VIDEO_SAMSUNG_S5P_MFC
- 
- config VIDEO_MX2_EMMAPRP
- 	tristate "MX2 eMMa-PrP support"
--	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on SOC_IMX27 || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	help
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index fa8f7cabe364..4971ff21f82b 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -27,7 +27,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-dma-contig.h>
--#include <asm/sizes.h>
-+#include <linux/sizes.h>
- 
- #define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
- 
--- 
-1.9.3
+> > Also, is anybody bothered by the v4l2_pix_format / v4l2_pixfmt
+> > similarity in name?
+> 
+> How about renaming v4l2_pixfmt to v4l2_pix_format_info ?
+
+Thanks, but v4l2_pix_format is a userspace API structure. I fear
+renaming v4l2_pixfmt to v4l2_pix_format_anything would rather strengthen
+that association, while I'd like to achieve the opposite.
+
+regards
+Philipp
 
