@@ -1,115 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44709 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753825AbaHSRA1 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46202 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752339AbaHZTU5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 13:00:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-Cc: linux-usb@vger.kernel.org, balbi@ti.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCH v2 2/3] usb: gadget/uvc: also handle v4l2 ioctl ENUM_FMT
-Date: Tue, 19 Aug 2014 19:01:06 +0200
-Message-ID: <2635639.TQ5HekBxN8@avalon>
-In-Reply-To: <1407512339-8433-3-git-send-email-m.grzeschik@pengutronix.de>
-References: <1407512339-8433-1-git-send-email-m.grzeschik@pengutronix.de> <1407512339-8433-3-git-send-email-m.grzeschik@pengutronix.de>
+	Tue, 26 Aug 2014 15:20:57 -0400
+Message-ID: <53FCDE16.1000205@infradead.org>
+Date: Tue, 26 Aug 2014 12:20:54 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mark Brown <broonie@kernel.org>,
+	Peter Foley <pefoley2@pefoley.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
+Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
+References: <1409073919-27336-1-git-send-email-broonie@kernel.org>
+In-Reply-To: <1409073919-27336-1-git-send-email-broonie@kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
-
-Thank you for the patch.
-
-(CC'ing Hans Verkuil and the linux-media mailing list)
-
-On Friday 08 August 2014 17:38:58 Michael Grzeschik wrote:
-> This patch adds ENUM_FMT as possible ioctl to the uvc v4l2 device.
-> That makes userspace applications with a generic IOCTL calling
-> convention make also use of it.
+On 08/26/14 10:25, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
 > 
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> Currently arm64 does not support PCI but it does support v4l2. Since the
+> PCI skeleton driver is built unconditionally as a module with no dependency
+> on PCI this causes build failures for arm64 allmodconfig. Fix this by
+> defining a symbol VIDEO_PCI_SKELETON for the skeleton and conditionalising
+> the build on that.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
 > ---
-> v1 -> v2:
->  - changed first switch case to simple if
->  - added separate function
->  - added description field
->  - bail out on array boundaries
 > 
->  drivers/usb/gadget/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++--
->  1 file changed, 28 insertions(+), 2 deletions(-)
+> The patch adding the Makefile was added to the Documentation tree,
+> either it should be reverted or something like this added on top.
 > 
-> diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
-> index ad48e81..58633bf 100644
-> --- a/drivers/usb/gadget/uvc_v4l2.c
-> +++ b/drivers/usb/gadget/uvc_v4l2.c
-> @@ -55,14 +55,30 @@ struct uvc_format
->  {
->  	u8 bpp;
->  	u32 fcc;
-> +	char *description;
->  };
+>  Documentation/video4linux/Makefile | 2 +-
+>  drivers/media/v4l2-core/Kconfig    | 7 +++++++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
 > 
->  static struct uvc_format uvc_formats[] = {
-> -	{ 16, V4L2_PIX_FMT_YUYV  },
-> -	{ 0,  V4L2_PIX_FMT_MJPEG },
-> +	{ 16, V4L2_PIX_FMT_YUYV, "YUV 4:2:2" },
-> +	{ 0,  V4L2_PIX_FMT_MJPEG, "MJPEG" },
+> diff --git a/Documentation/video4linux/Makefile b/Documentation/video4linux/Makefile
+> index d58101e788fc..65a351d75c95 100644
+> --- a/Documentation/video4linux/Makefile
+> +++ b/Documentation/video4linux/Makefile
+> @@ -1 +1 @@
+> -obj-m := v4l2-pci-skeleton.o
+> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 9ca0f8d59a14..2b368f711c9e 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -25,6 +25,13 @@ config VIDEO_FIXED_MINOR_RANGES
+>  
+>  	  When in doubt, say N.
+>  
+> +config VIDEO_PCI_SKELETON
+> +	tristate "Skeleton PCI V4L2 driver"
+> +	depends on PCI && COMPILE_TEST
 
-Format descriptions are currently duplicated in every driver, causing higher 
-memory usage and different descriptions for the same format depending on the 
-driver. Hans, should we try to fix this ?
+	               && ??  No, don't require COMPILE_TEST.
+		However, PCI || COMPILE_TEST would allow it to build on arm64
+		if COMPILE_TEST is enabled, guaranteeing build errors.
+		Is that what should happen?  I suppose so...
 
->  };
+
+> +	---help---
+> +	  Enable build of the skeleton PCI driver, used as a reference
+> +	  when developign new drivers.
+> +
+>  # Used by drivers that need tuner.ko
+>  config VIDEO_TUNER
+>  	tristate
 > 
->  static int
-> +uvc_v4l2_enum_format(struct uvc_video *video, struct v4l2_fmtdesc *fmt)
-> +{
-> +
 
-There's an extra blank line here.
-
-> +	int index = fmt->index;
-
-You can use fmt->index directly below, there's no need for a local variable.
-
-> +	if (index >= ARRAY_SIZE(uvc_formats))
-> +		return -EINVAL;
-> +
-> +	strcpy(fmt->description, uvc_formats[index].description);
-
-How about strlcpy to make sure we don't overflow the buffer ?
-
-> +	fmt->pixelformat = uvc_formats[index].fcc;
-> +
-> +	return 0;
-> +}
-> +
-> +static int
->  uvc_v4l2_get_format(struct uvc_video *video, struct v4l2_format *fmt)
->  {
->  	fmt->fmt.pix.pixelformat = video->fcc;
-> @@ -183,6 +199,16 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd,
-> void *arg) break;
->  	}
-> 
-> +	case VIDIOC_ENUM_FMT:
-> +	{
-> +		struct v4l2_fmtdesc *fmt = arg;
-> +
-> +		if (fmt->type != video->queue.queue.type)
-> +			return -EINVAL;
-> +
-> +		return uvc_v4l2_enum_format(video, fmt);
-> +	}
-> +
->  	/* Get & Set format */
->  	case VIDIOC_G_FMT:
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+~Randy
