@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3527 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbaHDK12 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 06:27:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.17 1/2] videobuf2-core.h: fix comment
-Date: Mon,  4 Aug 2014 12:27:11 +0200
-Message-Id: <1407148032-41607-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407148032-41607-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407148032-41607-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:44166 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755799AbaHZVzW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 17:55:22 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 25/35] [media] mx2_camera: get rid of a warning
+Date: Tue, 26 Aug 2014 18:55:01 -0300
+Message-Id: <1409090111-8290-26-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+drivers/media/platform/soc_camera/mx2_camera.c: In function 'mx27_camera_emma_prp_reset':
+drivers/media/platform/soc_camera/mx2_camera.c:812:6: warning: variable 'cntl' set but not used [-Wunused-but-set-variable]
+  u32 cntl;
+      ^
 
-The comment for start_streaming that tells the developer with which vb2 state
-buffers should be returned to vb2 gave the wrong state. Very confusing.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- include/media/videobuf2-core.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/soc_camera/mx2_camera.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index fc910a6..80fa725 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -295,7 +295,7 @@ struct vb2_buffer {
-  *			can return an error if hardware fails, in that case all
-  *			buffers that have been already given by the @buf_queue
-  *			callback are to be returned by the driver by calling
-- *			@vb2_buffer_done(VB2_BUF_STATE_DEQUEUED).
-+ *			@vb2_buffer_done(VB2_BUF_STATE_QUEUED).
-  *			If you need a minimum number of buffers before you can
-  *			start streaming, then set @min_buffers_needed in the
-  *			vb2_queue structure. If that is non-zero then
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index b40bc2e5ba47..2d57c1d272b8 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -809,10 +809,9 @@ static int mx2_camera_init_videobuf(struct vb2_queue *q,
+ 
+ static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
+ {
+-	u32 cntl;
+ 	int count = 0;
+ 
+-	cntl = readl(pcdev->base_emma + PRP_CNTL);
++	readl(pcdev->base_emma + PRP_CNTL);
+ 	writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
+ 	while (count++ < 100) {
+ 		if (!(readl(pcdev->base_emma + PRP_CNTL) & PRP_CNTL_SWRST))
 -- 
-2.0.1
+1.9.3
 
