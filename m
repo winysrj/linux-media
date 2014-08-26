@@ -1,114 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1906 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbaHACjl (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44114 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755676AbaHZVzU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 22:39:41 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s712dbn3097233
-	for <linux-media@vger.kernel.org>; Fri, 1 Aug 2014 04:39:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 17F782A0380
-	for <linux-media@vger.kernel.org>; Fri,  1 Aug 2014 04:39:33 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140801023933.17F782A0380@tschai.lan>
-Date: Fri,  1 Aug 2014 04:39:33 +0200 (CEST)
+	Tue, 26 Aug 2014 17:55:20 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 30/35] [media] enable COMPILE_TEST for ti-vbe
+Date: Tue, 26 Aug 2014 18:55:06 -0300
+Message-Id: <1409090111-8290-31-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Allowing COMPILE_TEST here is trivial, but there's one missing
+header to be added:
 
-Results of the daily build of media_tree:
+drivers/media/platform/ti-vpe/vpe.c: In function ‘vpe_probe’:
+drivers/media/platform/ti-vpe/vpe.c:2266:56: error: ‘SZ_32K’ undeclared (first use in this function)
+  dev->base = devm_ioremap(&pdev->dev, dev->res->start, SZ_32K);
+                                                        ^
 
-date:		Fri Aug  1 04:00:16 CEST 2014
-git branch:	test
-git hash:	27dcb00d0dc1d532b0da940e35a6d020ee33bd47
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-5.slh.2-amd64
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/Kconfig      | 3 ++-
+ drivers/media/platform/ti-vpe/vpe.c | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 66566c920fe9..6d0a0df6d818 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -223,7 +223,8 @@ config VIDEO_RENESAS_VSP1
+ 
+ config VIDEO_TI_VPE
+ 	tristate "TI VPE (Video Processing Engine) driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_DRA7XX
++	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on SOC_DRA7XX || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	default n
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 972f43f69206..773b1fbf3269 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -31,6 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/log2.h>
++#include <linux/sizes.h>
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+-- 
+1.9.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
