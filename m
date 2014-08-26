@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:63300 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753596AbaHYMfn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44169 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755795AbaHZVzW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 08:35:43 -0400
-Received: by mail-la0-f42.google.com with SMTP id pv20so12823133lab.15
-        for <linux-media@vger.kernel.org>; Mon, 25 Aug 2014 05:35:42 -0700 (PDT)
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-To: horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
-	robh+dt@kernel.org, grant.likely@linaro.org, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk
-Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Subject: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG Processing Unit.
-Date: Mon, 25 Aug 2014 16:35:32 +0400
-Message-Id: <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-In-Reply-To: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
-References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	Tue, 26 Aug 2014 17:55:22 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 23/35] [media] mipi-csis: get rid of a warning
+Date: Tue, 26 Aug 2014 18:54:59 -0300
+Message-Id: <1409090111-8290-24-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for Renesas JPU devicetree node.
+drivers/media/platform/exynos4-is/mipi-csis.c: In function 's5pcsis_parse_dt':
+drivers/media/platform/exynos4-is/mipi-csis.c:756:2: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+  if (state->index < 0 || state->index >= CSIS_MAX_ENTITIES)
+  ^
 
-Changes since v1:
-        - First line typo fixed
-        - "renesas,jpu-gen2" compatability option added
-
-Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- .../devicetree/bindings/media/renesas,jpu.txt      | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,jpu.txt
+ drivers/media/platform/exynos4-is/mipi-csis.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-new file mode 100644
-index 0000000..44b07df
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-@@ -0,0 +1,24 @@
-+* Renesas JPEG processing unit.
-+
-+The JPEG processing unit (JPU) incorporates the JPEG codec with an encoding
-+and decoding function conforming to the JPEG baseline process, so that the JPU
-+can encode image data and decode JPEG data quickly.
-+It can be found in the Renesas R-Car second generation SoCs.
-+
-+Required properties:
-+  - compatible: should containg one of the following:
-+			- "renesas,jpu-r8a7790" for R-Car H2
-+			- "renesas,jpu-r8a7791" for R-Car M2
-+			- "renesas,jpu-gen2" for R-Car second generation
-+
-+  - reg: Base address and length of the registers block for the JPU.
-+  - interrupts: JPU interrupt specifier.
-+  - clocks: A phandle + clock-specifier pair for the JPU functional clock.
-+
-+Example: R8A7790 (R-Car H2) JPU node
-+	jpeg-codec@fe980000 {
-+		compatible = "renesas,jpu-r8a7790";
-+		reg = <0 0xfe980000 0 0x10300>;
-+		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
-+	};
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index ae54ef5f535d..8be8897bc6cd 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -752,7 +752,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 	v4l2_of_parse_endpoint(node, &endpoint);
+ 
+ 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
+-	if (state->index < 0 || state->index >= CSIS_MAX_ENTITIES)
++	if (state->index >= CSIS_MAX_ENTITIES)
+ 		return -ENXIO;
+ 
+ 	/* Get MIPI CSI-2 bus configration from the endpoint node. */
 -- 
-2.1.0.rc1
+1.9.3
 
