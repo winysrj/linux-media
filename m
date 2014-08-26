@@ -1,601 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1475 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686AbaHNJyZ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:30501 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757777AbaHZMNz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 14/20] cx23885: use video_drvdata to get cx23885_dev pointer
-Date: Thu, 14 Aug 2014 11:53:59 +0200
-Message-Id: <1408010045-24016-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 26 Aug 2014 08:13:55 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Laura Abbott <lauraa@codeaurora.org>,
+	Josh Cartwright <joshc@codeaurora.org>,
+	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: [PATCH 3/7] drivers: dma-coherent: add initialization from device tree
+Date: Tue, 26 Aug 2014 14:09:44 +0200
+Message-id: <1409054988-32758-4-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Initialization procedure of dma coherent pool has been split into two
+parts, so memory pool can now be initialized without assigning to
+particular struct device. Then initialized region can be assigned to
+more than one struct device. To protect from concurent allocations from
+different devices, a spinlock has been added to dma_coherent_mem
+structure. The last part of this patch adds support for handling
+'shared-dma-pool' reserved-memory device tree nodes.
 
-Use video_drvdata(file) instead of fh->dev to get the cx23885_dev
-pointer. This prepares for the vb2 conversion where fh->dev (renamed
-to fh->q_dev in this patch) will be removed completely.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/pci/cx23885/cx23885-417.c   | 56 +++++++++++++----------------
- drivers/media/pci/cx23885/cx23885-ioctl.c |  6 ++--
- drivers/media/pci/cx23885/cx23885-vbi.c   |  7 ++--
- drivers/media/pci/cx23885/cx23885-video.c | 60 +++++++++++++++----------------
- drivers/media/pci/cx23885/cx23885.h       |  2 +-
- 5 files changed, 60 insertions(+), 71 deletions(-)
+ drivers/base/dma-coherent.c | 138 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 119 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index 4142c15..0948b44 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1147,10 +1147,10 @@ static int bb_buf_setup(struct videobuf_queue *q,
+diff --git a/drivers/base/dma-coherent.c b/drivers/base/dma-coherent.c
+index 7d6e84a51424..4e2dfcc16b70 100644
+--- a/drivers/base/dma-coherent.c
++++ b/drivers/base/dma-coherent.c
+@@ -14,11 +14,14 @@ struct dma_coherent_mem {
+ 	int		size;
+ 	int		flags;
+ 	unsigned long	*bitmap;
++	spinlock_t	spinlock;
+ };
+ 
+-int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+-				dma_addr_t device_addr, size_t size, int flags)
++static int dma_init_coherent_memory(phys_addr_t phys_addr, dma_addr_t device_addr,
++			     size_t size, int flags,
++			     struct dma_coherent_mem **mem)
  {
- 	struct cx23885_fh *fh = q->priv_data;
++	struct dma_coherent_mem *dma_mem = NULL;
+ 	void __iomem *mem_base = NULL;
+ 	int pages = size >> PAGE_SHIFT;
+ 	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+@@ -27,27 +30,26 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+ 		goto out;
+ 	if (!size)
+ 		goto out;
+-	if (dev->dma_mem)
+-		goto out;
+-
+-	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
  
--	fh->dev->ts1.ts_packet_size  = mpeglinesize;
--	fh->dev->ts1.ts_packet_count = mpeglines;
-+	fh->q_dev->ts1.ts_packet_size  = mpeglinesize;
-+	fh->q_dev->ts1.ts_packet_count = mpeglines;
+ 	mem_base = ioremap(phys_addr, size);
+ 	if (!mem_base)
+ 		goto out;
  
--	*size = fh->dev->ts1.ts_packet_size * fh->dev->ts1.ts_packet_count;
-+	*size = fh->q_dev->ts1.ts_packet_size * fh->q_dev->ts1.ts_packet_count;
- 	*count = mpegbufs;
+-	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
+-	if (!dev->dma_mem)
++	dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
++	if (!dma_mem)
+ 		goto out;
+-	dev->dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+-	if (!dev->dma_mem->bitmap)
++	dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
++	if (!dma_mem->bitmap)
+ 		goto free1_out;
  
+-	dev->dma_mem->virt_base = mem_base;
+-	dev->dma_mem->device_base = device_addr;
+-	dev->dma_mem->pfn_base = PFN_DOWN(phys_addr);
+-	dev->dma_mem->size = pages;
+-	dev->dma_mem->flags = flags;
++	dma_mem->virt_base = mem_base;
++	dma_mem->device_base = device_addr;
++	dma_mem->pfn_base = PFN_DOWN(phys_addr);
++	dma_mem->size = pages;
++	dma_mem->flags = flags;
++	spin_lock_init(&dma_mem->spinlock);
++
++	*mem = dma_mem;
+ 
+ 	if (flags & DMA_MEMORY_MAP)
+ 		return DMA_MEMORY_MAP;
+@@ -55,12 +57,51 @@ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+ 	return DMA_MEMORY_IO;
+ 
+  free1_out:
+-	kfree(dev->dma_mem);
++	kfree(dma_mem);
+  out:
+ 	if (mem_base)
+ 		iounmap(mem_base);
  	return 0;
-@@ -1160,7 +1160,7 @@ static int bb_buf_prepare(struct videobuf_queue *q,
- 	struct videobuf_buffer *vb, enum v4l2_field field)
- {
- 	struct cx23885_fh *fh = q->priv_data;
--	return cx23885_buf_prepare(q, &fh->dev->ts1,
-+	return cx23885_buf_prepare(q, &fh->q_dev->ts1,
- 		(struct cx23885_buffer *)vb,
- 		field);
  }
-@@ -1169,7 +1169,7 @@ static void bb_buf_queue(struct videobuf_queue *q,
- 	struct videobuf_buffer *vb)
- {
- 	struct cx23885_fh *fh = q->priv_data;
--	cx23885_buf_queue(&fh->dev->ts1, (struct cx23885_buffer *)vb);
-+	cx23885_buf_queue(&fh->q_dev->ts1, (struct cx23885_buffer *)vb);
++
++static void dma_release_coherent_memory(struct dma_coherent_mem *mem)
++{
++	if (!mem)
++		return;
++	iounmap(mem->virt_base);
++	kfree(mem->bitmap);
++	kfree(mem);
++}
++
++static int dma_assign_coherent_memory(struct device *dev,
++				      struct dma_coherent_mem *mem)
++{
++	if (dev->dma_mem)
++		return -EBUSY;
++
++	dev->dma_mem = mem;
++	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
++
++	return 0;
++}
++
++int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
++				dma_addr_t device_addr, size_t size, int flags)
++{
++	struct dma_coherent_mem *mem;
++	int ret;
++
++	ret = dma_init_coherent_memory(phys_addr, device_addr, size, flags,
++				       &mem);
++	if (ret == 0)
++		return 0;
++
++	if (dma_assign_coherent_memory(dev, mem) == 0)
++		return ret;
++
++	dma_release_coherent_memory(mem);
++	return 0;
++}
+ EXPORT_SYMBOL(dma_declare_coherent_memory);
+ 
+ void dma_release_declared_memory(struct device *dev)
+@@ -69,10 +110,8 @@ void dma_release_declared_memory(struct device *dev)
+ 
+ 	if (!mem)
+ 		return;
++	dma_release_coherent_memory(mem);
+ 	dev->dma_mem = NULL;
+-	iounmap(mem->virt_base);
+-	kfree(mem->bitmap);
+-	kfree(mem);
  }
+ EXPORT_SYMBOL(dma_release_declared_memory);
  
- static void bb_buf_release(struct videobuf_queue *q,
-@@ -1189,8 +1189,7 @@ static struct videobuf_queue_ops cx23885_qops = {
- 
- static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
+@@ -80,6 +119,7 @@ void *dma_mark_declared_memory_occupied(struct device *dev,
+ 					dma_addr_t device_addr, size_t size)
  {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
+ 	struct dma_coherent_mem *mem = dev->dma_mem;
++	unsigned long flags;
+ 	int pos, err;
  
- 	*id = dev->tvnorm;
- 	return 0;
-@@ -1198,8 +1197,7 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	size += device_addr & ~PAGE_MASK;
+@@ -87,8 +127,11 @@ void *dma_mark_declared_memory_occupied(struct device *dev,
+ 	if (!mem)
+ 		return ERR_PTR(-EINVAL);
  
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
++	spin_lock_irqsave(&mem->spinlock, flags);
+ 	pos = (device_addr - mem->device_base) >> PAGE_SHIFT;
+ 	err = bitmap_allocate_region(mem->bitmap, pos, get_order(size));
++	spin_unlock_irqrestore(&mem->spinlock, flags);
++
+ 	if (err != 0)
+ 		return ERR_PTR(err);
+ 	return mem->virt_base + (pos << PAGE_SHIFT);
+@@ -115,6 +158,7 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
  {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	unsigned int i;
+ 	struct dma_coherent_mem *mem;
+ 	int order = get_order(size);
++	unsigned long flags;
+ 	int pageno;
  
- 	for (i = 0; i < ARRAY_SIZE(cx23885_tvnorms); i++)
-@@ -1218,7 +1216,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- static int vidioc_enum_input(struct file *file, void *priv,
- 	struct v4l2_input *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	dprintk(1, "%s()\n", __func__);
- 	return cx23885_enum_input(dev, i);
- }
-@@ -1236,8 +1234,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
+ 	if (!dev)
+@@ -124,6 +168,7 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+ 		return 0;
  
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1254,8 +1251,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				const struct v4l2_tuner *t)
- {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
+ 	*ret = NULL;
++	spin_lock_irqsave(&mem->spinlock, flags);
  
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1269,8 +1265,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- static int vidioc_g_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
+ 	if (unlikely(size > (mem->size << PAGE_SHIFT)))
+ 		goto err;
+@@ -138,10 +183,12 @@ int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+ 	*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
+ 	*ret = mem->virt_base + (pageno << PAGE_SHIFT);
+ 	memset(*ret, 0, size);
++	spin_unlock_irqrestore(&mem->spinlock, flags);
  
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1291,8 +1286,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- static int vidioc_querycap(struct file *file, void  *priv,
- 				struct v4l2_capability *cap)
- {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_tsport  *tsport = &dev->ts1;
+ 	return 1;
  
- 	strlcpy(cap->driver, dev->name, sizeof(cap->driver));
-@@ -1325,8 +1319,8 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
+ err:
++	spin_unlock_irqrestore(&mem->spinlock, flags);
+ 	/*
+ 	 * In the case where the allocation can not be satisfied from the
+ 	 * per-device area, try to fall back to generic memory if the
+@@ -171,8 +218,11 @@ int dma_release_from_coherent(struct device *dev, int order, void *vaddr)
+ 	if (mem && vaddr >= mem->virt_base && vaddr <
+ 		   (mem->virt_base + (mem->size << PAGE_SHIFT))) {
+ 		int page = (vaddr - mem->virt_base) >> PAGE_SHIFT;
++		unsigned long flags;
  
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
-@@ -1344,8 +1338,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
-@@ -1360,8 +1354,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
--	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
-@@ -1422,8 +1415,7 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- 
- static int vidioc_log_status(struct file *file, void *priv)
- {
--	struct cx23885_fh  *fh  = priv;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	char name[32 + 2];
- 
- 	snprintf(name, sizeof(name), "%s/2", dev->name);
-@@ -1434,8 +1426,8 @@ static int vidioc_log_status(struct file *file, void *priv)
- 
- static int mpeg_open(struct file *file)
- {
--	struct video_device *vdev = video_devdata(file);
- 	struct cx23885_dev *dev = video_drvdata(file);
-+	struct video_device *vdev = video_devdata(file);
- 	struct cx23885_fh *fh;
- 
- 	dprintk(2, "%s()\n", __func__);
-@@ -1447,7 +1439,7 @@ static int mpeg_open(struct file *file)
- 
- 	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = fh;
--	fh->dev      = dev;
-+	fh->q_dev      = dev;
- 
- 	videobuf_queue_sg_init(&fh->mpegq, &cx23885_qops,
- 			    &dev->pci->dev, &dev->ts1.slock,
-@@ -1461,8 +1453,8 @@ static int mpeg_open(struct file *file)
- 
- static int mpeg_release(struct file *file)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh  *fh  = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	dprintk(2, "%s()\n", __func__);
- 
-@@ -1471,14 +1463,14 @@ static int mpeg_release(struct file *file)
- 	if (atomic_cmpxchg(&fh->v4l_reading, 1, 0) == 1) {
- 		if (atomic_dec_return(&dev->v4l_reader_count) == 0) {
- 			/* stop mpeg capture */
--			cx23885_api_cmd(fh->dev, CX2341X_ENC_STOP_CAPTURE, 3, 0,
-+			cx23885_api_cmd(dev, CX2341X_ENC_STOP_CAPTURE, 3, 0,
- 				CX23885_END_NOW, CX23885_MPEG_CAPTURE,
- 				CX23885_RAW_BITS_NONE);
- 
- 			msleep(500);
- 			cx23885_417_check_encoder(dev);
- 
--			cx23885_cancel_buffers(&fh->dev->ts1);
-+			cx23885_cancel_buffers(&dev->ts1);
- 		}
++		spin_lock_irqsave(&mem->spinlock, flags);
+ 		bitmap_release_region(mem->bitmap, page, order);
++		spin_unlock_irqrestore(&mem->spinlock, flags);
+ 		return 1;
  	}
- 
-@@ -1499,8 +1491,8 @@ static int mpeg_release(struct file *file)
- static ssize_t mpeg_read(struct file *file, char __user *data,
- 	size_t count, loff_t *ppos)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	dprintk(2, "%s()\n", __func__);
- 
-@@ -1520,8 +1512,8 @@ static ssize_t mpeg_read(struct file *file, char __user *data,
- static unsigned int mpeg_poll(struct file *file,
- 	struct poll_table_struct *wait)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	dprintk(2, "%s\n", __func__);
- 
-@@ -1530,8 +1522,8 @@ static unsigned int mpeg_poll(struct file *file,
- 
- static int mpeg_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	dprintk(2, "%s()\n", __func__);
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.c b/drivers/media/pci/cx23885/cx23885-ioctl.c
-index 271d69d..9c16786 100644
---- a/drivers/media/pci/cx23885/cx23885-ioctl.c
-+++ b/drivers/media/pci/cx23885/cx23885-ioctl.c
-@@ -28,7 +28,7 @@
- int cx23885_g_chip_info(struct file *file, void *fh,
- 			 struct v4l2_dbg_chip_info *chip)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (chip->match.addr > 1)
- 		return -EINVAL;
-@@ -64,7 +64,7 @@ static int cx23417_g_register(struct cx23885_dev *dev,
- int cx23885_g_register(struct file *file, void *fh,
- 		       struct v4l2_dbg_register *reg)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (reg->match.addr > 1)
- 		return -EINVAL;
-@@ -96,7 +96,7 @@ static int cx23417_s_register(struct cx23885_dev *dev,
- int cx23885_s_register(struct file *file, void *fh,
- 		       const struct v4l2_dbg_register *reg)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (reg->match.addr > 1)
- 		return -EINVAL;
-diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
-index a1154f0..1cb67d3 100644
---- a/drivers/media/pci/cx23885/cx23885-vbi.c
-+++ b/drivers/media/pci/cx23885/cx23885-vbi.c
-@@ -50,8 +50,7 @@ MODULE_PARM_DESC(vbi_debug, "enable debug messages [vbi]");
- int cx23885_vbi_fmt(struct file *file, void *priv,
- 	struct v4l2_format *f)
- {
--	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (dev->tvnorm & V4L2_STD_525_60) {
- 		/* ntsc */
-@@ -201,7 +200,7 @@ vbi_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
- 	    enum v4l2_field field)
- {
- 	struct cx23885_fh *fh  = q->priv_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = fh->q_dev;
- 	struct cx23885_buffer *buf = container_of(vb,
- 		struct cx23885_buffer, vb);
- 	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
-@@ -242,7 +241,7 @@ vbi_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 		container_of(vb, struct cx23885_buffer, vb);
- 	struct cx23885_buffer   *prev;
- 	struct cx23885_fh       *fh   = vq->priv_data;
--	struct cx23885_dev      *dev  = fh->dev;
-+	struct cx23885_dev      *dev  = fh->q_dev;
- 	struct cx23885_dmaqueue *q    = &dev->vbiq;
- 
- 	/* add jump to stopper */
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 3dcee0a..b374003 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -432,7 +432,7 @@ static int buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 	unsigned int *size)
- {
- 	struct cx23885_fh *fh = q->priv_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = fh->q_dev;
- 
- 	*size = (dev->fmt->depth * dev->width * dev->height) >> 3;
- 	if (0 == *count)
-@@ -446,7 +446,7 @@ static int buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
- 	       enum v4l2_field field)
- {
- 	struct cx23885_fh *fh  = q->priv_data;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = fh->q_dev;
- 	struct cx23885_buffer *buf =
- 		container_of(vb, struct cx23885_buffer, vb);
- 	int rc, init_buffer = 0;
-@@ -562,7 +562,7 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 		struct cx23885_buffer, vb);
- 	struct cx23885_buffer   *prev;
- 	struct cx23885_fh       *fh   = vq->priv_data;
--	struct cx23885_dev      *dev  = fh->dev;
-+	struct cx23885_dev      *dev  = fh->q_dev;
- 	struct cx23885_dmaqueue *q    = &dev->vidq;
- 
- 	/* add jump to stopper */
-@@ -670,7 +670,7 @@ static int video_open(struct file *file)
- 
- 	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = &fh->fh;
--	fh->dev      = dev;
-+	fh->q_dev      = dev;
- 
- 	videobuf_queue_sg_init(&fh->vidq, &cx23885_video_qops,
- 			    &dev->pci->dev, &dev->slock,
-@@ -697,16 +697,17 @@ static ssize_t video_read(struct file *file, char __user *data,
- 	size_t count, loff_t *ppos)
- {
- 	struct video_device *vdev = video_devdata(file);
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
- 
- 	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
--		if (res_locked(fh->dev, RESOURCE_VIDEO))
-+		if (res_locked(dev, RESOURCE_VIDEO))
- 			return -EBUSY;
- 		return videobuf_read_one(&fh->vidq, data, count, ppos,
- 					 file->f_flags & O_NONBLOCK);
- 	case VFL_TYPE_VBI:
--		if (!res_get(fh->dev, fh, RESOURCE_VBI))
-+		if (!res_get(dev, fh, RESOURCE_VBI))
- 			return -EBUSY;
- 		return videobuf_read_stream(&fh->vbiq, data, count, ppos, 1,
- 					    file->f_flags & O_NONBLOCK);
-@@ -719,6 +720,7 @@ static unsigned int video_poll(struct file *file,
- 	struct poll_table_struct *wait)
- {
- 	struct video_device *vdev = video_devdata(file);
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
- 	struct cx23885_buffer *buf;
- 	unsigned long req_events = poll_requested_events(wait);
-@@ -732,7 +734,7 @@ static unsigned int video_poll(struct file *file,
- 		return rc;
- 
- 	if (vdev->vfl_type == VFL_TYPE_VBI) {
--		if (!res_get(fh->dev, fh, RESOURCE_VBI))
-+		if (!res_get(dev, fh, RESOURCE_VBI))
- 			return rc | POLLERR;
- 		return rc | videobuf_poll_stream(file, &fh->vbiq, wait);
- 	}
-@@ -761,8 +763,8 @@ done:
- 
- static int video_release(struct file *file)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = file->private_data;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	/* turn off overlay */
- 	if (res_check(fh, RESOURCE_OVERLAY)) {
-@@ -816,8 +818,8 @@ static int video_mmap(struct file *file, struct vm_area_struct *vma)
- static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 	struct v4l2_format *f)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh   = priv;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
-@@ -835,7 +837,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct v4l2_format *f)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fmt *fmt;
- 	enum v4l2_field   field;
- 	unsigned int      maxw, maxh;
-@@ -881,8 +883,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct v4l2_format *f)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev  = fh->dev;
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 	int err;
- 
-@@ -906,9 +908,8 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_querycap(struct file *file, void  *priv,
- 	struct v4l2_capability *cap)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct video_device *vdev = video_devdata(file);
--	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
- 
- 	strcpy(cap->driver, "cx23885");
- 	strlcpy(cap->card, cx23885_boards[dev->board].name,
-@@ -967,9 +968,9 @@ static int vidioc_dqbuf(struct file *file, void *priv,
- static int vidioc_streamon(struct file *file, void *priv,
- 	enum v4l2_buf_type i)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct video_device *vdev = video_devdata(file);
- 	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
- 	dprintk(1, "%s()\n", __func__);
- 
- 	if (vdev->vfl_type == VFL_TYPE_VBI &&
-@@ -994,9 +995,9 @@ static int vidioc_streamon(struct file *file, void *priv,
- 
- static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- {
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	struct video_device *vdev = video_devdata(file);
- 	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
- 	int err, res;
- 	dprintk(1, "%s()\n", __func__);
- 
-@@ -1017,7 +1018,7 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- 
- static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	dprintk(1, "%s()\n", __func__);
- 
- 	*id = dev->tvnorm;
-@@ -1026,7 +1027,7 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
- 
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	dprintk(1, "%s()\n", __func__);
- 
- 	cx23885_set_tvnorm(dev, tvnorms);
-@@ -1086,14 +1087,14 @@ int cx23885_enum_input(struct cx23885_dev *dev, struct v4l2_input *i)
- static int vidioc_enum_input(struct file *file, void *priv,
- 				struct v4l2_input *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	dprintk(1, "%s()\n", __func__);
- 	return cx23885_enum_input(dev, i);
- }
- 
- int cx23885_get_input(struct file *file, void *priv, unsigned int *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	*i = dev->input;
- 	dprintk(1, "%s() returns %d\n", __func__, *i);
-@@ -1107,7 +1108,7 @@ static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- 
- int cx23885_set_input(struct file *file, void *priv, unsigned int i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	dprintk(1, "%s(%d)\n", __func__, i);
- 
-@@ -1134,8 +1135,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 
- static int vidioc_log_status(struct file *file, void *priv)
- {
--	struct cx23885_fh  *fh  = priv;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	call_all(dev, core, log_status);
  	return 0;
-@@ -1144,7 +1144,7 @@ static int vidioc_log_status(struct file *file, void *priv)
- static int cx23885_query_audinput(struct file *file, void *priv,
- 	struct v4l2_audio *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	static const char *iname[] = {
- 		[0] = "Baseband L/R 1",
- 		[1] = "Baseband L/R 2",
-@@ -1174,7 +1174,7 @@ static int vidioc_enum_audinput(struct file *file, void *priv,
- static int vidioc_g_audinput(struct file *file, void *priv,
- 	struct v4l2_audio *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if ((CX23885_VMUX_TELEVISION == INPUT(dev->input)->type) ||
- 		(CX23885_VMUX_CABLE == INPUT(dev->input)->type))
-@@ -1189,7 +1189,7 @@ static int vidioc_g_audinput(struct file *file, void *priv,
- static int vidioc_s_audinput(struct file *file, void *priv,
- 	const struct v4l2_audio *i)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if ((CX23885_VMUX_TELEVISION == INPUT(dev->input)->type) ||
- 		(CX23885_VMUX_CABLE == INPUT(dev->input)->type)) {
-@@ -1211,7 +1211,7 @@ static int vidioc_s_audinput(struct file *file, void *priv,
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1227,7 +1227,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				const struct v4l2_tuner *t)
- {
--	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1242,8 +1242,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- static int vidioc_g_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
-@@ -1349,8 +1348,7 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- int cx23885_set_frequency(struct file *file, void *priv,
- 	const struct v4l2_frequency *f)
- {
--	struct cx23885_fh *fh = priv;
--	struct cx23885_dev *dev = fh->dev;
-+	struct cx23885_dev *dev = video_drvdata(file);
- 	int ret;
- 
- 	switch (dev->board) {
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 9cd2b1b..95f8c42 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -142,8 +142,8 @@ struct cx23885_tvnorm {
- 
- struct cx23885_fh {
- 	struct v4l2_fh		   fh;
--	struct cx23885_dev         *dev;
- 	u32                        resources;
-+	struct cx23885_dev         *q_dev;
- 
- 	/* vbi capture */
- 	struct videobuf_queue      vidq;
+@@ -218,3 +268,53 @@ int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dma_mmap_from_coherent);
++
++/*
++ * Support for reserved memory regions defined in device tree
++ */
++#ifdef CONFIG_OF_RESERVED_MEM
++#include <linux/of.h>
++#include <linux/of_fdt.h>
++#include <linux/of_reserved_mem.h>
++
++static int rmem_dma_device_init(struct reserved_mem *rmem, struct device *dev)
++{
++	struct dma_coherent_mem *mem = rmem->priv;
++	if (!mem &&
++	    dma_init_coherent_memory(rmem->base, rmem->base, rmem->size,
++				     DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE,
++				     &mem) != DMA_MEMORY_MAP) {
++		pr_info("Reserved memory: failed to init DMA memory pool at %pa, size %ld MiB\n",
++			&rmem->base, (unsigned long)rmem->size / SZ_1M);
++		return -ENODEV;
++	}
++	rmem->priv = mem;
++	dma_assign_coherent_memory(dev, mem);
++	return 0;
++}
++
++static void rmem_dma_device_release(struct reserved_mem *rmem,
++				    struct device *dev)
++{
++	dev->dma_mem = NULL;
++}
++
++static const struct reserved_mem_ops rmem_dma_ops = {
++	.device_init	= rmem_dma_device_init,
++	.device_release	= rmem_dma_device_release,
++};
++
++static int __init rmem_dma_setup(struct reserved_mem *rmem)
++{
++	unsigned long node = rmem->fdt_node;
++
++	if (of_get_flat_dt_prop(node, "reusable", NULL))
++		return -EINVAL;
++
++	rmem->ops = &rmem_dma_ops;
++	pr_info("Reserved memory: created DMA memory pool at %pa, size %ld MiB\n",
++		&rmem->base, (unsigned long)rmem->size / SZ_1M);
++	return 0;
++}
++RESERVEDMEM_OF_DECLARE(dma, "shared-dma-pool", rmem_dma_setup);
++#endif
 -- 
-2.1.0.rc1
+1.9.2
 
