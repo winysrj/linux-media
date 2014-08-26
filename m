@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60184 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701AbaHVAeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 20:34:00 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/6] m88ts2022: fix coding style issues
-Date: Fri, 22 Aug 2014 03:33:36 +0300
-Message-Id: <1408667621-12072-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:45260 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753915AbaHZUIm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 16:08:42 -0400
+Message-ID: <53FCE947.6000103@infradead.org>
+Date: Tue, 26 Aug 2014 13:08:39 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Mark Brown <broonie@kernel.org>
+CC: Peter Foley <pefoley2@pefoley.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linaro-kernel@lists.linaro.org
+Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
+References: <1409073919-27336-1-git-send-email-broonie@kernel.org> <53FCDE16.1000205@infradead.org> <20140826192624.GN17528@sirena.org.uk> <53FCE70A.6000907@infradead.org>
+In-Reply-To: <53FCE70A.6000907@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix coding style issues pointed out by checkpatch.pl.
+On 08/26/14 12:59, Randy Dunlap wrote:
+> On 08/26/14 12:26, Mark Brown wrote:
+>> On Tue, Aug 26, 2014 at 12:20:54PM -0700, Randy Dunlap wrote:
+>>> On 08/26/14 10:25, Mark Brown wrote:
+>>
+>>>> index d58101e788fc..65a351d75c95 100644
+>>>> --- a/Documentation/video4linux/Makefile
+>>>> +++ b/Documentation/video4linux/Makefile
+>>>> @@ -1 +1 @@
+>>>> -obj-m := v4l2-pci-skeleton.o
+>>>> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
+>>>> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+>>
+>>>> +config VIDEO_PCI_SKELETON
+>>>> +	tristate "Skeleton PCI V4L2 driver"
+>>>> +	depends on PCI && COMPILE_TEST
+>>
+>>> 	               && ??  No, don't require COMPILE_TEST.
+>>
+>> That's a very deliberate choice.  There's no reason I can see to build
+>> this code other than to check that it builds, it's reference code rather
+>> than something that someone is expected to actually use in their system.  
+>> This seems like a perfect candidate for COMPILE_TEST.
+>>
+>>> 		However, PCI || COMPILE_TEST would allow it to build on arm64
+>>> 		if COMPILE_TEST is enabled, guaranteeing build errors.
+>>> 		Is that what should happen?  I suppose so...
+>>
+>> No, it's not - if it's going to depend on COMPILE_TEST at all it need to
+>> be a hard dependency.
+> 
+> How about just drop COMPILE_TEST?  This code only builds if someone enabled
+> BUILD_DOCSRC.  That should be enough (along with PCI and some VIDEO kconfig
+> symbols) to qualify it.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/m88ts2022.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+I'll add BUILD_DOCSRC to the depends list in the Kconfig file...
 
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 7a62097..f51b107 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -176,6 +176,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	unsigned int f_ref_khz, f_vco_khz, div_ref, div_out, pll_n, gdiv28;
- 	u8 buf[3], u8tmp, cap_code, lpf_gm, lpf_mxdiv, div_max, div_min;
- 	u16 u16tmp;
-+
- 	dev_dbg(&priv->client->dev,
- 			"%s: frequency=%d symbol_rate=%d rolloff=%d\n",
- 			__func__, c->frequency, c->symbol_rate, c->rolloff);
-@@ -393,6 +394,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
- 		{0x24, 0x02},
- 		{0x12, 0xa0},
- 	};
-+
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
- 
- 	ret = m88ts2022_wr_reg(priv, 0x00, 0x01);
-@@ -448,6 +450,7 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
- {
- 	struct m88ts2022_priv *priv = fe->tuner_priv;
- 	int ret;
-+
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
- 
- 	ret = m88ts2022_wr_reg(priv, 0x00, 0x00);
-@@ -462,6 +465,7 @@ err:
- static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	struct m88ts2022_priv *priv = fe->tuner_priv;
-+
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
- 
- 	*frequency = priv->frequency_khz;
-@@ -471,6 +475,7 @@ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- static int m88ts2022_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	struct m88ts2022_priv *priv = fe->tuner_priv;
-+
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
- 
- 	*frequency = 0; /* Zero-IF */
-@@ -642,6 +647,7 @@ static int m88ts2022_remove(struct i2c_client *client)
- {
- 	struct m88ts2022_priv *priv = i2c_get_clientdata(client);
- 	struct dvb_frontend *fe = priv->cfg.fe;
-+
- 	dev_dbg(&client->dev, "%s:\n", __func__);
- 
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+
 -- 
-http://palosaari.fi/
-
+~Randy
