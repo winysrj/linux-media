@@ -1,85 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41177 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:60563 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603AbaHLX1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Aug 2014 19:27:34 -0400
-Message-ID: <53EAA2E3.1060206@iki.fi>
-Date: Wed, 13 Aug 2014 02:27:31 +0300
+	id S1755155AbaHZAg4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Aug 2014 20:36:56 -0400
+Message-ID: <53FBD6A0.7000405@iki.fi>
+Date: Tue, 26 Aug 2014 03:36:48 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, olli@cabbala.net
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] cx23885: add i2c client handling into dvb_unregister
- and state
-References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi> <1407787095-2167-4-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407787095-2167-4-git-send-email-olli.salonen@iki.fi>
+To: LMML <linux-media@vger.kernel.org>
+CC: Bimow Chen <Bimow.Chen@ite.com.tw>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [GIT PULL stable] IT9135 changes
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Mauro,
+Could you pull these and send to stable as tagged per each patch. That 
+patch set mainly increases sensitivity of the IT9135 chipset. It must be 
+considered as a regression because IT9135 driver was replaced by AF9035 
+(USB IF) + AF9033 (DVB-T demod) + IT913x (RF tuner) drivers starting 
+from kernel 3.15.
 
+I did a bunch of measurements with IT9135AX and IT9135BX devices. 
+Sensitivity increases around 5 dB.
+
+I measured -81dBm for IT9135BX and -79dBm for IT9135AX. Windows driver 
+performs a little bit better still - for both chip versions around -82dBm.
+
+I didn't noticed any sensitivity difference between old and new firmware.
+
+regards
 Antti
 
-On 08/11/2014 10:58 PM, Olli Salonen wrote:
-> Prepare cx23885 driver for handling I2C client that is needed for certain demodulators and tuners (for example Si2168 and Si2157). I2C client for tuner and demod stored in state and unregistering of the I2C devices added into dvb_unregister.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->   drivers/media/pci/cx23885/cx23885-dvb.c | 16 ++++++++++++++++
->   drivers/media/pci/cx23885/cx23885.h     |  3 +++
->   2 files changed, 19 insertions(+)
->
-> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-> index 968fecc..2608155 100644
-> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
-> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-> @@ -1643,6 +1643,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
->   int cx23885_dvb_unregister(struct cx23885_tsport *port)
->   {
->   	struct videobuf_dvb_frontend *fe0;
-> +	struct i2c_client *client;
->
->   	/* FIXME: in an error condition where the we have
->   	 * an expected number of frontends (attach problem)
-> @@ -1651,6 +1652,21 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
->   	 * This comment only applies to future boards IF they
->   	 * implement MFE support.
->   	 */
-> +
-> +	/* remove I2C client for tuner */
-> +	client = port->i2c_client_tuner;
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> +
-> +	/* remove I2C client for demodulator */
-> +	client = port->i2c_client_demod;
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> +
->   	fe0 = videobuf_dvb_get_frontend(&port->frontends, 1);
->   	if (fe0 && fe0->dvb.frontend)
->   		videobuf_dvb_unregister_bus(&port->frontends);
-> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-> index 0e086c0..1040b3e 100644
-> --- a/drivers/media/pci/cx23885/cx23885.h
-> +++ b/drivers/media/pci/cx23885/cx23885.h
-> @@ -326,6 +326,9 @@ struct cx23885_tsport {
->   	/* Workaround for a temp dvb_frontend that the tuner can attached to */
->   	struct dvb_frontend analog_fe;
->
-> +	struct i2c_client *i2c_client_demod;
-> +	struct i2c_client *i2c_client_tuner;
-> +
->   	int (*set_frontend)(struct dvb_frontend *fe);
->   };
->
->
+
+The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
+
+   [media] media: ttpci: fix av7110 build to be compatible with 
+CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git it9135_sensitivity_regression
+
+for you to fetch changes up to 4a6845470d614a857c507c8f212c3d4b2c4b3dca:
+
+   af9035: new IDs: add support for PCTV 78e and PCTV 79e (2014-08-26 
+03:15:30 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       af9033: feed clock to RF tuner
+
+Bimow Chen (2):
+       af9033: update IT9135 tuner inittabs
+       it913x: init tuner on attach
+
+Malcolm Priestley (1):
+       af9035: new IDs: add support for PCTV 78e and PCTV 79e
+
+  drivers/media/dvb-core/dvb-usb-ids.h      |  2 ++
+  drivers/media/dvb-frontends/af9033.c      | 13 +++++++++++++
+  drivers/media/dvb-frontends/af9033_priv.h | 20 +++++++++-----------
+  drivers/media/tuners/tuner_it913x.c       |  6 ++++++
+  drivers/media/usb/dvb-usb-v2/af9035.c     |  4 ++++
+  5 files changed, 34 insertions(+), 11 deletions(-)
+
 
 -- 
 http://palosaari.fi/
