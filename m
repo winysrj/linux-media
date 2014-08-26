@@ -1,78 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4385 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390AbaHDKaN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 06:30:13 -0400
-Message-ID: <53DF60A7.4080208@xs4all.nl>
-Date: Mon, 04 Aug 2014 12:29:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] pwc: fix WARN_ON
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44118 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755777AbaHZVzU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 17:55:20 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 28/35] Revert "[media] staging: omap4iss: copy paste error in iss_get_clocks"
+Date: Tue, 26 Aug 2014 18:55:04 -0300
+Message-Id: <1409090111-8290-29-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If start_streaming fails, then the buffers must be given back to vb2 with state
-QUEUED, not ERROR. Otherwise a WARN_ON will be generated.
+This patch readded a call to iss_put_clocks(), with was removed
+by changeset 1153be56a105, causing a compilation breakage.
 
-In the disconnect it is pointless to call pwc_cleanup_queued_bufs() as stop_streaming()
-will be called anyway.
+This reverts commit d4b32646468088323f27a7788ce3b07191015142.
+---
+ drivers/staging/media/omap4iss/iss.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 15b754d..702267e 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -508,7 +508,8 @@ static void pwc_isoc_cleanup(struct pwc_device *pdev)
- }
- 
- /* Must be called with vb_queue_lock hold */
--static void pwc_cleanup_queued_bufs(struct pwc_device *pdev)
-+static void pwc_cleanup_queued_bufs(struct pwc_device *pdev,
-+				    enum vb2_buffer_state state)
- {
- 	unsigned long flags = 0;
- 
-@@ -519,7 +520,7 @@ static void pwc_cleanup_queued_bufs(struct pwc_device *pdev)
- 		buf = list_entry(pdev->queued_bufs.next, struct pwc_frame_buf,
- 				 list);
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb, state);
- 	}
- 	spin_unlock_irqrestore(&pdev->queued_bufs_lock, flags);
- }
-@@ -674,7 +675,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 		pwc_set_leds(pdev, 0, 0);
- 		pwc_camera_power(pdev, 0);
- 		/* And cleanup any queued bufs!! */
--		pwc_cleanup_queued_bufs(pdev);
-+		pwc_cleanup_queued_bufs(pdev, VB2_BUF_STATE_QUEUED);
- 	}
- 	mutex_unlock(&pdev->v4l2_lock);
- 
-@@ -692,7 +693,9 @@ static void stop_streaming(struct vb2_queue *vq)
- 		pwc_isoc_cleanup(pdev);
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 8a23d164e847..d548371db65a 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -1014,7 +1014,6 @@ static int iss_get_clocks(struct iss_device *iss)
+ 	iss->iss_ctrlclk = devm_clk_get(iss->dev, "iss_ctrlclk");
+ 	if (IS_ERR(iss->iss_ctrlclk)) {
+ 		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
+-		iss_put_clocks(iss);
+ 		return PTR_ERR(iss->iss_ctrlclk);
  	}
  
--	pwc_cleanup_queued_bufs(pdev);
-+	pwc_cleanup_queued_bufs(pdev, VB2_BUF_STATE_ERROR);
-+	if (pdev->fill_buf)
-+		vb2_buffer_done(&pdev->fill_buf->vb, VB2_BUF_STATE_ERROR);
- 	mutex_unlock(&pdev->v4l2_lock);
- }
- 
-@@ -1125,7 +1128,6 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
- 	if (pdev->vb_queue.streaming)
- 		pwc_isoc_cleanup(pdev);
- 	pdev->udev = NULL;
--	pwc_cleanup_queued_bufs(pdev);
- 
- 	v4l2_device_disconnect(&pdev->v4l2_dev);
- 	video_unregister_device(&pdev->vdev);
+-- 
+1.9.3
 
