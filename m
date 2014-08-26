@@ -1,101 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta12.emeryville.ca.mail.comcast.net ([76.96.27.227]:49268
-	"EHLO qmta12.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752580AbaHNBJ3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44115 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755735AbaHZVzU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 21:09:29 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, fabf@skynet.be
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] media: tuner xc5000 - release firmwware from xc5000_release()
-Date: Wed, 13 Aug 2014 19:09:23 -0600
-Message-Id: <ed12c60cb0052853517999841a2c581289c129df.1407977791.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407977791.git.shuah.kh@samsung.com>
-References: <cover.1407977791.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407977791.git.shuah.kh@samsung.com>
-References: <cover.1407977791.git.shuah.kh@samsung.com>
+	Tue, 26 Aug 2014 17:55:20 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 32/35] [media] enable COMPILE_TEST for OMAP2 vout
+Date: Tue, 26 Aug 2014 18:55:08 -0300
+Message-Id: <1409090111-8290-33-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-xc5000 releases firmware right after loading it. Change it to
-save the firmware and release it from xc5000_release(). This
-helps avoid fecthing firmware when forced firmware load requests
-come in to change analog tv frequence and when firmware needs to
-be reloaded after suspend and resume.
+We don't need anything special to enable COMPILE_TEST for
+this driver.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/tuners/xc5000.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ drivers/media/platform/Makefile     | 2 +-
+ drivers/media/platform/omap/Kconfig | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index 512fe50..31b1dec 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -70,6 +70,8 @@ struct xc5000_priv {
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 4ac4c91b4415..b598b3bb2645 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -49,6 +49,6 @@ obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
  
- 	struct dvb_frontend *fe;
- 	struct delayed_work timer_sleep;
-+
-+	const struct firmware   *firmware;
- };
+ obj-y	+= davinci/
  
- /* Misc Defines */
-@@ -1136,20 +1138,23 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
- 	if (!force && xc5000_is_firmware_loaded(fe) == 0)
- 		return 0;
+-obj-$(CONFIG_ARCH_OMAP)	+= omap/
++obj-y	+= omap/
  
--	ret = request_firmware(&fw, desired_fw->name,
--			       priv->i2c_props.adap->dev.parent);
--	if (ret) {
--		printk(KERN_ERR "xc5000: Upload failed. (file not found?)\n");
--		return ret;
--	}
--
--	dprintk(1, "firmware read %Zu bytes.\n", fw->size);
-+	if (!priv->firmware) {
-+		ret = request_firmware(&fw, desired_fw->name,
-+					priv->i2c_props.adap->dev.parent);
-+		if (ret) {
-+			pr_err("xc5000: Upload failed. rc %d\n", ret);
-+			return ret;
-+		}
-+		dprintk(1, "firmware read %Zu bytes.\n", fw->size);
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+index 37ad446b35b3..2253bf102ed9 100644
+--- a/drivers/media/platform/omap/Kconfig
++++ b/drivers/media/platform/omap/Kconfig
+@@ -3,7 +3,7 @@ config VIDEO_OMAP2_VOUT_VRFB
  
--	if (fw->size != desired_fw->size) {
--		printk(KERN_ERR "xc5000: Firmware file with incorrect size\n");
--		ret = -EINVAL;
--		goto err;
--	}
-+		if (fw->size != desired_fw->size) {
-+			pr_err("xc5000: Firmware file with incorrect size\n");
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+		priv->firmware = fw;
-+	} else
-+		fw = priv->firmware;
- 
- 	/* Try up to 5 times to load firmware */
- 	for (i = 0; i < 5; i++) {
-@@ -1232,7 +1237,6 @@ err:
- 	else
- 		printk(KERN_CONT " - too many retries. Giving up\n");
- 
--	release_firmware(fw);
- 	return ret;
- }
- 
-@@ -1316,6 +1320,8 @@ static int xc5000_release(struct dvb_frontend *fe)
- 	if (priv) {
- 		cancel_delayed_work(&priv->timer_sleep);
- 		hybrid_tuner_release_state(priv);
-+		if (priv->firmware)
-+			release_firmware(priv->firmware);
- 	}
- 
- 	mutex_unlock(&xc5000_list_mutex);
+ config VIDEO_OMAP2_VOUT
+ 	tristate "OMAP2/OMAP3 V4L2-Display driver"
+-	depends on ARCH_OMAP2 || ARCH_OMAP3
++	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+ 	select VIDEOBUF_GEN
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
 -- 
-1.7.10.4
+1.9.3
 
