@@ -1,64 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39655 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756061AbaHVK6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:58:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL FINAL 13/21] msi2500: remove unneeded local pointer on msi2500_isoc_init()
-Date: Fri, 22 Aug 2014 13:58:05 +0300
-Message-Id: <1408705093-5167-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
-References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1632 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755125AbaHZVBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 17:01:54 -0400
+Message-ID: <53FCF596.8000002@xs4all.nl>
+Date: Tue, 26 Aug 2014 23:01:10 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mark Brown <broonie@kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: linux-media@vger.kernel.org, linaro-kernel@lists.linaro.org,
+	Mark Brown <broonie@linaro.org>
+Subject: Re: [PATCH] [media] v4l2-pci-skeleton: Only build if PCI is available
+References: <1409071130-22183-1-git-send-email-broonie@kernel.org>
+In-Reply-To: <1409071130-22183-1-git-send-email-broonie@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to keep local copy of usb_device pointer as we
-have same pointer stored and available easily from device state.
+On 08/26/2014 06:38 PM, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> 
+> Currently arm64 does not support PCI but it does support v4l2. Since the
+> PCI skeleton driver is built unconditionally as a module with no dependency
+> on PCI this causes build failures for arm64 allmodconfig. Fix this by
+> defining a symbol VIDEO_PCI_SKELETON for the skeleton and conditionalising
+> the build on that.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+>  Documentation/video4linux/Makefile | 2 +-
+>  drivers/media/v4l2-core/Kconfig    | 7 +++++++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/video4linux/Makefile b/Documentation/video4linux/Makefile
+> index d58101e788fc..65a351d75c95 100644
+> --- a/Documentation/video4linux/Makefile
+> +++ b/Documentation/video4linux/Makefile
+> @@ -1 +1 @@
+> -obj-m := v4l2-pci-skeleton.o
+> +obj-$(CONFIG_VIDEO_PCI_SKELETON) := v4l2-pci-skeleton.o
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 9ca0f8d59a14..2b368f711c9e 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -25,6 +25,13 @@ config VIDEO_FIXED_MINOR_RANGES
+>  
+>  	  When in doubt, say N.
+>  
+> +config VIDEO_PCI_SKELETON
+> +	tristate "Skeleton PCI V4L2 driver"
+> +	depends on PCI && COMPILE_TEST
+> +	---help---
+> +	  Enable build of the skeleton PCI driver, used as a reference
+> +	  when developign new drivers.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/msi2500/msi2500.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Typo: developign -> developing
 
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-index 26b1334..71e0960 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -501,14 +501,12 @@ static void msi2500_isoc_cleanup(struct msi2500_state *s)
- /* Both v4l2_lock and vb_queue_lock should be locked when calling this */
- static int msi2500_isoc_init(struct msi2500_state *s)
- {
--	struct usb_device *udev;
- 	struct urb *urb;
- 	int i, j, ret;
- 
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
- 	s->isoc_errors = 0;
--	udev = s->udev;
- 
- 	ret = usb_set_interface(s->udev, 0, 1);
- 	if (ret)
-@@ -527,10 +525,11 @@ static int msi2500_isoc_init(struct msi2500_state *s)
- 		dev_dbg(&s->udev->dev, "Allocated URB at 0x%p\n", urb);
- 
- 		urb->interval = 1;
--		urb->dev = udev;
--		urb->pipe = usb_rcvisocpipe(udev, 0x81);
-+		urb->dev = s->udev;
-+		urb->pipe = usb_rcvisocpipe(s->udev, 0x81);
- 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_buffer = usb_alloc_coherent(udev, ISO_BUFFER_SIZE,
-+		urb->transfer_buffer = usb_alloc_coherent(s->udev,
-+				ISO_BUFFER_SIZE,
- 				GFP_KERNEL, &urb->transfer_dma);
- 		if (urb->transfer_buffer == NULL) {
- 			dev_err(&s->udev->dev,
--- 
-http://palosaari.fi/
+> +
+>  # Used by drivers that need tuner.ko
+>  config VIDEO_TUNER
+>  	tristate
+> 
 
