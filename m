@@ -1,39 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.194]:56416 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932117AbaHKT62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Aug 2014 15:58:28 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: olli@cabbala.net
-Cc: Olli Salonen <olli.salonen@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/6] em28xx: add ts mode setting for PCTV 461e
-Date: Mon, 11 Aug 2014 22:58:11 +0300
-Message-Id: <1407787095-2167-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
-References: <1407787095-2167-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1212 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932150AbaHZGWk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 02:22:40 -0400
+Message-ID: <53FC2759.4020704@xs4all.nl>
+Date: Tue, 26 Aug 2014 08:21:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: ivtv-devel@ivtvdriver.org, Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH for v3.17] cx18: fix kernel oops with tda8290 tuner
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TS mode must be set in the existing PCTV 461e driver.
+This was caused by an uninitialized setup.config field.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Based on a suggestion from Devin Heitmueller.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks-to: Devin Heitmueller <dheitmueller@kernellabs.com>
+Reported-by: Scott Robinson <scott.robinson55@gmail.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: stable@vger.kernel.org      # for v3.10 and up
 ---
- drivers/media/usb/em28xx/em28xx-dvb.c | 1 +
+ drivers/media/pci/cx18/cx18-driver.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index d8e9760..0645793 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1535,6 +1535,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			/* attach demod */
- 			si2168_config.i2c_adapter = &adapter;
- 			si2168_config.fe = &dvb->fe[0];
-+			si2168_config.ts_mode = SI2168_TS_PARALLEL;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
- 			info.addr = 0x64;
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index 716bdc5..83f5074 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -1091,6 +1091,7 @@ static int cx18_probe(struct pci_dev *pci_dev,
+ 		setup.addr = ADDR_UNSET;
+ 		setup.type = cx->options.tuner;
+ 		setup.mode_mask = T_ANALOG_TV;  /* matches TV tuners */
++		setup.config = NULL;
+ 		if (cx->options.radio > 0)
+ 			setup.mode_mask |= T_RADIO;
+ 		setup.tuner_callback = (setup.type == TUNER_XC2028) ?
 -- 
-1.9.1
+2.1.0.rc1
 
