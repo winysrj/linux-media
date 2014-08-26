@@ -1,70 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40502 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756085AbaHVK6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:58:30 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	CrazyCat <crazycat69@narod.ru>, Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL FINAL 10/21] si2168: DVB-T2 PLP selection implemented
-Date: Fri, 22 Aug 2014 13:58:02 +0300
-Message-Id: <1408705093-5167-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
-References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:17890 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757771AbaHZMNz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Aug 2014 08:13:55 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Laura Abbott <lauraa@codeaurora.org>,
+	Josh Cartwright <joshc@codeaurora.org>,
+	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: [PATCH 4/7] drivers: dma-contiguous: add initialization from device
+ tree
+Date: Tue, 26 Aug 2014 14:09:45 +0200
+Message-id: <1409054988-32758-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
+References: <1409054988-32758-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: CrazyCat <crazycat69@narod.ru>
+Add a function to create CMA region from previously reserved memory
+and add support for handling 'shared-dma-pool' reserved-memory device
+tree nodes.
 
-DVB-T2 PLP selection implemented for Si2168 demod.
-Tested with PCTV 292e.
+Based on previous code provided by Josh Cartwright <joshc@codeaurora.org>
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/base/dma-contiguous.c | 71 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/cma.h           |  3 ++
+ mm/cma.c                      | 62 ++++++++++++++++++++++++++++++-------
+ 3 files changed, 125 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 97614db..55a4212 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -167,10 +167,10 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	u8 bandwidth, delivery_system;
- 
- 	dev_dbg(&s->client->dev,
--			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u\n",
-+			"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u, stream_id=%d\n",
- 			c->delivery_system, c->modulation,
- 			c->frequency, c->bandwidth_hz, c->symbol_rate,
--			c->inversion);
-+			c->inversion, c->stream_id);
- 
- 	if (!s->active) {
- 		ret = -EAGAIN;
-@@ -234,6 +234,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	if (c->delivery_system == SYS_DVBT2) {
-+		/* select PLP */
-+		cmd.args[0] = 0x52;
-+		cmd.args[1] = c->stream_id & 0xff;
-+		cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
-+		cmd.wlen = 3;
-+		cmd.rlen = 1;
-+		ret = si2168_cmd_execute(s, &cmd);
-+		if (ret)
-+			goto err;
+diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
+index 6606abdf880c..eefb81b85b42 100644
+--- a/drivers/base/dma-contiguous.c
++++ b/drivers/base/dma-contiguous.c
+@@ -211,3 +211,74 @@ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+ {
+ 	return cma_release(dev_get_cma_area(dev), pages, count);
+ }
++
++/*
++ * Support for reserved memory regions defined in device tree
++ */
++#ifdef CONFIG_OF_RESERVED_MEM
++#include <linux/of.h>
++#include <linux/of_fdt.h>
++#include <linux/of_reserved_mem.h>
++
++#undef pr_fmt
++#define pr_fmt(fmt) fmt
++
++static int rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
++{
++	struct cma *cma = rmem->priv;
++	if (!cma)
++		return -ENODEV;
++
++	dev_set_cma_area(dev, cma);
++	return 0;
++}
++
++static void rmem_cma_device_release(struct reserved_mem *rmem,
++				    struct device *dev)
++{
++	dev_set_cma_area(dev, NULL);
++}
++
++static const struct reserved_mem_ops rmem_cma_ops = {
++	.device_init	= rmem_cma_device_init,
++	.device_release = rmem_cma_device_release,
++};
++
++static int __init rmem_cma_setup(struct reserved_mem *rmem)
++{
++	phys_addr_t align = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
++	phys_addr_t mask = align - 1;
++	unsigned long node = rmem->fdt_node;
++	struct cma *cma;
++	int err;
++
++	if (!of_get_flat_dt_prop(node, "reusable", NULL) ||
++	    of_get_flat_dt_prop(node, "no-map", NULL))
++		return -EINVAL;
++
++	if ((rmem->base & mask) || (rmem->size & mask)) {
++		pr_err("Reserved memory: incorrect alignment of CMA region\n");
++		return -EINVAL;
 +	}
 +
- 	memcpy(cmd.args, "\x51\x03", 2);
- 	cmd.wlen = 2;
- 	cmd.rlen = 12;
++	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
++	if (err) {
++		pr_err("Reserved memory: unable to setup CMA region\n");
++		return err;
++	}
++	/* Architecture specific contiguous memory fixup. */
++	dma_contiguous_early_fixup(rmem->base, rmem->size);
++
++	if (of_get_flat_dt_prop(node, "linux,cma-default", NULL))
++		dma_contiguous_set_default(cma);
++
++	rmem->ops = &rmem_cma_ops;
++	rmem->priv = cma;
++
++	pr_info("Reserved memory: created CMA memory pool at %pa, size %ld MiB\n",
++		&rmem->base, (unsigned long)rmem->size / SZ_1M);
++
++	return 0;
++}
++RESERVEDMEM_OF_DECLARE(cma, "shared-dma-pool", rmem_cma_setup);
++#endif
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index 371b93042520..0430ed05d3b9 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -22,6 +22,9 @@ extern int __init cma_declare_contiguous(phys_addr_t size,
+ 			phys_addr_t base, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, struct cma **res_cma);
++extern int cma_init_reserved_mem(phys_addr_t size,
++					phys_addr_t base, int order_per_bit,
++					struct cma **res_cma);
+ extern struct page *cma_alloc(struct cma *cma, int count, unsigned int align);
+ extern bool cma_release(struct cma *cma, struct page *pages, int count);
+ #endif
+diff --git a/mm/cma.c b/mm/cma.c
+index 4acc6aa4a086..d0065af4f000 100644
+--- a/mm/cma.c
++++ b/mm/cma.c
+@@ -141,6 +141,54 @@ static int __init cma_init_reserved_areas(void)
+ core_initcall(cma_init_reserved_areas);
+ 
+ /**
++ * cma_init_reserved_mem() - create custom contiguous area from reserved memory
++ * @base: Base address of the reserved area
++ * @size: Size of the reserved area (in bytes),
++ * @order_per_bit: Order of pages represented by one bit on bitmap.
++ * @res_cma: Pointer to store the created cma region.
++ *
++ * This function creates custom contiguous area from already reserved memory.
++ */
++int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
++				 int order_per_bit, struct cma **res_cma)
++{
++	struct cma *cma;
++	phys_addr_t alignment;
++
++	/* Sanity checks */
++	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
++		pr_err("Not enough slots for CMA reserved regions!\n");
++		return -ENOSPC;
++	}
++
++	if (!size || !memblock_is_region_reserved(base, size))
++		return -EINVAL;
++
++	/* ensure minimal alignment requied by mm core */
++	alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
++
++	/* alignment should be aligned with order_per_bit */
++	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
++		return -EINVAL;
++
++	if (ALIGN(base, alignment) != base || ALIGN(size, alignment) != size)
++		return -EINVAL;
++
++	/*
++	 * Each reserved area must be initialised later, when more kernel
++	 * subsystems (like slab allocator) are available.
++	 */
++	cma = &cma_areas[cma_area_count];
++	cma->base_pfn = PFN_DOWN(base);
++	cma->count = size >> PAGE_SHIFT;
++	cma->order_per_bit = order_per_bit;
++	*res_cma = cma;
++	cma_area_count++;
++
++	return 0;
++}
++
++/**
+  * cma_declare_contiguous() - reserve custom contiguous area
+  * @base: Base address of the reserved area optional, use 0 for any
+  * @size: Size of the reserved area (in bytes),
+@@ -163,7 +211,6 @@ int __init cma_declare_contiguous(phys_addr_t base,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, struct cma **res_cma)
+ {
+-	struct cma *cma;
+ 	phys_addr_t memblock_end = memblock_end_of_DRAM();
+ 	phys_addr_t highmem_start = __pa(high_memory);
+ 	int ret = 0;
+@@ -235,16 +282,9 @@ int __init cma_declare_contiguous(phys_addr_t base,
+ 		}
+ 	}
+ 
+-	/*
+-	 * Each reserved area must be initialised later, when more kernel
+-	 * subsystems (like slab allocator) are available.
+-	 */
+-	cma = &cma_areas[cma_area_count];
+-	cma->base_pfn = PFN_DOWN(base);
+-	cma->count = size >> PAGE_SHIFT;
+-	cma->order_per_bit = order_per_bit;
+-	*res_cma = cma;
+-	cma_area_count++;
++	ret = cma_init_reserved_mem(base, size, order_per_bit, res_cma);
++	if (ret)
++		goto err;
+ 
+ 	pr_info("Reserved %ld MiB at %08lx\n", (unsigned long)size / SZ_1M,
+ 		(unsigned long)base);
 -- 
-http://palosaari.fi/
+1.9.2
 
