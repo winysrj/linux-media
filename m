@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45338 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753140AbaHBDtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Aug 2014 23:49:14 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32826 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933220AbaH0Mgg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 08:36:36 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NAY000AKTTU7Y10@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Aug 2014 13:39:30 +0100 (BST)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/5] cxd2843: do not call get_if_frequency() when it is NULL
-Date: Sat,  2 Aug 2014 06:48:51 +0300
-Message-Id: <1406951335-24026-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
-References: <1406951335-24026-1-git-send-email-crope@iki.fi>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH] media: s5p-mfc: rename special clock to sclk_mfc
+Date: Wed, 27 Aug 2014 14:36:28 +0200
+Message-id: <1409142988-9315-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calling NULL callback crash kernel. Check its existence before
-call it.
+Commit d19f405a5a8d2ed942b40f8cf7929a5a50d0cc59 ("[media] s5p-mfc: Fix
+selective sclk_mfc init") added support for special clock handling
+(named "sclk-mfc"). However this clock is not defined yet on any
+platform, so before adding it to all Exynos platform, better rename it
+to "sclk_mfc" to match the scheme used for all other special clocks on
+Exynos platform.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/dvb-frontends/cxd2843.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/cxd2843.c b/drivers/media/dvb-frontends/cxd2843.c
-index 10fc240..433d913 100644
---- a/drivers/media/dvb-frontends/cxd2843.c
-+++ b/drivers/media/dvb-frontends/cxd2843.c
-@@ -1154,7 +1154,8 @@ static int set_parameters(struct dvb_frontend *fe)
- 		state->plp = fe->dtv_property_cache.stream_id & 0xff;
- 	}
- 	/* printk("PLP = %08x, bw = %u\n", state->plp, state->bw); */
--	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
-+	if (fe->ops.tuner_ops.get_if_frequency)
-+		fe->ops.tuner_ops.get_if_frequency(fe, &IF);
- 	stat = Start(state, IF);
- 	return stat;
- }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index b6a8be97a96c..826c48945bf5 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -21,7 +21,7 @@
+ #include "s5p_mfc_pm.h"
+ 
+ #define MFC_GATE_CLK_NAME	"mfc"
+-#define MFC_SCLK_NAME		"sclk-mfc"
++#define MFC_SCLK_NAME		"sclk_mfc"
+ #define MFC_SCLK_RATE		(200 * 1000000)
+ 
+ #define CLK_DEBUG
 -- 
-http://palosaari.fi/
+1.9.2
 
