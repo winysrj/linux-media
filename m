@@ -1,191 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4533 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbaHTW7q (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:41144 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933802AbaH0OgJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 19/29] mantis: fix sparse warnings
-Date: Thu, 21 Aug 2014 00:59:18 +0200
-Message-Id: <1408575568-20562-20-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 27 Aug 2014 10:36:09 -0400
+Message-ID: <53FDECD5.7000804@infradead.org>
+Date: Wed, 27 Aug 2014 07:36:05 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Jim Davis <jim.epost@gmail.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-doc <linux-doc@vger.kernel.org>
+Subject: Re: randconfig build error with next-20140826, in Documentation/video4linux
+References: <CA+r1Zhh5n3p8Zg+Uvqvjeb3S859iejXkqStnnOuezTTm9UCT8g@mail.gmail.com> <20140827105838.GA6522@sudip-PC>
+In-Reply-To: <20140827105838.GA6522@sudip-PC>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/27/14 03:58, Sudip Mukherjee wrote:
+> On Tue, Aug 26, 2014 at 09:50:43AM -0700, Jim Davis wrote:
+>> Building with the attached random configuration file,
+>>
+>> ERROR: "vb2_ops_wait_finish"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ops_wait_prepare"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_event_unsubscribe"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_ctrl_subscribe_event"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_ctrl_log_status"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_streamoff"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_streamon"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_create_bufs"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_dqbuf"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_expbuf"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_qbuf"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_querybuf"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_ioctl_reqbufs"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_fop_release"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_fh_open" [Documentation/video4linux/v4l2-pci-skeleton.ko]
+>> undefined!
+>> ERROR: "vb2_fop_mmap" [Documentation/video4linux/v4l2-pci-skeleton.ko]
+>> undefined!
+>> ERROR: "video_ioctl2" [Documentation/video4linux/v4l2-pci-skeleton.ko]
+>> undefined!
+>> ERROR: "vb2_fop_poll" [Documentation/video4linux/v4l2-pci-skeleton.ko]
+>> undefined!
+>> ERROR: "vb2_fop_read" [Documentation/video4linux/v4l2-pci-skeleton.ko]
+>> undefined!
+>> ERROR: "vb2_buffer_done"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "__video_register_device"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "video_device_release_empty"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_dma_contig_init_ctx"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_queue_init"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_dma_contig_memops"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_ctrl_new_std"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_ctrl_handler_init_class"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_device_register"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_match_dv_timings"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_find_dv_timings_cap"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_valid_dv_timings"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_enum_dv_timings_cap"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "video_devdata"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_device_unregister"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "vb2_dma_contig_cleanup_ctx"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "v4l2_ctrl_handler_free"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> ERROR: "video_unregister_device"
+>> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+>> make[1]: *** [__modpost] Error 1
+>> make: *** [modules] Error 2
+>>
+>> Similar to a build error from January 7th:
+>> https://lists.01.org/pipermail/kbuild-all/2014-January/002566.html
+> 
+> Hi,
+> I tried to build next-20140826 with your given config file . But for me everything was fine.
+> And I was just wondering why the skeleton code in the Documentation is building ?
 
-drivers/media/pci/mantis/hopper_vp3028.c:37:23: warning: symbol 'hopper_vp3028_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp1033.c:38:4: warning: symbol 'lgtdqcs001f_inittab' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp1033.c:153:23: warning: symbol 'lgtdqcs001f_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp1034.c:39:23: warning: symbol 'vp1034_mb86a16_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp1041.c:266:23: warning: symbol 'vp1041_stb0899_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp1041.c:303:23: warning: symbol 'vp1041_stb6100_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp2033.c:40:24: warning: symbol 'vp2033_tda1002x_cu1216_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp2033.c:45:24: warning: symbol 'vp2033_tda10023_cu1216_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp2040.c:40:24: warning: symbol 'vp2040_tda1002x_cu1216_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp2040.c:45:24: warning: symbol 'vp2040_tda10023_cu1216_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp3030.c:38:23: warning: symbol 'mantis_vp3030_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_vp3030.c:42:23: warning: symbol 'env57h12d5_config' was not declared. Should it be static?
-drivers/media/pci/mantis/mantis_dma.c:167:33: warning: incorrect type in assignment (different base types)
-drivers/media/pci/mantis/mantis_dma.c:172:33: warning: incorrect type in assignment (different base types)
-drivers/media/pci/mantis/mantis_dma.c:174:25: warning: incorrect type in assignment (different base types)
-drivers/media/pci/mantis/mantis_dma.c:178:9: warning: incorrect type in assignment (different base types)
-drivers/media/pci/mantis/mantis_dma.c:179:9: warning: incorrect type in assignment (different base types)
+It builds if the Kconfig symbol BUILD_DOCSRC is enabled.
+Building of this module was just added to linux-next.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/mantis/hopper_vp3028.c | 2 +-
- drivers/media/pci/mantis/mantis_common.h | 2 +-
- drivers/media/pci/mantis/mantis_vp1033.c | 4 ++--
- drivers/media/pci/mantis/mantis_vp1034.c | 2 +-
- drivers/media/pci/mantis/mantis_vp1041.c | 4 ++--
- drivers/media/pci/mantis/mantis_vp2033.c | 4 ++--
- drivers/media/pci/mantis/mantis_vp2040.c | 4 ++--
- drivers/media/pci/mantis/mantis_vp3030.c | 4 ++--
- 8 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/pci/mantis/hopper_vp3028.c b/drivers/media/pci/mantis/hopper_vp3028.c
-index 68a29f8..1032db6 100644
---- a/drivers/media/pci/mantis/hopper_vp3028.c
-+++ b/drivers/media/pci/mantis/hopper_vp3028.c
-@@ -34,7 +34,7 @@
- #include "mantis_dvb.h"
- #include "hopper_vp3028.h"
- 
--struct zl10353_config hopper_vp3028_config = {
-+static struct zl10353_config hopper_vp3028_config = {
- 	.demod_address	= 0x0f,
- };
- 
-diff --git a/drivers/media/pci/mantis/mantis_common.h b/drivers/media/pci/mantis/mantis_common.h
-index f2410cf..8ff448b 100644
---- a/drivers/media/pci/mantis/mantis_common.h
-+++ b/drivers/media/pci/mantis/mantis_common.h
-@@ -127,7 +127,7 @@ struct mantis_pci {
- 	u32			last_block;
- 	u8			*buf_cpu;
- 	dma_addr_t		buf_dma;
--	u32			*risc_cpu;
-+	__le32			*risc_cpu;
- 	dma_addr_t		risc_dma;
- 
- 	struct tasklet_struct	tasklet;
-diff --git a/drivers/media/pci/mantis/mantis_vp1033.c b/drivers/media/pci/mantis/mantis_vp1033.c
-index 115003e..12a6adb 100644
---- a/drivers/media/pci/mantis/mantis_vp1033.c
-+++ b/drivers/media/pci/mantis/mantis_vp1033.c
-@@ -35,7 +35,7 @@
- #include "mantis_vp1033.h"
- #include "mantis_reg.h"
- 
--u8 lgtdqcs001f_inittab[] = {
-+static u8 lgtdqcs001f_inittab[] = {
- 	0x01, 0x15,
- 	0x02, 0x30,
- 	0x03, 0x00,
-@@ -150,7 +150,7 @@ static int lgtdqcs001f_set_symbol_rate(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--struct stv0299_config lgtdqcs001f_config = {
-+static struct stv0299_config lgtdqcs001f_config = {
- 	.demod_address		= 0x68,
- 	.inittab		= lgtdqcs001f_inittab,
- 	.mclk			= 88000000UL,
-diff --git a/drivers/media/pci/mantis/mantis_vp1034.c b/drivers/media/pci/mantis/mantis_vp1034.c
-index 430ae84..7c1bd16 100644
---- a/drivers/media/pci/mantis/mantis_vp1034.c
-+++ b/drivers/media/pci/mantis/mantis_vp1034.c
-@@ -36,7 +36,7 @@
- #include "mantis_vp1034.h"
- #include "mantis_reg.h"
- 
--struct mb86a16_config vp1034_mb86a16_config = {
-+static struct mb86a16_config vp1034_mb86a16_config = {
- 	.demod_address	= 0x08,
- 	.set_voltage	= vp1034_set_voltage,
- };
-diff --git a/drivers/media/pci/mantis/mantis_vp1041.c b/drivers/media/pci/mantis/mantis_vp1041.c
-index 07a2074..7082fcb 100644
---- a/drivers/media/pci/mantis/mantis_vp1041.c
-+++ b/drivers/media/pci/mantis/mantis_vp1041.c
-@@ -263,7 +263,7 @@ static const struct stb0899_s1_reg vp1041_stb0899_s1_init_3[] = {
- 	{ 0xffff			, 0xff },
- };
- 
--struct stb0899_config vp1041_stb0899_config = {
-+static struct stb0899_config vp1041_stb0899_config = {
- 	.init_dev		= vp1041_stb0899_s1_init_1,
- 	.init_s2_demod		= stb0899_s2_init_2,
- 	.init_s1_demod		= vp1041_stb0899_s1_init_3,
-@@ -300,7 +300,7 @@ struct stb0899_config vp1041_stb0899_config = {
- 	.tuner_set_rfsiggain	= NULL,
- };
- 
--struct stb6100_config vp1041_stb6100_config = {
-+static struct stb6100_config vp1041_stb6100_config = {
- 	.tuner_address	= 0x60,
- 	.refclock	= 27000000,
- };
-diff --git a/drivers/media/pci/mantis/mantis_vp2033.c b/drivers/media/pci/mantis/mantis_vp2033.c
-index 1ca6837..8d48b5a 100644
---- a/drivers/media/pci/mantis/mantis_vp2033.c
-+++ b/drivers/media/pci/mantis/mantis_vp2033.c
-@@ -37,12 +37,12 @@
- #define MANTIS_MODEL_NAME	"VP-2033"
- #define MANTIS_DEV_TYPE		"DVB-C"
- 
--struct tda1002x_config vp2033_tda1002x_cu1216_config = {
-+static struct tda1002x_config vp2033_tda1002x_cu1216_config = {
- 	.demod_address = 0x18 >> 1,
- 	.invert = 1,
- };
- 
--struct tda10023_config vp2033_tda10023_cu1216_config = {
-+static struct tda10023_config vp2033_tda10023_cu1216_config = {
- 	.demod_address = 0x18 >> 1,
- 	.invert = 1,
- };
-diff --git a/drivers/media/pci/mantis/mantis_vp2040.c b/drivers/media/pci/mantis/mantis_vp2040.c
-index d480741..8dd17d7 100644
---- a/drivers/media/pci/mantis/mantis_vp2040.c
-+++ b/drivers/media/pci/mantis/mantis_vp2040.c
-@@ -37,12 +37,12 @@
- #define MANTIS_MODEL_NAME	"VP-2040"
- #define MANTIS_DEV_TYPE		"DVB-C"
- 
--struct tda1002x_config vp2040_tda1002x_cu1216_config = {
-+static struct tda1002x_config vp2040_tda1002x_cu1216_config = {
- 	.demod_address	= 0x18 >> 1,
- 	.invert		= 1,
- };
- 
--struct tda10023_config vp2040_tda10023_cu1216_config = {
-+static struct tda10023_config vp2040_tda10023_cu1216_config = {
- 	.demod_address	= 0x18 >> 1,
- 	.invert		= 1,
- };
-diff --git a/drivers/media/pci/mantis/mantis_vp3030.c b/drivers/media/pci/mantis/mantis_vp3030.c
-index c09308cd..5c1dd92 100644
---- a/drivers/media/pci/mantis/mantis_vp3030.c
-+++ b/drivers/media/pci/mantis/mantis_vp3030.c
-@@ -35,11 +35,11 @@
- #include "mantis_dvb.h"
- #include "mantis_vp3030.h"
- 
--struct zl10353_config mantis_vp3030_config = {
-+static struct zl10353_config mantis_vp3030_config = {
- 	.demod_address		= 0x0f,
- };
- 
--struct tda665x_config env57h12d5_config = {
-+static struct tda665x_config env57h12d5_config = {
- 	.name			= "ENV57H12D5 (ET-50DT)",
- 	.addr			= 0x60,
- 	.frequency_min		=  47000000,
 -- 
-2.1.0.rc1
-
+~Randy
