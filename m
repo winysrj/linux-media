@@ -1,80 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45989 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220AbaHTXBE (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:43304 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934614AbaH0OXe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 19:01:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: m.chehab@samsung.com, horms@verge.net.au, magnus.damm@gmail.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 6/6] devicetree: bindings: Document Renesas JPEG Processing Unit.
-Date: Thu, 21 Aug 2014 01:01:43 +0200
-Message-ID: <3694359.xqEjcGBlOG@avalon>
-In-Reply-To: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
-References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	Wed, 27 Aug 2014 10:23:34 -0400
+Message-ID: <53FDE9E1.2000108@mentor.com>
+Date: Wed, 27 Aug 2014 07:23:29 -0700
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
+In-Reply-To: <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mikhail,
+On 08/27/2014 12:13 AM, Jean-Michel Hautbois wrote:
+> Hi Phillip,
+>
+> 2014-08-04 13:54 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
+>> We should take this step by step. First I'd like to get Steve's ipu-v3
+>> series in, those don't have any major issues and are a prerequisite for
+>> the media patches anyway.
+>>
+>> The capture patches had a few more issues than just missing media device
+>> support. But this is indeed the biggest one, especially where it
+>> involves a userspace interface that we don't want to have to support in
+>> the future.
+>> My RFC series wasn't without problems either. I'll work on the IPU this
+>> week and then post another RFC.
+> Any news about this ? I saw your patchset from june 12th.
+> What is the current status of this RFC and is there a way to help
+> integrating/testing it ? Do you have a public git repository I can
+> fetch and merge in order to test ?
+>
+>
 
-Thank you for the patch.
+Hi Jean-Michel, Phillip,
 
-On Tuesday 19 August 2014 16:50:53 Mikhail Ulyanov wrote:
-> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> ---
->  .../devicetree/bindings/media/renesas,jpu.txt      | 23 +++++++++++++++++++
->  1 file changed, 23 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,jpu.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> b/Documentation/devicetree/bindings/media/renesas,jpu.txt new file mode
-> 100644
-> index 0000000..44b07df
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> @@ -0,0 +1,23 @@
-> +* Renesas VSP1 Video Processing Engine
+I've done some work on Philipp's June 12 patchset, converting
+the CSI driver to a CSI subdev entity, and fixing some issues here
+and there. This June 12 patchset doesn't appear to be a fully working
+driver, Phillip correct me if I am wrong. I can post this work as it
+exists, it is incomplete but compiles.
 
-Copy & paste ? :-)
+I've also worked out what I think is a workable video pipeline graph for i.MX,
+suitable for defining the entities, pads, and links. Unfortunately I haven't
+been able to spend as much time as I'd like on it.
 
-> +
-> +The JPEG processing unit (JPU) incorporates the JPEG codec with an encoding
-> +and decoding function conforming to the JPEG baseline process, so that the
-> JPU
-> +can encode image data and decode JPEG data quickly.
-> +It can be found in the Renesas R-Car first and second generation SoCs.
+The complete driver I posted to the list does have some minor issues
+mostly suggested by Hans Verkuil (switch to new selection API instead
+of cropping API for example). It is a full featured driver but it does not
+implement the media device framework, i.e. user does not have direct
+control of the video pipeline, rather the driver chooses the pipeline based
+on the traditional inputs from user (video format and controls).
 
-Is there a difference between the first and second generation JPUs ?
+If there is interest I can submit another version of the traditional driver
+to resolve the issues. But media device is a major rework, so I don't
+know whether it would make sense to start from the traditional driver
+and then implement media device on top later, since media device
+is almost a complete rewrite.
 
-> +
-> +Required properties:
-> +  - compatible: should containg one of the following:
-> +			- "renesas,jpu-r8a7790" for R-Car H2
-> +			- "renesas,jpu-r8a7791" for R-Car M2
-
-How about adding a "renesas,jpu" generic compatible, and listing both the SoC-
-specific and the generic values (in that order) in the compatible property ?
-
-> +  - reg: Base address and length of the registers block for the JPU.
-> +  - interrupts: JPU interrupt specifier.
-> +  - clocks: A phandle + clock-specifier pair for the JPU functional clock.
-> +
-> +Example: R8A7790 (R-Car H2) JPU node
-> +	jpeg-codec@fe980000 {
-> +		compatible = "renesas,jpu-r8a7790";
-> +		reg = <0 0xfe980000 0 0x10300>;
-> +		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
-> +	};
-
--- 
-Regards,
-
-Laurent Pinchart
+Steve
 
