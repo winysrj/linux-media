@@ -1,87 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f169.google.com ([209.85.160.169]:43029 "EHLO
-	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbaHHNmD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Aug 2014 09:42:03 -0400
-Received: by mail-yk0-f169.google.com with SMTP id 131so3886414ykp.28
-        for <linux-media@vger.kernel.org>; Fri, 08 Aug 2014 06:42:03 -0700 (PDT)
+Received: from kirsty.vergenet.net ([202.4.237.240]:45039 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932340AbaH0FPG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 01:15:06 -0400
+Date: Wed, 27 Aug 2014 14:15:01 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
+ Processing Unit.
+Message-ID: <20140827051501.GB1343@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <1408970132-6690-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+ <20140825235720.GB7217@verge.net.au>
+ <CAMuHMdW0r-xGJZtc4AFvxMnTu1rdEROf2DvywScC-XhSELFMtQ@mail.gmail.com>
+ <20140826090126.GC29667@verge.net.au>
+ <CAMuHMdWaO27XhfdwhMHS2+gndoysZbQsT0YLp7KhR_cWujxvTQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1407494627-1555-3-git-send-email-m.chehab@samsung.com>
-References: <1407494627-1555-1-git-send-email-m.chehab@samsung.com>
-	<1407494627-1555-3-git-send-email-m.chehab@samsung.com>
-Date: Fri, 8 Aug 2014 07:42:03 -0600
-Message-ID: <CAKocOOPA3bkJ_p5V6jr_SNLF+yxmLJYLc=5xOVYuAOzO9u4bOw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] au0828: don't let the IR polling thread to run at suspend
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWaO27XhfdwhMHS2+gndoysZbQsT0YLp7KhR_cWujxvTQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 8, 2014 at 4:43 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Trying to make au0828 to suspend can do very bad things, as
-> the polling Kthread is not handled. We should disable it
-> during suspend, only re-enabling it at resume.
->
-> Still, analog and digital TV won't work, as we don't reinit
-> the settings at resume, but at least it won't hang.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-core.c | 32 ++++++++++++++++++++++++++++++--
->  1 file changed, 30 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index 56025e689442..eb5f2b1b182b 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -285,13 +285,41 @@ static int au0828_usb_probe(struct usb_interface *interface,
->         return retval;
->  }
->
-> +static int au0828_suspend(struct usb_interface *interface,
-> +                               pm_message_t message)
-> +{
-> +       struct au0828_dev *dev = usb_get_intfdata(interface);
-> +
-> +       if (!dev)
-> +               return 0;
-> +
-> +       au0828_rc_suspend(dev);
-> +
-> +       /* FIXME: should suspend also ATV/DTV */
-> +
-> +       return 0;
-> +}
-> +
-> +static int au0828_resume(struct usb_interface *interface)
-> +{
-> +       struct au0828_dev *dev = usb_get_intfdata(interface);
-> +       if (!dev)
-> +               return 0;
-> +
-> +       au0828_rc_resume(dev);
-> +
-> +       /* FIXME: should resume also ATV/DTV */
-> +
-> +       return 0;
-> +}
-> +
->  static struct usb_driver au0828_usb_driver = {
->         .name           = DRIVER_NAME,
->         .probe          = au0828_usb_probe,
->         .disconnect     = au0828_usb_disconnect,
->         .id_table       = au0828_usb_id_table,
-> -
-> -       /* FIXME: Add suspend and resume functions */
-> +       .suspend        = au0828_suspend,
-> +       .resume         = au0828_resume,
->  };
+On Tue, Aug 26, 2014 at 11:27:43AM +0200, Geert Uytterhoeven wrote:
+> On Tue, Aug 26, 2014 at 11:01 AM, Simon Horman <horms@verge.net.au> wrote:
+> > On Tue, Aug 26, 2014 at 10:03:34AM +0200, Geert Uytterhoeven wrote:
+> >> On Tue, Aug 26, 2014 at 1:57 AM, Simon Horman <horms@verge.net.au> wrote:
+> >> > On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
+> >> >> On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov
+> >> >> <mikhail.ulyanov@cogentembedded.com> wrote:
+> >> >> > +  - compatible: should containg one of the following:
+> >> >> > +                       - "renesas,jpu-r8a7790" for R-Car H2
+> >> >> > +                       - "renesas,jpu-r8a7791" for R-Car M2
+> >> >> > +                       - "renesas,jpu-gen2" for R-Car second generation
+> >> >>
+> >> >> Isn't "renesas,jpu-gen2" meant as a fallback?
+> >> >>
+> >> >> I.e. the DTS should have one of '7790 and '7791, AND the gen2 fallback,
+> >> >> so we can make the driver match against '7790 and '7791 is we find
+> >> >> out about an incompatibility.
+> >> >
+> >> > Is there a document that clearly states that there is such a thing
+> >> > as jpu-gen2 in hardware? If not I would prefer not to add a binding for it.
+> >>
+> >> We do have a document that describes the "JPEG Processing Unit (JPU)",
+> >> as found in the following members of the "Second Generation R-Car Series
+> >> Products": "R-Car H2", "R-Car M2-W", "R-Car M2-N", and "R-Car V2H".
+> >
+> > Oh, that is nice :)
+> >
+> > From my point of view that ticks a lot of boxes.
+> > But I wonder if we can come up with a better name than jpu,-gen2.
+> 
+> "jpu-rcar-gen2"?
 
-all the extensions will need suspend/resume hooks similar to em28xx
-would like me to take a look at that??
+I guess that is a slight improvement.
 
--- Shuah
+But suppose some gen2 SoC exists or comes to exists that
+has different IP. Suppose there is more than one that same
+the same IP that is different to the SoCs covered by the
+existing compat string?
