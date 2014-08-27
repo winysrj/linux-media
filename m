@@ -1,64 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58484 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751905AbaH2BF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 21:05:56 -0400
-Message-ID: <53FFD1F0.9050306@iki.fi>
-Date: Fri, 29 Aug 2014 04:05:52 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from kirsty.vergenet.net ([202.4.237.240]:57557 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932883AbaH0GQu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 02:16:50 -0400
+Date: Wed, 27 Aug 2014 15:16:47 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
+ Processing Unit.
+Message-ID: <20140827061643.GA32218@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <CAMuHMdWaO27XhfdwhMHS2+gndoysZbQsT0YLp7KhR_cWujxvTQ@mail.gmail.com>
+ <20140827051501.GB1343@verge.net.au>
+ <1636392.ZpHdXzEmup@avalon>
 MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
- for APIv5
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com>
-In-Reply-To: <53FEF144.6060106@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1636392.ZpHdXzEmup@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-moikka!
+On Wed, Aug 27, 2014 at 08:06:10AM +0200, Laurent Pinchart wrote:
+> On Wednesday 27 August 2014 14:15:01 Simon Horman wrote:
+> > On Tue, Aug 26, 2014 at 11:27:43AM +0200, Geert Uytterhoeven wrote:
+> > > On Tue, Aug 26, 2014 at 11:01 AM, Simon Horman <horms@verge.net.au> wrote:
+> > >> On Tue, Aug 26, 2014 at 10:03:34AM +0200, Geert Uytterhoeven wrote:
+> > >>> On Tue, Aug 26, 2014 at 1:57 AM, Simon Horman wrote:
+> > >>>> On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven wrote:
+> > >>>>> On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov wrote:
+> > >>>>>> +  - compatible: should containg one of the following:
+> > >>>>>> +                       - "renesas,jpu-r8a7790" for R-Car H2
+> > >>>>>> +                       - "renesas,jpu-r8a7791" for R-Car M2
+> > >>>>>> +                       - "renesas,jpu-gen2" for R-Car second
+> > >>>>>> generation
+> > >>>>> 
+> > >>>>> Isn't "renesas,jpu-gen2" meant as a fallback?
+> > >>>>> 
+> > >>>>> I.e. the DTS should have one of '7790 and '7791, AND the gen2
+> > >>>>> fallback, so we can make the driver match against '7790 and '7791 is
+> > >>>>> we find out about an incompatibility.
+> > >>>> 
+> > >>>> Is there a document that clearly states that there is such a thing
+> > >>>> as jpu-gen2 in hardware? If not I would prefer not to add a binding
+> > >>>> for it.
+> > >>> 
+> > >>> We do have a document that describes the "JPEG Processing Unit (JPU)",
+> > >>> as found in the following members of the "Second Generation R-Car
+> > >>> Series Products": "R-Car H2", "R-Car M2-W", "R-Car M2-N", and "R-Car
+> > >>> V2H".
+> > >> 
+> > >> Oh, that is nice :)
+> > >> 
+> > >> From my point of view that ticks a lot of boxes.
+> > >> But I wonder if we can come up with a better name than jpu,-gen2.
+> > > 
+> > > "jpu-rcar-gen2"?
+> > 
+> > I guess that is a slight improvement.
+> > 
+> > But suppose some gen2 SoC exists or comes to exists that
+> > has different IP. Suppose there is more than one that same
+> > the same IP that is different to the SoCs covered by the
+> > existing compat string?
+> 
+> That's exactly the information we need to request from the hardware team :-)
 
-On 08/28/2014 12:07 PM, Akihiro TSUKADA wrote:
-> moikka,
-> thanks for the comment.
->
->> I have feeling DVBv5 API is aimed to transfer data via property cached.
->> I haven't done much driver for DVBv5 statistics, but recently I
->> implemented CNR (DVBv5 stats) to Si2168 driver and it just writes all
->> the values directly to property cache. I expect RF strength (RSSI) is
->> just similar.
->
-> Currently, the demod of PT3 card (tc90522) gets RSSI data from
-> the connected tuner (mxl301rf) via tuner_ops.get_signal_strength_dbm()
-> and sets property cache in fe->ops.get_frontend() (which is called
-> before returning property cache value by dvb_frontend_ioctl_properties()).
-> If the tuner driver should set property cache directly,
-> when is the right timing to do so?
-> In fe->ops.tuner_ops.get_status() ?
-> or in the old fe->ops.tuner_ops.get_signal_strength()?
-> or Should I change get_signal_strength_dbm(fe, s64 *) to
-> update_signal_strength(fe) and let the tuner driver set property cache there?
-
-I think tuner driver should set c->strength as own. Look 
-drivers/media/dvb-core/dvb_frontend.c
-	/* Fill quality measures */
-	case DTV_STAT_SIGNAL_STRENGTH:
-		tvp->u.st = c->strength;
-		break;
-
-So user-space just get info what is set to struct 
-dtv_frontend_properties. That is similarly than CNR and all the other 
-statistics.
-
-Start polling thread, which polls once per 2 sec or so, which reads RSSI 
-and writes value to struct dtv_frontend_properties. That it is, in my 
-understanding. Same for all those DVBv5 stats. Mauro knows better as he 
-designed that functionality.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Agreed.
