@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55296 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628AbaHJArh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 20:47:37 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49914 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932079AbaH0JUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 05:20:10 -0400
+Message-ID: <1409131199.3623.30.camel@paszta.hi.pengutronix.de>
+Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper
+ functions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 10/18] [media] au0828: Remove a bad whitespace
-Date: Sat,  9 Aug 2014 21:47:16 -0300
-Message-Id: <1407631644-11990-11-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-References: <1407631644-11990-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de
+Date: Wed, 27 Aug 2014 11:19:59 +0200
+In-Reply-To: <Pine.LNX.4.64.1408262217090.7329@axis700.grange>
+References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de>
+	 <Pine.LNX.4.64.1408262217090.7329@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/au0828/au0828-dvb.c   | 0
- drivers/media/usb/au0828/au0828-input.c | 2 +-
- 2 files changed, 1 insertion(+), 1 deletion(-)
- mode change 100755 => 100644 drivers/media/usb/au0828/au0828-dvb.c
+Hi Guennadi,
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-old mode 100755
-new mode 100644
-diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
-index 7a5437a4d938..5efb83977f39 100644
---- a/drivers/media/usb/au0828/au0828-input.c
-+++ b/drivers/media/usb/au0828/au0828-input.c
-@@ -133,7 +133,7 @@ static int au0828_get_key_au8522(struct au0828_rc *ir)
- 	rc = au8522_rc_read(ir, 0xe1, -1, buf, 1);
- 	if (rc < 0 || !(buf[0] & (1 << 4))) {
- 		/* Be sure that IR is enabled */
--	        au8522_rc_set(ir, 0xe0, 1 << 4);
-+		au8522_rc_set(ir, 0xe0, 1 << 4);
- 		return 0;
- 	}
- 
--- 
-1.9.3
+Am Dienstag, den 26.08.2014, 22:18 +0200 schrieb Guennadi Liakhovetski:
+> Hi Philipp,
+> 
+> On Mon, 25 Aug 2014, Philipp Zabel wrote:
+> 
+> > This patch adds an array of V4L2 pixel formats and descriptions that can be
+> > used by drivers so that each driver doesn't have to provide its own slightly
+> > different format descriptions for VIDIOC_ENUM_FMT.
+> 
+> In case you missed it, soc-camera is doing something rather similar along 
+> the lines of:
+> 
+> drivers/media/platform/soc_camera/soc_mediabus.c
+> include/media/soc_mediabus.h
+> 
+> Feel free to re-use.
+
+thank you for the pointer. It is unfortunate that there is a bit of
+overlap in the names, but not much in the rest of the information.
+I don't see how the data could be reused in a meaningful way, but maybe
+I should try to match the patterns.
+
+I like the idea of soc_mbus_find_fmtdesc being called with a driver
+specific lookup array. Although that currently causes drivers to again
+duplicate all the names, it side-steps the issue of a linear lookup in a
+large global array. Maybe a helper to fill this driver specific array
+from the global array would be a good idea for consistency?
+
+What is the reason for the separation between struct soc_mbus_lookup and
+struct soc_mbus pixelformat (as opposed to including enum
+v4l2_mbus_pixelcode in struct soc_mbus_pixelformat directly)?
+
+regards
+Philipp
+
 
