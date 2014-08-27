@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3924 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883AbaHUUTz (ORCPT
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:46560 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933914AbaH0Rdr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 16:19:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/12] em28xx: fix sparse warnings
-Date: Thu, 21 Aug 2014 22:19:34 +0200
-Message-Id: <1408652376-39525-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 27 Aug 2014 13:33:47 -0400
+MIME-Version: 1.0
+In-Reply-To: <20140827105838.GA6522@sudip-PC>
+References: <CA+r1Zhh5n3p8Zg+Uvqvjeb3S859iejXkqStnnOuezTTm9UCT8g@mail.gmail.com>
+	<20140827105838.GA6522@sudip-PC>
+Date: Wed, 27 Aug 2014 10:33:46 -0700
+Message-ID: <CA+r1Zhh10fMu4yvFwz__5wt1X3hUZeOpy5yviXy7NY_w+Ugb6w@mail.gmail.com>
+Subject: Re: randconfig build error with next-20140826, in Documentation/video4linux
+From: Jim Davis <jim.epost@gmail.com>
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-doc <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Aug 27, 2014 at 3:58 AM, Sudip Mukherjee
+<sudipm.mukherjee@gmail.com> wrote:
 
-drivers/media/usb/em28xx/em28xx-core.c:297:16: warning: cast to restricted __le16
-drivers/media/usb/em28xx/em28xx-cards.c:2249:20: warning: symbol 'em28xx_bcount' was not declared. Should it be static?
+> Hi,
+> I tried to build next-20140826 with your given config file . But for me everything was fine.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 2 +-
- drivers/media/usb/em28xx/em28xx-core.c  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Well, you should be able to reproduce it.  Do these steps work for you?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index a7e24848..230d6a2 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2246,7 +2246,7 @@ struct em28xx_board em28xx_boards[] = {
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
--const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
-+static const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
- 
- /* table of devices that work with this driver */
- struct usb_device_id em28xx_id_table[] = {
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 523d7e9..225a735 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -279,7 +279,7 @@ int em28xx_read_ac97(struct em28xx *dev, u8 reg)
- {
- 	int ret;
- 	u8 addr = (reg & 0x7f) | 0x80;
--	u16 val;
-+	__le16 val;
- 
- 	ret = em28xx_is_ac97_ready(dev);
- 	if (ret < 0)
--- 
-2.1.0.rc1
+jim@krebstar:~/linux2$ git checkout next-20140826
+HEAD is now at 1c9e4561f3b2... Add linux-next specific files for 20140826
+jim@krebstar:~/linux2$ git clean -fdx
+jim@krebstar:~/linux2$ cp ~/randconfig-1409069188.txt .config
+jim@krebstar:~/linux2$ make oldconfig
+  HOSTCC  scripts/basic/fixdep
+  HOSTCC  scripts/kconfig/conf.o
+  SHIPPED scripts/kconfig/zconf.tab.c
+  SHIPPED scripts/kconfig/zconf.lex.c
+  SHIPPED scripts/kconfig/zconf.hash.c
+  HOSTCC  scripts/kconfig/zconf.tab.o
+  HOSTLD  scripts/kconfig/conf
+scripts/kconfig/conf --oldconfig Kconfig
+#
+# configuration written to .config
+#
+jim@krebstar:~/linux2$ make -j4 >buildlog.txt 2>&1
+jim@krebstar:~/linux2$ grep ERROR buildlog.txt
+ERROR: "vb2_ops_wait_finish"
+[Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
 
+(followed by many more similar lines).
