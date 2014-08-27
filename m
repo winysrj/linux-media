@@ -1,40 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17220 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755497AbaHVCcM (ORCPT
+Received: from smtp-out-167.synserver.de ([212.40.185.167]:1040 "EHLO
+	smtp-out-167.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933583AbaH0ON2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 22:32:12 -0400
-From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com,
-	m.chehab@samsung.com, kyungmin.park@samsung.com,
-	jtp.park@samsung.com
-Cc: linux-samsung-soc@vger.kernel.org, hverkuil@xs4all.nl
-Subject: [PATCH V2] vb2: fix plane index sanity check in vb2_plane_cookie()
-Date: Fri, 22 Aug 2014 10:28:21 +0800
-Message-id: <1408674501-25336-1-git-send-email-zhaowei.yuan@samsung.com>
+	Wed, 27 Aug 2014 10:13:28 -0400
+Message-ID: <53FDE5AA.2040805@metafoo.de>
+Date: Wed, 27 Aug 2014 16:05:30 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: jean-michel.hautbois@vodalys.com, linux-media@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH] Add support for definition of register maps in DT in
+ ADV7604
+References: <1409143986-13990-1-git-send-email-jean-michel.hautbois@vodalys.com> <53FDD718.3020202@xs4all.nl>
+In-Reply-To: <53FDD718.3020202@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's also invalid that plane_no equals to vb->num_planes
+On 08/27/2014 03:03 PM, Hans Verkuil wrote:
+> On 08/27/14 14:53, jean-michel.hautbois@vodalys.com wrote:
+>> From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+>>
+>> This patch adds support for DT parsing of register maps adresses.
+>> This allows multiple adv76xx devices on the same bus.
+>>
+>> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+>> ---
+>>   .../devicetree/bindings/media/i2c/adv7604.txt      | 12 ++++
+>>   drivers/media/i2c/adv7604.c                        | 71 ++++++++++++++++++----
+>>   2 files changed, 71 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>> index c27cede..33881fb 100644
+>> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>> @@ -32,6 +32,18 @@ The digital output port node must contain at least one endpoint.
+>>   Optional Properties:
+>>
+>>     - reset-gpios: Reference to the GPIO connected to the device's reset pin.
+>> +  - adv7604-page-avlink: Programmed address for avlink register map
+>> +  - adv7604-page-cec: Programmed address for cec register map
+>> +  - adv7604-page-infoframe: Programmed address for infoframe register map
+>> +  - adv7604-page-esdp: Programmed address for esdp register map
+>> +  - adv7604-page-dpp: Programmed address for dpp register map
+>> +  - adv7604-page-afe: Programmed address for afe register map
+>> +  - adv7604-page-rep: Programmed address for rep register map
+>> +  - adv7604-page-edid: Programmed address for edid register map
+>> +  - adv7604-page-hdmi: Programmed address for hdmi register map
+>> +  - adv7604-page-test: Programmed address for test register map
+>> +  - adv7604-page-cp: Programmed address for cp register map
+>> +  - adv7604-page-vdp: Programmed address for vdp register map
+>
+> Might adv7604-addr-avlink be a better name? Other than that it looks good
+> to me.
 
-Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Those properties need at least a vendor prefix. But to be honest I'd rather see 
+generic support for multiple addresses in the I2C core. This is not a feature 
+that is specific to this particular device. And for example similar things work 
+already fine for other buses like for example MMIO devices.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c359006..1ae4e57 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1130,7 +1130,7 @@ EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
-  */
- void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
- {
--	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
-+	if (plane_no >= vb->num_planes || !vb->planes[plane_no].mem_priv)
- 		return NULL;
+E.g. something like
 
- 	return call_ptr_memop(vb, cookie, vb->planes[plane_no].mem_priv);
---
-1.7.9.5
+reg = <0x12 0x34 0x56 0x78 ...>
+reg-names = "main", "avlink", "cec", "infoframe", ...
 
+Ideally accessing those other addresses will be hidden in the I2C core by a 
+helper function that allows you to create a dummy device for a particular 
+sub-address.
+
+- Lars
