@@ -1,58 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56218 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754AbaHJCOd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Aug 2014 22:14:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] Another series of PM fixes for au0828
-Date: Sat,  9 Aug 2014 23:14:19 -0300
-Message-Id: <1407636862-19394-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:42751 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085AbaH0Imu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 04:42:50 -0400
+Received: by mail-pa0-f52.google.com with SMTP id bj1so25113633pad.25
+        for <linux-media@vger.kernel.org>; Wed, 27 Aug 2014 01:42:44 -0700 (PDT)
+Message-ID: <53FD99FA.4030207@linaro.org>
+Date: Wed, 27 Aug 2014 16:42:34 +0800
+From: zhangfei <zhangfei.gao@linaro.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] [media] rc: remove change_protocol in rc-ir-raw.c
+References: <1408613086-12538-1-git-send-email-zhangfei.gao@linaro.org>	<1408613086-12538-4-git-send-email-zhangfei.gao@linaro.org> <20140821065006.6d831ec4@concha.lan>
+In-Reply-To: <20140821065006.6d831ec4@concha.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are still a few bugs that can happen when suspending and
-a video stream is active. This patch series fix them. After
-that, resume works fine, even it suspend happened while
-streaming.
 
-There is one remaining issue though: xc5000 firmware doesn't
-load after resume.
 
-What happens (on both analog and digital) is:
+On 08/21/2014 07:50 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 21 Aug 2014 17:24:45 +0800
+> Zhangfei Gao <zhangfei.gao@linaro.org> escreveu:
+>
+>> With commit 4924a311a62f ("[media] rc-core: rename ir-raw.c"),
+>> empty change_protocol was introduced.
+>
+> No. This was introduced on this changeset:
+>
+> commit da6e162d6a4607362f8478c715c797d84d449f8b
+> Author: David Härdeman <david@hardeman.nu>
+> Date:   Thu Apr 3 20:32:16 2014 -0300
+>
+>      [media] rc-core: simplify sysfs code
+>
+>> As a result, rc_register_device will set dev->enabled_protocols
+>> addording to rc_map->rc_type, which prevent using all protocols.
+>
+> I strongly suspect that this patch will break some things, as
+> the new code seems to expect that this is always be set.
+>
+> See the code at store_protocols(): if this callback is not set,
+> then it won't allow to disable a protocol.
+>
+> Also, this doesn't prevent using all protocols. You can still use
+> "ir-keytable -p all" to enable all protocols (the "all" protocol
+> type were introduced recently at the userspace tool).
+>
+>  From the way I see, setting the protocol when a table is loaded
+> is not a bad thing, as:
+> - if RC tables are loaded, the needed protocol to decode it is
+>    already known;
+> - by running just one IR decoder, the IR handling routine will
+>    be faster and will consume less power;
+> - on a real case scenario, it is a way more likely that just one
+>    decoder will ever be needed by the end user.
+>
+> So, I think that this is just annoying for developers when are checking
+> if all decoders are working, by sending keycodes from different IR types
+> at the same time.
+>
 
-[  143.071323] xc5000: xc5000_suspend()
-[  143.071324] xc5000: xc5000_tuner_reset()
-[  143.099992] au0828: Suspend
-[  143.099992] au0828: Stopping RC
-[  143.101694] au0828: stopping V4L2
-[  143.101695] au0828: stopping V4L2 active URBs
-[  144.988637] au0828: Resume
-[  145.342026] au0828: Restarting RC
-[  145.343296] au0828: restarting V4L2
-[  145.464413] xc5000: xc5000_is_firmware_loaded() returns True id = 0xffff
-[  145.464414] xc5000: xc_set_signal_source(1) Source = CABLE
-[  146.370861] xc5000: xc_set_signal_source(1) failed
+Thanks Mauro for the kind explanation.
 
-I suspect that it has to do with a wrong value for the I2C
-gateway. The proper fix is likely to convert au0828 to use
-the I2C mux support, and remove the old i2c_gate_ctrl
-approach. However, such patch would require more work, to
-avoid breaking other drivers.
+ir-keytable seems also enalbe specific protocol
+-p, --protocol=PROTOCOL
 
-Mauro Carvalho Chehab (3):
-  au0828: fix checks if dvb is initialized
-  au0828: Fix DVB resume when streaming
-  xc5000: be sure that the firmware is there before set params
+Currently we use lirc user space decoder/keymap and only need 
+pulse-length information from kernel.
 
- drivers/media/tuners/xc5000.c         | 10 +++++-----
- drivers/media/usb/au0828/au0828-dvb.c | 24 ++++++++++++++----------
- drivers/media/usb/au0828/au0828.h     |  4 ++--
- 3 files changed, 21 insertions(+), 17 deletions(-)
-
--- 
-1.9.3
+Thanks for the info.
 
