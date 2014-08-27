@@ -1,117 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:24536 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689AbaHNMJR (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:42643 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933913AbaH0PRr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 08:09:17 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NAA009HEPRGWK20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Aug 2014 08:09:16 -0400 (EDT)
-Date: Thu, 14 Aug 2014 09:09:11 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH for v3.17] videobuf2-dma-sg: fix for wrong GFP mask to
- sg_alloc_table_from_pages
-Message-id: <20140814090911.22806913.m.chehab@samsung.com>
-In-reply-to: <53DB85AA.3010207@xs4all.nl>
-References: <53DB85AA.3010207@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 27 Aug 2014 11:17:47 -0400
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Felipe Balbi <balbi@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] usb: gadget: f_uvc fix transition to video_ioctl2
+Date: Wed, 27 Aug 2014 17:16:38 +0200
+Message-id: <1409152598-21046-1-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1408381577-31901-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1408381577-31901-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+UVC video node is a TX device from the point of view of the gadget,
+so we cannot rely on the video struct being filled with zeros, because
+VFL_DIR_TX is actually 1.
 
-Please re-check your git pull request for this tree:
-	git://linuxtv.org/hverkuil/media_tree.git cx23b
+Suggested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+---
+ drivers/usb/gadget/function/f_uvc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-You added this patch, but with a different (bad) subject, without any
-comments, without c/c to stable and without Marek's ack. So, there's
-something wrong there.
+diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
+index 5209105..95dc1c6 100644
+--- a/drivers/usb/gadget/function/f_uvc.c
++++ b/drivers/usb/gadget/function/f_uvc.c
+@@ -411,6 +411,7 @@ uvc_register_video(struct uvc_device *uvc)
+ 	video->fops = &uvc_v4l2_fops;
+ 	video->ioctl_ops = &uvc_v4l2_ioctl_ops;
+ 	video->release = video_device_release;
++	video->vfl_dir = VFL_DIR_TX;
+ 	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
+ 
+ 	uvc->vdev = video;
+-- 
+1.9.1
 
-Also, I think we should first merge this patch for 3.17 before pulling
-the cx23885 patchset.
-
-Regards,
-Mauro
-
-
-Em Fri, 01 Aug 2014 14:18:50 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> sg_alloc_table_from_pages() only allocates a sg_table, so it should just use
-> GFP_KERNEL, not gfp_flags. If gfp_flags contains __GFP_DMA32 then mm/sl[au]b.c
-> will call BUG_ON:
-> 
-> [  358.027515] ------------[ cut here ]------------
-> [  358.027546] kernel BUG at mm/slub.c:1416!
-> [  358.027558] invalid opcode: 0000 [#1] PREEMPT SMP 
-> [  358.027576] Modules linked in: mt2131 s5h1409 tda8290 tuner cx25840 cx23885 btcx_risc altera_ci tda18271 altera_stapl videobuf2_dvb tveeprom cx2341x videobuf2_dma_sg dvb_core rc_core videobuf2_memops videobuf2_core nouveau zr36067 videocodec v4l2_common videodev media x86_pkg_temp_thermal cfbfillrect cfbimgblt cfbcopyarea ttm drm_kms_helper processor button isci
-> [  358.027712] CPU: 19 PID: 3654 Comm: cat Not tainted 3.16.0-rc6-telek #167
-> [  358.027723] Hardware name: ASUSTeK COMPUTER INC. Z9PE-D8 WS/Z9PE-D8 WS, BIOS 5404 02/10/2014
-> [  358.027741] task: ffff880897c7d960 ti: ffff88089b4d4000 task.ti: ffff88089b4d4000
-> [  358.027753] RIP: 0010:[<ffffffff81196040>]  [<ffffffff81196040>] new_slab+0x280/0x320
-> [  358.027776] RSP: 0018:ffff88089b4d7ae8  EFLAGS: 00010002
-> [  358.027787] RAX: ffff880897c7d960 RBX: 0000000000000000 RCX: ffff88089b4d7b50
-> [  358.027798] RDX: 00000000ffffffff RSI: 0000000000000004 RDI: ffff88089f803b00
-> [  358.027809] RBP: ffff88089b4d7bb8 R08: 0000000000000000 R09: 0000000100400040
-> [  358.027821] R10: 0000160000000000 R11: ffff88109bc02c40 R12: 0000000000000001
-> [  358.027832] R13: ffff88089f8000c0 R14: ffff88089f803b00 R15: ffff8810bfcf4be0
-> [  358.027845] FS:  00007f83fe5c0700(0000) GS:ffff8810bfce0000(0000) knlGS:0000000000000000
-> [  358.027858] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  358.027868] CR2: 0000000001dfd568 CR3: 0000001097d5a000 CR4: 00000000000407e0
-> [  358.027878] Stack:
-> [  358.027885]  ffffffff81198860 ffff8810bfcf4be0 ffff880897c7d960 0000000000001b00
-> [  358.027905]  ffff880897c7d960 0000000000000000 ffff8810bfcf4bf0 0000000000000000
-> [  358.027924]  0000000000000000 0000000100000100 ffffffff813ef84a 00000004ffffffff
-> [  358.027944] Call Trace:
-> [  358.027956]  [<ffffffff81198860>] ? __slab_alloc+0x400/0x4e0
-> [  358.027973]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
-> [  358.027985]  [<ffffffff81198f17>] __kmalloc+0x127/0x150
-> [  358.027997]  [<ffffffff813ef84a>] ? sg_kmalloc+0x1a/0x30
-> [  358.028009]  [<ffffffff813ef84a>] sg_kmalloc+0x1a/0x30
-> [  358.028023]  [<ffffffff813eff84>] __sg_alloc_table+0x74/0x180
-> [  358.028035]  [<ffffffff813ef830>] ? sg_kfree+0x20/0x20
-> [  358.028048]  [<ffffffff813f00af>] sg_alloc_table+0x1f/0x60
-> [  358.028061]  [<ffffffff813f0174>] sg_alloc_table_from_pages+0x84/0x1f0
-> [  358.028077]  [<ffffffffa007c3f9>] vb2_dma_sg_alloc+0x159/0x230 [videobuf2_dma_sg]
-> [  358.028095]  [<ffffffffa003d55a>] __vb2_queue_alloc+0x10a/0x680 [videobuf2_core]
-> [  358.028113]  [<ffffffffa003e110>] __reqbufs.isra.14+0x220/0x3e0 [videobuf2_core]
-> [  358.028130]  [<ffffffffa003e79d>] __vb2_init_fileio+0xbd/0x380 [videobuf2_core]
-> [  358.028147]  [<ffffffffa003f563>] __vb2_perform_fileio+0x5b3/0x6e0 [videobuf2_core]
-> [  358.028164]  [<ffffffffa003f871>] vb2_fop_read+0xb1/0x100 [videobuf2_core]
-> [  358.028184]  [<ffffffffa06dd2e5>] v4l2_read+0x65/0xb0 [videodev]
-> [  358.028198]  [<ffffffff811a243f>] vfs_read+0x8f/0x170
-> [  358.028210]  [<ffffffff811a30a1>] SyS_read+0x41/0xb0
-> [  358.028224]  [<ffffffff818f02e9>] system_call_fastpath+0x16/0x1b
-> [  358.028234] Code: 66 90 e9 dc fd ff ff 0f 1f 40 00 41 8b 4d 68 e9 d5 fe ff ff 0f 1f 80 00 00 00 00 f0 41 80 4d 00 40 e9 03 ff ff ff 0f 1f 44 00 00 <0f> 0b 66 0f 1f 44 00 00 44 89 c6 4c 89 45 d0 e8 0c 82 ff ff 48 
-> [  358.028415] RIP  [<ffffffff81196040>] new_slab+0x280/0x320
-> [  358.028432]  RSP <ffff88089b4d7ae8>
-> [  358.032208] ---[ end trace 6443240199c706e4 ]---
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: stable@vger.kernel.org      # for v3.13 and up
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index adefc31..9b163a4 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -113,7 +113,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
->  		goto fail_pages_alloc;
->  
->  	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-> -			buf->num_pages, 0, size, gfp_flags);
-> +			buf->num_pages, 0, size, GFP_KERNEL);
->  	if (ret)
->  		goto fail_table_alloc;
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
