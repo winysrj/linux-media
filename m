@@ -1,62 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45594 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 11/14] af9035: remove AVerMedia eeprom override
-Date: Sat,  9 Aug 2014 23:27:09 +0300
-Message-Id: <1407616032-2722-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:46593 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476AbaH1UmP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Aug 2014 16:42:15 -0400
+Message-ID: <53FF9425.6010302@infradead.org>
+Date: Thu, 28 Aug 2014 13:42:13 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Andrey Vagin <avagin@openvz.org>, linux-doc@vger.kernel.org
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Peter Foley <pefoley2@pefoley.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] Documentation/video4linux: don't build without CONFIG_VIDEO_V4L2
+References: <1409258060-21897-1-git-send-email-avagin@openvz.org>
+In-Reply-To: <1409258060-21897-1-git-send-email-avagin@openvz.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reverts commit 3ab25123373270152a9fae98e3c48ef1b2a878c0
-[media] af9035: override tuner for AVerMedia A835B devices
+On 08/28/14 13:34, Andrey Vagin wrote:
+> Otherwise we get warnings:
+> WARNING: "vb2_ops_wait_finish" [Documentation//video4linux/v4l2-pci-skeleton.ko] undefined!
+> WARNING: "vb2_ops_wait_prepare" [Documentation//video4linux/v4l2-pci-skeleton.ko] undefined!
+> ...
+> WARNING: "video_unregister_device" [Documentation//video4linux/v4l2-pci-skeleton.ko] undefined!
+> 
+> Fixes: 8db5ab4b50fb ("Documentation: add makefiles for more targets")
+> 
+> Cc: Peter Foley <pefoley2@pefoley.com>
+> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Andrey Vagin <avagin@openvz.org>
+> ---
+>  Documentation/video4linux/Makefile | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/video4linux/Makefile b/Documentation/video4linux/Makefile
+> index d58101e..f19f38e 100644
+> --- a/Documentation/video4linux/Makefile
+> +++ b/Documentation/video4linux/Makefile
+> @@ -1 +1,3 @@
+> +ifneq ($(CONFIG_VIDEO_V4L2),)
+>  obj-m := v4l2-pci-skeleton.o
+> +endif
+> 
 
-Original commit itself is correct, but it was replaced by more
-general solution (commit 1cbbf90d0406913ad4b44194b07f4f41bde84e54).
-This old solution was committed by a accident and is not needed
-anymore.
+The Kconfig file for this module says:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 19 -------------------
- 1 file changed, 19 deletions(-)
+config VIDEO_PCI_SKELETON
+	tristate "Skeleton PCI V4L2 driver"
+	depends on PCI && BUILD_DOCSRC
+	depends on VIDEO_V4L2 && VIDEOBUF2_CORE && VIDEOBUF2_MEMOPS
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 8ac0423..85f2c4b 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -802,25 +802,6 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		addr += 0x10; /* shift for the 2nd tuner params */
- 	}
- 
--	/*
--	 * These AVerMedia devices has a bad EEPROM content :-(
--	 * Override some wrong values here.
--	 */
--	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA) {
--		switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
--		case USB_PID_AVERMEDIA_A835B_1835:
--		case USB_PID_AVERMEDIA_A835B_2835:
--		case USB_PID_AVERMEDIA_A835B_3835:
--			dev_info(&d->udev->dev,
--				 "%s: overriding tuner from %02x to %02x\n",
--				 KBUILD_MODNAME, state->af9033_config[0].tuner,
--				 AF9033_TUNER_IT9135_60);
--
--			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
--			break;
--		}
--	}
--
- skip_eeprom:
- 	/* get demod clock */
- 	ret = af9035_rd_reg(d, 0x00d800, &tmp);
+so it should already be limited to VIDEO_V4L2 being enabled.
+
+What kernel or linux-next version did you see a problem with?
+
+Please send the failing .config file so that I can check it.
+
+Thanks.
+
 -- 
-http://palosaari.fi/
-
+~Randy
