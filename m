@@ -1,174 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49579 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172AbaHYLwz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 07:52:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Subject: Re: [RFC] [media] v4l2: add V4L2 pixel format array and helper functions
-Date: Mon, 25 Aug 2014 13:53:36 +0200
-Message-ID: <3446937.ynTUdOVVZH@avalon>
-In-Reply-To: <53FB2045.1020504@xs4all.nl>
-References: <1408962839-25165-1-git-send-email-p.zabel@pengutronix.de> <53FB2045.1020504@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.22]:64871 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932419AbaH1DrP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Aug 2014 23:47:15 -0400
+Message-ID: <53FEA63E.9020208@gmx.net>
+Date: Thu, 28 Aug 2014 05:47:10 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Kaya Saman <SamanKaya@netscape.net>, linux-media@vger.kernel.org
+Subject: Re: Advice on DVB-S/S2 card and CAM support
+References: <53D58EDF.1090102@netscape.net>
+In-Reply-To: <53D58EDF.1090102@netscape.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 25 August 2014 13:38:45 Hans Verkuil wrote:
-> Hi Philipp,
-> 
-> I have to think a bit more about the format names, but in the meantime I
-> have two other suggestions:
-> 
-> On 08/25/2014 12:33 PM, Philipp Zabel wrote:
-> > This patch adds an array of V4L2 pixel formats and descriptions that can
-> > be used by drivers so that each driver doesn't have to provide its own
-> > slightly different format descriptions for VIDIOC_ENUM_FMT.
-
-I've started working on this recently as well, so I can only agree with the 
-idea.
-
-> > Each array entry also includes two bits per pixel values (for a single
-> > line and one for the whole image) that can be used to determine the
-> > v4l2_pix_format bytesperline and sizeimage values and whether the format
-> > is planar or compressed.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > I have started to convert some drivers on a boring train ride, but it
-> > occurred to me that I probably should get some feedback before carrying
-> > on with this:
-> > http://git.pengutronix.de/?p=pza/linux.git;a=shortlog;h=refs/heads/topic/
-> > media-pixfmt
-> > ---
-> > 
-> >  drivers/media/v4l2-core/v4l2-common.c | 488 +++++++++++++++++++++++++++++
-> >  include/media/v4l2-common.h           |  44 +++
-> >  2 files changed, 532 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-common.c
-> > b/drivers/media/v4l2-core/v4l2-common.c index ccaa38f..41692df 100644
-> > --- a/drivers/media/v4l2-core/v4l2-common.c
-> > +++ b/drivers/media/v4l2-core/v4l2-common.c
-> > @@ -533,3 +533,491 @@ void v4l2_get_timestamp(struct timeval *tv)
-> > 
-> >  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-> >  
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> > 
-> > +
-> > +static const struct v4l2_pixfmt v4l2_pixfmts[] = {
-> 
-> <snip>
-> 
-> > +};
-> > +
-> > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(v4l2_pixfmts); i++) {
-> > +		if (v4l2_pixfmts[i].pixelformat == fourcc)
-> > +			return v4l2_pixfmts + i;
-> > +	}
-> > +
-> > +	return NULL;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_pixfmt_by_fourcc);
-> > +
-> > +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc)
-> > +{
-> > +	const struct v4l2_pixfmt *fmt;
-> > +
-> > +	fmt = v4l2_pixfmt_by_fourcc(fourcc);
-> > +	if (!fmt)
-> > +		return -EINVAL;
-> > +
-> > +	strlcpy((char *)f->description, fmt->name, sizeof(f->description));
-> > +	f->pixelformat = fmt->pixelformat;
-> > +	f->flags = (fmt->bpp_image == 0) ? V4L2_FMT_FLAG_COMPRESSED : 0;
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_fill_fmtdesc);
-> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> > index 48f9748..27b084f 100644
-> > --- a/include/media/v4l2-common.h
-> > +++ b/include/media/v4l2-common.h
-> > @@ -204,4 +204,48 @@ const struct v4l2_frmsize_discrete
-> > *v4l2_find_nearest_format(> 
-> >  void v4l2_get_timestamp(struct timeval *tv);
-> > 
-> > +/**
-> > + * struct v4l2_pixfmt - internal V4L2 pixel format description
-> > + * @name: format description to be returned by enum_fmt
-> > + * @pixelformat: v4l2 pixel format fourcc
-> > + * @bpp_line: bits per pixel, averaged over a line (of the first plane
-> > + *            for planar formats), used to calculate bytesperline
-> > + *            Zero for compressed and macroblock tiled formats.
-> > + * @bpp_image: bits per pixel, averaged over the whole image. This is
-> > used to
-> > + *             calculate sizeimage for uncompressed formats.
-> > + *             Zero for compressed formats.
-> 
-> I would add a 'planes' field as well for use with formats that use
-> non-contiguous planes.
-> 
-> > + */
-> > +struct v4l2_pixfmt {
-> > +	const char	*name;
-> > +	u32		pixelformat;
-> > +	u8		bpp_line;
-> > +	u8		bpp_image;
-> > +};
-> > +
-> > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc);
-> > +int v4l2_fill_fmtdesc(struct v4l2_fmtdesc *f, u32 fourcc);
-> > +
-> > +static inline unsigned int v4l2_bytesperline(const struct v4l2_pixfmt
-> > *fmt, +					     unsigned int width)
-> > +{
-> > +	return width * fmt->bpp_line / 8;
-> 
-> Round up: return (width * fmt->bpp_line + 7) / 8;
-
-DIV_ROUND_UP(width * fmt->bpp_line, 8) ?
-
-> > +}
-> > +
-> > +static inline unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt,
-> > +					  unsigned int width,
-> > +					  unsigned int height)
-> > +{
-> > +	return width * height * fmt->bpp_image / 8;
-> 
-> Ditto: return height * v4l2_bytesperline(fmt, width);
+On 07/28/2014 01:44 AM, Kaya Saman wrote:
+> Hi,
 >
-> > +}
-> > +
-> > +static inline bool v4l2_pixfmt_is_planar(const struct v4l2_pixfmt *fmt)
-> > +{
-> > +	return fmt->bpp_line && (fmt->bpp_line != fmt->bpp_image);
-> > +}
-> > +
-> > +static inline bool v4l2_pixfmt_is_compressed(const struct v4l2_pixfmt
-> > *fmt)
-> > +{
-> > +	return fmt->bpp_image == 0;
-> > +}
-> > +
-> > 
-> >  #endif /* V4L2_COMMON_H_ */
+> I'm wondering what the best solution for getting satellite working on
+> Linux is?
+>
+>
+> Currently I have a satellite box with CAM module branded by the
+> Satellite TV provider we are with.
+>
+>
+> As I am now migrating everything including TV through my HTPC
+> environment I would also like to link the satellite box up to the HTPC
+> too to take advantage of the PVR and streaming capabilities.
+>
+>
+> I run XBMC as my frontend so I was looking into TV Headend to take care
+> of PVR side of things.
+>
+>
+> My greatest issue though is what is the best solution for getting the
+> satellite system into the HTPC?
+>
+>
+> After some research my first idea was to use a satellite tuner card;
+> models are available for Hauppauge and other vendors so really it was
+> about which was going to offer best compatibility with Linux? (distro is
+> Arch Linux with 3.15 kernel)
+>
+> The model of card I was looking was from DVB-Sky:
+>
+> http://www.dvbsky.net/Products_S950C.html
+>
+> something like that, which has CAM module slot and is DVB-S/S2
+> compatible and claims to have drivers supported by the Linuxtv project.
+>
+>
+> Or alternately going for something like this:
+>
+> http://www.dvbsky.net/Products_T9580.html
+>
+> as it has a combined DVB-T tuner, then using a USB card reader for the
+> CAM "smart card".
+>
+>
+> Has anyone used the cards above, what are the opinions relating to them?
+> Also would they work with motorized dishes?
+>
+>
+> Since I'm not sure if "all" CAM's are supported as apparently our
+> satellite tv provider wanted to lock out other receivers so they force
+> people to use their own product;
+>
+> my second idea was to perhaps use a capture card with RCA inputs.
+>
+> Something like this:
+>
+> http://www.c21video.com/viewcast/osprey-210.html
+>
+> perhaps or a Hauppauge HD-PVR mk I edition:
+>
+> which according to the wiki is supported.
+>
+>
+> Looking forward to hearing advice.
+>
+>
+> Thanks.
+>
+>
+> Kaya
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
--- 
-Regards,
+Hi Kaya,
 
-Laurent Pinchart
+RCA inputs is probably the last thing you want. Less quality, more of a 
+pain to set up.
 
+You may or may not be able to use that CAM - but even if it's supported, 
+a CAM has downsides. It generally only supports one channel at a time - 
+and surely not multiple channels from different frequencies (if you have 
+more tuners). And it's more expensive, both the tuner (that needs a CI 
+slot) and the CAM you need. Also, I'm not sure if tvheadend nowadays 
+supports a CAM - it used not to, but support may have been added.
+
+The main downside of a phoenix-mode cardreader is that it's harder to 
+set up, but if you can find a guide for your provider it's generally 
+doable. It's cheaper, more flexible and allows for faster channel switching.
+
+As for a tuner, I personally suggest going for a USB-tuner. You never 
+know if you want to connect you tuner to a notebook or NAS or anything 
+in the future, with USB you're more flexible. If you do go for PCI-e, 
+Tevii appears to have some supported products that are also available.
+
+If you go for USB, support is somewhat problematic (problematic because 
+many supported tuners are no longer available in stores), you'll have to 
+see what's locally available. (perhaps also check second-hand) Be 
+careful, some devices have various revisions. Always check 
+http://linuxtv.org/wiki/index.php/Hardware_Device_Information
+
+Very recently, Antti reviewed a patch from nibble.max to support the 
+DVBsky S960. (and presumably it's direct clones from Mystique) This is a 
+pretty cheap tuner that can still be found in shops. It would appear 
+that as soon as this patch gets merged, this device will be supported if 
+you compile v4l-dvb yourself, and in time support will make it into the 
+kernel.
+
+In any case, you want something with in-kernel support - something 
+that's only supported by s2-liplianin or vendor drivers (like many 
+dvbsky and TBS products) will only break in the long term. Only 
+exception to this is Sundtek, but I personally have mixed feelings about 
+closed source userspace drivers. I wouldn't recommend them personally.
+
+Good luck,
+
+P. van Gaans
