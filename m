@@ -1,88 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54393 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbaHMRwh (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35996 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbaH1Oja (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Aug 2014 13:52:37 -0400
-Message-ID: <53EBA5E3.4060104@infradead.org>
-Date: Wed, 13 Aug 2014 10:52:35 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Jim Davis <jim.epost@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Holger Waechtler <holger@convergence.de>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: [PATCH] media: ttpci: build av7110_ir.c only when allowed by CONFIG_INPUT_EVDEV
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 28 Aug 2014 10:39:30 -0400
+Message-id: <53FF3F1F.6090806@samsung.com>
+Date: Thu, 28 Aug 2014 16:39:27 +0200
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	Felipe Balbi <balbi@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] usb: gadget: f_uvc fix transition to video_ioctl2
+References: <1408381577-31901-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1409152598-21046-1-git-send-email-andrzej.p@samsung.com>
+ <3446993.TiqE0KXHj7@avalon>
+In-reply-to: <3446993.TiqE0KXHj7@avalon>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+W dniu 28.08.2014 o 13:28, Laurent Pinchart pisze:
 
-Fix build when CONFIG_INPUT_EVDEV=m and DVB_AV7110=y.
-Only build av7110_ir.c when CONFIG_INPUT_EVDEV is compatible with
-CONFIG_DVB_AV7110.
+<snip>
 
-Fixes these build errors:
+>> diff --git a/drivers/usb/gadget/function/f_uvc.c
+>> b/drivers/usb/gadget/function/f_uvc.c index 5209105..95dc1c6 100644
+>> --- a/drivers/usb/gadget/function/f_uvc.c
+>> +++ b/drivers/usb/gadget/function/f_uvc.c
+>> @@ -411,6 +411,7 @@ uvc_register_video(struct uvc_device *uvc)
+>>   	video->fops = &uvc_v4l2_fops;
+>>   	video->ioctl_ops = &uvc_v4l2_ioctl_ops;
+>>   	video->release = video_device_release;
+>> +	video->vfl_dir = VFL_DIR_TX;
+>
+> Do you have any objection against squashing this patch into "usb: gadget:
+> f_uvc: Move to video_ioctl2" ?
+>
+Not at all. Feel free to squash it.
 
-drivers/built-in.o: In function `input_sync':
-av7110_ir.c:(.text+0x1223ac): undefined reference to `input_event'
-drivers/built-in.o: In function `av7110_emit_key':
-av7110_ir.c:(.text+0x12247c): undefined reference to `input_event'
-av7110_ir.c:(.text+0x122495): undefined reference to `input_event'
-av7110_ir.c:(.text+0x122569): undefined reference to `input_event'
-av7110_ir.c:(.text+0x1225a7): undefined reference to `input_event'
-drivers/built-in.o:av7110_ir.c:(.text+0x122629): more undefined
-references to `input_event' follow
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x1227e4): undefined reference to `input_allocate_device'
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x12298f): undefined reference to `input_register_device'
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x12299e): undefined reference to `input_free_device'
-drivers/built-in.o: In function `av7110_ir_exit':
-(.text+0x122a94): undefined reference to `input_unregister_device'
+AP
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Cc: Holger Waechtler <holger@convergence.de>
-Cc: Oliver Endriss <o.endriss@gmx.de>
----
- drivers/media/pci/ttpci/Kconfig  |    4 ++++
- drivers/media/pci/ttpci/Makefile |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
-
-Index: linux-next-20140813/drivers/media/pci/ttpci/Kconfig
-===================================================================
---- linux-next-20140813.orig/drivers/media/pci/ttpci/Kconfig
-+++ linux-next-20140813/drivers/media/pci/ttpci/Kconfig
-@@ -1,8 +1,12 @@
-+config DVB_AV7110_IR
-+	bool
-+
- config DVB_AV7110
- 	tristate "AV7110 cards"
- 	depends on DVB_CORE && PCI && I2C
- 	select TTPCI_EEPROM
- 	select VIDEO_SAA7146_VV
-+	select DVB_AV7110_IR if INPUT_EVDEV=y || INPUT_EVDEV=DVB_AV7110
- 	depends on VIDEO_DEV	# dependencies of VIDEO_SAA7146_VV
- 	select DVB_VES1820 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_VES1X93 if MEDIA_SUBDRV_AUTOSELECT
-Index: linux-next-20140813/drivers/media/pci/ttpci/Makefile
-===================================================================
---- linux-next-20140813.orig/drivers/media/pci/ttpci/Makefile
-+++ linux-next-20140813/drivers/media/pci/ttpci/Makefile
-@@ -5,7 +5,7 @@
- 
- dvb-ttpci-objs := av7110_hw.o av7110_v4l.o av7110_av.o av7110_ca.o av7110.o av7110_ipack.o
- 
--ifdef CONFIG_INPUT_EVDEV
-+ifdef CONFIG_DVB_AV7110_IR
- dvb-ttpci-objs += av7110_ir.o
- endif
- 
