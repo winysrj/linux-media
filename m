@@ -1,55 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:57200 "EHLO
-	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751284AbaHIAgX (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60856 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329AbaH1QJp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Aug 2014 20:36:23 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, dheitmueller@kernellabs.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] au0828: add au0828_rc_*() stubs for VIDEO_AU0828_RC disabled case
-Date: Fri,  8 Aug 2014 18:36:18 -0600
-Message-Id: <28002d678a82fe2865e712196bd83c7531e35fa4.1407544065.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
-References: <cover.1407544065.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1407544065.git.shuah.kh@samsung.com>
-References: <cover.1407544065.git.shuah.kh@samsung.com>
+	Thu, 28 Aug 2014 12:09:45 -0400
+Message-ID: <1409242175.2696.108.camel@paszta.hi.pengutronix.de>
+Subject: Re: [RFC v2] [media] v4l2: add V4L2 pixel format array and helper
+ functions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Thu, 28 Aug 2014 18:09:35 +0200
+In-Reply-To: <2323863.aLBeKZnVsL@avalon>
+References: <1409043654-12252-1-git-send-email-p.zabel@pengutronix.de>
+	 <1684313.SfePcxMsjg@avalon>
+	 <1409131814.3623.40.camel@paszta.hi.pengutronix.de>
+	 <2323863.aLBeKZnVsL@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define au0828_rc_*() stubs to avoid compile errors when
-VIDEO_AU0828_RC is disabled and avoid the need to enclose
-au0828_rc_*() in ifdef CONFIG_VIDEO_AU0828_RC in .c files.
+Hi Laurent,
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/au0828/au0828.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+Am Donnerstag, den 28.08.2014, 14:24 +0200 schrieb Laurent Pinchart:
+> > A driver could then do the following:
+> > 
+> > static struct v4l2_pixfmt_info driver_formats[] = {
+> > 	{ .pixelformat = V4L2_PIX_FMT_YUYV },
+> > 	{ .pixelformat = V4L2_PIX_FMT_YUV420 },
+> > };
+> > 
+> > int driver_probe(...)
+> > {
+> > 	...
+> > 	v4l2_init_pixfmt_array(driver_formats,
+> > 			ARRAY_SIZE(driver_formats));
+> > 	...
+> > }
+> 
+> Good question. This option consumes more memory, and prevents the driver-
+> specific format info arrays to be const, which bothers me a bit.
 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 96bec05..fd0916e 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -326,7 +326,14 @@ extern struct videobuf_queue_ops au0828_vbi_qops;
- 	} while (0)
- 
- /* au0828-input.c */
--int au0828_rc_register(struct au0828_dev *dev);
--void au0828_rc_unregister(struct au0828_dev *dev);
--int au0828_rc_suspend(struct au0828_dev *dev);
--int au0828_rc_resume(struct au0828_dev *dev);
-+#ifdef CONFIG_VIDEO_AU0828_RC
-+extern int au0828_rc_register(struct au0828_dev *dev);
-+extern void au0828_rc_unregister(struct au0828_dev *dev);
-+extern int au0828_rc_suspend(struct au0828_dev *dev);
-+extern int au0828_rc_resume(struct au0828_dev *dev);
-+#else
-+static inline int au0828_rc_register(struct au0828_dev *dev) { return 0; }
-+static inline void au0828_rc_unregister(struct au0828_dev *dev) { }
-+static inline int au0828_rc_suspend(struct au0828_dev *dev) { return 0; }
-+static inline int au0828_rc_resume(struct au0828_dev *dev) { return 0; }
-+#endif
--- 
-1.7.10.4
+Also, this wouldn't help drivers that don't want to take these
+additional steps, which probably includes a lot of camera drivers with
+only a few formats.
+
+> On the other hand it allows drivers to override some of the default
+> values for odd cases.
+
+Hm, but those cases don't have to use the v4l2_pixfmt_info at all.
+
+> I won't nack this approach, but I'm wondering whether a better
+> solution wouldn't be possible. Hans, Mauro, Guennadi, any opinion ?
+
+We could keep the global v4l2_pixfmt_info array sorted by fourcc value
+and do a binary search (would have to be kept in mind when adding new
+formats) or build a hash table (more complicated code, consumes memory).
+
+regards
+Philipp
 
