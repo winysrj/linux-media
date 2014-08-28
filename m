@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60364 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751509AbaHIU1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Aug 2014 16:27:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	Antti Palosaari <crope@iki.fi>, <stable@vger.kernel.org>
-Subject: [PATCH 05/14] af9035: new IDs: add support for PCTV 78e and PCTV 79e
-Date: Sat,  9 Aug 2014 23:27:03 +0300
-Message-Id: <1407616032-2722-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1407616032-2722-1-git-send-email-crope@iki.fi>
-References: <1407616032-2722-1-git-send-email-crope@iki.fi>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:41257 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958AbaH1RyS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Aug 2014 13:54:18 -0400
+Date: Thu, 28 Aug 2014 23:23:59 +0530
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Jim Davis <jim.epost@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>, hverkuil@xs4all.nl,
+	"m.chehab" <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: randconfig build error with next-20140828, in
+ drivers/media/radio/radio-miropcm20.c
+Message-ID: <20140828175359.GA16811@sudip-PC>
+References: <CA+r1ZhgU93EfHFNCG60CZ-cJh-9TLN5WcTYMwvErsXFZNgKGLA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="SLDf9lqlvOQaIe6s"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+r1ZhgU93EfHFNCG60CZ-cJh-9TLN5WcTYMwvErsXFZNgKGLA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Malcolm Priestley <tvboxspy@gmail.com>
 
-add the following IDs
-USB_PID_PCTV_78E (0x025a) for PCTV 78e
-USB_PID_PCTV_79E (0x0262) for PCTV 79e
+--SLDf9lqlvOQaIe6s
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-For these it9135 devices.
+On Thu, Aug 28, 2014 at 09:17:14AM -0700, Jim Davis wrote:
+> Building with the attached random configuration file,
+> 
+>  CC [M]  drivers/media/radio/radio-miropcm20.o
+> drivers/media/radio/radio-miropcm20.c: In function ‘rds_waitread’:
+> drivers/media/radio/radio-miropcm20.c:90:3: error: implicit
+> declaration of function ‘inb’ [-Werror=implicit-function-declaration]
+>    byte = inb(aci->aci_port + ACI_REG_RDS);
+>    ^
+> drivers/media/radio/radio-miropcm20.c: In function ‘rds_rawwrite’:
+> drivers/media/radio/radio-miropcm20.c:106:3: error: implicit
+> declaration of function ‘outb’ [-Werror=implicit-function-declaration]
+>    outb(byte, aci->aci_port + ACI_REG_RDS);
+>    ^
+> cc1: some warnings being treated as errors
+> make[3]: *** [drivers/media/radio/radio-miropcm20.o] Error 1
+> make[2]: *** [drivers/media/radio] Error 2
+> make[1]: *** [drivers/media] Error 2
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: <stable@vger.kernel.org> # v3.14+
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-core/dvb-usb-ids.h  | 2 ++
- drivers/media/usb/dvb-usb-v2/af9035.c | 4 ++++
- 2 files changed, 6 insertions(+)
+Hi,
+Can you please try the attached patch , for me it solved the error/
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 5135a09..12ce19c 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -280,6 +280,8 @@
- #define USB_PID_PCTV_400E				0x020f
- #define USB_PID_PCTV_450E				0x0222
- #define USB_PID_PCTV_452E				0x021f
-+#define USB_PID_PCTV_78E				0x025a
-+#define USB_PID_PCTV_79E				0x0262
- #define USB_PID_REALTEK_RTL2831U			0x2831
- #define USB_PID_REALTEK_RTL2832U			0x2832
- #define USB_PID_TECHNOTREND_CONNECT_S2_3600		0x3007
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 75ec1c6..c82beac 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1575,6 +1575,10 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_HAUPPAUGE, 0xf900,
- 		&af9035_props, "Hauppauge WinTV-MiniStick 2", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_78E,
-+		&af9035_props, "PCTV 78e", RC_MAP_IT913X_V1) },
-+	{ DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
-+		&af9035_props, "PCTV 79e", RC_MAP_IT913X_V2) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
--- 
-http://palosaari.fi/
+thanks
+sudip
 
+
+--SLDf9lqlvOQaIe6s
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename=patch
+
+diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
+index 998919e..3309f7c 100644
+--- a/drivers/media/radio/radio-miropcm20.c
++++ b/drivers/media/radio/radio-miropcm20.c
+@@ -36,6 +36,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <sound/aci.h>
++#include<linux/io.h>
+ 
+ #define RDS_DATASHIFT          2   /* Bit 2 */
+ #define RDS_DATAMASK        (1 << RDS_DATASHIFT)
+
+--SLDf9lqlvOQaIe6s--
