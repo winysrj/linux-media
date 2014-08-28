@@ -1,56 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:58436 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111AbaH1PQo (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52363 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbaH1MX7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Aug 2014 11:16:44 -0400
-Received: by mail-pa0-f51.google.com with SMTP id rd3so2971804pab.38
-        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 08:16:41 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
-	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH v3 3/3] ARM: dts: hix5hd2: add ir node
-Date: Thu, 28 Aug 2014 23:16:17 +0800
-Message-Id: <1409238977-19444-4-git-send-email-zhangfei.gao@linaro.org>
-In-Reply-To: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org>
-References: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org>
+	Thu, 28 Aug 2014 08:23:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC v2] [media] v4l2: add V4L2 pixel format array and helper functions
+Date: Thu, 28 Aug 2014 14:24:49 +0200
+Message-ID: <2323863.aLBeKZnVsL@avalon>
+In-Reply-To: <1409131814.3623.40.camel@paszta.hi.pengutronix.de>
+References: <1409043654-12252-1-git-send-email-p.zabel@pengutronix.de> <1684313.SfePcxMsjg@avalon> <1409131814.3623.40.camel@paszta.hi.pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- arch/arm/boot/dts/hisi-x5hd2.dtsi |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Hi Philipp,
 
-diff --git a/arch/arm/boot/dts/hisi-x5hd2.dtsi b/arch/arm/boot/dts/hisi-x5hd2.dtsi
-index 7b1cb53..1d7cd04 100644
---- a/arch/arm/boot/dts/hisi-x5hd2.dtsi
-+++ b/arch/arm/boot/dts/hisi-x5hd2.dtsi
-@@ -391,7 +391,7 @@
- 		};
- 
- 		sysctrl: system-controller@00000000 {
--			compatible = "hisilicon,sysctrl";
-+			compatible = "hisilicon,sysctrl", "syscon";
- 			reg = <0x00000000 0x1000>;
- 			reboot-offset = <0x4>;
- 		};
-@@ -476,5 +476,13 @@
-                         interrupts = <0 70 4>;
-                         clocks = <&clock HIX5HD2_SATA_CLK>;
- 		};
-+
-+		ir: ir@001000 {
-+			compatible = "hisilicon,hix5hd2-ir";
-+			reg = <0x001000 0x1000>;
-+			interrupts = <0 47 4>;
-+			clocks = <&clock HIX5HD2_FIXED_24M>;
-+			hisilicon,power-syscon = <&sysctrl>;
-+		};
- 	};
- };
+On Wednesday 27 August 2014 11:30:14 Philipp Zabel wrote:
+> Am Dienstag, den 26.08.2014, 12:01 +0200 schrieb Laurent Pinchart:
+> [...]
+> 
+> > > +};
+> > > +
+> > > +const struct v4l2_pixfmt *v4l2_pixfmt_by_fourcc(u32 fourcc)
+> > > +{
+> > > +	int i;
+> > 
+> > The loop counter is always positive, it can be an unsigned int.
+> 
+> I'll change that.
+> 
+> > > +	for (i = 0; i < ARRAY_SIZE(v4l2_pixfmts); i++) {
+> > > +		if (v4l2_pixfmts[i].pixelformat == fourcc)
+> > > +			return v4l2_pixfmts + i;
+> > > +	}
+> > 
+> > We currently have 123 pixel formats defined, and that number will keep
+> > increasing. I wonder if something more efficient than an O(n) array lookup
+> > would be worth it.
+> 
+> How about a function similar to soc_mbus_find_fmtdesc that uses an array
+> provided by the driver:
+> 
+> const struct v4l2_pixfmt_info *v4l2_find_pixfmt(u32 pixelformat,
+> 		const struct v4l2_pixfmt_info *array, unsigned int len)
+> {
+> 	unsigned int i;
+> 
+> 	for (i = 0; i < len; i++) {
+> 		if (pixelformat == array[i].pixelformat)
+> 			return array + i;
+> 	}
+> 
+> 	return NULL;
+> }
+> 
+> And a function to fill this driver specific array from the global array
+> once:
+> 
+> void v4l2_init_pixfmt_array(struct v4l2_pixfmt_info *array, int len)
+> {
+> 	unsigned int i;
+> 
+> 	for (i = 0; i < len; i++)
+> 		array[i] = *v4l2_pixfmt_by_fourcc(array[i].pixelformat);
+> }
+> 
+> A driver could then do the following:
+> 
+> static struct v4l2_pixfmt_info driver_formats[] = {
+> 	{ .pixelformat = V4L2_PIX_FMT_YUYV },
+> 	{ .pixelformat = V4L2_PIX_FMT_YUV420 },
+> };
+> 
+> int driver_probe(...)
+> {
+> 	...
+> 	v4l2_init_pixfmt_array(driver_formats,
+> 			ARRAY_SIZE(driver_formats));
+> 	...
+> }
+
+Good question. This option consumes more memory, and prevents the driver-
+specific format info arrays to be const, which bothers me a bit. On the other 
+hand it allows drivers to override some of the default values for odd cases. I 
+won't nack this approach, but I'm wondering whether a better solution wouldn't 
+be possible. Hans, Mauro, Guennadi, any opinion ?
+
+> [...]
+> 
+> > > +unsigned int v4l2_sizeimage(const struct v4l2_pixfmt *fmt, unsigned int
+> > > width,
+> > > +			    unsigned int height)
+> > > +{
+> > 
+> > A small comment would be useful here to explain why we don't round up in
+> > the second case.
+> 
+> Agreed, I think the YUV410 case is a good example for this.
+> 
+> [...]
+> 
+> > > +/**
+> > > + * struct v4l2_pixfmt - internal V4L2 pixel format description
+> > 
+> > Maybe struct v4l2_pixfmt_info ?
+> 
+> That's fine with me.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
