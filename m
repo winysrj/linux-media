@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from frv151.fwdcdn.com ([212.42.77.151]:60103 "EHLO
-	frv150.fwdcdn.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751364AbaHOTlY (ORCPT
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:59769 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935552AbaH1H7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 15:41:24 -0400
-Message-ID: <1408130600.4103.2.camel@ubuntu>
-Subject: [PATCH] media: stv0367: fix frontend modulation initialization with
- FE_CAB_MOD_QAM256
-From: Maks Naumov <maksqwe1@ukr.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Date: Fri, 15 Aug 2014 12:23:20 -0700
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 28 Aug 2014 03:59:36 -0400
+Date: Thu, 28 Aug 2014 13:29:19 +0530
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Jim Davis <jim.epost@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-doc <linux-doc@vger.kernel.org>
+Subject: Re: randconfig build error with next-20140826, in
+ Documentation/video4linux
+Message-ID: <20140828075919.GA4506@sudip-PC>
+References: <CA+r1Zhh5n3p8Zg+Uvqvjeb3S859iejXkqStnnOuezTTm9UCT8g@mail.gmail.com>
+ <20140827105838.GA6522@sudip-PC>
+ <CA+r1Zhh10fMu4yvFwz__5wt1X3hUZeOpy5yviXy7NY_w+Ugb6w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+r1Zhh10fMu4yvFwz__5wt1X3hUZeOpy5yviXy7NY_w+Ugb6w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Maks Naumov <maksqwe1@ukr.net>
----
- drivers/media/dvb-frontends/stv0367.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Aug 27, 2014 at 10:33:46AM -0700, Jim Davis wrote:
+> On Wed, Aug 27, 2014 at 3:58 AM, Sudip Mukherjee
+> <sudipm.mukherjee@gmail.com> wrote:
+> 
+> > Hi,
+> > I tried to build next-20140826 with your given config file . But for me everything was fine.
+> 
+> Well, you should be able to reproduce it.  Do these steps work for you?
+> 
+> jim@krebstar:~/linux2$ git checkout next-20140826
+> HEAD is now at 1c9e4561f3b2... Add linux-next specific files for 20140826
+> jim@krebstar:~/linux2$ git clean -fdx
+> jim@krebstar:~/linux2$ cp ~/randconfig-1409069188.txt .config
+> jim@krebstar:~/linux2$ make oldconfig
+>   HOSTCC  scripts/basic/fixdep
+>   HOSTCC  scripts/kconfig/conf.o
+>   SHIPPED scripts/kconfig/zconf.tab.c
+>   SHIPPED scripts/kconfig/zconf.lex.c
+>   SHIPPED scripts/kconfig/zconf.hash.c
+>   HOSTCC  scripts/kconfig/zconf.tab.o
+>   HOSTLD  scripts/kconfig/conf
+> scripts/kconfig/conf --oldconfig Kconfig
+> #
+> # configuration written to .config
+> #
+> jim@krebstar:~/linux2$ make -j4 >buildlog.txt 2>&1
+> jim@krebstar:~/linux2$ grep ERROR buildlog.txt
+> ERROR: "vb2_ops_wait_finish"
+> [Documentation/video4linux/v4l2-pci-skeleton.ko] undefined!
+> 
+> (followed by many more similar lines).
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 59b6e66..0dcfb8b 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -3165,7 +3165,7 @@ static int stv0367cab_get_frontend(struct dvb_frontend *fe)
- 	case FE_CAB_MOD_QAM128:
- 		p->modulation = QAM_128;
- 		break;
--	case QAM_256:
-+	case FE_CAB_MOD_QAM256:
- 		p->modulation = QAM_256;
- 		break;
- 	default:
--- 
-1.9.1
+yes , it worked. thanks . i was missing the oldconfig .
 
-
-
+thanks
+sudip
