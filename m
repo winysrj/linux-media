@@ -1,207 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46473 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756058AbaHVK62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Aug 2014 06:58:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL FINAL 02/21] si2157: clean logging
-Date: Fri, 22 Aug 2014 13:57:54 +0300
-Message-Id: <1408705093-5167-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1408705093-5167-1-git-send-email-crope@iki.fi>
-References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:36140 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932445AbaH1IiZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Aug 2014 04:38:25 -0400
+Received: by mail-oi0-f44.google.com with SMTP id i138so329072oig.3
+        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 01:38:24 -0700 (PDT)
+MIME-Version: 1.0
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 28 Aug 2014 14:08:04 +0530
+Message-ID: <CAO_48GEbmUaANBuOuTSED2BNUx_sC43xpz_89k_NCACEezDQBg@mail.gmail.com>
+Subject: [GIT PULL]: few dma-buf updates for 3.17-rc3
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
+	Dave Airlie <airlied@linux.ie>, Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+Hi Linus,
 
-Same thing for si2157 as Antti did earlier for tda18212:
+The major changes for 3.17 already went via Greg-KH's tree this time
+as well; this is a small pull request for dma-buf - all documentation
+related.
 
-There is no need to print module name nor function name as those
-are done by kernel logging system when dev_xxx logging is used and
-driver is proper I2C driver.
+Could you please pull?
 
-While here, fix a typo ("unknown") in si2157_init.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/si2157.c | 52 +++++++++++++++++++++----------------------
- 1 file changed, 25 insertions(+), 27 deletions(-)
+The following changes since commit f1bd473f95e02bc382d4dae94d7f82e2a455e05d:
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 6c53edb..2281b7d 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -55,8 +55,7 @@ static int si2157_cmd_execute(struct si2157 *s, struct si2157_cmd *cmd)
- 				break;
- 		}
- 
--		dev_dbg(&s->client->dev, "%s: cmd execution took %d ms\n",
--				__func__,
-+		dev_dbg(&s->client->dev, "cmd execution took %d ms\n",
- 				jiffies_to_msecs(jiffies) -
- 				(jiffies_to_msecs(timeout) - TIMEOUT));
- 
-@@ -75,7 +74,7 @@ err_mutex_unlock:
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -88,7 +87,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 	u8 *fw_file;
- 	unsigned int chip_id;
- 
--	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "\n");
- 
- 	/* configure? */
- 	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
-@@ -121,35 +120,35 @@ static int si2157_init(struct dvb_frontend *fe)
- 		break;
- 	default:
- 		dev_err(&s->client->dev,
--				"%s: unkown chip version Si21%d-%c%c%c\n",
--				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
-+				"unknown chip version Si21%d-%c%c%c\n",
-+				cmd.args[2], cmd.args[1],
- 				cmd.args[3], cmd.args[4]);
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
- 	/* cold state - try to download firmware */
--	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
--			KBUILD_MODNAME, si2157_ops.info.name);
-+	dev_info(&s->client->dev, "found a '%s' in cold state\n",
-+			si2157_ops.info.name);
- 
- 	/* request the firmware, this will block and timeout */
- 	ret = request_firmware(&fw, fw_file, &s->client->dev);
- 	if (ret) {
--		dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
--				KBUILD_MODNAME, fw_file);
-+		dev_err(&s->client->dev, "firmware file '%s' not found\n",
-+				fw_file);
- 		goto err;
- 	}
- 
- 	/* firmware should be n chunks of 17 bytes */
- 	if (fw->size % 17 != 0) {
--		dev_err(&s->client->dev, "%s: firmware file '%s' is invalid\n",
--				KBUILD_MODNAME, fw_file);
-+		dev_err(&s->client->dev, "firmware file '%s' is invalid\n",
-+				fw_file);
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
--			KBUILD_MODNAME, fw_file);
-+	dev_info(&s->client->dev, "downloading firmware from file '%s'\n",
-+			fw_file);
- 
- 	for (remaining = fw->size; remaining > 0; remaining -= 17) {
- 		len = fw->data[fw->size - remaining];
-@@ -159,8 +158,8 @@ static int si2157_init(struct dvb_frontend *fe)
- 		ret = si2157_cmd_execute(s, &cmd);
- 		if (ret) {
- 			dev_err(&s->client->dev,
--					"%s: firmware download failed=%d\n",
--					KBUILD_MODNAME, ret);
-+					"firmware download failed=%d\n",
-+					ret);
- 			goto err;
- 		}
- 	}
-@@ -184,7 +183,7 @@ err:
- 	if (fw)
- 		release_firmware(fw);
- 
--	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -194,7 +193,7 @@ static int si2157_sleep(struct dvb_frontend *fe)
- 	int ret;
- 	struct si2157_cmd cmd;
- 
--	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "\n");
- 
- 	s->active = false;
- 
-@@ -207,7 +206,7 @@ static int si2157_sleep(struct dvb_frontend *fe)
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -220,8 +219,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 	u8 bandwidth, delivery_system;
- 
- 	dev_dbg(&s->client->dev,
--			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
--			__func__, c->delivery_system, c->frequency,
-+			"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
-+			c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
- 	if (!s->active) {
-@@ -275,7 +274,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 
- 	return 0;
- err:
--	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -310,7 +309,7 @@ static int si2157_probe(struct i2c_client *client,
- 	s = kzalloc(sizeof(struct si2157), GFP_KERNEL);
- 	if (!s) {
- 		ret = -ENOMEM;
--		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
-+		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
-@@ -333,11 +332,10 @@ static int si2157_probe(struct i2c_client *client,
- 	i2c_set_clientdata(client, s);
- 
- 	dev_info(&s->client->dev,
--			"%s: Silicon Labs Si2157/Si2158 successfully attached\n",
--			KBUILD_MODNAME);
-+			"Silicon Labs Si2157/Si2158 successfully attached\n");
- 	return 0;
- err:
--	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	kfree(s);
- 
- 	return ret;
-@@ -348,7 +346,7 @@ static int si2157_remove(struct i2c_client *client)
- 	struct si2157 *s = i2c_get_clientdata(client);
- 	struct dvb_frontend *fe = s->fe;
- 
--	dev_dbg(&client->dev, "%s:\n", __func__);
-+	dev_dbg(&client->dev, "\n");
- 
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
--- 
-http://palosaari.fi/
+  Merge branch 'sec-v3.17-rc2' of
+git://git.kernel.org/pub/scm/linux/kernel/git/sergeh/linux-security
+(2014-08-27 17:32:37 -0700)
 
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
+tags/for-3.17-rc3
+
+for you to fetch changes up to 1f58d9465c568eb47cab939bbc4f30ae51863295:
+
+  dma-buf/fence: Fix one more kerneldoc warning (2014-08-28 11:59:38 +0530)
+
+----------------------------------------------------------------
+Small dma-buf pull request for 3.17-rc3
+
+----------------------------------------------------------------
+Gioh Kim (1):
+      Documentation/dma-buf-sharing.txt: update API descriptions
+
+Thierry Reding (2):
+      dma-buf/fence: Fix a kerneldoc warning
+      dma-buf/fence: Fix one more kerneldoc warning
+
+ Documentation/dma-buf-sharing.txt | 14 ++++++++------
+ drivers/dma-buf/fence.c           |  2 +-
+ include/linux/seqno-fence.h       |  1 +
+ 3 files changed, 10 insertions(+), 7 deletions(-)
