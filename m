@@ -1,79 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51142 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149AbaHSNC7 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40923 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750820AbaH1RB2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:02:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 8/8] imx-drm: use for_each_endpoint_of_node macro in imx_drm_encoder_parse_of
-Date: Tue, 19 Aug 2014 15:02:46 +0200
-Message-Id: <1408453366-1366-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
-References: <1408453366-1366-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 28 Aug 2014 13:01:28 -0400
+Message-ID: <53FF6066.5020106@infradead.org>
+Date: Thu, 28 Aug 2014 10:01:26 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Jim Davis <jim.epost@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH -next] media/radio: fix radio-miropcm20.c build with io.h
+ header file
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the for_each_... macro should make the code bit shorter and
-easier to read.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Fix build errors in radio-miropcm20.c due to missing header file:
+
+drivers/media/radio/radio-miropcm20.c: In function 'rds_waitread':
+drivers/media/radio/radio-miropcm20.c:90:3: error: implicit declaration of function 'inb' [-Werror=implicit-function-declaration]
+drivers/media/radio/radio-miropcm20.c: In function 'rds_rawwrite':
+drivers/media/radio/radio-miropcm20.c:106:3: error: implicit declaration of function 'outb' [-Werror=implicit-function-declaration]
+
+Reported-by: Jim Davis <jim.epost@gmail.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 ---
- drivers/staging/imx-drm/imx-drm-core.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/media/radio/radio-miropcm20.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-index 9b5222c..460d785 100644
---- a/drivers/staging/imx-drm/imx-drm-core.c
-+++ b/drivers/staging/imx-drm/imx-drm-core.c
-@@ -438,17 +438,13 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	struct drm_encoder *encoder, struct device_node *np)
- {
- 	struct imx_drm_device *imxdrm = drm->dev_private;
--	struct device_node *ep = NULL;
-+	struct device_node *ep;
- 	uint32_t crtc_mask = 0;
--	int i;
-+	int i = 0;
+Index: linux-next-20140828/drivers/media/radio/radio-miropcm20.c
+===================================================================
+--- linux-next-20140828.orig/drivers/media/radio/radio-miropcm20.c
++++ linux-next-20140828/drivers/media/radio/radio-miropcm20.c
+@@ -27,6 +27,7 @@
  
--	for (i = 0; ; i++) {
-+	for_each_endpoint_of_node(np, ep) {
- 		u32 mask;
- 
--		ep = of_graph_get_next_endpoint(np, ep);
--		if (!ep)
--			break;
--
- 		mask = imx_drm_find_crtc_mask(imxdrm, ep);
- 
- 		/*
-@@ -457,14 +453,15 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- 		 * not been registered yet.  Defer probing, and hope that
- 		 * the required CRTC is added later.
- 		 */
--		if (mask == 0)
-+		if (mask == 0) {
-+			of_node_put(ep);
- 			return -EPROBE_DEFER;
-+		}
- 
- 		crtc_mask |= mask;
-+		i++;
- 	}
- 
--	if (ep)
--		of_node_put(ep);
- 	if (i == 0)
- 		return -ENOENT;
- 
--- 
-2.1.0.rc1
-
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/io.h>
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
+ #include <linux/kthread.h>
