@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38755 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751303AbaHAPdd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Aug 2014 11:33:33 -0400
-Message-ID: <53DBB346.5060205@iki.fi>
-Date: Fri, 01 Aug 2014 18:33:26 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv1 02/12] vivid.txt: add documentation for the vivid driver.
-References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>	<1406730195-64365-3-git-send-email-hverkuil@xs4all.nl>	<1406834177.1912.25.camel@palomino.walls.org>	<53DB6877.1070001@xs4all.nl> <20140801171957.fe3359ee5a03f7d512de2027@ao2.it>
-In-Reply-To: <20140801171957.fe3359ee5a03f7d512de2027@ao2.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:58436 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751111AbaH1PQo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Aug 2014 11:16:44 -0400
+Received: by mail-pa0-f51.google.com with SMTP id rd3so2971804pab.38
+        for <linux-media@vger.kernel.org>; Thu, 28 Aug 2014 08:16:41 -0700 (PDT)
+From: Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
+	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH v3 3/3] ARM: dts: hix5hd2: add ir node
+Date: Thu, 28 Aug 2014 23:16:17 +0800
+Message-Id: <1409238977-19444-4-git-send-email-zhangfei.gao@linaro.org>
+In-Reply-To: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org>
+References: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
+---
+ arch/arm/boot/dts/hisi-x5hd2.dtsi |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-
-On 08/01/2014 06:19 PM, Antonio Ospite wrote:
-> On Fri, 01 Aug 2014 12:14:15 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> On 07/31/2014 09:16 PM, Andy Walls wrote:
->>> On Wed, 2014-07-30 at 16:23 +0200, Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
-> [..]
->>>> +- Improve the sinus generation of the SDR radio.
->>>
->>> Maybe a lookup table, containing the first quarter wave of cos() from 0
->>> to pi/2 in pi/200 steps, and then linear interpolation for cos() of
->>> angles in between those steps.  You could go with a larger lookup table
->>> with finer grained steps to reduce the approximation errors.  A lookup
->>> table with linear interpolation, I would think, requires fewer
->>> mutliplies and divides than the current Taylor expansion computation.
->>
->> Yeah, I had plans for that. There actually is a sine-table already in vivid-tpg.c
->> since I'm using that to implement Hue support.
->>
->
-> I don't know what your requirements are here but JFTR there is already a
-> simplistic implementation of fixed point operations in
-> include/linux/fixp-arith.h I used them in
-> drivers/media/usb/gspca/ov534.c for some hue calculation.
-
-I looked that too, but there was very small LUT => very bad resolution. 
-So I ended up copying sin/cos from cx88 driver (Taylor method).
-
-regards
-Antti
-
+diff --git a/arch/arm/boot/dts/hisi-x5hd2.dtsi b/arch/arm/boot/dts/hisi-x5hd2.dtsi
+index 7b1cb53..1d7cd04 100644
+--- a/arch/arm/boot/dts/hisi-x5hd2.dtsi
++++ b/arch/arm/boot/dts/hisi-x5hd2.dtsi
+@@ -391,7 +391,7 @@
+ 		};
+ 
+ 		sysctrl: system-controller@00000000 {
+-			compatible = "hisilicon,sysctrl";
++			compatible = "hisilicon,sysctrl", "syscon";
+ 			reg = <0x00000000 0x1000>;
+ 			reboot-offset = <0x4>;
+ 		};
+@@ -476,5 +476,13 @@
+                         interrupts = <0 70 4>;
+                         clocks = <&clock HIX5HD2_SATA_CLK>;
+ 		};
++
++		ir: ir@001000 {
++			compatible = "hisilicon,hix5hd2-ir";
++			reg = <0x001000 0x1000>;
++			interrupts = <0 47 4>;
++			clocks = <&clock HIX5HD2_FIXED_24M>;
++			hisilicon,power-syscon = <&sysctrl>;
++		};
+ 	};
+ };
 -- 
-http://palosaari.fi/
+1.7.9.5
+
