@@ -1,75 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44164 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755749AbaHZVzW (ORCPT
+Received: from smtp-out-167.synserver.de ([212.40.185.167]:1288 "EHLO
+	smtp-out-167.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135AbaH2QT5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:22 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 18/35] [media] s5p-jpeg: get rid of some warnings
-Date: Tue, 26 Aug 2014 18:54:54 -0300
-Message-Id: <1409090111-8290-19-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 29 Aug 2014 12:19:57 -0400
+Message-ID: <5400A106.6060004@metafoo.de>
+Date: Fri, 29 Aug 2014 17:49:26 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+CC: w.sang@pengutronix.de, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, mark.rutland@arm.com
+Subject: Re: [PATCH v2 2/2] adv7604: Use DT parsing in dummy creation
+References: <1409325303-15906-1-git-send-email-jean-michel.hautbois@vodalys.com> <1409325303-15906-2-git-send-email-jean-michel.hautbois@vodalys.com>
+In-Reply-To: <1409325303-15906-2-git-send-email-jean-michel.hautbois@vodalys.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare this as static:
+On 08/29/2014 05:15 PM, Jean-Michel Hautbois wrote:
+> This patch uses DT in order to parse addresses for dummy devices of adv7604.
+> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+> I²C ports. Each map has it own I²C address and acts
+> as a standard slave device on the I²C bus.
+>
+> If nothing is defined, it uses default addresses.
+> The main prupose is using two adv76xx on the same i2c bus.
 
-drivers/media/platform/s5p-jpeg/jpeg-core.c:732:6: warning: no previous prototype for 'exynos4_jpeg_set_huff_tbl' [-Wmissing-prototypes]
- void exynos4_jpeg_set_huff_tbl(void __iomem *base)
-      ^
+Ideally this patch is split up in two patches. One patch adding support for 
+i2c_new_secondary_device() and one patch adding support for DT for the adv7604.
 
-And don't compile this dead code, while not needed:
-drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c:236:14: warning: no previous prototype for 'exynos3250_jpeg_get_y' [-Wmissing-prototypes]
- unsigned int exynos3250_jpeg_get_y(void __iomem *regs)
-              ^
-drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c:241:14: warning: no previous prototype for 'exynos3250_jpeg_get_x' [-Wmissing-prototypes]
- unsigned int exynos3250_jpeg_get_x(void __iomem *regs)
-              ^
+[...]
+> +static const char const *adv7604_secondary_names[] = {
+> +	"main", /* ADV7604_PAGE_IO */
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c          | 2 +-
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+How about [ADV7604_PAGE_IO] = "main", instead of having the comment, this 
+makes things more explicit.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index e66acbc2a82d..e525a7c8d885 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -729,7 +729,7 @@ static inline void exynos4_jpeg_set_qtbl_chr(void __iomem *regs, int quality)
- 			     ARRAY_SIZE(qtbl_chrominance[quality]));
- }
- 
--void exynos4_jpeg_set_huff_tbl(void __iomem *base)
-+static void exynos4_jpeg_set_huff_tbl(void __iomem *base)
- {
- 	exynos4_jpeg_set_tbl(base, hdctbl0, EXYNOS4_HUFF_TBL_HDCLL,
- 							ARRAY_SIZE(hdctbl0));
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-index d26e1f846553..e8c2cad93962 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-@@ -233,6 +233,7 @@ void exynos3250_jpeg_set_x(void __iomem *regs, unsigned int x)
- 	writel(reg, regs + EXYNOS3250_JPGX);
- }
- 
-+#if 0	/* Currently unused */
- unsigned int exynos3250_jpeg_get_y(void __iomem *regs)
- {
- 	return readl(regs + EXYNOS3250_JPGY);
-@@ -242,6 +243,7 @@ unsigned int exynos3250_jpeg_get_x(void __iomem *regs)
- {
- 	return readl(regs + EXYNOS3250_JPGX);
- }
-+#endif
- 
- void exynos3250_jpeg_interrupts_enable(void __iomem *regs)
- {
--- 
-1.9.3
+> +	"avlink", /* ADV7604_PAGE_AVLINK */
+> +	"cec", /* ADV7604_PAGE_CEC */
+> +	"infoframe", /* ADV7604_PAGE_INFOFRAME */
+> +	"esdp", /* ADV7604_PAGE_ESDP */
+> +	"dpp", /* ADV7604_PAGE_DPP */
+> +	"afe", /* ADV7604_PAGE_AFE */
+> +	"rep", /* ADV7604_PAGE_REP */
+> +	"edid", /* ADV7604_PAGE_EDID */
+> +	"hdmi", /* ADV7604_PAGE_HDMI */
+> +	"test", /* ADV7604_PAGE_TEST */
+> +	"cp", /* ADV7604_PAGE_CP */
+> +	"vdp" /* ADV7604_PAGE_VDP */
+> +};
+> +
+>   /* ----------------------------------------------------------------------- */
+>
+>   static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+> @@ -2528,13 +2544,31 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
+>   }
+>
+>   static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
+> -							u8 addr, u8 io_reg)
+> +						unsigned int i)
+>   {
+>   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct adv7604_platform_data *pdata = client->dev.platform_data;
+> +	unsigned int io_reg = 0xf2 + i;
+> +	unsigned int default_addr = io_read(sd, io_reg) >> 1;
+> +	struct i2c_client *new_client;
+> +
+> +	if (IS_ENABLED(CONFIG_OF)) {
 
+No CONFIG_OF. i2c_new_secondary_device() is supposed to be the generic 
+method of instantiating the secondary i2c_client, regardless of how the 
+address is specified. For this driver we still need to keep the old method 
+of instantiation via platform data for legacy reasons for now. So what this 
+should look like is:
+
+
+	if (pdata && pdata->i2c_addresses[i])
+		new_client = i2c_new_dummy(client->adapter,
+			pdata->i2c_addresses[i]);	
+	else
+		new_client = i2c_new_secondary_device(client,
+			adv7604_secondary_names[i], default_addr);
+
+
+> +		/* Try to find it in DT */
+> +		new_client = i2c_new_secondary_device(client,
+> +			adv7604_secondary_names[i], default_addr);
+> +	} else if (pdata) {
+> +		if (pdata->i2c_addresses[i])
+> +			new_client = i2c_new_dummy(client->adapter,
+> +						pdata->i2c_addresses[i]);
+> +		else
+> +			new_client = i2c_new_dummy(client->adapter,
+> +						default_addr);
+> +	}
+>
+[...]
