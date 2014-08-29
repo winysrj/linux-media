@@ -1,41 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2973 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751538AbaHJL6Y (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1992 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751470AbaH2ClS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 07:58:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 28 Aug 2014 22:41:18 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7T2fDiF062634
+	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 04:41:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1A6CD2A0757
+	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 04:41:11 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/19] cx23885: map invalid fields to a valid field.
-Date: Sun, 10 Aug 2014 13:57:45 +0200
-Message-Id: <1407671876-39386-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140829024111.1A6CD2A0757@tschai.lan>
+Date: Fri, 29 Aug 2014 04:41:11 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-video.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index ad02912..9bb19fd 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -948,7 +948,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		return -EINVAL;
-+		field = V4L2_FIELD_INTERLACED;
-+		break;
- 	}
- 
- 	f->fmt.pix.field = field;
--- 
-2.0.1
+date:		Fri Aug 29 04:00:15 CEST 2014
+git branch:	test
+git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
