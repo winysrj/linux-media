@@ -1,67 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4569 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753872AbaHUUT5 (ORCPT
+Received: from mail-we0-f172.google.com ([74.125.82.172]:45626 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752889AbaH2N23 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 16:19:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/12] ivtv: fix sparse warnings
-Date: Thu, 21 Aug 2014 22:19:32 +0200
-Message-Id: <1408652376-39525-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 29 Aug 2014 09:28:29 -0400
+Received: by mail-we0-f172.google.com with SMTP id q59so2176001wes.31
+        for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 06:28:28 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+Cc: lars@metafoo.de, w.sang@pengutronix.de, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH 2/2] adv7604: Use DT parsing in dummy creation
+Date: Fri, 29 Aug 2014 15:28:17 +0200
+Message-Id: <1409318897-12668-2-git-send-email-jean-michel.hautbois@vodalys.com>
+In-Reply-To: <1409318897-12668-1-git-send-email-jean-michel.hautbois@vodalys.com>
+References: <1409318897-12668-1-git-send-email-jean-michel.hautbois@vodalys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch uses DT in order to parse addresses for dummy devices of adv7604.
+If nothing is defined, it uses default addresses.
+The main prupose is using two adv76xx on the same i2c bus.
 
-drivers/media/pci/ivtv/ivtv-irq.c:195:25: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/ivtv/ivtv-irq.c:199:25: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/ivtv/ivtv-irq.c:278:35: warning: restricted __le32 degrades to integer
-drivers/media/pci/ivtv/ivtv-irq.c:281:51: warning: restricted __le32 degrades to integer
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 ---
- drivers/media/pci/ivtv/ivtv-irq.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ .../devicetree/bindings/media/i2c/adv7604.txt      |  7 ++-
+ drivers/media/i2c/adv7604.c                        | 56 ++++++++++++++--------
+ 2 files changed, 42 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-irq.c b/drivers/media/pci/ivtv/ivtv-irq.c
-index 19a7c9b..ab6d5d2 100644
---- a/drivers/media/pci/ivtv/ivtv-irq.c
-+++ b/drivers/media/pci/ivtv/ivtv-irq.c
-@@ -192,11 +192,11 @@ static int stream_enc_dma_append(struct ivtv_stream *s, u32 data[CX2341X_MBOX_MA
- 		if (itv->has_cx23415 && (s->type == IVTV_ENC_STREAM_TYPE_PCM ||
- 		    s->type == IVTV_DEC_STREAM_TYPE_VBI)) {
- 			s->pending_backup = read_dec(offset - IVTV_DECODER_OFFSET);
--			write_dec_sync(cpu_to_le32(DMA_MAGIC_COOKIE), offset - IVTV_DECODER_OFFSET);
-+			write_dec_sync(DMA_MAGIC_COOKIE, offset - IVTV_DECODER_OFFSET);
- 		}
- 		else {
- 			s->pending_backup = read_enc(offset);
--			write_enc_sync(cpu_to_le32(DMA_MAGIC_COOKIE), offset);
-+			write_enc_sync(DMA_MAGIC_COOKIE, offset);
- 		}
- 		s->pending_offset = offset;
- 	}
-@@ -275,13 +275,11 @@ static void dma_post(struct ivtv_stream *s)
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index c27cede..221b75c 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -10,6 +10,7 @@ Required Properties:
  
- 		if (x == 0 && ivtv_use_dma(s)) {
- 			offset = s->dma_last_offset;
--			if (u32buf[offset / 4] != DMA_MAGIC_COOKIE)
-+			if (le32_to_cpu(u32buf[offset / 4]) != DMA_MAGIC_COOKIE)
- 			{
--				for (offset = 0; offset < 64; offset++) {
--					if (u32buf[offset] == DMA_MAGIC_COOKIE) {
-+				for (offset = 0; offset < 64; offset++)
-+					if (le32_to_cpu(u32buf[offset]) == DMA_MAGIC_COOKIE)
- 						break;
--					}
--				}
- 				offset *= 4;
- 				if (offset == 256) {
- 					IVTV_DEBUG_WARN("%s: Couldn't find start of buffer within the first 256 bytes\n", s->name);
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7604" for the ADV7604
+ 
+   - reg: I2C slave address
+ 
+@@ -32,6 +33,8 @@ The digital output port node must contain at least one endpoint.
+ Optional Properties:
+ 
+   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
++  - reg-names : Names of registers to be reprogrammed.
++		Refer to source code for possible values.
+ 
+ Optional Endpoint Properties:
+ 
+@@ -50,7 +53,9 @@ Example:
+ 
+ 	hdmi_receiver@4c {
+ 		compatible = "adi,adv7611";
+-		reg = <0x4c>;
++		/* edid page will be accessible @ 0x66 on i2c bus*/
++		reg = <0x4c 0x66>;
++		reg-names = "main", "edid";
+ 
+ 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+ 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d4fa213..4e660a2 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -326,6 +326,22 @@ static const struct adv7604_video_standards adv7604_prim_mode_hdmi_gr[] = {
+ 	{ },
+ };
+ 
++static const char const *adv7604_secondary_names[] = {
++	"main", /* ADV7604_PAGE_IO */
++	"avlink", /* ADV7604_PAGE_AVLINK */
++	"cec", /* ADV7604_PAGE_CEC */
++	"infoframe", /* ADV7604_PAGE_INFOFRAME */
++	"esdp", /* ADV7604_PAGE_ESDP */
++	"dpp", /* ADV7604_PAGE_DPP */
++	"afe", /* ADV7604_PAGE_AFE */
++	"rep", /* ADV7604_PAGE_REP */
++	"edid", /* ADV7604_PAGE_EDID */
++	"hdmi", /* ADV7604_PAGE_HDMI */
++	"test", /* ADV7604_PAGE_TEST */
++	"cp", /* ADV7604_PAGE_CP */
++	"vdp" /* ADV7604_PAGE_VDP */
++};
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+@@ -2528,13 +2544,27 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
+ }
+ 
+ static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
+-							u8 addr, u8 io_reg)
++						unsigned int i)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct adv7604_platform_data *pdata = client->dev.platform_data;
++	unsigned int io_reg = 0xf2 + i;
++	struct i2c_client *new_client;
++
++	/* Try to find it in DT */
++	new_client = i2c_new_secondary_device(client,
++			adv7604_secondary_names[i], io_read(sd, io_reg) >> 1);
+ 
+-	if (addr)
+-		io_write(sd, io_reg, addr << 1);
+-	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
++	if (!new_client)
++		/* if not defined in DT, use default if available */
++		if (pdata && pdata->i2c_addresses[i])
++			new_client = i2c_new_dummy(client->adapter,
++						pdata->i2c_addresses[i]);
++
++	if (new_client)
++		io_write(sd, io_reg, new_client->addr << 1);
++
++	return new_client;
+ }
+ 
+ static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
+@@ -2677,6 +2707,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
+ 
+ static struct of_device_id adv7604_of_id[] __maybe_unused = {
+ 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
++	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, adv7604_of_id);
+@@ -2717,20 +2748,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	/* Disable the interrupt for now as no DT-based board uses it. */
+ 	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
+ 
+-	/* Use the default I2C addresses. */
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
+-
+ 	/* Hardcode the remaining platform data fields. */
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+@@ -2891,8 +2908,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 			continue;
+ 
+ 		state->i2c_clients[i] =
+-			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+-					     0xf2 + i);
++			adv7604_dummy_client(sd, i);
+ 		if (state->i2c_clients[i] == NULL) {
+ 			err = -ENOMEM;
+ 			v4l2_err(sd, "failed to create i2c client %u\n", i);
 -- 
-2.1.0.rc1
+2.0.4
 
