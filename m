@@ -1,48 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:32819 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbaHORKO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Aug 2014 13:10:14 -0400
-Received: by mail-la0-f42.google.com with SMTP id pv20so2543432lab.15
-        for <linux-media@vger.kernel.org>; Fri, 15 Aug 2014 10:10:12 -0700 (PDT)
-From: Andreas Ruprecht <rupran@einserver.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Andreas Ruprecht <rupran@einserver.de>
-Subject: [PATCH] drivers: media: platform: Makefile: Add build dependency for davinci/
-Date: Fri, 15 Aug 2014 19:10:29 +0200
-Message-Id: <1408122629-19634-1-git-send-email-rupran@einserver.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:53768 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751470AbaH2BNf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Aug 2014 21:13:35 -0400
+Message-ID: <53FFD3BA.1000009@iki.fi>
+Date: Fri, 29 Aug 2014 04:13:30 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Kaya Saman <SamanKaya@netscape.net>,
+	"P. van Gaans" <w3ird_n3rd@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: Advice on DVB-S/S2 card and CAM support
+References: <53D58EDF.1090102@netscape.net> <53FEA63E.9020208@gmx.net> <53FF406B.9040001@netscape.net>
+In-Reply-To: <53FF406B.9040001@netscape.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the davinci/ subdirectory, all drivers but one depend on
-CONFIG_ARCH_DAVINCI. The only exception, selected by CONFIG_VIDEO_DM6446_CCDC,
-is also available on CONFIG_ARCH_OMAP3.
+On 08/28/2014 05:44 PM, Kaya Saman wrote:
+> In my research I got suggested the Digital Devices line of products:
+>
+> http://www.digitaldevices.de/
+>
+> They are German so hopefully the quality will be extremely good and they
+> all seem natively supported.
 
-Thus, it is not necessary to always descend into davinci/. It is sufficient to
-do this only if CONFIG_ARCH_OMAP3 or CONFIG_ARCH_DAVINCI is selected. While the
-latter is already present, this patch changes the dependency from obj-y to
-obj-$(CONFIG_ARCH_OMAP3).
+Not natively supported. In my understanding ddbridge DVB-S/S2 is 
+supported, but CAM/CI has some problems as it is implemented differently 
+than kernel.
 
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
----
- drivers/media/platform/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+regards
+Antti
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index e5269da..d32e79a 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -47,7 +47,7 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
- 
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- 
--obj-y	+= davinci/
-+obj-$(CONFIG_ARCH_OMAP3)	+= davinci/
- 
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
- 
 -- 
-1.9.1
-
+http://palosaari.fi/
