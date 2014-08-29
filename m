@@ -1,41 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3794 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754668AbaHNJyW (ORCPT
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:44783 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672AbaH2KpN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Aug 2014 05:54:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 08/20] cx23885: map invalid fields to a valid field.
-Date: Thu, 14 Aug 2014 11:53:53 +0200
-Message-Id: <1408010045-24016-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 29 Aug 2014 06:45:13 -0400
+Received: by mail-pd0-f170.google.com with SMTP id r10so187574pdi.1
+        for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 03:45:13 -0700 (PDT)
+Message-ID: <540059B5.8050100@gmail.com>
+Date: Fri, 29 Aug 2014 19:45:09 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi>
+In-Reply-To: <53FFD1F0.9050306@iki.fi>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+moikka,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-video.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> Start polling thread, which polls once per 2 sec or so, which reads RSSI
+> and writes value to struct dtv_frontend_properties. That it is, in my
+> understanding. Same for all those DVBv5 stats. Mauro knows better as he
+> designed that functionality.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index ad02912..9bb19fd 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -948,7 +948,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	case V4L2_FIELD_INTERLACED:
- 		break;
- 	default:
--		return -EINVAL;
-+		field = V4L2_FIELD_INTERLACED;
-+		break;
- 	}
- 
- 	f->fmt.pix.field = field;
--- 
-2.1.0.rc1
+I understand that RSSI property should be set directly in the tuner driver,
+but I'm afraid that creating a kthread just for updating RSSI would be
+overkill and complicate matters.
 
+Would you give me an advice? >> Mauro
+
+regards,
+akihiro
