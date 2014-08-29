@@ -1,37 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1blp0188.outbound.protection.outlook.com ([207.46.163.188]:56047
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750876AbaHAOEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Aug 2014 10:04:43 -0400
-Date: Fri, 1 Aug 2014 22:04:31 +0800
-From: Shawn Guo <shawn.guo@freescale.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-	<linux-media@vger.kernel.org>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH 01/28] ARM: dts: imx6qdl: Add ipu aliases
-Message-ID: <20140801140430.GB2167@dragon>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
- <1403744755-24944-2-git-send-email-steve_longerbeam@mentor.com>
- <1406820486.16697.60.camel@paszta.hi.pengutronix.de>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1333 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642AbaH2OQM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Aug 2014 10:16:12 -0400
+Message-ID: <54008AF4.9050708@xs4all.nl>
+Date: Fri, 29 Aug 2014 16:15:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1406820486.16697.60.camel@paszta.hi.pengutronix.de>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+CC: lars@metafoo.de, w.sang@pengutronix.de,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 2/2] adv7604: Use DT parsing in dummy creation
+References: <1409318897-12668-1-git-send-email-jean-michel.hautbois@vodalys.com> <1409318897-12668-2-git-send-email-jean-michel.hautbois@vodalys.com>
+In-Reply-To: <1409318897-12668-2-git-send-email-jean-michel.hautbois@vodalys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 31, 2014 at 05:28:06PM +0200, Philipp Zabel wrote:
+On 08/29/2014 03:28 PM, Jean-Michel Hautbois wrote:
+> This patch uses DT in order to parse addresses for dummy devices of adv7604.
+> If nothing is defined, it uses default addresses.
+> The main prupose is using two adv76xx on the same i2c bus.
 > 
-> Am Mittwoch, den 25.06.2014, 18:05 -0700 schrieb Steve Longerbeam:
-> > Add ipu0 (and ipu1 for quad) aliases to ipu1/ipu2 nodes respectively.
-> > 
-> > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> ---
+>  .../devicetree/bindings/media/i2c/adv7604.txt      |  7 ++-
+>  drivers/media/i2c/adv7604.c                        | 56 ++++++++++++++--------
+>  2 files changed, 42 insertions(+), 21 deletions(-)
 > 
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> index c27cede..221b75c 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> @@ -10,6 +10,7 @@ Required Properties:
+>  
+>    - compatible: Must contain one of the following
+>      - "adi,adv7611" for the ADV7611
+> +    - "adi,adv7604" for the ADV7604
+>  
+>    - reg: I2C slave address
+>  
+> @@ -32,6 +33,8 @@ The digital output port node must contain at least one endpoint.
+>  Optional Properties:
+>  
+>    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
+> +  - reg-names : Names of registers to be reprogrammed.
+> +		Refer to source code for possible values.
+>  
+>  Optional Endpoint Properties:
+>  
+> @@ -50,7 +53,9 @@ Example:
+>  
+>  	hdmi_receiver@4c {
+>  		compatible = "adi,adv7611";
+> -		reg = <0x4c>;
+> +		/* edid page will be accessible @ 0x66 on i2c bus*/
+> +		reg = <0x4c 0x66>;
+> +		reg-names = "main", "edid";
+>  
+>  		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+>  		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index d4fa213..4e660a2 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -326,6 +326,22 @@ static const struct adv7604_video_standards adv7604_prim_mode_hdmi_gr[] = {
+>  	{ },
+>  };
+>  
+> +static const char const *adv7604_secondary_names[] = {
+> +	"main", /* ADV7604_PAGE_IO */
+> +	"avlink", /* ADV7604_PAGE_AVLINK */
+> +	"cec", /* ADV7604_PAGE_CEC */
+> +	"infoframe", /* ADV7604_PAGE_INFOFRAME */
+> +	"esdp", /* ADV7604_PAGE_ESDP */
+> +	"dpp", /* ADV7604_PAGE_DPP */
+> +	"afe", /* ADV7604_PAGE_AFE */
+> +	"rep", /* ADV7604_PAGE_REP */
+> +	"edid", /* ADV7604_PAGE_EDID */
+> +	"hdmi", /* ADV7604_PAGE_HDMI */
+> +	"test", /* ADV7604_PAGE_TEST */
+> +	"cp", /* ADV7604_PAGE_CP */
+> +	"vdp" /* ADV7604_PAGE_VDP */
+> +};
+> +
+>  /* ----------------------------------------------------------------------- */
+>  
+>  static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+> @@ -2528,13 +2544,27 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
+>  }
+>  
+>  static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
+> -							u8 addr, u8 io_reg)
+> +						unsigned int i)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct adv7604_platform_data *pdata = client->dev.platform_data;
+> +	unsigned int io_reg = 0xf2 + i;
+> +	struct i2c_client *new_client;
+> +
+> +	/* Try to find it in DT */
+> +	new_client = i2c_new_secondary_device(client,
+> +			adv7604_secondary_names[i], io_read(sd, io_reg) >> 1);
 
-Please send the patch to LAKML and copy me if it's intended to be
-applied on IMX tree.
+Does this work if CONFIG_OF isn't set? I suspect not.
 
-Shawn
+>  
+> -	if (addr)
+> -		io_write(sd, io_reg, addr << 1);
+> -	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
+> +	if (!new_client)
+> +		/* if not defined in DT, use default if available */
+> +		if (pdata && pdata->i2c_addresses[i])
+> +			new_client = i2c_new_dummy(client->adapter,
+> +						pdata->i2c_addresses[i]);
+
+This is not the same as the original code. If pdata->i2c_addresses[i] == 0,
+then it should use io_read(sd, io_reg) >> 1 as the address for i2c_new_dummy.
+
+This would break existing code that uses platform_data (such as on our PCIe
+board).
+
+Regards,
+
+	Hans
+
+> +
+> +	if (new_client)
+> +		io_write(sd, io_reg, new_client->addr << 1);
+> +
+> +	return new_client;
+>  }
+>  
+>  static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
+> @@ -2677,6 +2707,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
+>  
+>  static struct of_device_id adv7604_of_id[] __maybe_unused = {
+>  	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
+> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(of, adv7604_of_id);
+> @@ -2717,20 +2748,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+>  	/* Disable the interrupt for now as no DT-based board uses it. */
+>  	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
+>  
+> -	/* Use the default I2C addresses. */
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
+> -	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
+> -
+>  	/* Hardcode the remaining platform data fields. */
+>  	state->pdata.disable_pwrdnb = 0;
+>  	state->pdata.disable_cable_det_rst = 0;
+> @@ -2891,8 +2908,7 @@ static int adv7604_probe(struct i2c_client *client,
+>  			continue;
+>  
+>  		state->i2c_clients[i] =
+> -			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+> -					     0xf2 + i);
+> +			adv7604_dummy_client(sd, i);
+>  		if (state->i2c_clients[i] == NULL) {
+>  			err = -ENOMEM;
+>  			v4l2_err(sd, "failed to create i2c client %u\n", i);
+> 
+
