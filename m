@@ -1,166 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44171 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755796AbaHZVzW (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3829 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbaH2LVj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Aug 2014 17:55:22 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 22/35] [media] s5p_mfc: get rid of several warnings
-Date: Tue, 26 Aug 2014 18:54:58 -0300
-Message-Id: <1409090111-8290-23-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 29 Aug 2014 07:21:39 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s7TBLZIV049426
+	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 13:21:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 49D3A2A0757
+	for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 13:21:32 +0200 (CEST)
+Message-ID: <5400623C.5020505@xs4all.nl>
+Date: Fri, 29 Aug 2014 13:21:32 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Fix sparse warnings
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:826:5: warning: no previous prototype for 'vidioc_decoder_cmd' [-Wmissing-prototypes]
- int vidioc_decoder_cmd(struct file *file, void *priv,
-     ^
-drivers/media/platform/s5p-mfc/s5p_mfc.c: In function 's5p_mfc_runtime_resume':
-drivers/media/platform/s5p-mfc/s5p_mfc.c:1314:6: warning: variable 'pre_power' set but not used [-Wunused-but-set-variable]
-  int pre_power;
-      ^
-drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c:163:25: warning: no previous prototype for 's5p_mfc_init_hw_cmds_v5' [-Wmissing-prototypes]
- struct s5p_mfc_hw_cmds *s5p_mfc_init_hw_cmds_v5(void)
-                         ^
-drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c:156:25: warning: no previous prototype for 's5p_mfc_init_hw_cmds_v6' [-Wmissing-prototypes]
- struct s5p_mfc_hw_cmds *s5p_mfc_init_hw_cmds_v6(void)
-                         ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c: In function 's5p_mfc_run_dec_frame':
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:1189:15: warning: variable 'index' set but not used [-Wunused-but-set-variable]
-  unsigned int index;
-               ^
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c: In function 'cleanup_ref_queue':
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:742:27: warning: variable 'mb_c_addr' set but not used [-Wunused-but-set-variable]
-  unsigned long mb_y_addr, mb_c_addr;
-                           ^
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:742:16: warning: variable 'mb_y_addr' set but not used [-Wunused-but-set-variable]
-  unsigned long mb_y_addr, mb_c_addr;
-                ^
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c: At top level:
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1684:5: warning: no previous prototype for 'vidioc_encoder_cmd' [-Wmissing-prototypes]
- int vidioc_encoder_cmd(struct file *file, void *priv,
-     ^
+We still have too many sparse warnings, so this is another round of sparse
+warning cleanups.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c        | 2 --
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c | 1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c | 1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 7 ++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 2 --
- 6 files changed, 6 insertions(+), 11 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 89b5b4ad34d3..d180440ac43e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1311,11 +1311,9 @@ static int s5p_mfc_runtime_resume(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
--	int pre_power;
- 
- 	if (!m_dev->alloc_ctx)
- 		return 0;
--	pre_power = atomic_read(&m_dev->pm.power);
- 	atomic_set(&m_dev->pm.power, 1);
- 	return 0;
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-index 9a6efd6c1329..8c4739ca16d6 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-@@ -14,6 +14,7 @@
- #include "s5p_mfc_cmd.h"
- #include "s5p_mfc_common.h"
- #include "s5p_mfc_debug.h"
-+#include "s5p_mfc_cmd_v5.h"
- 
- /* This function is used to send a command to the MFC */
- static int s5p_mfc_cmd_host2risc_v5(struct s5p_mfc_dev *dev, int cmd,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index ec1a5947ed7d..f17609669b96 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -16,6 +16,7 @@
- #include "s5p_mfc_debug.h"
- #include "s5p_mfc_intr.h"
- #include "s5p_mfc_opr.h"
-+#include "s5p_mfc_cmd_v6.h"
- 
- static int s5p_mfc_cmd_host2risc_v6(struct s5p_mfc_dev *dev, int cmd,
- 				struct s5p_mfc_cmd_args *args)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 9103258b7df3..fe4d21ccfd49 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -823,8 +823,8 @@ static int vidioc_g_crop(struct file *file, void *priv,
- 	return 0;
- }
- 
--int vidioc_decoder_cmd(struct file *file, void *priv,
--						struct v4l2_decoder_cmd *cmd)
-+static int vidioc_decoder_cmd(struct file *file, void *priv,
-+			      struct v4l2_decoder_cmd *cmd)
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index d26b2484ca10..41f3b7f512fa 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -739,14 +739,11 @@ static int s5p_mfc_ctx_ready(struct s5p_mfc_ctx *ctx)
- static void cleanup_ref_queue(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_buf *mb_entry;
--	unsigned long mb_y_addr, mb_c_addr;
- 
- 	/* move buffers in ref queue to src queue */
- 	while (!list_empty(&ctx->ref_queue)) {
- 		mb_entry = list_entry((&ctx->ref_queue)->next,
- 						struct s5p_mfc_buf, list);
--		mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
--		mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
- 		list_del(&mb_entry->list);
- 		ctx->ref_queue_cnt--;
- 		list_add_tail(&mb_entry->list, &ctx->src_queue);
-@@ -1681,8 +1678,8 @@ static int vidioc_g_parm(struct file *file, void *priv,
- 	return 0;
- }
- 
--int vidioc_encoder_cmd(struct file *file, void *priv,
--						struct v4l2_encoder_cmd *cmd)
-+static int vidioc_encoder_cmd(struct file *file, void *priv,
-+			      struct v4l2_encoder_cmd *cmd)
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 58ec7bb26ebc..31688cddfead 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -1186,7 +1186,6 @@ static int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx, int last_frame)
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	struct s5p_mfc_buf *temp_vb;
- 	unsigned long flags;
--	unsigned int index;
- 
- 	if (ctx->state == MFCINST_FINISHING) {
- 		last_frame = MFC_DEC_LAST_FRAME;
-@@ -1211,7 +1210,6 @@ static int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx, int last_frame)
- 		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
- 		ctx->consumed_stream, temp_vb->b->v4l2_planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
--	index = temp_vb->b->v4l2_buf.index;
- 	dev->curr_ctx = ctx->num;
- 	s5p_mfc_clean_ctx_int_flags(ctx);
- 	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
--- 
-1.9.3
+	Hans
 
+The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
+
+  [media] media: ttpci: fix av7110 build to be compatible with CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git sparse
+
+for you to fetch changes up to 7207dddb8cb0328c817f88f0447cd651703560a7:
+
+  v4l2-compat-ioctl32: fix sparse warnings (2014-08-29 13:19:41 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (41):
+      img-ir: fix sparse warnings
+      solo6x10: fix sparse warnings
+      dibusb: fix sparse warnings
+      af9015: fix sparse warning
+      radio-tea5764: fix sparse warnings
+      dw2102: fix sparse warnings
+      mxl111sf: fix sparse warnings
+      opera1: fix sparse warnings
+      pctv452e: fix sparse warnings
+      go7007: fix sparse warnings
+      dib7000p: fix sparse warning
+      kinect: fix sparse warnings
+      ddbridge: fix sparse warnings
+      ngene: fix sparse warnings
+      drxj: fix sparse warnings
+      uvc: fix sparse warning
+      usbtv: fix sparse warnings
+      mb86a16/mb86a20s: fix sparse warnings
+      mantis: fix sparse warnings
+      wl128x: fix sparse warnings
+      bcm3510: fix sparse warnings
+      s2255drv: fix sparse warning
+      dvb_usb_core: fix sparse warning
+      pwc: fix sparse warning
+      stv0367: fix sparse warnings
+      si2165: fix sparse warning
+      imon: fix sparse warnings
+      v4l2-ioctl: fix sparse warnings
+      lirc_dev: fix sparse warnings
+      mt2063: fix sparse warnings
+      via-camera: fix sparse warning
+      cx25821: fix sparse warning
+      cx231xx: fix sparse warnings
+      dm1105: fix sparse warning
+      cxusb: fix sparse warning
+      cx23885: fix sparse warning
+      ivtv: fix sparse warnings
+      cx18: fix sparse warnings
+      em28xx: fix sparse warnings
+      videodev2.h: add __user to v4l2_ext_control pointers
+      v4l2-compat-ioctl32: fix sparse warnings
+
+ drivers/media/dvb-frontends/bcm3510.c              |  4 ++--
+ drivers/media/dvb-frontends/dib7000p.c             |  2 +-
+ drivers/media/dvb-frontends/drx39xyj/drxj.c        | 38 +++++++++++++++++++-------------------
+ drivers/media/dvb-frontends/mb86a16.c              |  2 +-
+ drivers/media/dvb-frontends/mb86a20s.c             | 14 +++++++-------
+ drivers/media/dvb-frontends/si2165.c               |  2 +-
+ drivers/media/dvb-frontends/stv0367.c              |  4 ++--
+ drivers/media/pci/cx18/cx18-firmware.c             |  2 +-
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  2 +-
+ drivers/media/pci/cx25821/cx25821-video-upstream.c |  5 +++--
+ drivers/media/pci/ddbridge/ddbridge-core.c         | 30 ++++++++++++++----------------
+ drivers/media/pci/ddbridge/ddbridge.h              | 12 +++++-------
+ drivers/media/pci/dm1105/dm1105.c                  |  2 +-
+ drivers/media/pci/ivtv/ivtv-irq.c                  | 12 +++++-------
+ drivers/media/pci/mantis/hopper_vp3028.c           |  2 +-
+ drivers/media/pci/mantis/mantis_common.h           |  2 +-
+ drivers/media/pci/mantis/mantis_vp1033.c           |  4 ++--
+ drivers/media/pci/mantis/mantis_vp1034.c           |  2 +-
+ drivers/media/pci/mantis/mantis_vp1041.c           |  4 ++--
+ drivers/media/pci/mantis/mantis_vp2033.c           |  4 ++--
+ drivers/media/pci/mantis/mantis_vp2040.c           |  4 ++--
+ drivers/media/pci/mantis/mantis_vp3030.c           |  4 ++--
+ drivers/media/pci/ngene/ngene-cards.c              |  2 +-
+ drivers/media/pci/ngene/ngene-core.c               | 14 ++++++--------
+ drivers/media/pci/ngene/ngene-dvb.c                |  5 ++---
+ drivers/media/pci/ngene/ngene.h                    |  2 +-
+ drivers/media/pci/solo6x10/solo6x10-disp.c         |  4 ++--
+ drivers/media/pci/solo6x10/solo6x10-eeprom.c       |  8 ++++----
+ drivers/media/pci/solo6x10/solo6x10.h              |  4 ++--
+ drivers/media/platform/via-camera.c                |  2 +-
+ drivers/media/radio/radio-tea5764.c                | 12 ++++++------
+ drivers/media/radio/wl128x/fmdrv_common.c          | 11 ++++++-----
+ drivers/media/radio/wl128x/fmdrv_rx.c              | 10 +++++-----
+ drivers/media/radio/wl128x/fmdrv_tx.c              |  2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |  6 ------
+ drivers/media/rc/img-ir/img-ir-hw.h                |  6 ++++++
+ drivers/media/rc/imon.c                            |  8 ++++----
+ drivers/media/rc/lirc_dev.c                        | 14 +++++++-------
+ drivers/media/tuners/mt2063.c                      | 26 +++++++++++++-------------
+ drivers/media/usb/cx231xx/cx231xx-avcore.c         | 12 ++++++------
+ drivers/media/usb/cx231xx/cx231xx-core.c           |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c            |  4 ++--
+ drivers/media/usb/dvb-usb-v2/af9015.c              |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |  2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c            |  8 ++++----
+ drivers/media/usb/dvb-usb/cxusb.c                  |  2 +-
+ drivers/media/usb/dvb-usb/dibusb-common.c          | 12 ++++++------
+ drivers/media/usb/dvb-usb/dw2102.c                 | 14 +++++++-------
+ drivers/media/usb/dvb-usb/opera1.c                 |  4 ++--
+ drivers/media/usb/dvb-usb/pctv452e.c               |  8 ++++----
+ drivers/media/usb/em28xx/em28xx-cards.c            |  2 +-
+ drivers/media/usb/em28xx/em28xx-core.c             |  2 +-
+ drivers/media/usb/go7007/go7007-usb.c              |  4 ++--
+ drivers/media/usb/gspca/kinect.c                   | 12 ++++++------
+ drivers/media/usb/pwc/pwc-v4l.c                    |  2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |  2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |  6 +++---
+ drivers/media/usb/uvc/uvc_video.c                  |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      | 30 +++++++++++++++++++-----------
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  4 ++--
+ include/uapi/linux/videodev2.h                     | 10 +++++-----
+ 61 files changed, 220 insertions(+), 219 deletions(-)
