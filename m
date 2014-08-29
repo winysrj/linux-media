@@ -1,31 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from inen.gob.ec ([186.42.186.146]:47072 "EHLO uio.inen.gob.ec"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754795AbaHFQW2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 12:22:28 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: verify your account
-To: Recipients <drodrigu@inen.gob.ec>
-From: WEBMASTER <drodrigu@inen.gob.ec>
-Date: Wed, 06 Aug 2014 09:38:31 +0100
-Reply-To: webmail_team@foxmail.com
-Message-Id: <20140806084051.A66EC4A3740@uio.inen.gob.ec>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:54583 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbaH2IIW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Aug 2014 04:08:22 -0400
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jim Davis <jim.epost@gmail.com>
+Subject: [PATCH] drivers: media: radio: radio-miropcm20.c: include missing header file
+Date: Fri, 29 Aug 2014 13:38:01 +0530
+Message-Id: <1409299681-28409-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear user
+with -Werror=implicit-function-declaration build failed with error :
+error: implicit declaration of function 'inb'
+error: implicit declaration of function 'outb'
 
- Your email has exceeded 2 GB created by the webmaster, you are currently running at 2.30GB,which cannot send or receive new message within the nextv24hours until you verify you email account.
+Reported-by: Jim Davis <jim.epost@gmail.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindi.org>
+---
 
-Please enter y verify your account :
+Jim reported for next-20140828 , but the error still persists in next-20140829 also.
 
-(1) E-mail:
-(2) Name:
-(3) Password:
-(4) Confirm Password:
 
-thank you
-System Administrator.
+ drivers/media/radio/radio-miropcm20.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
+index 998919e..3309f7c 100644
+--- a/drivers/media/radio/radio-miropcm20.c
++++ b/drivers/media/radio/radio-miropcm20.c
+@@ -36,6 +36,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <sound/aci.h>
++#include<linux/io.h>
+ 
+ #define RDS_DATASHIFT          2   /* Bit 2 */
+ #define RDS_DATAMASK        (1 << RDS_DATASHIFT)
+-- 
+1.8.1.2
+
