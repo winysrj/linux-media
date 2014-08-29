@@ -1,121 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2653 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574AbaHJL60 (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:50468 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673AbaH2Dnr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Aug 2014 07:58:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 09/19] cx23885: drop radio-related dead code
-Date: Sun, 10 Aug 2014 13:57:46 +0200
-Message-Id: <1407671876-39386-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
-References: <1407671876-39386-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 28 Aug 2014 23:43:47 -0400
+Message-ID: <53FFF675.7020702@gmail.com>
+Date: Fri, 29 Aug 2014 09:11:41 +0530
+From: Varka Bhadram <varkabhadram@gmail.com>
+MIME-Version: 1.0
+To: Zhangfei Gao <zhangfei.gao@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>, sean@mess.org,
+	arnd@arndb.de, haifeng.yan@linaro.org, jchxue@gmail.com
+CC: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, Guoxiong Yan <yanguoxiong@huawei.com>
+Subject: Re: [PATCH v3 2/3] rc: Introduce hix5hd2 IR transmitter driver
+References: <1409238977-19444-1-git-send-email-zhangfei.gao@linaro.org> <1409238977-19444-3-git-send-email-zhangfei.gao@linaro.org>
+In-Reply-To: <1409238977-19444-3-git-send-email-zhangfei.gao@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 08/28/2014 08:46 PM, Zhangfei Gao wrote:
+> From: Guoxiong Yan <yanguoxiong@huawei.com>
+>
+> IR transmitter driver for Hisilicon hix5hd2 soc
+>
+> By default all protocols are disabled.
+> For example nec decoder can be enabled by either
+> 1. ir-keytable -p nec
+> 2. echo nec > /sys/class/rc/rc0/protocols
+> See see Documentation/ABI/testing/sysfs-class-rc
+>
+(...)
 
-Currently no radio device nodes are ever created, so remove the dead radio
-code.
+> +static irqreturn_t hix5hd2_ir_rx_interrupt(int irq, void *data)
+> +{
+> +	u32 symb_num, symb_val, symb_time;
+> +	u32 data_l, data_h;
+> +	u32 irq_sr, i;
+> +	struct hix5hd2_ir_priv *priv = data;
+> +
+> +	irq_sr = readl_relaxed(priv->base + IR_INTS);
+> +	if (irq_sr & INTMS_OVERFLOW) {
+> +		/*
+> +		 * we must read IR_DATAL first, then we can clean up
+> +		 * IR_INTS availably since logic would not clear
+> +		 * fifo when overflow, drv do the job
+> +		 */
+> +		ir_raw_event_reset(priv->rdev);
+> +		symb_num = readl_relaxed(priv->base + IR_DATAH);
+> +		for (i = 0; i < symb_num; i++)
+> +			readl_relaxed(priv->base + IR_DATAL);
+> +
+> +		writel_relaxed(INT_CLR_OVERFLOW, priv->base + IR_INTC);
+> +		dev_info(priv->dev, "overflow, level=%d\n",
+> +			 IR_CFG_INT_THRESHOLD);
+> +	}
+> +
+> +	if ((irq_sr & INTMS_SYMBRCV) || (irq_sr & INTMS_TIMEOUT)) {
+> +		DEFINE_IR_RAW_EVENT(ev);
+> +
+> +		symb_num = readl_relaxed(priv->base + IR_DATAH);
+> +		for (i = 0; i < symb_num; i++) {
+> +			symb_val = readl_relaxed(priv->base + IR_DATAL);
+> +			data_l = ((symb_val & 0xffff) * 10);
+> +			data_h =  ((symb_val >> 16) & 0xffff) * 10;
+> +			symb_time = (data_l + data_h) / 10;
+> +
+> +			ev.duration = US_TO_NS(data_l);
+> +			ev.pulse = true;
+> +			ir_raw_event_store(priv->rdev, &ev);
+> +
+> +			if (symb_time < IR_CFG_SYMBOL_MAXWIDTH) {
+> +				ev.duration = US_TO_NS(data_h);
+> +				ev.pulse = false;
+> +				ir_raw_event_store(priv->rdev, &ev);
+> +			} else {
+> +				hix5hd2_ir_send_lirc_timeout(priv->rdev);
+> +			}
+> +		}
+> +
+> +		if (irq_sr & INTMS_SYMBRCV)
+> +			writel_relaxed(INT_CLR_RCV, priv->base + IR_INTC);
+> +		if (irq_sr & INTMS_TIMEOUT)
+> +			writel_relaxed(INT_CLR_TIMEOUT, priv->base + IR_INTC);
+> +	}
+> +
+> +	/* Empty software fifo */
+> +	ir_raw_event_handle(priv->rdev);
+> +	return IRQ_HANDLED;
+> +}
+> +
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-video.c | 15 +++------------
- drivers/media/pci/cx23885/cx23885.h       |  3 ---
- 2 files changed, 3 insertions(+), 15 deletions(-)
+It looks good if the entire ISR() above the probe()/remove() functionalities
+of the driver. Maximum of the developers follows this structure.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 9bb19fd..50694c6 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -49,15 +49,12 @@ MODULE_LICENSE("GPL");
- 
- static unsigned int video_nr[] = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
- static unsigned int vbi_nr[]   = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
--static unsigned int radio_nr[] = {[0 ... (CX23885_MAXBOARDS - 1)] = UNSET };
- 
- module_param_array(video_nr, int, NULL, 0444);
- module_param_array(vbi_nr,   int, NULL, 0444);
--module_param_array(radio_nr, int, NULL, 0444);
- 
- MODULE_PARM_DESC(video_nr, "video device numbers");
- MODULE_PARM_DESC(vbi_nr, "vbi device numbers");
--MODULE_PARM_DESC(radio_nr, "radio device numbers");
- 
- static unsigned int video_debug;
- module_param(video_debug, int, 0644);
-@@ -727,7 +724,6 @@ static int video_open(struct file *file)
- 	struct cx23885_dev *dev = video_drvdata(file);
- 	struct cx23885_fh *fh;
- 	enum v4l2_buf_type type = 0;
--	int radio = 0;
- 
- 	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
-@@ -736,13 +732,10 @@ static int video_open(struct file *file)
- 	case VFL_TYPE_VBI:
- 		type = V4L2_BUF_TYPE_VBI_CAPTURE;
- 		break;
--	case VFL_TYPE_RADIO:
--		radio = 1;
--		break;
- 	}
- 
--	dprintk(1, "open dev=%s radio=%d type=%s\n",
--		video_device_node_name(vdev), radio, v4l2_type_names[type]);
-+	dprintk(1, "open dev=%s type=%s\n",
-+		video_device_node_name(vdev), v4l2_type_names[type]);
- 
- 	/* allocate + initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
-@@ -752,7 +745,6 @@ static int video_open(struct file *file)
- 	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = &fh->fh;
- 	fh->dev      = dev;
--	fh->radio    = radio;
- 	fh->type     = type;
- 	fh->width    = 320;
- 	fh->height   = 240;
-@@ -1333,8 +1325,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	if (dev->tuner_type == TUNER_ABSENT)
- 		return -EINVAL;
- 
--	/* f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV; */
--	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	f->type = V4L2_TUNER_ANALOG_TV;
- 	f->frequency = dev->freq;
- 
- 	call_all(dev, tuner, g_frequency, f);
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 2d57af7..94ab000 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -144,7 +144,6 @@ struct cx23885_fh {
- 	struct v4l2_fh		   fh;
- 	struct cx23885_dev         *dev;
- 	enum v4l2_buf_type         type;
--	int                        radio;
- 	u32                        resources;
- 
- 	/* video overlay */
-@@ -413,7 +412,6 @@ struct cx23885_dev {
- 	unsigned int               tuner_bus;
- 	unsigned int               radio_type;
- 	unsigned char              radio_addr;
--	unsigned int               has_radio;
- 	struct v4l2_subdev 	   *sd_cx25840;
- 	struct work_struct	   cx25840_work;
- 
-@@ -431,7 +429,6 @@ struct cx23885_dev {
- 	u32                        freq;
- 	struct video_device        *video_dev;
- 	struct video_device        *vbi_dev;
--	struct video_device        *radio_dev;
- 
- 	struct cx23885_dmaqueue    vidq;
- 	struct cx23885_dmaqueue    vbiq;
+(...)
+
+> +static struct of_device_id hix5hd2_ir_table[] = {
+> +	{ .compatible = "hisilicon,hix5hd2-ir", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, hix5hd2_ir_table);
+> +
+
+Every driver put these device ids above *struct platform_driver* definition.
+So that we can see the of_match_table....
+
+> +static int hix5hd2_ir_probe(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	struct rc_dev *rdev;
+> +	struct device *dev = &pdev->dev;
+> +	struct resource *res;
+> +	struct hix5hd2_ir_priv *priv;
+> +	struct device_node *node = pdev->dev.of_node;
+> +
+> +	priv = devm_kzalloc(dev, sizeof(struct hix5hd2_ir_priv), GFP_KERNEL);
+
+sizeof(*priv)...?
+
+> +	if (!priv)
+> +		return -ENOMEM;
+> +
+
+(...)
+
+> +#endif
+> +
+> +static SIMPLE_DEV_PM_OPS(hix5hd2_ir_pm_ops, hix5hd2_ir_suspend,
+> +			 hix5hd2_ir_resume);
+> +
+
+We can move the device ids here....
+
+> +static struct platform_driver hix5hd2_ir_driver = {
+> +	.driver = {
+> +		.name = IR_HIX5HD2_NAME,
+> +		.of_match_table = hix5hd2_ir_table,
+> +		.pm     = &hix5hd2_ir_pm_ops,
+> +	},
+> +	.probe = hix5hd2_ir_probe,
+> +	.remove = hix5hd2_ir_remove,
+> +};
+> +
+> +module_platform_driver(hix5hd2_ir_driver);
+> +
+> +MODULE_DESCRIPTION("RC Transceiver driver for hix5hd2 platforms");
+> +MODULE_AUTHOR("Guoxiong Yan <yanguoxiong@huawei.com>");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_ALIAS("platform:hix5hd2-ir");
+
+
 -- 
-2.0.1
+Regards,
+Varka Bhadram.
 
