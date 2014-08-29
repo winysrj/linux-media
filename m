@@ -1,54 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3276 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598AbaHDLGu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Aug 2014 07:06:50 -0400
-Message-ID: <53DF693E.9050500@xs4all.nl>
-Date: Mon, 04 Aug 2014 13:06:38 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:48904 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753475AbaH2Nq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Aug 2014 09:46:56 -0400
+Message-ID: <5400844A.5030603@collabora.com>
+Date: Fri, 29 Aug 2014 09:46:50 -0400
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH for v3.17 2/2] vb2: fix vb2 state check when start_streaming
- fails
-References: <1407148032-41607-1-git-send-email-hverkuil@xs4all.nl> <1407148032-41607-3-git-send-email-hverkuil@xs4all.nl> <4228716.VErhQhH3PE@avalon>
-In-Reply-To: <4228716.VErhQhH3PE@avalon>
-Content-Type: text/plain; charset=windows-1252
+To: linux-media@vger.kernel.org
+CC: k.debski@samsung.com
+Subject: Bug: s5p-mfc should allow multiple call to REQBUFS before we start
+ streaming
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/2014 12:44 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Monday 04 August 2014 12:27:12 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Commit bd994ddb2a12a3ff48cd549ec82cdceaea9614df (vb2: Fix stream start and
->> buffer completion race) broke the buffer state check in vb2_buffer_done.
->>
->> So accept all three possible states there since I can no longer tell the
->> difference between vb2_buffer_done called from start_streaming or from
->> elsewhere.
->>
->> Instead add a WARN_ON at the end of start_streaming that will check whether
->> any buffers were added to the done list, since that implies that the wrong
->> state was used as well.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: stable@vger.kernel.org      # for v3.15 and up
->> Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Given that I've introduced a few vb2 bugs I hope my review still has some 
-> value :-)
+Hi Kamil,
 
-Since I reviewed your original patch as well, I'm not going to throw stones at
-you :-)
+after a discussion on IRC, we concluded that s5p-mfc have this bug that 
+disallow multiple reqbufs calls before streaming. This has the impact 
+that it forces to call REQBUFS(0) before setting the new number of 
+buffers during re-negotiation, and is against the spec too.
 
-Regards,
+As an example, in reqbufs_output() REQBUFS is only allowed in QUEUE_FREE 
+state, and setting buffers exits this state. We think that the call to 
+<http://lxr.free-electrons.com/ident?i=reqbufs_output>s5p_mfc_open_mfc_inst() 
+should be post-poned until STREAMON is called. 
+<http://lxr.free-electrons.com/ident?i=reqbufs_output>
 
-	Hans
+cheers,
+Nicolas
+<http://lxr.free-electrons.com/ident?i=reqbufs_output>
