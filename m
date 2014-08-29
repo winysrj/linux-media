@@ -1,42 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3269 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298AbaHTW7q (ORCPT
+Received: from mail-we0-f169.google.com ([74.125.82.169]:61286 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752823AbaH2PPV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 18:59:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 22/29] s2255drv: fix sparse warning
-Date: Thu, 21 Aug 2014 00:59:21 +0200
-Message-Id: <1408575568-20562-23-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408575568-20562-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 29 Aug 2014 11:15:21 -0400
+Received: by mail-we0-f169.google.com with SMTP id k48so2335088wev.28
+        for <linux-media@vger.kernel.org>; Fri, 29 Aug 2014 08:15:19 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+Cc: lars@metafoo.de, w.sang@pengutronix.de, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, mark.rutland@arm.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH v2 1/2] Allow DT parsing of secondary devices
+Date: Fri, 29 Aug 2014 17:15:02 +0200
+Message-Id: <1409325303-15906-1-git-send-email-jean-michel.hautbois@vodalys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is based on reg and reg-names in DT.
+Example:
 
-drivers/media/usb/s2255/s2255drv.c:2248:20: warning: cast to restricted __le16
+reg = <0x10 0x20 0x30>;
+reg-names = "main", "io", "test";
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This function will create dummy devices io and test
+with addresses 0x20 and 0x30 respectively.
+
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 ---
- drivers/media/usb/s2255/s2255drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/i2c-core.c | 20 ++++++++++++++++++++
+ include/linux/i2c.h    |  6 ++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 2c90186..ccc0009 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -2245,7 +2245,7 @@ static int s2255_probe(struct usb_interface *interface,
- 	}
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 632057a..5eb414d 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -798,6 +798,26 @@ struct i2c_client *i2c_new_dummy(struct i2c_adapter *adapter, u16 address)
+ }
+ EXPORT_SYMBOL_GPL(i2c_new_dummy);
  
- 	atomic_set(&dev->num_channels, 0);
--	dev->pid = le16_to_cpu(id->idProduct);
-+	dev->pid = id->idProduct;
- 	dev->fw_data = kzalloc(sizeof(struct s2255_fw), GFP_KERNEL);
- 	if (!dev->fw_data)
- 		goto errorFWDATA1;
++struct i2c_client *i2c_new_secondary_device(struct i2c_client *client,
++						const char *name,
++						u32 default_addr)
++{
++	int i, addr;
++	struct device_node *np;
++
++	np = client->dev.of_node;
++	i = of_property_match_string(np, "reg-names", name);
++	if (i >= 0)
++		of_property_read_u32_index(np, "reg", i, &addr);
++	else
++		addr = default_addr;
++
++	dev_dbg(&client->adapter->dev, "Address for %s : 0x%x\n", name, addr);
++	return i2c_new_dummy(client->adapter, addr);
++}
++EXPORT_SYMBOL_GPL(i2c_new_secondary_device);
++
++
+ /* ------------------------------------------------------------------------- */
+ 
+ /* I2C bus adapters -- one roots each I2C or SMBUS segment */
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index a95efeb..2d143d7 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -322,6 +322,12 @@ extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
+ extern struct i2c_client *
+ i2c_new_dummy(struct i2c_adapter *adap, u16 address);
+ 
++/* Use reg/reg-names in DT in order to get extra addresses */
++extern struct i2c_client *
++i2c_new_secondary_device(struct i2c_client *client,
++				const char *name,
++				u32 default_addr);
++
+ extern void i2c_unregister_device(struct i2c_client *);
+ #endif /* I2C */
+ 
 -- 
-2.1.0.rc1
+2.0.4
 
