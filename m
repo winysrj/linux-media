@@ -1,36 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33613 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754768AbaHFLHx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Aug 2014 07:07:53 -0400
-Message-ID: <1407323269.3372.69.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH RESEND 00/15] CODA patches for v3.17
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	kernel@pengutronix.de
-Date: Wed, 06 Aug 2014 13:07:49 +0200
-In-Reply-To: <0d9001cfb15e$a38f8d90$eaaea8b0$%debski@samsung.com>
-References: <1407258020-12078-1-git-send-email-p.zabel@pengutronix.de>
-	 <0d9001cfb15e$a38f8d90$eaaea8b0$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from smtp2.gov.pe.ca ([198.167.125.137]:44426 "EHLO smtp2.gov.pe.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751137AbaH3DeY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Aug 2014 23:34:24 -0400
+Received: from gwia-out.peigov (gtwy2dom.peigov [198.167.37.75]) by smtp2.gov.pe.ca with ESMTP id PRp48Mu973pCSNTC for <linux-media@vger.kernel.org>; Sat, 30 Aug 2014 00:22:16 -0300 (ADT)
+Message-Id: <54011936020000E600044B9A@gwia-out.peigov>
+Date: Sat, 30 Aug 2014 00:22:14 -0300
+From: "Sterling Carruthers" <sdcarruthers@edu.pe.ca>
+Subject: TO CLAIM YOUR PRICE CONTACT US VIA: sirneedmond@gmail.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+TO CLAIM YOUR PRICE CONTACT US VIA: sirneedmond@gmail.com
 
-Am Mittwoch, den 06.08.2014, 12:10 +0200 schrieb Kamil Debski:
-> As for warnings, I think it could be corrected in another patch. But
-> please do that ASAP. Also it would be really good to correct warnings/error
-> in remaining files.
 
-Thanks, I've just sent a patch to address most of those. A few 81-long
-lines ending in slashes or semicolons as well as the long codec lists
-remain.
 
-regards
-Philipp
+-------------------------
+
+Statement of Confidentiality
+
+This message (including attachments) may contain confidential or privileged information intended for a specific individual or organization. If you have received this communication in error, please notify the sender immediately. If you are not the intended recipient, you are not authorized to use, disclose, distribute, copy, print or rely on this email, and should promptly delete this email from your entire computer system.
+
+
+
+
+
 
