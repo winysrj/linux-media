@@ -1,72 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:43304 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934614AbaH0OXe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Aug 2014 10:23:34 -0400
-Message-ID: <53FDE9E1.2000108@mentor.com>
-Date: Wed, 27 Aug 2014 07:23:29 -0700
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47822 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498AbaHaTsT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Aug 2014 15:48:19 -0400
+Message-ID: <54037BFE.60606@iki.fi>
+Date: Sun, 31 Aug 2014 22:48:14 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
-In-Reply-To: <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
+To: Akihiro TSUKADA <tskd08@gmail.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com>
+In-Reply-To: <540323F0.90809@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/27/2014 12:13 AM, Jean-Michel Hautbois wrote:
-> Hi Phillip,
+On 08/31/2014 04:32 PM, Akihiro TSUKADA wrote:
+> Hi Matthias,
+> thanks for the comment.
 >
-> 2014-08-04 13:54 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
->> We should take this step by step. First I'd like to get Steve's ipu-v3
->> series in, those don't have any major issues and are a prerequisite for
->> the media patches anyway.
+>> it sounds wrong to export a second function besides tc90522_attach.
+>> This way there is a hard dependency of the bridge driver to the demod
+>> driver.
+>> In this case it is the only possible demod, but in general it violates
+>> the design of demod drivers and their connection to bridge drivers.
+>
+> I agree. I missed that point.
+>
 >>
->> The capture patches had a few more issues than just missing media device
->> support. But this is indeed the biggest one, especially where it
->> involves a userspace interface that we don't want to have to support in
->> the future.
->> My RFC series wasn't without problems either. I'll work on the IPU this
->> week and then post another RFC.
-> Any news about this ? I saw your patchset from june 12th.
-> What is the current status of this RFC and is there a way to help
-> integrating/testing it ? Do you have a public git repository I can
-> fetch and merge in order to test ?
+>> si2168_probe at least has a solution for this:
+>> Write the pointer to the new i2c adapter into location stored in "struct
+>> i2c_adapter **" in the config structure.
 >
->
+> I'll look into the si2168 code and update tc90522 in v3.
 
-Hi Jean-Michel, Phillip,
+Also, I would like to see all new drivers (demod and tuner) implemented 
+as a standard kernel I2C drivers (or any other bus). I have converted 
+already quite many drivers, si2168, si2157, m88ds3103, m88ts2022, 
+it913x, tda18212, ...
+When drivers are using proper kernel driver models, it allows using 
+kernel services. For example dev_ / pr_ logging (it does not work 
+properly without), RegMap API, I2C client, I2C multiplex, and so...
 
-I've done some work on Philipp's June 12 patchset, converting
-the CSI driver to a CSI subdev entity, and fixing some issues here
-and there. This June 12 patchset doesn't appear to be a fully working
-driver, Phillip correct me if I am wrong. I can post this work as it
-exists, it is incomplete but compiles.
+Here is few recent examples:
+https://patchwork.linuxtv.org/patch/25495/
+https://patchwork.linuxtv.org/patch/25152/
+https://patchwork.linuxtv.org/patch/25146/
 
-I've also worked out what I think is a workable video pipeline graph for i.MX,
-suitable for defining the entities, pads, and links. Unfortunately I haven't
-been able to spend as much time as I'd like on it.
+regards
+Antti
 
-The complete driver I posted to the list does have some minor issues
-mostly suggested by Hans Verkuil (switch to new selection API instead
-of cropping API for example). It is a full featured driver but it does not
-implement the media device framework, i.e. user does not have direct
-control of the video pipeline, rather the driver chooses the pipeline based
-on the traditional inputs from user (video format and controls).
-
-If there is interest I can submit another version of the traditional driver
-to resolve the issues. But media device is a major rework, so I don't
-know whether it would make sense to start from the traditional driver
-and then implement media device on top later, since media device
-is almost a complete rewrite.
-
-Steve
-
+-- 
+http://palosaari.fi/
