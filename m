@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2689 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883AbaHUUT5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 16:19:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/12] cx23885: fix sparse warning
-Date: Thu, 21 Aug 2014 22:19:31 +0200
-Message-Id: <1408652376-39525-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
-References: <1408652376-39525-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:45366 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751188AbaHaLfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Aug 2014 07:35:34 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, m.chehab@samsung.com, crope@iki.fi,
+	zzam@gentoo.org
+Subject: [PATCH 4/7] [media] cx231xx: Add support for Hauppauge WinTV-HVR-901H (1114xx)
+Date: Sun, 31 Aug 2014 13:35:09 +0200
+Message-Id: <1409484912-19300-5-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
+References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for:
+	[2040:b139] Hauppauge WinTV HVR-901H (1114xx)
 
-drivers/media/pci/cx23885/cx23885-dvb.c:1494:72: warning: Using plain integer as NULL pointer
+According to the inf file, the hardware is similar to [2040:b131] Hauppauge WinTV 930C-HD (model 1114xx)
+The only difference is the demod Si2161 instead of Si2165 (but both are
+supported by the si2165 driver).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/pci/cx23885/cx23885-dvb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 968fecc..da07144 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1491,7 +1491,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 					&hauppauge_hvr4400_si2165_config,
- 					&i2c_bus->i2c_adap);
- 			if (fe0->dvb.frontend != NULL) {
--				fe0->dvb.frontend->ops.i2c_gate_ctrl = 0;
-+				fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
- 				if (!dvb_attach(tda18271_attach,
- 						fe0->dvb.frontend,
- 						0x60, &i2c_bus2->i2c_adap,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index a03a31a..791f00c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -744,7 +744,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		} },
+ 	},
+ 	[CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx] = {
+-		.name = "Hauppauge WinTV 930C-HD (1114xx) / PCTV QuatroStick 522e",
++		.name = "Hauppauge WinTV 930C-HD (1114xx) / HVR-901H (1114xx) / PCTV QuatroStick 522e",
+ 		.tuner_type = TUNER_ABSENT,
+ 		.tuner_addr = 0x60,
+ 		.tuner_gpio = RDE250_XCV_TUNER,
+@@ -818,6 +818,9 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	/* Hauppauge WinTV-HVR-900-H */
+ 	{USB_DEVICE(0x2040, 0xb138),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
++	/* Hauppauge WinTV-HVR-901-H */
++	{USB_DEVICE(0x2040, 0xb139),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx},
+ 	{USB_DEVICE(0x2040, 0xb140),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
+ 	{USB_DEVICE(0x2040, 0xc200),
 -- 
-2.1.0.rc1
+2.1.0
 
