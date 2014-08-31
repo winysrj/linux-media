@@ -1,181 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44091 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751240AbaHTOlq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Aug 2014 10:41:46 -0400
-Date: Wed, 20 Aug 2014 17:41:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC v4 15/21] media: Add registration helpers for V4L2
- flash
-Message-ID: <20140820144110.GT16460@valkosipuli.retiisi.org.uk>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
- <1405087464-13762-16-git-send-email-j.anaszewski@samsung.com>
- <53CCF59E.3070200@iki.fi>
- <53DF9C2A.8060403@samsung.com>
- <20140811122628.GG16460@valkosipuli.retiisi.org.uk>
- <53E8C4BA.6050805@samsung.com>
- <20140814043436.GM16460@valkosipuli.retiisi.org.uk>
- <53EC7278.6040101@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53EC7278.6040101@samsung.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:45377 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751237AbaHaLfj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Aug 2014 07:35:39 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, m.chehab@samsung.com, crope@iki.fi,
+	zzam@gentoo.org
+Subject: [PATCH 7/7] si2165: do load firmware without extra header
+Date: Sun, 31 Aug 2014 13:35:12 +0200
+Message-Id: <1409484912-19300-8-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
+References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+The new file has a different name: dvb-demod-si2165-D.fw
 
-On Thu, Aug 14, 2014 at 10:25:28AM +0200, Jacek Anaszewski wrote:
-> On 08/14/2014 06:34 AM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Mon, Aug 11, 2014 at 03:27:22PM +0200, Jacek Anaszewski wrote:
-> >
-> >...
-> >
-> >>>>>>diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-> >>>>>>new file mode 100644
-> >>>>>>index 0000000..effa46b
-> >>>>>>--- /dev/null
-> >>>>>>+++ b/include/media/v4l2-flash.h
-> >>>>>>@@ -0,0 +1,137 @@
-> >>>>>>+/*
-> >>>>>>+ * V4L2 Flash LED sub-device registration helpers.
-> >>>>>>+ *
-> >>>>>>+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-> >>>>>>+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>>>>+ *
-> >>>>>>+ * This program is free software; you can redistribute it and/or modify
-> >>>>>>+ * it under the terms of the GNU General Public License version 2 as
-> >>>>>>+ * published by the Free Software Foundation."
-> >>>>>>+ */
-> >>>>>>+
-> >>>>>>+#ifndef _V4L2_FLASH_H
-> >>>>>>+#define _V4L2_FLASH_H
-> >>>>>>+
-> >>>>>>+#include <media/v4l2-ctrls.h>
-> >>>>>>+#include <media/v4l2-device.h>
-> >>>>>>+#include <media/v4l2-dev.h>le
-> >>>>>>+#include <media/v4l2-event.h>
-> >>>>>>+#include <media/v4l2-ioctl.h>
-> >>>>>>+
-> >>>>>>+struct led_classdev_flash;
-> >>>>>>+struct led_classdev;
-> >>>>>>+enum led_brightness;
-> >>>>>>+
-> >>>>>>+struct v4l2_flash_ops {
-> >>>>>>+	int (*torch_brightness_set)(struct led_classdev *led_cdev,
-> >>>>>>+					enum led_brightness brightness);
-> >>>>>>+	int (*torch_brightness_update)(struct led_classdev *led_cdev);
-> >>>>>>+	int (*flash_brightness_set)(struct led_classdev_flash *flash,
-> >>>>>>+					u32 brightness);
-> >>>>>>+	int (*flash_brightness_update)(struct led_classdev_flash *flash);
-> >>>>>>+	int (*strobe_set)(struct led_classdev_flash *flash, bool state);
-> >>>>>>+	int (*strobe_get)(struct led_classdev_flash *flash, bool *state);
-> >>>>>>+	int (*timeout_set)(struct led_classdev_flash *flash, u32 timeout);
-> >>>>>>+	int (*indicator_brightness_set)(struct led_classdev_flash *flash,
-> >>>>>>+					u32 brightness);
-> >>>>>>+	int (*indicator_brightness_update)(struct led_classdev_flash *flash);
-> >>>>>>+	int (*external_strobe_set)(struct led_classdev_flash *flash,
-> >>>>>>+					bool enable);
-> >>>>>>+	int (*fault_get)(struct led_classdev_flash *flash, u32 *fault);
-> >>>>>>+	void (*sysfs_lock)(struct led_classdev *led_cdev);
-> >>>>>>+	void (*sysfs_unlock)(struct led_classdev *led_cdev);
-> >>>>>
-> >>>>>These functions are not driver specific and there's going to be just one
-> >>>>>implementation (I suppose). Could you refresh my memory regarding why
-> >>>>>the LED framework functions aren't called directly?
-> >>>>
-> >>>>These ops are required to make possible building led-class-flash as
-> >>>>a kernel module.
-> >>>
-> >>>Assuming you'd use the actual implementation directly, what would be the
-> >>>dependencies? I don't think the LED flash framework has any callbacks
-> >>>towards the V4L2 (LED) flash framework, does it? Please correct my
-> >>>understanding if I'm missing something. In Makefile format, assume all
-> >>>targets are .PHONY:
-> >>>
-> >>>led-flash-api: led-api
-> >>>
-> >>>v4l2-flash: led-flash-api
-> >>>
-> >>>driver: led-flash-api v4l2-flash
-> >>
-> >>LED Class Flash driver gains V4L2 Flash API when
-> >>CONFIG_V4L2_FLASH_LED_CLASS is defined. This is accomplished in
-> >>the probe function by either calling v4l2_flash_init function
-> >>or the macro of this name, when the CONFIG_V4L2_FLASH_LED_CLASS
-> >>macro isn't defined.
-> >>
-> >>If the v4l2-flash.c was to call the LED API directly, then the
-> >>led-class-flash module symbols would have to be available at
-> >>v4l2-flash.o linking time.
-> >
-> >Is this an issue? EXPORT_SYMBOL_GPL() for the relevant symbols should be
-> >enough.
-> 
-> It isn't enough. If I call e.g. led_set_flash_brightness
-> directly from v4l2-flash.c and configure led-class-flash to be built as
-> a module then I am getting "undefined reference to
-> led_set_flash_brightness" error during linking phase.
+Count blocks instead of reading count from extra header.
+Calculate CRC during upload and compare result to what chip calcuated.
+Use 0x01 instead of real patch version, because this is only used to
+check if something was uploaded but not to check the version of it.
 
-You should not. You also should change the check as (unless you've changed
-it already):
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/dvb-frontends/Kconfig       |   1 +
+ drivers/media/dvb-frontends/si2165.c      | 105 ++++++++++++++++++------------
+ drivers/media/dvb-frontends/si2165_priv.h |   2 +-
+ 3 files changed, 66 insertions(+), 42 deletions(-)
 
-#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-
-This will evaluate to non-zero if the macro arguent or the argument
-postfixed with "_MODULE" is defined.
-
-> It happens because the linker doesn't take into account
-> led-flash-class.ko symbols. It is reasonable because initially
-> the kernel boots up without led-flash-class.ko module and
-> the processor wouldn't know the address to jump to in the
-> result of calling a led API function.
-> The led-class-flash.ko binary code is loaded into memory not
-> sooner than after executing "insmod led-class-flash.ko".
-> 
-> After linking dynamically with kernel the LED API function
-> addresses are relocated, and the LED Flash Class core can
-> initialize the v4l2_flash_ops structure. Then every LED Flash Class
-> driver can obtain the address of this structure with
-> led_get_v4l2_flash_ops and pass it to the v4l2_flash_init.
-> 
-> >>This requirement cannot be met if the led-class-flash is built
-> >>as a module.
-> >>
-> >>Use of function pointers in the v4l2-flash.c allows to compile it
-> >>into the kernel and enables the possibility of adding the V4L2 Flash
-> >>support conditionally, during driver probing.
-> >
-> >I'd simply decide this during kernel compilation time. If you want
-> >something, just enable it. v4l2_flash_init() is called directly by the
-> >driver in any case, so unless that is also called through a wrapper the
-> >driver is still directly dependent on it.
-> 
-> The problem is that v4l2-flash.o would have to depend on
-> led-class-flash.o, which when built as a module isn't available
-> during v4l2-flash.o linking time. In order to avoid v4l2-flash.o linking
-> problem, it would have to be built as a module.
-
-Modules can depend on other modules, that's not an issue. All dependencies
-will themselves be modules as well, i.e. if led-class-flash.o is a module,
-so will be v4l2-flash.o as well --- as the former depends on the latter.
-
-> Nevertheless, in this arrangement, the CONFIG_V4L2_FLASH_LED_CLASS
-> macro would be defined only in v4l2-flash.ko module, and
-> a LED Flash Class driver couldn't check whether V4L2 Flash support
-> is enabled. Its dependence on v4l2-flash.o would have to be fixed,
-> which is not what we want.
-
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index aa5ae22..c57ec49 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -66,6 +66,7 @@ config DVB_TDA18271C2DD
+ config DVB_SI2165
+ 	tristate "Silicon Labs si2165 based"
+ 	depends on DVB_CORE && I2C
++	select CRC_ITU_T
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  A DVB-C/T demodulator.
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index fe4e8f2..c807180 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -25,6 +25,7 @@
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/firmware.h>
++#include <linux/crc-itu-t.h>
+ 
+ #include "dvb_frontend.h"
+ #include "dvb_math.h"
+@@ -327,8 +328,50 @@ static bool si2165_wait_init_done(struct si2165_state *state)
+ 	return ret;
+ }
+ 
++static int si2165_count_fw_blocks(struct si2165_state *state, const u8 *data,
++				  u32 len)
++{
++	int block_count = 0;
++	u32 offset = 0;
++
++	if (len % 4 != 0) {
++		dev_warn(&state->i2c->dev, "%s: firmware size is not multiple of 4\n",
++				KBUILD_MODNAME);
++		return -EINVAL;
++	}
++
++	while (offset + 4 <= len) {
++		u8 wordcount = data[offset];
++
++		if (wordcount < 1 || data[offset+1] ||
++		    data[offset+2] || data[offset+3]) {
++			dev_warn(&state->i2c->dev,
++				 "%s: bad fw data[0..3] = %*ph at offset=%d\n",
++				KBUILD_MODNAME, 4, data, offset);
++			return -EINVAL;
++		}
++		offset += 8 + 4 * wordcount;
++		++block_count;
++	}
++	if (offset != len) {
++		dev_warn(&state->i2c->dev,
++				"%s: firmware length does not match content, len=%d, offset=%d\n",
++			KBUILD_MODNAME, len, offset);
++		return -EINVAL;
++	}
++	if (block_count < 6) {
++		dev_err(&state->i2c->dev, "%s: firmware is too short: Only %d blocks\n",
++			KBUILD_MODNAME, block_count);
++		return -EINVAL;
++	}
++	block_count -= 6;
++	dev_info(&state->i2c->dev, "%s: si2165_upload_firmware counted %d main blocks\n",
++		KBUILD_MODNAME, block_count);
++	return block_count;
++}
++
+ static int si2165_upload_firmware_block(struct si2165_state *state,
+-	const u8 *data, u32 len, u32 *poffset, u32 block_count)
++	const u8 *data, u32 len, u32 *poffset, u32 block_count, u16 *crc)
+ {
+ 	int ret;
+ 	u8 buf_ctrl[4] = { 0x00, 0x00, 0x00, 0xc0 };
+@@ -374,6 +417,10 @@ static int si2165_upload_firmware_block(struct si2165_state *state,
+ 		offset += 8;
+ 
+ 		while (wordcount > 0) {
++			*crc = crc_itu_t_byte(*crc, *(data+offset+3));
++			*crc = crc_itu_t_byte(*crc, *(data+offset+2));
++			*crc = crc_itu_t_byte(*crc, *(data+offset+1));
++			*crc = crc_itu_t_byte(*crc, *(data+offset+0));
+ 			ret = si2165_write(state, 0x36c, data+offset, 4);
+ 			if (ret < 0)
+ 				goto error;
+@@ -408,10 +455,9 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	u8 *fw_file;
+ 	const u8 *data;
+ 	u32 len;
+-	u32 offset;
+-	u8 patch_version;
+-	u8 block_count;
+-	u16 crc_expected;
++	u32 offset = 0;
++	int main_block_count;
++	u16 crc = 0;
+ 
+ 	switch (state->chip_revcode) {
+ 	case 0x03: /* revision D */
+@@ -437,32 +483,13 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	dev_info(&state->i2c->dev, "%s: downloading firmware from file '%s' size=%d\n",
+ 			KBUILD_MODNAME, fw_file, len);
+ 
+-	if (len % 4 != 0) {
+-		dev_warn(&state->i2c->dev, "%s: firmware size is not multiple of 4\n",
+-				KBUILD_MODNAME);
+-		ret = -EINVAL;
+-		goto error;
+-	}
+-
+-	/* check header (8 bytes) */
+-	if (len < 8) {
+-		dev_warn(&state->i2c->dev, "%s: firmware header is missing\n",
+-				KBUILD_MODNAME);
+-		ret = -EINVAL;
+-		goto error;
+-	}
+-
+-	if (data[0] != 1 || data[1] != 0) {
+-		dev_warn(&state->i2c->dev, "%s: firmware file version is wrong\n",
+-				KBUILD_MODNAME);
+-		ret = -EINVAL;
+-		goto error;
++	main_block_count = si2165_count_fw_blocks(state, data, len);
++	if (main_block_count < 0) {
++		dev_err(&state->i2c->dev, "%s: si2165_upload_firmware: cannot use firmware, skip\n",
++			KBUILD_MODNAME);
++		return main_block_count;
+ 	}
+ 
+-	patch_version = data[2];
+-	block_count = data[4];
+-	crc_expected = data[7] << 8 | data[6];
+-
+ 	/* start uploading fw */
+ 	/* boot/wdog status */
+ 	ret = si2165_writereg8(state, 0x0341, 0x00);
+@@ -488,17 +515,12 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	if (ret < 0)
+ 		goto error;
+ 
+-	/* start right after the header */
+-	offset = 8;
+-
+-	dev_info(&state->i2c->dev, "%s: si2165_upload_firmware extracted patch_version=0x%02x, block_count=0x%02x, crc_expected=0x%04x\n",
+-		KBUILD_MODNAME, patch_version, block_count, crc_expected);
+-
+-	ret = si2165_upload_firmware_block(state, data, len, &offset, 1);
++	ret = si2165_upload_firmware_block(state, data, len, &offset, 1, &crc);
+ 	if (ret < 0)
+ 		goto error;
+ 
+-	ret = si2165_writereg8(state, 0x0344, patch_version);
++	/* patch version, just write a number different from the default 0x00 */
++	ret = si2165_writereg8(state, 0x0344, 0x01);
+ 	if (ret < 0)
+ 		goto error;
+ 
+@@ -506,9 +528,10 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	ret = si2165_writereg8(state, 0x0379, 0x01);
+ 	if (ret)
+ 		return ret;
++	crc = 0;
+ 
+ 	ret = si2165_upload_firmware_block(state, data, len,
+-					   &offset, block_count);
++					   &offset, main_block_count, &crc);
+ 	if (ret < 0) {
+ 		dev_err(&state->i2c->dev,
+ 			"%s: firmare could not be uploaded\n",
+@@ -521,15 +544,15 @@ static int si2165_upload_firmware(struct si2165_state *state)
+ 	if (ret)
+ 		goto error;
+ 
+-	if (val16 != crc_expected) {
++	if (val16 != crc) {
+ 		dev_err(&state->i2c->dev,
+ 			"%s: firmware crc mismatch %04x != %04x\n",
+-			KBUILD_MODNAME, val16, crc_expected);
++			KBUILD_MODNAME, val16, crc);
+ 		ret = -EINVAL;
+ 		goto error;
+ 	}
+ 
+-	ret = si2165_upload_firmware_block(state, data, len, &offset, 5);
++	ret = si2165_upload_firmware_block(state, data, len, &offset, 5, &crc);
+ 	if (ret)
+ 		goto error;
+ 
+diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
+index 2b70cf1..fd778dc 100644
+--- a/drivers/media/dvb-frontends/si2165_priv.h
++++ b/drivers/media/dvb-frontends/si2165_priv.h
+@@ -18,6 +18,6 @@
+ #ifndef _DVB_SI2165_PRIV
+ #define _DVB_SI2165_PRIV
+ 
+-#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
++#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-D.fw"
+ 
+ #endif /* _DVB_SI2165_PRIV */
 -- 
-Kind regards,
+2.1.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
