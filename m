@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:32838 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaHaPFd (ORCPT
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:56388 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119AbaHaOqN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Aug 2014 11:05:33 -0400
-Received: by mail-lb0-f172.google.com with SMTP id 10so4753426lbg.17
-        for <linux-media@vger.kernel.org>; Sun, 31 Aug 2014 08:05:31 -0700 (PDT)
-Message-ID: <54033A14.10309@googlemail.com>
-Date: Sun, 31 Aug 2014 17:07:00 +0200
+	Sun, 31 Aug 2014 10:46:13 -0400
+Received: by mail-lb0-f181.google.com with SMTP id n15so4649207lbi.40
+        for <linux-media@vger.kernel.org>; Sun, 31 Aug 2014 07:46:12 -0700 (PDT)
+Message-ID: <5403358C.4070504@googlemail.com>
+Date: Sun, 31 Aug 2014 16:47:40 +0200
 From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: oravecz@nytud.mta.hu
-CC: linux-media@vger.kernel.org
-Subject: Re: HVR 900 (USB ID 2040:6500) no analogue sound reloaded
-References: <201408221903.s7MJ3IT28956@ny01.nytud.hu>
-In-Reply-To: <201408221903.s7MJ3IT28956@ny01.nytud.hu>
+To: Lorenzo Marcantonio <l.marcantonio@logossrl.com>,
+	linux-media@vger.kernel.org
+Subject: Re: strange empia device
+References: <20140825190109.GB3372@aika.discordia.loc>
+In-Reply-To: <20140825190109.GB3372@aika.discordia.loc>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Lorenzo,
 
-Am 22.08.2014 um 21:03 schrieb Oravecz Csaba:
-> I reported this issue earlier but for some reason it went pretty much
-> unnoticed. The essence is that with the newest em28xx drivers now present in
-> 3.14 kernels (i'm on stock fedora 3.14.15-100.fc19.i686.PAE) I can't get
-> analogue sound from this card.
+Am 25.08.2014 um 21:01 schrieb Lorenzo Marcantonio:
+> Just bought a roxio video capture dongle. Read around that it was an
+> easycap clone (supported, then); it seems it's not so anymore :(
 >
-> I see that the code snippet that produced this output in the pre 3.14 versions
+> It identifies as 1b80:e31d Roxio Video Capture USB
 >
-> em2882/3 #0: Config register raw data: 0x50
-> em2882/3 #0: AC97 vendor ID = 0xffffffff
-> em2882/3 #0: AC97 features = 0x6a90
-> em2882/3 #0: Empia 202 AC97 audio processor detected
+> (it also uses audio class for audio)
 >
-> is still there in em28xx-core.c, however, there is nothing like that in
-> current kernel logs so it seems that this part of the code is just skipped,
-> which I tend to think is not the intended behaviour. I have not gone any
-> further to investigate the issue, rather I've simply copied the 'old' em28xx
-> directory over the current one in the latest source and compiled the drivers
-> in this way and so got back the old em28xx version, which is working well in
-> the current kernel as well.
+> Now comes the funny thing. Inside there is the usual E2P memory,
+> a regulator or two and an empia marked EM2980 (*not* em2890!); some
+> passive and nothing else.
 >
-> I don't consider this an optimal solution so 
-> I would very much appreciate any help in this issue.
+> Digging around in the driver cab (emBDA.inf) shows that it seems an
+> em28285 driver rebranded by roxio... it installs emBDAA.sys and
+> emOEMA.sys (pretty big: about 1.5MB combined!); also a 16KB merlinFW.rom
+> (presumably a firmware for the em chip?  I tought they were fixed
+> function); also the usual directshow .ax filter and some exe in
+> autorun (emmona.exe: firmware/setup loader?).
 >
-> best,
-> o.cs.
+> Looking in the em28xx gave me the idea that that thing is not
+> supported (at least in my current 3.6.6)... however the empia sites says
+> (here http://www.empiatech.com/wp/video-grabber-em282xx/) 28284 should
+> be linux supported. Nothing said about 28285. And the chip is marked
+> 2980?! by the way, forcing the driver to load I get this:
+>
+> [ 3439.787701] em28xx: New device  Roxio Video Capture USB @ 480 Mbps (1b80:e31d, interface 0, class 0)
+> [ 3439.787704] em28xx: Video interface 0 found
+> [ 3439.787705] em28xx: DVB interface 0 found
+> [ 3439.787866] em28xx #0: em28xx chip ID = 146
+>
+> Is there any hope to make it work (even on git kernel there is nothing
+> for chip id 146...)?
+>
 
-Thank you for reporting this issue.
-I suspect reverting commit b99f0aadd3 "[media] em28xx: check if a device
-has audio earlier" will resolve it.
-Can you check that ?
+See http://www.spinics.net/lists/linux-media/msg73699.html
 
-Regards,
+HTH,
 Frank
