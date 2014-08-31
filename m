@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42474 "EHLO mail.kapsi.fi"
+Received: from smtp.gentoo.org ([140.211.166.183]:45361 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755086AbaHYRMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Aug 2014 13:12:15 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/12] airspy: remove unneeded spinlock irq flags initialization
-Date: Mon, 25 Aug 2014 20:11:50 +0300
-Message-Id: <1408986718-3881-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1408986718-3881-1-git-send-email-crope@iki.fi>
-References: <1408986718-3881-1-git-send-email-crope@iki.fi>
+	id S1751173AbaHaLfd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Aug 2014 07:35:33 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, m.chehab@samsung.com, crope@iki.fi,
+	zzam@gentoo.org
+Subject: [PATCH 3/7] [media] cx231xx: Add support for Hauppauge WinTV-HVR-900H (111xxx)
+Date: Sun, 31 Aug 2014 13:35:08 +0200
+Message-Id: <1409484912-19300-4-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
+References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to init flags before calling spin_lock_irqsave().
-spin_lock_irqsave is a macro which stores value to 'flags'.
+Add support for:
+	[2040:b138] Hauppauge WinTV HVR-900H (111xxx)
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The hardware is similar to [2040:b130] Hauppauge WinTV 930C-HD (model 1113xx)
+The only difference is the demod Si2161 instead of Si2165 (but both are
+supported by the si2165 driver).
+
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/usb/airspy/airspy.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-index de9fc52..994c991 100644
---- a/drivers/media/usb/airspy/airspy.c
-+++ b/drivers/media/usb/airspy/airspy.c
-@@ -223,7 +223,7 @@ err:
- /* Private functions */
- static struct airspy_frame_buf *airspy_get_next_fill_buf(struct airspy *s)
- {
--	unsigned long flags = 0;
-+	unsigned long flags;
- 	struct airspy_frame_buf *buf = NULL;
- 
- 	spin_lock_irqsave(&s->queued_bufs_lock, flags);
-@@ -446,7 +446,7 @@ static int airspy_alloc_urbs(struct airspy *s)
- /* Must be called with vb_queue_lock hold */
- static void airspy_cleanup_queued_bufs(struct airspy *s)
- {
--	unsigned long flags = 0;
-+	unsigned long flags;
- 
- 	dev_dbg(s->dev, "\n");
- 
-@@ -506,7 +506,7 @@ static void airspy_buf_queue(struct vb2_buffer *vb)
- 	struct airspy *s = vb2_get_drv_priv(vb->vb2_queue);
- 	struct airspy_frame_buf *buf =
- 			container_of(vb, struct airspy_frame_buf, vb);
--	unsigned long flags = 0;
-+	unsigned long flags;
- 
- 	/* Check the device has not disconnected between prep and queuing */
- 	if (unlikely(!s->udev)) {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 8039b76..a03a31a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -705,7 +705,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		},
+ 	},
+ 	[CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx] = {
+-		.name = "Hauppauge WinTV 930C-HD (1113xx) / PCTV QuatroStick 521e",
++		.name = "Hauppauge WinTV 930C-HD (1113xx) / HVR-900H (111xxx) / PCTV QuatroStick 521e",
+ 		.tuner_type = TUNER_NXP_TDA18271,
+ 		.tuner_addr = 0x60,
+ 		.tuner_gpio = RDE250_XCV_TUNER,
+@@ -815,6 +815,9 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
+ 	{USB_DEVICE(0x2040, 0xb131),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx},
++	/* Hauppauge WinTV-HVR-900-H */
++	{USB_DEVICE(0x2040, 0xb138),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
+ 	{USB_DEVICE(0x2040, 0xb140),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
+ 	{USB_DEVICE(0x2040, 0xc200),
 -- 
-http://palosaari.fi/
+2.1.0
 
