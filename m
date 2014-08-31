@@ -1,132 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32913 "EHLO mail.kapsi.fi"
+Received: from cantor2.suse.de ([195.135.220.15]:33674 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752983AbaHVAeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Aug 2014 20:34:01 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 5/6] m88ts2022: change parameter type of m88ts2022_cmd
-Date: Fri, 22 Aug 2014 03:33:40 +0300
-Message-Id: <1408667621-12072-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1408667621-12072-1-git-send-email-crope@iki.fi>
-References: <1408667621-12072-1-git-send-email-crope@iki.fi>
+	id S1751060AbaHaE6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Aug 2014 00:58:06 -0400
+Date: Sun, 31 Aug 2014 06:58:01 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Jim Davis <jim.epost@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>, hans.verkuil@cisco.com,
+	felipensp@gmail.com, mkrufky@linuxtv.org, crazycat69@narod.ru,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: randconfig build error with next-20140829, in
+	drivers/media/usb/dvb-usb/technisat-usb2.c
+Message-ID: <20140831045801.GL3347@wotan.suse.de>
+References: <CA+r1ZhhfV+fLKY6X0fp2QevQGZMx4g=okSeZjPN9Z3LZJqykGg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+r1ZhhfV+fLKY6X0fp2QevQGZMx4g=okSeZjPN9Z3LZJqykGg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is driver internal function and does not need anything from
-frontend structure. Due to that change parameter type to driver
-state which is better for driver internal functions.
+On Fri, Aug 29, 2014 at 09:19:42AM -0700, Jim Davis wrote:
+> Building with the attached random configuration file,
+> 
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `technisat_usb2_set_voltage':
+> technisat-usb2.c:(.text+0x3b4919): undefined reference to `stv090x_set_gpio'
+> make: *** [vmlinux] Error 1
 
-Also remove one unused variable from state itself.
+This is because MEDIA_SUBDRV_AUTOSELECT is designed to let you
+pick and choose, technically we should just have:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/m88ts2022.c      | 21 ++++++++++-----------
- drivers/media/tuners/m88ts2022_priv.h |  1 -
- 2 files changed, 10 insertions(+), 12 deletions(-)
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index c5d9566..5a4e82e 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -313,7 +313,7 @@ config DVB_USB_AZ6027
+ config DVB_USB_TECHNISAT_USB2
+ 	tristate "Technisat DVB-S/S2 USB2.0 support"
+ 	depends on DVB_USB
+-	select DVB_STV090x if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_STV090x
+ 	select DVB_STV6110x if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to support the Technisat USB2 DVB-S/S2 device
 
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 04d3979..90e1a35 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -18,10 +18,9 @@
- 
- #include "m88ts2022_priv.h"
- 
--static int m88ts2022_cmd(struct dvb_frontend *fe,
--		int op, int sleep, u8 reg, u8 mask, u8 val, u8 *reg_val)
-+static int m88ts2022_cmd(struct m88ts2022 *s, int op, int sleep, u8 reg,
-+		u8 mask, u8 val, u8 *reg_val)
- {
--	struct m88ts2022 *s = fe->tuner_priv;
- 	int ret, i;
- 	unsigned int utmp;
- 	struct m88ts2022_reg_val reg_vals[] = {
-@@ -124,7 +123,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 			s->frequency_khz, s->frequency_khz - c->frequency,
- 			f_vco_khz, pll_n, div_ref, div_out);
- 
--	ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
-+	ret = m88ts2022_cmd(s, 0x10, 5, 0x15, 0x40, 0x00, NULL);
- 	if (ret)
- 		goto err;
- 
-@@ -142,7 +141,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 		if (ret)
- 			goto err;
- 
--		ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
-+		ret = m88ts2022_cmd(s, 0x10, 5, 0x15, 0x40, 0x00, NULL);
- 		if (ret)
- 			goto err;
- 	}
-@@ -158,7 +157,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	ret = m88ts2022_cmd(fe, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
-+	ret = m88ts2022_cmd(s, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
- 	if (ret)
- 		goto err;
- 
-@@ -185,7 +184,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -195,7 +194,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -227,7 +226,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -237,7 +236,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(s, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -257,7 +256,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x01, 20, 0x21, 0xff, 0x00, NULL);
-+	ret = m88ts2022_cmd(s, 0x01, 20, 0x21, 0xff, 0x00, NULL);
- 	if (ret)
- 		goto err;
- err:
-diff --git a/drivers/media/tuners/m88ts2022_priv.h b/drivers/media/tuners/m88ts2022_priv.h
-index a67afe3..a0e22fa 100644
---- a/drivers/media/tuners/m88ts2022_priv.h
-+++ b/drivers/media/tuners/m88ts2022_priv.h
-@@ -24,7 +24,6 @@ struct m88ts2022 {
- 	struct m88ts2022_config cfg;
- 	struct i2c_client *client;
- 	struct regmap *regmap;
--	struct dvb_frontend *fe;
- 	u32 frequency_khz;
- };
- 
--- 
-http://palosaari.fi/
+and that would fix the issue you saw but then again if we do that
+we might as well also do the same for DVB_STV6110x and a slew of
+different Kconfig entries on that file.
 
+Someone needs to make a judgement call and either fix all these
+Kconfig entries or document that MEDIA_SUBDRV_AUTOSELECT will
+let you shoot yourself in the foot at build time. Then what
+I recommend in the meantime is simply to not trust randomconfig
+builds unless you are always enabling MEDIA_SUBDRV_AUTOSELECT.
+
+I think its fair to expect for 'make randomconfig' to give you
+a configuration that lets you build things without issue so
+I see this more of an issue with MEDIA_SUBDRV_AUTOSELECT and
+this sloppy embedded craze.
+
+  Luis
