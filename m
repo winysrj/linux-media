@@ -1,37 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4367 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbaILJCS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 05:02:18 -0400
-Message-ID: <5412B68A.1020702@xs4all.nl>
-Date: Fri, 12 Sep 2014 11:02:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Martin Bugge <marbugge@cisco.com>
-Subject: [PATCH for v3.17] adv7604: fix inverted condition
-Content-Type: text/plain; charset=utf-8
+Received: from smtp209.alice.it ([82.57.200.105]:30451 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752521AbaIAHb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Sep 2014 03:31:57 -0400
+Date: Mon, 1 Sep 2014 09:26:26 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Antonio Ospite <ao2@ao2.it>, Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/12] trivial: drivers/media/usb/gspca/gspca.h: indent
+ with TABs, not spaces
+Message-Id: <20140901092626.31ca8039f328a13103365c58@ao2.it>
+In-Reply-To: <1401883430-19492-3-git-send-email-ao2@ao2.it>
+References: <1401883430-19492-1-git-send-email-ao2@ao2.it>
+	<1401883430-19492-3-git-send-email-ao2@ao2.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The log_status function should show HDMI information, but the test checking for
-an HDMI input was inverted. Fix this.
+On Wed,  4 Jun 2014 14:03:40 +0200
+Antonio Ospite <ao2@ao2.it> wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: stable@vger.kernel.org      # for v3.12 and up
+> Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: linux-media@vger.kernel.org
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index d4fa213..de88b98 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2325,7 +2325,7 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "HDCP keys read: %s%s\n",
- 			(hdmi_read(sd, 0x04) & 0x20) ? "yes" : "no",
- 			(hdmi_read(sd, 0x04) & 0x10) ? "ERROR" : "");
--	if (!is_hdmi(sd)) {
-+	if (is_hdmi(sd)) {
- 		bool audio_pll_locked = hdmi_read(sd, 0x04) & 0x01;
- 		bool audio_sample_packet_detect = hdmi_read(sd, 0x18) & 0x01;
- 		bool audio_mute = io_read(sd, 0x65) & 0x40;
+Ping.
+linux-media patchwork link:
+https://patchwork.linuxtv.org/patch/24156/
+
+Thanks,
+   Antonio
+
+> ---
+>  drivers/media/usb/gspca/gspca.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+> index 300642d..c1273e5 100644
+> --- a/drivers/media/usb/gspca/gspca.h
+> +++ b/drivers/media/usb/gspca/gspca.h
+> @@ -234,6 +234,6 @@ int gspca_resume(struct usb_interface *intf);
+>  int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
+>  	int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee);
+>  int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev,
+> -        int avg_lum, int desired_avg_lum, int deadzone);
+> +	int avg_lum, int desired_avg_lum, int deadzone);
+>  
+>  #endif /* GSPCAV2_H */
+> -- 
+> 2.0.0
+> 
+
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
