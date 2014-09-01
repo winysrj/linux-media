@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:38696 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921AbaIYOHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 10:07:00 -0400
-Message-ID: <542421DF.9060000@googlemail.com>
-Date: Thu, 25 Sep 2014 16:08:31 +0200
-From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:32937 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbaIAJyH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 05:54:07 -0400
+Received: by mail-pa0-f42.google.com with SMTP id lf10so11924793pab.1
+        for <linux-media@vger.kernel.org>; Mon, 01 Sep 2014 02:54:06 -0700 (PDT)
+Message-ID: <5404423A.3020307@gmail.com>
+Date: Mon, 01 Sep 2014 18:54:02 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] em28xx-input: NULL dereference on error
-References: <20140925113941.GB3708@mwanda>
-In-Reply-To: <20140925113941.GB3708@mwanda>
-Content-Type: text/plain; charset=windows-1252
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: Matthias Schwarzott <zzam@gentoo.org>, m.chehab@samsung.com
+Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi>
+In-Reply-To: <54037BFE.60606@iki.fi>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Hi,
 
-Am 25.09.2014 um 13:39 schrieb Dan Carpenter:
-> We call "kfree(ir->i2c_client);" in the error handling and that doesn't
-> work if "ir" is NULL.
->
-> Fixes: 78e719a5f30b ('[media] em28xx-input: i2c IR decoders: improve i2c_client handling')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 581f6da..23f8f6a 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -712,8 +712,10 @@ static int em28xx_ir_init(struct em28xx *dev)
->  	em28xx_info("Registering input extension\n");
->  
->  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> +	if (!ir)
-> +		return -ENOMEM;
->  	rc = rc_allocate_device();
-> -	if (!ir || !rc)
-> +	if (!rc)
->  		goto error;
->  
->  	/* record handles to ourself */
-I would prefer to fix it where the actual problem is located.
-Can you send an updated version that changes the code to do
+> Also, I would like to see all new drivers (demod and tuner) implemented
+> as a standard kernel I2C drivers (or any other bus). I have converted
+> already quite many drivers, si2168, si2157, m88ds3103, m88ts2022,
+> it913x, tda18212, ...
 
-...
-error:
-if (ir)
-  kfree(ir->i2c_client);
-...
+I wrote the code in the old style using dvb_attach()
+because (I felt) it is simpler than using i2c_new_device() by
+introducing new i2c-related data structures,
+registering to both dvb and i2c, without any new practical
+features that i2c client provides.
 
-This makes the code less prone to future error handling changes.
+But if the use of dvb_attach() is (almost) deprecated and
+i2c client driver is the standard/prefered way,
+I'll convert my code.
 
-Thanks !
-
-Regards,
-Frank
-
+regards,
+akihiro
