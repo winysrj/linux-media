@@ -1,73 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35892 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846AbaILBfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Sep 2014 21:35:12 -0400
-Message-ID: <54124BDC.3000306@osg.samsung.com>
-Date: Thu, 11 Sep 2014 19:26:52 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: "mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	hverkuil@xs4all.nl
-CC: linux-media@vger.kernel.org
-Subject: v4l2 ioctls
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.samsung.com ([203.254.224.33]:25801 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608AbaIANGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 09:06:11 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NB8003NM4EA2DA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Sep 2014 22:06:10 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 3/4] s5p-jpeg: avoid overwriting JPEG_CNTL register settings
+Date: Mon, 01 Sep 2014 15:05:51 +0200
+Message-id: <1409576752-24729-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1409576752-24729-1-git-send-email-j.anaszewski@samsung.com>
+References: <1409576752-24729-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro/Hans,
+Take into account the JPEG_CNTL register value read before
+setting SYS_INT_EN bit field.
 
-I am working on adding sharing construct to dvb-core and v4l2-core.
-In the case of dvb I have clean start and stop points to acquire the
-tuner and release it. Tuner is acquired from dvb_frontend_start() and
-released from dvb_frontend_thread() when thread exits. This works very
-well.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The problem with analog case is there are no clear entry and exit
-points. Instead of changing ioctls, it will be cleaner to change
-the main ioctl entry routine __video_do_ioctl(). Is there an easy
-way to tell which ioctls are query only and which are set?
-
-So far I changed the following to check check for tuner token
-before they invoke v4l2_ioctl_ops:
-
-v4l_g_tuner()
-v4l_s_tuner()
-v4l_s_modulator()
-v4l_s_frequency()
-v4l_s_hw_freq_seek()
-
-This isn't enough looks like, since I see tuner_s_std() getting
-invoked and cutting off the dvb stream. I am currently releasing
-the tuner from v4l2_fh_exit(), but I don't think that is a good
-idea since all these ioctls are independent control paths. Each
-ioctl might have to acquire and release it at the end. More on
-this below.
-
-For example, xawtv makes several ioctls before it even touches the
-tuner to set frequency and starting the stream. What I am looking
-for is an ioctl that would signal the intent to hold the tuner.
-Is that possible?
-
-The question is can we identify a clean start and stop points
-for analog case for tuner ownership??
-
-Would it make sense to treat all these ioctls as independent and
-make them acquire and release lock or hold the tuner in shared
-mode? Shared doesn't really make sense to me since two user-space
-analog apps can interfere with each other.
-
-I am trying avoid changing tuner-core and if at all possible.
-
-I can send the code I have now for review if you like. I have the
-locking construct in a good state at the moment. dvb is in good
-shape.
-
--- Shuah
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+index 2de81c7..d9ce40f 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+@@ -193,9 +193,9 @@ void exynos4_jpeg_set_sys_int_enable(void __iomem *base, int value)
+ 	reg = readl(base + EXYNOS4_JPEG_CNTL_REG) & ~(EXYNOS4_SYS_INT_EN);
+ 
+ 	if (value == 1)
+-		writel(EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
++		writel(reg | EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
+ 	else
+-		writel(~EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
++		writel(reg & ~EXYNOS4_SYS_INT_EN, base + EXYNOS4_JPEG_CNTL_REG);
+ }
+ 
+ void exynos4_jpeg_set_stream_buf_address(void __iomem *base,
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.7.9.5
+
