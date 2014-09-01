@@ -1,69 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33896 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbaIXJER (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 05:04:17 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NCE00IIRENU3A40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Sep 2014 10:07:06 +0100 (BST)
-Received: from AMDN910 ([106.116.147.102])
- by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0NCE00432EJ26640@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Sep 2014 10:04:15 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 3.18] mem2mem changes
-Date: Wed, 24 Sep 2014 11:04:14 +0200
-Message-id: <094e01cfd7d6$83e54e50$8bafeaf0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2940 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751984AbaIAN3l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 09:29:41 -0400
+Message-ID: <540474AE.4070706@xs4all.nl>
+Date: Mon, 01 Sep 2014 15:29:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
+References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1409480361-12821-1-git-send-email-hdegoede@redhat.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit c0aaf696d45e2a72048a56441e81dad78659c698:
+Hi Hans,
 
-  [media] coda: coda-bit: Include "<linux/slab.h>" (2014-09-21 16:43:28
--0300)
+At first glance this looks fine. But making changes in videobuf is always scary :-)
+so I hope Marek can look at this as well.
 
-are available in the git repository at:
+How well was this tested?
 
-  ssh://linuxtv/git/kdebski/media_tree_2.git for-v3.18-2
+I'll try do test this as well.
 
-for you to fetch changes up to 242b5f7029ab613008a3c2bcc6a4ca181a64d0c9:
+Regards,
 
-  coda: Improve runtime PM support (2014-09-23 16:08:08 +0200)
+	Hans
 
-----------------------------------------------------------------
-Kamil Debski (1):
-      s5p-mfc: Fix sparse errors in the MFC driver
-
-Sjoerd Simons (1):
-      s5p-mfc: Use decode status instead of display status on MFCv5
-
-Ulf Hansson (1):
-      coda: Improve runtime PM support
-
-Zhaowei Yuan (2):
-      s5p_mfc: correct the loop condition
-      s5p_mfc: unify variable naming style
-
-ayaka (1):
-      s5p-mfc: fix enum_fmt for s5p-mfc
-
- drivers/media/platform/coda/coda-common.c       |   55 +--
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |   53 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    6 +
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   16 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   46 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   50 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    8 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  471
-+++++++++++------------
- 8 files changed, 331 insertions(+), 374 deletions(-)
+On 08/31/2014 12:19 PM, Hans de Goede wrote:
+> All the infrastructure for this is already there, and despite our desires for
+> the old videobuf code to go away, it is currently still in use in 18 drivers.
+> 
+> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
+> making live easier for userspace, see e.g. :
+> https://bugzilla.gnome.org/show_bug.cgi?id=735660
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+> index fb5ee5d..b91a266 100644
+> --- a/drivers/media/v4l2-core/videobuf-core.c
+> +++ b/drivers/media/v4l2-core/videobuf-core.c
+> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>  	unsigned int size, count;
+>  	int retval;
+>  
+> -	if (req->count < 1) {
+> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+> -		return -EINVAL;
+> -	}
+> -
+>  	if (req->memory != V4L2_MEMORY_MMAP     &&
+>  	    req->memory != V4L2_MEMORY_USERPTR  &&
+>  	    req->memory != V4L2_MEMORY_OVERLAY) {
+> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>  		goto done;
+>  	}
+>  
+> +	if (req->count == 0) {
+> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+> +		retval = __videobuf_free(q);
+> +		goto done;
+> +	}
+> +
+>  	count = req->count;
+>  	if (count > VIDEO_MAX_FRAME)
+>  		count = VIDEO_MAX_FRAME;
+> 
 
