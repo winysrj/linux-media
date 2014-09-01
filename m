@@ -1,159 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f54.google.com ([209.85.192.54]:52636 "EHLO
-	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754462AbaIVSoe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 14:44:34 -0400
-Received: by mail-qg0-f54.google.com with SMTP id a108so3433911qge.27
-        for <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 11:44:33 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:37918 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754022AbaIAPgX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Sep 2014 11:36:23 -0400
+Message-ID: <54049268.3060004@redhat.com>
+Date: Mon, 01 Sep 2014 17:36:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1411401956-29330-1-git-send-email-p.zabel@pengutronix.de>
-References: <1411401956-29330-1-git-send-email-p.zabel@pengutronix.de>
-Date: Mon, 22 Sep 2014 20:44:33 +0200
-Message-ID: <CAPDyKFqSgpOCvXp0aVVTFDj5X6fYkigThXM1VKK_vTWrjhpx6A@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] coda: Improve runtime PM support
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
+References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com> <540474AE.4070706@xs4all.nl>
+In-Reply-To: <540474AE.4070706@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22 September 2014 18:05, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> From: Ulf Hansson <ulf.hansson@linaro.org>
->
-> For several reasons it's good practice to leave devices in runtime PM
-> active state while those have been probed.
->
-> In this cases we also want to prevent the device from going inactive,
-> until the firmware has been completely installed, especially when using
-> a PM domain.
->
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Hi,
 
-Thanks for moving this to the next version, I have been a bit busy the
-last week.
+On 09/01/2014 03:29 PM, Hans Verkuil wrote:
+> Hi Hans,
+> 
+> At first glance this looks fine. But making changes in videobuf is always scary :-)
+> so I hope Marek can look at this as well.
+> 
+> How well was this tested?
 
-Changes looking good!
+I ran some tests on bttv which all ran well.
 
-Kind regards
-Uffe
+Note that the code already allowed for going from say 4 buffers to 1,
+and the old code path for reqbufs was already calling __videobuf_free()
+before re-allocating the buffers again. So in essence this just changes
+things to allow the 4 buffers to 1 case to also be 4 buffers to 0.
 
->
-> ---
-> Changes since v1:
->  - Deactivate PM domain on error
->  - Added a comment to runtime PM setup
-> ---
->  drivers/media/platform/coda/coda-common.c | 55 ++++++++++++-------------------
->  1 file changed, 21 insertions(+), 34 deletions(-)
->
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 0997b5c..ced4760 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1688,7 +1688,7 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
->
->         if (!fw) {
->                 v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
-> -               return;
-> +               goto put_pm;
->         }
->
->         /* allocate auxiliary per-device code buffer for the BIT processor */
-> @@ -1696,50 +1696,27 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
->                                  dev->debugfs_root);
->         if (ret < 0) {
->                 dev_err(&pdev->dev, "failed to allocate code buffer\n");
-> -               return;
-> +               goto put_pm;
->         }
->
->         /* Copy the whole firmware image to the code buffer */
->         memcpy(dev->codebuf.vaddr, fw->data, fw->size);
->         release_firmware(fw);
->
-> -       if (pm_runtime_enabled(&pdev->dev) && pdev->dev.pm_domain) {
-> -               /*
-> -                * Enabling power temporarily will cause coda_hw_init to be
-> -                * called via coda_runtime_resume by the pm domain.
-> -                */
-> -               ret = pm_runtime_get_sync(&dev->plat_dev->dev);
-> -               if (ret < 0) {
-> -                       v4l2_err(&dev->v4l2_dev, "failed to power on: %d\n",
-> -                                ret);
-> -                       return;
-> -               }
-> -
-> -               ret = coda_check_firmware(dev);
-> -               if (ret < 0)
-> -                       return;
-> -
-> -               pm_runtime_put_sync(&dev->plat_dev->dev);
-> -       } else {
-> -               /*
-> -                * If runtime pm is disabled or pm_domain is not set,
-> -                * initialize once manually.
-> -                */
-> -               ret = coda_hw_init(dev);
-> -               if (ret < 0) {
-> -                       v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
-> -                       return;
-> -               }
-> -
-> -               ret = coda_check_firmware(dev);
-> -               if (ret < 0)
-> -                       return;
-> +       ret = coda_hw_init(dev);
-> +       if (ret < 0) {
-> +               v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
-> +               goto put_pm;
->         }
->
-> +       ret = coda_check_firmware(dev);
-> +       if (ret < 0)
-> +               goto put_pm;
-> +
->         dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
->         if (IS_ERR(dev->alloc_ctx)) {
->                 v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
-> -               return;
-> +               goto put_pm;
->         }
->
->         dev->m2m_dev = v4l2_m2m_init(&coda_m2m_ops);
-> @@ -1771,12 +1748,15 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
->         v4l2_info(&dev->v4l2_dev, "codec registered as /dev/video[%d-%d]\n",
->                   dev->vfd[0].num, dev->vfd[1].num);
->
-> +       pm_runtime_put_sync(&pdev->dev);
->         return;
->
->  rel_m2m:
->         v4l2_m2m_release(dev->m2m_dev);
->  rel_ctx:
->         vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-> +put_pm:
-> +       pm_runtime_put_sync(&pdev->dev);
->  }
->
->  static int coda_firmware_request(struct coda_dev *dev)
-> @@ -1998,6 +1978,13 @@ static int coda_probe(struct platform_device *pdev)
->
->         platform_set_drvdata(pdev, dev);
->
-> +       /*
-> +        * Start activated so we can directly call coda_hw_init in
-> +        * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
-> +        * enabled or whether the device is associated with a PM domain.
-> +        */
-> +       pm_runtime_get_noresume(&pdev->dev);
-> +       pm_runtime_set_active(&pdev->dev);
->         pm_runtime_enable(&pdev->dev);
->
->         return coda_firmware_request(dev);
-> --
-> 2.1.0
->
+Regards,
+
+Hans
+
+
+> 
+> I'll try do test this as well.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 08/31/2014 12:19 PM, Hans de Goede wrote:
+>> All the infrastructure for this is already there, and despite our desires for
+>> the old videobuf code to go away, it is currently still in use in 18 drivers.
+>>
+>> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
+>> making live easier for userspace, see e.g. :
+>> https://bugzilla.gnome.org/show_bug.cgi?id=735660
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
+>>  1 file changed, 6 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+>> index fb5ee5d..b91a266 100644
+>> --- a/drivers/media/v4l2-core/videobuf-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf-core.c
+>> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>>  	unsigned int size, count;
+>>  	int retval;
+>>  
+>> -	if (req->count < 1) {
+>> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+>> -		return -EINVAL;
+>> -	}
+>> -
+>>  	if (req->memory != V4L2_MEMORY_MMAP     &&
+>>  	    req->memory != V4L2_MEMORY_USERPTR  &&
+>>  	    req->memory != V4L2_MEMORY_OVERLAY) {
+>> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>>  		goto done;
+>>  	}
+>>  
+>> +	if (req->count == 0) {
+>> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+>> +		retval = __videobuf_free(q);
+>> +		goto done;
+>> +	}
+>> +
+>>  	count = req->count;
+>>  	if (count > VIDEO_MAX_FRAME)
+>>  		count = VIDEO_MAX_FRAME;
+>>
+> 
