@@ -1,80 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39241 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.15.19]:52245 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755614AbaIDChA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:00 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S1752455AbaIBUfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Sep 2014 16:35:04 -0400
+Date: Tue, 2 Sep 2014 22:34:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/37] af9035: make checkpatch.pl happy
-Date: Thu,  4 Sep 2014 05:36:15 +0300
-Message-Id: <1409798205-25645-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+cc: linuxtv-commits@linuxtv.org
+Subject: Re: [git:media_tree/master] [media] atmel-isi: Fix a truncate warning
+In-Reply-To: <E1XOtGI-0007MC-Uf@www.linuxtv.org>
+Message-ID: <Pine.LNX.4.64.1409022227160.31953@axis700.grange>
+References: <E1XOtGI-0007MC-Uf@www.linuxtv.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Correct issues reported by checkpatch.pl.
+On Tue, 26 Aug 2014, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] atmel-isi: Fix a truncate warning
+> Author:  Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Date:    Fri Aug 22 05:53:27 2014 -0500
+> 
+>    drivers/media/platform/soc_camera/atmel-isi.c: In function 'start_streaming':
+>    drivers/media/platform/soc_camera/atmel-isi.c:397:26: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+>      isi_writel(isi, ISI_INTDIS, ~0UL);
+>                              ^
+> 
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=9842a417d46bf40f2d460120016b6392d3ac32c9
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index f87012b..96a4b11 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -394,7 +394,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>  		return ret;
+>  	}
+>  	/* Disable all interrupts */
+> -	isi_writel(isi, ISI_INTDIS, ~0UL);
+> +	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 85f2c4b..f37cf7d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -536,6 +536,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 	u8 tmp;
- 	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
- 	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf };
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	/*
-@@ -974,6 +975,7 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
- static int af9035_get_adapter_count(struct dvb_usb_device *d)
- {
- 	struct state *state = d_to_priv(d);
-+
- 	return state->dual_mode + 1;
- }
- 
-@@ -982,6 +984,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret;
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	if (!state->af9033_config[adap->id].tuner) {
-@@ -1068,6 +1071,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_frontend *fe;
- 	struct i2c_msg msg[1];
- 	u8 tuner_addr;
-+
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	/*
-@@ -1393,6 +1397,7 @@ static int af9035_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
- 		struct usb_data_stream_properties *stream)
- {
- 	struct dvb_usb_device *d = fe_to_d(fe);
-+
- 	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, fe_to_adap(fe)->id);
- 
- 	if (d->udev->speed == USB_SPEED_FULL)
-@@ -1554,7 +1559,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 							RC_MAP_IT913X_V1) },
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
--		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
-+		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)",
-+		NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a05,
- 		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_HAUPPAUGE, 0xf900,
--- 
-http://palosaari.fi/
+Uhm... Wouldn't it have been much better to just remove the 'L' above to 
+make it "~0U" ?.. Too late, I guess.
 
+Thanks
+Guennadi
+
+>  
+>  	spin_lock_irq(&isi->lock);
+>  	/* Clear any pending interrupt */
+> 
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+> 
