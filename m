@@ -1,47 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:20729 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbaI2JQh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 05:16:37 -0400
-Date: Mon, 29 Sep 2014 12:13:17 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v4 1/8] [media] soc_camera: Do not decrement endpoint
- node refcount in the loop
-Message-ID: <20140929091316.GA23154@mwanda>
-References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
- <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:43059 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879AbaIBOsO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 10:48:14 -0400
+Received: by mail-oi0-f44.google.com with SMTP id i138so4506477oig.17
+        for <linux-media@vger.kernel.org>; Tue, 02 Sep 2014 07:48:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Tue, 2 Sep 2014 16:47:58 +0200
+Message-ID: <CAL8zT=gEXzeP1KPJZBrDUOQWRotvV8XidPuoeQZecKLKCdJEPw@mail.gmail.com>
+Subject: ADV76xx : Endpoint parsing
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurentp@cse-semaphore.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, lars@metafoo.de
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 29, 2014 at 10:15:44AM +0200, Philipp Zabel wrote:
-> In preparation for a following patch, stop decrementing the endpoint node
-> refcount in the loop. This temporarily leaks a reference to the endpoint node,
-> which will be fixed by having of_graph_get_next_endpoint decrement the refcount
-> of its prev argument instead.
+Hi,
 
-Don't do this...
+I am trying to understand how endpoint parsing is done in adv7604/11
+and the main objective is to get adv7604 endpoint parsing from DT for
+all its ports (4 HDMI and one VGA as input, one output).
+I am stuck on the function adv7604_parse_dt().
+Tell me if I am wrong, but this function takes the first endpoint from
+DT, puts the node, and that's all...
 
-My understanding (and I haven't invested much time into trying to
-understand this beyond glancing at the change) is that patch 1 and 2,
-introduce small bugs that are fixed in patch 3?
+At least for ADV7611, there is two endpoints : one HDMI as input, one output.
+I am not even sure that this function gets both...
 
-Just fold all three patches into one patch.  We need an Ack from Mauro
-and Greg and then send the patch through Grant's tree.
+And last but not least, how can we get support for all endpoints in
+the ADV7604 case ?
 
-regards,
-dan carpenter
-
+Thanks,
+JM
