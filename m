@@ -1,77 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41308 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676AbaIPALP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 20:11:15 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
-Date: Mon, 15 Sep 2014 21:10:55 -0300
-Message-Id: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:44660 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961AbaIBCEI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Sep 2014 22:04:08 -0400
+Message-ID: <54052590.6060808@iki.fi>
+Date: Tue, 02 Sep 2014 05:04:00 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: dvbv5-scan segfaults when invalid freqs got from tables
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
+Mauro,
+Could you look that one too?
 
-The commit 9241650d62f7 was meant to solve an issue with Gstreamer
-version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
-a bad behavior ag Gstreamer.
+There is utterly broken data got from tables and it crashes always.
 
-It does that by returning POLERR if VB2 is not streaming.
+Antti
 
-However, it broke VBI userspace support on alevt and mtt (and maybe
-other VBI apps), as they rely on the old behavior.
+[crope@localhost dvb]$ ./dvbv5-scan mux-Oulu-t2
+Scanning frequency #1 177500000
+Lock   (0x1f)
+Service Showtime, provider DNA: reserved
+Service Eurosport 2, provider DNA: reserved
+Service Nelonen Maailma, provider DNA: reserved
+Service Nelonen Nappula, provider DNA: reserved
+Service Nelonen Prime, provider DNA: reserved
+Service National Geographic, provider DNA: reserved
+Service Investigation Discovery, provider DNA: reserved
+Service Nelonen PRO 2 HD, provider DNA: reserved
+Service MTV Sport 1 HD, provider DNA: reserved
+Service Nelonen PRO 2 HD, provider DNA: reserved
+Service Nelonen PRO 3, provider DNA: reserved
+WARNING  Service ID 103 not found on PMT!
+Service Nelonen PRO 4 , provider DNA: reserved
+WARNING  Service ID 104 not found on PMT!
+Service Nelonen PRO 5, provider DNA: reserved
+WARNING  Service ID 105 not found on PMT!
+Service Nelonen PRO 6, provider DNA: reserved
+WARNING  Service ID 106 not found on PMT!
+Service Nelonen PRO 7, provider DNA: reserved
+WARNING  Service ID 107 not found on PMT!
+Service Nelonen PRO 8, provider DNA: reserved
+WARNING  Service ID 108 not found on PMT!
+New transponder/channel found: #6: 1510003450
+New transponder/channel found: #7: -2110588416
+New transponder/channel found: #8: -587352536
+New transponder/channel found: #9: 410
+New transponder/channel found: #10: 511181010
+New transponder/channel found: #11: -2133687758
+New transponder/channel found: #12: -2132410148
+New transponder/channel found: #13: 1745048284
+New transponder/channel found: #14: 59046400
+New transponder/channel found: #15: -1225129104
+New transponder/channel found: #16: -603751716
+New transponder/channel found: #17: 589880320
+New transponder/channel found: #18: -1728445454
+New transponder/channel found: #19: -100422436
+New transponder/channel found: #20: 61004800
+New transponder/channel found: #21: -891551084
+New transponder/channel found: #22: -541710336
+New transponder/channel found: #23: 106270
+New transponder/channel found: #24: -536651392
+New transponder/channel found: #25: 1375964032
+New transponder/channel found: #26: 1308867968
+New transponder/channel found: #27: -1241286784
+New transponder/channel found: #28: 1879277952
+New transponder/channel found: #29: 2049126272
+New transponder/channel found: #30: -2080137344
+New transponder/channel found: #31: -1744569984
+New transponder/channel found: #32: -234638464
+New transponder/channel found: #33: -1409046144
+New transponder/channel found: #34: -1576808064
+New transponder/channel found: #35: -905798784
+New transponder/channel found: #36: -1778513088
+New transponder/channel found: #37: -1520083210
+Scanning frequency #2 205500000
+Lock   (0x1f)
+DMX_SET_FILTER failed (PID = 0x0000): 27 File too large
+ERROR    error while waiting for PAT table
+Scanning frequency #3 219500000
+Lock   (0x1f)
+ERROR    dvb_read_sections: no data read on section filter
+ERROR    error while waiting for PAT table
+Scanning frequency #4 498000000
+Lock   (0x1f)
+ERROR    dvb_read_sections: no data read on section filter
+ERROR    error while waiting for PAT table
+Scanning frequency #5 570000000
+Lock   (0x1f)
+ERROR    dvb_read_sections: no data read on section filter
+ERROR    error while waiting for PAT table
+Scanning frequency #6 1510003450
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #7 -2110588416
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #8 -587352536
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #9 410
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #10 511181010
+ERROR    command STREAM_ID (42) not found during store
+        (0x00)
+Scanning frequency #11 -2133687758
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #12 -2132410148
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #13 1745048284
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #14 59046400
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #15 -1225129104
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #16 -603751716
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #17 589880320
+ERROR    command STREAM_ID (42) not found during store
+        (0x00)
+Scanning frequency #18 -1728445454
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #19 -100422436
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #20 61004800
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #21 -891551084
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #22 -541710336
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #23 106270
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #24 -536651392
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #25 1375964032
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #26 1308867968
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #27 -1241286784
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #28 1879277952
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #29 2049126272
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #30 -2080137344
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #31 -1744569984
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #32 -234638464
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #33 -1409046144
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #34 -1576808064
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #35 -905798784
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #36 -1778513088
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+Scanning frequency #37 -1520083210
+ERROR    command STREAM_ID (42) not found during store
+ERROR    FE_SET_PROPERTY: Invalid argument
+ERROR    dvb_fe_set_parms failed: Invalid argument
+*** Error in 
+`/home/crope/linuxtv/code/v4l-utils/utils/dvb/.libs/lt-dvbv5-scan': 
+double free or corruption (fasttop): 0x00000000016b7030 ***
+Segmentation fault (core dumped)
+[crope@localhost dvb]$
 
-Due to that, we need to roll back and restore the previous behavior.
-
-It means that there are still some potential regressions by reverting it,
-but those are known to occur only if:
-	- libv4l is version 1.2 or upper (due to DQBUF fixup);
-	- Gstreamer version 1.2 or before are being used, as this bug
-got fixed on Gstreamer 1.4.
-
-As both libv4l 1.2 and Gstreamer version 1.4 were released about the same
-time, and the fix went only on Kernel 3.16 and were not backported to
-stable, it is very unlikely that reverting it would cause much harm.
-
-For more details, see:
-	https://bugzilla.kernel.org/show_bug.cgi?id=84401
-
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7e6aff673a5a..7387821e7c72 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffer has been queued and the
--	 * queue isn't streaming, or if the error flag is set.
-+	 * There is nothing to wait for if no buffer has been queued
-+	 * or if the error flag is set.
- 	 */
--	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-+	if ((list_empty(&q->queued_list) || q->error)
- 		return res | POLLERR;
- 
- 	/*
 -- 
-1.9.3
-
+http://palosaari.fi/
