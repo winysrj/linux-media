@@ -1,130 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36541 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752217AbaIRLvB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 07:51:01 -0400
-Date: Thu, 18 Sep 2014 08:50:55 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] si2157: change command for sleep
-Message-ID: <20140918085055.15375d0b@recife.lan>
-In-Reply-To: <20140918082233.16ce4a37@recife.lan>
-References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
-	<54097579.6000507@iki.fi>
-	<20140918082233.16ce4a37@recife.lan>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3518 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455AbaIBHmh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 03:42:37 -0400
+Message-ID: <540574B6.6040602@xs4all.nl>
+Date: Tue, 02 Sep 2014 09:41:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
+References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com> <540474AE.4070706@xs4all.nl> <54049268.3060004@redhat.com>
+In-Reply-To: <54049268.3060004@redhat.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Sep 2014 08:22:33 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-
-> Em Fri, 05 Sep 2014 11:34:01 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
+On 09/01/14 17:36, Hans de Goede wrote:
+> Hi,
 > 
-> > Moikka Olli
-> > 
-> > I ran some PM tests for that patch set, using PCTV 292e, which is em28xx 
-> > + Si2168 B40 + Si2157 A30. Here is results:
-> > 
-> > current impementation
-> > -------------------------------------
-> > cold plugin     40 mA
-> > streaming      235 mA
-> > sleeping        42 mA
-> > 
-> > si2157: change command for sleep
-> > -------------------------------------
-> > cold plugin     40 mA
-> > streaming      235 mA
-> > sleeping        60 mA
-> > 
-> > So it increases sleep power usage surprisingly much, almost 20mA from 
-> > the USB, nominal 5V.
-> > 
-> > It is also funny that you will not lose firmware for Si2168 when sleep 
-> > with command 13, but that Si2157 tuner behaves differently.
-> > 
-> > I think I will still apply that, it is just firmware download time vs. 
-> > current use in sleep.
+> On 09/01/2014 03:29 PM, Hans Verkuil wrote:
+>> Hi Hans,
+>>
+>> At first glance this looks fine. But making changes in videobuf is always scary :-)
+>> so I hope Marek can look at this as well.
+>>
+>> How well was this tested?
 > 
-> IMHO, the best is to keep it saving more power. Ok, it will take more
-> time to wake up but so what? If someone is putting the machine to sleep,
-> it is because he/she wants to save power.
+> I ran some tests on bttv which all ran well.
 > 
-> So, IMHO, we should keep the default behavior as-is. Nothing prevents
-> that we would add a modprobe parameter or to use some other method that
-> would allow the user to choose between those two different ways.
+> Note that the code already allowed for going from say 4 buffers to 1,
+> and the old code path for reqbufs was already calling __videobuf_free()
+> before re-allocating the buffers again. So in essence this just changes
+> things to allow the 4 buffers to 1 case to also be 4 buffers to 0.
 
-Sorry, I misunderstood this patch. 
+The code looks good and I've tested it with cx88 which worked (well, except
+for the zillion other bugs in cx88, but that's another story). I do want to
+do a few more tests on Friday, though. This time with a more stable driver.
 
-There are actually two different things, each requiring a different PM
-setting:
-
-1) to put the tuner to sleep while it is not in usage;
-
-2) put the machine to suspend.
-
-This patch is for (1). That's FINE. I'll apply it.
-
-Yet, for (2), assuming a suspend to ram, the best is to save more
-power. 
-
-In the past, the DVB core didn't make any distinction between those
-two, but we recently added a hook for suspend there.
-
-So, it makes sense to keep the tuner powerdown mode for suspend.
+I think we should consider adding this to the stable tree as well.
 
 Regards,
-Mauro.
 
+	Hans
 
 > 
 > Regards,
-> Mauro
 > 
-> > 
-> > Antti
-> > 
-> > 
-> > On 08/25/2014 09:07 PM, Olli Salonen wrote:
-> > > Instead of sending command 13 to the tuner, send command 16 when sleeping. This
-> > > behaviour is observed when using manufacturer provided binary-only Linux driver
-> > > for TechnoTrend CT2-4400 (Windows driver does not do power management).
-> > >
-> > > The issue with command 13 is that firmware loading is necessary after that.
-> > > This is not an issue with tuners that do not require firmware, but resuming
-> > > from sleep on an Si2158 takes noticeable time as firmware is loaded on resume.
-> > >
-> > > Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> > > ---
-> > >   drivers/media/tuners/si2157.c | 7 ++++---
-> > >   1 file changed, 4 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> > > index efb5cce..c84f7b8 100644
-> > > --- a/drivers/media/tuners/si2157.c
-> > > +++ b/drivers/media/tuners/si2157.c
-> > > @@ -197,9 +197,10 @@ static int si2157_sleep(struct dvb_frontend *fe)
-> > >
-> > >   	s->active = false;
-> > >
-> > > -	memcpy(cmd.args, "\x13", 1);
-> > > -	cmd.wlen = 1;
-> > > -	cmd.rlen = 0;
-> > > +	/* standby */
-> > > +	memcpy(cmd.args, "\x16\x00", 2);
-> > > +	cmd.wlen = 2;
-> > > +	cmd.rlen = 1;
-> > >   	ret = si2157_cmd_execute(s, &cmd);
-> > >   	if (ret)
-> > >   		goto err;
-> > >
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hans
+> 
+> 
+>>
+>> I'll try do test this as well.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> On 08/31/2014 12:19 PM, Hans de Goede wrote:
+>>> All the infrastructure for this is already there, and despite our desires for
+>>> the old videobuf code to go away, it is currently still in use in 18 drivers.
+>>>
+>>> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
+>>> making live easier for userspace, see e.g. :
+>>> https://bugzilla.gnome.org/show_bug.cgi?id=735660
+>>>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>> ---
+>>>  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
+>>>  1 file changed, 6 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+>>> index fb5ee5d..b91a266 100644
+>>> --- a/drivers/media/v4l2-core/videobuf-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf-core.c
+>>> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>>>  	unsigned int size, count;
+>>>  	int retval;
+>>>  
+>>> -	if (req->count < 1) {
+>>> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+>>> -		return -EINVAL;
+>>> -	}
+>>> -
+>>>  	if (req->memory != V4L2_MEMORY_MMAP     &&
+>>>  	    req->memory != V4L2_MEMORY_USERPTR  &&
+>>>  	    req->memory != V4L2_MEMORY_OVERLAY) {
+>>> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+>>>  		goto done;
+>>>  	}
+>>>  
+>>> +	if (req->count == 0) {
+>>> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+>>> +		retval = __videobuf_free(q);
+>>> +		goto done;
+>>> +	}
+>>> +
+>>>  	count = req->count;
+>>>  	if (count > VIDEO_MAX_FRAME)
+>>>  		count = VIDEO_MAX_FRAME;
+>>>
+>>
+
