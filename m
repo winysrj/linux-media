@@ -1,67 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:55244 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757287AbaIOXxa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 19:53:30 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBY00ML9VP5PR30@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 19:53:29 -0400 (EDT)
-Date: Mon, 15 Sep 2014 20:53:24 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: v4l2 ioctls
-Message-id: <20140915205324.1eb58ca8.m.chehab@samsung.com>
-In-reply-to: <54177328.1050007@osg.samsung.com>
-References: <54124BDC.3000306@osg.samsung.com> <5412A9DB.8080701@xs4all.nl>
- <20140912121950.7edfee4e.m.chehab@samsung.com>
- <541391B9.4070708@osg.samsung.com>
- <20140915085458.1faea714.m.chehab@samsung.com>
- <54177328.1050007@osg.samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44325 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbaIBKDl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 06:03:41 -0400
+Message-ID: <1409652214.4449.25.camel@paszta.hi.pengutronix.de>
+Subject: Re: [ANNOUNCE] Linux Kernel Media mini-summit on Oct, 16-17 in
+ =?ISO-8859-1?Q?D=FCsseldorf=2C?= Germany
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Media Workshop <media-workshop@linuxtv.org>,
+	dev@lists.tizen.org, gstreamer-announce@lists.freedesktop.org
+Date: Tue, 02 Sep 2014 12:03:34 +0200
+In-Reply-To: <20140813101411.15ca3a00.m.chehab@samsung.com>
+References: <20140813101411.15ca3a00.m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Sep 2014 17:15:52 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi,
 
-> On 09/15/2014 05:54 AM, Mauro Carvalho Chehab wrote:
-> > Hi Shuah,
-> > 
-> > Em Fri, 12 Sep 2014 18:37:13 -0600
-> > Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> > 
-> >> Mauro/Hans,
-> >>
-> >> Thanks for both for your replies. I finally have it working with
-> >> the following:
-> > 
-> > One additional info: While in DVB mode, opening the device in
-> > readonly mode should not take the tuner locking.
+Am Mittwoch, den 13.08.2014, 10:14 -0300 schrieb Mauro Carvalho Chehab:
+> Hi,
 > 
-> That's what the code does for dvb. It gets the tuner lock in
-> dvb_frontend_start() which is called from dvb_frontend_open()
-> when dvb is opened in R/W mode.
+> As there are still too things to be discussed in order to improve media
+> stuff, and most of the developers nowadays are located in Europe and
+> usually go to ELCE, we're scheduling a two day mini-summit in Düsseldorf,
+> Germany, on Thrusday/Friday.
 
-Yeah, I think that the FE kthread is only started in R/W mode, 
-but it doesn't hurt to double-check it and to do some tests to
-avoid regressions.
+Is this a tentative schedule, or is the date set? I.e. can I book a
+hotel until Friday now and not worry about having to reschedule?
 
-> > 
-> > If you need/want to test it, please use:
-> > 	$ dvb-fe-tool --femon
-> > 
-> > I implemented this functionality this weekend, so you'll need
-> > to update your v4l-utils tool to be able to test it.
-> > 
-> 
-> ok - I will update v4l-utils on my system.
-> 
-> -- Shuah
-> 
-> 
+thanks
+Philipp
+
