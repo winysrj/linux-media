@@ -1,52 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kripserver.net ([91.143.80.239]:56351 "EHLO mail.kripserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbaIUUyW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 16:54:22 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.kripserver.net (Postfix) with ESMTP id CD2DB3AE096
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 20:45:38 +0000 (UTC)
-Received: from mail.kripserver.net ([91.143.80.239])
-	by localhost (mail.kripserver.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id 0YCu_bjnFPJf for <linux-media@vger.kernel.org>;
-	Sun, 21 Sep 2014 20:45:37 +0000 (UTC)
-Received: from [192.168.189.220] (unknown [185.5.28.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by mail.kripserver.net (Postfix) with ESMTPSA id 6132D3AE094
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 20:45:37 +0000 (UTC)
-Message-ID: <541F38F0.2010904@kripserver.net>
-Date: Sun, 21 Sep 2014 22:45:36 +0200
-From: Jannis <jannis-lists@kripserver.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Running Technisat DVB-S2 on ARM-NAS
-References: <541EE016.9030504@gmx.net> <541EE2EB.4000802@iki.fi> <541EEA74.2000909@gmx.net> <541EEEAB.10106@iki.fi> <541F0AC7.4010004@gmx.net>
-In-Reply-To: <541F0AC7.4010004@gmx.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:50397 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbaIBGmo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 02:42:44 -0400
+Received: from epcpsbgx4.samsung.com
+ (u164.gpu120.samsung.co.kr [203.254.230.164])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NB9008BRHB6ZIE0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Sep 2014 15:42:42 +0900 (KST)
+Date: Tue, 02 Sep 2014 06:42:42 +0000 (GMT)
+From: Changbing Xiong <cb.xiong@samsung.com>
+Subject: Re: Re: [PATCH 3/3] media: check status of dmxdev->exit in poll
+ functions of demux&dvr
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Reply-to: cb.xiong@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=utf-8
+MIME-version: 1.0
+Message-id: <1888513592.247021409640162173.JavaMail.weblogic@epmlwas04b>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 21.09.2014 um 19:28 schrieb JPT:
-> Tommorrow I'll swap the sat cable just to make sure this isn't the cause.
+PiBBY3R1YWxseSwgcG9sbCgpIG1heSByZXR1cm4gYW4gZXJyb3IgYXMgd2VsbCAoZnJvbSBwb2xs
+KCkgbWFucGFnZSk6DQoNCj4gIlJFVFVSTiBWQUxVRQ0KPiAgICAgICAgT24gc3VjY2VzcywgYSBw
+b3NpdGl2ZSBudW1iZXIgaXMgcmV0dXJuZWQ7IHRoaXMgaXMgdGhlIG51bWJlciBvZiBzdHJ1Y+KA
+kA0KPiAgICAgICAgdHVyZXMgd2hpY2ggaGF2ZSBub256ZXJvIHJldmVudHMgZmllbGRzIChpbiBv
+dGhlciB3b3JkcywgdGhvc2UgZGVzY3JpcOKAkA0KPiAgICAgICAgdG9ycyAgd2l0aCBldmVudHMg
+b3IgZXJyb3JzIHJlcG9ydGVkKS4gIEEgdmFsdWUgb2YgMCBpbmRpY2F0ZXMgdGhhdCB0aGUNCj4g
+ICAgICAgIGNhbGwgdGltZWQgb3V0IGFuZCBubyBmaWxlIGRlc2NyaXB0b3JzIHdlcmUgcmVhZHku
+ICAgT24gIGVycm9yLCAgLTEgIGlzDQo+ICAgICAgICByZXR1cm5lZCwgYW5kIGVycm5vIGlzIHNl
+dCBhcHByb3ByaWF0ZWx5LiINCg0KPiBTbywgaWYgdGhlIEtlcm5lbCByZXR1cm5zIC1FTk9ERVYs
+IHRoZSBnbGliYyBwb2xsKCkgd3JhcHBlciB3b3VsZCByZXR1cm4gLTENCj4gYW5kIGVycm5vIHdp
+bGwgYmUgRU5PREVWLiBOZXZlciBhY3R1YWxseSB0ZXN0ZWQgaWYgdGhpcyB3b3JrcyBvbiBwb2xs
+KCkNCj4gdGhvdWdoLg0KDQo+IEFjdHVhbGx5LCBwb2xsKCkgbWF5IHJldHVybiBhbiBlcnJvciBh
+cyB3ZWxsIChmcm9tIHBvbGwoKSBtYW5wYWdlKToNCg0KPiAiUkVUVVJOIFZBTFVFDQo+ICAgICAg
+ICBPbiBzdWNjZXNzLCBhIHBvc2l0aXZlIG51bWJlciBpcyByZXR1cm5lZDsgdGhpcyBpcyB0aGUg
+bnVtYmVyIG9mIHN0cnVj4oCQDQo+ICAgICAgICB0dXJlcyB3aGljaCBoYXZlIG5vbnplcm8gcmV2
+ZW50cyBmaWVsZHMgKGluIG90aGVyIHdvcmRzLCB0aG9zZSBkZXNjcmlw4oCQDQo+ICAgICAgICB0
+b3JzICB3aXRoIGV2ZW50cyBvciBlcnJvcnMgcmVwb3J0ZWQpLiAgQSB2YWx1ZSBvZiAwIGluZGlj
+YXRlcyB0aGF0IHRoZQ0KPiAgICAgICAgY2FsbCB0aW1lZCBvdXQgYW5kIG5vIGZpbGUgZGVzY3Jp
+cHRvcnMgd2VyZSByZWFkeS4gICBPbiAgZXJyb3IsICAtMSAgaXMNCj4gICAgICAgIHJldHVybmVk
+LCBhbmQgZXJybm8gaXMgc2V0IGFwcHJvcHJpYXRlbHkuIg0KDQo+IFNvLCBpZiB0aGUgS2VybmVs
+IHJldHVybnMgLUVOT0RFViwgdGhlIGdsaWJjIHBvbGwoKSB3cmFwcGVyIHdvdWxkIHJldHVybiAt
+MQ0KPiBhbmQgZXJybm8gd2lsbCBiZSBFTk9ERVYuIE5ldmVyIGFjdHVhbGx5IHRlc3RlZCBpZiB0
+aGlzIHdvcmtzIG9uIHBvbGwoKQ0KPiB0aG91Z2guDQoNCm1heWJlIHRoZSBwb2xsKCkgbWFucGFn
+ZSBpcyB3cm9uZy4NClRoZSBzdGFuZGFyZCBzeXN0ZW0gY2FsbCBwb2xsKCkgY2FuIG5vdCBnZXQg
+LUVOT0RFViBmcm9tIGVycm5vLiANCk15IGV4cGVyaW1lbnQgaGFzIHByb3ZlZCB0aGF0IEkgd2Fz
+IHJpZ2h0KHJldHVybiAtRU5PREVWIGRpcmVjdGx5IGluIGR2Yl9kdnJfcG9sbCkuICANCmFuZCB5
+b3UgY2FuIGFsc28gY2hlY2sgY29kZSBvZiBkb19wb2xsKCkgYW5kIGRvX3N5c19wb2xsKCkgaW4g
+c2VsZWN0LmMgZmlsZSwgaXQgYWxzbyBzaG93cyB0aGF0IC1FTk9ERVYgaXMgaW52YWxpZC4NCg0K
+cGxlYXNlIGFsc28gY2hlY2sgdGhhdC4NCg0KdGhhbmtzIQ0KWGlvbmcgY2hhbmdiaW5nDQoNCi0t
+LS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLS0tDQpTZW5kZXIgOiBNYXVybyBDYXJ2YWxobyBD
+aGVoYWI8bS5jaGVoYWJAc2Ftc3VuZy5jb20+IERpcmVjdG9yL1NSQlItT3BlbiBTb3VyY2Uv7IK8
+7ISx7KCE7J6QDQpEYXRlIDog5Lmd5pyIIDAyLCAyMDE0IDE1OjAwIChHTVQrMDk6MDApDQpUaXRs
+ZSA6IFJlOiBbUEFUQ0ggMy8zXSBtZWRpYTogY2hlY2sgc3RhdHVzIG9mIGRteGRldi0+ZXhpdCBp
+biBwb2xsIGZ1bmN0aW9ucyBvZiBkZW11eCZkdnINCg0KRW0gVHVlLCAwMiBTZXAgMjAxNCAwMzox
+NjowMCArMDAwMCAoR01UKQ0KQ2hhbmdiaW5nIFhpb25nIGVzY3JldmV1Og0KDQo+IA0KPiA+IFdl
+bGwsIHdlIG1heSBzdGFydCByZXR1cm5pbmcgLUVOT0RFViB3aGVuIHN1Y2ggZXZlbnQgaGFwcGVu
+cy4gDQo+IA0KPiA+IEF0IHRoZSBmcm9udGVuZCwgd2UgY291bGQgdXNlIGZlLT5leGl0ID0gRFZC
+X0ZFX0RFVklDRV9SRU1PVkVEIHRvDQo+ID4gc2lnbmFsaXplIGl0LiBJIGRvbid0IHRoaW5rIHRo
+YXQgdGhlIGRlbW9kIGZyb250ZW5kIGhhcyBzb21ldGhpbmcNCj4gPiBzaW1pbGFyLg0KPiANCj4g
+PiBZZXQsIGl0IHNob3VsZCBiZSB1cCB0byB0aGUgdXNlcnNwYWNlIGFwcGxpY2F0aW9uIHRvIHBy
+b3Blcmx5IGhhbmRsZSANCj4gPiB0aGUgZXJyb3IgY29kZXMgYW5kIGNsb3NlIHRoZSBkZXZpY2Vz
+IG9uIGZhdGFsIG5vbi1yZWNvdmVyeSBlcnJvcnMgbGlrZQ0KPiA+IEVOT0RFVi4gDQo+IA0KPiA+
+IFNvLCB3aGF0IHdlIGNhbiBkbywgYXQgS2VybmVsIGxldmVsLCBpcyB0byBhbHdheXMgcmV0dXJu
+IC1FTk9ERVYgd2hlbg0KPiA+IHRoZSBkZXZpY2UgaXMga25vd24gdG8gYmUgcmVtb3ZlZCwgYW5k
+IGRvdWJsZSBjaGVjayBsaWJkdmJ2NSBpZiBpdA0KPiA+IGhhbmRsZXMgc3VjaCBlcnJvciBwcm9w
+ZXJseS4NCj4gDQo+ICB3ZWxsLCB3ZSBkbyBub3QgdXNlIGxpYmR2YnY1LA0KDQpUaGUgdXBzdHJl
+YW0gc3R1ZmYgSSBtYWludGFpbiwgcmVsYXRlZCB0byBpdCwgYXJlIHRoZSBtZWRpYSBzdWJzeXN0
+ZW1zDQphbmQgbGliZHZidjUuIE9mIGNvdXJzZSwgb3RoZXIgYXBwcyB3aWxsIG5lZWQgdG8gYmUg
+cGF0Y2hlZCBhcyB3ZWxsLg0KDQo+IGFuZCAgLUVOT0RFViBjYW4gYmUgcmV0dXJuZWQgYnkgcmVh
+ZCBzeXNjYWxsLCAgDQo+IGJ1dCBmb3IgcG9sbCBzeXNjYWxsLA0KDQpBY3R1YWxseSwgcG9sbCgp
+IG1heSByZXR1cm4gYW4gZXJyb3IgYXMgd2VsbCAoZnJvbSBwb2xsKCkgbWFucGFnZSk6DQoNCiJS
+RVRVUk4gVkFMVUUNCiAgICAgICBPbiBzdWNjZXNzLCBhIHBvc2l0aXZlIG51bWJlciBpcyByZXR1
+cm5lZDsgdGhpcyBpcyB0aGUgbnVtYmVyIG9mIHN0cnVj4oCQDQogICAgICAgdHVyZXMgd2hpY2gg
+aGF2ZSBub256ZXJvIHJldmVudHMgZmllbGRzIChpbiBvdGhlciB3b3JkcywgdGhvc2UgZGVzY3Jp
+cOKAkA0KICAgICAgIHRvcnMgIHdpdGggZXZlbnRzIG9yIGVycm9ycyByZXBvcnRlZCkuICBBIHZh
+bHVlIG9mIDAgaW5kaWNhdGVzIHRoYXQgdGhlDQogICAgICAgY2FsbCB0aW1lZCBvdXQgYW5kIG5v
+IGZpbGUgZGVzY3JpcHRvcnMgd2VyZSByZWFkeS4gICBPbiAgZXJyb3IsICAtMSAgaXMNCiAgICAg
+ICByZXR1cm5lZCwgYW5kIGVycm5vIGlzIHNldCBhcHByb3ByaWF0ZWx5LiINCg0KU28sIGlmIHRo
+ZSBLZXJuZWwgcmV0dXJucyAtRU5PREVWLCB0aGUgZ2xpYmMgcG9sbCgpIHdyYXBwZXIgd291bGQg
+cmV0dXJuIC0xDQphbmQgZXJybm8gd2lsbCBiZSBFTk9ERVYuIE5ldmVyIGFjdHVhbGx5IHRlc3Rl
+ZCBpZiB0aGlzIHdvcmtzIG9uIHBvbGwoKQ0KdGhvdWdoLg0KDQo+ICAtRU5PREVWIGNhbiBuZXZl
+ciBiZSByZXR1cm5lZCB0byB1c2VyLCBhcyBuZWdhdGl2ZSBudW1iZXINCj4gIGlzIGludmFsaWQg
+IHR5cGUgZm9yIHBvbGwgcmV0dXJuZWQgdmFsdWUuIHBsZWFzZSByZWZlciB0byBteSBzZWNvbmQg
+cGF0Y2guDQo+IA0KPiBhbmQgaW4gb3VyIHVzYWdlLCB3aGV0aGVyIHRvIHJlYWQgdGhlIGRldmlj
+ZSBpcyB1cCB0byB0aGUgcG9sbCByZXN1bHQuIGlmIHR1bmVyIGlzIHBsdWdnZWQgb3V0LCANCj4g
+YW5kIHRoZXJlIGlzIG5vIGRhdGEgaW4gZHZyIHJpbmdidWZmZXIuIHRoZW4gdXNlciBjb2RlIHdp
+bGwgc3RpbGwgZ28gb24gcG9sbGluZyB0aGUgZHZyIGRldmljZSBhbmQgbmV2ZXIgc3RvcC4NCj4g
+aWYgUE9MTEVSUiBpcyByZXR1cm5lZCwgdGhlbiB1c2VyIHdpbGwgcGVyZm9ybSByZWFkIGR2ciwg
+YW5kIHRoZW4gLUVOT0RFViBjYW4gYmUgZ290LCBhbmQgDQo+IHVzZXIgd2lsbCBzdG9wIHBvbGxp
+bmcgZHZyIGRldmljZS4NCg0KWW91ciBhcHAgc2hvdWxkIGJlIGFsc28gYmUgaGFuZGxpbmcgcG9s
+bCgpIGVycm9ycywgYXMgdGhlcmUgYXJlIGFscmVhZHkNCm90aGVyIGVycm9ycyB0aGF0IHBvbGwo
+KSBjYW4gcmV0dXJuLg0KDQo+IHRoZSBmaXJzdCBwYXRjaCBpcyBlbm91Z2ggdG8gZml4IHRoZSBk
+ZWFkbG9jayBpc3N1ZS4NCj4gdGhlIHNlY29uZCBwYXRjaCBpcyB1c2VkIHRvIGNvcnJlY3QgdGhl
+IHdyb25nIHR5cGUgb2YgcmV0dXJuZWQgdmFsdWUuDQo+IHRoZSB0aGlyZCBwYXRjaCBpcyB1c2Vk
+IHRvIHByb3ZpZGUgdXNlciBhIGJldHRlciBjb250cm9sbGluZyBsb2dpYy4NCg0KSSdsbCB0YWtl
+IGEgZGVlcGVyIGxvb2sgYW5kIGRvIHNvbWUgdGVzdHMgb24geW91ciBwYXRjaGVzIGxpa2VseQ0K
+dG9tb3Jyb3cuIA0KDQpSZWdhcmRzLA0KTWF1cm8NCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRo
+aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluDQp0aGUg
+Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpv
+cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
 
-Hi Jan,
-
-Are we talking about this device:
-http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
-(You never mentioned the actual model AFAIK)?
-
-If so, it has two LEDs. A red one for "power" and a green one for
-"tuned"/"locked". So if the green one lights up, the sat cable should be
-okay.
-
-I remember having tested my one with the RaspberryPi and it worked. So
-it is not a general problem of the DVB-S2 device and ARM but rather the
-specific board you are working with.
-Just found the link where I reported success:
-https://github.com/raspberrypi/linux/issues/82#issuecomment-27253775
-
-Best regards,
-	Jannis
 
