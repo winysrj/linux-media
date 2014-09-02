@@ -1,49 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44314 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755877AbaICUd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 44/46] [media] mt2060: just return 0 instead of using a var
-Date: Wed,  3 Sep 2014 17:33:16 -0300
-Message-Id: <f3b52ff0ab1521a7a5546b439a8cfe531aa46738.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4437 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbaIBCkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 22:40:51 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s822efCW012008
+	for <linux-media@vger.kernel.org>; Tue, 2 Sep 2014 04:40:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 18B8A2A075A
+	for <linux-media@vger.kernel.org>; Tue,  2 Sep 2014 04:40:39 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140902024039.18B8A2A075A@tschai.lan>
+Date: Tue,  2 Sep 2014 04:40:39 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating a var to store 0 and just return it,
-change the code to return 0 directly.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
-index 13381de58a84..b87b2549d58d 100644
---- a/drivers/media/tuners/mt2060.c
-+++ b/drivers/media/tuners/mt2060.c
-@@ -157,7 +157,6 @@ static int mt2060_set_params(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct mt2060_priv *priv;
--	int ret=0;
- 	int i=0;
- 	u32 freq;
- 	u8  lnaband;
-@@ -240,7 +239,7 @@ static int mt2060_set_params(struct dvb_frontend *fe)
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
- 
--	return ret;
-+	return 0;
- }
- 
- static void mt2060_calibrate(struct mt2060_priv *priv)
--- 
-1.9.3
+date:		Tue Sep  2 04:00:18 CEST 2014
+git branch:	test
+git hash:	b250392f7b5062cf026b1423e27265e278fd6b30
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
