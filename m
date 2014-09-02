@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37033 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751204AbaISIWB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 04:22:01 -0400
-Date: Fri, 19 Sep 2014 11:21:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/3] vb2: Buffers returned to videobuf2 from
- start_streaming in QUEUED state
-Message-ID: <20140919082122.GK2939@valkosipuli.retiisi.org.uk>
-References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
- <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
- <541BE5C5.5040205@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.19]:58640 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750787AbaIBGQd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Sep 2014 02:16:33 -0400
+Date: Tue, 2 Sep 2014 08:16:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] UVC: Remove extra commit on resume()
+Message-ID: <Pine.LNX.4.64.1409020813180.24932@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <541BE5C5.5040205@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Aviv Greenberg <aviv.d.greenberg@intel.com>
 
-On Fri, Sep 19, 2014 at 10:13:57AM +0200, Hans Verkuil wrote:
-> On 09/18/2014 11:57 PM, Sakari Ailus wrote:
-> > Patch "[media] v4l: vb2: Fix stream start and buffer completion race" has a
-> > sets q->start_streaming_called before calling queue op start_streaming() in
-> > order to fix a bug. This has the side effect that buffers returned to
-> > videobuf2 in VB2_BUF_STATE_QUEUED will cause a WARN_ON() to be called.
-> > 
-> > Add a new field called done_buffers_queued_state to struct vb2_queue, which
-> > must be set if the new state of buffers returned to videobuf2 must be
-> > VB2_BUF_STATE_QUEUED, i.e. buffers returned in start_streaming op.
-> 
-> I posted a fix for this over a month ago:
-> 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg77871.html
-> 
-> Unfortunately, the pull request with that patch (https://patchwork.linuxtv.org/patch/25162/)
-> fell through the cracks as I discovered yesterday. Hopefully Mauro will pick
-> up that pull request quickly.
-> 
-> I prefer my patch since that avoids introducing yet another state variable.
+The UVC spec is a bit vague wrt devices using bulk endpoints,
+specifically, how to signal to a device to start streaming.
 
-Using less state variables is good, but with your patch returning buffers
-back to videobuf2 to state VB2_BUF_STATE_QUEUED is possible also after
-start_stream() has finished. That's probably a lesser problem, though.
+For devices using isoc endpoints, the sequence for start streaming is:
+1) The host sends PROBE_CONTROL(SET_CUR) PROBE_CONTROL(GET_CUR)
+2) Host selects desired config and calls COMMIT_CONTROL(SET_CUR)
+3) Host selects an alt interface other then zero - e.g SELECT_ALTERNATE_INTERFACE(1)
+4) The device starts streaming
 
-I'm fine with your patch as well.
+However for devices using bulk endpoints, there must be *no* alt interface
+other than setting zero. From the UVC spec:
+"A VideoStreaming interface containing a bulk endpoint for streaming shall
+support only alternate setting zero. Additional alternate settings containing
+bulk endpoints are not permitted in a device that is compliant with the Video
+Class specification."
 
+So for devices using bulk endpoints, step #3 above is irrelevant, and thus
+cannot be used as an indication for the device to start streaming.
+So in practice, such devices start streaming immediately after a
+COMMIT_CONTROL(SET_CUR).
+
+In the uvc resume() handler, an unsolicited commit is sent, which causes
+devices using bulk endpoints to start streaming unintentionally.
+
+This patch modifies resume() handler to send a commit only if streaming
+needs to be reestablished, i.e if the device was actually streaming before is
+was suspended.
+
+Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/usb/uvc/uvc_video.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 3394c34..c111de2 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1709,15 +1709,15 @@ int uvc_video_resume(struct uvc_streaming *stream, int reset)
+ 
+ 	uvc_video_clock_reset(stream);
+ 
++	if (!uvc_queue_streaming(&stream->queue))
++		return 0;
++
+ 	ret = uvc_commit_video(stream, &stream->ctrl);
+ 	if (ret < 0) {
+ 		uvc_queue_enable(&stream->queue, 0);
+ 		return ret;
+ 	}
+ 
+-	if (!uvc_queue_streaming(&stream->queue))
+-		return 0;
+-
+ 	ret = uvc_init_video(stream, GFP_NOIO);
+ 	if (ret < 0)
+ 		uvc_queue_enable(&stream->queue, 0);
 -- 
-Cheers,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
