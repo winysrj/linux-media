@@ -1,88 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2485 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034AbaIHOPI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 04/12] vb2: memop prepare: return errors
-Date: Mon,  8 Sep 2014 16:14:33 +0200
-Message-Id: <1410185681-20111-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:20793 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503AbaIBJC2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 05:02:28 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NB900D1FNWTGO00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Sep 2014 10:05:17 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>
+References: <5400844A.5030603@collabora.com>
+ <06ac01cfc5c9$248443e0$6d8ccba0$%debski@samsung.com>
+ <5404949A.5060006@collabora.com>
+In-reply-to: <5404949A.5060006@collabora.com>
+Subject: RE: s5p-mfc should allow multiple call to REQBUFS before we start
+ streaming
+Date: Tue, 02 Sep 2014 11:02:24 +0200
+Message-id: <086701cfc68c$9d69a020$d83ce060$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-2
+Content-transfer-encoding: 8BIT
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans, Nicolas,
 
-For vb2-dma-sg the dma_map_sg function can return an error. This means that
-the prepare memop also needs to change so an error can be returned.
+Hans, would you mind commenting on this?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++--
- include/media/videobuf2-core.h                 | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> Sent: Monday, September 01, 2014 5:46 PM
+> 
+> 
+> Le 2014-09-01 05:43, Kamil Debski a écrit :
+> > Hi Nicolas,
+> >
+> >
+> >> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> >> Sent: Friday, August 29, 2014 3:47 PM
+> >>
+> >> Hi Kamil,
+> >>
+> >> after a discussion on IRC, we concluded that s5p-mfc have this bug
+> >> that disallow multiple reqbufs calls before streaming. This has the
+> >> impact that it forces to call REQBUFS(0) before setting the new
+> >> number of buffers during re-negotiation, and is against the spec too.
+> > I was out of office last week. Could you shed more light on this
+> subject?
+> > Do you have the irc log?
+> 
+> Sorry I didn't record this one, but feel free to ping Hans V.
+> >> As an example, in reqbufs_output() REQBUFS is only allowed in
+> >> QUEUE_FREE state, and setting buffers exits this state. We think
+> that
+> >> the call to
+> >> <http://lxr.free-
+> >> electrons.com/ident?i=reqbufs_output>s5p_mfc_open_mfc_inst()
+> >> should be post-poned until STREAMON is called.
+> >> <http://lxr.free-electrons.com/ident?i=reqbufs_output>
+> > How is this connected to the renegotiation scenario?
+> > Are you sure you wanted to mention s5p_mfc_open_mfc_inst?
+> This limitation in MFC causes an important conflict between old
+> videobuf and new videobuf2 drivers. Old videobuf driver (before Hans G.
+> proposed
+> patch) refuse REQBUFS(0). As MFC code has this bug that refuse
+> REBBUFS(N) if buffers are already allocated, it makes all this
+> completely incompatible. This open_mfc call seems to be the only reason
+> REQBUFS() cannot be called multiple time, though I must say you are
+> better placed then me to figure this out.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 6675f12..ca870aa 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -111,16 +111,17 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
- 	return atomic_read(&buf->refcount);
- }
- 
--static void vb2_dc_prepare(void *buf_priv)
-+static int vb2_dc_prepare(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
- 	if (!sgt || buf->db_attach)
--		return;
-+		return 0;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return 0;
- }
- 
- static void vb2_dc_finish(void *buf_priv)
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index f3bc01b..abd5252 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -170,12 +170,12 @@ static void vb2_dma_sg_put(void *buf_priv)
- 	}
- }
- 
--static void vb2_dma_sg_prepare(void *buf_priv)
-+static int vb2_dma_sg_prepare(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 	struct sg_table *sgt = &buf->sg_table;
- 
--	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
- }
- 
- static void vb2_dma_sg_finish(void *buf_priv)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 02b96ef..0ac65a6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -91,7 +91,7 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
--	void		(*prepare)(void *buf_priv);
-+	int		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
+After MFCs decoding is initialized it has a fixed number of buffers.
+Changing
+this can be done when the stream changes its properties and resolution
+change is initiated. Even then all buffers have to be
+unmapped/reallocated/mapped.
+
+There is a single hardware call that is a part of hardware initialization
+that sets the buffers' addresses.
+
+Changing the number of buffers during decoding without explicit reason to do
+so (resolution change/stream properties change) would be problematic. For 
+hardware it is very close to reinitiating decoding - it needs to be done on
+an I-frame, the header needs to be present. Otherwise some buffers would be
+lost and corruption would be introduced (lack of reference frames).
+
+I think you mentioned negotiating the number of buffers? Did you use the
+V4L2_CID_MIN_BUFFERS_FOR_CAPTURE control?
+
+I understand that before calling REQBUFS(N) with the new N value you
+properly
+unmap the buffers just like the documentation is telling?
+
+"Applications can call VIDIOC_REQBUFS again to change the number of buffers,
+however this cannot succeed when any buffers are still mapped. A count value
+of zero frees all buffers, after aborting or finishing any DMA in progress,
+an implicit VIDIOC_STREAMOFF." [1]
+
+Could you tell me what is the scenario where you want to use the REQBUFS(N)
+to change number of buffers? Maybe I could understand better the problem.
+
+> 
+> cheers,
+> Nicolas
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-reqbufs.html
+
+Best wishes,
 -- 
-2.1.0
+Kamil Debski
+Samsung R&D Institute Poland
+
 
