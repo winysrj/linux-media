@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58768 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260AbaIJK6e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 06:58:34 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 4/8] of: Add for_each_endpoint_of_node helper macro
-Date: Wed, 10 Sep 2014 12:58:24 +0200
-Message-Id: <1410346708-5125-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
-References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mailout1.samsung.com ([203.254.224.24]:39147 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbaIBDQE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 23:16:04 -0400
+Received: from epcpsbgx4.samsung.com
+ (u164.gpu120.samsung.co.kr [203.254.230.164])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NB9003TX7QQ5800@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Sep 2014 12:16:02 +0900 (KST)
+Date: Tue, 02 Sep 2014 03:16:01 +0000 (GMT)
+From: Changbing Xiong <cb.xiong@samsung.com>
+Subject: Re: Re: [PATCH 3/3] media: check status of dmxdev->exit in poll
+ functions of demux&dvr
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Reply-to: cb.xiong@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=utf-8
+MIME-version: 1.0
+Message-id: <1309141204.238711409627760764.JavaMail.weblogic@epmlwas04b>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note that while of_graph_get_next_endpoint decrements the reference count
-of the child node passed to it, of_node_put(child) still has to be called
-manually when breaking out of the loop.
+DQo+IFdlbGwsIHdlIG1heSBzdGFydCByZXR1cm5pbmcgLUVOT0RFViB3aGVuIHN1Y2ggZXZlbnQg
+aGFwcGVucy4gDQoNCj4gQXQgdGhlIGZyb250ZW5kLCB3ZSBjb3VsZCB1c2UgZmUtPmV4aXQgPSBE
+VkJfRkVfREVWSUNFX1JFTU9WRUQgdG8NCj4gc2lnbmFsaXplIGl0LiBJIGRvbid0IHRoaW5rIHRo
+YXQgdGhlIGRlbW9kIGZyb250ZW5kIGhhcyBzb21ldGhpbmcNCj4gc2ltaWxhci4NCg0KPiBZZXQs
+IGl0IHNob3VsZCBiZSB1cCB0byB0aGUgdXNlcnNwYWNlIGFwcGxpY2F0aW9uIHRvIHByb3Blcmx5
+IGhhbmRsZSANCj4gdGhlIGVycm9yIGNvZGVzIGFuZCBjbG9zZSB0aGUgZGV2aWNlcyBvbiBmYXRh
+bCBub24tcmVjb3ZlcnkgZXJyb3JzIGxpa2UNCj4gRU5PREVWLiANCg0KPiBTbywgd2hhdCB3ZSBj
+YW4gZG8sIGF0IEtlcm5lbCBsZXZlbCwgaXMgdG8gYWx3YXlzIHJldHVybiAtRU5PREVWIHdoZW4N
+Cj4gdGhlIGRldmljZSBpcyBrbm93biB0byBiZSByZW1vdmVkLCBhbmQgZG91YmxlIGNoZWNrIGxp
+YmR2YnY1IGlmIGl0DQo+IGhhbmRsZXMgc3VjaCBlcnJvciBwcm9wZXJseS4NCg0KIHdlbGwsIHdl
+IGRvIG5vdCB1c2UgbGliZHZidjUsIGFuZCAgLUVOT0RFViBjYW4gYmUgcmV0dXJuZWQgYnkgcmVh
+ZCBzeXNjYWxsLCAgDQpidXQgZm9yIHBvbGwgc3lzY2FsbCwgIC1FTk9ERVYgY2FuIG5ldmVyIGJl
+IHJldHVybmVkIHRvIHVzZXIsIGFzIG5lZ2F0aXZlIG51bWJlcg0KIGlzIGludmFsaWQgIHR5cGUg
+Zm9yIHBvbGwgcmV0dXJuZWQgdmFsdWUuIHBsZWFzZSByZWZlciB0byBteSBzZWNvbmQgcGF0Y2gu
+DQoNCmFuZCBpbiBvdXIgdXNhZ2UsIHdoZXRoZXIgdG8gcmVhZCB0aGUgZGV2aWNlIGlzIHVwIHRv
+IHRoZSBwb2xsIHJlc3VsdC4gaWYgdHVuZXIgaXMgcGx1Z2dlZCBvdXQsIA0KYW5kIHRoZXJlIGlz
+IG5vIGRhdGEgaW4gZHZyIHJpbmdidWZmZXIuIHRoZW4gdXNlciBjb2RlIHdpbGwgc3RpbGwgZ28g
+b24gcG9sbGluZyB0aGUgZHZyIGRldmljZSBhbmQgbmV2ZXIgc3RvcC4NCmlmIFBPTExFUlIgaXMg
+cmV0dXJuZWQsIHRoZW4gdXNlciB3aWxsIHBlcmZvcm0gcmVhZCBkdnIsIGFuZCB0aGVuIC1FTk9E
+RVYgY2FuIGJlIGdvdCwgYW5kIA0KdXNlciB3aWxsIHN0b3AgcG9sbGluZyBkdnIgZGV2aWNlLg0K
+DQp0aGUgZmlyc3QgcGF0Y2ggaXMgZW5vdWdoIHRvIGZpeCB0aGUgZGVhZGxvY2sgaXNzdWUuDQp0
+aGUgc2Vjb25kIHBhdGNoIGlzIHVzZWQgdG8gY29ycmVjdCB0aGUgd3JvbmcgdHlwZSBvZiByZXR1
+cm5lZCB2YWx1ZS4NCnRoZSB0aGlyZCBwYXRjaCBpcyB1c2VkIHRvIHByb3ZpZGUgdXNlciBhIGJl
+dHRlciBjb250cm9sbGluZyBsb2dpYy4NCg0KDQo=
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Added a comment about the child node reference count when breaking out
-   of the loop
----
- include/linux/of_graph.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index befef42..e43442e 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -26,6 +26,17 @@ struct of_endpoint {
- 	const struct device_node *local_node;
- };
- 
-+/**
-+ * for_each_endpoint_of_node - iterate over every endpoint in a device node
-+ * @parent: parent device node containing ports and endpoints
-+ * @child: loop variable pointing to the current endpoint node
-+ *
-+ * When breaking out of the loop, of_node_put(child) has to be called manually.
-+ */
-+#define for_each_endpoint_of_node(parent, child) \
-+	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-+	     child = of_graph_get_next_endpoint(parent, child))
-+
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
--- 
-2.1.0
 
