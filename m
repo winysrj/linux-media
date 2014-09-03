@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41183 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:44412 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723AbaISQC1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 12:02:27 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	with ESMTP id S1756164AbaICUdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:31 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] em28xx: fix VBI handling logic
-Date: Fri, 19 Sep 2014 13:02:12 -0300
-Message-Id: <8444ab3f16a454ab8d2eaefb8990193313c2ac33.1411142521.git.mchehab@osg.samsung.com>
-In-Reply-To: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
-References: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
-In-Reply-To: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
-References: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 22/46] [media] ene_ir: use true/false for boolean vars
+Date: Wed,  3 Sep 2014 17:32:54 -0300
+Message-Id: <4b9c36e8cbdff281bf4f98cc05952190fe43c683.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When both VBI and video are streaming, and video stream is stopped,
-a subsequent trial to restart it will fail, because S_FMT will
-return -EBUSY.
+Instead of using 0 or 1 for boolean, use the true/false
+defines.
 
-That prevents applications like zvbi to work properly.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Please notice that, while this fix it fully for zvbi, the
-best is to get rid of streaming_users and res_get logic as a hole.
-
-However, this single-line patch is better to be merged at -stable.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 08569cbccd95..d75e7f82dfb9 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1351,7 +1351,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	struct em28xx *dev = video_drvdata(file);
- 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index d16d9b496b92..e80f2c6c5f1a 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -979,7 +979,7 @@ static int ene_transmit(struct rc_dev *rdev, unsigned *buf, unsigned n)
+ 	dev->tx_reg = 0;
+ 	dev->tx_done = 0;
+ 	dev->tx_sample = 0;
+-	dev->tx_sample_pulse = 0;
++	dev->tx_sample_pulse = false;
  
--	if (v4l2->streaming_users > 0)
-+	if (vb2_is_busy(&v4l2->vb_vidq))
- 		return -EBUSY;
+ 	dbg("TX: %d samples", dev->tx_len);
  
- 	vidioc_try_fmt_vid_cap(file, priv, f);
 -- 
 1.9.3
 
