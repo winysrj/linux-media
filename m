@@ -1,67 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58147 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751485AbaIWONF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 10:13:05 -0400
-Date: Tue, 23 Sep 2014 16:13:01 +0200
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] drm: panel: simple-panel: add bus format
- information for foxlink panel
-Message-ID: <20140923161301.54dda63c@bbrezillon>
-In-Reply-To: <20140923140612.GB5982@ulmo>
-References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1406031827-12432-6-git-send-email-boris.brezillon@free-electrons.com>
-	<20140923140612.GB5982@ulmo>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44319 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756028AbaICUd3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 03/46] [media] soc_camera: use kmemdup()
+Date: Wed,  3 Sep 2014 17:32:35 -0300
+Message-Id: <b7688fe7abdac43a645e7a69748a561cf9960009.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+Instead of calling kzalloc and then copying, use kmemdup(). That
+avoids zeroing the data structure before copying.
 
-On Tue, 23 Sep 2014 16:06:13 +0200
-Thierry Reding <thierry.reding@gmail.com> wrote:
+Found by coccinelle.
 
-> On Tue, Jul 22, 2014 at 02:23:47PM +0200, Boris BREZILLON wrote:
-> > Foxlink's fl500wvr00-a0t supports RGB888 format.
-> > 
-> > Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-> > ---
-> >  drivers/gpu/drm/panel/panel-simple.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-> > index 42fd6d1..f1e49fd 100644
-> > --- a/drivers/gpu/drm/panel/panel-simple.c
-> > +++ b/drivers/gpu/drm/panel/panel-simple.c
-> > @@ -428,6 +428,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t = {
-> >  		.width = 108,
-> >  		.height = 65,
-> >  	},
-> > +	.bus_format = VIDEO_BUS_FMT_RGB888_1X24,
-> 
-> This is really equivalent to .bpc = 8. Didn't you say you had other
-> use-cases where .bpc wasn't sufficient?
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Yes, the HLCDC support RGB565 where you don't have the same number of
-bits for each color (Red and Blue = 5 bits, Green = 6 bits), and thus
-can't be encoded in the bpc field.
-
-> 
-> Thierry
-
-
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fed5431..ee8cdc95a9f9 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1347,13 +1347,11 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 		return -ENODEV;
+ 	}
+ 
+-	ssdd = kzalloc(sizeof(*ssdd), GFP_KERNEL);
++	ssdd = kmemdup(&sdesc->subdev_desc, sizeof(*ssdd), GFP_KERNEL);
+ 	if (!ssdd) {
+ 		ret = -ENOMEM;
+ 		goto ealloc;
+ 	}
+-
+-	memcpy(ssdd, &sdesc->subdev_desc, sizeof(*ssdd));
+ 	/*
+ 	 * In synchronous case we request regulators ourselves in
+ 	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+1.9.3
+
