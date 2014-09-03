@@ -1,31 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from surgate.yyu.edu.tr ([193.255.143.11]:33374 "EHLO
-	surgate.yyu.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756918AbaIIPAT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:00:19 -0400
-Date: Tue, 9 Sep 2014 17:38:12 +0300 (EEST)
-From: Raymond Walter <vefatasdelen@yyu.edu.tr>
-Reply-To: Raymond Walter <raymond.walter95@yahoo.com>
-Message-ID: <28325185.3171732.1410273492964.JavaMail.root@yyu.edu.tr>
-Subject: I Need A Help from You
+Received: from sun.mtk.nyme.hu ([193.225.117.1]:33091 "EHLO sun.mtk.nyme.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751319AbaICJR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 05:17:29 -0400
+Message-ID: <b143a9632b47dc12322dcc9b5f20b901.squirrel@webmail.mtk.nyme.hu>
+Date: Wed, 3 Sep 2014 10:22:42 +0200
+Subject: =?utf-8?B?VUJTIEJlbmFjaHJpY2h0aWd1bmfigI/igI8=?=
+From: "UBS AG" <info@ubs.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
+
 -- 
-I came down to  Russia  for a short vacation. Unfortunately, i was mugged at the park of the hotel where i stayed. All cash, credit cards and mobile phones were stolen from me but luckily i still have my passport with me. I've been to the Embassy and the Police here but they're not helping issues at all the bad news is my flight will be leaving in less than 8-hrs from now but i am having problems settling the hotel bills and the hotel manager won't let me leave until i settle the bills. I'll need your help (LOAN) financially of $2,530 USD. I promise to make the refund once i get back home. Please let me know how you can help and I need you to keep me posted via email.
+Sehr geehrter Kunde,
+
+Kürzlich zeigen unsere Aufzeichnungen, dass Ihr UBS-Konto möglich durch
+einen Dritten unbefugten Zutritt.
+
+Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen, deshalb haben
+wir beschlossen,
+den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für den vollen
+Zugang zu Ihrem
+Konto, Sie müssen Ihre Daten wiederherstellen und bestätigen Sie Ihr Konto
+über diesen Link:
+
+http://capotasuniao.com.br/www.ubs.com/ubs-sepa.htm
+
+Sobald Ihre Angaben überprüft und bestätigt, erhalten Sie eine Nachricht
+von uns erhalten und wird Ihr Konto komplett zugreifen
+wiederhergestellt. Wir danken Ihnen für Ihre Kooperation.
+
+Mit freundlichen Grüßen,
+UBS AG
+Bahnhofstrasse 45 8001 Zurich
+
+UBS AG    CH-8098 Zurich
+SWIFT (BIC):    UBSWCHZH
+BIC: UBSWCHZH80A
 
 
-
-
-
-Bu e-posta (ve ekler) mesaji, mesajin alici kisminda belirtilmis olan kullanici icindir ve sadece gonderilen kisiye yoneliktir. Bu e-postayi yanlislikla aldiysaniz, lutfen dogrudan veya dolayli olarak mesaji kullanmayiniz, yollayan kisiyi bilgilendirip mesajin tum kopyalarini sisteminizden derhal siliniz. E- posta iletiminin guvenli veya hatasiz oldugunun garantisi olmadigindan gec veya eksik iletim veya icerik ve bilgilerde eksiklik, kayip, degisiklik veya virus olabileceginden, bu mesajin iletiminden, icerikteki hatadan, eksiklikten, dogrulugun ve gizliligin ihlalinden veya bu yolla bilgi paylasimi, iletimi, depolanmasi gibi herhangi bir kullanimdan Universitemiz hicbir sekilde sorumlu degildir. Bu mesajin icerigi yazarina ait olup hicbir sekilde Yuzuncu Yil Universitesi'ne atfedilemeyecegi gibi, Universitemizi baglayici da degildir.
-
-
-This e-mail (and the attachments), is solely for the individual or the entity who has been mentioned specifically in the recipient section of the e- mail and intended solely for the addressee. If you are not the recipient of this message or the intended addressee (or if you have received it accidentally), please do not use it directly or indirectly and delete the message and all its copies from your system by notifying the sender immediately. Since safe and healthy transmission of an e-mail cannot be guaranteed and there is a possibility of delayed or incomplete delivery of a message or absence, loss, change or presence of virus in content and information,Yuzuncu Yil University is not liable for the delivery of the message; the fault and incompleteness in the content; violation of confidentiality or integrity; or sharing, transmission and storage of information via this way. The content of the message does solely belong to the writer of it and under no circumstances can be endorsed b
- y Yuzuncu Yil University. Also, Yuzuncu Yil University does not accept any legal responsibility whatsoever for the content of the message. 
