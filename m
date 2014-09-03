@@ -1,92 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:62356 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516AbaIWN6R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 09:58:17 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sjoerd Simons' <sjoerd.simons@collabora.co.uk>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Arun Kumar K' <arun.kk@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	'Daniel Drake' <drake@endlessm.com>
-References: <1411390322-25212-1-git-send-email-sjoerd.simons@collabora.co.uk>
-In-reply-to: <1411390322-25212-1-git-send-email-sjoerd.simons@collabora.co.uk>
-Subject: RE: [PATCH] [media] s5p-mfc: Use decode status instead of display
- status on MFCv5
-Date: Tue, 23 Sep 2014 15:58:12 +0200
-Message-id: <085901cfd736$6ae349c0$40a9dd40$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from bombadil.infradead.org ([198.137.202.9]:44437 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756224AbaICUdc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:32 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 07/46] [media] soc_camera: remove uneeded semicolons
+Date: Wed,  3 Sep 2014 17:32:39 -0300
+Message-Id: <d3599a11e3a1b7f14a6f402cec5d4bda68a1154f.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sjoerd,
+We don't use semicolons after curly braces in the middle of the
+code.
 
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sjoerd Simons
-> Sent: Monday, September 22, 2014 2:52 PM
-> To: Kyungmin Park; Kamil Debski; Arun Kumar K
-> Cc: Mauro Carvalho Chehab; linux-arm-kernel@lists.infradead.org; linux-
-> media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-samsung-
-> soc@vger.kernel.org; Daniel Drake; Sjoerd Simons
-> Subject: [PATCH] [media] s5p-mfc: Use decode status instead of display
-> status on MFCv5
-> 
-> Commit 90c0ae50097 changed how the frame_type of a decoded frame
-> gets determined, by switching from the get_dec_frame_type to
-> get_disp_frame_type operation. Unfortunately it seems that on MFC v5
-> the
-> result of get_disp_frame_type is always 0 (no display) when decoding
-> (tested with H264), resulting in no frame ever being output from the
-> decoder.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Could you tell me which firmware version do you use (date)?
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 64dc80ccd6f9..66178fc9f9eb 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1694,7 +1694,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+ 		break;
+ 	default:
+ 		break;
+-	};
++	}
  
-> This patch reverts MFC v5 to the previous behaviour while keeping the
-> new behaviour for v6 and up.
-> 
-> Signed-off-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index d35b041..27ca9d0 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -264,7 +264,12 @@ static void s5p_mfc_handle_frame_new(struct
-> s5p_mfc_ctx *ctx, unsigned int err)
->  	unsigned int frame_type;
-> 
->  	dspl_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
-> -	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_disp_frame_type,
-> ctx);
-> +	if (IS_MFCV6_PLUS(dev))
-> +		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
-> +			get_disp_frame_type, ctx);
-> +	else
-> +		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
-> +			get_dec_frame_type, dev);
-> 
->  	/* If frame is same as previous then skip and do not dequeue */
->  	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED) {
-> --
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
+ 		pcdev->platform_flags |= PXA_CAMERA_MASTER;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 85d579f65f52..b122c2cf5b85 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1502,7 +1502,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	} else {
+ 		priv->ici.nr = of_alias_get_id(pdev->dev.of_node, "vin");
+ 		priv->chip = (enum chip_id)match->data;
+-	};
++	}
+ 
+ 	spin_lock_init(&priv->lock);
+ 	INIT_LIST_HEAD(&priv->capture);
+-- 
+1.9.3
 
