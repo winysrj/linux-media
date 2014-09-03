@@ -1,44 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:48410 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbaIBQVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 12:21:08 -0400
-Received: by mail-lb0-f177.google.com with SMTP id z11so7959294lbi.36
-        for <linux-media@vger.kernel.org>; Tue, 02 Sep 2014 09:21:06 -0700 (PDT)
-Message-ID: <5405EECA.6060801@googlemail.com>
-Date: Tue, 02 Sep 2014 18:22:34 +0200
-From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56934 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904AbaICC05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Sep 2014 22:26:57 -0400
+Message-ID: <54067C6D.8090804@iki.fi>
+Date: Wed, 03 Sep 2014 05:26:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Lorenzo Marcantonio <l.marcantonio@logossrl.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: strange empia device
-References: <20140825190109.GB3372@aika.discordia.loc> <5403358C.4070504@googlemail.com> <1409615932.1819.16.camel@palomino.walls.org> <20140902062822.GA2805@aika.logos.lan>
-In-Reply-To: <20140902062822.GA2805@aika.logos.lan>
-Content-Type: text/plain; charset=windows-1252
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>
+Subject: Re: [GIT PULL FINAL 16/21] m88ts2022: rename device state (priv =>
+ s)
+References: <1408705093-5167-1-git-send-email-crope@iki.fi> <1408705093-5167-17-git-send-email-crope@iki.fi> <20140902155104.4b4e04dc.m.chehab@samsung.com>
+In-Reply-To: <20140902155104.4b4e04dc.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am 02.09.2014 um 08:28 schrieb Lorenzo Marcantonio:
-> On Mon, Sep 01, 2014 at 07:58:52PM -0400, Andy Walls wrote:
->> A Merlin firmware of 16 kB strongly suggests that this chip has an
->> integarted Conexant CX25843 (Merlin Audio + Thresher Video = Mako)
->> Broadtcast A/V decoder core.  The chip might only have a Merlin
->> integrated, but so far I've never encountered that.  It will be easy
->> enough to tell, if the Thresher registers don't respond or only respond
->> with junk.
-> However I strongly suspect that these drivers are for a whole *family*
-> of empia device. The oem ini by roxio talks about three different
-> parts... probably they give one sys file for everyone and the oem
-> customizes the ini.
+On 09/02/2014 09:51 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 22 Aug 2014 13:58:08 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
 >
-> In short the merlin fw may not be actually used for *this* part but only
-> for other empia devices/configurations.
+>> I like short names for things which are used everywhere overall the
+>> driver. Due to that rename device state pointer from 'priv' to 's'.
 >
-> Otherwise I wonder *why* a fscking 1.5MB of sys driver for a mostly dumb
-> capture device...
-Right. There is also no firmware upload in the USB-log I have checked.
+> Please, don't do that. "s" is generally used on several places for string.
+> If you want a shorter name, call it "st" for example.
 
-Regards,
-Frank
+huoh :/
+st is not even much better. 'dev' seems to be the 'official' term. I 
+will start using it. There is one caveat when 'dev' is used as kernel 
+dev_foo() logging requires pointer to device, which is also called dev.
+
+for USB it is: intf->dev
+for PCI it is: pci->dev
+for I2C it is: client->dev
+
+And you have to store that also your state in order to use logging (and 
+usually needed other things too). So for example I2C driver it goes:
+
+struct driver_dev *dev = i2c_get_clientdata(client);
+dev_info(&dev->client->dev, "Hello World\n");
+
+Maybe macro needed to shorten that dev_ logging, which takes as a first 
+parameter pointer to your own driver state.
+
+I have used that 's' for many of my drivers already and there is likely 
+over 50 patches on my queue which needs to be rebased. And rebasing that 
+kind of thing for 50 patches is *really* painful, ugh.
+
+Antti
+
+-- 
+http://palosaari.fi/
