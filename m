@@ -1,73 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4578 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbaIUJRE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 05:17:04 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8L9H0UP094333
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:17:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0D0F52A002F
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:16:55 +0200 (CEST)
-Message-ID: <541E9786.8050701@xs4all.nl>
-Date: Sun, 21 Sep 2014 11:16:54 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:45541 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932387AbaICKNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 06:13:38 -0400
+Received: from dyn3-82-128-191-243.psoas.suomi.net ([82.128.191.243] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1XP7ZG-0005p4-5Z
+	for linux-media@vger.kernel.org; Wed, 03 Sep 2014 13:13:34 +0300
+Message-ID: <5406E9CC.8060907@iki.fi>
+Date: Wed, 03 Sep 2014 13:13:32 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.17] Various bug/regression fixes for 3.17
-Content-Type: text/plain; charset=utf-8
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.18] m88ts2022 changes
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The following changes since commit 6c1c423a54b5b3a6c9c9561c7ef32aee0fda7253:
 
-This collects my set of 3.17 patches, including the vb2 poll regression fix.
-
-I have also included the poll documentation fixes here, but if you prefer to
-add those to 3.18 instead, then that's fine by me.
-
-Besides this pull request for 3.17 I have two other pull requests for 3.17 as
-well that have not yet been merged:
-
-https://patchwork.linuxtv.org/patch/25162/
-https://patchwork.linuxtv.org/patch/25824/
-
-And this cx18 fix for 3.17 is currently in your fixes branch, but not yet
-upstream: https://patchwork.linuxtv.org/patch/25572/
-
-Regards,
-
-	Hans
-
-The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
-
-  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
+   [media] vivid: comment the unused g_edid/s_edid functions (2014-09-02 
+18:01:05 -0300)
 
 are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.17k
+   git://linuxtv.org/anttip/media_tree.git dtv_misc_3.18v2
 
-for you to fetch changes up to cd36be2ddfd6ff0ff823546caa03fb9a05dae54a:
+for you to fetch changes up to b4e20e50dbf37d1ebbed11e40810b09756dd0404:
 
-  DocBook media: improve the poll() documentation (2014-09-21 11:00:12 +0200)
+   m88ts2022: change parameter type of m88ts2022_cmd (2014-09-03 
+13:06:44 +0300)
 
 ----------------------------------------------------------------
-Hans Verkuil (6):
-      adv7604: fix inverted condition
-      cx24123: fix kernel oops due to missing parent pointer
-      cx2341x: fix kernel oops
-      vb2: fix VBI/poll regression
-      DocBook media: fix the poll() 'no QBUF' documentation
-      DocBook media: improve the poll() documentation
+Antti Palosaari (4):
+       m88ts2022: rename device state (priv => dev)
+       m88ts2022: clean up logging
+       m88ts2022: convert to RegMap I2C API
+       m88ts2022: change parameter type of m88ts2022_cmd
 
- Documentation/DocBook/media/v4l/func-poll.xml | 35 +++++++++++++++++++++++++++++------
- drivers/media/common/cx2341x.c                |  1 +
- drivers/media/dvb-frontends/cx24123.c         |  1 +
- drivers/media/i2c/adv7604.c                   |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c      | 17 ++++++++++++++---
- include/media/videobuf2-core.h                |  4 ++++
- 6 files changed, 50 insertions(+), 10 deletions(-)
+  drivers/media/tuners/Kconfig          |   1 +
+  drivers/media/tuners/m88ts2022.c      | 347 
++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------------------------
+  drivers/media/tuners/m88ts2022_priv.h |   5 +-
+  3 files changed, 126 insertions(+), 227 deletions(-)
+
+-- 
+http://palosaari.fi/
