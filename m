@@ -1,114 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40548 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750783AbaIFGvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 02:51:05 -0400
-Message-ID: <540AAED4.8070108@iki.fi>
-Date: Sat, 06 Sep 2014 09:51:00 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4213 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752712AbaICNVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 09:21:22 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s83DLIRT051309
+	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 15:21:20 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 6939E2A075A
+	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 15:21:13 +0200 (CEST)
+Message-ID: <540715AA.3070208@xs4all.nl>
+Date: Wed, 03 Sep 2014 15:20:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com>
-In-Reply-To: <540AA4FD.5000703@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.18] vivid: two small fixes
+References: <54071077.2050500@xs4all.nl>
+In-Reply-To: <54071077.2050500@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-moikka!
+On 09/03/14 14:58, Hans Verkuil wrote:
+> Speaks for itself...
 
-On 09/06/2014 09:09 AM, Akihiro TSUKADA wrote:
-> Moi!
->
->> Yes, using the I2C binding way provides a better decoupling than using the
->> legacy way. The current dvb_attach() macros are hacks that were created
->> by the time where the I2C standard bind didn't work with DVB.
->
-> I understand. I converted my code to use i2c binding model,
-> but I'm uncertain about a few things.
->
-> 1. How to load the modules of i2c driver?
-> Currently I use request_module()/module_put()
-> like an example (ddbrige-core.c) from Antti does,
-> but I'd prefer implicit module loading/ref-counting
-> like in dvb_attach() if it exists.
+Added a third patch:
 
-Maybe I haven't found the best way yet, but that was implementation I 
-made for AF9035 driver:
-https://patchwork.linuxtv.org/patch/25764/
+      vivid: tpg_reset_source prototype mismatch
 
-Basically it is 2 functions, af9035_add_i2c_dev() and af9035_del_i2c_dev()
+The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
 
-> 2. Is there a standard way to pass around dvb_frontend*, i2c_client*,
-> regmap* between bridge(dvb_adapter) and demod/tuner drivers?
-> Currently I use config structure for the purpose, which is set to
-> dev.platform_data (via i2c_board_info/i2c_new_device()) or
-> dev.driver_data (via i2c_{get,set}_clientdata()),
-> but using config as both IN/OUT looks a bit hacky.
+  [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
 
-In my understanding, platform_data is place to pass environment specific 
-config to driver. get/set client_data() is aimed to carry pointer for 
-device specific instance "state" inside a driver. Is it possible to set 
-I2C client data before calling i2c_new_device() and pass pointer to driver?
+are available in the git repository at:
 
-There is also IOCTL style command for I2C, but it is legacy and should 
-not be used.
+  git://linuxtv.org/hverkuil/media_tree.git vivid-fixes
 
-Documentation/i2c/busses/i2c-ocores
+for you to fetch changes up to 0b8dda9ffd2378d2a4106061dc624b3af4688885:
 
-Yet, using config to OUT seems to be bit hacky for my eyes too. I though 
-replacing all OUT with ops when converted af9033 driver. Currently 
-caller fills struct af9033_ops and then af9033 I2C probe populates ops. 
-See that patch:
-https://patchwork.linuxtv.org/patch/25746/
+  vivid: tpg_reset_source prototype mismatch (2014-09-03 15:19:55 +0200)
 
-Does this kind of ops sounds any better?
+----------------------------------------------------------------
+Hans Verkuil (3):
+      vivid: remove duplicate and unused g/s_edid functions
+      vivid: add missing includes
+      vivid: tpg_reset_source prototype mismatch
 
-EXPORT_SYMBOL() is easiest way to offer outputs, like 
-EXPORT_SYMBOL(get_frontend), EXPORT_SYMBOL(get_i2c_adapter). But we want 
-avoid those exported symbols.
+ drivers/media/platform/vivid/vivid-core.c    |  1 +
+ drivers/media/platform/vivid/vivid-rds-gen.c |  1 +
+ drivers/media/platform/vivid/vivid-tpg.c     |  2 +-
+ drivers/media/platform/vivid/vivid-tpg.h     |  1 +
+ drivers/media/platform/vivid/vivid-vbi-gen.c |  1 +
+ drivers/media/platform/vivid/vivid-vid-cap.c |  1 +
+ drivers/media/platform/vivid/vivid-vid-out.c | 57 -----------------------------------------------
+ drivers/media/platform/vivid/vivid-vid-out.h |  1 -
+ 8 files changed, 6 insertions(+), 59 deletions(-)
 
-> 3. Should I also use RegMap API for register access?
-> I tried using it but gave up,
-> because it does not fit well to one of my use-case,
-> where (only) reads must be done via 0xfb register, like
->     READ(reg, buf, len) -> [addr/w, 0xfb, reg], [addr/r, buf[0]...],
->     WRITE(reg, buf, len) -> [addr/w, reg, buf[0]...],
-> and regmap looked to me overkill for 8bit-reg, 8bit-val cases
-> and did not simplify the code.
-> so I'd like to go without RegMap if possible,
-> since I'm already puzzled enough by I2C binding, regmap, clock source,
-> as well as dvb-core, PCI ;)
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
+> 
+>   [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git vivid-fixes
+> 
+> for you to fetch changes up to 73d0df6f49eda8f6b1042c1f9729c347e1f0ee32:
+> 
+>   vivid: add missing includes (2014-09-03 14:57:11 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (2):
+>       vivid: remove duplicate and unused g/s_edid functions
+>       vivid: add missing includes
+> 
+>  drivers/media/platform/vivid/vivid-core.c    |  1 +
+>  drivers/media/platform/vivid/vivid-rds-gen.c |  1 +
+>  drivers/media/platform/vivid/vivid-tpg.h     |  1 +
+>  drivers/media/platform/vivid/vivid-vbi-gen.c |  1 +
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  1 +
+>  drivers/media/platform/vivid/vivid-vid-out.c | 57 -----------------------------------------------
+>  drivers/media/platform/vivid/vivid-vid-out.h |  1 -
+>  7 files changed, 5 insertions(+), 58 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I prefer RegMap API, but I am only one who has started using it yet. And 
-I haven't converted any demod driver having I2C bus/gate/repeater for 
-tuner to that API. It is because of I2C locking with I2C mux adapter, 
-you need use unlocked version of i2c_transfer() for I2C mux as I2C bus 
-lock is already taken. RegMap API does not support that, but I think it 
-should be possible if you implement own xfer callback for regmap. For RF 
-tuners RegMap API should be trivial and it will reduce ~100 LOC from driver.
-
-But if you decide avoid RegMap API, I ask you add least implementing 
-those I2C read / write function parameters similarly than RegMap API 
-does. Defining all kind of weird register write / read functions makes 
-life harder. I converted recently IT913x driver to RegMap API and 
-biggest pain was there very different register read / write routines. So 
-I need to do a lot of work in order convert functions first some common 
-style and then it was trivial to change RegMap API.
-
-https://patchwork.linuxtv.org/patch/25766/
-https://patchwork.linuxtv.org/patch/25757/
-
-I quickly overlooked that demod driver and one which looked crazy was 
-LNA stuff. You implement set_lna callback in demod, but it is then 
-passed back to PCI driver using frontend callback. Is there some reason 
-you hooked it via demod? You could implement set_lna in PCI driver too.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
