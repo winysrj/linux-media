@@ -1,56 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:53532 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbaI2O3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 10:29:01 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Akihiro Tsukada <tskd08@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] [media] pt3: remove bogus module_is_live() check
-Date: Mon, 29 Sep 2014 16:28:55 +0200
-Message-ID: <6460819.BmnhuA22YH@wuerfel>
+Received: from mga11.intel.com ([192.55.52.93]:29874 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932677AbaICPav (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 11:30:51 -0400
+Date: Wed, 03 Sep 2014 23:29:49 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:master 472/499]
+ drivers/media/pci/ngene/ngene-dvb.c:62:48: sparse: incorrect type in
+ argument 2 (different address spaces)
+Message-ID: <540733ed.oP1QyJUJb3MBkYE1%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new pt3 driver checks the module reference for presence
-before dropping it, which fails to compile when modules
-are disabled:
+tree:   git://linuxtv.org/media_tree.git master
+head:   fe10b84e7f6c4c8c3dc8cf63be324bc13f5acd68
+commit: c463c9797c43dd66b72daa397716d6c6675087b8 [472/499] [media] ngene: fix sparse warnings
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
-media/pci/pt3/pt3.c: In function 'pt3_attach_fe':
-media/pci/pt3/pt3.c:433:6: error: implicit declaration of function 'module_is_live' [-Werror=implicit-function-declaration]
-      module_is_live(pt3->adaps[i]->i2c_tuner->dev.driver->owner))
 
-As far as I can tell however, this check is not needed at all, because
-the module will not go away as long as pt3 is holding a reference on
-it. Also the previous check for NULL pointer is not needed at all,
-because module_put has the same check.
+sparse warnings: (new ones prefixed by >>)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> drivers/media/pci/ngene/ngene-dvb.c:62:48: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/pci/ngene/ngene-dvb.c:62:48:    expected unsigned char const [usertype] *buf
+   drivers/media/pci/ngene/ngene-dvb.c:62:48:    got char const [noderef] <asn:1>*buf
 
-diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
-index 90f86ce7a001..39305f07dc2e 100644
---- a/drivers/media/pci/pt3/pt3.c
-+++ b/drivers/media/pci/pt3/pt3.c
-@@ -429,14 +429,10 @@ static int pt3_attach_fe(struct pt3_board *pt3, int i)
- 
- err_tuner:
- 	i2c_unregister_device(pt3->adaps[i]->i2c_tuner);
--	if (pt3->adaps[i]->i2c_tuner->dev.driver->owner &&
--	    module_is_live(pt3->adaps[i]->i2c_tuner->dev.driver->owner))
--		module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
-+	module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
- err_demod:
- 	i2c_unregister_device(pt3->adaps[i]->i2c_demod);
--	if (pt3->adaps[i]->i2c_demod->dev.driver->owner &&
--	    module_is_live(pt3->adaps[i]->i2c_demod->dev.driver->owner))
--		module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
-+	module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
- 	return ret;
- }
- 
+vim +62 drivers/media/pci/ngene/ngene-dvb.c
 
+1899e97c drivers/media/dvb/ngene/ngene-dvb.c Devin Heitmueller 2010-03-13  46  /****************************************************************************/
+1899e97c drivers/media/dvb/ngene/ngene-dvb.c Devin Heitmueller 2010-03-13  47  /* COMMAND API interface ****************************************************/
+1899e97c drivers/media/dvb/ngene/ngene-dvb.c Devin Heitmueller 2010-03-13  48  /****************************************************************************/
+1899e97c drivers/media/dvb/ngene/ngene-dvb.c Devin Heitmueller 2010-03-13  49  
+c463c979 drivers/media/pci/ngene/ngene-dvb.c Hans Verkuil      2014-08-20  50  static ssize_t ts_write(struct file *file, const char __user *buf,
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  51  			size_t count, loff_t *ppos)
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  52  {
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  53  	struct dvb_device *dvbdev = file->private_data;
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  54  	struct ngene_channel *chan = dvbdev->priv;
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  55  	struct ngene *dev = chan->dev;
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  56  
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  57  	if (wait_event_interruptible(dev->tsout_rbuf.queue,
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  58  				     dvb_ringbuffer_free
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  59  				     (&dev->tsout_rbuf) >= count) < 0)
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  60  		return 0;
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  61  
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10 @62  	dvb_ringbuffer_write(&dev->tsout_rbuf, buf, count);
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  63  
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  64  	return count;
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  65  }
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  66  
+c463c979 drivers/media/pci/ngene/ngene-dvb.c Hans Verkuil      2014-08-20  67  static ssize_t ts_read(struct file *file, char __user *buf,
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  68  		       size_t count, loff_t *ppos)
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  69  {
+0f0b270f drivers/media/dvb/ngene/ngene-dvb.c Ralph Metzler     2011-01-10  70  	struct dvb_device *dvbdev = file->private_data;
+
+:::::: The code at line 62 was first introduced by commit
+:::::: 0f0b270f905bbb0c8e75988ceaf10ff9a401e712 [media] ngene: CXD2099AR Common Interface driver
+
+:::::: TO: Ralph Metzler <rjkm@metzlerbros.de>
+:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
