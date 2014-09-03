@@ -1,79 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34756 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216AbaIKJVa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Sep 2014 05:21:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v2 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
-Date: Thu, 11 Sep 2014 12:21:33 +0300
-Message-ID: <1826645.Jx4afrVREc@avalon>
-In-Reply-To: <1410346708-5125-4-git-send-email-p.zabel@pengutronix.de>
-References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de> <1410346708-5125-4-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:44273 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755840AbaICUd1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:27 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 05/46] [media] s5k5baf: remove an uneeded semicolon
+Date: Wed,  3 Sep 2014 17:32:37 -0300
+Message-Id: <b9d2fee78022e0e41d311cb7e7a00d68e951ce09.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+We don't use semicolons after curly braces in the middle of the
+code.
 
-Thank you for the patch.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-On Wednesday 10 September 2014 12:58:23 Philipp Zabel wrote:
-> Decrementing the reference count of the previous endpoint node allows to
-> use the of_graph_get_next_endpoint function in a for_each_... style macro.
-> Prior to this patch, all current users of this function that actually pass
-> a non-NULL prev parameter should be changed to not decrement the passed
-> prev argument's refcount themselves.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/of/base.c | 9 +--------
->  1 file changed, 1 insertion(+), 8 deletions(-)
-> 
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index d8574ad..a49b5628 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
->   * @prev: previous endpoint node, or NULL to get first
->   *
->   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-> - * of the passed @prev node is not decremented, the caller have to use
-> - * of_node_put() on it when done.
-> + * of the passed @prev node is decremented.
->   */
->  struct device_node *of_graph_get_next_endpoint(const struct device_node
-> *parent, struct device_node *prev)
-> @@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const
-> struct device_node *parent, if (WARN_ONCE(!port, "%s(): endpoint %s has no
-> parent node\n",
->  			      __func__, prev->full_name))
->  			return NULL;
-> -
-> -		/*
-> -		 * Avoid dropping prev node refcount to 0 when getting the next
-> -		 * child below.
-> -		 */
-> -		of_node_get(prev);
->  	}
-> 
->  	while (1) {
-
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 564f05f2c9ef..0e461a6fd065 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -816,7 +816,7 @@ static void s5k5baf_hw_find_min_fiv(struct s5k5baf *state)
+ 				 "error setting frame interval: %d\n", err);
+ 			state->error = -EINVAL;
+ 		}
+-	};
++	}
+ 	v4l2_err(&state->sd, "cannot find correct frame interval\n");
+ 	state->error = -ERANGE;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
