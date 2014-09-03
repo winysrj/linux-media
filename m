@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3263 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755233AbaIQJO4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 05:14:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] DocBook media: update poll() documentation
-Date: Wed, 17 Sep 2014 11:14:31 +0200
-Message-Id: <1410945272-48149-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:14612 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756105AbaICLrv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 07:47:51 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBB00K7IQ3Q3H10@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 07:47:51 -0400 (EDT)
+Date: Wed, 03 Sep 2014 08:47:46 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>
+Subject: Re: [GIT PULL FINAL 16/21] m88ts2022: rename device state (priv => s)
+Message-id: <20140903084746.6b19a78e.m.chehab@samsung.com>
+In-reply-to: <5406F25D.3090001@iki.fi>
+References: <1408705093-5167-1-git-send-email-crope@iki.fi>
+ <1408705093-5167-17-git-send-email-crope@iki.fi>
+ <20140902155104.4b4e04dc.m.chehab@samsung.com> <54067C6D.8090804@iki.fi>
+ <20140903073823.54daad9b.m.chehab@samsung.com> <5406F25D.3090001@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 03 Sep 2014 13:50:05 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-No mention was made about the handling of POLLPRI. And the section
-on write() was missing that, just like in the read() case, the driver
-will start streaming if it wasn't yet in streaming mode.
+> On 09/03/2014 01:38 PM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 03 Sep 2014 05:26:53 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 09/02/2014 09:51 PM, Mauro Carvalho Chehab wrote:
+> >>> Em Fri, 22 Aug 2014 13:58:08 +0300
+> >>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>
+> >>>> I like short names for things which are used everywhere overall the
+> >>>> driver. Due to that rename device state pointer from 'priv' to 's'.
+> >>>
+> >>> Please, don't do that. "s" is generally used on several places for string.
+> >>> If you want a shorter name, call it "st" for example.
+> >>
+> >> huoh :/
+> >> st is not even much better. 'dev' seems to be the 'official' term. I
+> >> will start using it. There is one caveat when 'dev' is used as kernel
+> >> dev_foo() logging requires pointer to device, which is also called dev.
+> >
+> > Yeah, on v4l2, we generally use 'dev' for such struct on several drivers.
+> > Yet, it looks confusing, especially when some part of the code needs to
+> > work with the private structure and struct device.
+> >
+> > So, we end having things like dev->udev->dev inside them, with looks
+> > ugly, IMHO.
+> 
+> I renamed it to dev due to 2 reasons (I did quite a lot of work to find 
+> out which it should be):
+> 1) it was mostly used term in kernel code base for that structure 
+> holding device instance state
+> 2) it was used in book Linux Device Drivers, Third Edition
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/func-poll.xml | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+Works for me.
 
-diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
-index 2f91ca6..ac61c37 100644
---- a/Documentation/DocBook/media/v4l/func-poll.xml
-+++ b/Documentation/DocBook/media/v4l/func-poll.xml
-@@ -49,6 +49,10 @@ application did not call &VIDIOC-STREAMON; the
- <constant>POLLERR</constant> flag in the
- <structfield>revents</structfield> field.</para>
- 
-+    <para>If an event occurred (see &VIDIOC-DQEVENT;) then
-+<constant>POLLPRI</constant> will be set in the <structfield>revents</structfield>
-+field and <function>poll()</function> will return.</para>
-+
-     <para>When use of the <function>read()</function> function has
- been negotiated and the driver does not capture yet, the
- <function>poll</function> function starts capturing. When that fails
-@@ -58,10 +62,18 @@ continuously (as opposed to, for example, still images) the function
- may return immediately.</para>
- 
-     <para>When use of the <function>write()</function> function has
--been negotiated the <function>poll</function> function just waits
-+been negotiated and the driver does not stream yet, the
-+<function>poll</function> function starts streaming. When that fails
-+it returns a <constant>POLLERR</constant> as above. Otherwise it waits
- until the driver is ready for a non-blocking
- <function>write()</function> call.</para>
- 
-+    <para>If the caller is only interested in events (just
-+<constant>POLLPRI</constant> is set in the <structfield>events</structfield>
-+field), then <function>poll()</function> will <emphasis>not</emphasis>
-+start streaming if the driver does not stream yet. This makes it
-+possible to just poll for events and not for buffers.</para>
-+
-     <para>All drivers implementing the <function>read()</function> or
- <function>write()</function> function or streaming I/O must also
- support the <function>poll()</function> function.</para>
--- 
-2.1.0
-
+Regards,
+Mauro
