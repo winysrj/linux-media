@@ -1,55 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62843 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751245AbaI3Q3g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 12:29:36 -0400
-Message-ID: <542ADA66.3040905@redhat.com>
-Date: Tue, 30 Sep 2014 18:29:26 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?UTF-8?B?QW5kcsOpIFJvdGg=?= <neolynx@gmail.com>
-Subject: Re: Upcoming v4l-utils 1.6.0 release
-References: <20140925213820.1bbf43c2@recife.lan>	<54269807.50109@googlemail.com> <20140927085455.5b0baf89@recife.lan> <542ACA32.3050403@googlemail.com>
-In-Reply-To: <542ACA32.3050403@googlemail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12998 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbaICI6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 04:58:21 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBB00BNGIDUXC90@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 10:01:06 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0NBB00CS4I91P990@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 09:58:14 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Subject: [GIT PULL for 3.18] mem2mem changes
+Date: Wed, 03 Sep 2014 10:58:12 +0200
+Message-id: <099901cfc755$31f4ad20$95de0760$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
 
-On 09/30/2014 05:20 PM, Gregor Jasny wrote:
-> Hello,
->
-> On 27/09/14 13:54, Mauro Carvalho Chehab wrote:
->> Em Sat, 27 Sep 2014 12:57:11 +0200
->> Gregor Jasny <gjasny@googlemail.com> escreveu:
->>> As far as I understand the service_location feature should work but is
->>> an extension to the standard. Does it harm if we keep it until we have
->>> something better in place to handle extensions?
->>>
->>> The service list descriptor feature is unimplemented (and thus broken).
->>> Would it help if we return -1 from dvb_desc_service_list_init to reflect
->>> that fact or does it break something else? But I'd keep the symbol in
->>> the library to maintain ABI compatibility.
->
->> I would actually prefer if we could get rid of those two broken
->> descriptors on some release, and to re-add them only when they're
->> actually working.
->
-> I have sent a patch series to remove the public headers of this two
-> descriptors and provide stubs to maintain SONAME compatibility.
->
-> Could you please ACK it?
+  [media] media: ttpci: fix av7110 build to be compatible with
+CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
 
-About the 1.6.0 release, please do not release it until the series
-fixing the regression in 1.4.0 with gstreamer which I've posted
-today. A review of that series would be appreciated. If you're ok
-with the series feel free to push it to master.
+are available in the git repository at:
 
-Regards,
+  git://linuxtv.org/kdebski/media_tree_2.git for-3.18
 
-Hans
+for you to fetch changes up to af26e239d419b5ab4ac49dd8ee585891f25a3e51:
+z
+  v4l: vsp1: fix driver dependencies (2014-09-03 10:33:25 +0200)
+
+----------------------------------------------------------------
+Bartlomiej Zolnierkiewicz (1):
+      v4l: vsp1: fix driver dependencies
+
+Jacek Anaszewski (4):
+      s5p-jpeg: Avoid assigning readl result
+      s5p-jpeg: remove stray call to readl
+      s5p-jpeg: avoid overwriting JPEG_CNTL register settings
+      s5p-jpeg: fix HUF_TBL_EN bit clearing path
+
+Marek Szyprowski (1):
+      media: s5p-mfc: rename special clock to sclk_mfc
+
+Mauro Carvalho Chehab (5):
+      s5p_mfc: don't use an external symbol called 'debug'
+      s5p-jpeg: get rid of some warnings
+      g2d: remove unused var
+      s5p_mfc_ctrl: add missing s5p_mfc_ctrl.h header
+      s5p_mfc: get rid of several warnings
+
+Zhaowei Yuan (2):
+      media: s5p_mfc: Release ctx->ctx if failed to allocate ctx->shm
+      media: s5p-mfc: correct improper logs
+
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/s5p-g2d/g2d.c               |    7 +++----
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |    2 +-
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |    2 ++
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c  |    9 +++------
+ drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c      |    6 ++----
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    6 ++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    5 +++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_debug.h     |    6 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    4 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |    7 ++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |    3 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c        |    2 +-
+ 15 files changed, 28 insertions(+), 34 deletions(-)
+
