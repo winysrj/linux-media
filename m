@@ -1,132 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59196 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932619AbaICKKx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 06:10:53 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/4] m88ts2022: change parameter type of m88ts2022_cmd
-Date: Wed,  3 Sep 2014 13:10:36 +0300
-Message-Id: <1409739036-5091-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1409739036-5091-1-git-send-email-crope@iki.fi>
-References: <1409739036-5091-1-git-send-email-crope@iki.fi>
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:63356 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751416AbaICTis (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:38:48 -0400
+Received: by mail-qa0-f73.google.com with SMTP id s7so1017976qap.2
+        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 12:38:46 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH v3 1/2] [media] V4L: Add camera pan/tilt speed controls
+Date: Wed,  3 Sep 2014 12:38:39 -0700
+Message-Id: <1409773119-32023-1-git-send-email-vpalatin@chromium.org>
+In-Reply-To: <CAP_ceTznJfoE2CNzU+=Ysnx_pNbmUeggOPCEzysvUP9YnSiGgg@mail.gmail.com>
+References: <CAP_ceTznJfoE2CNzU+=Ysnx_pNbmUeggOPCEzysvUP9YnSiGgg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is driver internal function and does not need anything from
-frontend structure. Due to that change parameter type to driver
-state which is better for driver internal functions.
+The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
+camera by setting its rotation speed around its axis.
 
-Also remove one unused variable from state itself.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
 ---
- drivers/media/tuners/m88ts2022.c      | 21 ++++++++++-----------
- drivers/media/tuners/m88ts2022_priv.h |  1 -
- 2 files changed, 10 insertions(+), 12 deletions(-)
+Changes from v1:
+- update the documentation wording according to Pawel suggestion.
+Changes from v2:
+- bump Linux kernel version for the API change.
 
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 9f7ebcf..caa5423 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -18,10 +18,9 @@
+ Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
+ Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+ include/uapi/linux/v4l2-controls.h           |  2 ++
+ 4 files changed, 35 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index eee6f0f..7aa7c5d 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
+       </orderedlist>
+     </section>
  
- #include "m88ts2022_priv.h"
++    <section>
++      <title>V4L2 in Linux 3.18</title>
++      <orderedlist>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
++ <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
  
--static int m88ts2022_cmd(struct dvb_frontend *fe,
--		int op, int sleep, u8 reg, u8 mask, u8 val, u8 *reg_val)
-+static int m88ts2022_cmd(struct m88ts2022_dev *dev, int op, int sleep, u8 reg,
-+		u8 mask, u8 val, u8 *reg_val)
- {
--	struct m88ts2022_dev *dev = fe->tuner_priv;
- 	int ret, i;
- 	unsigned int utmp;
- 	struct m88ts2022_reg_val reg_vals[] = {
-@@ -124,7 +123,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 			dev->frequency_khz, dev->frequency_khz - c->frequency,
- 			f_vco_khz, pll_n, div_ref, div_out);
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 9f5ffd8..124f287 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3965,6 +3965,27 @@ by exposure, white balance or focus controls.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
  
--	ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
-+	ret = m88ts2022_cmd(dev, 0x10, 5, 0x15, 0x40, 0x00, NULL);
- 	if (ret)
- 		goto err;
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control turns the
++camera horizontally at the specific speed. The unit is undefined. A
++positive value moves the camera to the right (clockwise when viewed
++from above), a negative value to the left. A value of zero stops the motion
++if one is in progress and has no effect otherwise.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control turns the
++camera vertically at the specified speed. The unit is undefined. A
++positive value moves the camera up, a negative value down. A value of zero
++stops the motion if one is in progress and has no effect otherwise.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index f030d6a..4d050f9 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -796,6 +796,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_AUTO_FOCUS_STOP:		return "Auto Focus, Stop";
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
+ 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
++	case V4L2_CID_PAN_SPEED:		return "Pan, Speed";
++	case V4L2_CID_TILT_SPEED:		return "Tilt, Speed";
  
-@@ -142,7 +141,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 		if (ret)
- 			goto err;
- 
--		ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
-+		ret = m88ts2022_cmd(dev, 0x10, 5, 0x15, 0x40, 0x00, NULL);
- 		if (ret)
- 			goto err;
- 	}
-@@ -158,7 +157,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	ret = m88ts2022_cmd(fe, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
-+	ret = m88ts2022_cmd(dev, 0x08, 5, 0x3c, 0xff, 0x00, NULL);
- 	if (ret)
- 		goto err;
- 
-@@ -185,7 +184,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(dev, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -195,7 +194,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(dev, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -227,7 +226,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(dev, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -237,7 +236,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
-+	ret = m88ts2022_cmd(dev, 0x04, 2, 0x26, 0xff, 0x00, &u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -257,7 +256,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_cmd(fe, 0x01, 20, 0x21, 0xff, 0x00, NULL);
-+	ret = m88ts2022_cmd(dev, 0x01, 20, 0x21, 0xff, 0x00, NULL);
- 	if (ret)
- 		goto err;
- err:
-diff --git a/drivers/media/tuners/m88ts2022_priv.h b/drivers/media/tuners/m88ts2022_priv.h
-index 56c1071..feeb5ad 100644
---- a/drivers/media/tuners/m88ts2022_priv.h
-+++ b/drivers/media/tuners/m88ts2022_priv.h
-@@ -24,7 +24,6 @@ struct m88ts2022_dev {
- 	struct m88ts2022_config cfg;
- 	struct i2c_client *client;
- 	struct regmap *regmap;
--	struct dvb_frontend *fe;
- 	u32 frequency_khz;
+ 	/* FM Radio Modulator controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index e946e43..4de238b 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -746,6 +746,8 @@ enum v4l2_auto_focus_range {
+ 	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
  };
  
++#define V4L2_CID_PAN_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+32)
++#define V4L2_CID_TILT_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+33)
+ 
+ /* FM Modulator class control IDs */
+ 
 -- 
-http://palosaari.fi/
+2.1.0.rc2.206.gedb03e5
 
