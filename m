@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sg1hn0125.outbound.protection.outlook.com ([134.170.132.125]:30124
-	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753456AbaIVJrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 05:47:03 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: buffer delivery stops with cx23885
-Date: Mon, 22 Sep 2014 09:46:57 +0000
-Message-ID: <01776abac53640498b8fc87ac8d36fd1@HKXPR04MB295.apcprd04.prod.outlook.com>
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
- <541D469B.4000306@xs4all.nl>
- <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5220.4050107@xs4all.nl>
- <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5CD0.1000207@xs4all.nl>
- <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D61D7.3080202@xs4all.nl>
- <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
- <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com>
- <e0f1371641b2497f9d3e91c9605702ec@HKXPR04MB295.apcprd04.prod.outlook.com>
- <541FDFB4.6070201@xs4all.nl>
-In-Reply-To: <541FDFB4.6070201@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:33417 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933473AbaICWoH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 18:44:07 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 5/5] [media] drxk_hard: fix bad alignments
+Date: Wed,  3 Sep 2014 19:43:55 -0300
+Message-Id: <89fffac802c18caebdf4e91c0785b522c9f6399a.1409784200.git.m.chehab@samsung.com>
+In-Reply-To: <97e0e1e867952d369f245fce0d6791eacb40b2bb.1409784200.git.m.chehab@samsung.com>
+References: <97e0e1e867952d369f245fce0d6791eacb40b2bb.1409784200.git.m.chehab@samsung.com>
+In-Reply-To: <97e0e1e867952d369f245fce0d6791eacb40b2bb.1409784200.git.m.chehab@samsung.com>
+References: <97e0e1e867952d369f245fce0d6791eacb40b2bb.1409784200.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiANCj4gPg0KPiA+IEFueSBoaW50cyBvbiB3aGF0IEkgY2FuIGRvIHRvIGZpZ3VyZSBvdXQgd2hh
-dCBsYXllciBpdCdzIHN0YWxsaW5nIGF0Pw0KPiANCj4gSSBoYXZlIG5vIGlkZWEuIEkgd291bGQg
-ZG8gYSBnaXQgYmlzZWN0IHRvIHRyeSBhbmQgbmFycm93IGl0IGRvd24uDQo+IA0KDQpQcm9ibGVt
-IHdpdGggdGhlIGJpc2VjdCBpcyB0aGF0IEkgY2FuJ3QgYmUgc3VyZSB3aGF0IHZlcnNpb24gaXQg
-YWN0dWFsbHkgd29ya2VkIG9uLiBJdCBjZXJ0YWlubHkgcHJlZGF0ZXMgd2hlbiBteSBwYXRjaCBm
-b3IgbXkgY2FyZCB3YXMgY29tbWl0dGVkLg0KDQpJIGhhdmUgYSBodW5jaCB0aGF0IGl0IG1pZ2h0
-IGJlIHRoZSB0d28gdHVuZXJzIHN0b21waW5nIG9uIGVhY2ggb3RoZXIsIHBvc3NpYmx5IGluIHRo
-ZSBpMmMgY29kZS4gU29tZXRpbWVzIHJlY29yZGluZyBqdXN0IHN0b3BzLCBvdGhlciB0aW1lcyBJ
-IGdldCBpMmMgZXJyb3JzLg0KDQpXaXRoIG9uZSB0dW5lciBkaXNhYmxlZCBpbiBNeXRoVFYgSSBj
-YW4ndCBzZWVtIHRvIHJlcHJvZHVjZSB0aGUgcHJvYmxlbSBhbnltb3JlLiBJIGhhdmVuJ3QgbGV0
-IGl0IHJ1biBmb3IgbG9uZyBlbm91Z2ggdG8gYmUgc3VyZSwgYnV0IGl0IG5vcm1hbGx5IHdvdWxk
-IGhhdmUgY3Jhc2hlZCBieSBub3cuDQoNCkphbWVzDQo=
+drivers/media/dvb-frontends/drxk_hard.c:2224:3-22: code aligned with following code on line 2227
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index 88182c18e186..672195147d01 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -2220,12 +2220,13 @@ static int set_agc_rf(struct drxk_state *state,
+ 		}
+ 
+ 		/* Set TOP, only if IF-AGC is in AUTO mode */
+-		if (p_if_agc_settings->ctrl_mode == DRXK_AGC_CTRL_AUTO)
++		if (p_if_agc_settings->ctrl_mode == DRXK_AGC_CTRL_AUTO) {
+ 			status = write16(state,
+ 					 SCU_RAM_AGC_IF_IACCU_HI_TGT_MAX__A,
+ 					 p_agc_cfg->top);
+ 			if (status < 0)
+ 				goto error;
++		}
+ 
+ 		/* Cut-Off current */
+ 		status = write16(state, SCU_RAM_AGC_RF_IACCU_HI_CO__A,
+-- 
+1.9.3
+
