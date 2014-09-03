@@ -1,67 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58563 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:57287 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757056AbaIDChB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:01 -0400
+	id S932535AbaICKKx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 06:10:53 -0400
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: [PATCH 03/37] it913x: fix tuner sleep power leak
-Date: Thu,  4 Sep 2014 05:36:11 +0300
-Message-Id: <1409798205-25645-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/4] m88ts2022: clean up logging
+Date: Wed,  3 Sep 2014 13:10:34 +0300
+Message-Id: <1409739036-5091-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1409739036-5091-1-git-send-email-crope@iki.fi>
+References: <1409739036-5091-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IT913x tuner driver disables own clock, provided by demod core, as
-very a first operation when tuner is put on *sleep*. That likely
-causes failure of all the rest commands on sleep sequence, which
-leads situation where tuner is not actually on sleep, but consuming
-a lot of power.
+There is no need to print module name nor function name as those
+are done by kernel logging system when dev_xxx logging is used and
+driver is proper I2C driver.
 
-I measured 102mA current consumption from the USB before change
-and after change it was only 32mA. Used device was single tuner
-IT9135 BX.
-
-Second reason to remove that register from tuner driver is reason
-it is simply on wrong driver (demod vs. tuner), breaking the
-principle of correct driver.
-
-Clock is now provided more correctly af9033 demod driver as a
-config option.
-
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/tuners/tuner_it913x.c      | 1 -
- drivers/media/tuners/tuner_it913x_priv.h | 1 -
- 2 files changed, 2 deletions(-)
+ drivers/media/tuners/m88ts2022.c | 51 +++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/tuners/tuner_it913x.c b/drivers/media/tuners/tuner_it913x.c
-index 3d83c42..3265d9a 100644
---- a/drivers/media/tuners/tuner_it913x.c
-+++ b/drivers/media/tuners/tuner_it913x.c
-@@ -202,7 +202,6 @@ static int it913x_init(struct dvb_frontend *fe)
+diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
+index 94f0d3b..4d7f7e1 100644
+--- a/drivers/media/tuners/m88ts2022.c
++++ b/drivers/media/tuners/m88ts2022.c
+@@ -46,8 +46,8 @@ static int m88ts2022_wr_regs(struct m88ts2022_dev *dev,
+ 		ret = 0;
+ 	} else {
+ 		dev_warn(&dev->client->dev,
+-				"%s: i2c wr failed=%d reg=%02x len=%d\n",
+-				KBUILD_MODNAME, ret, reg, len);
++				"i2c wr failed=%d reg=%02x len=%d\n",
++				ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
  
- 	/* Power Up Tuner - common all versions */
- 	ret = it913x_wr_reg(state, PRO_DMOD, 0xec40, 0x1);
--	ret |= it913x_wr_reg(state, PRO_DMOD, 0xfba8, 0x0);
- 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec57, 0x0);
- 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec58, 0x0);
+@@ -85,8 +85,8 @@ static int m88ts2022_rd_regs(struct m88ts2022_dev *dev, u8 reg,
+ 		ret = 0;
+ 	} else {
+ 		dev_warn(&dev->client->dev,
+-				"%s: i2c rd failed=%d reg=%02x len=%d\n",
+-				KBUILD_MODNAME, ret, reg, len);
++				"i2c rd failed=%d reg=%02x len=%d\n",
++				ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
  
-diff --git a/drivers/media/tuners/tuner_it913x_priv.h b/drivers/media/tuners/tuner_it913x_priv.h
-index ce65210..8e85a61 100644
---- a/drivers/media/tuners/tuner_it913x_priv.h
-+++ b/drivers/media/tuners/tuner_it913x_priv.h
-@@ -38,7 +38,6 @@ struct it913xset {	u32 pro;
+@@ -141,8 +141,8 @@ static int m88ts2022_cmd(struct dvb_frontend *fe,
  
- /* Tuner setting scripts (still keeping it9137) */
- static struct it913xset it9137_tuner_off[] = {
--	{PRO_DMOD, 0xfba8, {0x01}, 0x01}, /* Tuner Clock Off  */
- 	{PRO_DMOD, 0xec40, {0x00}, 0x01}, /* Power Down Tuner */
- 	{PRO_DMOD, 0xec02, {0x3f, 0x1f, 0x3f, 0x3f}, 0x04},
- 	{PRO_DMOD, 0xec06, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	for (i = 0; i < 2; i++) {
+ 		dev_dbg(&dev->client->dev,
+-				"%s: i=%d op=%02x reg=%02x mask=%02x val=%02x\n",
+-				__func__, i, op, reg, mask, val);
++				"i=%d op=%02x reg=%02x mask=%02x val=%02x\n",
++				i, op, reg, mask, val);
+ 
+ 		for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
+ 			ret = m88ts2022_wr_reg(dev, reg_vals[i].reg,
+@@ -178,8 +178,8 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 	u16 u16tmp;
+ 
+ 	dev_dbg(&dev->client->dev,
+-			"%s: frequency=%d symbol_rate=%d rolloff=%d\n",
+-			__func__, c->frequency, c->symbol_rate, c->rolloff);
++			"frequency=%d symbol_rate=%d rolloff=%d\n",
++			c->frequency, c->symbol_rate, c->rolloff);
+ 	/*
+ 	 * Integer-N PLL synthesizer
+ 	 * kHz is used for all calculations to keep calculations within 32-bit
+@@ -228,10 +228,9 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	dev_dbg(&dev->client->dev,
+-			"%s: frequency=%u offset=%d f_vco_khz=%u pll_n=%u div_ref=%u div_out=%u\n",
+-			__func__, dev->frequency_khz,
+-			dev->frequency_khz - c->frequency, f_vco_khz, pll_n,
+-			div_ref, div_out);
++			"frequency=%u offset=%d f_vco_khz=%u pll_n=%u div_ref=%u div_out=%u\n",
++			dev->frequency_khz, dev->frequency_khz - c->frequency,
++			f_vco_khz, pll_n, div_ref, div_out);
+ 
+ 	ret = m88ts2022_cmd(fe, 0x10, 5, 0x15, 0x40, 0x00, NULL);
+ 	if (ret)
+@@ -371,7 +370,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ err:
+ 	if (ret)
+-		dev_dbg(&dev->client->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 
+ 	return ret;
+ }
+@@ -395,7 +394,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 		{0x12, 0xa0},
+ 	};
+ 
+-	dev_dbg(&dev->client->dev, "%s:\n", __func__);
++	dev_dbg(&dev->client->dev, "\n");
+ 
+ 	ret = m88ts2022_wr_reg(dev, 0x00, 0x01);
+ 	if (ret)
+@@ -442,7 +441,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
+ 	}
+ err:
+ 	if (ret)
+-		dev_dbg(&dev->client->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -451,14 +450,14 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
+ 	struct m88ts2022_dev *dev = fe->tuner_priv;
+ 	int ret;
+ 
+-	dev_dbg(&dev->client->dev, "%s:\n", __func__);
++	dev_dbg(&dev->client->dev, "\n");
+ 
+ 	ret = m88ts2022_wr_reg(dev, 0x00, 0x00);
+ 	if (ret)
+ 		goto err;
+ err:
+ 	if (ret)
+-		dev_dbg(&dev->client->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -466,7 +465,7 @@ static int m88ts2022_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct m88ts2022_dev *dev = fe->tuner_priv;
+ 
+-	dev_dbg(&dev->client->dev, "%s:\n", __func__);
++	dev_dbg(&dev->client->dev, "\n");
+ 
+ 	*frequency = dev->frequency_khz;
+ 	return 0;
+@@ -476,7 +475,7 @@ static int m88ts2022_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct m88ts2022_dev *dev = fe->tuner_priv;
+ 
+-	dev_dbg(&dev->client->dev, "%s:\n", __func__);
++	dev_dbg(&dev->client->dev, "\n");
+ 
+ 	*frequency = 0; /* Zero-IF */
+ 	return 0;
+@@ -520,7 +519,7 @@ static int m88ts2022_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
+ 	*strength = (u16tmp - 59000) * 0xffff / (61500 - 59000);
+ err:
+ 	if (ret)
+-		dev_dbg(&dev->client->dev, "%s: failed=%d\n", __func__, ret);
++		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -552,7 +551,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (!dev) {
+ 		ret = -ENOMEM;
+-		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
++		dev_err(&client->dev, "kzalloc() failed\n");
+ 		goto err;
+ 	}
+ 
+@@ -582,7 +581,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_dbg(&dev->client->dev, "%s: chip_id=%02x\n", __func__, chip_id);
++	dev_dbg(&dev->client->dev, "chip_id=%02x\n", chip_id);
+ 
+ 	switch (chip_id) {
+ 	case 0xc3:
+@@ -627,9 +626,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	if (ret)
+ 		goto err;
+ 
+-	dev_info(&dev->client->dev,
+-			"%s: Montage M88TS2022 successfully identified\n",
+-			KBUILD_MODNAME);
++	dev_info(&dev->client->dev, "Montage M88TS2022 successfully identified\n");
+ 
+ 	fe->tuner_priv = dev;
+ 	memcpy(&fe->ops.tuner_ops, &m88ts2022_tuner_ops,
+@@ -638,7 +635,7 @@ static int m88ts2022_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, dev);
+ 	return 0;
+ err:
+-	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	kfree(dev);
+ 	return ret;
+ }
+@@ -648,7 +645,7 @@ static int m88ts2022_remove(struct i2c_client *client)
+ 	struct m88ts2022_dev *dev = i2c_get_clientdata(client);
+ 	struct dvb_frontend *fe = dev->cfg.fe;
+ 
+-	dev_dbg(&client->dev, "%s:\n", __func__);
++	dev_dbg(&client->dev, "\n");
+ 
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+ 	fe->tuner_priv = NULL;
 -- 
 http://palosaari.fi/
 
