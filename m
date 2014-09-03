@@ -1,68 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:48091 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752876AbaIWEyP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 00:54:15 -0400
-Message-ID: <5420FCED.7010400@gentoo.org>
-Date: Tue, 23 Sep 2014 06:54:05 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org, crope@iki.fi
-Subject: Re: [PATCH 7/7] si2165: do load firmware without extra header
-References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>	<1409484912-19300-8-git-send-email-zzam@gentoo.org> <20140922195813.4cec3704@recife.lan>
-In-Reply-To: <20140922195813.4cec3704@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:13428 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754017AbaICU5j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:57:39 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBC00AZ4FK1TQ10@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 16:57:37 -0400 (EDT)
+Date: Wed, 03 Sep 2014 17:57:33 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 04/46] [media] vivid-vid-out: use memdup_user()
+Message-id: <20140903175733.4dc2428c.m.chehab@samsung.com>
+In-reply-to: <54077EEB.4040701@xs4all.nl>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+ <8e3336dbdbd26a56fb6817a4dc7cb31d860e8c5d.1409775488.git.m.chehab@samsung.com>
+ <54077EEB.4040701@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23.09.2014 00:58, Mauro Carvalho Chehab wrote:
-> Em Sun, 31 Aug 2014 13:35:12 +0200
-> Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> 
->> The new file has a different name: dvb-demod-si2165-D.fw
->>
->> Count blocks instead of reading count from extra header.
->> Calculate CRC during upload and compare result to what chip calcuated.
->> Use 0x01 instead of real patch version, because this is only used to
->> check if something was uploaded but not to check the version of it.
->>
->> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
->> ---
-> 
-> ...
-> 
->> diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
->> index 2b70cf1..fd778dc 100644
->> --- a/drivers/media/dvb-frontends/si2165_priv.h
->> +++ b/drivers/media/dvb-frontends/si2165_priv.h
->> @@ -18,6 +18,6 @@
->>  #ifndef _DVB_SI2165_PRIV
->>  #define _DVB_SI2165_PRIV
->>  
->> -#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
->> +#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-D.fw"
-> 
-> Please, don't do that. Changing the name of the firmware and breaking
-> the format is a bad idea, specially since you're not supporting anymore
-> the legacy one.
-> 
-> I would be ok if you were not breaking support for the old firmware
-> file.
-> 
-Hmm, there is no kernel yet that contains this driver.
-And the firmware is identical, just the header is missing.
-Do I really have to support both then?
+Em Wed, 03 Sep 2014 22:49:47 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> Also, better to use lowercase for the firmware name.
+> On 09/03/2014 10:32 PM, Mauro Carvalho Chehab wrote:
+> > Instead of allocating and coping from __user, do it using
+> > one atomic call. That makes the code simpler. Also,
+> 
+> Also what?
 
-Ok, I will change the "D" to lower-case.
+I added a comment about IS_ERR(new_bitmap), and returning
+the error, but then I realized that the above is good enough,
+but I forgot the "Also, " at the above line. Thanks for
+pointing it.
 
 > 
-> PS.: I'm not applying patch 6/7 as this got rejected.
+> Anyway, looks good to me:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok, I will resend patch 6 and eventually 7.
-
-Regards
-Matthias
+Thanks!
+Mauro
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Found by coccinelle.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > 
+> > diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+> > index c983461f29d5..8ed9f6d9f505 100644
+> > --- a/drivers/media/platform/vivid/vivid-vid-out.c
+> > +++ b/drivers/media/platform/vivid/vivid-vid-out.c
+> > @@ -897,14 +897,10 @@ int vidioc_s_fmt_vid_out_overlay(struct file *file, void *priv,
+> >  		return ret;
+> >  
+> >  	if (win->bitmap) {
+> > -		new_bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+> > +		new_bitmap = memdup_user(win->bitmap, bitmap_size);
+> >  
+> > -		if (new_bitmap == NULL)
+> > -			return -ENOMEM;
+> > -		if (copy_from_user(new_bitmap, win->bitmap, bitmap_size)) {
+> > -			kfree(new_bitmap);
+> > -			return -EFAULT;
+> > -		}
+> > +		if (IS_ERR(new_bitmap))
+> > +			return PTR_ERR(new_bitmap);
+> >  	}
+> >  
+> >  	dev->overlay_out_top = win->w.top;
+> > 
+> 
