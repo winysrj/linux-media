@@ -1,550 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54252 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932582AbaICKKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 06:10:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/4] m88ts2022: convert to RegMap I2C API
-Date: Wed,  3 Sep 2014 13:10:35 +0300
-Message-Id: <1409739036-5091-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1409739036-5091-1-git-send-email-crope@iki.fi>
-References: <1409739036-5091-1-git-send-email-crope@iki.fi>
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:47266 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755277AbaICTfj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:35:39 -0400
+Received: by mail-vc0-f175.google.com with SMTP id lf12so9309620vcb.20
+        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 12:35:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACHYQ-rB7mhiN_bGCPe4mrNLz2QoQ3mBtRhYyk8j+=F33dQWdQ@mail.gmail.com>
+References: <CACHYQ-rtHfVmF4DstxhWe0zWNH3ujjniVBwONBGW3f4Uw=rvkg@mail.gmail.com>
+ <1408129724-17669-1-git-send-email-vpalatin@chromium.org> <CACHYQ-rB7mhiN_bGCPe4mrNLz2QoQ3mBtRhYyk8j+=F33dQWdQ@mail.gmail.com>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Wed, 3 Sep 2014 12:35:18 -0700
+Message-ID: <CAP_ceTznJfoE2CNzU+=Ysnx_pNbmUeggOPCEzysvUP9YnSiGgg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] [media] V4L: Add camera pan/tilt speed controls
+To: Pawel Osciak <posciak@chromium.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use RegMap to cover I2C register routines.
+On Tue, Sep 2, 2014 at 9:54 PM, Pawel Osciak <posciak@chromium.org> wrote:
+> On Sat, Aug 16, 2014 at 4:08 AM, Vincent Palatin <vpalatin@chromium.org> wrote:
+>>
+>> The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
+>> camera by setting its rotation speed around its axis.
+>>
+>> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+>
+> Reviewed-by: Pawel Osciak <posciak@chromium.org>
+>
+>>
+>> ---
+>> Changes from v1:
+>> - update the documentation wording according to Pawel suggestion.
+>>
+>>  Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
+>>  Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+>>  include/uapi/linux/v4l2-controls.h           |  2 ++
+>>  4 files changed, 35 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+>> index eee6f0f..21910e9 100644
+>> --- a/Documentation/DocBook/media/v4l/compat.xml
+>> +++ b/Documentation/DocBook/media/v4l/compat.xml
+>> @@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
+>>        </orderedlist>
+>>      </section>
+>>
+>> +    <section>
+>> +      <title>V4L2 in Linux 3.17</title>
+>
+> This will need a bump.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/Kconfig          |   1 +
- drivers/media/tuners/m88ts2022.c      | 231 ++++++++++------------------------
- drivers/media/tuners/m88ts2022_priv.h |   2 +
- 3 files changed, 69 insertions(+), 165 deletions(-)
+Yes, I did not expect to miss 3.17 window.
+I will send an updated v3 patch.
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index d79fd1c..8319996 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -226,6 +226,7 @@ config MEDIA_TUNER_FC2580
- config MEDIA_TUNER_M88TS2022
- 	tristate "Montage M88TS2022 silicon tuner"
- 	depends on MEDIA_SUPPORT && I2C
-+	select REGMAP_I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Montage M88TS2022 silicon tuner driver.
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 4d7f7e1..9f7ebcf 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -18,120 +18,12 @@
- 
- #include "m88ts2022_priv.h"
- 
--/* write multiple registers */
--static int m88ts2022_wr_regs(struct m88ts2022_dev *dev,
--		u8 reg, const u8 *val, int len)
--{
--#define MAX_WR_LEN 3
--#define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
--	int ret;
--	u8 buf[MAX_WR_XFER_LEN];
--	struct i2c_msg msg[1] = {
--		{
--			.addr = dev->client->addr,
--			.flags = 0,
--			.len = 1 + len,
--			.buf = buf,
--		}
--	};
--
--	if (WARN_ON(len > MAX_WR_LEN))
--		return -EINVAL;
--
--	buf[0] = reg;
--	memcpy(&buf[1], val, len);
--
--	ret = i2c_transfer(dev->client->adapter, msg, 1);
--	if (ret == 1) {
--		ret = 0;
--	} else {
--		dev_warn(&dev->client->dev,
--				"i2c wr failed=%d reg=%02x len=%d\n",
--				ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--
--	return ret;
--}
--
--/* read multiple registers */
--static int m88ts2022_rd_regs(struct m88ts2022_dev *dev, u8 reg,
--		u8 *val, int len)
--{
--#define MAX_RD_LEN 1
--#define MAX_RD_XFER_LEN (MAX_RD_LEN)
--	int ret;
--	u8 buf[MAX_RD_XFER_LEN];
--	struct i2c_msg msg[2] = {
--		{
--			.addr = dev->client->addr,
--			.flags = 0,
--			.len = 1,
--			.buf = &reg,
--		}, {
--			.addr = dev->client->addr,
--			.flags = I2C_M_RD,
--			.len = len,
--			.buf = buf,
--		}
--	};
--
--	if (WARN_ON(len > MAX_RD_LEN))
--		return -EINVAL;
--
--	ret = i2c_transfer(dev->client->adapter, msg, 2);
--	if (ret == 2) {
--		memcpy(val, buf, len);
--		ret = 0;
--	} else {
--		dev_warn(&dev->client->dev,
--				"i2c rd failed=%d reg=%02x len=%d\n",
--				ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--
--	return ret;
--}
--
--/* write single register */
--static int m88ts2022_wr_reg(struct m88ts2022_dev *dev, u8 reg, u8 val)
--{
--	return m88ts2022_wr_regs(dev, reg, &val, 1);
--}
--
--/* read single register */
--static int m88ts2022_rd_reg(struct m88ts2022_dev *dev, u8 reg, u8 *val)
--{
--	return m88ts2022_rd_regs(dev, reg, val, 1);
--}
--
--/* write single register with mask */
--static int m88ts2022_wr_reg_mask(struct m88ts2022_dev *dev,
--		u8 reg, u8 val, u8 mask)
--{
--	int ret;
--	u8 u8tmp;
--
--	/* no need for read if whole reg is written */
--	if (mask != 0xff) {
--		ret = m88ts2022_rd_regs(dev, reg, &u8tmp, 1);
--		if (ret)
--			return ret;
--
--		val &= mask;
--		u8tmp &= ~mask;
--		val |= u8tmp;
--	}
--
--	return m88ts2022_wr_regs(dev, reg, &val, 1);
--}
--
- static int m88ts2022_cmd(struct dvb_frontend *fe,
- 		int op, int sleep, u8 reg, u8 mask, u8 val, u8 *reg_val)
- {
- 	struct m88ts2022_dev *dev = fe->tuner_priv;
- 	int ret, i;
--	u8 u8tmp;
-+	unsigned int utmp;
- 	struct m88ts2022_reg_val reg_vals[] = {
- 		{0x51, 0x1f - op},
- 		{0x51, 0x1f},
-@@ -145,7 +37,7 @@ static int m88ts2022_cmd(struct dvb_frontend *fe,
- 				i, op, reg, mask, val);
- 
- 		for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
--			ret = m88ts2022_wr_reg(dev, reg_vals[i].reg,
-+			ret = regmap_write(dev->regmap, reg_vals[i].reg,
- 					reg_vals[i].val);
- 			if (ret)
- 				goto err;
-@@ -153,16 +45,16 @@ static int m88ts2022_cmd(struct dvb_frontend *fe,
- 
- 		usleep_range(sleep * 1000, sleep * 10000);
- 
--		ret = m88ts2022_rd_reg(dev, reg, &u8tmp);
-+		ret = regmap_read(dev->regmap, reg, &utmp);
- 		if (ret)
- 			goto err;
- 
--		if ((u8tmp & mask) != val)
-+		if ((utmp & mask) != val)
- 			break;
- 	}
- 
- 	if (reg_val)
--		*reg_val = u8tmp;
-+		*reg_val = utmp;
- err:
- 	return ret;
- }
-@@ -172,7 +64,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	struct m88ts2022_dev *dev = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
--	unsigned int frequency_khz, frequency_offset_khz, f_3db_hz;
-+	unsigned int utmp, frequency_khz, frequency_offset_khz, f_3db_hz;
- 	unsigned int f_ref_khz, f_vco_khz, div_ref, div_out, pll_n, gdiv28;
- 	u8 buf[3], u8tmp, cap_code, lpf_gm, lpf_mxdiv, div_max, div_min;
- 	u16 u16tmp;
-@@ -204,7 +96,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 
- 	buf[0] = u8tmp;
- 	buf[1] = 0x40;
--	ret = m88ts2022_wr_regs(dev, 0x10, buf, 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x10, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -223,7 +115,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	buf[0] = (u16tmp >> 8) & 0x3f;
- 	buf[1] = (u16tmp >> 0) & 0xff;
- 	buf[2] = div_ref - 8;
--	ret = m88ts2022_wr_regs(dev, 0x01, buf, 3);
-+	ret = regmap_bulk_write(dev->regmap, 0x01, buf, 3);
- 	if (ret)
- 		goto err;
- 
-@@ -236,17 +128,17 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_rd_reg(dev, 0x14, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x14, &utmp);
- 	if (ret)
- 		goto err;
- 
--	u8tmp &= 0x7f;
--	if (u8tmp < 64) {
--		ret = m88ts2022_wr_reg_mask(dev, 0x10, 0x80, 0x80);
-+	utmp &= 0x7f;
-+	if (utmp < 64) {
-+		ret = regmap_update_bits(dev->regmap, 0x10, 0x80, 0x80);
- 		if (ret)
- 			goto err;
- 
--		ret = m88ts2022_wr_reg(dev, 0x11, 0x6f);
-+		ret = regmap_write(dev->regmap, 0x11, 0x6f);
- 		if (ret)
- 			goto err;
- 
-@@ -255,13 +147,13 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	ret = m88ts2022_rd_reg(dev, 0x14, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x14, &utmp);
- 	if (ret)
- 		goto err;
- 
--	u8tmp &= 0x1f;
--	if (u8tmp > 19) {
--		ret = m88ts2022_wr_reg_mask(dev, 0x10, 0x00, 0x02);
-+	utmp &= 0x1f;
-+	if (utmp > 19) {
-+		ret = regmap_update_bits(dev->regmap, 0x10, 0x02, 0x00);
- 		if (ret)
- 			goto err;
- 	}
-@@ -270,26 +162,26 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x25, 0x00);
-+	ret = regmap_write(dev->regmap, 0x25, 0x00);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x27, 0x70);
-+	ret = regmap_write(dev->regmap, 0x27, 0x70);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x41, 0x09);
-+	ret = regmap_write(dev->regmap, 0x41, 0x09);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x08, 0x0b);
-+	ret = regmap_write(dev->regmap, 0x08, 0x0b);
- 	if (ret)
- 		goto err;
- 
- 	/* filters */
- 	gdiv28 = DIV_ROUND_CLOSEST(f_ref_khz * 1694U, 1000000U);
- 
--	ret = m88ts2022_wr_reg(dev, 0x04, gdiv28);
-+	ret = regmap_write(dev->regmap, 0x04, gdiv28);
- 	if (ret)
- 		goto err;
- 
-@@ -299,7 +191,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 
- 	cap_code = u8tmp & 0x3f;
- 
--	ret = m88ts2022_wr_reg(dev, 0x41, 0x0d);
-+	ret = regmap_write(dev->regmap, 0x41, 0x0d);
- 	if (ret)
- 		goto err;
- 
-@@ -327,11 +219,11 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 		lpf_mxdiv = DIV_ROUND_CLOSEST(++lpf_gm * LPF_COEFF * f_ref_khz, f_3db_hz);
- 	lpf_mxdiv = clamp_val(lpf_mxdiv, 0U, div_max);
- 
--	ret = m88ts2022_wr_reg(dev, 0x04, lpf_mxdiv);
-+	ret = regmap_write(dev->regmap, 0x04, lpf_mxdiv);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x06, lpf_gm);
-+	ret = regmap_write(dev->regmap, 0x06, lpf_gm);
- 	if (ret)
- 		goto err;
- 
-@@ -341,7 +233,7 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 
- 	cap_code = u8tmp & 0x3f;
- 
--	ret = m88ts2022_wr_reg(dev, 0x41, 0x09);
-+	ret = regmap_write(dev->regmap, 0x41, 0x09);
- 	if (ret)
- 		goto err;
- 
-@@ -353,15 +245,15 @@ static int m88ts2022_set_params(struct dvb_frontend *fe)
- 	cap_code = (cap_code + u8tmp) / 2;
- 
- 	u8tmp = cap_code | 0x80;
--	ret = m88ts2022_wr_reg(dev, 0x25, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x25, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x27, 0x30);
-+	ret = regmap_write(dev->regmap, 0x27, 0x30);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x08, 0x09);
-+	ret = regmap_write(dev->regmap, 0x08, 0x09);
- 	if (ret)
- 		goto err;
- 
-@@ -396,11 +288,11 @@ static int m88ts2022_init(struct dvb_frontend *fe)
- 
- 	dev_dbg(&dev->client->dev, "\n");
- 
--	ret = m88ts2022_wr_reg(dev, 0x00, 0x01);
-+	ret = regmap_write(dev->regmap, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ts2022_wr_reg(dev, 0x00, 0x03);
-+	ret = regmap_write(dev->regmap, 0x00, 0x03);
- 	if (ret)
- 		goto err;
- 
-@@ -410,7 +302,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
- 		break;
- 	case M88TS2022_CLOCK_OUT_ENABLED:
- 		u8tmp = 0x70;
--		ret = m88ts2022_wr_reg(dev, 0x05, dev->cfg.clock_out_div);
-+		ret = regmap_write(dev->regmap, 0x05, dev->cfg.clock_out_div);
- 		if (ret)
- 			goto err;
- 		break;
-@@ -421,7 +313,7 @@ static int m88ts2022_init(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = m88ts2022_wr_reg(dev, 0x42, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x42, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -430,12 +322,12 @@ static int m88ts2022_init(struct dvb_frontend *fe)
- 	else
- 		u8tmp = 0x6c;
- 
--	ret = m88ts2022_wr_reg(dev, 0x62, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x62, u8tmp);
- 	if (ret)
- 		goto err;
- 
- 	for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
--		ret = m88ts2022_wr_reg(dev, reg_vals[i].reg, reg_vals[i].val);
-+		ret = regmap_write(dev->regmap, reg_vals[i].reg, reg_vals[i].val);
- 		if (ret)
- 			goto err;
- 	}
-@@ -452,7 +344,7 @@ static int m88ts2022_sleep(struct dvb_frontend *fe)
- 
- 	dev_dbg(&dev->client->dev, "\n");
- 
--	ret = m88ts2022_wr_reg(dev, 0x00, 0x00);
-+	ret = regmap_write(dev->regmap, 0x00, 0x00);
- 	if (ret)
- 		goto err;
- err:
-@@ -485,29 +377,28 @@ static int m88ts2022_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct m88ts2022_dev *dev = fe->tuner_priv;
- 	int ret;
--	u8 u8tmp;
- 	u16 gain, u16tmp;
--	unsigned int gain1, gain2, gain3;
-+	unsigned int utmp, gain1, gain2, gain3;
- 
--	ret = m88ts2022_rd_reg(dev, 0x3d, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x3d, &utmp);
- 	if (ret)
- 		goto err;
- 
--	gain1 = (u8tmp >> 0) & 0x1f;
-+	gain1 = (utmp >> 0) & 0x1f;
- 	gain1 = clamp(gain1, 0U, 15U);
- 
--	ret = m88ts2022_rd_reg(dev, 0x21, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x21, &utmp);
- 	if (ret)
- 		goto err;
- 
--	gain2 = (u8tmp >> 0) & 0x1f;
-+	gain2 = (utmp >> 0) & 0x1f;
- 	gain2 = clamp(gain2, 2U, 16U);
- 
--	ret = m88ts2022_rd_reg(dev, 0x66, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x66, &utmp);
- 	if (ret)
- 		goto err;
- 
--	gain3 = (u8tmp >> 3) & 0x07;
-+	gain3 = (utmp >> 3) & 0x07;
- 	gain3 = clamp(gain3, 0U, 6U);
- 
- 	gain = gain1 * 265 + gain2 * 338 + gain3 * 285;
-@@ -546,7 +437,12 @@ static int m88ts2022_probe(struct i2c_client *client,
- 	struct dvb_frontend *fe = cfg->fe;
- 	struct m88ts2022_dev *dev;
- 	int ret;
--	u8 chip_id, u8tmp;
-+	u8 u8tmp;
-+	unsigned int utmp;
-+	static const struct regmap_config regmap_config = {
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+	};
- 
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev) {
-@@ -557,33 +453,38 @@ static int m88ts2022_probe(struct i2c_client *client,
- 
- 	memcpy(&dev->cfg, cfg, sizeof(struct m88ts2022_config));
- 	dev->client = client;
-+	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
-+	if (IS_ERR(dev->regmap)) {
-+		ret = PTR_ERR(dev->regmap);
-+		goto err;
-+	}
- 
- 	/* check if the tuner is there */
--	ret = m88ts2022_rd_reg(dev, 0x00, &u8tmp);
-+	ret = regmap_read(dev->regmap, 0x00, &utmp);
- 	if (ret)
- 		goto err;
- 
--	if ((u8tmp & 0x03) == 0x00) {
--		ret = m88ts2022_wr_reg(dev, 0x00, 0x01);
--		if (ret < 0)
-+	if ((utmp & 0x03) == 0x00) {
-+		ret = regmap_write(dev->regmap, 0x00, 0x01);
-+		if (ret)
- 			goto err;
- 
- 		usleep_range(2000, 50000);
- 	}
- 
--	ret = m88ts2022_wr_reg(dev, 0x00, 0x03);
-+	ret = regmap_write(dev->regmap, 0x00, 0x03);
- 	if (ret)
- 		goto err;
- 
- 	usleep_range(2000, 50000);
- 
--	ret = m88ts2022_rd_reg(dev, 0x00, &chip_id);
-+	ret = regmap_read(dev->regmap, 0x00, &utmp);
- 	if (ret)
- 		goto err;
- 
--	dev_dbg(&dev->client->dev, "chip_id=%02x\n", chip_id);
-+	dev_dbg(&dev->client->dev, "chip_id=%02x\n", utmp);
- 
--	switch (chip_id) {
-+	switch (utmp) {
- 	case 0xc3:
- 	case 0x83:
- 		break;
-@@ -597,7 +498,7 @@ static int m88ts2022_probe(struct i2c_client *client,
- 		break;
- 	case M88TS2022_CLOCK_OUT_ENABLED:
- 		u8tmp = 0x70;
--		ret = m88ts2022_wr_reg(dev, 0x05, dev->cfg.clock_out_div);
-+		ret = regmap_write(dev->regmap, 0x05, dev->cfg.clock_out_div);
- 		if (ret)
- 			goto err;
- 		break;
-@@ -608,7 +509,7 @@ static int m88ts2022_probe(struct i2c_client *client,
- 		goto err;
- 	}
- 
--	ret = m88ts2022_wr_reg(dev, 0x42, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x42, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -617,12 +518,12 @@ static int m88ts2022_probe(struct i2c_client *client,
- 	else
- 		u8tmp = 0x6c;
- 
--	ret = m88ts2022_wr_reg(dev, 0x62, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x62, u8tmp);
- 	if (ret)
- 		goto err;
- 
- 	/* sleep */
--	ret = m88ts2022_wr_reg(dev, 0x00, 0x00);
-+	ret = regmap_write(dev->regmap, 0x00, 0x00);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/tuners/m88ts2022_priv.h b/drivers/media/tuners/m88ts2022_priv.h
-index e7f6c91..56c1071 100644
---- a/drivers/media/tuners/m88ts2022_priv.h
-+++ b/drivers/media/tuners/m88ts2022_priv.h
-@@ -18,10 +18,12 @@
- #define M88TS2022_PRIV_H
- 
- #include "m88ts2022.h"
-+#include <linux/regmap.h>
- 
- struct m88ts2022_dev {
- 	struct m88ts2022_config cfg;
- 	struct i2c_client *client;
-+	struct regmap *regmap;
- 	struct dvb_frontend *fe;
- 	u32 frequency_khz;
- };
--- 
-http://palosaari.fi/
-
+>>
+>> +      <orderedlist>
+>> +       <listitem>
+>> +         <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
+>> + <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
+>> +       </listitem>
+>> +      </orderedlist>
+>> +    </section>
+>> +
+>>      <section id="other">
+>>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index 47198ee..be88e64 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -3914,6 +3914,27 @@ by exposure, white balance or focus controls.</entry>
+>>           </row>
+>>           <row><entry></entry></row>
+>>
+>> +         <row>
+>> +           <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
+>> +           <entry>integer</entry>
+>> +         </row><row><entry spanname="descr">This control turns the
+>> +camera horizontally at the specific speed. The unit is undefined. A
+>> +positive value moves the camera to the right (clockwise when viewed
+>> +from above), a negative value to the left. A value of zero stops the motion
+>> +if one is in progress and has no effect otherwise.</entry>
+>> +         </row>
+>> +         <row><entry></entry></row>
+>> +
+>> +         <row>
+>> +           <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
+>> +           <entry>integer</entry>
+>> +         </row><row><entry spanname="descr">This control turns the
+>> +camera vertically at the specified speed. The unit is undefined. A
+>> +positive value moves the camera up, a negative value down. A value of zero
+>> +stops the motion if one is in progress and has no effect otherwise.</entry>
+>> +         </row>
+>> +         <row><entry></entry></row>
+>> +
+>>         </tbody>
+>>        </tgroup>
+>>      </table>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 55c6832..57ddaf4 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -787,6 +787,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>         case V4L2_CID_AUTO_FOCUS_STOP:          return "Auto Focus, Stop";
+>>         case V4L2_CID_AUTO_FOCUS_STATUS:        return "Auto Focus, Status";
+>>         case V4L2_CID_AUTO_FOCUS_RANGE:         return "Auto Focus, Range";
+>> +       case V4L2_CID_PAN_SPEED:                return "Pan, Speed";
+>> +       case V4L2_CID_TILT_SPEED:               return "Tilt, Speed";
+>>
+>>         /* FM Radio Modulator control */
+>>         /* Keep the order of the 'case's the same as in videodev2.h! */
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index 2ac5597..5576044 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -745,6 +745,8 @@ enum v4l2_auto_focus_range {
+>>         V4L2_AUTO_FOCUS_RANGE_INFINITY          = 3,
+>>  };
+>>
+>> +#define V4L2_CID_PAN_SPEED                     (V4L2_CID_CAMERA_CLASS_BASE+32)
+>> +#define V4L2_CID_TILT_SPEED                    (V4L2_CID_CAMERA_CLASS_BASE+33)
+>>
+>>  /* FM Modulator class control IDs */
+>>
+>> --
+>> 2.1.0.rc2.206.gedb03e5
+>>
