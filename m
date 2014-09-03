@@ -1,99 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48347 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752889AbaI2IQi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 04:16:38 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 5/8] of: Add of_graph_get_port_by_id function
-Date: Mon, 29 Sep 2014 10:15:48 +0200
-Message-Id: <1411978551-30480-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
-References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:44297 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755993AbaICUd2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:28 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 14/46] [media] af9013: use true/false for boolean vars
+Date: Wed,  3 Sep 2014 17:32:46 -0300
+Message-Id: <a602b829a8aa7dd1073307ef6db3995e64e56622.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to get a port device tree node by port id,
-or reg property value.
+Instead of using 0 or 1 for boolean, use the true/false
+defines.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/of/base.c        | 26 ++++++++++++++++++++++++++
- include/linux/of_graph.h |  7 +++++++
- 2 files changed, 33 insertions(+)
+Also, instead of testing foo == false, just use the
+simplified notation if(!foo).
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index a49b5628..76e2651 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2053,6 +2053,32 @@ int of_graph_parse_endpoint(const struct device_node *node,
- EXPORT_SYMBOL(of_graph_parse_endpoint);
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index fdbed35c87fa..eb737cf29a36 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -936,7 +936,7 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
+ 	if (ret != 1)
+ 		goto err;
  
- /**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id)
-+{
-+	struct device_node *port;
-+
-+	for_each_child_of_node(node, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			return port;
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-  * of_graph_get_next_endpoint() - get next endpoint node
-  * @parent: pointer to the parent device node
-  * @prev: previous endpoint node, or NULL to get first
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index e43442e..3c1c95a 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -40,6 +40,7 @@ struct of_endpoint {
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
+-	priv->i2c_gate_state = 0;
++	priv->i2c_gate_state = false;
  
-+static inline struct device_node *of_graph_get_port_by_id(
-+					struct device_node *node, u32 id)
-+{
-+	return NULL;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
+ 	return;
+ err:
+diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+index 023e0f49c786..5bcf48bb4a71 100644
+--- a/drivers/media/dvb-frontends/rtl2832_sdr.c
++++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+@@ -1432,7 +1432,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	s->pixelformat = formats[0].pixelformat;
+ 	s->buffersize = formats[0].buffersize;
+ 	s->num_formats = NUM_FORMATS;
+-	if (rtl2832_sdr_emulated_fmt == false)
++	if (!rtl2832_sdr_emulated_fmt)
+ 		s->num_formats -= 1;
+ 
+ 	mutex_init(&s->v4l2_lock);
 -- 
-2.1.0
+1.9.3
 
