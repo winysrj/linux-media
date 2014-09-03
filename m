@@ -1,65 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:40702 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524AbaIVPXc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:23:32 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v6 6/6] DT: Add documentation for the Skyworks AAT1290
-Date: Mon, 22 Sep 2014 17:22:56 +0200
-Message-id: <1411399376-16497-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
-References: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4423 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbaICGme (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 02:42:34 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s836gU3D083850
+	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 08:42:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 66DE12A075A
+	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 08:42:26 +0200 (CEST)
+Message-ID: <5406B852.2020000@xs4all.nl>
+Date: Wed, 03 Sep 2014 08:42:26 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Add driver for tw68xx PCI grabber boards
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-1.5A Step-Up Current Regulator for Flash LEDs.
+Hi Mauro,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+As requested, this is the same tw68 driver, but it first adds the original tw68
+sources from the gitorious repository.
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-new file mode 100644
-index 0000000..9a9ad15
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -0,0 +1,17 @@
-+* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
-+
-+Required properties:
-+
-+- compatible : should be "skyworks,aat1290"
-+- gpios : two gpio pins in order FLEN, EN/SET
-+- skyworks,flash-timeout : maximum flash timeout in microseconds -
-+			   it can be calculated using following formula:
-+			   T = 8.82 * 10^9 * Ct
-+
-+Example:
-+
-+flash_led: flash-led {
-+	compatible = "skyworks,aat1290";
-+	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
-+	flash-timeout = <1940000>;
-+}
--- 
-1.7.9.5
+I still disagree with this, I would think that it would be sufficient if the
+commit log would state that you checked the original sources and that they were
+all GPL. In my view this pollutes the kernel git repository. But it's your call
+whether to take my original tw68 pull request or to take this one.
 
+Regards,
+
+	Hans
+
+The following changes since commit 6c1c423a54b5b3a6c9c9561c7ef32aee0fda7253:
+
+  [media] vivid: comment the unused g_edid/s_edid functions (2014-09-02 18:01:05 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tw68b
+
+for you to fetch changes up to 0d96a1b6e48d0eec6a8880c825c1d6e16396c280:
+
+  MAINTAINERS: add tw68 entry (2014-09-03 08:37:23 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      tw68: add original tw68 code
+      tw68: refactor and cleanup the tw68 driver
+      MAINTAINERS: add tw68 entry
+
+ MAINTAINERS                         |    8 +
+ drivers/media/pci/Kconfig           |    1 +
+ drivers/media/pci/Makefile          |    1 +
+ drivers/media/pci/tw68/Kconfig      |   10 +
+ drivers/media/pci/tw68/Makefile     |    3 +
+ drivers/media/pci/tw68/tw68-core.c  |  434 ++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw68/tw68-reg.h   |  195 ++++++++++++++++
+ drivers/media/pci/tw68/tw68-risc.c  |  230 +++++++++++++++++++
+ drivers/media/pci/tw68/tw68-video.c | 1060 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw68/tw68.h       |  231 +++++++++++++++++++
+ 10 files changed, 2173 insertions(+)
+ create mode 100644 drivers/media/pci/tw68/Kconfig
+ create mode 100644 drivers/media/pci/tw68/Makefile
+ create mode 100644 drivers/media/pci/tw68/tw68-core.c
+ create mode 100644 drivers/media/pci/tw68/tw68-reg.h
+ create mode 100644 drivers/media/pci/tw68/tw68-risc.c
+ create mode 100644 drivers/media/pci/tw68/tw68-video.c
+ create mode 100644 drivers/media/pci/tw68/tw68.h
