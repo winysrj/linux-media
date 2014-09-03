@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44383 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:44421 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756085AbaICUda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:30 -0400
+	with ESMTP id S1756172AbaICUdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:31 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/46] [media] cxd2820r: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:44 -0300
-Message-Id: <949380544727964a3f8a297f83209aefd5d7773e.1409775488.git.m.chehab@samsung.com>
+Subject: [PATCH 13/46] [media] m88ds3103: use true/false for boolean vars
+Date: Wed,  3 Sep 2014 17:32:45 -0300
+Message-Id: <f41a36df0436e3724c194531ce6b5d6c775b1666.1409775488.git.m.chehab@samsung.com>
 In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
 References: <cover.1409775488.git.m.chehab@samsung.com>
 In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
@@ -24,67 +24,33 @@ defines.
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c b/drivers/media/dvb-frontends/cxd2820r_c.c
-index 0f4657e01cde..149fdca3fb44 100644
---- a/drivers/media/dvb-frontends/cxd2820r_c.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_c.c
-@@ -65,7 +65,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
- 	}
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 6eae2c619843..81657e94c5a4 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1063,16 +1063,16 @@ static int m88ds3103_set_voltage(struct dvb_frontend *fe,
  
- 	priv->delivery_system = SYS_DVBC_ANNEX_A;
--	priv->ber_running = 0; /* tune stops BER counter */
-+	priv->ber_running = false; /* tune stops BER counter */
- 
- 	/* program IF frequency */
- 	if (fe->ops.tuner_ops.get_if_frequency) {
-@@ -168,7 +168,7 @@ int cxd2820r_read_ber_c(struct dvb_frontend *fe, u32 *ber)
- 			start_ber = 1;
- 		}
- 	} else {
--		priv->ber_running = 1;
-+		priv->ber_running = true;
- 		start_ber = 1;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
-index 03930d5e9fea..cd2af3edbd04 100644
---- a/drivers/media/dvb-frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_core.c
-@@ -564,10 +564,10 @@ static enum dvbfe_search cxd2820r_search(struct dvb_frontend *fe)
- 
- 	/* check if we have a valid signal */
- 	if (status & FE_HAS_LOCK) {
--		priv->last_tune_failed = 0;
-+		priv->last_tune_failed = false;
- 		return DVBFE_ALGO_SEARCH_SUCCESS;
- 	} else {
--		priv->last_tune_failed = 1;
-+		priv->last_tune_failed = true;
- 		return DVBFE_ALGO_SEARCH_AGAIN;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/cxd2820r_t.c b/drivers/media/dvb-frontends/cxd2820r_t.c
-index 9b5a45b907bc..51401d036530 100644
---- a/drivers/media/dvb-frontends/cxd2820r_t.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_t.c
-@@ -89,7 +89,7 @@ int cxd2820r_set_frontend_t(struct dvb_frontend *fe)
- 	}
- 
- 	priv->delivery_system = SYS_DVBT;
--	priv->ber_running = 0; /* tune stops BER counter */
-+	priv->ber_running = false; /* tune stops BER counter */
- 
- 	/* program IF frequency */
- 	if (fe->ops.tuner_ops.get_if_frequency) {
-@@ -272,7 +272,7 @@ int cxd2820r_read_ber_t(struct dvb_frontend *fe, u32 *ber)
- 			start_ber = 1;
- 		}
- 	} else {
--		priv->ber_running = 1;
-+		priv->ber_running = true;
- 		start_ber = 1;
- 	}
- 
+ 	switch (fe_sec_voltage) {
+ 	case SEC_VOLTAGE_18:
+-		voltage_sel = 1;
+-		voltage_dis = 0;
++		voltage_sel = true;
++		voltage_dis = false;
+ 		break;
+ 	case SEC_VOLTAGE_13:
+-		voltage_sel = 0;
+-		voltage_dis = 0;
++		voltage_sel = false;
++		voltage_dis = false;
+ 		break;
+ 	case SEC_VOLTAGE_OFF:
+-		voltage_sel = 0;
+-		voltage_dis = 1;
++		voltage_sel = false;
++		voltage_dis = true;
+ 		break;
+ 	default:
+ 		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
 -- 
 1.9.3
 
