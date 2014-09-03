@@ -1,556 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3903 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036AbaIHOPM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/12] vb2: replace 'write' by 'dma_dir'
-Date: Mon,  8 Sep 2014 16:14:38 +0200
-Message-Id: <1410185681-20111-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:47379 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756128AbaICMRm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 08:17:42 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBB003DGRHHC930@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 08:17:42 -0400 (EDT)
+Date: Wed, 03 Sep 2014 09:17:37 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 15/20] cx23885: convert to vb2
+Message-id: <20140903091737.7046c718.m.chehab@samsung.com>
+In-reply-to: <54070228.2000007@cisco.com>
+References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
+ <1408010045-24016-16-git-send-email-hverkuil@xs4all.nl>
+ <20140903083251.5c5f286c.m.chehab@samsung.com> <54070228.2000007@cisco.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 03 Sep 2014 13:57:28 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-The 'write' argument is very ambiguous. I first assumed that if it is 1,
-then we're doing video output but instead it meant the reverse.
+> Hi Mauro,
+> 
+> On 09/03/14 13:32, Mauro Carvalho Chehab wrote:
+> > Em Thu, 14 Aug 2014 11:54:00 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> As usual, this patch is very large due to the fact that half a vb2 conversion
+> >> isn't possible. And since this affects 417, alsa, core, dvb, vbi and video the
+> >> changes are all over.
+> >>
+> >> What made this more difficult was the peculiar way the risc program was setup.
+> >> The driver allowed for running out of buffers in which case the DMA would stop
+> >> and restart when the next buffer was queued. There was also a complicated
+> >> timeout system for when buffers weren't filled. This was replaced by a much
+> >> simpler scheme where there is always one buffer around and the DMA will just
+> >> cycle that buffer until a new buffer is queued. In that case the previous
+> >> buffer will be chained to the new buffer. An interrupt is generated at the
+> >> start of the new buffer telling the driver that the previous buffer can be
+> >> passed on to userspace.
+> >>
+> >> Much simpler and more robust. The old code seems to be copied from the
+> >> cx88 driver. But it didn't fit the vb2 ops very well and replacing it with
+> >> the new scheme made the code easier to understand. Not to mention that this
+> >> patch removes 600 lines of code.
+> > 
+> > Great job!
+> 
+> Thank you.
+> 
+> > Still, there are some issue. In special, the RISC changes should go
+> > to a separate patch, as such changes have the potential of causing
+> > some regressions. See below.
+> 
+> I tried (I mentioned that in my git pull request), but I was not able
+> to separate the two. I couldn't make the risc changes to work with vb1,
+> and the reverse would be equally painful. Not only that, but I would
+> have to test this twice (once with just the risc changes or vb2 changes,
+> and again when both are in place).
+> 
+> I can try to do the vb2 conversion first and the risc changes second, but
+> this too might be too complicated to get to work.
 
-Since it is used to setup the dma_dir value anyway it is now replaced by
-the correct dma_dir value which is unambiguous.
+Ok. Then, just split that VBI fixup on a separate patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 15 +++++----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 46 ++++++++++++++------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 46 ++++++++++++--------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 20 ++++++-----
- include/media/videobuf2-core.h                 | 11 +++---
- 5 files changed, 73 insertions(+), 65 deletions(-)
+Regards,
+Mauro
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 1cb3423..01bab25 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,7 +189,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	void *mem_priv;
- 	int plane;
- 
-@@ -201,7 +202,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
- 
- 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
--				      size, write, q->gfp_flags);
-+				      size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
- 
-@@ -1395,7 +1396,8 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1437,7 +1439,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
- 				      planes[plane].m.userptr,
--				      planes[plane].length, write);
-+				      planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1497,7 +1499,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1545,7 +1548,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
--			dbuf, planes[plane].length, write);
-+			dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index ca870aa..89360bd 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -156,8 +156,8 @@ static void vb2_dc_put(void *buf_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
--			  gfp_t gfp_flags)
-+static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
-+			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct device *dev = conf->dev;
-@@ -178,7 +178,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dc_put;
-@@ -232,7 +232,7 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 
- struct vb2_dc_attachment {
- 	struct sg_table sgt;
--	enum dma_data_direction dir;
-+	enum dma_data_direction dma_dir;
- };
- 
- static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-@@ -267,7 +267,7 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
- 		wr = sg_next(wr);
- 	}
- 
--	attach->dir = DMA_NONE;
-+	attach->dma_dir = DMA_NONE;
- 	dbuf_attach->priv = attach;
- 
- 	return 0;
-@@ -285,16 +285,16 @@ static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
- 	sgt = &attach->sgt;
- 
- 	/* release the scatterlist cache */
--	if (attach->dir != DMA_NONE)
-+	if (attach->dma_dir != DMA_NONE)
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
-+			attach->dma_dir);
- 	sg_free_table(sgt);
- 	kfree(attach);
- 	db_attach->priv = NULL;
- }
- 
- static struct sg_table *vb2_dc_dmabuf_ops_map(
--	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_attachment *attach = db_attach->priv;
- 	/* stealing dmabuf mutex to serialize map/unmap operations */
-@@ -306,27 +306,27 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- 
- 	sgt = &attach->sgt;
- 	/* return previously mapped sg table */
--	if (attach->dir == dir) {
-+	if (attach->dma_dir == dma_dir) {
- 		mutex_unlock(lock);
- 		return sgt;
- 	}
- 
- 	/* release any previous cache */
--	if (attach->dir != DMA_NONE) {
-+	if (attach->dma_dir != DMA_NONE) {
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
--		attach->dir = DMA_NONE;
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
- 	}
- 
- 	/* mapping to the client with new direction */
--	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
- 	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		mutex_unlock(lock);
- 		return ERR_PTR(-EIO);
- 	}
- 
--	attach->dir = dir;
-+	attach->dma_dir = dma_dir;
- 
- 	mutex_unlock(lock);
- 
-@@ -334,7 +334,7 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- }
- 
- static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
--	struct sg_table *sgt, enum dma_data_direction dir)
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
- {
- 	/* nothing to be done here */
- }
-@@ -463,7 +463,8 @@ static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
- }
- 
- static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
--	int n_pages, struct vm_area_struct *vma, int write)
-+	int n_pages, struct vm_area_struct *vma,
-+	enum dma_data_direction dma_dir)
- {
- 	if (vma_is_io(vma)) {
- 		unsigned int i;
-@@ -485,7 +486,7 @@ static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
- 		int n;
- 
- 		n = get_user_pages(current, current->mm, start & PAGE_MASK,
--			n_pages, write, 1, pages, NULL);
-+			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
- 		/* negative error means that no page was pinned */
- 		n = max(n, 0);
- 		if (n != n_pages) {
-@@ -554,7 +555,7 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
- #endif
- 
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-@@ -585,7 +586,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		return ERR_PTR(-ENOMEM);
- 
- 	buf->dev = conf->dev;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 
- 	start = vaddr & PAGE_MASK;
- 	offset = vaddr & ~PAGE_MASK;
-@@ -621,7 +622,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	}
- 
- 	/* extract page list from userspace mapping */
--	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
-+	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma,
-+				    dma_dir == DMA_FROM_DEVICE);
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-@@ -785,7 +787,7 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-@@ -807,7 +809,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return dba;
- 	}
- 
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 	buf->db_attach = dba;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index b494b49..bba8446 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,7 +38,6 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
--	int				write;
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -96,8 +95,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 	return 0;
- }
- 
--static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
--			      gfp_t gfp_flags)
-+static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
-+			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -111,12 +110,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->write = write;
- 	buf->offset = 0;
- 	buf->size = size;
- 	/* size is already page aligned */
- 	buf->num_pages = size >> PAGE_SHIFT;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->dma_sgt = &buf->sg_table;
- 
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
-@@ -205,7 +203,8 @@ static inline int vma_is_io(struct vm_area_struct *vma)
- }
- 
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
--				    unsigned long size, int write)
-+				    unsigned long size,
-+				    enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -218,10 +217,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->write = write;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->dma_sgt = &buf->sg_table;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
-@@ -267,7 +265,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		num_pages_from_user = get_user_pages(current, current->mm,
- 					     vaddr & PAGE_MASK,
- 					     buf->num_pages,
--					     write,
-+					     buf->dma_dir == DMA_FROM_DEVICE,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-@@ -313,7 +311,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
- 	sg_free_table(buf->dma_sgt);
- 	while (--i >= 0) {
--		if (buf->write)
-+		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
- 		if (!vma_is_io(buf->vma))
- 			put_page(buf->pages[i]);
-@@ -390,7 +388,7 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- 
- struct vb2_dma_sg_attachment {
- 	struct sg_table sgt;
--	enum dma_data_direction dir;
-+	enum dma_data_direction dma_dir;
- };
- 
- static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-@@ -425,7 +423,7 @@ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev
- 		wr = sg_next(wr);
- 	}
- 
--	attach->dir = DMA_NONE;
-+	attach->dma_dir = DMA_NONE;
- 	dbuf_attach->priv = attach;
- 
- 	return 0;
-@@ -443,16 +441,16 @@ static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
- 	sgt = &attach->sgt;
- 
- 	/* release the scatterlist cache */
--	if (attach->dir != DMA_NONE)
-+	if (attach->dma_dir != DMA_NONE)
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
-+			attach->dma_dir);
- 	sg_free_table(sgt);
- 	kfree(attach);
- 	db_attach->priv = NULL;
- }
- 
- static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
--	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_attachment *attach = db_attach->priv;
- 	/* stealing dmabuf mutex to serialize map/unmap operations */
-@@ -464,27 +462,27 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
- 
- 	sgt = &attach->sgt;
- 	/* return previously mapped sg table */
--	if (attach->dir == dir) {
-+	if (attach->dma_dir == dma_dir) {
- 		mutex_unlock(lock);
- 		return sgt;
- 	}
- 
- 	/* release any previous cache */
--	if (attach->dir != DMA_NONE) {
-+	if (attach->dma_dir != DMA_NONE) {
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
--		attach->dir = DMA_NONE;
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
- 	}
- 
- 	/* mapping to the client with new direction */
--	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
- 	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		mutex_unlock(lock);
- 		return ERR_PTR(-EIO);
- 	}
- 
--	attach->dir = dir;
-+	attach->dma_dir = dma_dir;
- 
- 	mutex_unlock(lock);
- 
-@@ -492,7 +490,7 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
- }
- 
- static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
--	struct sg_table *sgt, enum dma_data_direction dir)
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
- {
- 	/* nothing to be done here */
- }
-@@ -617,7 +615,7 @@ static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -639,7 +637,7 @@ static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return dba;
- 	}
- 
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 	buf->db_attach = dba;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 437fbcd..0f79f8d 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -25,7 +25,7 @@ struct vb2_vmalloc_buf {
- 	void				*vaddr;
- 	struct page			**pages;
- 	struct vm_area_struct		*vma;
--	int				write;
-+	enum dma_data_direction		dma_dir;
- 	unsigned long			size;
- 	unsigned int			n_pages;
- 	atomic_t			refcount;
-@@ -38,8 +38,8 @@ struct vb2_vmalloc_buf {
- 
- static void vb2_vmalloc_put(void *buf_priv);
- 
--static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
--			       gfp_t gfp_flags)
-+static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
-+			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-@@ -74,7 +74,8 @@ static void vb2_vmalloc_put(void *buf_priv)
- }
- 
- static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--				     unsigned long size, int write)
-+				     unsigned long size,
-+				     enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
- 	unsigned long first, last;
-@@ -86,7 +87,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf)
- 		return NULL;
- 
--	buf->write = write;
-+	buf->dma_dir = dma_dir;
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
-@@ -111,7 +112,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		/* current->mm->mmap_sem is taken by videobuf2 core */
- 		n_pages = get_user_pages(current, current->mm,
- 					 vaddr & PAGE_MASK, buf->n_pages,
--					 write, 1, /* force */
-+					 dma_dir == DMA_FROM_DEVICE,
-+					 1, /* force */
- 					 buf->pages, NULL);
- 		if (n_pages != buf->n_pages)
- 			goto fail_get_user_pages;
-@@ -148,7 +150,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 		if (vaddr)
- 			vm_unmap_ram((void *)vaddr, buf->n_pages);
- 		for (i = 0; i < buf->n_pages; ++i) {
--			if (buf->write)
-+			if (buf->dma_dir == DMA_FROM_DEVICE)
- 				set_page_dirty_lock(buf->pages[i]);
- 			put_page(buf->pages[i]);
- 		}
-@@ -414,7 +416,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-@@ -426,7 +428,7 @@ static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return ERR_PTR(-ENOMEM);
- 
- 	buf->dbuf = dbuf;
--	buf->write = write;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 
- 	return buf;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 0ac65a6..bf8bde2 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -82,20 +82,23 @@ struct vb2_threadio_data;
-  *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
--	void		*(*alloc)(void *alloc_ctx, unsigned long size, int write,
--				  gfp_t gfp_flags);
-+	void		*(*alloc)(void *alloc_ctx, unsigned long size,
-+				enum dma_data_direction dma_dir,
-+				gfp_t gfp_flags);
- 	void		(*put)(void *buf_priv);
- 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
--					unsigned long size, int write);
-+					unsigned long size,
-+					enum dma_data_direction dma_dir);
- 	void		(*put_userptr)(void *buf_priv);
- 
- 	int		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
--				unsigned long size, int write);
-+					  unsigned long size,
-+					  enum dma_data_direction dma_dir);
- 	void		(*detach_dmabuf)(void *buf_priv);
- 	int		(*map_dmabuf)(void *buf_priv);
- 	void		(*unmap_dmabuf)(void *buf_priv);
--- 
-2.1.0
-
+> 
+> <snip>
+> 
+> >> @@ -1320,7 +1373,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> >>  				struct v4l2_format *f)
+> >>  {
+> >>  	struct cx23885_dev *dev = video_drvdata(file);
+> >> -	struct cx23885_fh  *fh  = file->private_data;
+> >>  
+> >>  	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
+> >>  	f->fmt.pix.bytesperline = 0;
+> >> @@ -1329,9 +1381,9 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> >>  	f->fmt.pix.colorspace   = 0;
+> >>  	f->fmt.pix.width        = dev->ts1.width;
+> >>  	f->fmt.pix.height       = dev->ts1.height;
+> >> -	f->fmt.pix.field        = fh->mpegq.field;
+> >> -	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
+> >> -		dev->ts1.width, dev->ts1.height, fh->mpegq.field);
+> >> +	f->fmt.pix.field        = V4L2_FIELD_INTERLACED;
+> > 
+> > Why? There are other supported formats, right?
+> 
+> Not for the compressed video node. Only MPEG is supported there.
+> 
+> > 
+> >> +	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d\n",
+> >> +		dev->ts1.width, dev->ts1.height);
+> >>  	return 0;
+> >>  }
+> >>  
+> >> @@ -1339,15 +1391,15 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> >>  				struct v4l2_format *f)
+> >>  {
+> >>  	struct cx23885_dev *dev = video_drvdata(file);
+> >> -	struct cx23885_fh  *fh  = file->private_data;
+> >>  
+> >>  	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
+> >>  	f->fmt.pix.bytesperline = 0;
+> >>  	f->fmt.pix.sizeimage    =
+> >>  		dev->ts1.ts_packet_size * dev->ts1.ts_packet_count;
+> >>  	f->fmt.pix.colorspace   = 0;
+> >> -	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
+> >> -		dev->ts1.width, dev->ts1.height, fh->mpegq.field);
+> >> +	f->fmt.pix.field        = V4L2_FIELD_INTERLACED;
+> > 
+> > Why? There are other supported formats, right?
+> 
+> Ditto.
+> 
+> > 
+> >> +	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d\n",
+> >> +		dev->ts1.width, dev->ts1.height);
+> >>  	return 0;
+> >>  }
+> >>  
+> 
+> <snip>
+> 
+> >>  
+> >>  int cx23885_sram_channel_setup(struct cx23885_dev *dev,
+> >> @@ -482,8 +466,8 @@ int cx23885_sram_channel_setup(struct cx23885_dev *dev,
+> >>  		lines = 6;
+> >>  	BUG_ON(lines < 2);
+> >>  
+> >> -	cx_write(8 + 0, RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
+> >> -	cx_write(8 + 4, 8);
+> >> +	cx_write(8 + 0, RISC_JUMP | RISC_CNT_RESET);
+> >> +	cx_write(8 + 4, 12);
+> > 
+> > The above doesn't sound as being a pure vb2 conversion, and might cause
+> > regressions, as we're changing the channel setups. I would very much
+> > prefer to have such changes on a separate changeset, as it makes easier
+> > to do bisect if ever needed.
+> 
+> See my comment at the top.
+> 
+> > 
+> >>  	cx_write(8 + 8, 0);
+> >>  
+> >>  	/* write CDT */
+> >> @@ -699,10 +683,6 @@ static int get_resources(struct cx23885_dev *dev)
+> >>  	return -EBUSY;
+> >>  }
+> >>  
+> >> -static void cx23885_timeout(unsigned long data);
+> >> -int cx23885_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >> -				u32 reg, u32 mask, u32 value);
+> >> -
+> >>  static int cx23885_init_tsport(struct cx23885_dev *dev,
+> >>  	struct cx23885_tsport *port, int portno)
+> >>  {
+> >> @@ -719,11 +699,6 @@ static int cx23885_init_tsport(struct cx23885_dev *dev,
+> >>  	port->nr = portno;
+> >>  
+> >>  	INIT_LIST_HEAD(&port->mpegq.active);
+> >> -	INIT_LIST_HEAD(&port->mpegq.queued);
+> >> -	port->mpegq.timeout.function = cx23885_timeout;
+> >> -	port->mpegq.timeout.data = (unsigned long)port;
+> >> -	init_timer(&port->mpegq.timeout);
+> >> -
+> >>  	mutex_init(&port->frontends.lock);
+> >>  	INIT_LIST_HEAD(&port->frontends.felist);
+> >>  	port->frontends.active_fe_id = 0;
+> >> @@ -776,9 +751,6 @@ static int cx23885_init_tsport(struct cx23885_dev *dev,
+> >>  		BUG();
+> >>  	}
+> >>  
+> >> -	cx23885_risc_stopper(dev->pci, &port->mpegq.stopper,
+> >> -		     port->reg_dma_ctl, port->dma_ctl_val, 0x00);
+> >> -
+> >>  	return 0;
+> >>  }
+> >>  
+> >> @@ -1089,11 +1061,18 @@ static void cx23885_dev_unregister(struct cx23885_dev *dev)
+> >>  static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
+> >>  			       unsigned int offset, u32 sync_line,
+> >>  			       unsigned int bpl, unsigned int padding,
+> >> -			       unsigned int lines,  unsigned int lpi)
+> >> +			       unsigned int lines,  unsigned int lpi, bool jump)
+> >>  {
+> >>  	struct scatterlist *sg;
+> >>  	unsigned int line, todo, sol;
+> >>  
+> >> +
+> >> +	if (jump) {
+> >> +		*(rp++) = cpu_to_le32(RISC_JUMP);
+> >> +		*(rp++) = cpu_to_le32(0);
+> >> +		*(rp++) = cpu_to_le32(0); /* bits 63-32 */
+> >> +	}
+> >> +
+> > 
+> > Here it seem clear: you're now adding a code to support different
+> > frame interlacing layouts, but the best is to have such changes on
+> > a separate changeset, as this is one thing that we may have troubles
+> > in the future.
+> > 
+> > The way I see is that we might start having a flood of complains about
+> > regressions, and all of them will point to this single patch, making
+> > really hard to identify what part of the change broke it.
+> > 
+> > So, let's split those risc changes on a pre (or post) patch, making
+> > easier if someone needs to report an issue, for us to track what
+> > patch broke it.
+> > 
+> >>  	/* sync instruction */
+> >>  	if (sync_line != NO_SYNC_LINE)
+> >>  		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
+> >> @@ -1168,7 +1147,7 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >>  	/* write and jump need and extra dword */
+> >>  	instructions  = fields * (1 + ((bpl + padding) * lines)
+> >>  		/ PAGE_SIZE + lines);
+> >> -	instructions += 2;
+> >> +	instructions += 5;
+> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+> >>  	if (rc < 0)
+> >>  		return rc;
+> >> @@ -1177,10 +1156,10 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >>  	rp = risc->cpu;
+> >>  	if (UNSET != top_offset)
+> >>  		rp = cx23885_risc_field(rp, sglist, top_offset, 0,
+> >> -					bpl, padding, lines, 0);
+> >> +					bpl, padding, lines, 0, true);
+> >>  	if (UNSET != bottom_offset)
+> >>  		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x200,
+> >> -					bpl, padding, lines, 0);
+> >> +					bpl, padding, lines, 0, UNSET == top_offset);
+> >>  
+> >>  	/* save pointer to jmp instruction address */
+> >>  	risc->jmp = rp;
+> >> @@ -1204,7 +1183,7 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
+> >>  	   than PAGE_SIZE */
+> >>  	/* Jump and write need an extra dword */
+> >>  	instructions  = 1 + (bpl * lines) / PAGE_SIZE + lines;
+> >> -	instructions += 1;
+> >> +	instructions += 4;
+> >>  
+> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+> >>  	if (rc < 0)
+> >> @@ -1213,7 +1192,7 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
+> >>  	/* write risc instructions */
+> >>  	rp = risc->cpu;
+> >>  	rp = cx23885_risc_field(rp, sglist, 0, NO_SYNC_LINE,
+> >> -				bpl, 0, lines, lpi);
+> >> +				bpl, 0, lines, lpi, lpi == 0);
+> >>  
+> >>  	/* save pointer to jmp instruction address */
+> >>  	risc->jmp = rp;
+> >> @@ -1243,7 +1222,7 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >>  	/* write and jump need and extra dword */
+> >>  	instructions  = fields * (1 + ((bpl + padding) * lines)
+> >>  		/ PAGE_SIZE + lines);
+> >> -	instructions += 2;
+> >> +	instructions += 5;
+> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
+> >>  	if (rc < 0)
+> >>  		return rc;
+> >> @@ -1253,12 +1232,12 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >>  	/* Sync to line 6, so US CC line 21 will appear in line '12'
+> >>  	 * in the userland vbi payload */
+> >>  	if (UNSET != top_offset)
+> >> -		rp = cx23885_risc_field(rp, sglist, top_offset, 6,
+> >> -					bpl, padding, lines, 0);
+> >> +		rp = cx23885_risc_field(rp, sglist, top_offset, 0,
+> >> +					bpl, padding, lines, 0, true);
+> >>  
+> >>  	if (UNSET != bottom_offset)
+> >> -		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x207,
+> >> -					bpl, padding, lines, 0);
+> >> +		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x200,
+> >> +					bpl, padding, lines, 0, UNSET == top_offset);
+> > 
+> > Why to change the 4th argument of cx23885_risc_field() call?
+> 
+> This was a bug. Hmm, perhaps that should be moved to a separate patch.
+> The VBI offset was wrong without this.
+> 
+> > 
+> >>  
+> >>  
+> >>  
+> >> @@ -1269,38 +1248,10 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >>  }
+> >>  
+> >>  
+> >> -int cx23885_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
+> >> -				u32 reg, u32 mask, u32 value)
+> > 
+> > What happened with this function?
+> 
+> No longer needed after the risc changes.
+> 
+> Regards,
+> 
+> 	Hans
