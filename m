@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48428 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752096AbaIGCBo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 22:01:44 -0400
-Received: from dyn3-82-128-191-243.psoas.suomi.net ([82.128.191.243] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1XQRnT-0004rG-3Q
-	for linux-media@vger.kernel.org; Sun, 07 Sep 2014 05:01:43 +0300
-Message-ID: <540BBC85.7000606@iki.fi>
-Date: Sun, 07 Sep 2014 05:01:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] tda18212 improvements
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44271 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753991AbaICUd1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:27 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 09/46] [media] em28xx: use true/false for boolean vars
+Date: Wed,  3 Sep 2014 17:32:41 -0300
+Message-Id: <339e7a9901904bcadc6d9d25d1b628d58756adab.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 89fffac802c18caebdf4e91c0785b522c9f6399a:
+Instead of using 0 or 1 for boolean, use the true/false
+defines.
 
-   [media] drxk_hard: fix bad alignments (2014-09-03 19:19:18 -0300)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git tda18212
-
-for you to fetch changes up to 69afce975bd1978941b5174eb20f14bad58db667:
-
-   tda18212: convert to RegMap API (2014-09-07 04:56:45 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (8):
-       tda18212: add support for slave chip version
-       tda18212: prepare for I2C client conversion
-       anysee: convert tda18212 tuner to I2C client
-       em28xx: convert tda18212 tuner to I2C client
-       tda18212: convert driver to I2C binding
-       tda18212: clean logging
-       tda18212: rename state from 'priv' to 'dev'
-       tda18212: convert to RegMap API
-
-  drivers/media/tuners/Kconfig          |   1 +
-  drivers/media/tuners/tda18212.c       | 272 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------------------
-  drivers/media/tuners/tda18212.h       |  19 +++-------
-  drivers/media/usb/dvb-usb-v2/anysee.c | 185 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------
-  drivers/media/usb/dvb-usb-v2/anysee.h |   3 ++
-  drivers/media/usb/em28xx/em28xx-dvb.c |  32 +++++++++++++----
-  6 files changed, 292 insertions(+), 220 deletions(-)
-
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index ed843bd221ea..e978a2ae6f21 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -609,17 +609,17 @@ static int em28xx_register_snapshot_button(struct em28xx *dev)
+ static void em28xx_init_buttons(struct em28xx *dev)
+ {
+ 	u8  i = 0, j = 0;
+-	bool addr_new = 0;
++	bool addr_new = false;
+ 
+ 	dev->button_polling_interval = EM28XX_BUTTONS_DEBOUNCED_QUERY_INTERVAL;
+ 	while (dev->board.buttons[i].role >= 0 &&
+ 			 dev->board.buttons[i].role < EM28XX_NUM_BUTTON_ROLES) {
+ 		struct em28xx_button *button = &dev->board.buttons[i];
+ 		/* Check if polling address is already on the list */
+-		addr_new = 1;
++		addr_new = true;
+ 		for (j = 0; j < dev->num_button_polling_addresses; j++) {
+ 			if (button->reg_r == dev->button_polling_addresses[j]) {
+-				addr_new = 0;
++				addr_new = false;
+ 				break;
+ 			}
+ 		}
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index f6cf99fa30b2..3642438bc7d4 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -721,7 +721,7 @@ static inline void process_frame_data_em25xx(struct em28xx *dev,
+ 	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
+ 	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
+ 	struct em28xx_v4l2      *v4l2 = dev->v4l2;
+-	bool frame_end = 0;
++	bool frame_end = false;
+ 
+ 	/* Check for header */
+ 	/* NOTE: at least with bulk transfers, only the first packet
+@@ -2308,7 +2308,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	v4l2->v4l2_dev.ctrl_handler = hdl;
+ 
+ 	if (dev->board.is_webcam)
+-		v4l2->progressive = 1;
++		v4l2->progressive = true;
+ 
+ 	/*
+ 	 * Default format, used for tvp5150 or saa711x output formats
 -- 
-http://palosaari.fi/
+1.9.3
+
