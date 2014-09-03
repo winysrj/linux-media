@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64475 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597AbaIZE6d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 00:58:33 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCH006XSSHKQ0D0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:58:32 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com, kiran@chromium.org
-Subject: [PATCH v2 04/14] [media] s5p-mfc: Only set timestamp/timecode for new
- frames.
-Date: Fri, 26 Sep 2014 10:22:12 +0530
-Message-id: <1411707142-4881-5-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:48197 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751944AbaICTkt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:40:49 -0400
+Received: by mail-ie0-f202.google.com with SMTP id rl12so1559919iec.3
+        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 12:40:49 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH v3 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+Date: Wed,  3 Sep 2014 12:40:38 -0700
+Message-Id: <1409773238-32177-1-git-send-email-vpalatin@chromium.org>
+In-Reply-To: <CACHYQ-qST1gyyKCZp+tN9FbR3_=2q_+=PbVwfu3KgfTpkdDFCA@mail.gmail.com>
+References: <CACHYQ-qST1gyyKCZp+tN9FbR3_=2q_+=PbVwfu3KgfTpkdDFCA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ilja Friedel <ihf@chromium.org>
+Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+CT_PANTILT_RELATIVE_CONTROL terminal control request.
 
-Timestamp i of a previously decoded buffer was overwritten for some
-H.264 streams with timestamp i+1 of the next buffer. This happened when
-encountering frame_type S5P_FIMV_DECODE_FRAME_SKIPPED, indicating no
-new frame.
+Tested by plugging a Logitech ConferenceCam C3000e USB camera
+and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+Verified that it can pan and tilt at the same time in both directions.
 
-In most cases this wrong indexing might not have been noticed except
-for a one frame delay in frame presentation. For H.264 streams though
-that require reordering of frames for presentation, it caused a slightly
-erratic presentation time lookup and consequently dropped frames in the
-Pepper Flash plugin.
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
 
-Signed-off-by: Ilja H. Friedel <ihf@google.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Changes from v1/v2:
+- rebased
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e876839..3fc2f8a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -220,11 +220,14 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 	size_t dec_y_addr;
- 	unsigned int frame_type;
+ drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 0eb82106..d703cb0 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+ 		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+ 		.index		= 12,
+ 		.size		= 4,
+-		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+-				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+-				| UVC_CTRL_FLAG_GET_DEF
++		.flags		= UVC_CTRL_FLAG_SET_CUR
++				| UVC_CTRL_FLAG_GET_RANGE
+ 				| UVC_CTRL_FLAG_AUTO_UPDATE,
+ 	},
+ 	{
+@@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
+ 	data[2] = min((int)abs(value), 0xff);
+ }
  
--	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
-+	/* Make sure we actually have a new frame before continuing. */
- 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
-+	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
-+		return;
-+	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
- 
- 	/* Copy timestamp / timecode from decoded src to dst and set
--	   appropriate flags */
-+	   appropriate flags. */
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
- 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
-@@ -250,6 +253,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 				dst_buf->b->v4l2_buf.flags |=
- 						V4L2_BUF_FLAG_BFRAME;
- 				break;
-+			default:
-+				/* Don't know how to handle
-+				   S5P_FIMV_DECODE_FRAME_OTHER_FRAME. */
-+				mfc_debug(2, "Unexpected frame type: %d\n",
-+						frame_type);
- 			}
- 			break;
- 		}
++static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
++	__u8 query, const __u8 *data)
++{
++	int first = mapping->offset / 8;
++	__s8 rel = (__s8)data[first];
++
++	switch (query) {
++	case UVC_GET_CUR:
++		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
++						 : -data[first+1]);
++	case UVC_GET_MIN:
++		return -data[first+1];
++	case UVC_GET_MAX:
++	case UVC_GET_RES:
++	case UVC_GET_DEF:
++	default:
++		return data[first+1];
++	}
++}
++
++static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
++	__s32 value, __u8 *data)
++{
++	int first = mapping->offset / 8;
++
++	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
++	data[first+1] = min_t(int, abs(value), 0xff);
++}
++
+ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 	{
+ 		.id		= V4L2_CID_BRIGHTNESS,
+@@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
++		.id		= V4L2_CID_PAN_SPEED,
++		.name		= "Pan (Speed)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 0,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
++		.id		= V4L2_CID_TILT_SPEED,
++		.name		= "Tilt (Speed)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 16,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
+ 		.id		= V4L2_CID_PRIVACY,
+ 		.name		= "Privacy",
+ 		.entity		= UVC_GUID_UVC_CAMERA,
 -- 
-1.7.9.5
+2.1.0.rc2.206.gedb03e5
 
