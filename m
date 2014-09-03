@@ -1,213 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:55981 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753561AbaI2MoR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 08:44:17 -0400
-Received: by mail-wi0-f172.google.com with SMTP id ex7so1436435wid.11
-        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 05:44:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201409292005062504051@gmail.com>
-References: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
-	<201409292005062504051@gmail.com>
-Date: Mon, 29 Sep 2014 15:44:15 +0300
-Message-ID: <CAAZRmGw78T2MGcy+vw1u3dc-Ew1OoJ3ujMOdi0EeOkSWFVGHHA@mail.gmail.com>
-Subject: Re: [PATCH 5/5] cx23855: add CI support for DVBSky T980C
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Nibble Max <nibble.max@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:44053 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbaICU2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:28:55 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 00/46] Several static analizer fixes
+Date: Wed,  3 Sep 2014 17:27:58 -0300
+Message-Id: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+There are several small issues reported by static analyzers.
+Let's fix some of them on this patch series. One of this patch
+is a real bug (dmxdev one, at patch 01/46).
 
-Thanks for the comments. I looked through the existing CIMaX driver
-and came to the conclusion that it can be implemented either with the
-IRQs or then just to rely on the polling like the USB devices have to
-do. I don't think it's that important, as the user probably will not
-add/remove the CAM that often. That being said, of course it would be
-nice if we had a config option to choose if IRQ is supported or not.
-If you have a patch for that, I'm happy to have it in.
+The other ones are just code cleanups.
 
-Cheers,
--olli
+The main goal is to be able to run a static analyzer test more
+frequently, so we want to have a cleaner report.
 
+Mauro Carvalho Chehab (46):
+  [media] dmxdev: don't use before checking file->private_data
+  [media] marvel-ccic: don't initialize static vars with 0
+  [media] soc_camera: use kmemdup()
+  [media] vivid-vid-out: use memdup_user()
+  [media] s5k5baf: remove an uneeded semicolon
+  [media] bttv-driver: remove an uneeded semicolon
+  [media] soc_camera: remove uneeded semicolons
+  [media] stv0900_core: don't allocate a temporary var
+  [media] em28xx: use true/false for boolean vars
+  [media] tuner-core: use true/false for boolean vars
+  [media] af9013: use true/false for boolean vars
+  [media] cxd2820r: use true/false for boolean vars
+  [media] m88ds3103: use true/false for boolean vars
+  [media] af9013: use true/false for boolean vars
+  [media] tda10071: use true/false for boolean vars
+  [media] smiapp-core: use true/false for boolean vars
+  [media] ov9740: use true/false for boolean vars
+  [media] omap3isp: use true/false for boolean vars
+  [media] ti-vpe: use true/false for boolean vars
+  [media] vivid-tpg: use true/false for boolean vars
+  [media] radio: use true/false for boolean vars
+  [media] ene_ir: use true/false for boolean vars
+  [media] au0828-dvb: use true/false for boolean vars
+  [media] lmedm04: use true/false for boolean vars
+  [media] af9005: use true/false for boolean vars
+  [media] msi2500: simplify boolean tests
+  [media] drxk_hard: simplify test logic
+  [media] lm3560: simplify boolean tests
+  [media] lm3560: simplify a boolean test
+  [media] omap: simplify test logic
+  [media] via-camera: simplify boolean tests
+  [media] e4000: simplify boolean tests
+  [media] s5p-tv: Simplify the return logic
+  [media] siano: just return 0 instead of using a var
+  [media] stv0367: just return 0 instead of using a var
+  [media] media-devnode: just return 0 instead of using a var
+  [media] bt8xx: just return 0 instead of using a var
+  [media] saa7164: just return 0 instead of using a var
+  [media] davinci: just return 0 instead of using a var
+  [media] marvel-ccic: just return 0 instead of using a var
+  [media] fintek-cir: just return 0 instead of using a var
+  [media] ite-cir: just return 0 instead of using a var
+  [media] nuvoton-cir: just return 0 instead of using a var
+  [media] mt2060: just return 0 instead of using a var
+  [media] mxl5005s: just return 0 instead of using a var
+  [media] cx231xx: just return 0 instead of using a var
 
-On 29 September 2014 15:05, Nibble Max <nibble.max@gmail.com> wrote:
-> Hello,
-> In hardware design, the CI host controller is wired with GPIO_0 of CX23885.
-> The GPIO_0 can be configed as the interrupt source.
-> Interrupt mode in PCIe driver is more faster than poll mode to detect CAM insert/remove operations etc.
->
->>Add CI support for DVBSky T980C.
->>
->>I used the new host device independent CIMaX SP2 I2C driver to implement it.
->>
->>cx23885_sp2_ci_ctrl function is borrowed entirely from cimax2.c.
->>
->>Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->>---
->> drivers/media/pci/cx23885/cx23885-dvb.c | 105 +++++++++++++++++++++++++++++++-
->> 1 file changed, 103 insertions(+), 2 deletions(-)
->>
->>diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
->>index cc88997..70dbcd6 100644
->>--- a/drivers/media/pci/cx23885/cx23885-dvb.c
->>+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
->>@@ -71,6 +71,7 @@
->> #include "si2165.h"
->> #include "si2168.h"
->> #include "si2157.h"
->>+#include "sp2.h"
->> #include "m88ds3103.h"
->> #include "m88ts2022.h"
->>
->>@@ -616,6 +617,76 @@ static int dvbsky_t9580_set_voltage(struct dvb_frontend *fe,
->>       return 0;
->> }
->>
->>+static int cx23885_sp2_ci_ctrl(void *priv, u8 read, int addr,
->>+                              u8 data, int *mem)
->>+{
->>+
->>+      /* MC417 */
->>+      #define SP2_DATA              0x000000ff
->>+      #define SP2_WR                0x00008000
->>+      #define SP2_RD                0x00004000
->>+      #define SP2_ACK               0x00001000
->>+      #define SP2_ADHI              0x00000800
->>+      #define SP2_ADLO              0x00000400
->>+      #define SP2_CS1               0x00000200
->>+      #define SP2_CS0               0x00000100
->>+      #define SP2_EN_ALL            0x00001000
->>+      #define SP2_CTRL_OFF          (SP2_CS1 | SP2_CS0 | SP2_WR | SP2_RD)
->>+
->>+      struct cx23885_tsport *port = priv;
->>+      struct cx23885_dev *dev = port->dev;
->>+      int ret;
->>+      int tmp;
->>+      unsigned long timeout;
->>+
->>+      mutex_lock(&dev->gpio_lock);
->>+
->>+      /* write addr */
->>+      cx_write(MC417_OEN, SP2_EN_ALL);
->>+      cx_write(MC417_RWD, SP2_CTRL_OFF |
->>+                              SP2_ADLO | (0xff & addr));
->>+      cx_clear(MC417_RWD, SP2_ADLO);
->>+      cx_write(MC417_RWD, SP2_CTRL_OFF |
->>+                              SP2_ADHI | (0xff & (addr >> 8)));
->>+      cx_clear(MC417_RWD, SP2_ADHI);
->>+
->>+      if (read) { /* data in */
->>+              cx_write(MC417_OEN, SP2_EN_ALL | SP2_DATA);
->>+      } else /* data out */
->>+              cx_write(MC417_RWD, SP2_CTRL_OFF | data);
->>+
->>+      /* chip select 0 */
->>+      cx_clear(MC417_RWD, SP2_CS0);
->>+
->>+      /* read/write */
->>+      cx_clear(MC417_RWD, (read) ? SP2_RD : SP2_WR);
->>+
->>+      timeout = jiffies + msecs_to_jiffies(1);
->>+      for (;;) {
->>+              tmp = cx_read(MC417_RWD);
->>+              if ((tmp & SP2_ACK) == 0)
->>+                      break;
->>+              if (time_after(jiffies, timeout))
->>+                      break;
->>+              udelay(1);
->>+      }
->>+
->>+      cx_set(MC417_RWD, SP2_CTRL_OFF);
->>+      *mem = tmp & 0xff;
->>+
->>+      mutex_unlock(&dev->gpio_lock);
->>+
->>+      if (!read)
->>+              if (*mem < 0) {
->>+                      ret = -EREMOTEIO;
->>+                      goto err;
->>+              }
->>+
->>+      return 0;
->>+err:
->>+      return ret;
->>+}
->>+
->> static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
->> {
->>       struct dtv_frontend_properties *p = &fe->dtv_property_cache;
->>@@ -944,11 +1015,11 @@ static int dvb_register(struct cx23885_tsport *port)
->>       struct vb2_dvb_frontend *fe0, *fe1 = NULL;
->>       struct si2168_config si2168_config;
->>       struct si2157_config si2157_config;
->>+      struct sp2_config sp2_config;
->>       struct m88ts2022_config m88ts2022_config;
->>       struct i2c_board_info info;
->>       struct i2c_adapter *adapter;
->>-      struct i2c_client *client_demod;
->>-      struct i2c_client *client_tuner;
->>+      struct i2c_client *client_demod, *client_tuner, *client_ci;
->>       int mfe_shared = 0; /* bus not shared by default */
->>       int ret;
->>
->>@@ -1683,6 +1754,7 @@ static int dvb_register(struct cx23885_tsport *port)
->>               break;
->>       case CX23885_BOARD_DVBSKY_T980C:
->>               i2c_bus = &dev->i2c_bus[1];
->>+              i2c_bus2 = &dev->i2c_bus[0];
->>
->>               /* attach frontend */
->>               memset(&si2168_config, 0, sizeof(si2168_config));
->>@@ -1820,6 +1892,35 @@ static int dvb_register(struct cx23885_tsport *port)
->>       case CX23885_BOARD_DVBSKY_T980C: {
->>               u8 eeprom[256]; /* 24C02 i2c eeprom */
->>
->>+              /* attach CI */
->>+              memset(&sp2_config, 0, sizeof(sp2_config));
->>+              sp2_config.dvb_adap = &port->frontends.adapter;
->>+              sp2_config.priv = port;
->>+              sp2_config.ci_control = cx23885_sp2_ci_ctrl;
->>+              memset(&info, 0, sizeof(struct i2c_board_info));
->>+              strlcpy(info.type, "sp2", I2C_NAME_SIZE);
->>+              info.addr = 0x40;
->>+              info.platform_data = &sp2_config;
->>+              request_module(info.type);
->>+              client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
->>+              if (client_ci == NULL ||
->>+                              client_ci->dev.driver == NULL) {
->>+                      module_put(client_tuner->dev.driver->owner);
->>+                      i2c_unregister_device(client_tuner);
->>+                      module_put(client_demod->dev.driver->owner);
->>+                      i2c_unregister_device(client_demod);
->>+                      goto frontend_detach;
->>+              }
->>+              if (!try_module_get(client_ci->dev.driver->owner)) {
->>+                      i2c_unregister_device(client_ci);
->>+                      module_put(client_tuner->dev.driver->owner);
->>+                      i2c_unregister_device(client_tuner);
->>+                      module_put(client_demod->dev.driver->owner);
->>+                      i2c_unregister_device(client_demod);
->>+                      goto frontend_detach;
->>+              }
->>+              port->i2c_client_ci = client_ci;
->>+
->>               if (port->nr != 1)
->>                       break;
->>
->>--
->>1.9.1
->>
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/media/common/siano/smscoreapi.c            |  4 +--
+ drivers/media/dvb-core/dmxdev.c                    |  3 +-
+ drivers/media/dvb-frontends/af9013.c               | 24 +++++++--------
+ drivers/media/dvb-frontends/cxd2820r_c.c           |  4 +--
+ drivers/media/dvb-frontends/cxd2820r_core.c        |  4 +--
+ drivers/media/dvb-frontends/cxd2820r_t.c           |  4 +--
+ drivers/media/dvb-frontends/drxk_hard.c            | 34 +++++++++++-----------
+ drivers/media/dvb-frontends/m88ds3103.c            | 12 ++++----
+ drivers/media/dvb-frontends/rtl2832.c              |  2 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
+ drivers/media/dvb-frontends/stv0367.c              |  4 +--
+ drivers/media/dvb-frontends/stv0900_core.c         |  7 ++---
+ drivers/media/dvb-frontends/tda10071.c             |  2 +-
+ drivers/media/i2c/lm3560.c                         |  4 +--
+ drivers/media/i2c/s5k5baf.c                        |  2 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |  8 ++---
+ drivers/media/i2c/soc_camera/ov9740.c              |  4 +--
+ drivers/media/media-devnode.c                      |  3 +-
+ drivers/media/pci/bt8xx/bttv-driver.c              |  5 ++--
+ drivers/media/pci/bt8xx/dst_ca.c                   |  4 +--
+ drivers/media/pci/saa7164/saa7164-api.c            |  3 +-
+ drivers/media/pci/zoran/zoran_device.c             |  2 +-
+ drivers/media/platform/davinci/vpfe_capture.c      |  3 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  3 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |  2 +-
+ drivers/media/platform/omap/omap_vout.c            |  8 ++---
+ drivers/media/platform/omap/omap_vout_vrfb.c       | 10 +++----
+ drivers/media/platform/omap3isp/ispccdc.c          |  2 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c           |  2 +-
+ drivers/media/platform/s5p-tv/sdo_drv.c            |  2 +-
+ drivers/media/platform/s5p-tv/sii9234_drv.c        |  2 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |  2 +-
+ drivers/media/platform/soc_camera/rcar_vin.c       |  2 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  4 +--
+ drivers/media/platform/ti-vpe/vpe.c                |  4 +--
+ drivers/media/platform/via-camera.c                |  2 +-
+ drivers/media/platform/vivid/vivid-tpg.c           |  4 +--
+ drivers/media/platform/vivid/vivid-vid-out.c       | 10 ++-----
+ drivers/media/radio/radio-gemtek.c                 |  2 +-
+ drivers/media/radio/radio-sf16fmi.c                |  4 +--
+ drivers/media/radio/si470x/radio-si470x-common.c   |  4 +--
+ drivers/media/rc/ene_ir.c                          |  2 +-
+ drivers/media/rc/fintek-cir.c                      |  6 ++--
+ drivers/media/rc/ite-cir.c                         |  3 +-
+ drivers/media/rc/nuvoton-cir.c                     |  6 ++--
+ drivers/media/tuners/e4000.c                       |  4 +--
+ drivers/media/tuners/mt2060.c                      |  3 +-
+ drivers/media/tuners/mxl5005s.c                    |  3 +-
+ drivers/media/usb/au0828/au0828-dvb.c              |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c            |  4 +--
+ drivers/media/usb/dvb-usb-v2/lmedm04.c             |  2 +-
+ drivers/media/usb/dvb-usb/af9005.c                 |  2 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |  6 ++--
+ drivers/media/usb/em28xx/em28xx-video.c            |  4 +--
+ drivers/media/usb/msi2500/msi2500.c                |  2 +-
+ drivers/media/v4l2-core/tuner-core.c               |  2 +-
+ 56 files changed, 117 insertions(+), 147 deletions(-)
+
+-- 
+1.9.3
+
