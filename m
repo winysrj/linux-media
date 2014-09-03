@@ -1,76 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:36726 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418AbaI0BL5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 21:11:57 -0400
-Received: by mail-pa0-f46.google.com with SMTP id kq14so954359pab.5
-        for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 18:11:57 -0700 (PDT)
-From: Behan Webster <behanw@converseincode.com>
-To: archit@ti.com, b.zolnierkie@samsung.com, m.chehab@samsung.com
-Cc: behanw@converseincode.com, hans.verkuil@cisco.com,
-	k.debski@samsung.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] media, platform, LLVMLinux: Remove nested function from ti-vpe
-Date: Fri, 26 Sep 2014 18:11:45 -0700
-Message-Id: <1411780305-5685-1-git-send-email-behanw@converseincode.com>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:44217 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750833AbaICEz2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 00:55:28 -0400
+Received: by mail-vc0-f171.google.com with SMTP id id10so8171136vcb.2
+        for <linux-media@vger.kernel.org>; Tue, 02 Sep 2014 21:55:27 -0700 (PDT)
+Received: from mail-vc0-f174.google.com (mail-vc0-f174.google.com [209.85.220.174])
+        by mx.google.com with ESMTPSA id w2sm2438952vdc.20.2014.09.02.21.55.26
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Tue, 02 Sep 2014 21:55:26 -0700 (PDT)
+Received: by mail-vc0-f174.google.com with SMTP id hy4so8199088vcb.19
+        for <linux-media@vger.kernel.org>; Tue, 02 Sep 2014 21:55:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1408129724-17669-1-git-send-email-vpalatin@chromium.org>
+References: <CACHYQ-rtHfVmF4DstxhWe0zWNH3ujjniVBwONBGW3f4Uw=rvkg@mail.gmail.com>
+ <1408129724-17669-1-git-send-email-vpalatin@chromium.org>
+From: Pawel Osciak <posciak@chromium.org>
+Date: Wed, 3 Sep 2014 13:54:46 +0900
+Message-ID: <CACHYQ-rB7mhiN_bGCPe4mrNLz2QoQ3mBtRhYyk8j+=F33dQWdQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] [media] V4L: Add camera pan/tilt speed controls
+To: Vincent Palatin <vpalatin@chromium.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the use of nested functions where a normal function will suffice.
+On Sat, Aug 16, 2014 at 4:08 AM, Vincent Palatin <vpalatin@chromium.org> wrote:
+>
+> The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
+> camera by setting its rotation speed around its axis.
+>
+> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
 
-Nested functions are not liked by upstream kernel developers in general. Their
-use breaks the use of clang as a compiler, and doesn't make the code any
-better.
+Reviewed-by: Pawel Osciak <posciak@chromium.org>
 
-This code now works for both gcc and clang.
+>
+> ---
+> Changes from v1:
+> - update the documentation wording according to Pawel suggestion.
+>
+>  Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
+>  Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+>  include/uapi/linux/v4l2-controls.h           |  2 ++
+>  4 files changed, 35 insertions(+)
+>
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index eee6f0f..21910e9 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
+>        </orderedlist>
+>      </section>
+>
+> +    <section>
+> +      <title>V4L2 in Linux 3.17</title>
 
-Signed-off-by: Behan Webster <behanw@converseincode.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/ti-vpe/csc.c | 8 ++------
- drivers/media/platform/ti-vpe/sc.c  | 8 ++------
- 2 files changed, 4 insertions(+), 12 deletions(-)
+This will need a bump.
 
-diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
-index 940df40..44fbf41 100644
---- a/drivers/media/platform/ti-vpe/csc.c
-+++ b/drivers/media/platform/ti-vpe/csc.c
-@@ -93,12 +93,8 @@ void csc_dump_regs(struct csc_data *csc)
- {
- 	struct device *dev = &csc->pdev->dev;
- 
--	u32 read_reg(struct csc_data *csc, int offset)
--	{
--		return ioread32(csc->base + offset);
--	}
--
--#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(csc, CSC_##r))
-+#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
-+	ioread32(csc->base + CSC_##r))
- 
- 	DUMPREG(CSC00);
- 	DUMPREG(CSC01);
-diff --git a/drivers/media/platform/ti-vpe/sc.c b/drivers/media/platform/ti-vpe/sc.c
-index 6314171..1088381 100644
---- a/drivers/media/platform/ti-vpe/sc.c
-+++ b/drivers/media/platform/ti-vpe/sc.c
-@@ -24,12 +24,8 @@ void sc_dump_regs(struct sc_data *sc)
- {
- 	struct device *dev = &sc->pdev->dev;
- 
--	u32 read_reg(struct sc_data *sc, int offset)
--	{
--		return ioread32(sc->base + offset);
--	}
--
--#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(sc, CFG_##r))
-+#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
-+	ioread32(sc->base + CFG_##r))
- 
- 	DUMPREG(SC0);
- 	DUMPREG(SC1);
--- 
-1.9.1
-
+>
+> +      <orderedlist>
+> +       <listitem>
+> +         <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
+> + <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
+> +       </listitem>
+> +      </orderedlist>
+> +    </section>
+> +
+>      <section id="other">
+>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+>
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 47198ee..be88e64 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3914,6 +3914,27 @@ by exposure, white balance or focus controls.</entry>
+>           </row>
+>           <row><entry></entry></row>
+>
+> +         <row>
+> +           <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
+> +           <entry>integer</entry>
+> +         </row><row><entry spanname="descr">This control turns the
+> +camera horizontally at the specific speed. The unit is undefined. A
+> +positive value moves the camera to the right (clockwise when viewed
+> +from above), a negative value to the left. A value of zero stops the motion
+> +if one is in progress and has no effect otherwise.</entry>
+> +         </row>
+> +         <row><entry></entry></row>
+> +
+> +         <row>
+> +           <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
+> +           <entry>integer</entry>
+> +         </row><row><entry spanname="descr">This control turns the
+> +camera vertically at the specified speed. The unit is undefined. A
+> +positive value moves the camera up, a negative value down. A value of zero
+> +stops the motion if one is in progress and has no effect otherwise.</entry>
+> +         </row>
+> +         <row><entry></entry></row>
+> +
+>         </tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 55c6832..57ddaf4 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -787,6 +787,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>         case V4L2_CID_AUTO_FOCUS_STOP:          return "Auto Focus, Stop";
+>         case V4L2_CID_AUTO_FOCUS_STATUS:        return "Auto Focus, Status";
+>         case V4L2_CID_AUTO_FOCUS_RANGE:         return "Auto Focus, Range";
+> +       case V4L2_CID_PAN_SPEED:                return "Pan, Speed";
+> +       case V4L2_CID_TILT_SPEED:               return "Tilt, Speed";
+>
+>         /* FM Radio Modulator control */
+>         /* Keep the order of the 'case's the same as in videodev2.h! */
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 2ac5597..5576044 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -745,6 +745,8 @@ enum v4l2_auto_focus_range {
+>         V4L2_AUTO_FOCUS_RANGE_INFINITY          = 3,
+>  };
+>
+> +#define V4L2_CID_PAN_SPEED                     (V4L2_CID_CAMERA_CLASS_BASE+32)
+> +#define V4L2_CID_TILT_SPEED                    (V4L2_CID_CAMERA_CLASS_BASE+33)
+>
+>  /* FM Modulator class control IDs */
+>
+> --
+> 2.1.0.rc2.206.gedb03e5
+>
