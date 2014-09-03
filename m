@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55065 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756762AbaIQUpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:34 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id B9DF3600A9
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:31 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 11/17] smiapp: Use actual pixel rate calculated by the PLL calculator
-Date: Wed, 17 Sep 2014 23:45:35 +0300
-Message-Id: <1410986741-6801-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mga01.intel.com ([192.55.52.88]:33827 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276AbaICQHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 12:07:10 -0400
+Date: Thu, 04 Sep 2014 00:05:49 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:master 497/499]
+ drivers/media/v4l2-core/v4l2-ctrls.c:1685:15: sparse: incorrect type in
+ assignment (different address spaces)
+Message-ID: <54073c5d.7j3p0Ima6PcuWDhl%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+tree:   git://linuxtv.org/media_tree.git master
+head:   fe10b84e7f6c4c8c3dc8cf63be324bc13f5acd68
+commit: eadf9e26fab7f9841adcc36f3559dbce7604fcd5 [497/499] [media] videodev2.h: add __user to v4l2_ext_control pointers
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+sparse warnings: (new ones prefixed by >>)
+
+>> drivers/media/v4l2-core/v4l2-ctrls.c:1685:15: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-ctrls.c:1685:15:    expected void *[assigned] p
+   drivers/media/v4l2-core/v4l2-ctrls.c:1685:15:    got void [noderef] <asn:1>*ptr
+
+vim +1685 drivers/media/v4l2-core/v4l2-ctrls.c
+
+ce580fe5 drivers/media/video/v4l2-ctrls.c     Sakari Ailus 2011-08-04  1669  		case V4L2_CTRL_TYPE_INTEGER_MENU:
+0176077a drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-04-27  1670  		case V4L2_CTRL_TYPE_MENU:
+fa4d7096 drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2011-05-23  1671  		case V4L2_CTRL_TYPE_BITMASK:
+0176077a drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-04-27  1672  		case V4L2_CTRL_TYPE_BOOLEAN:
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1673  		case V4L2_CTRL_TYPE_BUTTON:
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1674  		case V4L2_CTRL_TYPE_CTRL_CLASS:
+0176077a drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-04-27  1675  			ptr.p_s32 = &c->value;
+998e7659 drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1676  			return ctrl->type_ops->validate(ctrl, 0, ptr);
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1677  
+0176077a drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-04-27  1678  		case V4L2_CTRL_TYPE_INTEGER64:
+0176077a drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-04-27  1679  			ptr.p_s64 = &c->value64;
+998e7659 drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1680  			return ctrl->type_ops->validate(ctrl, 0, ptr);
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1681  		default:
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1682  			break;
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1683  		}
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1684  	}
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10 @1685  	ptr.p = c->ptr;
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1686  	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1687  		err = ctrl->type_ops->validate(ctrl, idx, ptr);
+302ab7ce drivers/media/v4l2-core/v4l2-ctrls.c Hans Verkuil 2014-06-10  1688  	return err;
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1689  }
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1690  
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1691  static inline u32 node2id(struct list_head *node)
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1692  {
+0996517c drivers/media/video/v4l2-ctrls.c     Hans Verkuil 2010-08-01  1693  	return list_entry(node, struct v4l2_ctrl_ref, node)->ctrl->id;
+
+:::::: The code at line 1685 was first introduced by commit
+:::::: 302ab7ce2daba8cdd82a6809adb42d117a683f06 [media] v4l2-ctrls: add array support
+
+:::::: TO: Hans Verkuil <hans.verkuil@cisco.com>
+:::::: CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
 ---
- drivers/media/i2c/smiapp/smiapp-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 54cb136..6db0e8d 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -289,7 +289,7 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 		return rval;
- 
- 	__v4l2_ctrl_s_ctrl_int64(sensor->pixel_rate_parray,
--				 pll->vt.pix_clk_freq_hz);
-+				 pll->pixel_rate_pixel_array);
- 	__v4l2_ctrl_s_ctrl_int64(sensor->pixel_rate_csi, pll->pixel_rate_csi);
- 
- 	return 0;
-@@ -894,7 +894,7 @@ static int smiapp_update_mode(struct smiapp_sensor *sensor)
- 	dev_dbg(&client->dev, "hblank\t\t%d\n", sensor->hblank->val);
- 
- 	dev_dbg(&client->dev, "real timeperframe\t100/%d\n",
--		sensor->pll.vt.pix_clk_freq_hz /
-+		sensor->pll.pixel_rate_pixel_array /
- 		((sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width
- 		  + sensor->hblank->val) *
- 		 (sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height
--- 
-1.7.10.4
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
