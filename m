@@ -1,107 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34133 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbaIXW1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 16/18] s5p-mfc: Fix several printk warnings
-Date: Wed, 24 Sep 2014 19:27:16 -0300
-Message-Id: <1536700400c83ddd7ec097bd08f1209bf16ca66e.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3738 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752836AbaICCfT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 22:35:19 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s832ZGr4025064
+	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 04:35:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 048312A075A
+	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 04:35:12 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140903023512.048312A075A@tschai.lan>
+Date: Wed,  3 Sep 2014 04:35:12 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c:192:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘dma_addr_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c:196:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘dma_addr_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c:196:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘dma_addr_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:1206:4: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:1206:32: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1757:3: warning: format ‘%zx’ expects argument of type ‘size_t’, but argument 6 has type ‘dma_addr_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1879:3: warning: format ‘%d’ expects argument of type ‘int’, but argument 5 has type ‘size_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:1206:4: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:1206:32: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 3c10e31d017b..0c885a8a0e9f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -189,12 +189,12 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- {
- 	if (IS_MFCV6_PLUS(dev)) {
- 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
--		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
-+		mfc_debug(2, "Base Address : %pad\n", &dev->bank1);
- 	} else {
- 		mfc_write(dev, dev->bank1, S5P_FIMV_MC_DRAMBASE_ADR_A);
- 		mfc_write(dev, dev->bank2, S5P_FIMV_MC_DRAMBASE_ADR_B);
--		mfc_debug(2, "Bank1: %08x, Bank2: %08x\n",
--				dev->bank1, dev->bank2);
-+		mfc_debug(2, "Bank1: %pad, Bank2: %pad\n",
-+				&dev->bank1, &dev->bank2);
- 	}
- }
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 77eb952a744a..a98fe023deaf 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -1202,7 +1202,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
- 	else
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT;
- 	ctx->dst_fmt = find_format(&f, MFC_FMT_RAW);
--	mfc_debug(2, "Default src_fmt is %x, dest_fmt is %x\n",
--			(unsigned int)ctx->src_fmt, (unsigned int)ctx->dst_fmt);
-+	mfc_debug(2, "Default src_fmt is %p, dest_fmt is %p\n",
-+			ctx->src_fmt, ctx->dst_fmt);
- }
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index adffdb37746b..a2cc86dbe5db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1750,13 +1750,13 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
- 		return -EINVAL;
- 	}
- 	for (i = 0; i < fmt->num_planes; i++) {
--		if (!vb2_dma_contig_plane_dma_addr(vb, i)) {
-+		dma_addr_t dma = vb2_dma_contig_plane_dma_addr(vb, i);
-+		if (!dma) {
- 			mfc_err("failed to get plane cookie\n");
- 			return -EINVAL;
- 		}
--		mfc_debug(2, "index: %d, plane[%d] cookie: 0x%08zx\n",
--			  vb->v4l2_buf.index, i,
--			  vb2_dma_contig_plane_dma_addr(vb, i));
-+		mfc_debug(2, "index: %d, plane[%d] cookie: %pad\n",
-+			  vb->v4l2_buf.index, i, &dma);
- 	}
- 	return 0;
- }
-@@ -1876,7 +1876,7 @@ static int s5p_mfc_buf_prepare(struct vb2_buffer *vb)
- 		ret = check_vb_with_fmt(ctx->dst_fmt, vb);
- 		if (ret < 0)
- 			return ret;
--		mfc_debug(2, "plane size: %ld, dst size: %d\n",
-+		mfc_debug(2, "plane size: %ld, dst size: %zd\n",
- 			vb2_plane_size(vb, 0), ctx->enc_dst_buf_size);
- 		if (vb2_plane_size(vb, 0) < ctx->enc_dst_buf_size) {
- 			mfc_err("plane size is too small for capture\n");
--- 
-1.9.3
+date:		Wed Sep  3 04:00:21 CEST 2014
+git branch:	test
+git hash:	6c1c423a54b5b3a6c9c9561c7ef32aee0fda7253
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
