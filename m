@@ -1,52 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1blp0190.outbound.protection.outlook.com ([207.46.163.190]:49061
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751503AbaIBJ0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Sep 2014 05:26:32 -0400
-From: Fancy Fang <chen.fang@freescale.com>
-To: <m.chehab@samsung.com>, <hverkuil@xs4all.nl>,
-	<viro@ZenIV.linux.org.uk>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Fancy Fang <chen.fang@freescale.com>
-Subject: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-Date: Tue, 2 Sep 2014 16:23:16 +0800
-Message-ID: <1409646196-29506-1-git-send-email-chen.fang@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:44336 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756053AbaICUd3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	James Hogan <james.hogan@imgtec.com>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 43/46] [media] nuvoton-cir: just return 0 instead of using a var
+Date: Wed,  3 Sep 2014 17:33:15 -0300
+Message-Id: <5af5d0e7a81b051d748df8fa90eb80ecb76b60af.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
-will assign the corresponding offset to the 'boff' field of the
-videobuf_buffer for each requested buffer sequentially. Later, user
-may call mmap() to map one or all of the buffers with the 'offset'
-parameter which is equal to its 'boff' value. Obviously, the 'offset'
-value is only used to find the matched buffer instead of to be the
-real offset from the buffer's physical start address as used by
-vm_iomap_memory(). So, in some case that if the offset is not zero,
-vm_iomap_memory() will fail.
+Instead of allocating a var to store 0 and just return it,
+change the code to return 0 directly.
 
-Signed-off-by: Fancy Fang <chen.fang@freescale.com>
----
- drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index bf80f0f..8bd9889 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	/* Try to remap memory */
- 	size = vma->vm_end - vma->vm_start;
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	retval = vm_iomap_memory(vma, mem->dma_handle, size);
-+	retval = remap_pfn_range(vma, vma->vm_start,
-+				 mem->dma_handle >> PAGE_SHIFT,
-+				 size, vma->vm_page_prot);
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ",
- 			retval);
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 7f4fd859bba5..9c2c8635ff33 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -229,7 +229,6 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ {
+ 	unsigned long flags;
+ 	u8 chip_major, chip_minor;
+-	int ret = 0;
+ 	char chip_id[12];
+ 	bool chip_unknown = false;
+ 
+@@ -285,7 +284,7 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
+ 	nvt->chip_minor = chip_minor;
+ 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
+@@ -1177,7 +1176,6 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
+ 
+ static int nvt_resume(struct pnp_dev *pdev)
+ {
+-	int ret = 0;
+ 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
+ 
+ 	nvt_dbg("%s called", __func__);
+@@ -1195,7 +1193,7 @@ static int nvt_resume(struct pnp_dev *pdev)
+ 	nvt_cir_regs_init(nvt);
+ 	nvt_cir_wake_regs_init(nvt);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static void nvt_shutdown(struct pnp_dev *pdev)
 -- 
-1.9.1
+1.9.3
 
