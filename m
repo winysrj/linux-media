@@ -1,46 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3196 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751AbaITJO2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 05:14:28 -0400
-Message-ID: <541D4568.2020605@xs4all.nl>
-Date: Sat, 20 Sep 2014 11:14:16 +0200
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4093 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932195AbaICM7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 08:59:10 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s83Cx6hD002323
+	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 14:59:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id 16E942A075A
+	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 14:59:02 +0200 (CEST)
+Message-ID: <54071077.2050500@xs4all.nl>
+Date: Wed, 03 Sep 2014 14:58:31 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: James Harper <james@ejbdigital.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl> <fc1bd2008429476abaf3e3fab719fe52@SIXPR04MB304.apcprd04.prod.outlook.com>
-In-Reply-To: <fc1bd2008429476abaf3e3fab719fe52@SIXPR04MB304.apcprd04.prod.outlook.com>
-Content-Type: text/plain; charset=windows-1252
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] vivid: two small fixes
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2014 11:08 AM, James Harper wrote:
->>
->> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
->> broke the teletext applications alevt and mtt. These applications
->> expect that calling poll() without having called VIDIOC_STREAMON will
->> cause poll() to return POLLERR. That did not happen in vb2.
->>
->> This patch fixes that behavior. It also fixes what should happen when
->> poll() is called when STREAMON is called but no buffers have been
->> queued. In that case poll() will also return POLLERR, but only for
->> capture queues since output queues will always return POLLOUT
->> anyway in that situation.
->>
->> This brings the vb2 behavior in line with the old videobuf behavior.
->>
-> 
-> What (mis)behaviour would this cause in userspace application?
-
-If an app would rely on poll to return POLLERR to do the initial STREAMON
-(seen in e.g. alevt) or to do the initial QBUF (I'm not aware of any apps
-that do that, but they may exist), then that will currently fail with vb2
-because poll() will just wait indefinitely in those cases.
+Speaks for itself...
 
 Regards,
 
 	Hans
+
+The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
+
+  [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git vivid-fixes
+
+for you to fetch changes up to 73d0df6f49eda8f6b1042c1f9729c347e1f0ee32:
+
+  vivid: add missing includes (2014-09-03 14:57:11 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      vivid: remove duplicate and unused g/s_edid functions
+      vivid: add missing includes
+
+ drivers/media/platform/vivid/vivid-core.c    |  1 +
+ drivers/media/platform/vivid/vivid-rds-gen.c |  1 +
+ drivers/media/platform/vivid/vivid-tpg.h     |  1 +
+ drivers/media/platform/vivid/vivid-vbi-gen.c |  1 +
+ drivers/media/platform/vivid/vivid-vid-cap.c |  1 +
+ drivers/media/platform/vivid/vivid-vid-out.c | 57 -----------------------------------------------
+ drivers/media/platform/vivid/vivid-vid-out.h |  1 -
+ 7 files changed, 5 insertions(+), 58 deletions(-)
