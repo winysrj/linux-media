@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37322 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757051AbaIDChB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:01 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: [PATCH 02/37] af9035: enable AF9033 demod clock source for IT9135
-Date: Thu,  4 Sep 2014 05:36:10 +0300
-Message-Id: <1409798205-25645-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:44320 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756036AbaICUd3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: [PATCH 39/46] [media] davinci: just return 0 instead of using a var
+Date: Wed,  3 Sep 2014 17:33:11 -0300
+Message-Id: <7784c0dade5a08d844babfe22eeb614b3327ae1b.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Integrated RF tuner of IT9135 is connected to demod clock source
-named dyn0_clk. Enable that clock source in order to provide stable
-clock early enough.
+Instead of allocating a var to store 0 and just return it,
+change the code to return 0 directly.
 
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index c82beac..8ac0423 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -647,16 +647,19 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
- 	state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index ed9dd27e3c63..c557eb5ebf6b 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -943,12 +943,11 @@ static int vpfe_g_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *fmt)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+-	int ret = 0;
  
--	/* eeprom memory mapped location */
- 	if (state->chip_type == 0x9135) {
-+		/* feed clock for integrated RF tuner */
-+		state->af9033_config[0].dyn0_clk = true;
-+		state->af9033_config[1].dyn0_clk = true;
-+
- 		if (state->chip_version == 0x02) {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
- 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_60;
--			tmp16 = 0x00461d;
-+			tmp16 = 0x00461d; /* eeprom memory mapped location */
- 		} else {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
- 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_38;
--			tmp16 = 0x00461b;
-+			tmp16 = 0x00461b; /* eeprom memory mapped location */
- 		}
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt_vid_cap\n");
+ 	/* Fill in the information about format */
+ 	*fmt = vpfe_dev->fmt;
+-	return ret;
++	return 0;
+ }
  
- 		/* check if eeprom exists */
+ static int vpfe_enum_fmt_vid_cap(struct file *file, void  *priv,
 -- 
-http://palosaari.fi/
+1.9.3
 
