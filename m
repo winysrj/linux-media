@@ -1,73 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58507 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:54258 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbaIFKgT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 06:36:19 -0400
-Message-ID: <540AE39E.1010402@iki.fi>
-Date: Sat, 06 Sep 2014 13:36:14 +0300
+	id S1750974AbaIDXPw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Sep 2014 19:15:52 -0400
 From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9035: remove I2C client differently
+Date: Fri,  5 Sep 2014 02:15:36 +0300
+Message-Id: <1409872536-8364-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
- for APIv5
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <20140905235432.5eeab2a3.m.chehab@samsung.com> <540A7B09.2090300@iki.fi> <20140906001726.4929ba2f.m.chehab@samsung.com> <540A88DB.5020306@gmail.com>
-In-Reply-To: <540A88DB.5020306@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2014 07:08 AM, Akihiro TSUKADA wrote:
-> Moikka!,
-> thanks for the comments and advices.
->
-> I had been updating my code and during that, I also found that
-> updating property cache in tuner_ops.get_signal_strength() was
-> simple and (seemed to me) better than using a kthread,
-> so the current implementation (under testing) is just like
-> what Mauro proposed, but,
->
->> In time: not implementing its own thread has one drawback: the driver needs
->> to check if the minimal time needed to get a new stats were already archived.
->
-> since I don't know the minimal time and
-> whether there's a limit in the first place,
-> I'd like to let users take the responsibility.
+It crash kernel when device was removed while it was streaming.
+That is because we removed driver and frontend thread was still
+running. Use new callback which allows I2C driver removal just
+after frontend is unregistered.
 
-You could add some simple jiffie (some kind of kernel global time) which 
-limits calls to some reasonable level.
+V2: fixed by reported by Daniel
 
-if (jiffies > jiffies_previous + 1 sec)
-   return 0;
-else
-   jiffies_previous = jiffies;
+Reported-by: Daniel Glöckner <daniel-gl@gmx.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 93 +++++++++++++++++++++++++----------
+ 1 file changed, 67 insertions(+), 26 deletions(-)
 
-... continue
-
->>> ... I simply don't understand why you want hook that RF strength call
->>> via demod? The frontend cache is shared between demod and tuner. We use
->>> it for tuner drivr as well demod driver. Let the tuner driver make RSSI
->>> calculation independently without any unneeded relation to demod driver.
->
-> I think the main reason for the hook is because the dvb-core calls
-> ops.get_frontend() everytime before reading of any property cache,
-> so it is already a nice place to trigger property updates,
-> and reading any property involves demod (FE as a whole) anyway.
-
-That must be changed 'resently'. IIRC originally get_frontend() was 
-called by dvb-core only once, just after demod lock was gained. Also 
-userspace could call it using some IOCTL (GET_FRONTEND?).
-
-But if it is not called periodically by dvb-core, you could not use it 
-for bit error measurements, as you will usually need to start 
-measurement, then wait complete, read values and return.
-
-Signal strength and SNR are typically provided by chip without any waiting.
-
-regards
-Antti
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 94563b2..440ecb4 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1074,15 +1074,13 @@ static int af9035_get_adapter_count(struct dvb_usb_device *d)
+ 	return state->dual_mode + 1;
+ }
+ 
+-static void af9035_exit(struct dvb_usb_device *d);
+-
+ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	int ret;
+ 
+-	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
+ 
+ 	if (!state->af9033_config[adap->id].tuner) {
+ 		/* unsupported tuner */
+@@ -1109,12 +1107,48 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	af9035_exit(d); /* remove I2C clients */
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+ 
++static int af9035_frontend_detach(struct dvb_usb_adapter *adap)
++{
++	struct state *state = adap_to_priv(adap);
++	struct dvb_usb_device *d = adap_to_d(adap);
++	int demod2;
++
++	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++
++	/*
++	 * For dual tuner devices we have to resolve 2nd demod client, as there
++	 * is two different kind of tuner drivers; one is using I2C binding
++	 * and the other is using DVB attach/detach binding.
++	 */
++	switch (state->af9033_config[adap->id].tuner) {
++	case AF9033_TUNER_IT9135_38:
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
++		demod2 = 2;
++		break;
++	default:
++		demod2 = 1;
++	}
++
++	if (adap->id == 1) {
++		if (state->i2c_client[demod2])
++			af9035_del_i2c_dev(d);
++	} else if (adap->id == 0) {
++		if (state->i2c_client[0])
++			af9035_del_i2c_dev(d);
++	}
++
++	return 0;
++}
++
+ static struct tua9001_config af9035_tua9001_config = {
+ 	.i2c_addr = 0x60,
+ };
+@@ -1174,7 +1208,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 	struct i2c_msg msg[1];
+ 	u8 tuner_addr;
+ 
+-	dev_dbg(&d->udev->dev, "%s:\n", __func__);
++	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
+ 
+ 	/*
+ 	 * XXX: Hack used in that function: we abuse unused I2C address bit [7]
+@@ -1392,12 +1426,37 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ 
+ err:
+-	af9035_exit(d); /* remove I2C clients */
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+ 
++static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
++{
++	struct state *state = adap_to_priv(adap);
++	struct dvb_usb_device *d = adap_to_d(adap);
++
++	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
++
++	switch (state->af9033_config[adap->id].tuner) {
++	case AF9033_TUNER_IT9135_38:
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
++		if (adap->id == 1) {
++			if (state->i2c_client[3])
++				af9035_del_i2c_dev(d);
++		} else if (adap->id == 0) {
++			if (state->i2c_client[1])
++				af9035_del_i2c_dev(d);
++		}
++	}
++
++	return 0;
++}
++
+ static int af9035_init(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
+@@ -1445,25 +1504,6 @@ err:
+ 	return ret;
+ }
+ 
+-static void af9035_exit(struct dvb_usb_device *d)
+-{
+-	struct state *state = d_to_priv(d);
+-
+-	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+-
+-	if (state->i2c_client[3])
+-		af9035_del_i2c_dev(d);
+-
+-	if (state->i2c_client[2])
+-		af9035_del_i2c_dev(d);
+-
+-	if (state->i2c_client[1])
+-		af9035_del_i2c_dev(d);
+-
+-	if (state->i2c_client[0])
+-		af9035_del_i2c_dev(d);
+-}
+-
+ #if IS_ENABLED(CONFIG_RC_CORE)
+ static int af9035_rc_query(struct dvb_usb_device *d)
+ {
+@@ -1636,11 +1676,12 @@ static const struct dvb_usb_device_properties af9035_props = {
+ 	.i2c_algo = &af9035_i2c_algo,
+ 	.read_config = af9035_read_config,
+ 	.frontend_attach = af9035_frontend_attach,
++	.frontend_detach = af9035_frontend_detach,
+ 	.tuner_attach = af9035_tuner_attach,
++	.tuner_detach = af9035_tuner_detach,
+ 	.init = af9035_init,
+ 	.get_rc_config = af9035_get_rc_config,
+ 	.get_stream_config = af9035_get_stream_config,
+-	.exit = af9035_exit,
+ 
+ 	.get_adapter_count = af9035_get_adapter_count,
+ 	.adapter = {
 -- 
 http://palosaari.fi/
+
