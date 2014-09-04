@@ -1,117 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1566 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751563AbaIUCmy (ORCPT
+Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:64473 "EHLO
+	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755210AbaIDUL4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 22:42:54 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8L2goD0012208
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 04:42:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6DF332A002F
-	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 04:42:45 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140921024245.6DF332A002F@tschai.lan>
-Date: Sun, 21 Sep 2014 04:42:45 +0200 (CEST)
+	Thu, 4 Sep 2014 16:11:56 -0400
+Message-ID: <1409860605.5546.114.camel@x220>
+Subject: Re: [PATCH] [media] dib0090: remove manual configuration system
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 04 Sep 2014 21:56:45 +0200
+In-Reply-To: <20140904123613.6fa4d818.m.chehab@samsung.com>
+References: <1400762887.16407.4.camel@x220>
+	 <20140904123613.6fa4d818.m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+On Thu, 2014-09-04 at 12:36 -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 22 May 2014 14:48:07 +0200
+> Paul Bolle <pebolle@tiscali.nl> escreveu:
+> 
+> > dib0900.c has always shipped with its own, manual, configuration
+> > system. There a three problems with it.
+> > 
+> > 1) macros that are defined, but not used:
+> >     CONFIG_SYS_DVBT
+> >     CONFIG_DIB0090_USE_PWM_AGC
+> > 
+> > 2) checks for macros that are always true:
+> >     CONFIG_SYS_ISDBT
+> >     CONFIG_BAND_CBAND
+> >     CONFIG_BAND_VHF
+> >     CONFIG_BAND_UHF
+> > 
+> > 3) checks for macros that are never defined and are always false:
+> >     CONFIG_BAND_SBAND
+> >     CONFIG_STANDARD_DAB
+> >     CONFIG_STANDARD_DVBT
+> >     CONFIG_TUNER_DIB0090_P1B_SUPPORT
+> >     CONFIG_BAND_LBAND
+> > 
+> > Remove all references to these macros, and, of course, remove the code
+> > hidden behind the macros that are never defined too.
+> 
+> IMHO, it is OK to remove the macros that are always true and
+> the ones that aren't used.
 
-date:		Sun Sep 21 04:00:24 CEST 2014
-git branch:	test
-git hash:	f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-2.slh.3-amd64
+I see. I hope to send a v2 that does that one of these days.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+> However, I don't like the idea of
+> removing the other macros. This is a tuner driver that can be used
+> on other bands, and some day we might end implementing analog support
+> for the Dibcom driver or to add something that will require the code
+> there. So, IMHO, better to keep the code there.
 
-Detailed results are available here:
+But would you consider a patch that at least moves those macros out of
+the CONFIG_* namespace (ie, a patch that prefixes those macros with,
+say, DIB0090_)?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
+Paul Bolle
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
