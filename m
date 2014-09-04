@@ -1,37 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:65356 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:58563 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756085AbaIDWul (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 18:50:41 -0400
-Received: from minime.bse ([24.134.147.13]) by mail.gmx.com (mrgmx001) with
- ESMTPSA (Nemesis) id 0MHXXo-1XOYrb0d5w-003LcF for
- <linux-media@vger.kernel.org>; Fri, 05 Sep 2014 00:50:39 +0200
-Date: Fri, 5 Sep 2014 00:50:38 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] af9035: remove I2C client differently
-Message-ID: <20140904225038.GA27825@minime.bse>
-References: <1409867023-8362-1-git-send-email-crope@iki.fi>
- <1409867023-8362-3-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1409867023-8362-3-git-send-email-crope@iki.fi>
+	id S1757056AbaIDChB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:01 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
+Subject: [PATCH 03/37] it913x: fix tuner sleep power leak
+Date: Thu,  4 Sep 2014 05:36:11 +0300
+Message-Id: <1409798205-25645-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 05, 2014 at 12:43:43AM +0300, Antti Palosaari wrote:
-> +	switch (state->af9033_config[adap->id].tuner) {
-> +	case AF9033_TUNER_IT9135_38:
-> +	case AF9033_TUNER_IT9135_51:
-> +	case AF9033_TUNER_IT9135_52:
-> +	case AF9033_TUNER_IT9135_60:
-> +	case AF9033_TUNER_IT9135_61:
-> +	case AF9033_TUNER_IT9135_62:
-> +		demod2 = 2;
-> +	default:
-> +		demod2 = 1;
-> +	}
+IT913x tuner driver disables own clock, provided by demod core, as
+very a first operation when tuner is put on *sleep*. That likely
+causes failure of all the rest commands on sleep sequence, which
+leads situation where tuner is not actually on sleep, but consuming
+a lot of power.
 
-Missing break?
+I measured 102mA current consumption from the USB before change
+and after change it was only 32mA. Used device was single tuner
+IT9135 BX.
+
+Second reason to remove that register from tuner driver is reason
+it is simply on wrong driver (demod vs. tuner), breaking the
+principle of correct driver.
+
+Clock is now provided more correctly af9033 demod driver as a
+config option.
+
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tuner_it913x.c      | 1 -
+ drivers/media/tuners/tuner_it913x_priv.h | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/drivers/media/tuners/tuner_it913x.c b/drivers/media/tuners/tuner_it913x.c
+index 3d83c42..3265d9a 100644
+--- a/drivers/media/tuners/tuner_it913x.c
++++ b/drivers/media/tuners/tuner_it913x.c
+@@ -202,7 +202,6 @@ static int it913x_init(struct dvb_frontend *fe)
+ 
+ 	/* Power Up Tuner - common all versions */
+ 	ret = it913x_wr_reg(state, PRO_DMOD, 0xec40, 0x1);
+-	ret |= it913x_wr_reg(state, PRO_DMOD, 0xfba8, 0x0);
+ 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec57, 0x0);
+ 	ret |= it913x_wr_reg(state, PRO_DMOD, 0xec58, 0x0);
+ 
+diff --git a/drivers/media/tuners/tuner_it913x_priv.h b/drivers/media/tuners/tuner_it913x_priv.h
+index ce65210..8e85a61 100644
+--- a/drivers/media/tuners/tuner_it913x_priv.h
++++ b/drivers/media/tuners/tuner_it913x_priv.h
+@@ -38,7 +38,6 @@ struct it913xset {	u32 pro;
+ 
+ /* Tuner setting scripts (still keeping it9137) */
+ static struct it913xset it9137_tuner_off[] = {
+-	{PRO_DMOD, 0xfba8, {0x01}, 0x01}, /* Tuner Clock Off  */
+ 	{PRO_DMOD, 0xec40, {0x00}, 0x01}, /* Power Down Tuner */
+ 	{PRO_DMOD, 0xec02, {0x3f, 0x1f, 0x3f, 0x3f}, 0x04},
+ 	{PRO_DMOD, 0xec06, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+-- 
+http://palosaari.fi/
+
