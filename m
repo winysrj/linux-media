@@ -1,58 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56934 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:58070 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904AbaICC05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Sep 2014 22:26:57 -0400
-Message-ID: <54067C6D.8090804@iki.fi>
-Date: Wed, 03 Sep 2014 05:26:53 +0300
+	id S1757069AbaIDChC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:02 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>
-Subject: Re: [GIT PULL FINAL 16/21] m88ts2022: rename device state (priv =>
- s)
-References: <1408705093-5167-1-git-send-email-crope@iki.fi> <1408705093-5167-17-git-send-email-crope@iki.fi> <20140902155104.4b4e04dc.m.chehab@samsung.com>
-In-Reply-To: <20140902155104.4b4e04dc.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 18/37] it913x: remove dead code
+Date: Thu,  4 Sep 2014 05:36:26 +0300
+Message-Id: <1409798205-25645-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/2014 09:51 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 22 Aug 2014 13:58:08 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> I like short names for things which are used everywhere overall the
->> driver. Due to that rename device state pointer from 'priv' to 's'.
->
-> Please, don't do that. "s" is generally used on several places for string.
-> If you want a shorter name, call it "st" for example.
+Remove unused tuner set template.
 
-huoh :/
-st is not even much better. 'dev' seems to be the 'official' term. I 
-will start using it. There is one caveat when 'dev' is used as kernel 
-dev_foo() logging requires pointer to device, which is also called dev.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/it913x.c      |  9 +--------
+ drivers/media/tuners/it913x_priv.h | 11 -----------
+ 2 files changed, 1 insertion(+), 19 deletions(-)
 
-for USB it is: intf->dev
-for PCI it is: pci->dev
-for I2C it is: client->dev
-
-And you have to store that also your state in order to use logging (and 
-usually needed other things too). So for example I2C driver it goes:
-
-struct driver_dev *dev = i2c_get_clientdata(client);
-dev_info(&dev->client->dev, "Hello World\n");
-
-Maybe macro needed to shorten that dev_ logging, which takes as a first 
-parameter pointer to your own driver state.
-
-I have used that 's' for many of my drivers already and there is likely 
-over 50 patches on my queue which needs to be rebased. And rebasing that 
-kind of thing for 50 patches is *really* painful, ugh.
-
-Antti
-
+diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
+index 11d391a..ab386bf 100644
+--- a/drivers/media/tuners/it913x.c
++++ b/drivers/media/tuners/it913x.c
+@@ -28,7 +28,6 @@ struct it913x_dev {
+ 	struct dvb_frontend *fe;
+ 	u8 chip_ver:2;
+ 	u8 role:2;
+-	u8 firmware_ver;
+ 	u16 tun_xtal;
+ 	u8 tun_fdiv;
+ 	u8 tun_clk_mode;
+@@ -182,7 +181,7 @@ err:
+ static int it9137_set_params(struct dvb_frontend *fe)
+ {
+ 	struct it913x_dev *dev = fe->tuner_priv;
+-	struct it913xset *set_tuner = set_it9137_template;
++	struct it913xset *set_tuner = set_it9135_template;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	u32 bandwidth = p->bandwidth_hz;
+ 	u32 frequency_m = p->frequency;
+@@ -197,11 +196,6 @@ static int it9137_set_params(struct dvb_frontend *fe)
+ 	u8 lna_band;
+ 	u8 bw;
+ 
+-	if (dev->firmware_ver == 1)
+-		set_tuner = set_it9135_template;
+-	else
+-		set_tuner = set_it9137_template;
+-
+ 	dev_dbg(&dev->client->dev, "Tuner Frequency %d Bandwidth %d\n",
+ 			frequency, bandwidth);
+ 
+@@ -367,7 +361,6 @@ static int it913x_probe(struct i2c_client *client,
+ 	dev->fe = cfg->fe;
+ 	dev->chip_ver = cfg->chip_ver;
+ 	dev->role = cfg->role;
+-	dev->firmware_ver = 1;
+ 	dev->regmap = regmap_init_i2c(client, &regmap_config);
+ 	if (IS_ERR(dev->regmap)) {
+ 		ret = PTR_ERR(dev->regmap);
+diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/it913x_priv.h
+index 41f9b2a..a6ddd02 100644
+--- a/drivers/media/tuners/it913x_priv.h
++++ b/drivers/media/tuners/it913x_priv.h
+@@ -44,15 +44,4 @@ static struct it913xset set_it9135_template[] = {
+ 	{0x000000, {0x00}, 0x00}, /* Terminating Entry */
+ };
+ 
+-static struct it913xset set_it9137_template[] = {
+-	{0x80ee06, {0x00}, 0x01},
+-	{0x80ec56, {0x00}, 0x01},
+-	{0x80ec4c, {0x00}, 0x01},
+-	{0x80ec4d, {0x00}, 0x01},
+-	{0x80ec4e, {0x00}, 0x01},
+-	{0x80ec4f, {0x00}, 0x01},
+-	{0x80ec50, {0x00}, 0x01},
+-	{0x000000, {0x00}, 0x00}, /* Terminating Entry */
+-};
+-
+ #endif
 -- 
 http://palosaari.fi/
+
