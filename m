@@ -1,56 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:51825 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017AbaILQLz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 12:11:55 -0400
-Message-id: <1410538309.8852.30.camel@AMDC723>
-Subject: Re: [PATCH v2] [media] v4l2-common: fix overflow in
- v4l_bound_align_image()
-From: Maciej Matraszek <m.matraszek@samsung.com>
-To: Greg KH <greg@kroah.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	stable@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Fri, 12 Sep 2014 18:11:49 +0200
-In-reply-to: <20140910171013.GA14048@kroah.com>
-References: <1410367869-27688-1-git-send-email-m.matraszek@samsung.com>
- <20140910171013.GA14048@kroah.com>
-Content-type: text/plain; charset=UTF-8
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57854 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755314AbaIDUf2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 16:35:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vincent Palatin <vpalatin@chromium.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v4 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+Date: Thu, 04 Sep 2014 23:35:25 +0300
+Message-ID: <3751957.rA6PG2ReCf@avalon>
+In-Reply-To: <1409791668-18715-1-git-send-email-vpalatin@chromium.org>
+References: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com> <1409791668-18715-1-git-send-email-vpalatin@chromium.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-09-10 at 10:10 -0700, Greg KH wrote:
-> > Fixes: b0d3159be9a3 ("V4L/DVB (11901): v4l2: Create helper function for bounding and aligning images")
-> > Signed-off-by: Maciej Matraszek <m.matraszek@samsung.com>
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > ---
+Hi Vincent,
+
+On Wednesday 03 September 2014 17:47:48 Vincent Palatin wrote:
+> Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+> CT_PANTILT_RELATIVE_CONTROL terminal control request.
 > 
-> <formletter>
+> Tested by plugging a Logitech ConferenceCam C3000e USB camera
+> and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+> Verified that it can pan and tilt at the same time in both directions.
+
+By the way, what is the control value reported by the device after it stops 
+moving by itself due to reaching a limit position ?
+
+> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+> ---
+> Changes from v1/v2:
+> - rebased
+> Changes from v3:
+> - removed gerrit-id
 > 
-> This is not the correct way to submit patches for inclusion in the
-> stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
-> for how to do this properly.
+>  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
+>  1 file changed, 55 insertions(+), 3 deletions(-)
 > 
-> </formletter>
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d703cb0 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+>  		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+>  		.index		= 12,
+>  		.size		= 4,
+> -		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+> -				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+> -				| UVC_CTRL_FLAG_GET_DEF
+> +		.flags		= UVC_CTRL_FLAG_SET_CUR
+> +				| UVC_CTRL_FLAG_GET_RANGE
+> 
+>  				| UVC_CTRL_FLAG_AUTO_UPDATE,
+> 
+>  	},
+>  	{
+> @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
+> uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
+>  }
+> 
+> +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
+> +	__u8 query, const __u8 *data)
+> +{
+> +	int first = mapping->offset / 8;
+> +	__s8 rel = (__s8)data[first];
+> +
+> +	switch (query) {
+> +	case UVC_GET_CUR:
+> +		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
+> +						 : -data[first+1]);
+> +	case UVC_GET_MIN:
+> +		return -data[first+1];
+> +	case UVC_GET_MAX:
+> +	case UVC_GET_RES:
+> +	case UVC_GET_DEF:
+> +	default:
+> +		return data[first+1];
+> +	}
+> +}
+> +
+> +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
+> +	__s32 value, __u8 *data)
+> +{
+> +	int first = mapping->offset / 8;
+> +
+> +	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
+> +	data[first+1] = min_t(int, abs(value), 0xff);
+> +}
+> +
+>  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+>  	{
+>  		.id		= V4L2_CID_BRIGHTNESS,
+> @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
+> { .data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+>  	},
+>  	{
+> +		.id		= V4L2_CID_PAN_SPEED,
+> +		.name		= "Pan (Speed)",
+> +		.entity		= UVC_GUID_UVC_CAMERA,
+> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+> +		.size		= 16,
+> +		.offset		= 0,
+> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+> +		.get		= uvc_ctrl_get_rel_speed,
+> +		.set		= uvc_ctrl_set_rel_speed,
+> +	},
+> +	{
+> +		.id		= V4L2_CID_TILT_SPEED,
+> +		.name		= "Tilt (Speed)",
+> +		.entity		= UVC_GUID_UVC_CAMERA,
+> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+> +		.size		= 16,
+> +		.offset		= 16,
+> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
+> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+> +		.get		= uvc_ctrl_get_rel_speed,
+> +		.set		= uvc_ctrl_set_rel_speed,
+> +	},
+> +	{
+>  		.id		= V4L2_CID_PRIVACY,
+>  		.name		= "Privacy",
+>  		.entity		= UVC_GUID_UVC_CAMERA,
 
-Hi Greg,
+-- 
+Regards,
 
-I'm really sorry for this mistake.
-Do I understand correctly that it is just a missing
-'Cc: <stable@vger.kernel.org>' line?
-Are there any other issues?
-
-Thanks for your patience,
-Maciej Matraszek
-
+Laurent Pinchart
 
