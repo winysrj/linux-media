@@ -1,100 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4225 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755320AbaITMge (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:36:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8KCaUqM040682
-	for <linux-media@vger.kernel.org>; Sat, 20 Sep 2014 14:36:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8D6EA2A002F
-	for <linux-media@vger.kernel.org>; Sat, 20 Sep 2014 14:36:26 +0200 (CEST)
-Message-ID: <541D74CA.6030401@xs4all.nl>
-Date: Sat, 20 Sep 2014 14:36:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from userp1040.oracle.com ([156.151.31.81]:33473 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826AbaIDLK0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 07:10:26 -0400
+Date: Thu, 4 Sep 2014 14:10:05 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] staging: lirc: freeing ERR_PTRs
+Message-ID: <20140904111005.GC21504@mwanda>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.17] cx24123: fix kernel oops due to missing parent
- pointer
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When I try to set the TV standard to e.g. PAL on my Hauppauge WinTV-HVR3000 I get
-the following oops:
+We call kfree(data_buf) in the error handling and that will oops if this
+is an error pointer.
 
- 9464.262345] CX24123: detected CX24123
-[ 9464.262526] BUG: unable to handle kernel NULL pointer dereference at 0000000000000230
-[ 9464.262555] IP: [<ffffffff816676b5>] acpi_i2c_install_space_handler+0x15/0xc0
-[ 9464.262576] PGD 0
-[ 9464.262584] Oops: 0000 [#1] PREEMPT SMP
-[ 9464.262597] Modules linked in: cx24123 cx22702 cx88_dvb(+) videobuf_dvb cx88_vp3054_i2c cx88_blackbird cx8802 ir_lirc_codec ir_xmp_decoder ir_sanyo_decoder ir_jvc_decoder ir_mce_kbd_decoder ir_sharp_decoder lirc_dev ir_sony_decoder ir_rc6_decoder ir_nec_decoder ir_rc5_decoder rc_hauppauge wm8775 tuner_simple tuner_types tda9887 cx8800 cx88xx btcx_risc videobuf_dma_sg videobuf_core mt2131 s5h1409 tda8290 tuner cx25840 cx23885 altera_ci tda18271 altera_stapl videobuf2_dvb tveeprom cx2341x videobuf2_dma_sg dvb_core rc_core videobuf2_memops videobuf2_core v4l2_common videodev media nouveau x86_pkg_temp_thermal cfbfillrect cfbimgblt cfbcopyarea ttm drm_kms_helper processor button isci
-[ 9464.262786] CPU: 2 PID: 2417 Comm: modprobe Not tainted 3.17.0-rc1-telek #322
-[ 9464.262796] Hardware name: ASUSTeK COMPUTER INC. Z9PE-D8 WS/Z9PE-D8 WS, BIOS 5404 02/10/2014
-[ 9464.262807] task: ffff881097959ad0 ti: ffff88109967c000 task.ti: ffff88109967c000
-[ 9464.262817] RIP: 0010:[<ffffffff816676b5>]  [<ffffffff816676b5>] acpi_i2c_install_space_handler+0x15/0xc0
-[ 9464.262834] RSP: 0018:ffff88109967fbd8  EFLAGS: 00010246
-[ 9464.262843] RAX: 0000000000000000 RBX: ffff880892a89540 RCX: 0000000000000000
-[ 9464.262853] RDX: 0000000080000001 RSI: ffff880892e75870 RDI: ffff880892a89540
-[ 9464.262862] RBP: ffff88109967fbf8 R08: ffff881099b2ccc0 R09: ffff880891efa088
-[ 9464.262872] R10: 0000000000000000 R11: 0000000000000022 R12: 0000000000000000
-[ 9464.262883] R13: ffff880892a895b0 R14: 00000000ffffffed R15: ffff88089b48f800
-[ 9464.262893] FS:  00007fe42b6d7700(0000) GS:ffff88089fc40000(0000) knlGS:0000000000000000
-[ 9464.262904] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 9464.262912] CR2: 0000000000000230 CR3: 0000001094078000 CR4: 00000000000407e0
-[ 9464.262922] Stack:
-[ 9464.262927]  ffff880892a89540 0000000000000000 ffff880892a895b0 ffff88109a155a80
-[ 9464.262944]  ffff88109967fc20 ffffffff81666a36 0000000000000020 ffff880892a89540
-[ 9464.262960]  ffffffffa01c8d40 ffff88109967fc40 ffffffff81666c67 ffff880892a89000
-[ 9464.262977] Call Trace:
-[ 9464.262987]  [<ffffffff81666a36>] i2c_register_adapter+0x166/0x340
-[ 9464.262998]  [<ffffffff81666c67>] i2c_add_adapter+0x57/0x60
-[ 9464.263011]  [<ffffffffa01e2c58>] cx24123_attach+0x108/0x1ba [cx24123]
-[ 9464.263025]  [<ffffffffa01c5a76>] dvb_register+0x404/0x245b [cx88_dvb]
-[ 9464.263039]  [<ffffffffa0059183>] ? videobuf_queue_core_init+0xe3/0x140 [videobuf_core]
-[ 9464.263052]  [<ffffffffa01c54b1>] cx8802_dvb_probe+0x1e1/0x261 [cx88_dvb]
-[ 9464.263066]  [<ffffffffa01a3b00>] cx8802_register_driver+0x190/0x20d [cx8802]
-[ 9464.263077]  [<ffffffffa01cc000>] ? 0xffffffffa01cc000
-[ 9464.263089]  [<ffffffffa01cc025>] dvb_init+0x25/0x27 [cx88_dvb]
-[ 9464.263101]  [<ffffffff810002c4>] do_one_initcall+0x84/0x1c0
-[ 9464.263113]  [<ffffffff811893fa>] ? __vunmap+0x9a/0x100
-[ 9464.263125]  [<ffffffff81122a66>] load_module+0x1216/0x1790
-[ 9464.263134]  [<ffffffff8111ff70>] ? __symbol_put+0x70/0x70
-[ 9464.263145]  [<ffffffff811aa8cc>] ? vfs_read+0x11c/0x170
-[ 9464.263156]  [<ffffffff811201d9>] ? copy_module_from_fd.isra.53+0x119/0x170
-[ 9464.263168]  [<ffffffff81123116>] SyS_finit_module+0x76/0x80
-[ 9464.263181]  [<ffffffff818d19e9>] system_call_fastpath+0x16/0x1b
-[ 9464.263190] Code: 81 31 c0 e8 2e f6 e8 ff 48 83 c4 08 5b 5d eb de 66 0f 1f 44 00 00 55 48 89 e5 41 56 41 55 41 54 53 41 be ed ff ff ff 48 8b 47 70 <48> 8b 80 30 02 00 00 48 85 c0 74 58 4c 8b 68 08 4d 85 ed 74 4f
-[ 9464.263347] RIP  [<ffffffff816676b5>] acpi_i2c_install_space_handler+0x15/0xc0
-[ 9464.263361]  RSP <ffff88109967fbd8>
-[ 9464.263367] CR2: 0000000000000230
-[ 9464.266919] ---[ end trace 57fd490bdb72e733 ]---
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-I traced this to a NULL i2c_adapter parent pointer when cx24123 creates its own
-i2c adapter. The acpi_i2c_install_space_handler function appeared in 3.17, so
-that's probably why this hasn't been seen before.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb-frontends/cx24123.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
-index 72fb583..7975c660 100644
---- a/drivers/media/dvb-frontends/cx24123.c
-+++ b/drivers/media/dvb-frontends/cx24123.c
-@@ -1095,6 +1095,7 @@ struct dvb_frontend *cx24123_attach(const struct cx24123_config *config,
- 		sizeof(state->tuner_i2c_adapter.name));
- 	state->tuner_i2c_adapter.algo      = &cx24123_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
-+	state->tuner_i2c_adapter.dev.parent = i2c->dev.parent;
- 	i2c_set_adapdata(&state->tuner_i2c_adapter, state);
- 	if (i2c_add_adapter(&state->tuner_i2c_adapter) < 0) {
- 		err("tuner i2c bus could not be initialized\n");
--- 
-2.1.0
-
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 96c76b3..5441f40 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -414,6 +414,7 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
+ 	data_buf = memdup_user(buf, n_bytes);
+ 	if (IS_ERR(data_buf)) {
+ 		retval = PTR_ERR(data_buf);
++		data_buf = NULL;
+ 		goto exit;
+ 	}
+ 
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 81f90e1..c32e296 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -392,6 +392,7 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
+ 	data_buf = memdup_user((void const __user *)buf, n_bytes);
+ 	if (IS_ERR(data_buf)) {
+ 		retval = PTR_ERR(data_buf);
++		data_buf = NULL;
+ 		goto exit;
+ 	}
+ 
