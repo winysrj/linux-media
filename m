@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44043 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaIXXiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:38:10 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/3] [media] dvb-frontends: use %zu instead of %zd
-Date: Wed, 24 Sep 2014 20:37:42 -0300
-Message-Id: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:32797 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753370AbaIDM6g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 08:58:36 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBD00AMMO1NXQ00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Sep 2014 08:58:35 -0400 (EDT)
+Date: Thu, 04 Sep 2014 09:58:31 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 16/46] [media] smiapp-core: use true/false for boolean vars
+Message-id: <20140904095831.020363c7.m.chehab@samsung.com>
+In-reply-to: <20140904070340.GJ30024@valkosipuli.retiisi.org.uk>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+ <64a4483b3c2e3864dfdc0029497c9e4188a88887.1409775488.git.m.chehab@samsung.com>
+ <20140904070340.GJ30024@valkosipuli.retiisi.org.uk>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-size_t is unsigned.
+Em Thu, 04 Sep 2014 10:03:40 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> On Wed, Sep 03, 2014 at 05:32:48PM -0300, Mauro Carvalho Chehab wrote:
+> > Instead of using 0 or 1 for boolean, use the true/false
+> > defines.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> Thanks!
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Would you like me to pick this patch to my tree, or would you like to apply
+> it directly? I'm fine with either.
 
-diff --git a/drivers/media/dvb-frontends/bcm3510.c b/drivers/media/dvb-frontends/bcm3510.c
-index 998d15031461..638c7aa0fb7e 100644
---- a/drivers/media/dvb-frontends/bcm3510.c
-+++ b/drivers/media/dvb-frontends/bcm3510.c
-@@ -639,7 +639,7 @@ static int bcm3510_download_firmware(struct dvb_frontend* fe)
- 		err("could not load firmware (%s): %d",BCM3510_DEFAULT_FIRMWARE,ret);
- 		return ret;
- 	}
--	deb_info("got firmware: %zd\n",fw->size);
-+	deb_info("got firmware: %zu\n", fw->size);
- 
- 	b = fw->data;
- 	for (i = 0; i < fw->size;) {
-diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-index a74ac0ddb833..2163490c1e6b 100644
---- a/drivers/media/dvb-frontends/mt312.c
-+++ b/drivers/media/dvb-frontends/mt312.c
-@@ -103,7 +103,7 @@ static int mt312_write(struct mt312_state *state, const enum mt312_reg_addr reg,
- 
- 	if (1 + count > sizeof(buf)) {
- 		printk(KERN_WARNING
--		       "mt312: write: len=%zd is too big!\n", count);
-+		       "mt312: write: len=%zu is too big!\n", count);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
-index 10cfc0579168..873ea1da844b 100644
---- a/drivers/media/dvb-frontends/or51211.c
-+++ b/drivers/media/dvb-frontends/or51211.c
-@@ -111,7 +111,7 @@ static int or51211_load_firmware (struct dvb_frontend* fe,
- 	u8 tudata[585];
- 	int i;
- 
--	dprintk("Firmware is %zd bytes\n",fw->size);
-+	dprintk("Firmware is %zu bytes\n", fw->size);
- 
- 	/* Get eprom data */
- 	tudata[0] = 17;
-diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
-index 91b6b2e9b792..ee09ec26c553 100644
---- a/drivers/media/dvb-frontends/zl10039.c
-+++ b/drivers/media/dvb-frontends/zl10039.c
-@@ -111,7 +111,7 @@ static int zl10039_write(struct zl10039_state *state,
- 
- 	if (1 + count > sizeof(buf)) {
- 		printk(KERN_WARNING
--		       "%s: i2c wr reg=%04x: len=%zd is too big!\n",
-+		       "%s: i2c wr reg=%04x: len=%zu is too big!\n",
- 		       KBUILD_MODNAME, reg, count);
- 		return -EINVAL;
- 	}
--- 
-1.9.3
+I'll pick it myself.
 
+Regards,
+Mauro
