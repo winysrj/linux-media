@@ -1,61 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:46456 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755259AbaIWOCQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 10:02:16 -0400
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3757 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250AbaIDNOX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 09:14:23 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s84DEJlN097673
+	for <linux-media@vger.kernel.org>; Thu, 4 Sep 2014 15:14:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 6757E2A075A
+	for <linux-media@vger.kernel.org>; Thu,  4 Sep 2014 15:14:13 +0200 (CEST)
+Message-ID: <54086581.8010809@xs4all.nl>
+Date: Thu, 04 Sep 2014 15:13:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
-References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
-Date: Tue, 23 Sep 2014 16:02:14 +0200
-Message-ID: <CAMuHMdWnMz3P8tk_f_EQoZjgYS7SzH_2jYv_32aPnfM_hQgr1A@mail.gmail.com>
-Subject: Re: [PATCH 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANN] Created a patch to teach valgrind about V4L2 and the media
+ API
+References: <53DF488A.4080307@xs4all.nl>
+In-Reply-To: <53DF488A.4080307@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 19, 2014 at 2:50 PM, Mikhail Ulyanov
-<mikhail.ulyanov@cogentembedded.com> wrote:
-> +static void put_short_be(unsigned long *p, u16 v)
-> +{
-> +       u16 *addr = (u16 *)*p;
-> +
-> +       *addr = cpu_to_be16(v);
-> +       *p += 2;
-> +}
-> +
-> +static void put_word_be(unsigned long *p, u32 v)
-> +{
-> +       u32 *addr = (u32 *)*p;
-> +
-> +       *addr = cpu_to_be32(v);
-> +       *p += 4;
-> +}
+On 08/04/14 10:47, Hans Verkuil wrote:
+> See this bugreport for valgrind with the attached patch:
+> 
+> https://bugs.kde.org/show_bug.cgi?id=338023
 
-Is the address in *p guaranteed to be aligned to 2 resp. 4  bytes?
+A quick follow-up: this patch has been committed in the valgrind repo,
+so I assume it will appear in the next valgrind release.
 
-If not, you can use put_unaligned*().
+Regards,
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+	Hans
