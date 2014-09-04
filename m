@@ -1,156 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1736 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbaIUOss (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/11] vivid: add crop/compose selection control support
-Date: Sun, 21 Sep 2014 16:48:29 +0200
-Message-Id: <1411310909-32825-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:15807 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751063AbaIDNFW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Sep 2014 09:05:22 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH] hdpvr: reduce memory footprint when debugging
+Date: Thu,  4 Sep 2014 16:04:38 +0300
+Message-Id: <1409835878-12617-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There is no need to use hex_dump_to_buffer() since we have a kernel helper to
+dump up to 64 bytes just via printk().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/media/platform/vivid/vivid-core.h    |  5 ++++
- drivers/media/platform/vivid/vivid-ctrls.c   | 37 ++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-vid-cap.c | 10 ++++++--
- drivers/media/platform/vivid/vivid-vid-cap.h |  1 +
- 4 files changed, 51 insertions(+), 2 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-control.c | 21 ++++++---------------
+ drivers/media/usb/hdpvr/hdpvr-core.c    | 27 ++++++---------------------
+ 2 files changed, 12 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 811c286..f9d6c45 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -214,6 +214,11 @@ struct vivid_dev {
- 		struct v4l2_ctrl	*ctrl_dv_timings_signal_mode;
- 		struct v4l2_ctrl	*ctrl_dv_timings;
- 	};
-+	struct {
-+		/* capture selection crop/compose cluster */
-+		struct v4l2_ctrl	*ctrl_cap_crop;
-+		struct v4l2_ctrl	*ctrl_cap_compose;
-+	};
- 	struct v4l2_ctrl		*ctrl_has_crop_cap;
- 	struct v4l2_ctrl		*ctrl_has_compose_cap;
- 	struct v4l2_ctrl		*ctrl_has_scaler_cap;
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 42376a1..04d18be 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -398,6 +398,25 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
- 		if (dev->edid_blocks > dev->edid_max_blocks)
- 			dev->edid_blocks = dev->edid_max_blocks;
- 		break;
-+	case V4L2_CID_CAPTURE_CROP: {
-+		struct v4l2_selection s = { V4L2_BUF_TYPE_VIDEO_CAPTURE };
-+		struct v4l2_ctrl_selection *crop = dev->ctrl_cap_crop->p_new.p_sel;
-+		struct v4l2_ctrl_selection *compose = dev->ctrl_cap_compose->p_new.p_sel;
-+		int ret;
-+
-+		if (ctrl->store)
-+			break;
-+		s.target = V4L2_SEL_TGT_CROP;
-+		s.r = crop->r;
-+		s.flags = crop->flags;
-+		ret = vivid_vid_cap_s_selection_int(dev, &s);
-+		if (ret)
-+			return ret;
-+		s.target = V4L2_SEL_TGT_COMPOSE;
-+		s.r = compose->r;
-+		s.flags = compose->flags;
-+		return vivid_vid_cap_s_selection_int(dev, &s);
-+	}
- 	}
- 	return 0;
- }
-@@ -668,6 +687,19 @@ static const struct v4l2_ctrl_config vivid_ctrl_limited_rgb_range = {
- 	.step = 1,
- };
+diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
+index 6053661..6e86032 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-control.c
++++ b/drivers/media/usb/hdpvr/hdpvr-control.c
+@@ -59,13 +59,10 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
+ 			      1000);
  
-+static const struct v4l2_ctrl_config vivid_ctrl_capture_crop = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = V4L2_CID_CAPTURE_CROP,
-+	.dims = { 1 },
-+	.can_store = true,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_capture_compose = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = V4L2_CID_CAPTURE_COMPOSE,
-+	.dims = { 1 },
-+	.can_store = true,
-+};
+ #ifdef HDPVR_DEBUG
+-	if (hdpvr_debug & MSG_INFO) {
+-		char print_buf[15];
+-		hex_dump_to_buffer(dev->usbc_buf, 5, 16, 1, print_buf,
+-				   sizeof(print_buf), 0);
++	if (hdpvr_debug & MSG_INFO)
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-			 "get video info returned: %d, %s\n", ret, print_buf);
+-	}
++			 "get video info returned: %d, %5ph\n", ret,
++			 dev->usbc_buf);
+ #endif
+ 	mutex_unlock(&dev->usbc_mutex);
  
- /* VBI Capture Control */
+@@ -82,9 +79,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
  
-@@ -1263,6 +1295,10 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		dev->colorspace = v4l2_ctrl_new_custom(hdl_vid_cap,
- 			&vivid_ctrl_colorspace, NULL);
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_alpha_mode, NULL);
-+		dev->ctrl_cap_crop = v4l2_ctrl_new_custom(hdl_vid_cap,
-+				&vivid_ctrl_capture_crop, NULL);
-+		dev->ctrl_cap_compose = v4l2_ctrl_new_custom(hdl_vid_cap,
-+				&vivid_ctrl_capture_compose, NULL);
- 	}
- 
- 	if (dev->has_vid_out && show_ccs_out) {
-@@ -1435,6 +1471,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
- 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
- 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
-+		v4l2_ctrl_cluster(2, &dev->ctrl_cap_crop);
- 		if (hdl_vid_cap->error)
- 			return hdl_vid_cap->error;
- 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 95eda68..934ea3d 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -831,9 +831,8 @@ int vivid_vid_cap_g_selection(struct file *file, void *priv,
- 	return 0;
- }
- 
--int vivid_vid_cap_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
-+int vivid_vid_cap_s_selection_int(struct vivid_dev *dev, struct v4l2_selection *s)
+ int get_input_lines_info(struct hdpvr_device *dev)
  {
--	struct vivid_dev *dev = video_drvdata(file);
- 	struct v4l2_rect *crop = &dev->crop_cap;
- 	struct v4l2_rect *compose = &dev->compose_cap;
- 	unsigned factor = V4L2_FIELD_HAS_T_OR_B(dev->field_cap) ? 2 : 1;
-@@ -967,6 +966,13 @@ int vivid_vid_cap_s_selection(struct file *file, void *fh, struct v4l2_selection
- 	return 0;
+-#ifdef HDPVR_DEBUG
+-	char print_buf[9];
+-#endif
+ 	int ret, lines;
+ 
+ 	mutex_lock(&dev->usbc_mutex);
+@@ -96,13 +90,10 @@ int get_input_lines_info(struct hdpvr_device *dev)
+ 			      1000);
+ 
+ #ifdef HDPVR_DEBUG
+-	if (hdpvr_debug & MSG_INFO) {
+-		hex_dump_to_buffer(dev->usbc_buf, 3, 16, 1, print_buf,
+-				   sizeof(print_buf), 0);
++	if (hdpvr_debug & MSG_INFO)
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-			 "get input lines info returned: %d, %s\n", ret,
+-			 print_buf);
+-	}
++			 "get input lines info returned: %d, %3ph\n", ret,
++			 dev->usbc_buf);
+ #else
+ 	(void)ret;	/* suppress compiler warning */
+ #endif
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index c563896..42b4cdf 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -124,14 +124,6 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	int ret, retval = -ENOMEM;
+ 	char request_type = 0x38, rcv_request = 0x81;
+ 	char *response;
+-#ifdef HDPVR_DEBUG
+-	size_t buf_size = 46;
+-	char *print_buf = kzalloc(5*buf_size+1, GFP_KERNEL);
+-	if (!print_buf) {
+-		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+-		return retval;
+-	}
+-#endif
+ 
+ 	mutex_lock(&dev->usbc_mutex);
+ 	ret = usb_control_msg(dev->udev,
+@@ -147,11 +139,9 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	}
+ #ifdef HDPVR_DEBUG
+ 	else {
+-		hex_dump_to_buffer(dev->usbc_buf, 46, 16, 1, print_buf,
+-				   5*buf_size+1, 0);
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-			 "Status request returned, len %d: %s\n",
+-			 ret, print_buf);
++			 "Status request returned, len %d: %46ph\n",
++			 ret, dev->usbc_buf);
+ 	}
+ #endif
+ 
+@@ -189,15 +179,13 @@ static int device_authorization(struct hdpvr_device *dev)
+ 
+ 	response = dev->usbc_buf+38;
+ #ifdef HDPVR_DEBUG
+-	hex_dump_to_buffer(response, 8, 16, 1, print_buf, 5*buf_size+1, 0);
+-	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, "challenge: %s\n",
+-		 print_buf);
++	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, "challenge: %8ph\n",
++		 response);
+ #endif
+ 	challenge(response);
+ #ifdef HDPVR_DEBUG
+-	hex_dump_to_buffer(response, 8, 16, 1, print_buf, 5*buf_size+1, 0);
+-	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, " response: %s\n",
+-		 print_buf);
++	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, " response: %8ph\n",
++		 response);
+ #endif
+ 
+ 	msleep(100);
+@@ -213,9 +201,6 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	retval = ret != 8;
+ unlock:
+ 	mutex_unlock(&dev->usbc_mutex);
+-#ifdef HDPVR_DEBUG
+-	kfree(print_buf);
+-#endif
+ 	return retval;
  }
  
-+int vivid_vid_cap_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
-+{
-+	struct vivid_dev *dev = video_drvdata(file);
-+
-+	return vivid_vid_cap_s_selection_int(dev, s);
-+}
-+
- int vivid_vid_cap_cropcap(struct file *file, void *priv,
- 			      struct v4l2_cropcap *cap)
- {
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.h b/drivers/media/platform/vivid/vivid-vid-cap.h
-index 9407981..e7d36cb 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.h
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.h
-@@ -39,6 +39,7 @@ int vidioc_g_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format *f);
- int vidioc_try_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format *f);
- int vidioc_s_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format *f);
- int vivid_vid_cap_g_selection(struct file *file, void *priv, struct v4l2_selection *sel);
-+int vivid_vid_cap_s_selection_int(struct vivid_dev *dev, struct v4l2_selection *s);
- int vivid_vid_cap_s_selection(struct file *file, void *fh, struct v4l2_selection *s);
- int vivid_vid_cap_cropcap(struct file *file, void *priv, struct v4l2_cropcap *cap);
- int vidioc_enum_fmt_vid_overlay(struct file *file, void  *priv, struct v4l2_fmtdesc *f);
 -- 
 2.1.0
 
