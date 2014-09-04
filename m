@@ -1,83 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37885 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754195AbaIZOZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 10:25:17 -0400
-Message-ID: <54257743.6050509@osg.samsung.com>
-Date: Fri, 26 Sep 2014 08:25:07 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: em28xx breaks after hibernate
-References: <20140925181747.GA21522@linuxtv.org> <542462C4.7020907@osg.samsung.com> <20140926080030.GB31491@linuxtv.org> <20140926080824.GA8382@linuxtv.org> <20140926071411.61a011bd@recife.lan> <20140926110727.GA880@linuxtv.org> <20140926084215.772adce9@recife.lan> <20140926090316.5ae56d93@recife.lan> <20140926122721.GA11597@linuxtv.org> <20140926101222.778ebcaf@recife.lan> <20140926132513.GA30084@linuxtv.org>
-In-Reply-To: <20140926132513.GA30084@linuxtv.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-yk0-f201.google.com ([209.85.160.201]:49633 "EHLO
+	mail-yk0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908AbaIDArv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 20:47:51 -0400
+Received: by mail-yk0-f201.google.com with SMTP id 142so1066133ykq.4
+        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 17:47:50 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH v4 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+Date: Wed,  3 Sep 2014 17:47:48 -0700
+Message-Id: <1409791668-18715-1-git-send-email-vpalatin@chromium.org>
+In-Reply-To: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com>
+References: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/26/2014 07:25 AM, Johannes Stezenbach wrote:
-> On Fri, Sep 26, 2014 at 10:12:22AM -0300, Mauro Carvalho Chehab wrote:
->> Try to add a WARN_ON or printk at em28xx_usb_resume().
-> 
-> It is called two times, once during hibernate and once during resume:
-> 
+Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+CT_PANTILT_RELATIVE_CONTROL terminal control request.
 
-> root@debian:~# echo disk >/sys/power/state
+Tested by plugging a Logitech ConferenceCam C3000e USB camera
+and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+Verified that it can pan and tilt at the same time in both directions.
 
-On the upside this does look similar to what I have seen when
-I was debugging suspend/resume on pctv stick that uses em28xx
-and drx39xyj
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+---
+Changes from v1/v2:
+- rebased
+Changes from v3:
+- removed gerrit-id
 
-One thing that helped me debug the problem is testing
-hibernate in platform mode (which is default) and then
-Hibernate in reboot mode.
+ drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 3 deletions(-)
 
-I enabled usb debug and device debug to see what is happening
-at the usb-core and ran the following cases:
-I enable pm trace:
-echo 1 > /sys/power/pm_trace
-
-Hibernate in platform mode (default and recommended hibernation mode)
-echo platform > /sys/power/disk
-echo disk > /sys/power/state
-
-Hibernate in reboot mode: (usb bus could go through loss of power as
-platform might not maintain power to the buses). reset_resume should
-recover from loss of power or have the force disconnect path handle the
-case. i.e don't install reset_resume
-
-echo reboot > /sys/power/disk
-echo disk > /sys/power/state
-
-I also simply selected suspend from the GUI, this seems to
-take the usb-bus through a different path.
-
-These behave differently when reset_resume is installed vs.
-not installed. In our case, reset_resume simply points to
-resume which can't handle the power loss case. It would be
-good to get data on these different scenarios. I wish I have
-the WinTV 930, but I don't.
-
-If we have full debug for the above three scenarios, it would
-help debug it further. I also do the following to see resume
-works in a simple case: no disk involved suspend to ram
-
-echo mem > /sys/power/state
-
-I am looking at drxk to see if I can figure out anything.
-Also I dumped em28xx eprom to see if looks ok during these
-tests.
-
-thanks,
--- Shuah
-
-
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 0eb82106..d703cb0 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+ 		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+ 		.index		= 12,
+ 		.size		= 4,
+-		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+-				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+-				| UVC_CTRL_FLAG_GET_DEF
++		.flags		= UVC_CTRL_FLAG_SET_CUR
++				| UVC_CTRL_FLAG_GET_RANGE
+ 				| UVC_CTRL_FLAG_AUTO_UPDATE,
+ 	},
+ 	{
+@@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
+ 	data[2] = min((int)abs(value), 0xff);
+ }
+ 
++static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
++	__u8 query, const __u8 *data)
++{
++	int first = mapping->offset / 8;
++	__s8 rel = (__s8)data[first];
++
++	switch (query) {
++	case UVC_GET_CUR:
++		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
++						 : -data[first+1]);
++	case UVC_GET_MIN:
++		return -data[first+1];
++	case UVC_GET_MAX:
++	case UVC_GET_RES:
++	case UVC_GET_DEF:
++	default:
++		return data[first+1];
++	}
++}
++
++static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
++	__s32 value, __u8 *data)
++{
++	int first = mapping->offset / 8;
++
++	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
++	data[first+1] = min_t(int, abs(value), 0xff);
++}
++
+ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 	{
+ 		.id		= V4L2_CID_BRIGHTNESS,
+@@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
++		.id		= V4L2_CID_PAN_SPEED,
++		.name		= "Pan (Speed)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 0,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
++		.id		= V4L2_CID_TILT_SPEED,
++		.name		= "Tilt (Speed)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 16,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
+ 		.id		= V4L2_CID_PRIVACY,
+ 		.name		= "Privacy",
+ 		.entity		= UVC_GUID_UVC_CAMERA,
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.1.0.rc2.206.gedb03e5
+
