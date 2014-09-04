@@ -1,39 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62636 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750725AbaIXBA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 21:00:26 -0400
-Date: Wed, 24 Sep 2014 08:59:57 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Akihiro Tsukada <tskd08@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:devel-3.17-rc6 492/499] ERROR: "__aeabi_ldivmod"
- [drivers/media/tuners/qm1d1c0042.ko] undefined!
-Message-ID: <5422178d.oJU4Z5V14CMUtNSt%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4980 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673AbaIDQ1L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 12:27:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] tw68: simplify tw68_buffer_count
+Date: Thu,  4 Sep 2014 18:26:52 +0200
+Message-Id: <1409848013-21867-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git devel-3.17-rc6
-head:   5b5560842a7ee002d208a20866f88fafd63198eb
-commit: f5a98f37a535a43b3a27c6a63b07f23d248e4b31 [492/499] [media] pt3: add support for Earthsoft PT3 ISDB-S/T receiver card
-config: arm-allmodconfig
-reproduce:
-  wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-  chmod +x ~/bin/make.cross
-  git checkout f5a98f37a535a43b3a27c6a63b07f23d248e4b31
-  make.cross ARCH=arm  allmodconfig
-  make.cross ARCH=arm 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-All error/warnings:
+The code to calculate the maximum number of buffers allowed in 4 MB
+is 1) wrong if PAGE_SIZE != 4096 and 2) unnecessarily complex.
 
->> ERROR: "__aeabi_ldivmod" [drivers/media/tuners/qm1d1c0042.ko] undefined!
->> ERROR: "__aeabi_ldivmod" [drivers/media/dvb-frontends/tc90522.ko] undefined!
+Fix and simplify the code.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/pci/tw68/tw68-video.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index 66fae23..498ead9 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -361,22 +361,13 @@ int tw68_video_start_dma(struct tw68_dev *dev, struct tw68_buf *buf)
+ 
+ /* ------------------------------------------------------------------ */
+ 
+-/* nr of (tw68-)pages for the given buffer size */
+-static int tw68_buffer_pages(int size)
+-{
+-	size  = PAGE_ALIGN(size);
+-	size += PAGE_SIZE; /* for non-page-aligned buffers */
+-	size /= 4096;
+-	return size;
+-}
+-
+ /* calc max # of buffers from size (must not exceed the 4MB virtual
+  * address space per DMA channel) */
+ static int tw68_buffer_count(unsigned int size, unsigned int count)
+ {
+ 	unsigned int maxcount;
+ 
+-	maxcount = 1024 / tw68_buffer_pages(size);
++	maxcount = (4 * 1024 * 1024) / roundup(size, PAGE_SIZE);
+ 	if (count > maxcount)
+ 		count = maxcount;
+ 	return count;
+-- 
+2.1.0
+
