@@ -1,68 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45540 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182AbaI3J5x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 05:57:53 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 02/10] [media] coda: identify platform device earlier
-Date: Tue, 30 Sep 2014 11:57:03 +0200
-Message-Id: <1412071031-32016-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:34375 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757094AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:05 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 32/37] af9033: wrap DVBv3 read SNR to DVBv5 CNR
+Date: Thu,  4 Sep 2014 05:36:40 +0300
+Message-Id: <1409798205-25645-32-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We'll use this information to decide whether to request the JPEG IRQ later.
+Remove 'duplicate' DVBv3 read SNR implementation and return value,
+calculated already by DVBv5 CNR, from the cache.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/coda/coda-common.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/media/dvb-frontends/af9033.c      | 52 ++++---------------------------
+ drivers/media/dvb-frontends/af9033_priv.h |  1 +
+ 2 files changed, 7 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 48be973..fb83c56 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1896,6 +1896,15 @@ static int coda_probe(struct platform_device *pdev)
- 	if (!dev)
- 		return -ENOMEM;
- 
-+	pdev_id = of_id ? of_id->data : platform_get_device_id(pdev);
-+
-+	if (of_id)
-+		dev->devtype = of_id->data;
-+	else if (pdev_id)
-+		dev->devtype = &coda_devdata[pdev_id->driver_data];
-+	else
-+		return -EINVAL;
-+
- 	spin_lock_init(&dev->irqlock);
- 	INIT_LIST_HEAD(&dev->instances);
- 
-@@ -1963,17 +1972,6 @@ static int coda_probe(struct platform_device *pdev)
- 	mutex_init(&dev->dev_mutex);
- 	mutex_init(&dev->coda_mutex);
- 
--	pdev_id = of_id ? of_id->data : platform_get_device_id(pdev);
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 576e9b5..4c20616 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -832,55 +832,15 @@ err:
+ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct af9033_dev *dev = fe->demodulator_priv;
+-	int ret, i, len;
+-	u8 buf[3], tmp;
+-	u32 snr_val;
+-	const struct val_snr *snr_lut;
 -
--	if (of_id) {
--		dev->devtype = of_id->data;
--	} else if (pdev_id) {
--		dev->devtype = &coda_devdata[pdev_id->driver_data];
--	} else {
--		v4l2_device_unregister(&dev->v4l2_dev);
--		return -EINVAL;
+-	/* read value */
+-	ret = af9033_rd_regs(dev, 0x80002c, buf, 3);
+-	if (ret < 0)
+-		goto err;
+-
+-	snr_val = (buf[2] << 16) | (buf[1] << 8) | buf[0];
+-
+-	/* read current modulation */
+-	ret = af9033_rd_reg(dev, 0x80f903, &tmp);
+-	if (ret < 0)
+-		goto err;
+-
+-	switch ((tmp >> 0) & 3) {
+-	case 0:
+-		len = ARRAY_SIZE(qpsk_snr_lut);
+-		snr_lut = qpsk_snr_lut;
+-		break;
+-	case 1:
+-		len = ARRAY_SIZE(qam16_snr_lut);
+-		snr_lut = qam16_snr_lut;
+-		break;
+-	case 2:
+-		len = ARRAY_SIZE(qam64_snr_lut);
+-		snr_lut = qam64_snr_lut;
+-		break;
+-	default:
+-		goto err;
 -	}
 -
- 	dev->debugfs_root = debugfs_create_dir("coda", NULL);
- 	if (!dev->debugfs_root)
- 		dev_warn(&pdev->dev, "failed to create debugfs root\n");
+-	for (i = 0; i < len; i++) {
+-		tmp = snr_lut[i].snr;
+-
+-		if (snr_val < snr_lut[i].val)
+-			break;
+-	}
++	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
+ 
+-	*snr = tmp * 10; /* dB/10 */
++	/* use DVBv5 CNR */
++	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
++		*snr = div_s64(c->cnr.stat[0].svalue, 100); /* 1000x => 10x */
++	else
++		*snr = 0;
+ 
+ 	return 0;
+-
+-err:
+-	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+-
+-	return ret;
+ }
+ 
+ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index ded7b67..c12c92c 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -24,6 +24,7 @@
+ 
+ #include "dvb_frontend.h"
+ #include "af9033.h"
++#include <linux/math64.h>
+ 
+ struct reg_val {
+ 	u32 reg;
 -- 
-2.1.0
+http://palosaari.fi/
 
