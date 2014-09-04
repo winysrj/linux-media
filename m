@@ -1,83 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:51941 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbaIYPiE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:38:04 -0400
-Date: Thu, 25 Sep 2014 17:37:46 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] em28xx-input: NULL dereference on error
-In-Reply-To: <542421DF.9060000@googlemail.com>
-Message-ID: <alpine.DEB.2.10.1409251736480.2766@hadrien>
-References: <20140925113941.GB3708@mwanda> <542421DF.9060000@googlemail.com>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-2141670814-1411659467=:2766"
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:31338 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179AbaIDMXk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 08:23:40 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBD00KK2MK4Q110@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Sep 2014 13:26:28 +0100 (BST)
+Received: from AVDC551 ([106.120.205.44])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0NBD0015ZMFDGOB0@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Sep 2014 13:23:37 +0100 (BST)
+From: Krzysztof Borowczyk <k.borowczyk@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: Webcam problem
+Date: Thu, 04 Sep 2014 14:23:36 +0200
+Message-id: <009701cfc83b$0dd0b100$29721300$%borowczyk@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello,
 
---8323329-2141670814-1411659467=:2766
-Content-Type: TEXT/PLAIN; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+I’ve recently noticed a problem with Modecom Venus and A4Tech PK-333E webcams. Both can be put into a “bad state” in which they refuse to do anything until they’re reconnected to the usb port. The test case is simple:
 
-On Thu, 25 Sep 2014, Frank Sch�fer wrote:
+gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
+Setting pipeline to PAUSED ...
+Pipeline is live and does not need PREROLL ...
+Setting pipeline to PLAYING ...
+New clock: GstSystemClock
+eKilled
 
-> Hi Dan,
->
-> Am 25.09.2014 um 13:39 schrieb Dan Carpenter:
-> > We call "kfree(ir->i2c_client);" in the error handling and that doesn't
-> > work if "ir" is NULL.
-> >
-> > Fixes: 78e719a5f30b ('[media] em28xx-input: i2c IR decoders: improve i2c_client handling')
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >
-> > diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> > index 581f6da..23f8f6a 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-input.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> > @@ -712,8 +712,10 @@ static int em28xx_ir_init(struct em28xx *dev)
-> >  	em28xx_info("Registering input extension\n");
-> >
-> >  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> > +	if (!ir)
-> > +		return -ENOMEM;
-> >  	rc = rc_allocate_device();
-> > -	if (!ir || !rc)
-> > +	if (!rc)
-> >  		goto error;
+gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
+Setting pipeline to PAUSED ...
+Pipeline is live and does not need PREROLL ...
+Setting pipeline to PLAYING ...
+New clock: GstSystemClock
+ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not read from resource.
+Additional debug info:
+gstv4l2bufferpool.c(994): gst_v4l2_buffer_pool_poll (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+poll error 1: Invalid argument (22)
+Execution ended after 0:00:00.046823946
+Setting pipeline to PAUSED ...
+Setting pipeline to READY ...
+Setting pipeline to NULL ...
+Freeing pipeline ...
 
-I have never understood this kind of code.  If the kmalloc fails, why not
-give up immediately (as in Dan's patch)?
+The GStreamer process has to be killed with the -9:
+kill -9 `pidof gst-launch-1.0`
 
-julia
+The dmesg log shows this:
+[88000.804362] usb 3-3: new high-speed USB device number 4 using xhci_hcd
+[88000.864107] usb 3-3: New USB device found, idVendor=0ac8, idProduct=3460
+[88000.864113] usb 3-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[88000.864116] usb 3-3: Product: Venus USB2.0 Camera
+[88000.864118] usb 3-3: Manufacturer: Vimicro Corp.
+[88000.865088] uvcvideo: Found UVC 1.00 device Venus USB2.0 Camera (0ac8:3460)
+[88000.866783] input: Venus USB2.0 Camera as /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3:1.0/input/input16
+[88024.007404] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2: -110 (exp. 2).
+[88024.307041] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2: -110 (exp. 2).
+[88025.837884] uvcvideo: Failed to set UVC probe control : -32 (exp. 26).
+[88030.830854] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+[88035.824615] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+[88040.818399] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+[88045.812171] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+[88050.805941] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+[88088.249967] xhci_hcd 0000:00:14.0: Signal while waiting for configure endpoint command
+[88088.250000] usb 3-3: Not enough bandwidth for altsetting 0
+[88090.907927] xhci_hcd 0000:00:14.0: ERROR Transfer event for disabled endpoint or incorrect stream ring
+[88090.907940] xhci_hcd 0000:00:14.0: @0000000115c5f460 00000000 00000000 0c000000 03058000
+[88091.021791] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with disabled ep ffff88006b0fa540
+[88091.021797] xhci_hcd 0000:00:14.0: Trying to add endpoint 0x82 without dropping it.
+[88091.021802] usb 3-3: Not enough bandwidth for altsetting 7
+[88091.021805] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with disabled ep ffff88006b0fa540
 
 
-> >  	/* record handles to ourself */
-> I would prefer to fix it where the actual problem is located.
-> Can you send an updated version that changes the code to do
->
-> ...
-> error:
-> if (ir)
->   kfree(ir->i2c_client);
-> ...
->
-> This makes the code less prone to future error handling changes.
->
-> Thanks !
->
-> Regards,
-> Frank
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
---8323329-2141670814-1411659467=:2766--
+-- 
+Best regards,
+Krzysztof Borowczyk
+
+
