@@ -1,103 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45318 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932213AbaIKUyi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Sep 2014 16:54:38 -0400
-Message-ID: <54120C0A.2050905@iki.fi>
-Date: Thu, 11 Sep 2014 23:54:34 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] si2157: Add support for Si2147-A30 tuner
-References: <1410465698-12873-1-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1410465698-12873-1-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:23064 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933276AbaIDBMW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 21:12:22 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBC00A3CRCKYE60@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Sep 2014 21:12:20 -0400 (EDT)
+Date: Wed, 03 Sep 2014 22:12:15 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 32/46] [media] e4000: simplify boolean tests
+Message-id: <20140903221215.3843a9e9.m.chehab@samsung.com>
+In-reply-to: <5407AAA3.1090607@iki.fi>
+References: <cover.1409775488.git.m.chehab@samsung.com>
+ <86da9d3c8d8ced8d61c8c57b774da2e7f7a2a4ef.1409775488.git.m.chehab@samsung.com>
+ <5407AAA3.1090607@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Em Thu, 04 Sep 2014 02:56:19 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Antti
+> Which is static analyzer you are referring to fix these?
 
-On 09/11/2014 11:01 PM, Olli Salonen wrote:
-> This patch adds support for Si2147-A30 tuner. Fairly trivial, no firmware needed for this tuner. However, command 14 00 02 07 01 00 seems to be mandatory. On Si2157 and Si2158 the value 0x0100 is the default value, so this patch does not impact the existing tuners/devices. On Si2147 the default is 0x0000 and I can't get a lock with that value.
->
-> While here, fix the return length of the previous set command to 4 bytes.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> ---
->   drivers/media/tuners/si2157.c      | 13 +++++++++++--
->   drivers/media/tuners/si2157.h      |  2 +-
->   drivers/media/tuners/si2157_priv.h |  2 +-
->   3 files changed, 13 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 5901484..cf97142 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -1,5 +1,5 @@
->   /*
-> - * Silicon Labs Si2157/2158 silicon tuner driver
-> + * Silicon Labs Si2147/2157/2158 silicon tuner driver
->    *
->    * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
->    *
-> @@ -113,12 +113,14 @@ static int si2157_init(struct dvb_frontend *fe)
->
->   	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
->   	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
-> +	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
->
->   	switch (chip_id) {
->   	case SI2158_A20:
->   		fw_file = SI2158_A20_FIRMWARE;
->   		break;
->   	case SI2157_A30:
-> +	case SI2147_A30:
->   		goto skip_fw_download;
->   		break;
->   	default:
-> @@ -265,7 +267,14 @@ static int si2157_set_params(struct dvb_frontend *fe)
->   	if (s->inversion)
->   		cmd.args[5] = 0x01;
->   	cmd.wlen = 6;
-> -	cmd.rlen = 1;
-> +	cmd.rlen = 4;
-> +	ret = si2157_cmd_execute(s, &cmd);
-> +	if (ret)
-> +		goto err;
-> +
-> +	memcpy(cmd.args, "\x14\x00\x02\x07\x01\x00", 6);
-> +	cmd.wlen = 6;
-> +	cmd.rlen = 4;
->   	ret = si2157_cmd_execute(s, &cmd);
->   	if (ret)
->   		goto err;
-> diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-> index 6da4d5d..d3b19ca 100644
-> --- a/drivers/media/tuners/si2157.h
-> +++ b/drivers/media/tuners/si2157.h
-> @@ -1,5 +1,5 @@
->   /*
-> - * Silicon Labs Si2157/2158 silicon tuner driver
-> + * Silicon Labs Si2147/2157/2158 silicon tuner driver
->    *
->    * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
->    *
-> diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-> index 4080a57..e71ffaf 100644
-> --- a/drivers/media/tuners/si2157_priv.h
-> +++ b/drivers/media/tuners/si2157_priv.h
-> @@ -1,5 +1,5 @@
->   /*
-> - * Silicon Labs Si2157/2158 silicon tuner driver
-> + * Silicon Labs Si2147/2157/2158 silicon tuner driver
->    *
->    * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
->    *
->
+Coccinelle. See: scripts/coccinelle/misc/boolinit.cocci
 
--- 
-http://palosaari.fi/
+> Using true/false for boolean datatype sounds OK, but personally I 
+> dislike use of negation operator. For my eyes (foo = 0) / (foo == false) 
+> is better and I have changed all the time negate operators to equal 
+> operators from my drivers.
+
+The usage of the negation operator on such tests is there since
+the beginning of C.
+
+By being shorter, a reviewer can read it faster and, at least for
+me, it is a non-brain to understand !foo. On the other hand,
+"false" is not part of standard C. So, it takes more time for my
+brain to parse it.
+
+Anyway, from my side, the real reasone for using it is not due to
+that. It is that I (and other Kernel developers) run from time to
+time static analyzers like smatch and coccinelle, in order to identify
+real errors. Having a less-polluted log helps to identify the newer
+errors/warnings.
+
+Regards,
+Mauro
+> 
+> regards
+> Antti
+> 
+> On 09/03/2014 11:33 PM, Mauro Carvalho Chehab wrote:
+> > Instead of using if (foo == false), just use
+> > if (!foo).
+> >
+> > That allows a faster mental parsing when analyzing the
+> > code.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> >
+> > diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+> > index 90d93348f20c..cd9cf643f602 100644
+> > --- a/drivers/media/tuners/e4000.c
+> > +++ b/drivers/media/tuners/e4000.c
+> > @@ -400,7 +400,7 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+> >   	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
+> >   	int ret;
+> >
+> > -	if (s->active == false)
+> > +	if (!s->active)
+> >   		return 0;
+> >
+> >   	switch (ctrl->id) {
+> > @@ -423,7 +423,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+> >   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> >   	int ret;
+> >
+> > -	if (s->active == false)
+> > +	if (!s->active)
+> >   		return 0;
+> >
+> >   	switch (ctrl->id) {
+> >
+> 
