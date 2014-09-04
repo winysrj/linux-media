@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:49697 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbaIFP1n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 11:27:43 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/5] media: davinci: vpif_capture: drop setting of vb2 buffer state to ACTIVE
-Date: Sat,  6 Sep 2014 16:26:48 +0100
-Message-Id: <1410017211-15438-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-by2lp0244.outbound.protection.outlook.com ([207.46.163.244]:7514
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750902AbaIDJiC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Sep 2014 05:38:02 -0400
+From: Fancy Fang <chen.fang@freescale.com>
+To: <m.chehab@samsung.com>, <hverkuil@xs4all.nl>,
+	<viro@ZenIV.linux.org.uk>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Fancy Fang <chen.fang@freescale.com>
+Subject: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+Date: Thu, 4 Sep 2014 16:34:39 +0800
+Message-ID: <1409819679-31497-1-git-send-email-chen.fang@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch drops setting of vb2 buffer state to VB2_BUF_STATE_ACTIVE,
-as any buffer queued to the driver is marked ACTIVE by the vb2 core.
+When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
+will assign the corresponding offset to the 'boff' field of the
+videobuf_buffer for each requested buffer sequentially. Later, user
+may call mmap() to map one or all of the buffers with the 'offset'
+parameter which is equal to its 'boff' value. Obviously, the 'offset'
+value is only used to find the matched buffer instead of to be the
+real offset from the buffer's physical start address as used by
+vm_iomap_memory(). So, in some case that if the offset is not zero,
+vm_iomap_memory() will fail.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Fancy Fang <chen.fang@freescale.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index cf15bb1..881efcd 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -213,8 +213,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Remove buffer from the buffer queue */
- 	list_del(&common->cur_frm->list);
- 	spin_unlock_irqrestore(&common->irqlock, flags);
--	/* Mark state of the current frame to active */
--	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
- 
- 	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
- 
-@@ -350,7 +348,6 @@ static void vpif_schedule_next_buffer(struct common_obj *common)
- 	/* Remove that buffer from the buffer queue */
- 	list_del(&common->next_frm->list);
- 	spin_unlock(&common->irqlock);
--	common->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
- 	addr = vb2_dma_contig_plane_dma_addr(&common->next_frm->vb, 0);
- 
- 	/* Set top and bottom field addresses in VPIF registers */
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index bf80f0f..8bd9889 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	/* Try to remap memory */
+ 	size = vma->vm_end - vma->vm_start;
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	retval = vm_iomap_memory(vma, mem->dma_handle, size);
++	retval = remap_pfn_range(vma, vma->vm_start,
++				 mem->dma_handle >> PAGE_SHIFT,
++				 size, vma->vm_page_prot);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ",
+ 			retval);
 -- 
 1.9.1
 
