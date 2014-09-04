@@ -1,92 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46199 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:37568 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbaIFDAe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Sep 2014 23:00:34 -0400
-Message-ID: <540A78CC.9030703@iki.fi>
-Date: Sat, 06 Sep 2014 06:00:28 +0300
+	id S1757093AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:05 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: DVB clock source (Re: [PATCH v2 4/5] tc90522: add driver for Toshiba
- TC90522 quad demodulator)
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com>
-In-Reply-To: <20140905232758.36946673.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 36/37] af9033: wrap DVBv3 BER to DVBv5 BER
+Date: Thu,  4 Sep 2014 05:36:44 +0300
+Message-Id: <1409798205-25645-36-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2014 05:27 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 06 Sep 2014 05:02:15 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
+DVBv5 BER is calculated anyway, so just return it for legacy
+read_ber() API too.
 
->> Lets mention that I am not even now fully happy to solution, even it
->> somehow now works. Proper solution is implement clock source and clock
->> client. Then register client to that source. And when client needs a
->> clock (or power) it makes call to enable clock.
->
-> Well, we need to discuss more about that, because you need to convince
-> me first about that ;)
->
-> We had already some discussions about that related to V4L2 I2C devices.
-> The consensus we've reached is that it makes sense to use the clock
-> framework only for the cases where the bridge driver doesn't know anything
-> about the clock to be used by a given device, e. g. in the case where this
-> data comes from the Device Tree (embedded systems).
->
-> In the case where the bridge is the ownership of the information that will
-> be used by a given device model (clock, serial/parallel mode, etc), then
-> a series of data information should be passed by a call from the bridge driver
-> to the device at setup time, and doing it in an atomic way is the best
-> way to go.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-For AF9033/IT9133 demod + tuner I resolved it like that:
-https://patchwork.linuxtv.org/patch/25772/
-https://patchwork.linuxtv.org/patch/25774/
-
-It is demod which provides clock for tuner. It is very common situation 
-nowadays, one or more clocks are shared. And clock sharing is routed via 
-chips so that there is clock gates you have enable/disable for power 
-management reasons.
-
-Currently we just enable clocks always. Clock output is put on when 
-driver is attached and it is never disabled after that, leaving power 
-management partly broken.
-
-Lets take a example, dual tuner case:
-tuner#0 gets clock from Xtal
-tuner#1 gets clock from #tuner0
-
-All possible use cases are:
-1) #tuner0 off & #tuner1 off
-2) #tuner0 on & #tuner1 off
-3) #tuner1 off & #tuner1 on
-4) #tuner1 on & #tuner1 on
-
-you will need, as per aforementioned use case:
-1) #tuner0 clock out off & #tuner1 clock out off
-2) #tuner0 clock out off & #tuner1 clock out off
-3) #tuner0 clock out on & #tuner1 clock out off
-4) #tuner0 clock out on & #tuner1 clock out off
-
-Implementing that currently is simply impossible. But if you use clock 
-framework (or what ever its name is) I think it is possible to implement 
-that properly. When tuner#1 driver needs a clock, it calls "get clock" 
-and that call is routed to #tuner0 which enables clock.
-
-And that was not even the most complicated case, as many times clock is 
-routed to demod and USB bridge too.
-
-Quite same situation is for power on/off gpios (which should likely 
-implemented as a regulator). Also there is many times reset gpio (for PM 
-chip is powered off by switching power totally off *or* chip is put to 
-reset using GPIO)
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 673d60e..f5267fd 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -38,6 +38,7 @@ struct af9033_dev {
+ 	fe_status_t fe_status;
+ 	u32 ber;
+ 	u32 ucb;
++	u64 post_bit_error_prev; /* for old read_ber we return (curr - prev) */
+ 	u64 post_bit_error;
+ 	u64 post_bit_count;
+ 	u64 error_block_count;
+@@ -918,13 +919,9 @@ err:
+ static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct af9033_dev *dev = fe->demodulator_priv;
+-	int ret;
+-
+-	ret = af9033_update_ch_stat(dev);
+-	if (ret < 0)
+-		return ret;
+ 
+-	*ber = dev->ber;
++	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
++	dev->post_bit_error_prev = dev->post_bit_error;
+ 
+ 	return 0;
+ }
 -- 
 http://palosaari.fi/
+
