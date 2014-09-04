@@ -1,86 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2625 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbaITLPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 07:15:47 -0400
-Message-ID: <541D61D7.3080202@xs4all.nl>
-Date: Sat, 20 Sep 2014 13:15:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: James Harper <james@ejbdigital.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: buffer delivery stops with cx23885
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com> <541D469B.4000306@xs4all.nl> <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5220.4050107@xs4all.nl> <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5CD0.1000207@xs4all.nl> <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
-In-Reply-To: <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:43633 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757085AbaIDChE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:04 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 30/37] af9033: implement DVBv5 statistic for signal strength
+Date: Thu,  4 Sep 2014 05:36:38 +0300
+Message-Id: <1409798205-25645-30-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2014 01:05 PM, James Harper wrote:
->>> I was looking through the patches and saw a date of August 14 on the
->>> cx23885 to vb2 patch and thought that could have been around when it
->>> started breaking, but then the
->>> 73d8102298719863d54264f62521362487f84256 is dated September 3 and I'm
->>> pretty sure it had started playing up before then. About what date
->>> would I have seen the 453afdd9ce33293f640e84dc17e5f366701516e8
->>> "cx23885: convert to vb2" patch?
->>
->> That patch was merged in the master branch September 8.
->>
->> If you've seen it earlier, then it may not be related to vb2 after all.
->>
-> 
-> I'd say not.
-> 
->> If it is polling related, then it might be commit
->> 9241650d62f79a3da01f1d5e8ebd195083330b75
->> (Don't return POLLERR during transient buffer underruns) which was added
->> to
->> the master branch on July 17th and was merged for 3.17. Or it could be
->> something entirely different.
->>
->> You could try reverting that commit and see if that helps.
-> 
-> That sounds plausible wrt timeframe, but if cx23885 only started using vb2 after Sept 8 then it couldn't have affected me before then right?
+Let the demod firmware estimate RF signal strength and return it
+to the app as a dBm. To handle that, use thread which reads signal
+strengths from firmware in 2 sec intervals when device is active.
 
-You are right about that. You are using DVB right? Not analog video? (Just to
-be 100% certain).
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 48 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-> 
->>> In any case it should be easy enough to revert and build so I'll do
->>> that tomorrow once I can prove it still fails with the current
->>> regression patch applied.
->>
->> Which patch are you using? There have been several versions posted. This
->> is the one you should use:
->>
->> https://patchwork.linuxtv.org/patch/25992/
->>
-> 
-> That's the one I applied - you can even see my questions below in that link :) Based on what you have said I think that's not going to solve anything for me though.
-
-If you are streaming DVB, then that patch has no effect since the vb2_poll call will
-never be called for DVB anyway, so that can be ruled out.
-
-> 
-> So I guess my plan is:
-> . Revert to 73d8102298719863d54264f62521362487f84256 and test (not likely to fix but easy to test)
-
-And important for me, because if it IS related to the vb2 conversion then I need to know asap.
-
-My own streaming test is still running strong (not using MythTV BTW).
-
-> . Revert to sometime around June when I submitted my patch for Fusion Dual Express 2 driver when I know it was reliable and test
-> 
-> Other possibilities are:
-> . MythTV bug
-> . Defective card
-> 
-> Time to google a command line dvb stream to rule out mythtv I guess...
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 1bd5a9a..b9a0b00 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -28,13 +28,17 @@ struct af9033_dev {
+ 	struct i2c_client *client;
+ 	struct dvb_frontend fe;
+ 	struct af9033_config cfg;
++	bool is_af9035;
++	bool is_it9135;
+ 
+ 	u32 bandwidth_hz;
+ 	bool ts_mode_parallel;
+ 	bool ts_mode_serial;
+ 
++	fe_status_t fe_status;
+ 	u32 ber;
+ 	u32 ucb;
++	struct delayed_work stat_work;
+ 	unsigned long last_stat_check;
+ };
+ 
+@@ -442,6 +446,8 @@ static int af9033_init(struct dvb_frontend *fe)
+ 	}
+ 
+ 	dev->bandwidth_hz = 0; /* force to program all parameters */
++	/* start statistics polling */
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ 
+ 	return 0;
+ 
+@@ -457,6 +463,9 @@ static int af9033_sleep(struct dvb_frontend *fe)
+ 	int ret, i;
+ 	u8 tmp;
+ 
++	/* stop statistics polling */
++	cancel_delayed_work_sync(&dev->stat_work);
++
+ 	ret = af9033_wr_reg(dev, 0x80004c, 1);
+ 	if (ret < 0)
+ 		goto err;
+@@ -810,6 +819,8 @@ static int af9033_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 					FE_HAS_LOCK;
+ 	}
+ 
++	dev->fe_status = *status;
++
+ 	return 0;
+ 
+ err:
+@@ -1039,6 +1050,40 @@ err:
+ 	return ret;
+ }
+ 
++static void af9033_stat_work(struct work_struct *work)
++{
++	struct af9033_dev *dev = container_of(work, struct af9033_dev, stat_work.work);
++	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
++	int ret, tmp;
++	u8 u8tmp;
++
++	dev_dbg(&dev->client->dev, "\n");
++
++	if (dev->fe_status & FE_HAS_SIGNAL) {
++		if (dev->is_af9035) {
++			ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
++			tmp = -u8tmp * 1000;
++		} else {
++			ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
++			tmp = (u8tmp - 100) * 1000;
++		}
++		if (ret)
++			goto err;
++
++		c->strength.len = 1;
++		c->strength.stat[0].scale = FE_SCALE_DECIBEL;
++		c->strength.stat[0].svalue = tmp;
++	} else {
++		c->strength.len = 1;
++		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
++	return;
++err:
++	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
++}
++
+ static struct dvb_frontend_ops af9033_ops = {
+ 	.delsys = { SYS_DVBT },
+ 	.info = {
+@@ -1099,6 +1144,7 @@ static int af9033_probe(struct i2c_client *client,
+ 
+ 	/* setup the state */
+ 	dev->client = client;
++	INIT_DELAYED_WORK(&dev->stat_work, af9033_stat_work);
+ 	memcpy(&dev->cfg, cfg, sizeof(struct af9033_config));
+ 
+ 	if (dev->cfg.clock != 12000000) {
+@@ -1117,9 +1163,11 @@ static int af9033_probe(struct i2c_client *client,
+ 	case AF9033_TUNER_IT9135_60:
+ 	case AF9033_TUNER_IT9135_61:
+ 	case AF9033_TUNER_IT9135_62:
++		dev->is_it9135 = true;
+ 		reg = 0x004bfc;
+ 		break;
+ 	default:
++		dev->is_af9035 = true;
+ 		reg = 0x0083e9;
+ 		break;
+ 	}
+-- 
+http://palosaari.fi/
 
