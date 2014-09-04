@@ -1,68 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15474 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998AbaIJIES (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 04:04:18 -0400
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCHv3 1/3] [media] disable OMAP1 COMPILE_TEST
-Date: Wed, 10 Sep 2014 10:04:12 +0200
-Message-id: <3055703.v1cXzV8T6U@amdc1032>
-In-reply-to: <5f850d5d45a27c50dabf3da08689cbedf986841b.1410288748.git.m.chehab@samsung.com>
-References: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
- <5f850d5d45a27c50dabf3da08689cbedf986841b.1410288748.git.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:37850 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755614AbaIDChD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:03 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 26/37] af9035: few small I2C master xfer changes
+Date: Thu,  4 Sep 2014 05:36:34 +0300
+Message-Id: <1409798205-25645-26-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Biggest problem of that function is complexity. Try reduce complexity:
 
-Hi,
+* define macros to detect all 3 supported xfers
+* remove duplicate message maximum size checks
 
-On Tuesday, September 09, 2014 03:54:04 PM Mauro Carvalho Chehab wrote:
-> This driver depends on a legacy OMAP DMA API. So, it won't
-> compile-test on other archs.
-> 
-> While we might add stubs to the functions, this is not a
-> good idea, as the hole API should be replaced.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 37 +++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
-This is also not a good idea becaouse it would break the driver
-for OMAP1 once somebody enables COMPILE_TEST option while also
-having ARCH_OMAP1 enabled (which is perfectly fine and shouldn't
-cause the driver breakage).  In general COMPILE_TEST option is
-completely independent from the arch specific ones and it should
-not change behaviour of the existing code.
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
-> So, for now, let's just remove COMPILE_TEST and wait for
-> some time for people to fix. If not fixed, then we'll end
-> by removing this driver as a hole.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> index 6af6c6dccda8..f2776cd415ca 100644
-> --- a/drivers/media/platform/soc_camera/Kconfig
-> +++ b/drivers/media/platform/soc_camera/Kconfig
-> @@ -63,7 +63,7 @@ config VIDEO_SH_MOBILE_CEU
->  config VIDEO_OMAP1
->  	tristate "OMAP1 Camera Interface driver"
->  	depends on VIDEO_DEV && SOC_CAMERA
-> -	depends on ARCH_OMAP1 || COMPILE_TEST
-> +	depends on ARCH_OMAP1
->  	depends on HAS_DMA
->  	select VIDEOBUF_DMA_CONTIG
->  	select VIDEOBUF_DMA_SG
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 6534e44..ec62133 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -319,8 +319,14 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 	 * bus, having same slave address. Due to that we reuse demod address,
+ 	 * shifted by one bit, on that case.
+ 	 */
+-	if (num == 2 && !(msg[0].flags & I2C_M_RD) &&
+-			(msg[1].flags & I2C_M_RD)) {
++#define AF9035_IS_I2C_XFER_WRITE_READ(_msg, _num) \
++	(_num == 2 && !(_msg[0].flags & I2C_M_RD) && (_msg[1].flags & I2C_M_RD))
++#define AF9035_IS_I2C_XFER_WRITE(_msg, _num) \
++	(_num == 1 && !(_msg[0].flags & I2C_M_RD))
++#define AF9035_IS_I2C_XFER_READ(_msg, _num) \
++	(_num == 1 && (_msg[0].flags & I2C_M_RD))
++
++	if (AF9035_IS_I2C_XFER_WRITE_READ(msg, num)) {
+ 		if (msg[0].len > 40 || msg[1].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+@@ -338,18 +344,11 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+ 					msg[1].len);
+ 		} else {
+-			/* I2C */
++			/* I2C write + read */
+ 			u8 buf[MAX_XFER_SIZE];
+ 			struct usb_req req = { CMD_I2C_RD, 0, 5 + msg[0].len,
+ 					buf, msg[1].len, msg[1].buf };
+ 
+-			if (5 + msg[0].len > sizeof(buf)) {
+-				dev_warn(&d->udev->dev,
+-					 "%s: i2c xfer: len=%d is too big!\n",
+-					 KBUILD_MODNAME, msg[0].len);
+-				ret = -EOPNOTSUPP;
+-				goto unlock;
+-			}
+ 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[1].len;
+ 			buf[1] = msg[0].addr << 1;
+@@ -359,7 +358,7 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			memcpy(&buf[5], msg[0].buf, msg[0].len);
+ 			ret = af9035_ctrl_msg(d, &req);
+ 		}
+-	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
++	} else if (AF9035_IS_I2C_XFER_WRITE(msg, num)) {
+ 		if (msg[0].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+@@ -377,18 +376,11 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
+ 					msg[0].len - 3);
+ 		} else {
+-			/* I2C */
++			/* I2C write */
+ 			u8 buf[MAX_XFER_SIZE];
+ 			struct usb_req req = { CMD_I2C_WR, 0, 5 + msg[0].len,
+ 					buf, 0, NULL };
+ 
+-			if (5 + msg[0].len > sizeof(buf)) {
+-				dev_warn(&d->udev->dev,
+-					 "%s: i2c xfer: len=%d is too big!\n",
+-					 KBUILD_MODNAME, msg[0].len);
+-				ret = -EOPNOTSUPP;
+-				goto unlock;
+-			}
+ 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[0].len;
+ 			buf[1] = msg[0].addr << 1;
+@@ -398,12 +390,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			memcpy(&buf[5], msg[0].buf, msg[0].len);
+ 			ret = af9035_ctrl_msg(d, &req);
+ 		}
+-	} else if (num == 1 && (msg[0].flags & I2C_M_RD)) {
++	} else if (AF9035_IS_I2C_XFER_READ(msg, num)) {
+ 		if (msg[0].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+ 		} else {
+-			/* I2C */
++			/* I2C read */
+ 			u8 buf[5];
+ 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
+ 					buf, msg[0].len, msg[0].buf };
+@@ -418,14 +410,13 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 	} else {
+ 		/*
+ 		 * We support only three kind of I2C transactions:
+-		 * 1) 1 x read + 1 x write (repeated start)
++		 * 1) 1 x write + 1 x read (repeated start)
+ 		 * 2) 1 x write
+ 		 * 3) 1 x read
+ 		 */
+ 		ret = -EOPNOTSUPP;
+ 	}
+ 
+-unlock:
+ 	mutex_unlock(&d->i2c_mutex);
+ 
+ 	if (ret < 0)
+-- 
+http://palosaari.fi/
 
