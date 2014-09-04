@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34128 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752946AbaIHIeE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 04:34:04 -0400
-Date: Mon, 8 Sep 2014 14:03:51 +0530
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jim Davis <jim.epost@gmail.com>
-Subject: Re: [PATCH] drivers: media: radio: radio-miropcm20.c: include
- missing header file
-Message-ID: <20140908083351.GA27547@sudip-PC>
-References: <1409299681-28409-1-git-send-email-sudipm.mukherjee@gmail.com>
- <20140906112453.GA9405@sudip-PC>
- <540D63D1.2010402@xs4all.nl>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:26750 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbaIDOyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:54:39 -0400
+Message-ID: <54087D07.5010401@cisco.com>
+Date: Thu, 04 Sep 2014 16:53:59 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <540D63D1.2010402@xs4all.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 3/3] [media] tw68: don't assume that pagesize is always
+ 4096
+References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com> <5bbc05f52d23b17cc0faa81a2e5d4f2a344aaaa9.1409841955.git.m.chehab@samsung.com>
+In-Reply-To: <5bbc05f52d23b17cc0faa81a2e5d4f2a344aaaa9.1409841955.git.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 08, 2014 at 10:07:45AM +0200, Hans Verkuil wrote:
-> On 09/06/2014 01:24 PM, Sudip Mukherjee wrote:
-> > On Fri, Aug 29, 2014 at 01:38:01PM +0530, Sudip Mukherjee wrote:
-> >> with -Werror=implicit-function-declaration build failed with error :
-> >> error: implicit declaration of function 'inb'
-> >> error: implicit declaration of function 'outb'
-> >>
-> >> Reported-by: Jim Davis <jim.epost@gmail.com>
-> >> Signed-off-by: Sudip Mukherjee <sudip@vectorindi.org>
-> >> ---
-> >>
-> >> Jim reported for next-20140828 , but the error still persists in next-20140829 also.
-> >>
-> >>
-> >>  drivers/media/radio/radio-miropcm20.c | 1 +
-> >>  1 file changed, 1 insertion(+)
-> >>
-> >> diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
-> >> index 998919e..3309f7c 100644
-> >> --- a/drivers/media/radio/radio-miropcm20.c
-> >> +++ b/drivers/media/radio/radio-miropcm20.c
-> >> @@ -36,6 +36,7 @@
-> >>  #include <media/v4l2-fh.h>
-> >>  #include <media/v4l2-event.h>
-> >>  #include <sound/aci.h>
-> >> +#include<linux/io.h>
-> >>  
-> >>  #define RDS_DATASHIFT          2   /* Bit 2 */
-> >>  #define RDS_DATAMASK        (1 << RDS_DATASHIFT)
-> >> -- 
-> >> 1.8.1.2
-> >>
-> > 
-> > gentle ping.
-> > build fails on next-20140905 also with the attached config (-Werror=implicit-function-declaration)
-> 
-> I hadn't forgotten this. However, I will be taking the same patch from Randy Dunlap
-> instead of yours since his commit log was formatted better, so less work for me :-)
-> 
-i didnt see his patch before , but now i saw. Indeed his commit log is much more explanatory than mine.
+I need to review this more closely tomorrow.
 
-thanks
-sudip
+	Hans
 
-
-> Regards,
+On 09/04/14 16:46, Mauro Carvalho Chehab wrote:
+> This code implicitly assumes that pagesize is 4096, but this is
+> not true on all archs, as the PAGE_SHIFT can be different than
+> 12 on all those architectures: alpha, arc, arm64, cris, frv,
+> hexagon,ia64, m68k, metag, microblaze, mips, openrisc, parisc,
+> powerpc, sh, sparc and tile.
 > 
-> 	Hans
+> The real constrant here seems to be to limit the buffer size to
+> 4MB.
 > 
-> > 
-> > thanks
-> > sudip
-> > 
+> So, fix the code to reflect that, in a way that it will keep
+> working with differnt values for PAGE_SIZE.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+> index 4dd38578cf1b..66658accdca9 100644
+> --- a/drivers/media/pci/tw68/tw68-video.c
+> +++ b/drivers/media/pci/tw68/tw68-video.c
+> @@ -366,7 +366,7 @@ static int tw68_buffer_pages(int size)
+>  {
+>  	size  = PAGE_ALIGN(size);
+>  	size += PAGE_SIZE; /* for non-page-aligned buffers */
+> -	size /= 4096;
+> +	size /= PAGE_SIZE;
+>  	return size;
+>  }
+>  
+> @@ -376,7 +376,7 @@ static int tw68_buffer_count(unsigned int size, unsigned int count)
+>  {
+>  	unsigned int maxcount;
+>  
+> -	maxcount = 1024 / tw68_buffer_pages(size);
+> +	maxcount = (4096 * 1024 / PAGE_SIZE) / tw68_buffer_pages(size);
+>  	if (count > maxcount)
+>  		count = maxcount;
+>  	return count;
 > 
