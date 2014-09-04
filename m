@@ -1,78 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:58640 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787AbaIBGQd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Sep 2014 02:16:33 -0400
-Date: Tue, 2 Sep 2014 08:16:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] UVC: Remove extra commit on resume()
-Message-ID: <Pine.LNX.4.64.1409020813180.24932@axis700.grange>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57842 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920AbaIDUYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 16:24:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 18/46] [media] omap3isp: use true/false for boolean vars
+Date: Thu, 04 Sep 2014 23:24:06 +0300
+Message-ID: <3962609.YBkbqZnabU@avalon>
+In-Reply-To: <f9d3de5adb4521bd377c51468b9e941615f861ba.1409775488.git.m.chehab@samsung.com>
+References: <cover.1409775488.git.m.chehab@samsung.com> <f9d3de5adb4521bd377c51468b9e941615f861ba.1409775488.git.m.chehab@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Hi Mauro,
 
-The UVC spec is a bit vague wrt devices using bulk endpoints,
-specifically, how to signal to a device to start streaming.
+Thank you for the patch.
 
-For devices using isoc endpoints, the sequence for start streaming is:
-1) The host sends PROBE_CONTROL(SET_CUR) PROBE_CONTROL(GET_CUR)
-2) Host selects desired config and calls COMMIT_CONTROL(SET_CUR)
-3) Host selects an alt interface other then zero - e.g SELECT_ALTERNATE_INTERFACE(1)
-4) The device starts streaming
+On Wednesday 03 September 2014 17:32:50 Mauro Carvalho Chehab wrote:
+> Instead of using 0 or 1 for boolean, use the true/false
+> defines.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-However for devices using bulk endpoints, there must be *no* alt interface
-other than setting zero. From the UVC spec:
-"A VideoStreaming interface containing a bulk endpoint for streaming shall
-support only alternate setting zero. Additional alternate settings containing
-bulk endpoints are not permitted in a device that is compliant with the Video
-Class specification."
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-So for devices using bulk endpoints, step #3 above is irrelevant, and thus
-cannot be used as an indication for the device to start streaming.
-So in practice, such devices start streaming immediately after a
-COMMIT_CONTROL(SET_CUR).
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
+> b/drivers/media/platform/omap3isp/ispccdc.c index
+> cabf46b4b645..81a9dc053d58 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+> @@ -1806,7 +1806,7 @@ static int ccdc_video_queue(struct isp_video *video,
+> struct isp_buffer *buffer) spin_lock_irqsave(&ccdc->lock, flags);
+>  	if (ccdc->state == ISP_PIPELINE_STREAM_CONTINUOUS && !ccdc->running &&
+>  	    ccdc->bt656)
+> -		restart = 1;
+> +		restart = true;
+>  	else
+>  		ccdc->underrun = 1;
+>  	spin_unlock_irqrestore(&ccdc->lock, flags);
 
-In the uvc resume() handler, an unsolicited commit is sent, which causes
-devices using bulk endpoints to start streaming unintentionally.
-
-This patch modifies resume() handler to send a commit only if streaming
-needs to be reestablished, i.e if the device was actually streaming before is
-was suspended.
-
-Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/usb/uvc/uvc_video.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 3394c34..c111de2 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1709,15 +1709,15 @@ int uvc_video_resume(struct uvc_streaming *stream, int reset)
- 
- 	uvc_video_clock_reset(stream);
- 
-+	if (!uvc_queue_streaming(&stream->queue))
-+		return 0;
-+
- 	ret = uvc_commit_video(stream, &stream->ctrl);
- 	if (ret < 0) {
- 		uvc_queue_enable(&stream->queue, 0);
- 		return ret;
- 	}
- 
--	if (!uvc_queue_streaming(&stream->queue))
--		return 0;
--
- 	ret = uvc_init_video(stream, GFP_NOIO);
- 	if (ret < 0)
- 		uvc_queue_enable(&stream->queue, 0);
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
