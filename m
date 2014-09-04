@@ -1,83 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50791 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbaI3Vm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 17:42:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35916 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757039AbaIDChA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:00 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH] v4l: uvcvideo: Fix buffer completion size check
-Date: Wed,  1 Oct 2014 00:42:51 +0300
-Message-Id: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 08/37] af9033: make checkpatch.pl happy
+Date: Thu,  4 Sep 2014 05:36:16 +0300
+Message-Id: <1409798205-25645-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit e93e7fd9f5a3fffec7792dbcc4c3574653effda7 ("v4l2: uvcvideo: Allow
-using larger buffers") reworked the buffer size sanity check at buffer
-completion time to use the frame size instead of the allocated buffer
-size. However, it introduced two bugs in doing so:
+Correct issues reported by checkpatch.pl.
 
-- it assigned the allocated buffer size to the frame_size field, instead
-  of assigning the correct frame size
-
-- it performed the assignment in the S_FMT handler, resulting in the
-  frame_size field being uninitialized if the userspace application
-  doesn't call S_FMT.
-
-Fix both issues by removing the frame_size field and validating the
-buffer size against the UVC video control dwMaxFrameSize.
-
-Fixes: e93e7fd9f5a3 ("v4l2: uvcvideo: Allow using larger buffers")
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
- drivers/media/usb/uvc/uvc_video.c | 2 +-
- drivers/media/usb/uvc/uvcvideo.h  | 1 -
- 3 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/dvb-frontends/af9033.c | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-Guennadi, could you please test and ack this ASAP, as the bug needs to be
-fixed for v3.18-rc1 if possible ?
-
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index f205934..f33a067 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -318,7 +318,6 @@ static int uvc_v4l2_set_format(struct uvc_streaming *stream,
- 	stream->ctrl = probe;
- 	stream->cur_format = format;
- 	stream->cur_frame = frame;
--	stream->frame_size = fmt->fmt.pix.sizeimage;
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 2a4dfd2..7f22f01 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -69,8 +69,9 @@ static int af9033_wr_regs(struct af9033_state *state, u32 reg, const u8 *val,
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&state->i2c->dev, "%s: i2c wr failed=%d reg=%06x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&state->i2c->dev,
++				"%s: i2c wr failed=%d reg=%06x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
  
- done:
- 	mutex_unlock(&stream->mutex);
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 9ace520..df81b9c 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1143,7 +1143,7 @@ static int uvc_video_encode_data(struct uvc_streaming *stream,
- static void uvc_video_validate_buffer(const struct uvc_streaming *stream,
- 				      struct uvc_buffer *buf)
- {
--	if (stream->frame_size != buf->bytesused &&
-+	if (stream->ctrl.dwMaxVideoFrameSize != buf->bytesused &&
- 	    !(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
- 		buf->error = 1;
+@@ -101,8 +102,9 @@ static int af9033_rd_regs(struct af9033_state *state, u32 reg, u8 *val, int len)
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&state->i2c->dev, "%s: i2c rd failed=%d reg=%06x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&state->i2c->dev,
++				"%s: i2c rd failed=%d reg=%06x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 
+@@ -835,7 +837,7 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	int ret, i, len;
+ 	u8 buf[3], tmp;
+ 	u32 snr_val;
+-	const struct val_snr *uninitialized_var(snr_lut);
++	const struct val_snr *snr_lut;
+ 
+ 	/* read value */
+ 	ret = af9033_rd_regs(state, 0x80002c, buf, 3);
+@@ -928,7 +930,9 @@ static int af9033_update_ch_stat(struct af9033_state *state)
+ 			abort_cnt = 1000;
+ 			state->ber = 0xffffffff;
+ 		} else {
+-			/* 8 byte packets, that have not been rejected already */
++			/*
++			 * 8 byte packets, that have not been rejected already
++			 */
+ 			bit_cnt -= (u32)abort_cnt;
+ 			if (bit_cnt == 0) {
+ 				state->ber = 0xffffffff;
+@@ -1015,7 +1019,8 @@ err:
+ 	return ret;
  }
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index f585c08..897cfd8 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -458,7 +458,6 @@ struct uvc_streaming {
- 	struct uvc_format *def_format;
- 	struct uvc_format *cur_format;
- 	struct uvc_frame *cur_frame;
--	size_t frame_size;
  
- 	/* Protect access to ctrl, cur_format, cur_frame and hardware video
- 	 * probe control.
+-static int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid, int onoff)
++static int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
++		int onoff)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	int ret;
+@@ -1069,8 +1074,8 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	memcpy(&state->cfg, config, sizeof(struct af9033_config));
+ 
+ 	if (state->cfg.clock != 12000000) {
+-		dev_err(&state->i2c->dev, "%s: af9033: unsupported clock=%d, " \
+-				"only 12000000 Hz is supported currently\n",
++		dev_err(&state->i2c->dev,
++				"%s: af9033: unsupported clock=%d, only 12000000 Hz is supported currently\n",
+ 				KBUILD_MODNAME, state->cfg.clock);
+ 		goto err;
+ 	}
+@@ -1084,9 +1089,10 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	dev_info(&state->i2c->dev, "%s: firmware version: LINK=%d.%d.%d.%d " \
+-			"OFDM=%d.%d.%d.%d\n", KBUILD_MODNAME, buf[0], buf[1],
+-			buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
++	dev_info(&state->i2c->dev,
++			"%s: firmware version: LINK=%d.%d.%d.%d OFDM=%d.%d.%d.%d\n",
++			KBUILD_MODNAME, buf[0], buf[1], buf[2], buf[3], buf[4],
++			buf[5], buf[6], buf[7]);
+ 
+ 	/* sleep */
+ 	switch (state->cfg.tuner) {
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
 
