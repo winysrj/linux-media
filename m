@@ -1,101 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37126 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:36527 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754931AbaIVWkE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 18:40:04 -0400
-Date: Mon, 22 Sep 2014 19:39:56 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Cc: Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/3] media:st-rc: Misc fixes.
-Message-ID: <20140922193956.6e445cd9@recife.lan>
-In-Reply-To: <1411424501-12673-1-git-send-email-srinivas.kandagatla@linaro.org>
-References: <1411424501-12673-1-git-send-email-srinivas.kandagatla@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1757091AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:05 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 34/37] af9033: implement DVBv5 post-Viterbi BER
+Date: Thu,  4 Sep 2014 05:36:42 +0300
+Message-Id: <1409798205-25645-34-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 Sep 2014 23:21:41 +0100
-Srinivas Kandagatla <srinivas.kandagatla@linaro.org> escreveu:
+Implement following DTV API commands:
+DTV_STAT_POST_ERROR_BIT_COUNT
+DTV_STAT_POST_TOTAL_BIT_COUNT
 
-> Hi Mauro,
-> 
-> Thankyou for the "[media] enable COMPILE_TEST for media drivers" patch
-> which picked up few things in st-rc driver in linux-next testing.
+These will provide post-Viterbi bit error rate reporting.
 
-Anytime. Yeah, the idea is to let more people to test and check for
-hidden issues there.
-> 
-> Here is a few minor fixes to the driver, could you consider them for
-> the next merge window.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Applied, thanks!
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 7b85346..b6b90e6 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -38,6 +38,8 @@ struct af9033_dev {
+ 	fe_status_t fe_status;
+ 	u32 ber;
+ 	u32 ucb;
++	u64 post_bit_error;
++	u64 post_bit_count;
+ 	u64 error_block_count;
+ 	u64 total_block_count;
+ 	struct delayed_work stat_work;
+@@ -1093,6 +1095,8 @@ static void af9033_stat_work(struct work_struct *work)
+ 	if (dev->fe_status & FE_HAS_LOCK) {
+ 		/* outer FEC, 204 byte packets */
+ 		u16 abort_packet_count, rsd_packet_count;
++		/* inner FEC, bits */
++		u32 rsd_bit_err_count;
+ 
+ 		/*
+ 		 * Packet count used for measurement is 10000
+@@ -1104,10 +1108,13 @@ static void af9033_stat_work(struct work_struct *work)
+ 			goto err;
+ 
+ 		abort_packet_count = (buf[1] << 8) | (buf[0] << 0);
++		rsd_bit_err_count = (buf[4] << 16) | (buf[3] << 8) | buf[2];
+ 		rsd_packet_count = (buf[6] << 8) | (buf[5] << 0);
+ 
+ 		dev->error_block_count += abort_packet_count;
+ 		dev->total_block_count += rsd_packet_count;
++		dev->post_bit_error += rsd_bit_err_count;
++		dev->post_bit_count += rsd_packet_count * 204 * 8;
+ 
+ 		c->block_count.len = 1;
+ 		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+@@ -1116,6 +1123,14 @@ static void af9033_stat_work(struct work_struct *work)
+ 		c->block_error.len = 1;
+ 		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
+ 		c->block_error.stat[0].uvalue = dev->error_block_count;
++
++		c->post_bit_count.len = 1;
++		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
++
++		c->post_bit_error.len = 1;
++		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
+ 	}
+ 
+ err_schedule_delayed_work:
+-- 
+http://palosaari.fi/
 
-Btw, there are still lots of warnings there produced with smatch:
-
-$ make ARCH=i386 C=1 CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CF=-D__CHECK_ENDIAN__ M=drivers/media
-drivers/media/rc/st_rc.c:107:38: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:107:38:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:107:38:    got void *
-drivers/media/rc/st_rc.c:110:53: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:110:53:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:110:53:    got void *
-drivers/media/rc/st_rc.c:116:54: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:116:54:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:116:54:    got void *
-drivers/media/rc/st_rc.c:120:45: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:120:45:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:120:45:    got void *
-drivers/media/rc/st_rc.c:121:43: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:121:43:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:121:43:    got void *
-drivers/media/rc/st_rc.c:150:46: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:150:46:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:150:46:    got void *
-drivers/media/rc/st_rc.c:153:42: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:153:42:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:153:42:    got void *
-drivers/media/rc/st_rc.c:174:32: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:174:32:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:174:32:    got void *
-drivers/media/rc/st_rc.c:177:48: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:177:48:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:177:48:    got void *
-drivers/media/rc/st_rc.c:187:48: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:187:48:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:187:48:    got void *
-drivers/media/rc/st_rc.c:204:42: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:204:42:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:204:42:    got void *
-drivers/media/rc/st_rc.c:205:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:205:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:205:35:    got void *
-drivers/media/rc/st_rc.c:215:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:215:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:215:35:    got void *
-drivers/media/rc/st_rc.c:216:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:216:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:216:35:    got void *
-drivers/media/rc/st_rc.c:269:22: warning: incorrect type in assignment (different address spaces)
-drivers/media/rc/st_rc.c:269:22:    expected void *base
-drivers/media/rc/st_rc.c:269:22:    got void [noderef] <asn:2>*
-drivers/media/rc/st_rc.c:349:46: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:349:46:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:349:46:    got void *
-drivers/media/rc/st_rc.c:350:46: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:350:46:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:350:46:    got void *
-drivers/media/rc/st_rc.c:371:61: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:371:61:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:371:61:    got void *
-drivers/media/rc/st_rc.c:372:54: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:372:54:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:372:54:    got void *
-
-Regards,
-Mauro
