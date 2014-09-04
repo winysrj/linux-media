@@ -1,55 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34168 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbaIXW1z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:55 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Archit Taneja <archit@ti.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH 18/18] [media] ti-vpe: Fix typecast
-Date: Wed, 24 Sep 2014 19:27:18 -0300
-Message-Id: <a77e94eb08a2c8881228d0ed6cb0660a0666493c.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:57209 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757072AbaIDChC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:02 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 22/37] af9033: fix firmware version logging
+Date: Thu,  4 Sep 2014 05:36:30 +0300
+Message-Id: <1409798205-25645-22-git-send-email-crope@iki.fi>
+In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
+References: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Addresses have the same size of unsigned long, and not u32.
+AF9030 and IT9130 series has different memory location for firmware
+version. Choose correct location according to chip type.
 
-That removes a warning on 64 bits compilation:
-drivers/media//platform/ti-vpe/vpdma.c:332:11: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-  WARN_ON(((u32) buf->addr & VPDMA_DESC_ALIGN) != 0);
-           ^
-include/asm-generic/bug.h:86:25: note: in definition of macro ‘WARN_ON’
-  int __ret_warn_on = !!(condition);    \
-                         ^
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 684ba19bbedd..3e2e3a33e6ed 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -329,7 +329,7 @@ int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size)
- 	if (!buf->addr)
- 		return -ENOMEM;
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 7f22f01..7d637b9 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -1061,6 +1061,7 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	int ret;
+ 	struct af9033_state *state;
+ 	u8 buf[8];
++	u32 reg;
  
--	WARN_ON(((u32) buf->addr & VPDMA_DESC_ALIGN) != 0);
-+	WARN_ON(((unsigned long)buf->addr & VPDMA_DESC_ALIGN) != 0);
+ 	dev_dbg(&i2c->dev, "%s:\n", __func__);
  
- 	return 0;
- }
+@@ -1081,7 +1082,21 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	}
+ 
+ 	/* firmware version */
+-	ret = af9033_rd_regs(state, 0x0083e9, &buf[0], 4);
++	switch (state->cfg.tuner) {
++	case AF9033_TUNER_IT9135_38:
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
++		reg = 0x004bfc;
++		break;
++	default:
++		reg = 0x0083e9;
++		break;
++	}
++
++	ret = af9033_rd_regs(state, reg, &buf[0], 4);
+ 	if (ret < 0)
+ 		goto err;
+ 
 -- 
-1.9.3
+http://palosaari.fi/
 
