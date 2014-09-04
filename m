@@ -1,58 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40638 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbaIXMl6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 08:41:58 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 2/4] [media] s5p_mfc_opr_v5: fix smatch warnings
-Date: Wed, 24 Sep 2014 09:41:40 -0300
-Message-Id: <84586d08ea9e2bb8af59d2c79acea5da504b5db7.1411562226.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1411562226.git.mchehab@osg.samsung.com>
-References: <cover.1411562226.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1411562226.git.mchehab@osg.samsung.com>
-References: <cover.1411562226.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39102 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757047AbaIDChB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Sep 2014 22:37:01 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
+Subject: [PATCH 01/37] af9033: provide dyn0_clk clock source
+Date: Thu,  4 Sep 2014 05:36:09 +0300
+Message-Id: <1409798205-25645-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:266:23: warning: incorrect type in argument 2 (different modifiers)
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:266:23:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:266:23:    got void const volatile [noderef] <asn:2>*<noident>
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:274:36: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:274:36:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:274:36:    got void *
+AF903x/IT913x demod provides clock source(s). It seems that this
+clock source is used for integrated RF tuner of IT913x. It is
+enabled by default, but firmware disables it automatically when
+suspend is requested (suspend_flag (0x004c) + trigger_ofsm
+(0x0000)). Automatic disable behavior seems to be similar for both
+AF903x and IT913x I tested, though there is no likely any real
+clock user in a case of AF903x.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c | 10 ++--------
+ drivers/media/dvb-frontends/af9033.h |  5 +++++
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 96ac14e2fc6e..6234e4d70596 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -263,7 +263,7 @@ static void s5p_mfc_release_dev_context_buffer_v5(struct s5p_mfc_dev *dev)
- static void s5p_mfc_write_info_v5(struct s5p_mfc_ctx *ctx, unsigned int data,
- 			unsigned int ofs)
- {
--	writel(data, (ctx->shm.virt + ofs));
-+	writel(data, (volatile void __iomem *)(ctx->shm.virt + ofs));
- 	wmb();
- }
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 5c90ea6..2a4dfd2 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -314,14 +314,8 @@ static int af9033_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
  
-@@ -271,7 +271,7 @@ static unsigned int s5p_mfc_read_info_v5(struct s5p_mfc_ctx *ctx,
- 				unsigned int ofs)
- {
- 	rmb();
--	return readl(ctx->shm.virt + ofs);
-+	return readl((volatile void __iomem *)(ctx->shm.virt + ofs));
- }
+-	/* feed clock to RF tuner */
+-	switch (state->cfg.tuner) {
+-	case AF9033_TUNER_IT9135_38:
+-	case AF9033_TUNER_IT9135_51:
+-	case AF9033_TUNER_IT9135_52:
+-	case AF9033_TUNER_IT9135_60:
+-	case AF9033_TUNER_IT9135_61:
+-	case AF9033_TUNER_IT9135_62:
++	/* clock output */
++	if (state->cfg.dyn0_clk) {
+ 		ret = af9033_wr_reg(state, 0x80fba8, 0x00);
+ 		if (ret < 0)
+ 			goto err;
+diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
+index 539f4db..b95a6d4 100644
+--- a/drivers/media/dvb-frontends/af9033.h
++++ b/drivers/media/dvb-frontends/af9033.h
+@@ -75,6 +75,11 @@ struct af9033_config {
+ 	 * input spectrum inversion
+ 	 */
+ 	bool spec_inv;
++
++	/*
++	 *
++	 */
++	bool dyn0_clk;
+ };
  
- static void s5p_mfc_dec_calc_dpb_size_v5(struct s5p_mfc_ctx *ctx)
+ 
 -- 
-1.9.3
+http://palosaari.fi/
 
