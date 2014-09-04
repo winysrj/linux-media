@@ -1,63 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38083 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793AbaI0AsS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 20:48:18 -0400
-Date: Fri, 26 Sep 2014 21:48:09 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Randy Dunlap <rdunlap@infradead.org>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: linux-next: Tree for Sep 26 (media/pci/pt3)
-Message-ID: <20140926214809.6443ea21@recife.lan>
-In-Reply-To: <54259BFB.6010301@infradead.org>
-References: <20140926211014.6491e1ee@canb.auug.org.au>
-	<54259BFB.6010301@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:35033 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229AbaIDOq6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:46:58 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] [media] tw68: make tw68_pci_tbl static and constify
+Date: Thu,  4 Sep 2014 11:46:45 -0300
+Message-Id: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Sep 2014 10:01:47 -0700
-Randy Dunlap <rdunlap@infradead.org> escreveu:
+drivers/media/pci/tw68/tw68-core.c:72:22: warning: symbol 'tw68_pci_tbl' was not declared. Should it be static?
 
-> On 09/26/14 04:10, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > There will be no linux-next release on Monday.
-> > 
-> > This has not been a good day :-(
-> > 
-> > Changes since 20140925:
-> 
-> 
-> on x86_64:
-> when CONFIG_MODULES is not enabled:
-> 
-> ../drivers/media/pci/pt3/pt3.c: In function 'pt3_attach_fe':
-> ../drivers/media/pci/pt3/pt3.c:433:6: error: implicit declaration of function 'module_is_live' [-Werror=implicit-function-declaration]
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index baf93af1d764..a6fb48cf7aae 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -69,7 +69,7 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
+  * the PCI ID database up to date.  Note that the entries must be
+  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
+  */
+-struct pci_device_id tw68_pci_tbl[] = {
++static const struct pci_device_id tw68_pci_tbl[] = {
+ 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6800)},
+ 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6801)},
+ 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6804)},
+-- 
+1.9.3
 
-:(
-
-I didn't notice that weird I2C attach code on this driver.
-
-Akihiro, could you please fix it? The entire I2C attach code at
-pt3_attach looks weird. We should soon add support for the I2C
-tuner attach code for all DVB drivers on a common place, just like
-what we do for V4L drivers. That's why I didn't spend much time on
-that piece of the code.
-
-Yet, while we don't have it, please take a look at 
-drivers/media/v4l2-core/v4l2-device.c and do (almost) the same on
-your driver, if possible, putting the I2C load module on a function.
-That will make easier for us to replace such function when we'll add 
-core support for it. The function at v4l2-device for you to take
-a look is: v4l2_device_register_subdev().
-
-Thank you,
-Mauro
