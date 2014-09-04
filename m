@@ -1,93 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44163 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574AbaIYOuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 10:50:20 -0400
-Message-ID: <54242BA6.2040309@iki.fi>
-Date: Thu, 25 Sep 2014 17:50:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:51332 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbaIDOzQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:55:16 -0400
+Message-ID: <54087D2E.806@cisco.com>
+Date: Thu, 04 Sep 2014 16:54:38 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 01/12] cx231xx: let i2c bus scanning use its own i2c_client
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/3] [media] tw68: Remove a sparse warning
+References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com> <fafeea3682cc2da98f05138ec4b1c8ebc6798b5d.1409841955.git.m.chehab@samsung.com>
+In-Reply-To: <fafeea3682cc2da98f05138ec4b1c8ebc6798b5d.1409841955.git.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+I'll need to review this as well. Perhaps tw_writel should expect a __le32?
 
-Antti
+	Hans
 
-On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-i2c.c | 17 +++++++++++------
->   drivers/media/usb/cx231xx/cx231xx.h     |  2 +-
->   2 files changed, 12 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 7c0f797..67a1391 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -480,22 +480,27 @@ static char *i2c_devs[128] = {
->    * cx231xx_do_i2c_scan()
->    * check i2c address range for devices
->    */
-> -void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c)
-> +void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
->   {
->   	unsigned char buf;
->   	int i, rc;
-> +	struct i2c_client client;
->
-> -	cx231xx_info(": Checking for I2C devices ..\n");
-> +	memset(&client, 0, sizeof(client));
-> +	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
-> +
-> +	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
->   	for (i = 0; i < 128; i++) {
-> -		c->addr = i;
-> -		rc = i2c_master_recv(c, &buf, 0);
-> +		client.addr = i;
-> +		rc = i2c_master_recv(&client, &buf, 0);
->   		if (rc < 0)
->   			continue;
->   		cx231xx_info("%s: i2c scan: found device @ 0x%x  [%s]\n",
->   			     dev->name, i << 1,
->   			     i2c_devs[i] ? i2c_devs[i] : "???");
->   	}
-> -	cx231xx_info(": Completed Checking for I2C devices.\n");
-> +	cx231xx_info(": Completed Checking for I2C devices on port=%d.\n",
-> +		i2c_port);
->   }
->
->   /*
-> @@ -522,7 +527,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->
->   	if (0 == bus->i2c_rc) {
->   		if (i2c_scan)
-> -			cx231xx_do_i2c_scan(dev, &bus->i2c_client);
-> +			cx231xx_do_i2c_scan(dev, bus->nr);
->   	} else
->   		cx231xx_warn("%s: i2c bus %d register FAILED\n",
->   			     dev->name, bus->nr);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index aeb1bf4..5efc93e 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -751,7 +751,7 @@ int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq);
->   int cx231xx_reset_analog_tuner(struct cx231xx *dev);
->
->   /* Provided by cx231xx-i2c.c */
-> -void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c);
-> +void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus);
->   int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
->
->
-
--- 
-http://palosaari.fi/
+On 09/04/14 16:46, Mauro Carvalho Chehab wrote:
+> drivers/media/pci/tw68/tw68-video.c:351:9: warning: incorrect type in argument 1 (different base types)
+> drivers/media/pci/tw68/tw68-video.c:351:9:    expected unsigned int [unsigned] val
+> drivers/media/pci/tw68/tw68-video.c:351:9:    got restricted __le32 [usertype] <noident>
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+> index 66fae2345fdd..4dd38578cf1b 100644
+> --- a/drivers/media/pci/tw68/tw68-video.c
+> +++ b/drivers/media/pci/tw68/tw68-video.c
+> @@ -348,7 +348,7 @@ int tw68_video_start_dma(struct tw68_dev *dev, struct tw68_buf *buf)
+>  	 *  a new address can be set.
+>  	 */
+>  	tw_clearl(TW68_DMAC, TW68_DMAP_EN);
+> -	tw_writel(TW68_DMAP_SA, cpu_to_le32(buf->dma));
+> +	tw_writel(TW68_DMAP_SA, (__force u32)cpu_to_le32(buf->dma));
+>  	/* Clear any pending interrupts */
+>  	tw_writel(TW68_INTSTAT, dev->board_virqmask);
+>  	/* Enable the risc engine and the fifo */
+> 
