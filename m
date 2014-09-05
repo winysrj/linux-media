@@ -1,108 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58184 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753133AbaIWOPa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 10:15:30 -0400
-Date: Tue, 23 Sep 2014 16:15:16 +0200
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] drm: add bus_formats and nbus_formats fields to
- drm_display_info
-Message-ID: <20140923161516.04262bea@bbrezillon>
-In-Reply-To: <20140923140439.GA5982@ulmo>
-References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1406031827-12432-4-git-send-email-boris.brezillon@free-electrons.com>
-	<20140923140439.GA5982@ulmo>
+Received: from mail.kapsi.fi ([217.30.184.167]:45375 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751641AbaIEHv6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Sep 2014 03:51:58 -0400
+Received: from dyn3-82-128-191-243.psoas.suomi.net ([82.128.191.243] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1XPoJJ-0000Vt-AX
+	for linux-media@vger.kernel.org; Fri, 05 Sep 2014 10:51:57 +0300
+Message-ID: <54096B9C.5050602@iki.fi>
+Date: Fri, 05 Sep 2014 10:51:56 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] af9035: remove I2C client differently
+References: <1409867023-8362-1-git-send-email-crope@iki.fi> <1409867023-8362-3-git-send-email-crope@iki.fi> <20140904225038.GA27825@minime.bse> <5408EF8A.5040402@iki.fi>
+In-Reply-To: <5408EF8A.5040402@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
-
-On Tue, 23 Sep 2014 16:04:40 +0200
-Thierry Reding <thierry.reding@gmail.com> wrote:
-
-> On Tue, Jul 22, 2014 at 02:23:45PM +0200, Boris BREZILLON wrote:
-> > Add bus_formats and nbus_formats fields and
-> > drm_display_info_set_bus_formats helper function to specify the bus
-> > formats supported by a given display.
-> > 
-> > This information can be used by display controller drivers to configure
-> > the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
-> > RGB or LVDS busses).
-> > 
-> > Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-> > ---
-> >  drivers/gpu/drm/drm_crtc.c | 28 ++++++++++++++++++++++++++++
-> >  include/drm/drm_crtc.h     |  8 ++++++++
-> >  2 files changed, 36 insertions(+)
-> > 
-> > diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
-> > index c808a09..50c8395 100644
-> > --- a/drivers/gpu/drm/drm_crtc.c
-> > +++ b/drivers/gpu/drm/drm_crtc.c
-> > @@ -825,6 +825,34 @@ static void drm_mode_remove(struct drm_connector *connector,
-> >  	drm_mode_destroy(connector->dev, mode);
-> >  }
-> >  
-> > +/*
-> > + * drm_display_info_set_bus_formats - set the supported bus formats
-> > + * @info: display info to store bus formats in
-> > + * @fmts: array containing the supported bus formats
-> > + * @nfmts: the number of entries in the fmts array
-> > + *
-> > + * Store the suppported bus formats in display info structure.
-> > + */
-> > +int drm_display_info_set_bus_formats(struct drm_display_info *info,
-> > +				     const enum video_bus_format *fmts,
-> > +				     int nfmts)
-> 
-> Can you make nfmts unsigned please?
 
 
-Sure.
+On 09/05/2014 02:02 AM, Antti Palosaari wrote:
+>
+>
+> On 09/05/2014 01:50 AM, Daniel Glöckner wrote:
+>> On Fri, Sep 05, 2014 at 12:43:43AM +0300, Antti Palosaari wrote:
+>>> +    switch (state->af9033_config[adap->id].tuner) {
+>>> +    case AF9033_TUNER_IT9135_38:
+>>> +    case AF9033_TUNER_IT9135_51:
+>>> +    case AF9033_TUNER_IT9135_52:
+>>> +    case AF9033_TUNER_IT9135_60:
+>>> +    case AF9033_TUNER_IT9135_61:
+>>> +    case AF9033_TUNER_IT9135_62:
+>>> +        demod2 = 2;
+>>> +    default:
+>>> +        demod2 = 1;
+>>> +    }
+>>
+>> Missing break?
+>>
+>
+> YES! will fix...
+> It does not have functionality error in that case, but sure it is wrong
+> and may jump up later when some changes are done.
 
-> 
-> > +{
-> > +	enum video_bus_format *formats = NULL;
-> > +
-> > +	if (fmts && nfmts) {
-> > +		formats = kmemdup(fmts, sizeof(*fmts) * nfmts, GFP_KERNEL);
-> > +		if (!formats)
-> > +			return -ENOMEM;
-> > +	}
-> > +
-> > +	kfree(info->bus_formats);
-> > +	info->bus_formats = formats;
-> > +	info->nbus_formats = formats ? nfmts : 0;
-> 
-> And perhaps check for formats == NULL && nfmts != 0 since that's not a
-> valid pair of values. Then you can simply assign this directly without
-> relying on the value of formats.
-> 
-> Also other variable names use "num_" as a prefix instead of "n", so if
-> you're going to respin anyway might as well make the names more
-> consistent.
+It is also good example what happens when checking tools, maybe 
+checkpatch.pl, started whining if switch-case statement has unneeded 
+break. So lets stop adding break to last case, and this kind of copy 
+paste mistakes happens surely more often....
 
-I'll rename the field and variable and add the proper check before
-assigning values.
-
-Thanks for your review.
-
-Best Regards,
-
-Boris
+regards
+Antti
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+http://palosaari.fi/
