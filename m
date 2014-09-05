@@ -1,59 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56930 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751981AbaIYPjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:39:55 -0400
-Message-ID: <54243749.7030506@iki.fi>
-Date: Thu, 25 Sep 2014 18:39:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37508 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932530AbaIEOTu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Sep 2014 10:19:50 -0400
+Received: by mail-wi0-f174.google.com with SMTP id d1so918588wiv.1
+        for <linux-media@vger.kernel.org>; Fri, 05 Sep 2014 07:19:45 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: m.chehab@samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, mark.rutland@arm.com,
+	lars@metafoo.de,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH 1/2] adv7604: Add support for i2c_new_secondary_device
+Date: Fri,  5 Sep 2014 16:19:32 +0200
+Message-Id: <1409926773-30696-1-git-send-email-jean-michel.hautbois@vodalys.com>
 MIME-Version: 1.0
-To: Josu Lazkano <josu.lazkano@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: TeVii S480 in Debian Wheezy
-References: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
-In-Reply-To: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-Could you look what system message log says?
+The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+I²C ports. Each map has it own I²C address and acts
+as a standard slave device on the I²C bus.
 
-Fedora uses nowadays journalctl command, but I think most of the others 
-just print to /var/log/messages or so. Maybe dmesg command works.
+If nothing is defined, it uses default addresses.
+The main purpose is using two adv76xx on the same i2c bus.
 
-regards
-Antti
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+---
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 17 ++++++-
+ drivers/media/i2c/adv7604.c                        | 53 ++++++++++++++--------
+ 2 files changed, 48 insertions(+), 22 deletions(-)
 
-On 09/25/2014 06:12 PM, Josu Lazkano wrote:
-> Hello all,
->
-> I want to use a new dual DVB-S2 device, TeVii S480.
->
-> I am using Debian Wheezy with 3.2 kernel, I copy the firmware files:
->
-> # md5sum /lib/firmware/dvb-*
-> a32d17910c4f370073f9346e71d34b80  /lib/firmware/dvb-fe-ds3000.fw
-> 2946e99fe3a4973ba905fcf59111cf40  /lib/firmware/dvb-usb-s660.fw
->
-> The device is listed as 2 USB devices:
->
-> # lsusb | grep TeVii
-> Bus 006 Device 002: ID 9022:d483 TeVii Technology Ltd.
-> Bus 007 Device 002: ID 9022:d484 TeVii Technology Ltd.
->
-> But there is no any device in /dev/dvb/:
->
-> # ls -l /dev/dvb/
-> ls: cannot access /dev/dvb/: No such file or directory
->
-> Need I install any other driver or piece of software?
->
-> I will appreciate any help.
->
-> Best regards.
->
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index c27cede..8486b5c 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -10,8 +10,12 @@ Required Properties:
+ 
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7604" for the ADV7604
+ 
+-  - reg: I2C slave address
++  - reg: I2C slave addresses
++    The ADV7604 has thirteen 256-byte maps that can be accessed via the main
++    I²C ports. Each map has it own I²C address and acts
++    as a standard slave device on the I²C bus.
+ 
+   - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
+     detection pins, one per HDMI input. The active flag indicates the GPIO
+@@ -32,6 +36,12 @@ The digital output port node must contain at least one endpoint.
+ Optional Properties:
+ 
+   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
++  - reg-names : Names of maps with programmable addresses.
++		It can contain any map needing another address than default one.
++		Possible maps names are :
++ADV7604 : "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe", "rep",
++		"edid", "hdmi", "test", "cp", "vdp"
++ADV7611 : "main", "cec", "infoframe", "afe", "rep", "edid", "hdmi", "cp"
+ 
+ Optional Endpoint Properties:
+ 
+@@ -50,7 +60,10 @@ Example:
+ 
+ 	hdmi_receiver@4c {
+ 		compatible = "adi,adv7611";
+-		reg = <0x4c>;
++		/* edid page will be accessible @ 0x66 on i2c bus */
++		/* other maps keep their default addresses */
++		reg = <0x4c 0x66>;
++		reg-names = "main", "edid";
+ 
+ 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+ 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d4fa213..8336c02 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -326,6 +326,22 @@ static const struct adv7604_video_standards adv7604_prim_mode_hdmi_gr[] = {
+ 	{ },
+ };
+ 
++static const char const *adv7604_secondary_names[] = {
++	[ADV7604_PAGE_IO] = "main",
++	[ADV7604_PAGE_AVLINK] = "avlink",
++	[ADV7604_PAGE_CEC] = "cec",
++	[ADV7604_PAGE_INFOFRAME] = "infoframe",
++	[ADV7604_PAGE_ESDP] = "esdp",
++	[ADV7604_PAGE_DPP] = "dpp",
++	[ADV7604_PAGE_AFE] = "afe",
++	[ADV7604_PAGE_REP] = "rep",
++	[ADV7604_PAGE_EDID] = "edid",
++	[ADV7604_PAGE_HDMI] = "hdmi",
++	[ADV7604_PAGE_TEST] = "test",
++	[ADV7604_PAGE_CP] = "cp",
++	[ADV7604_PAGE_VDP] = "vdp"
++};
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+@@ -2528,13 +2544,25 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
+ }
+ 
+ static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
+-							u8 addr, u8 io_reg)
++						unsigned int i)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct adv7604_platform_data *pdata = client->dev.platform_data;
++	unsigned int io_reg = 0xf2 + i;
++	unsigned int default_addr = io_read(sd, io_reg) >> 1;
++	struct i2c_client *new_client;
++
++	if (pdata && pdata->i2c_addresses[i])
++		new_client = i2c_new_dummy(client->adapter,
++					pdata->i2c_addresses[i]);
++	else
++		new_client = i2c_new_secondary_device(client,
++			adv7604_secondary_names[i], default_addr);
+ 
+-	if (addr)
+-		io_write(sd, io_reg, addr << 1);
+-	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
++	if (new_client)
++		io_write(sd, io_reg, new_client->addr << 1);
++
++	return new_client;
+ }
+ 
+ static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
+@@ -2717,20 +2745,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	/* Disable the interrupt for now as no DT-based board uses it. */
+ 	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
+ 
+-	/* Use the default I2C addresses. */
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
+-
+ 	/* Hardcode the remaining platform data fields. */
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+@@ -2891,8 +2905,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 			continue;
+ 
+ 		state->i2c_clients[i] =
+-			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+-					     0xf2 + i);
++			adv7604_dummy_client(sd, i);
+ 		if (state->i2c_clients[i] == NULL) {
+ 			err = -ENOMEM;
+ 			v4l2_err(sd, "failed to create i2c client %u\n", i);
 -- 
-http://palosaari.fi/
+2.0.4
+
