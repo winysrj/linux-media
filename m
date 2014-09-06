@@ -1,73 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:46394 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151AbaIGMl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Sep 2014 08:41:59 -0400
-Received: by mail-pd0-f180.google.com with SMTP id ft15so2992775pdb.39
-        for <linux-media@vger.kernel.org>; Sun, 07 Sep 2014 05:41:59 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH v3 0/4] dvb: Add support for PT3 ISDB-S/T card
-Date: Sun,  7 Sep 2014 21:41:26 +0900
-Message-Id: <1410093690-5674-1-git-send-email-tskd08@gmail.com>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:50932 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284AbaIFQZD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 12:25:03 -0400
+Received: by mail-we0-f170.google.com with SMTP id u57so630444wes.1
+        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 09:25:01 -0700 (PDT)
+Message-ID: <540B3551.9060003@gmail.com>
+Date: Sat, 06 Sep 2014 17:24:49 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com>
+In-Reply-To: <20140905235105.3ab6e7c4.m.chehab@samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+> Em Sat, 06 Sep 2014 05:09:55 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Moro!
+>>
+>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+>>> moikka,
+>>>
+>>>> Start polling thread, which polls once per 2 sec or so, which reads RSSI
+>>>> and writes value to struct dtv_frontend_properties. That it is, in my
+>>>> understanding. Same for all those DVBv5 stats. Mauro knows better as he
+>>>> designed that functionality.
+>>>
+>>> I understand that RSSI property should be set directly in the tuner driver,
+>>> but I'm afraid that creating a kthread just for updating RSSI would be
+>>> overkill and complicate matters.
+>>>
+>>> Would you give me an advice? >> Mauro
+>>
+>> Now I know that as I implement it. I added kthread and it works
+>> correctly, just I though it is aimed to work. In my case signal strength
+>> is reported by demod, not tuner, because there is some logic in firmware
+>> to calculate it.
+>>
+>> Here is patches you would like to look as a example:
+>>
+>> af9033: implement DVBv5 statistic for signal strength
+>> https://patchwork.linuxtv.org/patch/25748/
+>
+> Actually, you don't need to add a separate kthread to collect the stats.
+> The DVB frontend core already has a thread that calls the frontend status
+> on every 3 seconds (the time can actually be different, depending on
+> the value for fepriv->delay. So, if the device doesn't have any issues
+> on getting stats on this period, it could just hook the DVBv5 stats logic
+> at ops.read_status().
+>
 
-This patch series adds support for "PT3" ISDB-S/T receiver cards.
-It contains a PCI bridge driver, a dvb-frontend driver and
-two tuner drivers.
-I know "Bud R" had already posted ones to this mailing list,
-(as in 1400629035-32487-1-git-send-email-knightrider@are.ma ), 
-but it seems that he stopped updating his patch and does not agree
-on splitting the single large patch into smaller, separate ones.
-This series is another version written independently by me.
+Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
 
-Changes in v3:
-- changed to use I2C binding model for demod/tuner drivers.
-- removed use of fe->callback and set fe->ops.xxx in the PCI driver.
-- small improvements (prototype,return values) in reg read/write.
+It would be good to hook stats on to this thread.
 
-Akihiro Tsukada (4):
-  mxl301rf: add driver for MaxLinear MxL301RF OFDM tuner
-  qm1d1c0042: add driver for Sharp QM1D1C0042 ISDB-S tuner
-  tc90522: add driver for Toshiba TC90522 quad demodulator
-  pt3: add support for Earthsoft PT3 ISDB-S/T receiver card
+Regards
 
- drivers/media/dvb-frontends/Kconfig   |   8 +
- drivers/media/dvb-frontends/Makefile  |   1 +
- drivers/media/dvb-frontends/tc90522.c | 841 ++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/tc90522.h |  42 ++
- drivers/media/pci/Kconfig             |   1 +
- drivers/media/pci/Makefile            |   1 +
- drivers/media/pci/pt3/Kconfig         |  10 +
- drivers/media/pci/pt3/Makefile        |   8 +
- drivers/media/pci/pt3/pt3.c           | 881 ++++++++++++++++++++++++++++++++++
- drivers/media/pci/pt3/pt3.h           | 185 +++++++
- drivers/media/pci/pt3/pt3_dma.c       | 225 +++++++++
- drivers/media/pci/pt3/pt3_i2c.c       | 240 +++++++++
- drivers/media/tuners/Kconfig          |  14 +
- drivers/media/tuners/Makefile         |   2 +
- drivers/media/tuners/mxl301rf.c       | 383 +++++++++++++++
- drivers/media/tuners/mxl301rf.h       |  28 ++
- drivers/media/tuners/qm1d1c0042.c     | 456 ++++++++++++++++++
- drivers/media/tuners/qm1d1c0042.h     |  38 ++
- 18 files changed, 3364 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/tc90522.c
- create mode 100644 drivers/media/dvb-frontends/tc90522.h
- create mode 100644 drivers/media/pci/pt3/Kconfig
- create mode 100644 drivers/media/pci/pt3/Makefile
- create mode 100644 drivers/media/pci/pt3/pt3.c
- create mode 100644 drivers/media/pci/pt3/pt3.h
- create mode 100644 drivers/media/pci/pt3/pt3_dma.c
- create mode 100644 drivers/media/pci/pt3/pt3_i2c.c
- create mode 100644 drivers/media/tuners/mxl301rf.c
- create mode 100644 drivers/media/tuners/mxl301rf.h
- create mode 100644 drivers/media/tuners/qm1d1c0042.c
- create mode 100644 drivers/media/tuners/qm1d1c0042.h
 
--- 
-2.1.0
+Malcolm
+
+
+
+
+
 
