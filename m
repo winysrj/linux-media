@@ -1,78 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:10101 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218AbaIOGtD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:49:03 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00GJDK9POL80@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:49:01 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 12/17] [media] s5p-mfc: flush dpbs when resolution changes
-Date: Mon, 15 Sep 2014 12:13:07 +0530
-Message-id: <1410763393-12183-13-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:40548 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750783AbaIFGvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 02:51:05 -0400
+Message-ID: <540AAED4.8070108@iki.fi>
+Date: Sat, 06 Sep 2014 09:51:00 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Akihiro TSUKADA <tskd08@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
+Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com>
+In-Reply-To: <540AA4FD.5000703@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While resolution change is detected by MFC, we flush out
-older dpbs, send the resolution change event to application,
-and then accept further queuing of new src buffers.
+moikka!
 
-Sometimes, we error out during dpb flush because of lack of src
-buffers. Since we have not started decoding new resolution yet,
-it is simpler to push zero-size buffer until we flush out all dpbs.
+On 09/06/2014 09:09 AM, Akihiro TSUKADA wrote:
+> Moi!
+>
+>> Yes, using the I2C binding way provides a better decoupling than using the
+>> legacy way. The current dvb_attach() macros are hacks that were created
+>> by the time where the I2C standard bind didn't work with DVB.
+>
+> I understand. I converted my code to use i2c binding model,
+> but I'm uncertain about a few things.
+>
+> 1. How to load the modules of i2c driver?
+> Currently I use request_module()/module_put()
+> like an example (ddbrige-core.c) from Antti does,
+> but I'd prefer implicit module loading/ref-counting
+> like in dvb_attach() if it exists.
 
-This is already been done while handling EOS command, and this patch
-extends the same logic to resolution change as well.
+Maybe I haven't found the best way yet, but that was implementation I 
+made for AF9035 driver:
+https://patchwork.linuxtv.org/patch/25764/
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   20 ++------------------
- 1 files changed, 2 insertions(+), 18 deletions(-)
+Basically it is 2 functions, af9035_add_i2c_dev() and af9035_del_i2c_dev()
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 8cf1c6f..4cdea67 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1537,27 +1537,11 @@ static inline int s5p_mfc_get_new_ctx(struct s5p_mfc_dev *dev)
- static inline void s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
--	struct s5p_mfc_buf *temp_vb;
--	unsigned long flags;
--
--	spin_lock_irqsave(&dev->irqlock, flags);
--
--	/* Frames are being decoded */
--	if (list_empty(&ctx->src_queue)) {
--		mfc_debug(2, "No src buffers.\n");
--		spin_unlock_irqrestore(&dev->irqlock, flags);
--		return;
--	}
--	/* Get the next source buffer */
--	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
--	temp_vb->flags |= MFC_BUF_FLAG_USED;
--	s5p_mfc_set_dec_stream_buffer_v6(ctx,
--			vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0, 0);
--	spin_unlock_irqrestore(&dev->irqlock, flags);
- 
-+	s5p_mfc_set_dec_stream_buffer_v6(ctx, 0, 0, 0);
- 	dev->curr_ctx = ctx->num;
- 	s5p_mfc_clean_ctx_int_flags(ctx);
--	s5p_mfc_decode_one_frame_v6(ctx, 1);
-+	s5p_mfc_decode_one_frame_v6(ctx, MFC_DEC_LAST_FRAME);
- }
- 
- static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
+> 2. Is there a standard way to pass around dvb_frontend*, i2c_client*,
+> regmap* between bridge(dvb_adapter) and demod/tuner drivers?
+> Currently I use config structure for the purpose, which is set to
+> dev.platform_data (via i2c_board_info/i2c_new_device()) or
+> dev.driver_data (via i2c_{get,set}_clientdata()),
+> but using config as both IN/OUT looks a bit hacky.
+
+In my understanding, platform_data is place to pass environment specific 
+config to driver. get/set client_data() is aimed to carry pointer for 
+device specific instance "state" inside a driver. Is it possible to set 
+I2C client data before calling i2c_new_device() and pass pointer to driver?
+
+There is also IOCTL style command for I2C, but it is legacy and should 
+not be used.
+
+Documentation/i2c/busses/i2c-ocores
+
+Yet, using config to OUT seems to be bit hacky for my eyes too. I though 
+replacing all OUT with ops when converted af9033 driver. Currently 
+caller fills struct af9033_ops and then af9033 I2C probe populates ops. 
+See that patch:
+https://patchwork.linuxtv.org/patch/25746/
+
+Does this kind of ops sounds any better?
+
+EXPORT_SYMBOL() is easiest way to offer outputs, like 
+EXPORT_SYMBOL(get_frontend), EXPORT_SYMBOL(get_i2c_adapter). But we want 
+avoid those exported symbols.
+
+> 3. Should I also use RegMap API for register access?
+> I tried using it but gave up,
+> because it does not fit well to one of my use-case,
+> where (only) reads must be done via 0xfb register, like
+>     READ(reg, buf, len) -> [addr/w, 0xfb, reg], [addr/r, buf[0]...],
+>     WRITE(reg, buf, len) -> [addr/w, reg, buf[0]...],
+> and regmap looked to me overkill for 8bit-reg, 8bit-val cases
+> and did not simplify the code.
+> so I'd like to go without RegMap if possible,
+> since I'm already puzzled enough by I2C binding, regmap, clock source,
+> as well as dvb-core, PCI ;)
+
+I prefer RegMap API, but I am only one who has started using it yet. And 
+I haven't converted any demod driver having I2C bus/gate/repeater for 
+tuner to that API. It is because of I2C locking with I2C mux adapter, 
+you need use unlocked version of i2c_transfer() for I2C mux as I2C bus 
+lock is already taken. RegMap API does not support that, but I think it 
+should be possible if you implement own xfer callback for regmap. For RF 
+tuners RegMap API should be trivial and it will reduce ~100 LOC from driver.
+
+But if you decide avoid RegMap API, I ask you add least implementing 
+those I2C read / write function parameters similarly than RegMap API 
+does. Defining all kind of weird register write / read functions makes 
+life harder. I converted recently IT913x driver to RegMap API and 
+biggest pain was there very different register read / write routines. So 
+I need to do a lot of work in order convert functions first some common 
+style and then it was trivial to change RegMap API.
+
+https://patchwork.linuxtv.org/patch/25766/
+https://patchwork.linuxtv.org/patch/25757/
+
+I quickly overlooked that demod driver and one which looked crazy was 
+LNA stuff. You implement set_lna callback in demod, but it is then 
+passed back to PCI driver using frontend callback. Is there some reason 
+you hooked it via demod? You could implement set_lna in PCI driver too.
+
+regards
+Antti
+
 -- 
-1.7.3.rc2
-
+http://palosaari.fi/
