@@ -1,76 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:42334 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475AbaIKAhw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 20:37:52 -0400
-Received: by mail-lb0-f169.google.com with SMTP id p9so10961117lbv.28
-        for <linux-media@vger.kernel.org>; Wed, 10 Sep 2014 17:37:50 -0700 (PDT)
-Message-ID: <5410EED9.8040803@gmail.com>
-Date: Wed, 10 Sep 2014 17:37:45 -0700
-From: Steve Longerbeam <slongerbeam@gmail.com>
-MIME-Version: 1.0
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com> <540F2AC1.20700@gmail.com> <CAL8zT=h+=4_iUiTLwc0LKUa2ug7qRouQsc7jso0N4ynn1qffTQ@mail.gmail.com> <54107B96.1010900@mentor.com>
-In-Reply-To: <54107B96.1010900@mentor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f173.google.com ([74.125.82.173]:58517 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793AbaIFP1q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 11:27:46 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 5/5] media: davinci: vpif_capture: fix the check on suspend/resume callbacks
+Date: Sat,  6 Sep 2014 16:26:51 +0100
+Message-Id: <1410017211-15438-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/2014 09:25 AM, Steve Longerbeam wrote:
-> On 09/10/2014 09:08 AM, Jean-Michel Hautbois wrote:
->> 2014-09-09 18:28 GMT+02:00 Steve Longerbeam <slongerbeam@gmail.com>:
->>> On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
->>>> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
->>>>
->>>>> The complete driver I posted to the list does have some minor issues
->>>>> mostly suggested by Hans Verkuil (switch to new selection API instead
->>>>> of cropping API for example). It is a full featured driver but it does not
->>>>> implement the media device framework, i.e. user does not have direct
->>>>> control of the video pipeline, rather the driver chooses the pipeline based
->>>>> on the traditional inputs from user (video format and controls).
->>>>>
->>>>> If there is interest I can submit another version of the traditional driver
->>>>> to resolve the issues. But media device is a major rework, so I don't
->>>>> know whether it would make sense to start from the traditional driver
->>>>> and then implement media device on top later, since media device
->>>>> is almost a complete rewrite.
->>>> I, at least, am interested by this driver, even in its "traditionnal"
->>>> form :). If you don't want to submit it directly because this is not
->>>> using media controller, this is ok, you can provide me a git repo in
->>>> order to get it, or send a patchset.
->>> Hi Jean-Michel, I forgot to mention I will be working on the staging
->>> capture driver in a copy of the media-tree on github at:
->>>
->>> git@github.com:slongerbeam/mediatree.git
->>>
->> I took your mx6-camera-staging branch and merger it, but compile fails :
->> drivers/staging/media/imx6/capture/mx6-vdic.c:815:2: error: implicit
->> declaration of function 'ipu_mbus_code_to_fourcc'
->>
->> Maybe isn't it ready yet ? I always want to go faster than music... :)
-> Hi JM, yes I'm still working on it, I'll let you know when I think it's
-> in a good-enough state.
+It is possible to call STREAMON without having any buffers queued.
+So vb2_is_streaming() can return true without start_streaming()
+having been called. Only after at least one buffer has been
+queued will start_streaming be called.
 
-Hi JM, staging capture driver now compiles at
-git@github.com:slongerbeam/mediatree.git, mx6-camera-staging
-branch.
+The check vb2_is_streaming() is incorrect as this would start
+the DMA without having proper DMA pointers set up. this patch
+uses vb2_start_streaming_called() instead to check is streaming
+was called.
 
-It is lightly tested on sabrelite quad (with parallel ov5642), sabreauto quad
-(with adv7180 and NTSC/PAL sources), and sabresd quad (with MIPI CSI-2
-ov5640).
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I have not yet made most of the suggested changes from my version 1 posting
-a couple months ago, so for the most part it is in the same state. Still in the process
-of making those suggested changes.
-
-Steve
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 881efcd..3ccb26f 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1596,7 +1596,7 @@ static int vpif_suspend(struct device *dev)
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+-		if (!vb2_is_streaming(&common->buffer_queue))
++		if (!vb2_start_streaming_called(&common->buffer_queue))
+ 			continue;
+ 
+ 		mutex_lock(&common->lock);
+@@ -1630,7 +1630,7 @@ static int vpif_resume(struct device *dev)
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+-		if (!vb2_is_streaming(&common->buffer_queue))
++		if (!vb2_start_streaming_called(&common->buffer_queue))
+ 			continue;
+ 
+ 		mutex_lock(&common->lock);
+-- 
+1.9.1
 
