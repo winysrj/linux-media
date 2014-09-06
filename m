@@ -1,63 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:64353 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbaIXDA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 23:00:58 -0400
-Received: by mail-pa0-f44.google.com with SMTP id eu11so6938022pac.31
-        for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 20:00:57 -0700 (PDT)
-Message-ID: <542233E5.5070201@gmail.com>
-Date: Wed, 24 Sep 2014 12:00:53 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:45333 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301AbaIFQcI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 12:32:08 -0400
+Received: by mail-wg0-f49.google.com with SMTP id y10so13170535wgg.32
+        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 09:32:06 -0700 (PDT)
+Message-ID: <540B36FA.9010305@gmail.com>
+Date: Sat, 06 Sep 2014 17:31:54 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>	<1410196843-26168-4-git-send-email-tskd08@gmail.com> <20140923170730.4d5d167e@recife.lan>
-In-Reply-To: <20140923170730.4d5d167e@recife.lan>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
+In-Reply-To: <540B3551.9060003@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Hi,
-
-On 2014年09月24日 05:07, Mauro Carvalho Chehab wrote:
-> I applied this series, as we're discussing it already for a long time,
-> and it seems in a good shape...
-
-thanks for your reviews and advices.
-
->> +static int tc90522s_read_status(struct dvb_frontend *fe, fe_status_t *status)
-...........
->> +	if (reg & 0x60) /* carrier? */
->> +		return 0;
-> 
-> Sure about that? Wouldn't it be, instead, reg & 0x60 == 0x60?
-
-Yes, I'm pretty sure about that.
-The register indicates errors in the various demod stages,
-and if all go well, the reg should be 0.
-
->> +static int tc90522t_read_status(struct dvb_frontend *fe, fe_status_t *status)
-..............
-> The entire series of checks above seems wrong on my eyes too.
-> 
-> For example, if reg = 0x20 or 0x40 or 0x80 or ..., it will return
-> FE_HAS_LOCK.
-
-This register 0x96 should indicates "lock" status for each layers,
-and since layer config can vary in ISDB-T, the driver checks that
-any of the three bits is set, for faster lock detection.
-and the register 0x80 is the same kind of the one in the above ISDB-S case.
-
-> PS.: could you also test (and send us patches as needed) for ISDB-S
-> support at libdvbv5 and dvbv5-utils[1]?
-I'll have a try.
-
-regards,
-akihiro
-
-  
-
+On 06/09/14 17:24, Malcolm Priestley wrote:
+> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+>> Em Sat, 06 Sep 2014 05:09:55 +0300
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> Moro!
+>>>
+>>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+>>>> moikka,
+>>>>
+>>>>> Start polling thread, which polls once per 2 sec or so, which reads
+>>>>> RSSI
+>>>>> and writes value to struct dtv_frontend_properties. That it is, in my
+>>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
+>>>>> as he
+>>>>> designed that functionality.
+>>>>
+>>>> I understand that RSSI property should be set directly in the tuner
+>>>> driver,
+>>>> but I'm afraid that creating a kthread just for updating RSSI would be
+>>>> overkill and complicate matters.
+>>>>
+>>>> Would you give me an advice? >> Mauro
+>>>
+>>> Now I know that as I implement it. I added kthread and it works
+>>> correctly, just I though it is aimed to work. In my case signal strength
+>>> is reported by demod, not tuner, because there is some logic in firmware
+>>> to calculate it.
+>>>
+>>> Here is patches you would like to look as a example:
+>>>
+>>> af9033: implement DVBv5 statistic for signal strength
+>>> https://patchwork.linuxtv.org/patch/25748/
+>>
+>> Actually, you don't need to add a separate kthread to collect the stats.
+>> The DVB frontend core already has a thread that calls the frontend status
+>> on every 3 seconds (the time can actually be different, depending on
+>> the value for fepriv->delay. So, if the device doesn't have any issues
+>> on getting stats on this period, it could just hook the DVBv5 stats logic
+>> at ops.read_status().
+>>
+>
+> Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
+>
+> It would be good to hook stats on to this thread.
+optional that is.
