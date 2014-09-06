@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:39279 "EHLO bar.sig21.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:59550 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753902AbaIZIAm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 04:00:42 -0400
-Date: Fri, 26 Sep 2014 10:00:30 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140926080030.GB31491@linuxtv.org>
-References: <20140925125353.GA5129@linuxtv.org>
- <54241C81.60301@osg.samsung.com>
- <20140925160134.GA6207@linuxtv.org>
- <5424539D.8090503@osg.samsung.com>
- <20140925181747.GA21522@linuxtv.org>
- <542462C4.7020907@osg.samsung.com>
+	id S1750863AbaIFCKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Sep 2014 22:10:05 -0400
+Message-ID: <540A6CF3.4070401@iki.fi>
+Date: Sat, 06 Sep 2014 05:09:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <542462C4.7020907@osg.samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com>
+In-Reply-To: <540059B5.8050100@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 25, 2014 at 12:45:24PM -0600, Shuah Khan wrote:
-> 
-> Revert is good. Just checked 3.16 and we are good
-> on that. It needs to be reverted from 3.17 for sure.
-> 
-> ok now I know why the second path didn't
-> apply. It depends on another change that added resume
-> function
-> 
-> 7ab1c07614b984778a808dc22f84b682fedefea1
-> 
-> You don't need the second patch. The first patch applied
-> to 3.17 and fails on 3.16
-> 
-> http://patchwork.linuxtv.org/patch/26073/
+Moro!
 
-I'm not sure I understand correctly.  I applied the
-b89193e0b06f revert plus the 26073 patchwork patch
-on top of yesterday's git master (v3.17-rc6-247-g005f800),
-the xc5000 request_firmware issue still happens, additionally
-a drxk_attach request_firmware warning is printed after resume.
+On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+> moikka,
+>
+>> Start polling thread, which polls once per 2 sec or so, which reads RSSI
+>> and writes value to struct dtv_frontend_properties. That it is, in my
+>> understanding. Same for all those DVBv5 stats. Mauro knows better as he
+>> designed that functionality.
+>
+> I understand that RSSI property should be set directly in the tuner driver,
+> but I'm afraid that creating a kthread just for updating RSSI would be
+> overkill and complicate matters.
+>
+> Would you give me an advice? >> Mauro
 
-I should mention I just test "boot -> hibernate -> resume",
-the device is not opened before hibernate.
+Now I know that as I implement it. I added kthread and it works 
+correctly, just I though it is aimed to work. In my case signal strength 
+is reported by demod, not tuner, because there is some logic in firmware 
+to calculate it.
 
-The drxk warning trace is:
+Here is patches you would like to look as a example:
 
-[    3.762776]  [<ffffffff81320e96>] request_firmware+0x30/0x42
-[    3.764538]  [<ffffffff813f2f58>] drxk_attach+0x546/0x656
-[    3.766094]  [<ffffffff814ba9d2>] em28xx_dvb_init.part.3+0xa1c/0x1cc6
-[    3.767879]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
-[    3.769825]  [<ffffffff814be27d>] ? mutex_unlock+0x9/0xb
-[    3.771379]  [<ffffffff814b96a1>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
-[    3.773342]  [<ffffffff8141b7e7>] em28xx_dvb_init+0x1d/0x1f
-[    3.774982]  [<ffffffff81415740>] em28xx_init_extension+0x51/0x67
-[    3.776670]  [<ffffffff81416d38>] request_module_async+0x19/0x1b
+af9033: implement DVBv5 statistic for signal strength
+https://patchwork.linuxtv.org/patch/25748/
 
-[    3.793013] usb 1-1: firmware: dvb-usb-hauppauge-hvr930c-drxk.fw will not be loaded
+af9033: implement DVBv5 statistic for CNR
+https://patchwork.linuxtv.org/patch/25744/
 
+af9033: implement DVBv5 stat block counters
+https://patchwork.linuxtv.org/patch/25749/
 
-Johannes
+af9033: implement DVBv5 post-Viterbi BER
+https://patchwork.linuxtv.org/patch/25750/
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
