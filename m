@@ -1,201 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40863 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:35664 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757070AbaIDChC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:02 -0400
+	id S1751930AbaIFXiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 19:38:20 -0400
+Message-ID: <540B9AE5.1080708@iki.fi>
+Date: Sun, 07 Sep 2014 02:38:13 +0300
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 19/37] it913x: get rid of script loader and and private header file
-Date: Thu,  4 Sep 2014 05:36:27 +0300
-Message-Id: <1409798205-25645-19-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com> <540B7E91.5000700@gmail.com> <20140906193728.13b0f725.m.chehab@samsung.com>
+In-Reply-To: <20140906193728.13b0f725.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used script loader is quite useless and hides register numbers
-making code hard to understand. Get rid of it and use standard
-RegMap register write functions directly.
 
-it913x_priv.h file leaves empty after that change and is also
-removed.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/it913x.c      | 63 +++++++++++++++++++-------------------
- drivers/media/tuners/it913x_priv.h | 47 ----------------------------
- 2 files changed, 31 insertions(+), 79 deletions(-)
- delete mode 100644 drivers/media/tuners/it913x_priv.h
+On 09/07/2014 01:37 AM, Mauro Carvalho Chehab wrote:
+> Em Sat, 06 Sep 2014 22:37:21 +0100
+> Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+>
+>> On 06/09/14 17:24, Malcolm Priestley wrote:
+>>> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+>>>> Em Sat, 06 Sep 2014 05:09:55 +0300
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> Moro!
+>>>>>
+>>>>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+>>>>>> moikka,
+>>>>>>
+>>>>>>> Start polling thread, which polls once per 2 sec or so, which reads
+>>>>>>> RSSI
+>>>>>>> and writes value to struct dtv_frontend_properties. That it is, in my
+>>>>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
+>>>>>>> as he
+>>>>>>> designed that functionality.
+>>>>>>
+>>>>>> I understand that RSSI property should be set directly in the tuner
+>>>>>> driver,
+>>>>>> but I'm afraid that creating a kthread just for updating RSSI would be
+>>>>>> overkill and complicate matters.
+>>>>>>
+>>>>>> Would you give me an advice? >> Mauro
+>>>>>
+>>>>> Now I know that as I implement it. I added kthread and it works
+>>>>> correctly, just I though it is aimed to work. In my case signal strength
+>>>>> is reported by demod, not tuner, because there is some logic in firmware
+>>>>> to calculate it.
+>>>>>
+>>>>> Here is patches you would like to look as a example:
+>>>>>
+>>>>> af9033: implement DVBv5 statistic for signal strength
+>>>>> https://patchwork.linuxtv.org/patch/25748/
+>>>>
+>>>> Actually, you don't need to add a separate kthread to collect the stats.
+>>>> The DVB frontend core already has a thread that calls the frontend status
+>>>> on every 3 seconds (the time can actually be different, depending on
+>>>> the value for fepriv->delay. So, if the device doesn't have any issues
+>>>> on getting stats on this period, it could just hook the DVBv5 stats logic
+>>>> at ops.read_status().
+>>>>
+>>>
+>>> Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
+>>
+>> The only way change this is by using algo DVBFE_ALGO_HW using the
+>> frontend ops tune.
+>>
+>> As most frontends are using dvb_frontend_swzigzag it could be
+>> implemented by patching the frontend ops tune code at the lock
+>> return in this function or in dvb_frontend_swzigzag_update_delay.
+>
+> Well, if a different value is needed, it shouldn't be hard to add a
+> way to customize it, letting the demod to specify it, in the same way
+> as fe->ops.info.frequency_stepsize (and other similar demot properties)
+> are passed through the core.
 
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index ab386bf..924f18d 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -20,7 +20,8 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-  */
- 
--#include "it913x_priv.h"
-+#include "it913x.h"
-+#include <linux/regmap.h>
- 
- struct it913x_dev {
- 	struct i2c_client *client;
-@@ -34,25 +35,6 @@ struct it913x_dev {
- 	u32 tun_fn_min;
- };
- 
--static int it913x_script_loader(struct it913x_dev *dev,
--		struct it913xset *loadscript)
--{
--	int ret, i;
--
--	if (loadscript == NULL)
--		return -EINVAL;
--
--	for (i = 0; i < 1000; ++i) {
--		if (loadscript[i].address == 0x000000)
--			break;
--		ret = regmap_bulk_write(dev->regmap, loadscript[i].address,
--			loadscript[i].reg, loadscript[i].count);
--		if (ret < 0)
--			return -ENODEV;
--	}
--	return 0;
--}
--
- static int it913x_init(struct dvb_frontend *fe)
- {
- 	struct it913x_dev *dev = fe->tuner_priv;
-@@ -181,7 +163,6 @@ err:
- static int it9137_set_params(struct dvb_frontend *fe)
- {
- 	struct it913x_dev *dev = fe->tuner_priv;
--	struct it913xset *set_tuner = set_it9135_template;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u32 bandwidth = p->bandwidth_hz;
- 	u32 frequency_m = p->frequency;
-@@ -231,7 +212,10 @@ static int it9137_set_params(struct dvb_frontend *fe)
- 		lna_band = 1;
- 	} else
- 		return -EINVAL;
--	set_tuner[0].reg[0] = lna_band;
-+
-+	ret = regmap_write(dev->regmap, 0x80ee06, lna_band);
-+	if (ret)
-+		goto err;
- 
- 	switch (bandwidth) {
- 	case 5000000:
-@@ -249,8 +233,13 @@ static int it9137_set_params(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	set_tuner[1].reg[0] = bw;
--	set_tuner[2].reg[0] = 0xa0 | (l_band << 3);
-+	ret = regmap_write(dev->regmap, 0x80ec56, bw);
-+	if (ret)
-+		goto err;
-+
-+	ret = regmap_write(dev->regmap, 0x80ec4c, 0xa0 | (l_band << 3));
-+	if (ret)
-+		goto err;
- 
- 	if (frequency > 53000 && frequency <= 74000) {
- 		n_div = 48;
-@@ -309,20 +298,30 @@ static int it9137_set_params(struct dvb_frontend *fe)
- 	/* Frequency OMEGA_IQIK_M_CAL_MID*/
- 	temp_f = freq + (u32)iqik_m_cal;
- 
--	set_tuner[3].reg[0] =  temp_f & 0xff;
--	set_tuner[4].reg[0] =  (temp_f >> 8) & 0xff;
-+	ret = regmap_write(dev->regmap, 0x80ec4d, temp_f & 0xff);
-+	if (ret)
-+		goto err;
-+
-+	ret = regmap_write(dev->regmap, 0x80ec4e, (temp_f >> 8) & 0xff);
-+	if (ret)
-+		goto err;
- 
- 	dev_dbg(&dev->client->dev, "High Frequency = %04x\n", temp_f);
- 
- 	/* Lower frequency */
--	set_tuner[5].reg[0] =  freq & 0xff;
--	set_tuner[6].reg[0] =  (freq >> 8) & 0xff;
--
--	dev_dbg(&dev->client->dev, "low Frequency = %04x\n", freq);
-+	ret = regmap_write(dev->regmap, 0x80011e, freq & 0xff);
-+	if (ret)
-+		goto err;
- 
--	ret = it913x_script_loader(dev, set_tuner);
-+	ret = regmap_write(dev->regmap, 0x80011f, (freq >> 8) & 0xff);
-+	if (ret)
-+		goto err;
- 
--	return (ret < 0) ? -ENODEV : 0;
-+	dev_dbg(&dev->client->dev, "low Frequency = %04x\n", freq);
-+	return 0;
-+err:
-+	dev_dbg(&dev->client->dev, "failed %d\n", ret);
-+	return ret;
- }
- 
- static const struct dvb_tuner_ops it913x_tuner_ops = {
-diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/it913x_priv.h
-deleted file mode 100644
-index a6ddd02..0000000
---- a/drivers/media/tuners/it913x_priv.h
-+++ /dev/null
-@@ -1,47 +0,0 @@
--/*
-- * ITE Tech IT9137 silicon tuner driver
-- *
-- *  Copyright (C) 2011 Malcolm Priestley (tvboxspy@gmail.com)
-- *  IT9137 Copyright (C) ITE Tech Inc.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-- */
--
--#ifndef IT913X_PRIV_H
--#define IT913X_PRIV_H
--
--#include "it913x.h"
--#include <linux/regmap.h>
--
--#define TRIGGER_OFSM		0x0000
--
--struct it913xset {	u32 address;
--			u8 reg[15];
--			u8 count;
--};
--
--static struct it913xset set_it9135_template[] = {
--	{0x80ee06, {0x00}, 0x01},
--	{0x80ec56, {0x00}, 0x01},
--	{0x80ec4c, {0x00}, 0x01},
--	{0x80ec4d, {0x00}, 0x01},
--	{0x80ec4e, {0x00}, 0x01},
--	{0x80011e, {0x00}, 0x01}, /* Older Devices */
--	{0x80011f, {0x00}, 0x01},
--	{0x000000, {0x00}, 0x00}, /* Terminating Entry */
--};
--
--#endif
+DVBFE_ALGO_SW, which is used normally, polls read_status rather rapidly. 
+For statics problem is that it is too rapid, not that it is too slow. If 
+you want re-use that as a timer for statistics, you could simply make 
+own ratelimit very easily using kernel jiffies.
+
+Not going to implement details, but here is skeleton, which is almost as 
+many lines of code as actual implementation:
+
+if (jiffies < jiffies_prev + 2 sec)
+   return 0; // limit on
+else
+   jiffies_prev = jiffies;
+
+... statistics polling code here.
+
+regards
+Antti
+
 -- 
 http://palosaari.fi/
-
