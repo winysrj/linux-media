@@ -1,111 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:64620 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013AbaIYSgA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 14:36:00 -0400
-Received: by mail-wg0-f49.google.com with SMTP id x12so8530466wgg.32
-        for <linux-media@vger.kernel.org>; Thu, 25 Sep 2014 11:35:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <8A4AD82170F342C1BE0BB0383F79E0C4@ci5fish>
-References: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
-	<8A4AD82170F342C1BE0BB0383F79E0C4@ci5fish>
-Date: Thu, 25 Sep 2014 20:35:58 +0200
-Message-ID: <CAL9G6WVfSigCdA8kLC2yB9C7UwzFdxbKeiE7fEWU4xjHD4p1=g@mail.gmail.com>
-Subject: Re: TeVii S480 in Debian Wheezy
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: =?UTF-8?B?UmVuw6k=?= <poisson.rene@neuf.fr>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:34882 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543AbaIFWhe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 18:37:34 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBI0098J46LFT30@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 06 Sep 2014 18:37:33 -0400 (EDT)
+Date: Sat, 06 Sep 2014 19:37:28 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend for
+ APIv5
+Message-id: <20140906193728.13b0f725.m.chehab@samsung.com>
+In-reply-to: <540B7E91.5000700@gmail.com>
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
+ <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi>
+ <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi>
+ <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi>
+ <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
+ <540B7E91.5000700@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks René,
+Em Sat, 06 Sep 2014 22:37:21 +0100
+Malcolm Priestley <tvboxspy@gmail.com> escreveu:
 
-I have more TeVii devices (S470 and S660) running in other machine
-with no problems, just copying the firmware work out of the box.
+> On 06/09/14 17:24, Malcolm Priestley wrote:
+> > On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+> >> Em Sat, 06 Sep 2014 05:09:55 +0300
+> >> Antti Palosaari <crope@iki.fi> escreveu:
+> >>
+> >>> Moro!
+> >>>
+> >>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+> >>>> moikka,
+> >>>>
+> >>>>> Start polling thread, which polls once per 2 sec or so, which reads
+> >>>>> RSSI
+> >>>>> and writes value to struct dtv_frontend_properties. That it is, in my
+> >>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
+> >>>>> as he
+> >>>>> designed that functionality.
+> >>>>
+> >>>> I understand that RSSI property should be set directly in the tuner
+> >>>> driver,
+> >>>> but I'm afraid that creating a kthread just for updating RSSI would be
+> >>>> overkill and complicate matters.
+> >>>>
+> >>>> Would you give me an advice? >> Mauro
+> >>>
+> >>> Now I know that as I implement it. I added kthread and it works
+> >>> correctly, just I though it is aimed to work. In my case signal strength
+> >>> is reported by demod, not tuner, because there is some logic in firmware
+> >>> to calculate it.
+> >>>
+> >>> Here is patches you would like to look as a example:
+> >>>
+> >>> af9033: implement DVBv5 statistic for signal strength
+> >>> https://patchwork.linuxtv.org/patch/25748/
+> >>
+> >> Actually, you don't need to add a separate kthread to collect the stats.
+> >> The DVB frontend core already has a thread that calls the frontend status
+> >> on every 3 seconds (the time can actually be different, depending on
+> >> the value for fepriv->delay. So, if the device doesn't have any issues
+> >> on getting stats on this period, it could just hook the DVBv5 stats logic
+> >> at ops.read_status().
+> >>
+> >
+> > Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
+> 
+> The only way change this is by using algo DVBFE_ALGO_HW using the 
+> frontend ops tune.
+> 
+> As most frontends are using dvb_frontend_swzigzag it could be 
+> implemented by patching the frontend ops tune code at the lock
+> return in this function or in dvb_frontend_swzigzag_update_delay.
 
-Is really necessary to compile the Tevii driver? I have more DVB
-device and want to use Debian kernels.
+Well, if a different value is needed, it shouldn't be hard to add a
+way to customize it, letting the demod to specify it, in the same way
+as fe->ops.info.frequency_stepsize (and other similar demot properties)
+are passed through the core.
 
-I try to compile it:
-
-wget http://www.tevii.com/Tevii_Product_20140428_media_build_b6.tar.bz2.rar
-tar -xjvf Tevii_Product_20140428_media_build_b6.tar.bz2.rar
-cd b6/media_build/
-make (output: http://paste.debian.net/plain/123090)
-
-But there are errors, could you help with the driver compilation? I
-prefer to use the Debian kernel/modules in a clean way.
-
-Regards.
-
-2014-09-25 19:45 GMT+02:00 René <poisson.rene@neuf.fr>:
-> Hi Josu,
->
-> TeVii still have their own version of media tree (may be some day they will
-> make their way through main stream ...)
->
-> The drivers are available here
-> http://www.tevii.com/Tevii_Release_v5192_20140915.rar but you have to be
-> aware of the following :
-> - rar files are not necessarily rar ! It's sometimes just tar files or
-> tar.gz
-> - you have to compile the drivers so you need at least kernel headers and
-> tools to build drivers from sources (don't know which packages for Debian)
-> - once you have built with "make" and before you "make install" you need to
-> remove the actual media tree from your kernel with "rm -Rf
-> /lib/modules/`uname -r`/kernel/drivers/media" in order to have no symbols
-> discrepencies. Be sure you have no error during make !
-> - I have used TeVii products both at work and at home  and found poor
-> reliability (and poor support).
->
-> Good luck,
->
-> René
->
-> --------------------------------------------------
-> From: "Josu Lazkano" <josu.lazkano@gmail.com>
-> Sent: Thursday, September 25, 2014 5:12 PM
-> To: "linux-media" <linux-media@vger.kernel.org>
-> Subject:  TeVii S480 in Debian Wheezy
->
->> Hello all,
->>
->> I want to use a new dual DVB-S2 device, TeVii S480.
->>
->> I am using Debian Wheezy with 3.2 kernel, I copy the firmware files:
->>
->> # md5sum /lib/firmware/dvb-*
->> a32d17910c4f370073f9346e71d34b80  /lib/firmware/dvb-fe-ds3000.fw
->> 2946e99fe3a4973ba905fcf59111cf40  /lib/firmware/dvb-usb-s660.fw
->>
->> The device is listed as 2 USB devices:
->>
->> # lsusb | grep TeVii
->> Bus 006 Device 002: ID 9022:d483 TeVii Technology Ltd.
->> Bus 007 Device 002: ID 9022:d484 TeVii Technology Ltd.
->>
->> But there is no any device in /dev/dvb/:
->>
->> # ls -l /dev/dvb/
->> ls: cannot access /dev/dvb/: No such file or directory
->>
->> Need I install any other driver or piece of software?
->>
->> I will appreciate any help.
->>
->> Best regards.
->>
->> --
->> Josu Lazkano
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Josu Lazkano
+Regards,
+Mauro
