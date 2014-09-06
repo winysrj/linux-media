@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37782 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754070AbaIBNCq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 09:02:46 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NB900FAUZ1A9H60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Sep 2014 14:05:34 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>
-Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>
-References: <1409090111-8290-1-git-send-email-m.chehab@samsung.com>
- <1409090111-8290-28-git-send-email-m.chehab@samsung.com>
-In-reply-to: <1409090111-8290-28-git-send-email-m.chehab@samsung.com>
-Subject: RE: [PATCH v2 27/35] [media] s5p-jpeg: Get rid of a warning
-Date: Tue, 02 Sep 2014 15:02:43 +0200
-Message-id: <08bb01cfc6ae$3008b580$901a2080$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-we0-f177.google.com ([74.125.82.177]:48040 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496AbaIFVha (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 17:37:30 -0400
+Received: by mail-we0-f177.google.com with SMTP id u57so318400wes.36
+        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 14:37:29 -0700 (PDT)
+Message-ID: <540B7E91.5000700@gmail.com>
+Date: Sat, 06 Sep 2014 22:37:21 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
+In-Reply-To: <540B3551.9060003@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 06/09/14 17:24, Malcolm Priestley wrote:
+> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+>> Em Sat, 06 Sep 2014 05:09:55 +0300
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> Moro!
+>>>
+>>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+>>>> moikka,
+>>>>
+>>>>> Start polling thread, which polls once per 2 sec or so, which reads
+>>>>> RSSI
+>>>>> and writes value to struct dtv_frontend_properties. That it is, in my
+>>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
+>>>>> as he
+>>>>> designed that functionality.
+>>>>
+>>>> I understand that RSSI property should be set directly in the tuner
+>>>> driver,
+>>>> but I'm afraid that creating a kthread just for updating RSSI would be
+>>>> overkill and complicate matters.
+>>>>
+>>>> Would you give me an advice? >> Mauro
+>>>
+>>> Now I know that as I implement it. I added kthread and it works
+>>> correctly, just I though it is aimed to work. In my case signal strength
+>>> is reported by demod, not tuner, because there is some logic in firmware
+>>> to calculate it.
+>>>
+>>> Here is patches you would like to look as a example:
+>>>
+>>> af9033: implement DVBv5 statistic for signal strength
+>>> https://patchwork.linuxtv.org/patch/25748/
+>>
+>> Actually, you don't need to add a separate kthread to collect the stats.
+>> The DVB frontend core already has a thread that calls the frontend status
+>> on every 3 seconds (the time can actually be different, depending on
+>> the value for fepriv->delay. So, if the device doesn't have any issues
+>> on getting stats on this period, it could just hook the DVBv5 stats logic
+>> at ops.read_status().
+>>
+>
+> Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
 
-A subsequent patch by Jacek Anaszewski [1] is resoling this problem in
-a better way. If you don't mind I will take his patch.
+The only way change this is by using algo DVBFE_ALGO_HW using the 
+frontend ops tune.
 
-[1] [1/4] s5p-jpeg: Avoid assigning readl result
-    https://patchwork.linuxtv.org/patch/25661/
+As most frontends are using dvb_frontend_swzigzag it could be 
+implemented by patching the frontend ops tune code at the lock
+return in this function or in dvb_frontend_swzigzag_update_delay.
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+Regards
 
-
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
-> Sent: Tuesday, August 26, 2014 11:55 PM
-> 
-> drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c: In function
-> 's5p_jpeg_clear_int':
-> drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c:327:16: warning: variable
-> 'reg' set but not used [-Wunused-but-set-variable]
->   unsigned long reg;
->                 ^
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-> b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-> index 52407d790726..0d37bed088df 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-> @@ -326,7 +326,7 @@ void s5p_jpeg_clear_int(void __iomem *regs)  {
->  	unsigned long reg;
-> 
-> -	reg = readl(regs + S5P_JPGINTST);
-> +	readl(regs + S5P_JPGINTST);
->  	writel(S5P_INT_RELEASE, regs + S5P_JPGCOM);
->  	reg = readl(regs + S5P_JPGOPR);
->  }
-> --
-> 1.9.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
-
+Malcolm
