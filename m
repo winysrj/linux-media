@@ -1,54 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17415 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218AbaIOGs7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:59 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00LXSK9MQY30@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:58 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 11/17] [media] s5p-mfc: De-init MFC when watchdog kicks in
-Date: Mon, 15 Sep 2014 12:13:06 +0530
-Message-id: <1410763393-12183-12-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34811 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751909AbaIFXbE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 19:31:04 -0400
+Message-ID: <540B9932.5080008@iki.fi>
+Date: Sun, 07 Sep 2014 02:30:58 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+CC: Olli Salonen <olli.salonen@iki.fi>
+Subject: [GIT PULL] si2168 and si2157 firmware download improvements
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arun Mankuzhi <arun.m@samsung.com>
+The following changes since commit 89fffac802c18caebdf4e91c0785b522c9f6399a:
 
-If the software watchdog kicks in, we need to de-init MFC
-before reloading firmware and re-intializing it again.
+   [media] drxk_hard: fix bad alignments (2014-09-03 19:19:18 -0300)
 
-Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index cc9fd0c..f4cb7f2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -167,6 +167,10 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 	}
- 	clear_bit(0, &dev->hw_lock);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
-+
-+	/* De-init MFC */
-+	s5p_mfc_deinit_hw(dev);
-+
- 	/* Double check if there is at least one instance running.
- 	 * If no instance is in memory than no firmware should be present */
- 	if (dev->num_inst > 0) {
+   git://linuxtv.org/anttip/media_tree.git silabs_prevent_fw_dl
+
+for you to fetch changes up to 5d8440f3f7ac82942df1afaa28e46174dd310e69:
+
+   si2168: avoid firmware loading if it has been loaded previously 
+(2014-09-07 02:28:43 +0300)
+
+----------------------------------------------------------------
+Olli Salonen (3):
+       si2157: change command for sleep
+       si2157: avoid firmware loading if it has been loaded previously
+       si2168: avoid firmware loading if it has been loaded previously
+
+  drivers/media/dvb-frontends/si2168.c      | 31 
+++++++++++++++++++++++++++++---
+  drivers/media/dvb-frontends/si2168_priv.h |  1 +
+  drivers/media/tuners/si2157.c             | 18 +++++++++++++-----
+  drivers/media/tuners/si2157_priv.h        |  1 +
+  4 files changed, 43 insertions(+), 8 deletions(-)
+
 -- 
-1.7.3.rc2
-
+http://palosaari.fi/
