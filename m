@@ -1,155 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59095 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:41562 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753652AbaI2MG1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 08:06:27 -0400
-Message-ID: <54294B40.9060301@iki.fi>
-Date: Mon, 29 Sep 2014 15:06:24 +0300
+	id S1750804AbaIFHNV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 03:13:21 -0400
+Message-ID: <540AB40B.9020508@iki.fi>
+Date: Sat, 06 Sep 2014 10:13:15 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] af9033: fix snr value not correct issue
-References: <1411980458.1747.12.camel@ite-desktop>
-In-Reply-To: <1411980458.1747.12.camel@ite-desktop>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Akihiro TSUKADA <tskd08@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
+Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com>
+In-Reply-To: <540AA4FD.5000703@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 09/06/2014 09:09 AM, Akihiro TSUKADA wrote:
+> 3. Should I also use RegMap API for register access?
+> I tried using it but gave up,
+> because it does not fit well to one of my use-case,
+> where (only) reads must be done via 0xfb register, like
+>     READ(reg, buf, len) -> [addr/w, 0xfb, reg], [addr/r, buf[0]...],
+>     WRITE(reg, buf, len) -> [addr/w, reg, buf[0]...],
+> and regmap looked to me overkill for 8bit-reg, 8bit-val cases
+> and did not simplify the code.
+> so I'd like to go without RegMap if possible,
+> since I'm already puzzled enough by I2C binding, regmap, clock source,
+> as well as dvb-core, PCI ;)
 
+That is MaxLinear MxL301RF tuner I2C. Problem is there that it uses 
+write + STOP + write, so you should not even do that as a one I2C 
+i2c_transfer. All I2C messages send using i2c_transfer are send so 
+called REPEATED START condition.
 
-On 09/29/2014 11:47 AM, Bimow Chen wrote:
-> Snr returns value not correct. Fix it.
+I ran that same problem ears ago in a case of, surprise, MxL5007 tuner.
+https://patchwork.linuxtv.org/patch/17847/
 
-And same here. You change SNR, which is reported by dB to relative 
-0-0xffff. If you like to do it for some reason, then do it for DVBv3 API 
-only. Leave new DVBv5 statistic API reports to dB.
+I think you could just write wanted register to command register 0xfb. 
+And after that all the reads are coming from that active register until 
+you change it.
 
-I am pretty sure we should report DVBv5 signals using dB if possible, 
-not relative.
+RegMap API cannot handle I2C command format like that, it relies 
+repeated start for reads.
 
+Si2157 / Si2168 are using I2C access with STOP condition - but it is 
+otherwise bad example as there is firmware API, not register API. Look 
+still as a example.
 
 regards
 Antti
-
->
->
-> 0002-af9033-fix-snr-value-not-correct-issue.patch
->
->
->>From 427a5c6ef49e3235ac35a0464c375f2a2706619e Mon Sep 17 00:00:00 2001
-> From: Bimow Chen<Bimow.Chen@ite.com.tw>
-> Date: Mon, 29 Sep 2014 16:30:52 +0800
-> Subject: [PATCH 2/2] af9033: fix snr value not correct issue
->
-> Snr returns value not correct. Fix it.
->
-> Signed-off-by: Bimow Chen<Bimow.Chen@ite.com.tw>
-> ---
->   drivers/media/dvb-frontends/af9033.c      |   52 ++++++++++++++++++++++++++---
->   drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
->   2 files changed, 51 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-> index e191bd5..30dc366 100644
-> --- a/drivers/media/dvb-frontends/af9033.c
-> +++ b/drivers/media/dvb-frontends/af9033.c
-> @@ -851,8 +851,8 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
->   	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
->
->   	/* use DVBv5 CNR */
-> -	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
-> -		*snr = div_s64(c->cnr.stat[0].svalue, 100); /* 1000x => 10x */
-> +	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
-> +		*snr = c->cnr.stat[0].uvalue;
->   	else
->   		*snr = 0;
->
-> @@ -1025,6 +1025,33 @@ static void af9033_stat_work(struct work_struct *work)
->
->   		snr_val = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
->
-> +		/* read superframe number */
-> +		ret = af9033_rd_reg(dev, 0x80f78b, &u8tmp);
-> +		if (ret)
-> +			goto err;
-> +
-> +		if (u8tmp)
-> +			snr_val /= u8tmp;
-> +
-> +		/* read current transmission mode */
-> +		ret = af9033_rd_reg(dev, 0x80f900, &u8tmp);
-> +		if (ret)
-> +			goto err;
-> +
-> +		switch ((u8tmp >> 0) & 3) {
-> +		case 0:
-> +			snr_val *= 4;
-> +			break;
-> +		case 1:
-> +			snr_val *= 1;
-> +			break;
-> +		case 2:
-> +			snr_val *= 2;
-> +			break;
-> +		default:
-> +			goto err;
-> +		}
-> +
->   		/* read current modulation */
->   		ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
->   		if (ret)
-> @@ -1048,14 +1075,29 @@ static void af9033_stat_work(struct work_struct *work)
->   		}
->
->   		for (i = 0; i < len; i++) {
-> -			tmp = snr_lut[i].snr * 1000;
-> +			tmp = snr_lut[i].snr;
->   			if (snr_val < snr_lut[i].val)
->   				break;
->   		}
->
-> +		/* scale value to 0x0000-0xffff */
-> +		switch ((u8tmp >> 0) & 3) {
-> +		case 0:
-> +			tmp = tmp * 0xFFFF / 23;
-> +			break;
-> +		case 1:
-> +			tmp = tmp * 0xFFFF / 26;
-> +			break;
-> +		case 2:
-> +			tmp = tmp * 0xFFFF / 32;
-> +			break;
-> +		default:
-> +			goto err;
-> +		}
-> +
->   		c->cnr.len = 1;
-> -		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-> -		c->cnr.stat[0].svalue = tmp;
-> +		c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
-> +		c->cnr.stat[0].uvalue = tmp;
->   	} else {
->   		c->cnr.len = 1;
->   		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-> diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-> index c9c8798..8e23275 100644
-> --- a/drivers/media/dvb-frontends/af9033_priv.h
-> +++ b/drivers/media/dvb-frontends/af9033_priv.h
-> @@ -181,7 +181,10 @@ static const struct val_snr qam64_snr_lut[] = {
->   	{ 0x05570d, 26 },
->   	{ 0x059feb, 27 },
->   	{ 0x05bf38, 28 },
-> -	{ 0xffffff, 29 },
-> +	{ 0x05f78f, 29 },
-> +	{ 0x0612c3, 30 },
-> +	{ 0x0626be, 31 },
-> +	{ 0xffffff, 32 },
->   };
->
->   static const struct reg_val ofsm_init[] = {
-> -- 1.7.0.4
->
 
 -- 
 http://palosaari.fi/
