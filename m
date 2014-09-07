@@ -1,27 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [45.64.113.118] ([45.64.113.118]:53459 "EHLO a.yundabuy.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751165AbaIFMym (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 08:54:42 -0400
-Received: from uuvwxxyy (unknown [113.89.137.102])
-	by a.yundabuy.com (Postfix) with ESMTPA id B67254CCC
-	for <linux-media@vger.kernel.org>; Sat,  6 Sep 2014 20:54:33 +0800 (CST)
-Date: Sat, 6 Sep 2014 20:54:37 +0800
-From: "AMY" <amy20140828@hotmail.com>
-Reply-To: amy20140828@hotmail.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: sale cisco switches
-Message-ID: <201409062054376612334@a.yundabuy.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+Received: from mail.kapsi.fi ([217.30.184.167]:44480 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751530AbaIGCAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 22:00:17 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v2 4/8] em28xx: convert tda18212 tuner to I2C client
+Date: Sun,  7 Sep 2014 04:59:56 +0300
+Message-Id: <1410055200-32170-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1410055200-32170-1-git-send-email-crope@iki.fi>
+References: <1410055200-32170-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SEkNCldlIHNhbGUgY2lzY28gbmV3IGFuZCBvcmlnaW5hbCBzd2l0Y2hlcyBhbmQgcm91dGVycywg
-Zm9sbG93aW5nIGlzICAgdGhlIHByb2R1Y3QgYW5kIHByaWNlIGxpc3QuDQpJZiB5b3UgYXJlIGlu
-dGVyZXN0ZWQsIHBsZWFzZSBjb250YWN0IG1lIQ0KV1MtQzM3NTBYLTI0Uy1TICANCldTLUMzNzUw
-WC00OFAtUyAgDQpXUy1DMjk2MFMtMjRUUy1MICANCldTLUMyOTYwUy00OFRTLUwgIA0KV1MtQzI5
-NjBTLTQ4TFBTLUwgIA0KV1MtQzI5NjBTLTQ4RlBTLUwgIA0KV1MtQzI5NjBTLTQ4TFBELUwgIA0K
-V1MtQzI5NjBTLTQ4RlBELUwgDQpNWSBTS1lQRSBJRDpBTVkxMjIzODgNClJFR0FSRC4NCkFNWQ==
+Used tda18212 tuner is implemented as a I2C driver. Use em28xx
+tuner I2C client for tda18212 driver.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 0645793..9682c52 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -373,7 +373,6 @@ static struct tda18271_config kworld_ub435q_v2_config = {
+ };
+ 
+ static struct tda18212_config kworld_ub435q_v3_config = {
+-	.i2c_address	= 0x60,
+ 	.if_atsc_vsb	= 3600,
+ 	.if_atsc_qam	= 3600,
+ };
+@@ -1437,6 +1436,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		}
+ 		break;
+ 	case EM2874_BOARD_KWORLD_UB435Q_V3:
++	{
++		struct i2c_client *client;
++		struct i2c_adapter *adapter = &dev->i2c_adap[dev->def_i2c_bus];
++		struct i2c_board_info board_info = {
++			.type = "tda18212",
++			.addr = 0x60,
++			.platform_data = &kworld_ub435q_v3_config,
++		};
++
+ 		dvb->fe[0] = dvb_attach(lgdt3305_attach,
+ 					&em2874_lgdt3305_nogate_dev,
+ 					&dev->i2c_adap[dev->def_i2c_bus]);
+@@ -1445,14 +1453,26 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			goto out_free;
+ 		}
+ 
+-		/* Attach the demodulator. */
+-		if (!dvb_attach(tda18212_attach, dvb->fe[0],
+-				&dev->i2c_adap[dev->def_i2c_bus],
+-				&kworld_ub435q_v3_config)) {
+-			result = -EINVAL;
++		/* attach tuner */
++		kworld_ub435q_v3_config.fe = dvb->fe[0];
++		request_module("tda18212");
++		client = i2c_new_device(adapter, &board_info);
++		if (client == NULL || client->dev.driver == NULL) {
++			dvb_frontend_detach(dvb->fe[0]);
++			result = -ENODEV;
+ 			goto out_free;
+ 		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			dvb_frontend_detach(dvb->fe[0]);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_tuner = client;
+ 		break;
++	}
+ 	case EM2874_BOARD_PCTV_HD_MINI_80E:
+ 		dvb->fe[0] = dvb_attach(drx39xxj_attach, &dev->i2c_adap[dev->def_i2c_bus]);
+ 		if (dvb->fe[0] != NULL) {
+-- 
+http://palosaari.fi/
+
