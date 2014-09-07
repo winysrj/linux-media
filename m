@@ -1,360 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3786 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753573AbaILNAa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 01/14] vb2: introduce buf_prepare/finish_for_cpu
-Date: Fri, 12 Sep 2014 14:59:50 +0200
-Message-Id: <1410526803-25887-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:59056 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876AbaIGJfK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Sep 2014 05:35:10 -0400
+Received: by mail-we0-f181.google.com with SMTP id x48so13481675wes.26
+        for <linux-media@vger.kernel.org>; Sun, 07 Sep 2014 02:35:09 -0700 (PDT)
+Message-ID: <540C26C5.1010002@gmail.com>
+Date: Sun, 07 Sep 2014 10:35:01 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
+ for APIv5
+References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com> <540B7E91.5000700@gmail.com> <20140906193728.13b0f725.m.chehab@samsung.com> <540B9AE5.1080708@iki.fi>
+In-Reply-To: <540B9AE5.1080708@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/09/14 00:38, Antti Palosaari wrote:
+>
+>
+> On 09/07/2014 01:37 AM, Mauro Carvalho Chehab wrote:
+>> Em Sat, 06 Sep 2014 22:37:21 +0100
+>> Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+>>
+>>> On 06/09/14 17:24, Malcolm Priestley wrote:
+>>>> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
+>>>>> Em Sat, 06 Sep 2014 05:09:55 +0300
+>>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>>
+>>>>>> Moro!
+>>>>>>
+>>>>>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
+>>>>>>> moikka,
+>>>>>>>
+>>>>>>>> Start polling thread, which polls once per 2 sec or so, which reads
+>>>>>>>> RSSI
+>>>>>>>> and writes value to struct dtv_frontend_properties. That it is,
+>>>>>>>> in my
+>>>>>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
+>>>>>>>> as he
+>>>>>>>> designed that functionality.
+>>>>>>>
+>>>>>>> I understand that RSSI property should be set directly in the tuner
+>>>>>>> driver,
+>>>>>>> but I'm afraid that creating a kthread just for updating RSSI
+>>>>>>> would be
+>>>>>>> overkill and complicate matters.
+>>>>>>>
+>>>>>>> Would you give me an advice? >> Mauro
+>>>>>>
+>>>>>> Now I know that as I implement it. I added kthread and it works
+>>>>>> correctly, just I though it is aimed to work. In my case signal
+>>>>>> strength
+>>>>>> is reported by demod, not tuner, because there is some logic in
+>>>>>> firmware
+>>>>>> to calculate it.
+>>>>>>
+>>>>>> Here is patches you would like to look as a example:
+>>>>>>
+>>>>>> af9033: implement DVBv5 statistic for signal strength
+>>>>>> https://patchwork.linuxtv.org/patch/25748/
+>>>>>
+>>>>> Actually, you don't need to add a separate kthread to collect the
+>>>>> stats.
+>>>>> The DVB frontend core already has a thread that calls the frontend
+>>>>> status
+>>>>> on every 3 seconds (the time can actually be different, depending on
+>>>>> the value for fepriv->delay. So, if the device doesn't have any issues
+>>>>> on getting stats on this period, it could just hook the DVBv5 stats
+>>>>> logic
+>>>>> at ops.read_status().
+>>>>>
+>>>>
+>>>> Hmm, fepriv->delay missed that one, 3 seconds is far too long for
+>>>> lmedm04.
+>>>
+>>> The only way change this is by using algo DVBFE_ALGO_HW using the
+>>> frontend ops tune.
+>>>
+>>> As most frontends are using dvb_frontend_swzigzag it could be
+>>> implemented by patching the frontend ops tune code at the lock
+>>> return in this function or in dvb_frontend_swzigzag_update_delay.
+>>
+>> Well, if a different value is needed, it shouldn't be hard to add a
+>> way to customize it, letting the demod to specify it, in the same way
+>> as fe->ops.info.frequency_stepsize (and other similar demot properties)
+>> are passed through the core.
+>
+> DVBFE_ALGO_SW, which is used normally, polls read_status rather rapidly.
+> For statics problem is that it is too rapid, not that it is too slow. If
+> you want re-use that as a timer for statistics, you could simply make
+> own ratelimit very easily using kernel jiffies.
+The default starts off at 50msec and gradually rises to around 950msec.
 
-This splits the buf_prepare and buf_finish actions into two: one
-called while the cpu can still access the buffer contents, and one where
-the memory has been prepared for DMA and the cpu no longer can access it.
+There is another way to set fepriv->delay that is in 
+ops->get_tune_settings  dvb_frontend_tune_settings->min_delay_ms.
 
-Update a few drivers that use buf_finish where they really meant
-buf_finish_for_cpu.
+The delay increases by around 900msec on top of the value set there.
 
-The reason for this split is that some drivers need to modify the buffer,
-either before or after the DMA has taken place, in order to e.g. add JPEG
-headers or do other touch ups.
+In the case of lmedm04/m88rs2000 that why I am seeing 3 sec.
 
-You cannot do that in buf_prepare since at that time the buffer is already
-synced for DMA and the CPU shouldn't touch it. So add these extra ops to
-make this explicit.
+Regards
 
-Note that the dma-sg memory model doesn't sync the buffers yet in the memop
-prepare. This will change in future patches.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/parport/bw-qcam.c              |  4 +--
- drivers/media/pci/sta2x11/sta2x11_vip.c      |  4 +--
- drivers/media/platform/vivid/vivid-vid-cap.c |  4 +--
- drivers/media/usb/go7007/go7007-v4l2.c       |  4 +--
- drivers/media/usb/pwc/pwc-if.c               |  4 +--
- drivers/media/usb/uvc/uvc_queue.c            |  4 +--
- drivers/media/v4l2-core/videobuf2-core.c     | 29 ++++++++++++-----
- include/media/videobuf2-core.h               | 48 ++++++++++++++++++++++------
- 8 files changed, 72 insertions(+), 29 deletions(-)
+Malcolm
 
-diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-index 67b9da1..528558f 100644
---- a/drivers/media/parport/bw-qcam.c
-+++ b/drivers/media/parport/bw-qcam.c
-@@ -667,7 +667,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- }
- 
--static void buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
- 	void *vbuf = vb2_plane_vaddr(vb, 0);
-@@ -699,7 +699,7 @@ static void buffer_finish(struct vb2_buffer *vb)
- static struct vb2_ops qcam_video_qops = {
- 	.queue_setup		= queue_setup,
- 	.buf_queue		= buffer_queue,
--	.buf_finish		= buffer_finish,
-+	.buf_finish_for_cpu	= buffer_finish_for_cpu,
- 	.wait_prepare		= vb2_ops_wait_prepare,
- 	.wait_finish		= vb2_ops_wait_finish,
- };
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index 365bd21..bfb05cb 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	}
- 	spin_unlock(&vip->lock);
- }
--static void buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vip_buffer *vip_buf = to_vip_buffer(vb);
-@@ -380,7 +380,7 @@ static struct vb2_ops vip_video_qops = {
- 	.queue_setup		= queue_setup,
- 	.buf_init		= buffer_init,
- 	.buf_prepare		= buffer_prepare,
--	.buf_finish		= buffer_finish,
-+	.buf_finish_for_cpu	= buffer_finish_for_cpu,
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
- 	.stop_streaming		= stop_streaming,
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index b016aed..d46f3e4 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -201,7 +201,7 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static void vid_cap_buf_finish(struct vb2_buffer *vb)
-+static void vid_cap_buf_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	struct v4l2_timecode *tc = &vb->v4l2_buf.timecode;
-@@ -284,7 +284,7 @@ static void vid_cap_stop_streaming(struct vb2_queue *vq)
- const struct vb2_ops vivid_vid_cap_qops = {
- 	.queue_setup		= vid_cap_queue_setup,
- 	.buf_prepare		= vid_cap_buf_prepare,
--	.buf_finish		= vid_cap_buf_finish,
-+	.buf_finish_for_cpu	= vid_cap_buf_finish_for_cpu,
- 	.buf_queue		= vid_cap_buf_queue,
- 	.start_streaming	= vid_cap_start_streaming,
- 	.stop_streaming		= vid_cap_stop_streaming,
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index ec799b4..5bef286 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -404,7 +404,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static void go7007_buf_finish(struct vb2_buffer *vb)
-+static void go7007_buf_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct go7007 *go = vb2_get_drv_priv(vq);
-@@ -478,7 +478,7 @@ static struct vb2_ops go7007_video_qops = {
- 	.queue_setup    = go7007_queue_setup,
- 	.buf_queue      = go7007_buf_queue,
- 	.buf_prepare    = go7007_buf_prepare,
--	.buf_finish     = go7007_buf_finish,
-+	.buf_finish_for_cpu = go7007_buf_finish_for_cpu,
- 	.start_streaming = go7007_start_streaming,
- 	.stop_streaming = go7007_stop_streaming,
- 	.wait_prepare   = vb2_ops_wait_prepare,
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 15b754d..879b455 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -614,7 +614,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static void buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
- 	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
-@@ -700,7 +700,7 @@ static struct vb2_ops pwc_vb_queue_ops = {
- 	.queue_setup		= queue_setup,
- 	.buf_init		= buffer_init,
- 	.buf_prepare		= buffer_prepare,
--	.buf_finish		= buffer_finish,
-+	.buf_finish_for_cpu	= buffer_finish_for_cpu,
- 	.buf_cleanup		= buffer_cleanup,
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 6e92d20..86a67cd 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -106,7 +106,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- }
- 
--static void uvc_buffer_finish(struct vb2_buffer *vb)
-+static void uvc_buffer_finish_for_cpu(struct vb2_buffer *vb)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
- 	struct uvc_streaming *stream =
-@@ -135,7 +135,7 @@ static struct vb2_ops uvc_queue_qops = {
- 	.queue_setup = uvc_queue_setup,
- 	.buf_prepare = uvc_buffer_prepare,
- 	.buf_queue = uvc_buffer_queue,
--	.buf_finish = uvc_buffer_finish,
-+	.buf_finish_for_cpu = uvc_buffer_finish_for_cpu,
- 	.wait_prepare = uvc_wait_prepare,
- 	.wait_finish = uvc_wait_finish,
- };
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7e6aff6..e5247a4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -501,14 +501,17 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 				  vb->cnt_mem_map_dmabuf != vb->cnt_mem_unmap_dmabuf ||
- 				  vb->cnt_buf_queue != vb->cnt_buf_done ||
- 				  vb->cnt_buf_prepare != vb->cnt_buf_finish ||
-+				  vb->cnt_buf_prepare_for_cpu != vb->cnt_buf_finish_for_cpu ||
- 				  vb->cnt_buf_init != vb->cnt_buf_cleanup;
- 
- 		if (unbalanced || debug) {
- 			pr_info("vb2:   counters for queue %p, buffer %d:%s\n",
- 				q, buffer, unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
--				vb->cnt_buf_init, vb->cnt_buf_cleanup,
--				vb->cnt_buf_prepare, vb->cnt_buf_finish);
-+			pr_info("vb2:     buf_init: %u buf_cleanup: %u\n",
-+				vb->cnt_buf_init, vb->cnt_buf_cleanup);
-+			pr_info("vb2:     buf_prepare_for_cpu: %u buf_prepare: %u buf_finish: %u buf_finish_for_cpu: %u\n",
-+				vb->cnt_buf_prepare_for_cpu, vb->cnt_buf_prepare,
-+				vb->cnt_buf_finish, vb->cnt_buf_finish_for_cpu);
- 			pr_info("vb2:     buf_queue: %u buf_done: %u\n",
- 				vb->cnt_buf_queue, vb->cnt_buf_done);
- 			pr_info("vb2:     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
-@@ -1192,6 +1195,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, state);
- 
-+	call_void_vb_qop(vb, buf_finish, vb);
-+
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-@@ -1622,6 +1627,12 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	vb->v4l2_buf.timestamp.tv_usec = 0;
- 	vb->v4l2_buf.sequence = 0;
- 
-+	ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
-+	if (ret) {
-+		dprintk(1, "buf_prepare_for_cpu failed\n");
-+		return ret;
-+	}
-+
- 	switch (q->memory) {
- 	case V4L2_MEMORY_MMAP:
- 		ret = __qbuf_mmap(vb, b);
-@@ -1637,8 +1648,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = -EINVAL;
- 	}
- 
--	if (ret)
-+	if (ret) {
- 		dprintk(1, "buffer preparation failed: %d\n", ret);
-+		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+	}
- 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
- 
- 	return ret;
-@@ -2048,7 +2061,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 		return -EINVAL;
- 	}
- 
--	call_void_vb_qop(vb, buf_finish, vb);
-+	call_void_vb_qop(vb, buf_finish_for_cpu, vb);
- 
- 	/* Fill buffer information for the userspace */
- 	__fill_v4l2_buffer(vb, b);
-@@ -2076,7 +2089,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
-  * Should be called from vidioc_dqbuf ioctl handler of a driver.
-  * This function:
-  * 1) verifies the passed buffer,
-- * 2) calls buf_finish callback in the driver (if provided), in which
-+ * 2) calls buf_finish_for_cpu callback in the driver (if provided), in which
-  *    driver can perform any additional operations that may be required before
-  *    returning the buffer to userspace, such as cache sync,
-  * 3) the buffer struct members are filled with relevant information for
-@@ -2139,7 +2152,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 
- 	/*
- 	 * Reinitialize all buffers for next use.
--	 * Make sure to call buf_finish for any queued buffers. Normally
-+	 * Make sure to call buf_finish_for_cpu for any queued buffers. Normally
- 	 * that's done in dqbuf, but that's not going to happen when we
- 	 * cancel the whole queue. Note: this code belongs here, not in
- 	 * __vb2_dqbuf() since in vb2_internal_dqbuf() there is a critical
-@@ -2151,7 +2164,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 
- 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
- 			vb->state = VB2_BUF_STATE_PREPARED;
--			call_void_vb_qop(vb, buf_finish, vb);
-+			call_void_vb_qop(vb, buf_finish_for_cpu, vb);
- 		}
- 		__vb2_dqbuf(vb);
- 	}
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5a10d8d..fff159c 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -227,8 +227,10 @@ struct vb2_buffer {
- 	u32		cnt_mem_mmap;
- 
- 	u32		cnt_buf_init;
-+	u32		cnt_buf_prepare_for_cpu;
- 	u32		cnt_buf_prepare;
- 	u32		cnt_buf_finish;
-+	u32		cnt_buf_finish_for_cpu;
- 	u32		cnt_buf_cleanup;
- 	u32		cnt_buf_queue;
- 
-@@ -268,17 +270,43 @@ struct vb2_buffer {
-  *			perform additional buffer-related initialization;
-  *			initialization failure (return != 0) will prevent
-  *			queue setup from completing successfully; optional.
-- * @buf_prepare:	called every time the buffer is queued from userspace
-+ * @buf_prepare_for_cpu:called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-- *			perform any initialization required before each hardware
-- *			operation in this callback; drivers that support
-- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-- *			if an error is returned, the buffer will not be queued
-- *			in driver; optional.
-+ *			use this to access and modify the contents of the buffer
-+ *			before it is prepared for DMA in the next step
-+ *			(@buf_prepare). Drivers that support VIDIOC_CREATE_BUFS
-+ *			must also validate the buffer size. If an error is
-+ *			returned, the buffer will not be queued	in the driver;
-+ *			optional.
-+ * @buf_prepare:	called every time the buffer is queued from userspace
-+ *			and from the VIDIOC_PREPARE_BUF ioctl; at this point
-+ *			the buffer is prepared for DMA and the drivers may no
-+ *			longer access the contents of the buffer. The driver
-+ *			must perform any initialization required before each
-+ *			hardware operation in this callback; drivers that
-+ *			support	VIDIOC_CREATE_BUFS must also validate the
-+ *			buffer size, if they haven't done that yet in
-+ *			@buf_prepare_for_cpu. If an error is returned, the
-+ *			buffer will not be queued in the driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-- *			userspace; drivers may perform any operations required
-- *			before userspace accesses the buffer; optional. The
-- *			buffer state can be one of the following: DONE and
-+ *			userspace; the contents of the buffer cannot be
-+ *			accessed by the cpu at this stage as it is still setup
-+ *			for DMA. Drivers may perform any operations required
-+ *			before userspace accesses the buffer; optional.
-+ *			The buffer state can be one of the following: DONE and
-+ *			ERROR occur while streaming is in progress, and the
-+ *			PREPARED state occurs when the queue has been canceled
-+ *			and all pending buffers are being returned to their
-+ *			default DEQUEUED state. Typically you only have to do
-+ *			something if the state is VB2_BUF_STATE_DONE, since in
-+ *			all other cases the buffer contents will be ignored
-+ *			anyway.
-+ * @buf_finish_for_cpu:	called before every dequeue of the buffer back to
-+ *			userspace; at this stage the contents of the buffer is
-+ *			accessible to the CPU. Drivers may perform any
-+ *			operations required before userspace accesses the
-+ *			buffer; optional.
-+ *			The buffer state can be one of the following: DONE and
-  *			ERROR occur while streaming is in progress, and the
-  *			PREPARED state occurs when the queue has been canceled
-  *			and all pending buffers are being returned to their
-@@ -323,8 +351,10 @@ struct vb2_ops {
- 	void (*wait_finish)(struct vb2_queue *q);
- 
- 	int (*buf_init)(struct vb2_buffer *vb);
-+	int (*buf_prepare_for_cpu)(struct vb2_buffer *vb);
- 	int (*buf_prepare)(struct vb2_buffer *vb);
- 	void (*buf_finish)(struct vb2_buffer *vb);
-+	void (*buf_finish_for_cpu)(struct vb2_buffer *vb);
- 	void (*buf_cleanup)(struct vb2_buffer *vb);
- 
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
--- 
-2.1.0
+
+
 
