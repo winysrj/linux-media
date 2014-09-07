@@ -1,146 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:54275 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881AbaIWOEq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 10:04:46 -0400
-Date: Tue, 23 Sep 2014 16:04:40 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] drm: add bus_formats and nbus_formats fields to
- drm_display_info
-Message-ID: <20140923140439.GA5982@ulmo>
-References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
- <1406031827-12432-4-git-send-email-boris.brezillon@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
-Content-Disposition: inline
-In-Reply-To: <1406031827-12432-4-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46929 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751351AbaIGCAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Sep 2014 22:00:17 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v2 3/8] anysee: convert tda18212 tuner to I2C client
+Date: Sun,  7 Sep 2014 04:59:55 +0300
+Message-Id: <1410055200-32170-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1410055200-32170-1-git-send-email-crope@iki.fi>
+References: <1410055200-32170-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Used tda18212 tuner is implemented as I2C driver. Implement I2C
+client to anysee and use it for tda18212.
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/anysee.c | 185 +++++++++++++++++++++++++++-------
+ drivers/media/usb/dvb-usb-v2/anysee.h |   3 +
+ 2 files changed, 152 insertions(+), 36 deletions(-)
 
-On Tue, Jul 22, 2014 at 02:23:45PM +0200, Boris BREZILLON wrote:
-> Add bus_formats and nbus_formats fields and
-> drm_display_info_set_bus_formats helper function to specify the bus
-> formats supported by a given display.
->=20
-> This information can be used by display controller drivers to configure
-> the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
-> RGB or LVDS busses).
->=20
-> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-> ---
->  drivers/gpu/drm/drm_crtc.c | 28 ++++++++++++++++++++++++++++
->  include/drm/drm_crtc.h     |  8 ++++++++
->  2 files changed, 36 insertions(+)
->=20
-> diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
-> index c808a09..50c8395 100644
-> --- a/drivers/gpu/drm/drm_crtc.c
-> +++ b/drivers/gpu/drm/drm_crtc.c
-> @@ -825,6 +825,34 @@ static void drm_mode_remove(struct drm_connector *co=
-nnector,
->  	drm_mode_destroy(connector->dev, mode);
->  }
-> =20
-> +/*
-> + * drm_display_info_set_bus_formats - set the supported bus formats
-> + * @info: display info to store bus formats in
-> + * @fmts: array containing the supported bus formats
-> + * @nfmts: the number of entries in the fmts array
-> + *
-> + * Store the suppported bus formats in display info structure.
-> + */
-> +int drm_display_info_set_bus_formats(struct drm_display_info *info,
-> +				     const enum video_bus_format *fmts,
-> +				     int nfmts)
+diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
+index e4a2382..d3c5f23 100644
+--- a/drivers/media/usb/dvb-usb-v2/anysee.c
++++ b/drivers/media/usb/dvb-usb-v2/anysee.c
+@@ -332,7 +332,6 @@ static struct tda10023_config anysee_tda10023_tda18212_config = {
+ };
+ 
+ static struct tda18212_config anysee_tda18212_config = {
+-	.i2c_address = (0xc0 >> 1),
+ 	.if_dvbt_6 = 4150,
+ 	.if_dvbt_7 = 4150,
+ 	.if_dvbt_8 = 4150,
+@@ -340,7 +339,6 @@ static struct tda18212_config anysee_tda18212_config = {
+ };
+ 
+ static struct tda18212_config anysee_tda18212_config2 = {
+-	.i2c_address = 0x60 /* (0xc0 >> 1) */,
+ 	.if_dvbt_6 = 3550,
+ 	.if_dvbt_7 = 3700,
+ 	.if_dvbt_8 = 4150,
+@@ -632,6 +630,92 @@ error:
+ 	return ret;
+ }
+ 
++static int anysee_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
++		void *platform_data)
++{
++	int ret, num;
++	struct anysee_state *state = d_to_priv(d);
++	struct i2c_client *client;
++	struct i2c_adapter *adapter = &d->i2c_adap;
++	struct i2c_board_info board_info = {
++		.addr = addr,
++		.platform_data = platform_data,
++	};
++
++	strlcpy(board_info.type, type, I2C_NAME_SIZE);
++
++	/* find first free client */
++	for (num = 0; num < ANYSEE_I2C_CLIENT_MAX; num++) {
++		if (state->i2c_client[num] == NULL)
++			break;
++	}
++
++	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
++
++	if (num == ANYSEE_I2C_CLIENT_MAX) {
++		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
++				KBUILD_MODNAME);
++		ret = -ENODEV;
++		goto err;
++	}
++
++	request_module(board_info.type);
++
++	/* register I2C device */
++	client = i2c_new_device(adapter, &board_info);
++	if (client == NULL || client->dev.driver == NULL) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	/* increase I2C driver usage count */
++	if (!try_module_get(client->dev.driver->owner)) {
++		i2c_unregister_device(client);
++		ret = -ENODEV;
++		goto err;
++	}
++
++	state->i2c_client[num] = client;
++	return 0;
++err:
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
++}
++
++static void anysee_del_i2c_dev(struct dvb_usb_device *d)
++{
++	int num;
++	struct anysee_state *state = d_to_priv(d);
++	struct i2c_client *client;
++
++	/* find last used client */
++	num = ANYSEE_I2C_CLIENT_MAX;
++	while (num--) {
++		if (state->i2c_client[num] != NULL)
++			break;
++	}
++
++	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
++
++	if (num == -1) {
++		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
++				KBUILD_MODNAME);
++		goto err;
++	}
++
++	client = state->i2c_client[num];
++
++	/* decrease I2C driver usage count */
++	module_put(client->dev.driver->owner);
++
++	/* unregister I2C device */
++	i2c_unregister_device(client);
++
++	state->i2c_client[num] = NULL;
++err:
++	dev_dbg(&d->udev->dev, "%s: failed\n", __func__);
++}
++
+ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct anysee_state *state = adap_to_priv(adap);
+@@ -640,12 +724,12 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
+ 	u8 tmp;
+ 	struct i2c_msg msg[2] = {
+ 		{
+-			.addr = anysee_tda18212_config.i2c_address,
++			.addr = 0x60,
+ 			.flags = 0,
+ 			.len = 1,
+ 			.buf = "\x00",
+ 		}, {
+-			.addr = anysee_tda18212_config.i2c_address,
++			.addr = 0x60,
+ 			.flags = I2C_M_RD,
+ 			.len = 1,
+ 			.buf = &tmp,
+@@ -723,9 +807,11 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
+ 		/* probe TDA18212 */
+ 		tmp = 0;
+ 		ret = i2c_transfer(&d->i2c_adap, msg, 2);
+-		if (ret == 2 && tmp == 0xc7)
++		if (ret == 2 && tmp == 0xc7) {
+ 			dev_dbg(&d->udev->dev, "%s: TDA18212 found\n",
+ 					__func__);
++			state->has_tda18212 = true;
++		}
+ 		else
+ 			tmp = 0;
+ 
+@@ -939,46 +1025,63 @@ static int anysee_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * fails attach old simple PLL. */
+ 
+ 		/* attach tuner */
+-		fe = dvb_attach(tda18212_attach, adap->fe[0], &d->i2c_adap,
+-				&anysee_tda18212_config);
++		if (state->has_tda18212) {
++			struct tda18212_config tda18212_config =
++					anysee_tda18212_config;
+ 
+-		if (fe && adap->fe[1]) {
+-			/* attach tuner for 2nd FE */
+-			fe = dvb_attach(tda18212_attach, adap->fe[1],
+-					&d->i2c_adap, &anysee_tda18212_config);
+-			break;
+-		} else if (fe) {
+-			break;
+-		}
+-
+-		/* attach tuner */
+-		fe = dvb_attach(dvb_pll_attach, adap->fe[0], (0xc0 >> 1),
+-				&d->i2c_adap, DVB_PLL_SAMSUNG_DTOS403IH102A);
++			tda18212_config.fe = adap->fe[0];
++			ret = anysee_add_i2c_dev(d, "tda18212", 0x60,
++					&tda18212_config);
++			if (ret)
++				goto err;
++
++			/* copy tuner ops for 2nd FE as tuner is shared */
++			if (adap->fe[1]) {
++				adap->fe[1]->tuner_priv =
++						adap->fe[0]->tuner_priv;
++				memcpy(&adap->fe[1]->ops.tuner_ops,
++						&adap->fe[0]->ops.tuner_ops,
++						sizeof(struct dvb_tuner_ops));
++			}
+ 
+-		if (fe && adap->fe[1]) {
+-			/* attach tuner for 2nd FE */
+-			fe = dvb_attach(dvb_pll_attach, adap->fe[1],
++			return 0;
++		} else {
++			/* attach tuner */
++			fe = dvb_attach(dvb_pll_attach, adap->fe[0],
+ 					(0xc0 >> 1), &d->i2c_adap,
+ 					DVB_PLL_SAMSUNG_DTOS403IH102A);
++
++			if (fe && adap->fe[1]) {
++				/* attach tuner for 2nd FE */
++				fe = dvb_attach(dvb_pll_attach, adap->fe[1],
++						(0xc0 >> 1), &d->i2c_adap,
++						DVB_PLL_SAMSUNG_DTOS403IH102A);
++			}
+ 		}
+ 
+ 		break;
+ 	case ANYSEE_HW_508TC: /* 18 */
+ 	case ANYSEE_HW_508PTC: /* 21 */
++	{
+ 		/* E7 TC */
+ 		/* E7 PTC */
++		struct tda18212_config tda18212_config = anysee_tda18212_config;
+ 
+-		/* attach tuner */
+-		fe = dvb_attach(tda18212_attach, adap->fe[0], &d->i2c_adap,
+-				&anysee_tda18212_config);
+-
+-		if (fe) {
+-			/* attach tuner for 2nd FE */
+-			fe = dvb_attach(tda18212_attach, adap->fe[1],
+-					&d->i2c_adap, &anysee_tda18212_config);
++		tda18212_config.fe = adap->fe[0];
++		ret = anysee_add_i2c_dev(d, "tda18212", 0x60, &tda18212_config);
++		if (ret)
++			goto err;
++
++		/* copy tuner ops for 2nd FE as tuner is shared */
++		if (adap->fe[1]) {
++			adap->fe[1]->tuner_priv = adap->fe[0]->tuner_priv;
++			memcpy(&adap->fe[1]->ops.tuner_ops,
++					&adap->fe[0]->ops.tuner_ops,
++					sizeof(struct dvb_tuner_ops));
+ 		}
+ 
+-		break;
++		return 0;
++	}
+ 	case ANYSEE_HW_508S2: /* 19 */
+ 	case ANYSEE_HW_508PS2: /* 22 */
+ 		/* E7 S2 */
+@@ -997,13 +1100,18 @@ static int anysee_tuner_attach(struct dvb_usb_adapter *adap)
+ 		break;
+ 
+ 	case ANYSEE_HW_508T2C: /* 20 */
++	{
+ 		/* E7 T2C */
++		struct tda18212_config tda18212_config =
++				anysee_tda18212_config2;
+ 
+-		/* attach tuner */
+-		fe = dvb_attach(tda18212_attach, adap->fe[0], &d->i2c_adap,
+-				&anysee_tda18212_config2);
++		tda18212_config.fe = adap->fe[0];
++		ret = anysee_add_i2c_dev(d, "tda18212", 0x60, &tda18212_config);
++		if (ret)
++			goto err;
+ 
+-		break;
++		return 0;
++	}
+ 	default:
+ 		fe = NULL;
+ 	}
+@@ -1012,7 +1120,7 @@ static int anysee_tuner_attach(struct dvb_usb_adapter *adap)
+ 		ret = 0;
+ 	else
+ 		ret = -ENODEV;
+-
++err:
+ 	return ret;
+ }
+ 
+@@ -1270,6 +1378,11 @@ static int anysee_init(struct dvb_usb_device *d)
+ 
+ static void anysee_exit(struct dvb_usb_device *d)
+ {
++	struct anysee_state *state = d_to_priv(d);
++
++	if (state->i2c_client[0])
++		anysee_del_i2c_dev(d);
++
+ 	return anysee_ci_release(d);
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/anysee.h b/drivers/media/usb/dvb-usb-v2/anysee.h
+index 8f426d9..3ca2bca 100644
+--- a/drivers/media/usb/dvb-usb-v2/anysee.h
++++ b/drivers/media/usb/dvb-usb-v2/anysee.h
+@@ -55,8 +55,11 @@ struct anysee_state {
+ 	u8 buf[64];
+ 	u8 seq;
+ 	u8 hw; /* PCB ID */
++	#define ANYSEE_I2C_CLIENT_MAX 1
++	struct i2c_client *i2c_client[ANYSEE_I2C_CLIENT_MAX];
+ 	u8 fe_id:1; /* frondend ID */
+ 	u8 has_ci:1;
++	u8 has_tda18212:1;
+ 	u8 ci_attached:1;
+ 	struct dvb_ca_en50221 ci;
+ 	unsigned long ci_cam_ready; /* jiffies */
+-- 
+http://palosaari.fi/
 
-Can you make nfmts unsigned please?
-
-> +{
-> +	enum video_bus_format *formats =3D NULL;
-> +
-> +	if (fmts && nfmts) {
-> +		formats =3D kmemdup(fmts, sizeof(*fmts) * nfmts, GFP_KERNEL);
-> +		if (!formats)
-> +			return -ENOMEM;
-> +	}
-> +
-> +	kfree(info->bus_formats);
-> +	info->bus_formats =3D formats;
-> +	info->nbus_formats =3D formats ? nfmts : 0;
-
-And perhaps check for formats =3D=3D NULL && nfmts !=3D 0 since that's not a
-valid pair of values. Then you can simply assign this directly without
-relying on the value of formats.
-
-Also other variable names use "num_" as a prefix instead of "n", so if
-you're going to respin anyway might as well make the names more
-consistent.
-
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(drm_display_info_set_bus_formats);
-> +
->  /**
->   * drm_connector_init - Init a preallocated connector
->   * @dev: DRM device
-> diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
-> index e529b68..957729b 100644
-> --- a/include/drm/drm_crtc.h
-> +++ b/include/drm/drm_crtc.h
-> @@ -31,6 +31,7 @@
->  #include <linux/idr.h>
->  #include <linux/fb.h>
->  #include <linux/hdmi.h>
-> +#include <linux/video-bus-format.h>
->  #include <drm/drm_mode.h>
->  #include <drm/drm_fourcc.h>
->  #include <drm/drm_modeset_lock.h>
-> @@ -121,6 +122,9 @@ struct drm_display_info {
->  	enum subpixel_order subpixel_order;
->  	u32 color_formats;
-> =20
-> +	const enum video_bus_format *bus_formats;
-> +	int nbus_formats;
-
-unsigned int here too, please.
-
-Thierry
-
---6c2NcOVqGQ03X4Wi
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUIX33AAoJEN0jrNd/PrOhp0EP/i4QLBT0OdxOEFBG0fiIlmJ8
-Jc17bgilP41zsiFppJ3EYalrk54kwz8OAsNlX1hIkYw45WW32ZZ22gOMXIZvZBWB
-/9bHmS5+MRM3uoOWfI4iZci2k1y5rrZsySLTz4llgMoImVYuO+I064UWgyU68QTO
-/VJDCcUsSQ4YNE0a8aJ4w8GFztzD2xV3Q9hofdPsEgb4D//4oy0n/xc3h20tUT3V
-jkEmHPmD5dJ/E6GJ4PO8iVoQ87L0PeJ5Pkb6chNxXBXg4jnouQyo9KWGHfTx2ABe
-B83ONBrbatqa3wUzjTsmMbg6iNsIGp4C1GDBuio5CAdTODe5eF+q9xwxejDcfRfo
-RZSOQdDJwtKPpEm7gMVfQsaJGOo9ECh223JqYvib6EAPSlbrGkCsdT5fnGWr9kq2
-SkVHI2soPpxNLVI9FeRCmnd2ac82gwPonqvjBG7i+7T6hdBMDrCnoU8g2PaAqVfM
-P/6kVKqxUoVthEXKTlGjspxp6ZE6XUytW7xqtGRA4exL/eGapBuIWQa5X9Al2dt7
-IaNLiSlojF9HbERpqmj6YfOidJoOx25H49lJzBFS/j8oNeSOaK0bPvMFdHNighKQ
-4J2TeRqRq5McCc1lE2FoPCM5NDXxtEDa98cp4abvcwVv0coqZIx+wwuM0BwHEiGU
-zry7PlQb417kMZ4kIKZv
-=VfKp
------END PGP SIGNATURE-----
-
---6c2NcOVqGQ03X4Wi--
