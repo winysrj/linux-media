@@ -1,84 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36964 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147AbaIUOu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:50:29 -0400
-Date: Sun, 21 Sep 2014 11:50:23 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [GIT PULL for v3.17-rc6] media fixes
-Message-ID: <20140921115023.06f6dba4@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1236 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870AbaIHOPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/12] vb2: add 'new_cookies' flag
+Date: Mon,  8 Sep 2014 16:14:39 +0200
+Message-Id: <1410185681-20111-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media-v3.17-rc6
+This flag helps drivers that need to reprogram their DMA engine whenever
+a plane cookie (== DMA address or DMA scatter-gather list) changes.
 
-For some media bug fixes:
-	- a Kconfig dependency issue;
-	- Some fixes for af9033/it913x demod to be more reliable and address a
-	  performance regression;
-	- cx18: fix an oops on devices with tda8290 tuner;
-	- two new USB IDs for af9035;
-	- a couple fixes on smapp driver.
+Otherwise they would have to reprogram the DMA engine for every frame.
 
-Regards,
-Mauro
+Note that it is not possible to do this in buf_init() since dma_map_sg has
+to be done first, which happens just before buf_prepare() in the prepare()
+memop. It is dma_map_sg that sets up the dma addresses that are needed to
+configure the DMA engine.
 
-PS.: FYI, I'm now starting to use mchehab@osg.samsung.com e-mail address.
-The old one (m.chehab@samsung.com) is still valid, but we're using the
-OSG subdomain for the Samsung's Open Source Group.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |  5 +++++
+ include/media/videobuf2-core.h           | 14 ++++++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
-
-  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media-v3.17-rc6
-
-for you to fetch changes up to a04646c045cab08a9e62b9be8f01ecbb0632d24e:
-
-  [media] af9035: new IDs: add support for PCTV 78e and PCTV 79e (2014-09-04 12:24:19 -0300)
-
-----------------------------------------------------------------
-media fixes for v3.17-rc6
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-      [media] Kconfig: do not select SPI bus on sub-driver auto-select
-      [media] af9033: feed clock to RF tuner
-
-Bimow Chen (2):
-      [media] af9033: update IT9135 tuner inittabs
-      [media] it913x: init tuner on attach
-
-Hans Verkuil (1):
-      [media] cx18: fix kernel oops with tda8290 tuner
-
-Malcolm Priestley (1):
-      [media] af9035: new IDs: add support for PCTV 78e and PCTV 79e
-
-Sakari Ailus (2):
-      [media] smiapp: Fix power count handling
-      [media] smiapp: Set sub-device owner
-
- drivers/media/Kconfig                     |  1 -
- drivers/media/dvb-core/dvb-usb-ids.h      |  2 ++
- drivers/media/dvb-frontends/af9033.c      | 13 +++++++++++++
- drivers/media/dvb-frontends/af9033_priv.h | 20 +++++++++-----------
- drivers/media/i2c/smiapp/smiapp-core.c    | 13 +++----------
- drivers/media/pci/cx18/cx18-driver.c      |  1 +
- drivers/media/tuners/tuner_it913x.c       |  6 ++++++
- drivers/media/usb/dvb-usb-v2/af9035.c     |  4 ++++
- 8 files changed, 38 insertions(+), 22 deletions(-)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 01bab25..7217eb1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -391,6 +391,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 				kfree(vb);
+ 				break;
+ 			}
++			vb->new_cookies = 1;
+ 		}
+ 
+ 		q->bufs[q->num_buffers + buffer] = vb;
+@@ -1373,6 +1374,8 @@ static int __buf_memory_prepare(struct vb2_buffer *vb)
+ 		for (plane = 0; plane < vb->num_planes; ++plane)
+ 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
++	} else {
++		vb->new_cookies = 0;
+ 	}
+ 	return ret;
+ }
+@@ -1467,6 +1470,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			dprintk(1, "buffer initialization failed\n");
+ 			goto err;
+ 		}
++		vb->new_cookies = 1;
+ 	}
+ 
+ 	ret = __buf_memory_prepare(vb);
+@@ -1591,6 +1595,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			dprintk(1, "buffer initialization failed\n");
+ 			goto err;
+ 		}
++		vb->new_cookies = 1;
+ 	}
+ 
+ 	ret = __buf_memory_prepare(vb);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bf8bde2..9304718 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -186,6 +186,11 @@ struct vb2_queue;
+  * @vb2_queue:		the queue to which this driver belongs
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue
++ * @new_cookies:	the planes of the buffer have new cookie values.
++ *			This happens if a new userptr or dmabuf is used for one
++ *			or more of the buffer planes. This will change the cookie
++ *			value of those planes and you may need to reprogram the DMA
++ *			engine when buf_prepare is called.
+  * @state:		current buffer state; do not change
+  * @queued_entry:	entry on the queued buffers list, which holds all
+  *			buffers queued from userspace
+@@ -200,6 +205,7 @@ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+ 
+ 	unsigned int		num_planes;
++	unsigned int		new_cookies:1;
+ 
+ /* Private: internal use only */
+ 	enum vb2_buffer_state	state;
+@@ -290,8 +296,12 @@ struct vb2_buffer {
+  *			hardware operation in this callback; drivers that
+  *			support	VIDIOC_CREATE_BUFS must also validate the
+  *			buffer size, if they haven't done that yet in
+- *			@buf_prepare_for_cpu. If an error is returned, the
+- *			buffer will not be queued in the driver; optional.
++ *			@buf_prepare_for_cpu. If one or more of the plane
++ *			cookies (see vb2_plane_cookie) are updated, then
++ *			vb->new_cookies is set to 1. If buf_prepare returns
++ *			0 (success), then new_cookies is cleared automatically.
++ *			If an error is returned, then the buffer will not be
++ *			queued in the driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; the contents of the buffer cannot be
+  *			accessed by the cpu at this stage as it is still setup
+-- 
+2.1.0
 
