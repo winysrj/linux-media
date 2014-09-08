@@ -1,109 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38284 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752908AbaI1Mfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Sep 2014 08:35:31 -0400
-Date: Sun, 28 Sep 2014 09:35:26 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140928093526.17dca341@recife.lan>
-In-Reply-To: <20140928115405.GA30490@linuxtv.org>
-References: <20140926122721.GA11597@linuxtv.org>
-	<20140926101222.778ebcaf@recife.lan>
-	<20140926132513.GA30084@linuxtv.org>
-	<20140926142543.GA3806@linuxtv.org>
-	<54257888.90802@osg.samsung.com>
-	<20140926150602.GA15766@linuxtv.org>
-	<20140926152228.GA21876@linuxtv.org>
-	<20140926124309.558c8682@recife.lan>
-	<20140928105540.GA28748@linuxtv.org>
-	<20140928081211.4b26aa18@recife.lan>
-	<20140928115405.GA30490@linuxtv.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:59631 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753846AbaIHOW3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:22:29 -0400
+Date: Mon, 8 Sep 2014 19:52:13 +0530
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Morgan Reece <winter2718@gmail.com>
+Cc: Brian Johnson <brijohn@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	wolfram@the-dreams.de
+Subject: Re: [PATCH] [media]: sn9c20x.c: fix checkpatch error: that open
+ brace { should be on the previous line
+Message-ID: <20140908142213.GA23444@sudip-PC>
+References: <1410179542-3272-1-git-send-email-winter2718@gmail.com>
+ <20140908134828.GA7617@sudip-PC>
+ <CAGztXF1YXAMJhCrO_AmH115DX7NFfNmXzVefUBnVH2H9vkxNYg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAGztXF1YXAMJhCrO_AmH115DX7NFfNmXzVefUBnVH2H9vkxNYg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 28 Sep 2014 13:54:05 +0200
-Johannes Stezenbach <js@linuxtv.org> escreveu:
-
-> On Sun, Sep 28, 2014 at 08:12:11AM -0300, Mauro Carvalho Chehab wrote:
-> > Em Sun, 28 Sep 2014 12:55:40 +0200
-> > Johannes Stezenbach <js@linuxtv.org> escreveu:
-> > 
-> > > I tried again both with and without the patch.  The issue above
-> > > odesn't reproduce, but after hibernate it fails to tune
-> > > (while it works after suspend-to-ram).  Restarting dvbv5-zap
-> > > does not fix it.  All I get is:
-> > > 
-> > > [  500.299216] drxk: Error -22 on dvbt_sc_command
-> > > [  500.301012] drxk: Error -22 on set_dvbt
-> > > [  500.301967] drxk: Error -22 on start
-> > 
-> > Just to be 100% sure if I understood well: you're having exactly
-> > the same behavior with and without my patch, right?
+On Mon, Sep 08, 2014 at 08:51:18AM -0500, Morgan Reece wrote:
+> Hi Sudip,
 > 
-> Yes, no observable difference in my tests.
-
-Ok.
-
-> > I'll see if I can work on another patch for you today. If not,
-> > I won't be able to touch on it until the end of the week, as I'm
-> > traveling next week.
+> I searched through the logs for examples of messages where people had just
+> fixed checkpatch errors.  I found lots like this, so went the format, ex:
 > 
-> no need to hurry
+> commit 588a12d789e1a9b8193465c09f32024c0d43a849
+> Author: Filipe Gonçalves <filipe@codinghighway.com>
+> Date:   Fri Sep 5 05:09:46 2014 +0100
 > 
-> (BTW, I still think you should make sure the hang-on-resume fix,
-> revert of b89193e0b06f, goes into 3.17, but it's your call.)
-
-Well, it is simply too late. Linus will likely release 3.17 today.
-Before sending a pull request to him, I need to send it to -next,
-but, AFAIKT, there is no new -next release since Friday. The next one 
-will be on Tuesday.
-
-If this were some really bad regression, like a bug at DVB core that
-would be preventing the entire subsystem to work, then I would be
-overriding the rule of passing everything to -next before merging,
-but this is not the case.
-
-So, let's not rush it and prepare a proper suspend/resume patchset
-for 3.17.1.
-
-> > > On rmmod it Oopsed:
-> ...
-> > Please try this change:
-> > 
-> > [media] em28xx: remove firmware before releasing xc5000 priv state
-> > 
-> > hybrid_tuner_release_state() can free the priv state, so we need to
-> > release the firmware before calling it.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab
-> > 
-> > diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-> > index e44c8aba6074..803a0e63d47e 100644
-> > --- a/drivers/media/tuners/xc5000.c
-> > +++ b/drivers/media/tuners/xc5000.c
-> > @@ -1333,9 +1333,9 @@ static int xc5000_release(struct dvb_frontend *fe)
-> >  
-> >  	if (priv) {
-> >  		cancel_delayed_work(&priv->timer_sleep);
-> > -		hybrid_tuner_release_state(priv);
-> >  		if (priv->firmware)
-> >  			release_firmware(priv->firmware);
-> > +		hybrid_tuner_release_state(priv);
-> >  	}
-> >  
-> >  	mutex_unlock(&xc5000_list_mutex);
-> > 
+>     staging/lustre: Fixed checkpatch warning: Use #include <linux/statfs.h>
+> instead of <asm/statfs.h>
 > 
-> Works.  And after module reload, dvbv5-zap can work again.
+this is the commit log.
+whatever you write above your Signed-off-by goes as the commit log.
+ideally commit log should have the full details of the change you have done ,
+and the reason behind the change.
+Incidentally , if you see all mails of today , you will find one of my patch 
+as rejected because my commit log was not explanatory.
 
-Good! One less bug.
+thanks
+sudip
 
-Regards,
-Mauro
+>     Signed-off-by: Filipe Gonçalves <filipe@codinghighway.com>
+>     Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+> 
+> On Mon, Sep 8, 2014 at 8:48 AM, Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+> wrote:
+> 
+> > On Mon, Sep 08, 2014 at 07:32:22AM -0500, Morgan Phillips wrote:
+> > > Signed-off-by: Morgan Phillips <winter2718@gmail.com>
+> >
+> > no commit message ?
+> >
+> > thanks
+> > sudip
+> >
+> > > ---
+> > >  drivers/media/usb/gspca/sn9c20x.c | 10 ++++++----
+> > >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > >
+> > > diff --git a/drivers/media/usb/gspca/sn9c20x.c
+> > b/drivers/media/usb/gspca/sn9c20x.c
+> > > index 41a9a89..95467f0 100644
+> > > --- a/drivers/media/usb/gspca/sn9c20x.c
+> > > +++ b/drivers/media/usb/gspca/sn9c20x.c
+> > > @@ -1787,8 +1787,9 @@ static int sd_init(struct gspca_dev *gspca_dev)
+> > >       struct sd *sd = (struct sd *) gspca_dev;
+> > >       int i;
+> > >       u8 value;
+> > > -     u8 i2c_init[9] =
+> > > -             {0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> > 0x03};
+> > > +     u8 i2c_init[9] = {
+> > > +             0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> > 0x03
+> > > +     };
+> > >
+> > >       for (i = 0; i < ARRAY_SIZE(bridge_init); i++) {
+> > >               value = bridge_init[i][1];
+> > > @@ -2242,8 +2243,9 @@ static void sd_pkt_scan(struct gspca_dev
+> > *gspca_dev,
+> > >  {
+> > >       struct sd *sd = (struct sd *) gspca_dev;
+> > >       int avg_lum, is_jpeg;
+> > > -     static const u8 frame_header[] =
+> > > -             {0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96};
+> > > +     static const u8 frame_header[] = {
+> > > +             0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96
+> > > +     };
+> > >
+> > >       is_jpeg = (sd->fmt & 0x03) == 0;
+> > >       if (len >= 64 && memcmp(data, frame_header, 6) == 0) {
+> > > --
+> > > 1.9.1
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+> > in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > Please read the FAQ at  http://www.tux.org/lkml/
+> >
