@@ -1,145 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:26935 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122AbaIBHPM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 03:15:12 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NB90003WITBJRA0@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Sep 2014 03:15:11 -0400 (EDT)
-Date: Tue, 02 Sep 2014 04:15:06 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Changbing Xiong <cb.xiong@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] media: check status of dmxdev->exit in poll functions
- of demux&dvr
-Message-id: <20140902041506.0761a4fa.m.chehab@samsung.com>
-In-reply-to: <1888513592.247021409640162173.JavaMail.weblogic@epmlwas04b>
-References: <1888513592.247021409640162173.JavaMail.weblogic@epmlwas04b>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3107 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040AbaIHOPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 06/12] vb2-dma-sg: add dmabuf import support
+Date: Mon,  8 Sep 2014 16:14:35 +0200
+Message-Id: <1410185681-20111-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 02 Sep 2014 06:42:42 +0000 (GMT)
-Changbing Xiong <cb.xiong@samsung.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> > Actually, poll() may return an error as well (from poll() manpage):
-> 
-> > "RETURN VALUE
-> >        On success, a positive number is returned; this is the number of struc‐
-> >        tures which have nonzero revents fields (in other words, those descrip‐
-> >        tors  with events or errors reported).  A value of 0 indicates that the
-> >        call timed out and no file descriptors were ready.   On  error,  -1  is
-> >        returned, and errno is set appropriately."
-> 
-> > So, if the Kernel returns -ENODEV, the glibc poll() wrapper would return -1
-> > and errno will be ENODEV. Never actually tested if this works on poll()
-> > though.
-> 
-> > Actually, poll() may return an error as well (from poll() manpage):
-> 
-> > "RETURN VALUE
-> >        On success, a positive number is returned; this is the number of struc‐
-> >        tures which have nonzero revents fields (in other words, those descrip‐
-> >        tors  with events or errors reported).  A value of 0 indicates that the
-> >        call timed out and no file descriptors were ready.   On  error,  -1  is
-> >        returned, and errno is set appropriately."
-> 
-> > So, if the Kernel returns -ENODEV, the glibc poll() wrapper would return -1
-> > and errno will be ENODEV. Never actually tested if this works on poll()
-> > though.
-> 
-> maybe the poll() manpage is wrong.
-> The standard system call poll() can not get -ENODEV from errno. 
+Add support for dmabuf to vb2-dma-sg.
 
-Well, it would likely put ENODEV at errno (and not -ENODEV).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 125 +++++++++++++++++++++++++++--
+ 1 file changed, 118 insertions(+), 7 deletions(-)
 
-> My experiment has proved that I was right(return -ENODEV directly in dvb_dvr_poll).  
-> and you can also check code of do_poll() and do_sys_poll() in select.c file, it also shows that -ENODEV is invalid.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index abd5252..6d922c0 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
++	struct sg_table			*dma_sgt;
+ 	size_t				size;
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct vm_area_struct		*vma;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+@@ -113,6 +117,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -123,7 +128,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	if (ret)
+ 		goto fail_pages_alloc;
+ 
+-	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, 0, size, gfp_flags);
+ 	if (ret)
+ 		goto fail_table_alloc;
+@@ -161,7 +166,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 			buf->num_pages);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+-		sg_free_table(&buf->sg_table);
++		sg_free_table(buf->dma_sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
+@@ -173,7 +178,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+ static int vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return 0;
+ 
+ 	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
+ }
+@@ -181,7 +190,11 @@ static int vb2_dma_sg_prepare(void *buf_priv)
+ static void vb2_dma_sg_finish(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -209,6 +222,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+@@ -261,7 +275,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+-	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
+@@ -297,7 +311,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	       __func__, buf->num_pages);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+-	sg_free_table(&buf->sg_table);
++	sg_free_table(buf->dma_sgt);
+ 	while (--i >= 0) {
+ 		if (buf->write)
+ 			set_page_dirty_lock(buf->pages[i]);
+@@ -370,11 +384,104 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++/*********************************************/
++/*       callbacks for DMABUF buffers        */
++/*********************************************/
++
++static int vb2_dma_sg_map_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to pin a non attached buffer\n");
++		return -EINVAL;
++	}
++
++	if (WARN_ON(buf->dma_sgt)) {
++		pr_err("dmabuf buffer is already pinned\n");
++		return 0;
++	}
++
++	/* get the associated scatterlist for this buffer */
++	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	if (IS_ERR_OR_NULL(sgt)) {
++		pr_err("Error getting dmabuf scatterlist\n");
++		return -EINVAL;
++	}
++
++	buf->dma_sgt = sgt;
++	return 0;
++}
++
++static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to unpin a not attached buffer\n");
++		return;
++	}
++
++	if (WARN_ON(!sgt)) {
++		pr_err("dmabuf buffer is already unpinned\n");
++		return;
++	}
++
++	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++
++	buf->dma_sgt = NULL;
++}
++
++static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++
++	/* if vb2 works correctly you should never detach mapped buffer */
++	if (WARN_ON(buf->dma_sgt))
++		vb2_dma_sg_unmap_dmabuf(buf);
++
++	/* detach this attachment */
++	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
++	kfree(buf);
++}
++
++static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
++	unsigned long size, int write)
++{
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
++	struct vb2_dma_sg_buf *buf;
++	struct dma_buf_attachment *dba;
++
++	if (dbuf->size < size)
++		return ERR_PTR(-EFAULT);
++
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	buf->dev = conf->dev;
++	/* create attachment for the dmabuf with the user device */
++	dba = dma_buf_attach(dbuf, buf->dev);
++	if (IS_ERR(dba)) {
++		pr_err("failed to attach dmabuf\n");
++		kfree(buf);
++		return dba;
++	}
++
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->size = size;
++	buf->db_attach = dba;
++
++	return buf;
++}
++
+ static void *vb2_dma_sg_cookie(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 
+-	return &buf->sg_table;
++	return buf->dma_sgt;
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_sg_memops = {
+@@ -387,6 +494,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
++	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
++	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
++	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
+ 	.cookie		= vb2_dma_sg_cookie,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+-- 
+2.1.0
 
-Yeah, I'll check it there. Poll have some different handling, so
-it is possible that it only accepts a subset of error codes.
-
-Btw, I'm not against returning POLLERR there. Just not sure at
-this point what would be the best approach. Anyway, read and
-all other syscalls should return -ENODEV.
-
-> please also check that.
-
-Sure I will.
-> 
-> thanks!
-> Xiong changbing
-> 
-> ------- Original Message -------
-> Sender : Mauro Carvalho Chehab<m.chehab@samsung.com> Director/SRBR-Open Source/삼성전자
-> Date : 九月 02, 2014 15:00 (GMT+09:00)
-> Title : Re: [PATCH 3/3] media: check status of dmxdev->exit in poll functions of demux&dvr
-> 
-> Em Tue, 02 Sep 2014 03:16:00 +0000 (GMT)
-> Changbing Xiong escreveu:
-> 
-> > 
-> > > Well, we may start returning -ENODEV when such event happens. 
-> > 
-> > > At the frontend, we could use fe->exit = DVB_FE_DEVICE_REMOVED to
-> > > signalize it. I don't think that the demod frontend has something
-> > > similar.
-> > 
-> > > Yet, it should be up to the userspace application to properly handle 
-> > > the error codes and close the devices on fatal non-recovery errors like
-> > > ENODEV. 
-> > 
-> > > So, what we can do, at Kernel level, is to always return -ENODEV when
-> > > the device is known to be removed, and double check libdvbv5 if it
-> > > handles such error properly.
-> > 
-> >  well, we do not use libdvbv5,
-> 
-> The upstream stuff I maintain, related to it, are the media subsystems
-> and libdvbv5. Of course, other apps will need to be patched as well.
-> 
-> > and  -ENODEV can be returned by read syscall,  
-> > but for poll syscall,
-> 
-> Actually, poll() may return an error as well (from poll() manpage):
-> 
-> "RETURN VALUE
->        On success, a positive number is returned; this is the number of struc‐
->        tures which have nonzero revents fields (in other words, those descrip‐
->        tors  with events or errors reported).  A value of 0 indicates that the
->        call timed out and no file descriptors were ready.   On  error,  -1  is
->        returned, and errno is set appropriately."
-> 
-> So, if the Kernel returns -ENODEV, the glibc poll() wrapper would return -1
-> and errno will be ENODEV. Never actually tested if this works on poll()
-> though.
-> 
-> >  -ENODEV can never be returned to user, as negative number
-> >  is invalid  type for poll returned value. please refer to my second patch.
-> > 
-> > and in our usage, whether to read the device is up to the poll result. if tuner is plugged out, 
-> > and there is no data in dvr ringbuffer. then user code will still go on polling the dvr device and never stop.
-> > if POLLERR is returned, then user will perform read dvr, and then -ENODEV can be got, and 
-> > user will stop polling dvr device.
-> 
-> Your app should be also be handling poll() errors, as there are already
-> other errors that poll() can return.
-> 
-> > the first patch is enough to fix the deadlock issue.
-> > the second patch is used to correct the wrong type of returned value.
-> > the third patch is used to provide user a better controlling logic.
-> 
-> I'll take a deeper look and do some tests on your patches likely
-> tomorrow. 
-> 
-> Regards,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
