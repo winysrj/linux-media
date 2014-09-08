@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44297 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755993AbaICUd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:28 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 14/46] [media] af9013: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:46 -0300
-Message-Id: <a602b829a8aa7dd1073307ef6db3995e64e56622.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1706 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbaIHOsK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:48:10 -0400
+Message-ID: <540DC19B.30100@xs4all.nl>
+Date: Mon, 08 Sep 2014 16:47:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com
+Subject: Re: [RFC PATCH 00/12] vb2: improve dma-sg, expbuf.
+References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using 0 or 1 for boolean, use the true/false
-defines.
+On 09/08/2014 04:14 PM, Hans Verkuil wrote:
+> The patch series adds an allocation context to dma-sg and uses that to move
+> dma_(un)map_sg into the vb2 framework, which is where it belongs.
+> 
+> Related to that is the addition of buf_prepare/finish _for_cpu variants,
+> where the _for_cpu ops are called when the buffer is synced for the cpu, and
+> the others are called when it is synced to the device.
+> 
+> DMABUF export support is added to dma-sg and vmalloc, so now all memory
+> models support DMABUF importing and exporting.
+> 
+> A new flag was added so drivers know when the DMA engine should be
+> (re)programmed. This is primarily needed for the dma-sg memory model.
 
-Also, instead of testing foo == false, just use the
-simplified notation if(!foo).
+Note: patches for tw68 and cx23885 are missing but can be found in my repo:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vb2-prep
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index fdbed35c87fa..eb737cf29a36 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -936,7 +936,7 @@ static void rtl2832_i2c_gate_work(struct work_struct *work)
- 	if (ret != 1)
- 		goto err;
- 
--	priv->i2c_gate_state = 0;
-+	priv->i2c_gate_state = false;
- 
- 	return;
- err:
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index 023e0f49c786..5bcf48bb4a71 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -1432,7 +1432,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->pixelformat = formats[0].pixelformat;
- 	s->buffersize = formats[0].buffersize;
- 	s->num_formats = NUM_FORMATS;
--	if (rtl2832_sdr_emulated_fmt == false)
-+	if (!rtl2832_sdr_emulated_fmt)
- 		s->num_formats -= 1;
- 
- 	mutex_init(&s->v4l2_lock);
--- 
-1.9.3
+Those two drivers were merged/updated just after I posted my patch series :-)
+
+Regards,
+
+	Hans
+
+> 
+> Reviews are very welcome.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
