@@ -1,53 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42348 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524AbaIVPX1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:23:27 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v6 5/6] of: Add Skyworks Solutions, Inc. vendor prefix
-Date: Mon, 22 Sep 2014 17:22:55 +0200
-Message-id: <1411399376-16497-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
-References: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.ispras.ru ([83.149.199.45]:37284 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754750AbaIHWKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Sep 2014 18:10:54 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Subject: [PATCH] [media] mceusb: fix usbdev leak
+Date: Tue,  9 Sep 2014 02:10:43 +0400
+Message-Id: <1410214243-6319-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use "skyworks" as the vendor prefix for the
-Skyworks Solutions, Inc.
+mceusb_init_rc_dev() does usb_get_dev(), but there is no any
+usb_put_dev() in the driver.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
+The patch tries to straighten logic. It moves usb_get_dev()
+directly to mceusb_dev_probe() and adds usb_put_dev() to an error path
+and to mceusb_dev_disconnect().
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/rc/mceusb.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index ac7269f..9d5b3f6 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -117,6 +117,7 @@ renesas	Renesas Electronics Corporation
- ricoh	Ricoh Co. Ltd.
- rockchip	Fuzhou Rockchip Electronics Co., Ltd
- samsung	Samsung Semiconductor
-+skyworks	Skyworks Solutions, Inc.
- sbs	Smart Battery System
- schindler	Schindler
- seagate	Seagate Technology PLC
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 45b0894288e5..23e532da0cf7 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1198,10 +1198,9 @@ static void mceusb_flash_led(struct mceusb_dev *ir)
+ 	mce_async_out(ir, FLASH_LED, sizeof(FLASH_LED));
+ }
+ 
+-static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir,
+-					 struct usb_interface *intf)
++static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ {
+-	struct usb_device *udev = usb_get_dev(interface_to_usbdev(intf));
++	struct usb_device *udev = ir->usbdev;
+ 	struct device *dev = ir->dev;
+ 	struct rc_dev *rc;
+ 	int ret;
+@@ -1341,7 +1340,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 	if (!ir->urb_in)
+ 		goto urb_in_alloc_fail;
+ 
+-	ir->usbdev = dev;
++	ir->usbdev = usb_get_dev(dev);
+ 	ir->dev = &intf->dev;
+ 	ir->len_in = maxp;
+ 	ir->flags.microsoft_gen1 = is_microsoft_gen1;
+@@ -1362,7 +1361,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 		snprintf(name + strlen(name), sizeof(name) - strlen(name),
+ 			 " %s", buf);
+ 
+-	ir->rc = mceusb_init_rc_dev(ir, intf);
++	ir->rc = mceusb_init_rc_dev(ir);
+ 	if (!ir->rc)
+ 		goto rc_dev_fail;
+ 
+@@ -1408,6 +1407,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 
+ 	/* Error-handling path */
+ rc_dev_fail:
++	usb_put_dev(ir->usbdev);
+ 	usb_free_urb(ir->urb_in);
+ urb_in_alloc_fail:
+ 	usb_free_coherent(dev, maxp, ir->buf_in, ir->dma_in);
+@@ -1435,6 +1435,7 @@ static void mceusb_dev_disconnect(struct usb_interface *intf)
+ 	usb_kill_urb(ir->urb_in);
+ 	usb_free_urb(ir->urb_in);
+ 	usb_free_coherent(dev, ir->len_in, ir->buf_in, ir->dma_in);
++	usb_put_dev(dev);
+ 
+ 	kfree(ir);
+ }
 -- 
-1.7.9.5
+1.9.1
 
