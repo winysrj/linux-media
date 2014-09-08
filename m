@@ -1,120 +1,464 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45485 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbaIFDUL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Sep 2014 23:20:11 -0400
-Message-ID: <540A7D67.4000305@iki.fi>
-Date: Sat, 06 Sep 2014 06:20:07 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: DVB clock source (Re: [PATCH v2 4/5] tc90522: add driver for
- Toshiba TC90522 quad demodulator)
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540A78CC.9030703@iki.fi> <20140906001130.4802b1c3.m.chehab@samsung.com>
-In-Reply-To: <20140906001130.4802b1c3.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:50040 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754214AbaIHRV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 13:21:58 -0400
+Received: by mail-pd0-f170.google.com with SMTP id r10so21420414pdi.29
+        for <linux-media@vger.kernel.org>; Mon, 08 Sep 2014 10:21:58 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v4 1/4] mxl301rf: add driver for MaxLinear MxL301RF OFDM tuner
+Date: Tue,  9 Sep 2014 02:20:40 +0900
+Message-Id: <1410196843-26168-2-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Akihiro Tsukada <tskd08@gmail.com>
 
+This patch adds driver for mxl301rf OFDM tuner chips.
+It is used as an ISDB-T tuner in earthsoft pt3 cards.
 
-On 09/06/2014 06:11 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 06 Sep 2014 06:00:28 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 09/06/2014 05:27 AM, Mauro Carvalho Chehab wrote:
->>> Em Sat, 06 Sep 2014 05:02:15 +0300
->>> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>>> Lets mention that I am not even now fully happy to solution, even it
->>>> somehow now works. Proper solution is implement clock source and clock
->>>> client. Then register client to that source. And when client needs a
->>>> clock (or power) it makes call to enable clock.
->>>
->>> Well, we need to discuss more about that, because you need to convince
->>> me first about that ;)
->>>
->>> We had already some discussions about that related to V4L2 I2C devices.
->>> The consensus we've reached is that it makes sense to use the clock
->>> framework only for the cases where the bridge driver doesn't know anything
->>> about the clock to be used by a given device, e. g. in the case where this
->>> data comes from the Device Tree (embedded systems).
->>>
->>> In the case where the bridge is the ownership of the information that will
->>> be used by a given device model (clock, serial/parallel mode, etc), then
->>> a series of data information should be passed by a call from the bridge driver
->>> to the device at setup time, and doing it in an atomic way is the best
->>> way to go.
->>
->> For AF9033/IT9133 demod + tuner I resolved it like that:
->> https://patchwork.linuxtv.org/patch/25772/
->> https://patchwork.linuxtv.org/patch/25774/
->>
->> It is demod which provides clock for tuner. It is very common situation
->> nowadays, one or more clocks are shared. And clock sharing is routed via
->> chips so that there is clock gates you have enable/disable for power
->> management reasons.
->>
->> Currently we just enable clocks always. Clock output is put on when
->> driver is attached and it is never disabled after that, leaving power
->> management partly broken.
->>
->> Lets take a example, dual tuner case:
->> tuner#0 gets clock from Xtal
->> tuner#1 gets clock from #tuner0
->>
->> All possible use cases are:
->> 1) #tuner0 off & #tuner1 off
->> 2) #tuner0 on & #tuner1 off
->> 3) #tuner1 off & #tuner1 on
->> 4) #tuner1 on & #tuner1 on
->>
->> you will need, as per aforementioned use case:
->> 1) #tuner0 clock out off & #tuner1 clock out off
->> 2) #tuner0 clock out off & #tuner1 clock out off
->> 3) #tuner0 clock out on & #tuner1 clock out off
->> 4) #tuner0 clock out on & #tuner1 clock out off
->>
->> Implementing that currently is simply impossible. But if you use clock
->> framework (or what ever its name is) I think it is possible to implement
->> that properly. When tuner#1 driver needs a clock, it calls "get clock"
->> and that call is routed to #tuner0 which enables clock.
->>
->> And that was not even the most complicated case, as many times clock is
->> routed to demod and USB bridge too.
->>
->> Quite same situation is for power on/off gpios (which should likely
->> implemented as a regulator). Also there is many times reset gpio (for PM
->> chip is powered off by switching power totally off *or* chip is put to
->> reset using GPIO)
->
-> Ok, in the above scenario, I agree that using the clock framework
-> makes sense, but, on devices where the clock is independent
-> (e. g. each chip has its on XTAL), I'm yet to see a scenario where
-> using the clock framework will simplify the code or bring some extra
-> benefit.
+Note that this driver does not initilize the chip,
+because the initilization sequence / register setting is not disclosed.
+Thus, the driver assumes that the chips are initilized externally
+by its parent board driver before tuner_ops->init() are called,
+like in PT3 driver where the bridge chip contains the init sequence
+in its private memory and provides a command to trigger the sequence.
 
-And I resolved it like that for IT9135:
-https://patchwork.linuxtv.org/patch/25763/
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes in v4:
+- improved I2C transaction for register read
+- removed unnecessary .get_status()
+- removed initial frequency setting and moved to the bridge driver
+- added a comment to notice incompleteness of the driver
 
-1) defined tuner role config parameter (master feeds a clock, slave does 
-not)
-2) master is then never put 100% deep sleep
+ drivers/media/tuners/Kconfig    |   7 +
+ drivers/media/tuners/Makefile   |   1 +
+ drivers/media/tuners/mxl301rf.c | 349 ++++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/mxl301rf.h |  26 +++
+ 4 files changed, 383 insertions(+)
+ create mode 100644 drivers/media/tuners/mxl301rf.c
+ create mode 100644 drivers/media/tuners/mxl301rf.h
 
-Comment on code explains that:
-/*
-  * Writing '0x00' to master tuner register '0x80ec08' causes slave tuner
-  * communication lost. Due to that, we cannot put master full sleep.
-  */
-
-but it will be much more elegant solution to use clock framework which 
-allows implementing correct power management.
-
-regards
-Antti
-
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index d79fd1c..cd3f8ee 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -257,4 +257,11 @@ config MEDIA_TUNER_R820T
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Rafael Micro R820T silicon tuner driver.
++
++config MEDIA_TUNER_MXL301RF
++	tristate "MaxLinear MxL301RF tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  MaxLinear MxL301RF OFDM tuner driver.
+ endmenu
+diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
+index 5591699..6d5bf48 100644
+--- a/drivers/media/tuners/Makefile
++++ b/drivers/media/tuners/Makefile
+@@ -39,6 +39,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
+ obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
+ obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
+ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
++obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
+new file mode 100644
+index 0000000..1575a5d
+--- /dev/null
++++ b/drivers/media/tuners/mxl301rf.c
+@@ -0,0 +1,349 @@
++/*
++ * MaxLinear MxL301RF OFDM tuner driver
++ *
++ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/*
++ * NOTICE:
++ * This driver is incomplete and lacks init/config of the chips,
++ * as the necessary info is not disclosed.
++ * Other features like get_if_frequency() are missing as well.
++ * It assumes that users of this driver (such as a PCI bridge of
++ * DTV receiver cards) properly init and configure the chip
++ * via I2C *before* calling this driver's init() function.
++ *
++ * Currently, PT3 driver is the only one that uses this driver,
++ * and contains init/config code in its firmware.
++ * Thus some part of the code might be dependent on PT3 specific config.
++ */
++
++#include <linux/kernel.h>
++#include "mxl301rf.h"
++
++struct mxl301rf_state {
++	struct mxl301rf_config cfg;
++	struct i2c_client *i2c;
++};
++
++static struct mxl301rf_state *cfg_to_state(struct mxl301rf_config *c)
++{
++	return container_of(c, struct mxl301rf_state, cfg);
++}
++
++static int raw_write(struct mxl301rf_state *state, const u8 *buf, int len)
++{
++	int ret;
++
++	ret = i2c_master_send(state->i2c, buf, len);
++	if (ret >= 0 && ret < len)
++		ret = -EIO;
++	return (ret == len) ? 0 : ret;
++}
++
++static int reg_write(struct mxl301rf_state *state, u8 reg, u8 val)
++{
++	u8 buf[2] = { reg, val };
++
++	return raw_write(state, buf, 2);
++}
++
++static int reg_read(struct mxl301rf_state *state, u8 reg, u8 *val)
++{
++	u8 wbuf[2] = { 0xfb, reg };
++	int ret;
++
++	ret = raw_write(state, wbuf, sizeof(wbuf));
++	if (ret == 0)
++		ret = i2c_master_recv(state->i2c, val, 1);
++	if (ret >= 0 && ret < 1)
++		ret = -EIO;
++	return (ret == 1) ? 0 : ret;
++}
++
++/* tuner_ops */
++
++/* get RSSI and update propery cache, set to *out in % */
++static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, u16 *out)
++{
++	struct mxl301rf_state *state;
++	int ret;
++	u8  rf_in1, rf_in2, rf_off1, rf_off2;
++	u16 rf_in, rf_off;
++	s64 level;
++	struct dtv_fe_stats *rssi;
++
++	rssi = &fe->dtv_property_cache.strength;
++	rssi->len = 1;
++	rssi->stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	*out = 0;
++
++	state = fe->tuner_priv;
++	ret = reg_write(state, 0x14, 0x01);
++	if (ret < 0)
++		return ret;
++	usleep_range(1000, 2000);
++
++	ret = reg_read(state, 0x18, &rf_in1);
++	if (ret == 0)
++		ret = reg_read(state, 0x19, &rf_in2);
++	if (ret == 0)
++		ret = reg_read(state, 0xd6, &rf_off1);
++	if (ret == 0)
++		ret = reg_read(state, 0xd7, &rf_off2);
++	if (ret != 0)
++		return ret;
++
++	rf_in = (rf_in2 & 0x07) << 8 | rf_in1;
++	rf_off = (rf_off2 & 0x0f) << 5 | (rf_off1 >> 3);
++	level = rf_in - rf_off - (113 << 3); /* x8 dBm */
++	level = level * 1000 / 8;
++	rssi->stat[0].svalue = level;
++	rssi->stat[0].scale = FE_SCALE_DECIBEL;
++	/* *out = (level - min) * 100 / (max - min) */
++	*out = (rf_in - rf_off + (1 << 9) - 1) * 100 / ((5 << 9) - 2);
++	return 0;
++}
++
++/* spur shift parameters */
++struct shf {
++	u32	freq;		/* Channel center frequency */
++	u32	ofst_th;	/* Offset frequency threshold */
++	u8	shf_val;	/* Spur shift value */
++	u8	shf_dir;	/* Spur shift direction */
++};
++
++static const struct shf shf_tab[] = {
++	{  64500, 500, 0x92, 0x07 },
++	{ 191500, 300, 0xe2, 0x07 },
++	{ 205500, 500, 0x2c, 0x04 },
++	{ 212500, 500, 0x1e, 0x04 },
++	{ 226500, 500, 0xd4, 0x07 },
++	{  99143, 500, 0x9c, 0x07 },
++	{ 173143, 500, 0xd4, 0x07 },
++	{ 191143, 300, 0xd4, 0x07 },
++	{ 207143, 500, 0xce, 0x07 },
++	{ 225143, 500, 0xce, 0x07 },
++	{ 243143, 500, 0xd4, 0x07 },
++	{ 261143, 500, 0xd4, 0x07 },
++	{ 291143, 500, 0xd4, 0x07 },
++	{ 339143, 500, 0x2c, 0x04 },
++	{ 117143, 500, 0x7a, 0x07 },
++	{ 135143, 300, 0x7a, 0x07 },
++	{ 153143, 500, 0x01, 0x07 }
++};
++
++struct reg_val {
++	u8 reg;
++	u8 val;
++} __attribute__ ((__packed__));
++
++static const struct reg_val set_idac[] = {
++	{ 0x0d, 0x00 },
++	{ 0x0c, 0x67 },
++	{ 0x6f, 0x89 },
++	{ 0x70, 0x0c },
++	{ 0x6f, 0x8a },
++	{ 0x70, 0x0e },
++	{ 0x6f, 0x8b },
++	{ 0x70, 0x1c },
++};
++
++static int mxl301rf_set_params(struct dvb_frontend *fe)
++{
++	struct reg_val tune0[] = {
++		{ 0x13, 0x00 },		/* abort tuning */
++		{ 0x3b, 0xc0 },
++		{ 0x3b, 0x80 },
++		{ 0x10, 0x95 },		/* BW */
++		{ 0x1a, 0x05 },
++		{ 0x61, 0x00 },		/* spur shift value (placeholder) */
++		{ 0x62, 0xa0 }		/* spur shift direction (placeholder) */
++	};
++
++	struct reg_val tune1[] = {
++		{ 0x11, 0x40 },		/* RF frequency L (placeholder) */
++		{ 0x12, 0x0e },		/* RF frequency H (placeholder) */
++		{ 0x13, 0x01 }		/* start tune */
++	};
++
++	struct mxl301rf_state *state;
++	u32 freq;
++	u16 f;
++	u32 tmp, div;
++	int i, ret;
++
++	state = fe->tuner_priv;
++	freq = fe->dtv_property_cache.frequency;
++
++	/* spur shift function (for analog) */
++	for (i = 0; i < ARRAY_SIZE(shf_tab); i++) {
++		if (freq >= (shf_tab[i].freq - shf_tab[i].ofst_th) * 1000 &&
++		    freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000) {
++			tune0[5].val = shf_tab[i].shf_val;
++			tune0[6].val = 0xa0 | shf_tab[i].shf_dir;
++			break;
++		}
++	}
++	ret = raw_write(state, (u8 *) tune0, sizeof(tune0));
++	if (ret < 0)
++		goto failed;
++	usleep_range(3000, 4000);
++
++	/* convert freq to 10.6 fixed point float [MHz] */
++	f = freq / 1000000;
++	tmp = freq % 1000000;
++	div = 1000000;
++	for (i = 0; i < 6; i++) {
++		f <<= 1;
++		div >>= 1;
++		if (tmp > div) {
++			tmp -= div;
++			f |= 1;
++		}
++	}
++	if (tmp > 7812)
++		f++;
++	tune1[0].val = f & 0xff;
++	tune1[1].val = f >> 8;
++	ret = raw_write(state, (u8 *) tune1, sizeof(tune1));
++	if (ret < 0)
++		goto failed;
++	msleep(31);
++
++	ret = reg_write(state, 0x1a, 0x0d);
++	if (ret < 0)
++		goto failed;
++	ret = raw_write(state, (u8 *) set_idac, sizeof(set_idac));
++	if (ret < 0)
++		goto failed;
++	return 0;
++
++failed:
++	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++		__func__, fe->dvb->num, fe->id);
++	return ret;
++}
++
++static const struct reg_val standby_data[] = {
++	{ 0x01, 0x00 },
++	{ 0x13, 0x00 }
++};
++
++static int mxl301rf_sleep(struct dvb_frontend *fe)
++{
++	struct mxl301rf_state *state;
++	int ret;
++
++	state = fe->tuner_priv;
++	ret = raw_write(state, (u8 *)standby_data, sizeof(standby_data));
++	if (ret < 0)
++		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++			__func__, fe->dvb->num, fe->id);
++	return ret;
++}
++
++
++/* init sequence is not public.
++ * the parent must have init'ed the device.
++ * just wake up here.
++ */
++static int mxl301rf_init(struct dvb_frontend *fe)
++{
++	struct mxl301rf_state *state;
++	int ret;
++
++	state = fe->tuner_priv;
++
++	ret = reg_write(state, 0x01, 0x01);
++	if (ret < 0) {
++		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++			 __func__, fe->dvb->num, fe->id);
++		return ret;
++	}
++	return 0;
++}
++
++/* I2C driver functions */
++
++static const struct dvb_tuner_ops mxl301rf_ops = {
++	.info = {
++		.name = "MaxLinear MxL301RF",
++
++		.frequency_min =  93000000,
++		.frequency_max = 803142857,
++	},
++
++	.init = mxl301rf_init,
++	.sleep = mxl301rf_sleep,
++
++	.set_params = mxl301rf_set_params,
++	.get_rf_strength = mxl301rf_get_rf_strength,
++};
++
++
++static int mxl301rf_probe(struct i2c_client *client,
++			  const struct i2c_device_id *id)
++{
++	struct mxl301rf_state *state;
++	struct mxl301rf_config *cfg;
++	struct dvb_frontend *fe;
++
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	state->i2c = client;
++	cfg = client->dev.platform_data;
++
++	memcpy(&state->cfg, cfg, sizeof(state->cfg));
++	fe = cfg->fe;
++	fe->tuner_priv = state;
++	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
++
++	i2c_set_clientdata(client, &state->cfg);
++	dev_info(&client->dev, "MaxLinear MxL301RF attached.\n");
++	return 0;
++}
++
++static int mxl301rf_remove(struct i2c_client *client)
++{
++	struct mxl301rf_state *state;
++
++	state = cfg_to_state(i2c_get_clientdata(client));
++	state->cfg.fe->tuner_priv = NULL;
++	kfree(state);
++	return 0;
++}
++
++
++static const struct i2c_device_id mxl301rf_id[] = {
++	{"mxl301rf", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
++
++static struct i2c_driver mxl301rf_driver = {
++	.driver = {
++		.name	= "mxl301rf",
++	},
++	.probe		= mxl301rf_probe,
++	.remove		= mxl301rf_remove,
++	.id_table	= mxl301rf_id,
++};
++
++module_i2c_driver(mxl301rf_driver);
++
++MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
++MODULE_AUTHOR("Akihiro TSUKADA");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
+new file mode 100644
+index 0000000..19e6840
+--- /dev/null
++++ b/drivers/media/tuners/mxl301rf.h
+@@ -0,0 +1,26 @@
++/*
++ * MaxLinear MxL301RF OFDM tuner driver
++ *
++ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef MXL301RF_H
++#define MXL301RF_H
++
++#include "dvb_frontend.h"
++
++struct mxl301rf_config {
++	struct dvb_frontend *fe;
++};
++
++#endif /* MXL301RF_H */
 -- 
-http://palosaari.fi/
+2.1.0
+
