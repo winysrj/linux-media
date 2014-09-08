@@ -1,80 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:47905 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755215AbaITNOW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 09:14:22 -0400
-Received: by mail-qa0-f47.google.com with SMTP id cm18so3673829qab.20
-        for <linux-media@vger.kernel.org>; Sat, 20 Sep 2014 06:14:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <16820941.OvJExUqjyW@avalon>
-References: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com>
- <1918377.tBK2dPDOH0@avalon> <CA+NJmkdSXNkY70xiZ1m=dB7gTwr8jJ49gVt1B4VgXqqk1yca2g@mail.gmail.com>
- <16820941.OvJExUqjyW@avalon>
-From: Isaac Nickaein <nickaein.i@gmail.com>
-Date: Sat, 20 Sep 2014 16:44:00 +0330
-Message-ID: <CA+NJmkf1W-XgWmAOhNQNyKvR3LMgxKtH85b9Xw3BdLgwoS1i_g@mail.gmail.com>
-Subject: Re: Framerate is consistently divided by 2.5
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2094 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422AbaIHClZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Sep 2014 22:41:25 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s882fLPg096410
+	for <linux-media@vger.kernel.org>; Mon, 8 Sep 2014 04:41:23 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C07EF2A008A
+	for <linux-media@vger.kernel.org>; Mon,  8 Sep 2014 04:41:20 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140908024120.C07EF2A008A@tschai.lan>
+Date: Mon,  8 Sep 2014 04:41:20 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Even with "nodrop=1" the framerate is still stuck at ~12fps when it
-should be ~30fps. I ran "/yavta -c -f Y800 -s 1280x960 /dev/video0" to
-test the camera fps.
+Results of the daily build of media_tree:
 
-Here is the YAVTA output for nodrop=0: http://pastebin.com/bQZcJ0Fd
-Here is the YAVTA output for nodrop=1: http://pastebin.com/cFYFUrvN
+date:		Mon Sep  8 04:00:22 CEST 2014
+git branch:	test
+git hash:	89fffac802c18caebdf4e91c0785b522c9f6399a
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.4-amd64
 
-I used the following command to change the nodrop parameter (UVC is a
-built-in kernel module):
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
-echo 1 > /sys/module/uvcvideo/parameters/nodrop
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-I also tried enabling log for the uvcvideo module:
+Full logs are available here:
 
-echo 0xffff > /sys/module/uvcvideo/parameters/trace
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-And here is the corresponding part of dmesg: http://pastebin.com/eWL3GbE1
+The Media Infrastructure API from this daily build is here:
 
-There seems to be some errors in this log (e.g. Stream 1 error event
-b5 e5 len 12.), but I'm not sure they could be the cause of issue or
-not.
-
-
-Thanks,
-Isaac
-
-
-On Tue, Sep 16, 2014 at 4:08 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Isaac,
->
-> On Sunday 14 September 2014 01:57:02 Isaac Nickaein wrote:
->> Ah sorry for the confusion. The USB camera was not working on the old
->> kernel of ARM board. After patching the kernel, I can grab images but
->> the framerate is 1/2.5 of expected framerate. The camera works without
->> any issue on my PC (with kernel 3.13) though.
->
-> The uvcvideo driver drops erroneous frame by default. Could you please try
-> turning that off by setting the nodrop module parameter to 1 and check if the
-> frame rate changes ? Please use the yavta command line test application
-> (http://git.ideasonboard.org/yavta.git) as other applications might not
-> correctly handle frames with the error bit set, or might not take them into
-> account to compute the frame rate.
->
-> The following command line should be all you need (you might want to change
-> the resolution and video device to match your system).
->
-> yavta -c -f YUYV -s 640x480 /dev/video0
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+http://www.xs4all.nl/~hverkuil/spec/media.html
