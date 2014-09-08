@@ -1,39 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34331 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751177AbaIDHJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 03:09:26 -0400
-Date: Thu, 4 Sep 2014 10:08:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Daniel Jeong <gshark.jeong@gmail.com>
-Subject: Re: [PATCH 28/46] [media] lm3560: simplify boolean tests
-Message-ID: <20140904070852.GK30024@valkosipuli.retiisi.org.uk>
-References: <cover.1409775488.git.m.chehab@samsung.com>
- <4e97984ba765f3811f32615b388e698e699b34af.1409775488.git.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e97984ba765f3811f32615b388e698e699b34af.1409775488.git.m.chehab@samsung.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4123 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753034AbaIHOPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com
+Subject: [RFC PATCH 00/12] vb2: improve dma-sg, expbuf.
+Date: Mon,  8 Sep 2014 16:14:29 +0200
+Message-Id: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 03, 2014 at 05:33:00PM -0300, Mauro Carvalho Chehab wrote:
-> Instead of using if (on == true), just use
-> if (on).
-> 
-> That allows a faster mental parsing when analyzing the
-> code.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+The patch series adds an allocation context to dma-sg and uses that to move
+dma_(un)map_sg into the vb2 framework, which is where it belongs.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Related to that is the addition of buf_prepare/finish _for_cpu variants,
+where the _for_cpu ops are called when the buffer is synced for the cpu, and
+the others are called when it is synced to the device.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+DMABUF export support is added to dma-sg and vmalloc, so now all memory
+models support DMABUF importing and exporting.
+
+A new flag was added so drivers know when the DMA engine should be
+(re)programmed. This is primarily needed for the dma-sg memory model.
+
+Reviews are very welcome.
+
+Regards,
+
+	Hans
+
