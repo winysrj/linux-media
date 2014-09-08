@@ -1,213 +1,563 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37144 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752686AbaIWACJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 20:02:09 -0400
-Date: Mon, 22 Sep 2014 21:02:00 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] em28xx: get rid of structs em28xx_ac97_mode and
- em28xx_audio_mode
-Message-ID: <20140922210200.6a3e5c9c@recife.lan>
-In-Reply-To: <1410598342-31094-4-git-send-email-fschaefer.oss@googlemail.com>
-References: <1410598342-31094-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1410598342-31094-4-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:51329 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754470AbaIHRWE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 13:22:04 -0400
+Received: by mail-pa0-f47.google.com with SMTP id ey11so5217644pad.34
+        for <linux-media@vger.kernel.org>; Mon, 08 Sep 2014 10:22:03 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Subject: [PATCH v4 2/4] qm1d1c0042: add driver for Sharp QM1D1C0042 ISDB-S tuner
+Date: Tue,  9 Sep 2014 02:20:41 +0900
+Message-Id: <1410196843-26168-3-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 13 Sep 2014 10:52:22 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-> Now that we have enum em28xx_int_audio (none/i2s/ac97), it is no longer
-> necessary to check dev->audio_mode.ac97 to determine the type of internal audio connection.
-> There is also no need to save the type of the detected AC97 chip.
+This patch adds driver for qm1d1c0042 tuner chips.
+It is used as an ISDB-S tuner in earthsoft pt3 cards.
 
-Removing the AC97 chip is a bad idea, as the mux of each AC97 device
-is different.
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+Changes in v4:
+- removed unnecessary .get_status()
+- removed initial frequency setting and moved to the bridge driver
+- added a comment to notice incompleteness of the driver
 
-I don't remember anymore what device comes with the sigmatel chips,
-but it does have a different mixer than em202. The logic to set it
-different is not there basically for two reasons:
+ drivers/media/tuners/Kconfig      |   7 +
+ drivers/media/tuners/Makefile     |   1 +
+ drivers/media/tuners/qm1d1c0042.c | 445 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/qm1d1c0042.h |  37 ++++
+ 4 files changed, 490 insertions(+)
+ create mode 100644 drivers/media/tuners/qm1d1c0042.c
+ create mode 100644 drivers/media/tuners/qm1d1c0042.h
 
-1) I don't have the device with sigmatel (I think someone borrowed it to me
-at that time, and for a very limited period of time);
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index cd3f8ee..8125d1d 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -264,4 +264,11 @@ config MEDIA_TUNER_MXL301RF
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  MaxLinear MxL301RF OFDM tuner driver.
++
++config MEDIA_TUNER_QM1D1C0042
++	tristate "Sharp QM1D1C0042 tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Sharp QM1D1C0042 trellis coded 8PSK tuner driver.
+ endmenu
+diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
+index 6d5bf48..04d5efc 100644
+--- a/drivers/media/tuners/Makefile
++++ b/drivers/media/tuners/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
+ obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
+ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
+ obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
++obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
+new file mode 100644
+index 0000000..585594b
+--- /dev/null
++++ b/drivers/media/tuners/qm1d1c0042.c
+@@ -0,0 +1,445 @@
++/*
++ * Sharp QM1D1C0042 8PSK tuner driver
++ *
++ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/*
++ * NOTICE:
++ * As the disclosed information on the chip is very limited,
++ * this driver lacks some features, including chip config like IF freq.
++ * It assumes that users of this driver (such as a PCI bridge of
++ * DTV receiver cards) know the relevant info and
++ * configure the chip via I2C if necessary.
++ *
++ * Currently, PT3 driver is the only one that uses this driver,
++ * and contains init/config code in its firmware.
++ * Thus some part of the code might be dependent on PT3 specific config.
++ */
++
++#include <linux/kernel.h>
++#include "qm1d1c0042.h"
++
++#define QM1D1C0042_NUM_REGS 0x20
++
++static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
++	0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
++	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
++	0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
++	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
++};
++
++static const struct qm1d1c0042_config default_cfg = {
++	.xtal_freq = 16000,
++	.lpf = 1,
++	.fast_srch = 0,
++	.lpf_wait = 20,
++	.fast_srch_wait = 4,
++	.normal_srch_wait = 15,
++};
++
++struct qm1d1c0042_state {
++	struct qm1d1c0042_config cfg;
++	struct i2c_client *i2c;
++	u8 regs[QM1D1C0042_NUM_REGS];
++};
++
++static struct qm1d1c0042_state *cfg_to_state(struct qm1d1c0042_config *c)
++{
++	return container_of(c, struct qm1d1c0042_state, cfg);
++}
++
++static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
++{
++	u8 wbuf[2] = { reg, val };
++	int ret;
++
++	ret = i2c_master_send(state->i2c, wbuf, sizeof(wbuf));
++	if (ret >= 0 && ret < sizeof(wbuf))
++		ret = -EIO;
++	return (ret == sizeof(wbuf)) ? 0 : ret;
++}
++
++static int reg_read(struct qm1d1c0042_state *state, u8 reg, u8 *val)
++{
++	struct i2c_msg msgs[2] = {
++		{
++			.addr = state->i2c->addr,
++			.flags = 0,
++			.buf = &reg,
++			.len = 1,
++		},
++		{
++			.addr = state->i2c->addr,
++			.flags = I2C_M_RD,
++			.buf = val,
++			.len = 1,
++		},
++	};
++	int ret;
++
++	ret = i2c_transfer(state->i2c->adapter, msgs, ARRAY_SIZE(msgs));
++	if (ret >= 0 && ret < ARRAY_SIZE(msgs))
++		ret = -EIO;
++	return (ret == ARRAY_SIZE(msgs)) ? 0 : ret;
++}
++
++
++static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
++{
++	if (fast)
++		state->regs[0x03] |= 0x01; /* set fast search mode */
++	else
++		state->regs[0x03] &= ~0x01 & 0xff;
++
++	return reg_write(state, 0x03, state->regs[0x03]);
++}
++
++static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
++{
++	int ret;
++
++	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
++	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
++	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
++	ret = reg_write(state, 0x01, state->regs[0x01]);
++	if (ret == 0)
++		ret = reg_write(state, 0x05, state->regs[0x05]);
++
++	if (ret < 0)
++		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++			__func__, state->cfg.fe->dvb->num, state->cfg.fe->id);
++	return ret;
++}
++
++/* tuner_ops */
++
++static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
++{
++	struct qm1d1c0042_state *state;
++	struct qm1d1c0042_config *cfg;
++
++	state = fe->tuner_priv;
++	cfg = priv_cfg;
++
++	if (cfg->fe)
++		state->cfg.fe = cfg->fe;
++
++	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
++		dev_warn(&state->i2c->dev,
++			"(%s) changing xtal_freq not supported. ", __func__);
++	state->cfg.xtal_freq = default_cfg.xtal_freq;
++
++	state->cfg.lpf = cfg->lpf;
++	state->cfg.fast_srch = cfg->fast_srch;
++
++	if (cfg->lpf_wait != QM1D1C0042_CFG_WAIT_DFLT)
++		state->cfg.lpf_wait = cfg->lpf_wait;
++	else
++		state->cfg.lpf_wait = default_cfg.lpf_wait;
++
++	if (cfg->fast_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
++		state->cfg.fast_srch_wait = cfg->fast_srch_wait;
++	else
++		state->cfg.fast_srch_wait = default_cfg.fast_srch_wait;
++
++	if (cfg->normal_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
++		state->cfg.normal_srch_wait = cfg->normal_srch_wait;
++	else
++		state->cfg.normal_srch_wait = default_cfg.normal_srch_wait;
++	return 0;
++}
++
++/* divisor, vco_band parameters */
++/*  {maxfreq,  param1(band?), param2(div?) */
++static const u32 conv_table[9][3] = {
++	{ 2151000, 1, 7 },
++	{ 1950000, 1, 6 },
++	{ 1800000, 1, 5 },
++	{ 1600000, 1, 4 },
++	{ 1450000, 1, 3 },
++	{ 1250000, 1, 2 },
++	{ 1200000, 0, 7 },
++	{  975000, 0, 6 },
++	{  950000, 0, 0 }
++};
++
++static int qm1d1c0042_set_params(struct dvb_frontend *fe)
++{
++	struct qm1d1c0042_state *state;
++	u32 freq;
++	int i, ret;
++	u8 val, mask;
++	u32 a, sd;
++	s32 b;
++
++	state = fe->tuner_priv;
++	freq = fe->dtv_property_cache.frequency;
++
++	state->regs[0x08] &= 0xf0;
++	state->regs[0x08] |= 0x09;
++
++	state->regs[0x13] &= 0x9f;
++	state->regs[0x13] |= 0x20;
++
++	/* div2/vco_band */
++	val = state->regs[0x02] & 0x0f;
++	for (i = 0; i < 8; i++)
++		if (freq < conv_table[i][0] && freq >= conv_table[i + 1][0]) {
++			val |= conv_table[i][1] << 7;
++			val |= conv_table[i][2] << 4;
++			break;
++		}
++	ret = reg_write(state, 0x02, val);
++	if (ret < 0)
++		return ret;
++
++	a = (freq + state->cfg.xtal_freq / 2) / state->cfg.xtal_freq;
++
++	state->regs[0x06] &= 0x40;
++	state->regs[0x06] |= (a - 12) / 4;
++	ret = reg_write(state, 0x06, state->regs[0x06]);
++	if (ret < 0)
++		return ret;
++
++	state->regs[0x07] &= 0xf0;
++	state->regs[0x07] |= (a - 4 * ((a - 12) / 4 + 1) - 5) & 0x0f;
++	ret = reg_write(state, 0x07, state->regs[0x07]);
++	if (ret < 0)
++		return ret;
++
++	/* LPF */
++	val = state->regs[0x08];
++	if (state->cfg.lpf) {
++		/* LPF_CLK, LPF_FC */
++		val &= 0xf0;
++		val |= 0x02;
++	}
++	ret = reg_write(state, 0x08, val);
++	if (ret < 0)
++		return ret;
++
++	/*
++	 * b = (freq / state->cfg.xtal_freq - a) << 20;
++	 * sd = b          (b >= 0)
++	 *      1<<22 + b  (b < 0)
++	 */
++	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
++	if (b >= 0)
++		sd = b;
++	else
++		sd = (1 << 22) + b;
++
++	state->regs[0x09] &= 0xc0;
++	state->regs[0x09] |= (sd >> 16) & 0x3f;
++	state->regs[0x0a] = (sd >> 8) & 0xff;
++	state->regs[0x0b] = sd & 0xff;
++	ret = reg_write(state, 0x09, state->regs[0x09]);
++	if (ret == 0)
++		ret = reg_write(state, 0x0a, state->regs[0x0a]);
++	if (ret == 0)
++		ret = reg_write(state, 0x0b, state->regs[0x0b]);
++	if (ret != 0)
++		return ret;
++
++	if (!state->cfg.lpf) {
++		/* CSEL_Offset */
++		ret = reg_write(state, 0x13, state->regs[0x13]);
++		if (ret < 0)
++			return ret;
++	}
++
++	/* VCO_TM, LPF_TM */
++	mask = state->cfg.lpf ? 0x3f : 0x7f;
++	val = state->regs[0x0c] & mask;
++	ret = reg_write(state, 0x0c, val);
++	if (ret < 0)
++		return ret;
++	usleep_range(2000, 3000);
++	val = state->regs[0x0c] | ~mask;
++	ret = reg_write(state, 0x0c, val);
++	if (ret < 0)
++		return ret;
++
++	if (state->cfg.lpf)
++		msleep(state->cfg.lpf_wait);
++	else if (state->regs[0x03] & 0x01)
++		msleep(state->cfg.fast_srch_wait);
++	else
++		msleep(state->cfg.normal_srch_wait);
++
++	if (state->cfg.lpf) {
++		/* LPF_FC */
++		ret = reg_write(state, 0x08, 0x09);
++		if (ret < 0)
++			return ret;
++
++		/* CSEL_Offset */
++		ret = reg_write(state, 0x13, state->regs[0x13]);
++		if (ret < 0)
++			return ret;
++	}
++	return 0;
++}
++
++static int qm1d1c0042_sleep(struct dvb_frontend *fe)
++{
++	struct qm1d1c0042_state *state;
++	int ret;
++
++	state = fe->tuner_priv;
++	state->regs[0x01] &= (~(1 << 3)) & 0xff; /* BB_Reg_disable */
++	state->regs[0x01] |= 1 << 0;             /* STDBY */
++	state->regs[0x05] |= 1 << 3;             /* pfd_rst STANDBY */
++	ret = reg_write(state, 0x05, state->regs[0x05]);
++	if (ret == 0)
++		ret = reg_write(state, 0x01, state->regs[0x01]);
++	if (ret < 0)
++		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++			__func__, fe->dvb->num, fe->id);
++	return ret;
++}
++
++static int qm1d1c0042_init(struct dvb_frontend *fe)
++{
++	struct qm1d1c0042_state *state;
++	u8 val;
++	int i, ret;
++
++	state = fe->tuner_priv;
++	memcpy(state->regs, reg_initval, sizeof(reg_initval));
++
++	reg_write(state, 0x01, 0x0c);
++	reg_write(state, 0x01, 0x0c);
++
++	ret = reg_write(state, 0x01, 0x0c); /* soft reset on */
++	if (ret < 0)
++		goto failed;
++	usleep_range(2000, 3000);
++
++	val = state->regs[0x01] | 0x10;
++	ret = reg_write(state, 0x01, val); /* soft reset off */
++	if (ret < 0)
++		goto failed;
++
++	/* check ID */
++	ret = reg_read(state, 0x00, &val);
++	if (ret < 0 || val != 0x48)
++		goto failed;
++	usleep_range(2000, 3000);
++
++	state->regs[0x0c] |= 0x40;
++	ret = reg_write(state, 0x0c, state->regs[0x0c]);
++	if (ret < 0)
++		goto failed;
++	msleep(state->cfg.lpf_wait);
++
++	/* set all writable registers */
++	for (i = 1; i <= 0x0c ; i++) {
++		ret = reg_write(state, i, state->regs[i]);
++		if (ret < 0)
++			goto failed;
++	}
++	for (i = 0x11; i < QM1D1C0042_NUM_REGS; i++) {
++		ret = reg_write(state, i, state->regs[i]);
++		if (ret < 0)
++			goto failed;
++	}
++
++	ret = qm1d1c0042_wakeup(state);
++	if (ret < 0)
++		goto failed;
++
++	ret = qm1d1c0042_set_srch_mode(state, state->cfg.fast_srch);
++	if (ret < 0)
++		goto failed;
++
++	return ret;
++
++failed:
++	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
++		__func__, fe->dvb->num, fe->id);
++	return ret;
++}
++
++/* I2C driver functions */
++
++static const struct dvb_tuner_ops qm1d1c0042_ops = {
++	.info = {
++		.name = "Sharp QM1D1C0042",
++
++		.frequency_min =  950000,
++		.frequency_max = 2150000,
++	},
++
++	.init = qm1d1c0042_init,
++	.sleep = qm1d1c0042_sleep,
++	.set_config = qm1d1c0042_set_config,
++	.set_params = qm1d1c0042_set_params,
++};
++
++
++static int qm1d1c0042_probe(struct i2c_client *client,
++			    const struct i2c_device_id *id)
++{
++	struct qm1d1c0042_state *state;
++	struct qm1d1c0042_config *cfg;
++	struct dvb_frontend *fe;
++
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++	state->i2c = client;
++
++	cfg = client->dev.platform_data;
++	fe = cfg->fe;
++	fe->tuner_priv = state;
++	qm1d1c0042_set_config(fe, cfg);
++	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
++
++	i2c_set_clientdata(client, &state->cfg);
++	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
++	return 0;
++}
++
++static int qm1d1c0042_remove(struct i2c_client *client)
++{
++	struct qm1d1c0042_state *state;
++
++	state = cfg_to_state(i2c_get_clientdata(client));
++	state->cfg.fe->tuner_priv = NULL;
++	kfree(state);
++	return 0;
++}
++
++
++static const struct i2c_device_id qm1d1c0042_id[] = {
++	{"qm1d1c0042", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
++
++static struct i2c_driver qm1d1c0042_driver = {
++	.driver = {
++		.name	= "qm1d1c0042",
++	},
++	.probe		= qm1d1c0042_probe,
++	.remove		= qm1d1c0042_remove,
++	.id_table	= qm1d1c0042_id,
++};
++
++module_i2c_driver(qm1d1c0042_driver);
++
++MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
++MODULE_AUTHOR("Akihiro TSUKADA");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
+new file mode 100644
+index 0000000..4f5c188
+--- /dev/null
++++ b/drivers/media/tuners/qm1d1c0042.h
+@@ -0,0 +1,37 @@
++/*
++ * Sharp QM1D1C0042 8PSK tuner driver
++ *
++ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef QM1D1C0042_H
++#define QM1D1C0042_H
++
++#include "dvb_frontend.h"
++
++
++struct qm1d1c0042_config {
++	struct dvb_frontend *fe;
++
++	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
++	bool lpf;          /* enable LPF */
++	bool fast_srch;    /* enable fast search mode, no LPF */
++	u32  lpf_wait;         /* wait in tuning with LPF enabled. [ms] */
++	u32  fast_srch_wait;   /* with fast-search mode, no LPF. [ms] */
++	u32  normal_srch_wait; /* with no LPF/fast-search mode. [ms] */
++};
++/* special values indicating to use the default in qm1d1c0042_config */
++#define QM1D1C0042_CFG_XTAL_DFLT 0
++#define QM1D1C0042_CFG_WAIT_DFLT 0
++
++#endif /* QM1D1C0042_H */
+-- 
+2.1.0
 
-2) there's a hole ac97 support at /sound. The idea is to re-use it instead
-of reinventing the wheel, but that requires time and a few different AC97
-setups.
-
-Btw, there are other em28xx devices with other non-em202 AC97 chips out
-there, with different settings (and even different sampling rates).
-Those AC97 devices are generally found at the "grabber" devices.
-
-Regards,
-Mauro
-
-> 
-> So replce the remaining checks of dev->audio_mode.ac97 with equivalent checks
-> of dev->int_audio_type and get rid of struct em28xx_ac97_mode and finally the
-> whole struct em28xx_audio_mode.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c |  2 +-
->  drivers/media/usb/em28xx/em28xx-core.c  | 36 ++++++---------------------------
->  drivers/media/usb/em28xx/em28xx-video.c |  2 +-
->  drivers/media/usb/em28xx/em28xx.h       | 13 ------------
->  4 files changed, 8 insertions(+), 45 deletions(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 90c7a83..c3a4224 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -933,7 +933,7 @@ static int em28xx_audio_init(struct em28xx *dev)
->  
->  	INIT_WORK(&adev->wq_trigger, audio_trigger);
->  
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
->  		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
->  		em28xx_cvol_new(card, dev, "Line In", AC97_LINE);
->  		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE);
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index ed83e4e..7464e70 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -405,12 +405,8 @@ static int em28xx_set_audio_source(struct em28xx *dev)
->  		return ret;
->  	msleep(5);
->  
-> -	switch (dev->audio_mode.ac97) {
-> -	case EM28XX_NO_AC97:
-> -		break;
-> -	default:
-> +	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97)
->  		ret = set_ac97_input(dev);
-> -	}
->  
->  	return ret;
->  }
-> @@ -439,7 +435,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
->  	/* It is assumed that all devices use master volume for output.
->  	   It would be possible to use also line output.
->  	 */
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
->  		/* Mute all outputs */
->  		for (i = 0; i < ARRAY_SIZE(outputs); i++) {
->  			ret = em28xx_write_ac97(dev, outputs[i].reg, 0x8000);
-> @@ -462,7 +458,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
->  	ret = em28xx_set_audio_source(dev);
->  
->  	/* Sets volume */
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
->  		int vol;
->  
->  		em28xx_write_ac97(dev, AC97_POWERDOWN, 0x4200);
-> @@ -544,14 +540,11 @@ int em28xx_audio_setup(struct em28xx *dev)
->  		em28xx_info("I2S Audio (%d sample rate(s))\n",
->  					       i2s_samplerates);
->  		/* Skip the code that does AC97 vendor detection */
-> -		dev->audio_mode.ac97 = EM28XX_NO_AC97;
->  		goto init_audio;
->  	} else {
->  		dev->int_audio_type = EM28XX_INT_AUDIO_AC97;
->  	}
->  
-> -	dev->audio_mode.ac97 = EM28XX_AC97_OTHER;
-> -
->  	vid1 = em28xx_read_ac97(dev, AC97_VENDOR_ID1);
->  	if (vid1 < 0) {
->  		/*
-> @@ -560,7 +553,6 @@ int em28xx_audio_setup(struct em28xx *dev)
->  		 *	 CHIPCFG register, even not having an AC97 chip
->  		 */
->  		em28xx_warn("AC97 chip type couldn't be determined\n");
-> -		dev->audio_mode.ac97 = EM28XX_NO_AC97;
->  		if (dev->usb_audio_type == EM28XX_USB_AUDIO_VENDOR)
->  			dev->usb_audio_type = EM28XX_USB_AUDIO_NONE;
->  		dev->int_audio_type = EM28XX_INT_AUDIO_NONE;
-> @@ -582,30 +574,14 @@ int em28xx_audio_setup(struct em28xx *dev)
->  
->  	/* Try to identify what audio processor we have */
->  	if (((vid == 0xffffffff) || (vid == 0x83847650)) && (feat == 0x6a90))
-> -		dev->audio_mode.ac97 = EM28XX_AC97_EM202;
-> -	else if ((vid >> 8) == 0x838476)
-> -		dev->audio_mode.ac97 = EM28XX_AC97_SIGMATEL;
-> -
-> -init_audio:
-> -	/* Reports detected AC97 processor */
-> -	switch (dev->audio_mode.ac97) {
-> -	case EM28XX_NO_AC97:
-> -		em28xx_info("No AC97 audio processor\n");
-> -		break;
-> -	case EM28XX_AC97_EM202:
->  		em28xx_info("Empia 202 AC97 audio processor detected\n");
-> -		break;
-> -	case EM28XX_AC97_SIGMATEL:
-> +	else if ((vid >> 8) == 0x838476)
->  		em28xx_info("Sigmatel audio processor detected (stac 97%02x)\n",
->  			    vid & 0xff);
-> -		break;
-> -	case EM28XX_AC97_OTHER:
-> +	else
->  		em28xx_warn("Unknown AC97 audio processor detected!\n");
-> -		break;
-> -	default:
-> -		break;
-> -	}
->  
-> +init_audio:
->  	return em28xx_audio_analog_set(dev);
->  }
->  EXPORT_SYMBOL_GPL(em28xx_audio_setup);
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 3284de9..c4e1364 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -2384,7 +2384,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
->  			__func__, ret);
->  		goto unregister_dev;
->  	}
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
->  		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
->  			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
->  		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 857ad0c..3108eee 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -300,17 +300,6 @@ enum enum28xx_itype {
->  	EM28XX_RADIO,
->  };
->  
-> -enum em28xx_ac97_mode {
-> -	EM28XX_NO_AC97 = 0,
-> -	EM28XX_AC97_EM202,
-> -	EM28XX_AC97_SIGMATEL,
-> -	EM28XX_AC97_OTHER,
-> -};
-> -
-> -struct em28xx_audio_mode {
-> -	enum em28xx_ac97_mode ac97;
-> -};
-> -
->  enum em28xx_int_audio_type {
->  	EM28XX_INT_AUDIO_NONE = 0,
->  	EM28XX_INT_AUDIO_AC97,
-> @@ -627,8 +616,6 @@ struct em28xx {
->  
->  	u32 i2s_speed;		/* I2S speed for audio digital stream */
->  
-> -	struct em28xx_audio_mode audio_mode;
-> -
->  	int tuner_type;		/* type of the tuner */
->  
->  	/* i2c i/o */
