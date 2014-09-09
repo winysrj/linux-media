@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17178 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbaIOGsB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:01 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00JSMK7U7V60@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:47:54 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32947 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150AbaIINW5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 09:22:57 -0400
+Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 4C95420015
+	for <linux-media@vger.kernel.org>; Tue,  9 Sep 2014 15:21:57 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 03/17] [media] s5p-mfc: set B-frames as 2 while encoding
-Date: Mon, 15 Sep 2014 12:12:58 +0530
-Message-id: <1410763393-12183-4-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+Subject: [GIT PULL FOR v3.18] Media core changes
+Date: Tue, 09 Sep 2014 16:22:59 +0300
+Message-ID: <1588396.D34QsCWOet@avalon>
+In-Reply-To: <1939223.IgehJYBKd7@avalon>
+References: <1939223.IgehJYBKd7@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-set default number of B-frames as 2 while encoding
-for better compression. This User can however change
-this setting using V4L2_CID_MPEG_VIDEO_B_FRAMES.
+Hi Mauro,
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This pull request supersedes the "[GIT PULL FOR v3.18] Media core changes" 
+pull request I've just sent. Sorry for the noise.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index cd1b2a2..f7a6f68 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -280,7 +280,7 @@ static struct mfc_control controls[] = {
- 		.minimum = 0,
- 		.maximum = 2,
- 		.step = 1,
--		.default_value = 0,
-+		.default_value = 2,
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+The following changes since commit 91f96e8b7255537da3a58805cf465003521d7c5f:
+
+  [media] tw68: drop bogus cpu_to_le32() call (2014-09-08 16:40:54 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git v4l2/core
+
+for you to fetch changes up to 7616a92e9801122e432edebdda04d8a42f349c54:
+
+  v4l: Fix ARGB32 fourcc value in the documentation (2014-09-09 16:20:59 
++0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (3):
+      media: Use strlcpy instead of custom code
+      v4l: Add ARGB555X and XRGB555X pixel formats
+      v4l: Fix ARGB32 fourcc value in the documentation
+
+ Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 52 +++++++++++++++---
+ drivers/media/media-device.c                          |  6 ++--
+ include/uapi/linux/videodev2.h                        |  3 ++
+ 3 files changed, 53 insertions(+), 8 deletions(-)
+
 -- 
-1.7.3.rc2
+Regards,
+
+Laurent Pinchart
 
