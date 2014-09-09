@@ -1,92 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37752 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbaIYSp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 14:45:26 -0400
-Message-ID: <542462C4.7020907@osg.samsung.com>
-Date: Thu, 25 Sep 2014 12:45:24 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>
-CC: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: em28xx breaks after hibernate
-References: <20140925125353.GA5129@linuxtv.org> <54241C81.60301@osg.samsung.com> <20140925160134.GA6207@linuxtv.org> <5424539D.8090503@osg.samsung.com> <20140925181747.GA21522@linuxtv.org>
-In-Reply-To: <20140925181747.GA21522@linuxtv.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32873 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992AbaIIK4j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 06:56:39 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id A07A920015
+	for <linux-media@vger.kernel.org>; Tue,  9 Sep 2014 12:55:38 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] [media_build] Add compat clock helpers
+Date: Tue,  9 Sep 2014 13:56:34 +0300
+Message-Id: <1410260194-20839-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/25/2014 12:17 PM, Johannes Stezenbach wrote:
-> On Thu, Sep 25, 2014 at 11:40:45AM -0600, Shuah Khan wrote:
->>
->> Right. I introduced DVB_FE_DEVICE_RESUME code to resume
->> problems in drx39xxj driver. Because I had to make it not
->> toggle power on the fe for resume. In other words, for it
->> to differentiate between disconnect and resume conditions.
->>
->> dvb_frontend_resume() is used by dvb_usbv2 dvb_usb_core -
->> dvb_usbv2_resume_common()
->>
->> Calling dvb_frontend_reinitialise() from dvb_frontend_resume()
->> could break dvb_usbv2 drivers because it has handling for
->> reset_resume in its core in dvb_usbv2_reset_resume()
-> 
-> Needs testing...
+The clk_prepare_enable() and clk_disable_unprepare() clock helpers were
+introduced in kernel v3.3. Add them to compat.h for kernels that don't
+provide them.
 
-Right
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ v4l/compat.h                      | 23 +++++++++++++++++++++++
+ v4l/scripts/make_config_compat.pl |  1 +
+ 2 files changed, 24 insertions(+)
 
-> 
->> reverting media: em28xx - remove reset_resume interface
->> might be a short-term solution. I think the longterm
->> solution is adding a dvb_frontend_reset_resume() that
->> does dvb_frontend_reinitialise() just like you suggested.
->>
->> In addition, em28xx will call dvb_frontend_reset_resume()
->> from its reset_resume
->>
->> What do you think?
-> 
-> The dvb_frontend_resume() is also too risky for short term
-> fix, but I think it does the right thing.  Let's sleep over
-> it a few nights.
-
-Good plan.
-
-> 
-> For short term I think there is no way around the
-> b89193e0b06f revert.  You don't want a kernel with
-> hang-after-resume bugs to hit major distributions
-> like Ubuntu.  For the xc5000 firmware issue I think
-> you should get the patches from the development
-> branch into 3.17 (and 3.16-stable).  If you have the
-> patches ready, tell me and I'll test.
-> 
-
-Revert is good. Just checked 3.16 and we are good
-on that. It needs to be reverted from 3.17 for sure.
-
-ok now I know why the second path didn't
-apply. It depends on another change that added resume
-function
-
-7ab1c07614b984778a808dc22f84b682fedefea1
-
-You don't need the second patch. The first patch applied
-to 3.17 and fails on 3.16
-
-http://patchwork.linuxtv.org/patch/26073/
-
-I am working on 3.16 back-port for the first one to 3.16
-and send one shortly for you to test.
-
-thanks,
--- Shuah
-
+diff --git a/v4l/compat.h b/v4l/compat.h
+index ee05f3a..77abb55 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -1492,4 +1492,27 @@ static inline u32 prandom_u32_max(u32 ep_ro)
+ )
+ #endif
+ 
++#ifdef NEED_CLK_HELPERS
++#include <linux/clk.h>
++static inline int clk_prepare_enable(struct clk *clk)
++{
++	int ret;
++
++	ret = clk_prepare(clk);
++	if (ret)
++		return ret;
++	ret = clk_enable(clk);
++	if (ret)
++		clk_unprepare(clk);
++
++	return ret;
++}
++
++static inline void clk_disable_unprepare(struct clk *clk)
++{
++	clk_disable(clk);
++	clk_unprepare(clk);
++}
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index cb362be..88d8cd0 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -617,6 +617,7 @@ sub check_other_dependencies()
+ 	check_files_for_func("prandom_u32", "NEED_PRANDOM_U32", "include/linux/random.h");
+ 	check_files_for_func("GENMASK", "NEED_GENMASK", "include/linux/bitops.h");
+ 	check_files_for_func("mult_frac", "NEED_MULT_FRAC", "include/linux/kernel.h");
++	check_files_for_func("clk_prepare_enable", "NEED_CLOCK_HELPERS", "include/linux/clk.h");
+ 
+ 	# For tests for uapi-dependent logic
+ 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.8.5.5
+
