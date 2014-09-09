@@ -1,173 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4357 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756014AbaITMmF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:42:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32776 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaIIIlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 04:41:04 -0400
+Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 3EA1720015
+	for <linux-media@vger.kernel.org>; Tue,  9 Sep 2014 10:40:03 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/16] cx88: drop the bogus 'queue' list in dmaqueue.
-Date: Sat, 20 Sep 2014 14:41:37 +0200
-Message-Id: <1411216911-7950-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v3.18] uvcvideo changes
+Date: Tue, 09 Sep 2014 11:41 +0300
+Message-ID: <352565057.M5lg4dyeH3@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-This list is used some buffers have a different format, but that can
-never happen. Remove it and all associated code.
+The following changes since commit 91f96e8b7255537da3a58805cf465003521d7c5f:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx88/cx88-mpeg.c  | 31 -----------------------------
- drivers/media/pci/cx88/cx88-video.c | 39 +++----------------------------------
- drivers/media/pci/cx88/cx88.h       |  1 -
- 3 files changed, 3 insertions(+), 68 deletions(-)
+  [media] tw68: drop bogus cpu_to_le32() call (2014-09-08 16:40:54 -0300)
 
-diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-index 2803b6f..5f59901 100644
---- a/drivers/media/pci/cx88/cx88-mpeg.c
-+++ b/drivers/media/pci/cx88/cx88-mpeg.c
-@@ -210,37 +210,7 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
- 
- 	dprintk( 1, "cx8802_restart_queue\n" );
- 	if (list_empty(&q->active))
--	{
--		struct cx88_buffer *prev;
--		prev = NULL;
--
--		dprintk(1, "cx8802_restart_queue: queue is empty\n" );
--
--		for (;;) {
--			if (list_empty(&q->queued))
--				return 0;
--			buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
--			if (NULL == prev) {
--				list_move_tail(&buf->vb.queue, &q->active);
--				cx8802_start_dma(dev, q, buf);
--				buf->vb.state = VIDEOBUF_ACTIVE;
--				buf->count    = q->count++;
--				mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
--				dprintk(1,"[%p/%d] restart_queue - first active\n",
--					buf,buf->vb.i);
--
--			} else {
--				list_move_tail(&buf->vb.queue, &q->active);
--				buf->vb.state = VIDEOBUF_ACTIVE;
--				buf->count    = q->count++;
--				prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
--				dprintk(1,"[%p/%d] restart_queue - move to active\n",
--					buf,buf->vb.i);
--			}
--			prev = buf;
--		}
- 		return 0;
--	}
- 
- 	buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
- 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
-@@ -486,7 +456,6 @@ static int cx8802_init_common(struct cx8802_dev *dev)
- 
- 	/* init dma queue */
- 	INIT_LIST_HEAD(&dev->mpegq.active);
--	INIT_LIST_HEAD(&dev->mpegq.queued);
- 	dev->mpegq.timeout.function = cx8802_timeout;
- 	dev->mpegq.timeout.data     = (unsigned long)dev;
- 	init_timer(&dev->mpegq.timeout);
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index 3075179..10fea4d 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -470,7 +470,7 @@ static int restart_video_queue(struct cx8800_dev    *dev,
- 			       struct cx88_dmaqueue *q)
- {
- 	struct cx88_core *core = dev->core;
--	struct cx88_buffer *buf, *prev;
-+	struct cx88_buffer *buf;
- 
- 	if (!list_empty(&q->active)) {
- 		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
-@@ -480,33 +480,8 @@ static int restart_video_queue(struct cx8800_dev    *dev,
- 		list_for_each_entry(buf, &q->active, vb.queue)
- 			buf->count = q->count++;
- 		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
--		return 0;
--	}
--
--	prev = NULL;
--	for (;;) {
--		if (list_empty(&q->queued))
--			return 0;
--		buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
--		if (NULL == prev) {
--			list_move_tail(&buf->vb.queue, &q->active);
--			start_video_dma(dev, q, buf);
--			buf->vb.state = VIDEOBUF_ACTIVE;
--			buf->count    = q->count++;
--			mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
--			dprintk(2,"[%p/%d] restart_queue - first active\n",
--				buf,buf->vb.i);
--
--		} else {
--			list_move_tail(&buf->vb.queue, &q->active);
--			buf->vb.state = VIDEOBUF_ACTIVE;
--			buf->count    = q->count++;
--			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
--			dprintk(2,"[%p/%d] restart_queue - move to active\n",
--				buf,buf->vb.i);
--		}
--		prev = buf;
- 	}
-+	return 0;
- }
- 
- /* ------------------------------------------------------------------ */
-@@ -613,13 +588,7 @@ buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
- 	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
- 
--	if (!list_empty(&q->queued)) {
--		list_add_tail(&buf->vb.queue,&q->queued);
--		buf->vb.state = VIDEOBUF_QUEUED;
--		dprintk(2,"[%p/%d] buffer_queue - append to queued\n",
--			buf, buf->vb.i);
--
--	} else if (list_empty(&q->active)) {
-+	if (list_empty(&q->active)) {
- 		list_add_tail(&buf->vb.queue,&q->active);
- 		start_video_dma(dev, q, buf);
- 		buf->vb.state = VIDEOBUF_ACTIVE;
-@@ -1694,7 +1663,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	/* init video dma queues */
- 	INIT_LIST_HEAD(&dev->vidq.active);
--	INIT_LIST_HEAD(&dev->vidq.queued);
- 	dev->vidq.timeout.function = cx8800_vid_timeout;
- 	dev->vidq.timeout.data     = (unsigned long)dev;
- 	init_timer(&dev->vidq.timeout);
-@@ -1703,7 +1671,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	/* init vbi dma queues */
- 	INIT_LIST_HEAD(&dev->vbiq.active);
--	INIT_LIST_HEAD(&dev->vbiq.queued);
- 	dev->vbiq.timeout.function = cx8800_vbi_timeout;
- 	dev->vbiq.timeout.data     = (unsigned long)dev;
- 	init_timer(&dev->vbiq.timeout);
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index ddc7991..77ec542 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -324,7 +324,6 @@ struct cx88_buffer {
- 
- struct cx88_dmaqueue {
- 	struct list_head       active;
--	struct list_head       queued;
- 	struct timer_list      timeout;
- 	struct btcx_riscmem    stopper;
- 	u32                    count;
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git uvc/next
+
+for you to fetch changes up to 18e27c1f02310ecc196b059d890bd840fe247960:
+
+  media: usb: uvc: add a quirk for Dell XPS M1330 webcam (2014-09-09 11:37:43 
++0300)
+
+----------------------------------------------------------------
+Paul Fertser (1):
+      media: usb: uvc: add a quirk for Dell XPS M1330 webcam
+
+Vincent Palatin (2):
+      v4l: Add camera pan/tilt speed controls
+      v4l: uvcvideo: Add support for pan/tilt speed controls
+
+William Manley (1):
+      uvcvideo: Work around buggy Logitech C920 firmware
+
+ Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++
+ Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++
+ drivers/media/usb/uvc/uvc_ctrl.c             | 60 ++++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_driver.c           | 20 +++++++++++-
+ drivers/media/usb/uvc/uvc_video.c            |  6 ++++
+ drivers/media/usb/uvc/uvcvideo.h             |  3 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+ include/uapi/linux/v4l2-controls.h           |  2 ++
+ 8 files changed, 118 insertions(+), 6 deletions(-)
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
