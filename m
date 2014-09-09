@@ -1,65 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58769 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352AbaIJK6e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 06:58:34 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
-Date: Wed, 10 Sep 2014 12:58:23 +0200
-Message-Id: <1410346708-5125-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
-References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+Received: from surgate.yyu.edu.tr ([193.255.143.11]:33374 "EHLO
+	surgate.yyu.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756918AbaIIPAT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:00:19 -0400
+Date: Tue, 9 Sep 2014 17:38:12 +0300 (EEST)
+From: Raymond Walter <vefatasdelen@yyu.edu.tr>
+Reply-To: Raymond Walter <raymond.walter95@yahoo.com>
+Message-ID: <28325185.3171732.1410273492964.JavaMail.root@yyu.edu.tr>
+Subject: I Need A Help from You
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Decrementing the reference count of the previous endpoint node allows to
-use the of_graph_get_next_endpoint function in a for_each_... style macro.
-Prior to this patch, all current users of this function that actually pass
-a non-NULL prev parameter should be changed to not decrement the passed
-prev argument's refcount themselves.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/of/base.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index d8574ad..a49b5628 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
-  * @prev: previous endpoint node, or NULL to get first
-  *
-  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-- * of the passed @prev node is not decremented, the caller have to use
-- * of_node_put() on it when done.
-+ * of the passed @prev node is decremented.
-  */
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *prev)
-@@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
- 			      __func__, prev->full_name))
- 			return NULL;
--
--		/*
--		 * Avoid dropping prev node refcount to 0 when getting the next
--		 * child below.
--		 */
--		of_node_get(prev);
- 	}
- 
- 	while (1) {
 -- 
-2.1.0
+I came down to  Russia  for a short vacation. Unfortunately, i was mugged at the park of the hotel where i stayed. All cash, credit cards and mobile phones were stolen from me but luckily i still have my passport with me. I've been to the Embassy and the Police here but they're not helping issues at all the bad news is my flight will be leaving in less than 8-hrs from now but i am having problems settling the hotel bills and the hotel manager won't let me leave until i settle the bills. I'll need your help (LOAN) financially of $2,530 USD. I promise to make the refund once i get back home. Please let me know how you can help and I need you to keep me posted via email.
 
+
+
+
+
+Bu e-posta (ve ekler) mesaji, mesajin alici kisminda belirtilmis olan kullanici icindir ve sadece gonderilen kisiye yoneliktir. Bu e-postayi yanlislikla aldiysaniz, lutfen dogrudan veya dolayli olarak mesaji kullanmayiniz, yollayan kisiyi bilgilendirip mesajin tum kopyalarini sisteminizden derhal siliniz. E- posta iletiminin guvenli veya hatasiz oldugunun garantisi olmadigindan gec veya eksik iletim veya icerik ve bilgilerde eksiklik, kayip, degisiklik veya virus olabileceginden, bu mesajin iletiminden, icerikteki hatadan, eksiklikten, dogrulugun ve gizliligin ihlalinden veya bu yolla bilgi paylasimi, iletimi, depolanmasi gibi herhangi bir kullanimdan Universitemiz hicbir sekilde sorumlu degildir. Bu mesajin icerigi yazarina ait olup hicbir sekilde Yuzuncu Yil Universitesi'ne atfedilemeyecegi gibi, Universitemizi baglayici da degildir.
+
+
+This e-mail (and the attachments), is solely for the individual or the entity who has been mentioned specifically in the recipient section of the e- mail and intended solely for the addressee. If you are not the recipient of this message or the intended addressee (or if you have received it accidentally), please do not use it directly or indirectly and delete the message and all its copies from your system by notifying the sender immediately. Since safe and healthy transmission of an e-mail cannot be guaranteed and there is a possibility of delayed or incomplete delivery of a message or absence, loss, change or presence of virus in content and information,Yuzuncu Yil University is not liable for the delivery of the message; the fault and incompleteness in the content; violation of confidentiality or integrity; or sharing, transmission and storage of information via this way. The content of the message does solely belong to the writer of it and under no circumstances can be endorsed b
+ y Yuzuncu Yil University. Also, Yuzuncu Yil University does not accept any legal responsibility whatsoever for the content of the message. 
