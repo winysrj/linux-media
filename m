@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55058 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756266AbaIQUpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:32 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 50490600A2
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:30 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 04/17] smiapp-pll: External clock frequency isn't an output value
-Date: Wed, 17 Sep 2014 23:45:28 +0300
-Message-Id: <1410986741-6801-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:34090 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356AbaIISba (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 14:31:30 -0400
+MIME-Version: 1.0
+In-Reply-To: <c522bdd8972633e0eb481ffc5ebb7da98b190fa7.1410273306.git.m.chehab@samsung.com>
+References: <20140909124306.2d5a0d76@canb.auug.org.au> <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
+ <c522bdd8972633e0eb481ffc5ebb7da98b190fa7.1410273306.git.m.chehab@samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 9 Sep 2014 19:30:58 +0100
+Message-ID: <CA+V-a8vXAWyRo+-LuEhMNfn1KWDfvy38pROYspPmRBckbFpj7A@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] vpif: Fix compilation with allmodconfig
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Tue, Sep 9, 2014 at 3:38 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> When vpif is compiled as module, those errors happen:
+>
+> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_display.ko] undefined!
+> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
+>
+> That's because vpif_lock symbol is not exported.
+>
 
-It's input. Move it elsewhere in the struct.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
+--Prabhakar Lad
 
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index 5ce2b61..2885cd7 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -53,6 +53,7 @@ struct smiapp_pll {
- 	uint8_t scale_n;
- 	uint8_t bits_per_pixel;
- 	uint32_t link_freq;
-+	uint32_t ext_clk_freq_hz;
- 
- 	/* output values */
- 	uint16_t pre_pll_clk_div;
-@@ -62,7 +63,6 @@ struct smiapp_pll {
- 	uint16_t vt_sys_clk_div;
- 	uint16_t vt_pix_clk_div;
- 
--	uint32_t ext_clk_freq_hz;
- 	uint32_t pll_ip_clk_freq_hz;
- 	uint32_t pll_op_clk_freq_hz;
- 	uint32_t op_sys_clk_freq_hz;
--- 
-1.7.10.4
-
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>
+> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+> index cd08e5248387..3dad5bd7fe0a 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+> @@ -38,6 +38,7 @@ MODULE_LICENSE("GPL");
+>  #define VPIF_CH3_MAX_MODES     2
+>
+>  spinlock_t vpif_lock;
+> +EXPORT_SYMBOL_GPL(vpif_lock);
+>
+>  void __iomem *vpif_base;
+>  EXPORT_SYMBOL_GPL(vpif_base);
+> --
+> 1.9.3
+>
