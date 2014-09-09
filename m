@@ -1,68 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55067 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756266AbaIQUpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:34 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 29C3A600AB
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:32 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 13/17] smiapp: Split calculating PLL with sensor's limits from updating it
-Date: Wed, 17 Sep 2014 23:45:37 +0300
-Message-Id: <1410986741-6801-14-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:39731 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753470AbaIIOpn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 10:45:43 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBN004L32GVYPC0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Sep 2014 15:48:31 +0100 (BST)
+Message-id: <540F127D.4020300@samsung.com>
+Date: Tue, 09 Sep 2014 16:45:17 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
+References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1479223.veAhoGoXLY@avalon> <53CD97D2.1010408@xs4all.nl>
+ <1468017.Vb1L5kusHW@avalon>
+In-reply-to: <1468017.Vb1L5kusHW@avalon>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 09/09/14 15:18, Laurent Pinchart wrote:
+> On Tuesday 22 July 2014 00:44:34 Hans Verkuil wrote:
+>> On 07/22/2014 12:30 AM, Laurent Pinchart wrote:
+>>> On Monday 21 July 2014 23:43:16 Hans Verkuil wrote:
+>>>> On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
+>>>>> The RGB666 pixel format doesn't include an alpha channel. Document it as
+>>>>> such.
+>>>>>
+>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>>> ---
+>>>>>
+>>>>>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20
+>>>>>  +++++----------
+>>>>>
+>>>>> 1 file changed, 6 insertions(+), 14 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>>>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+>>>>> 32feac9..c47692a 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+>>>>> @@ -330,20 +330,12 @@ colorspace
+>>>>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>>
+>>>>>  	    <entry></entry>
+>>>>>  	    <entry>r<subscript>1</subscript></entry>
+>>>>>  	    <entry>r<subscript>0</subscript></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> -	    <entry></entry>
+>>>>> +	    <entry>-</entry>
+>>>>> +	    <entry>-</entry>
+>>>>> +	    <entry>-</entry>
+>>>>> +	    <entry>-</entry>
+>>>>> +	    <entry>-</entry>
+>>>>> +	    <entry>-</entry>
+>>>>
+>>>> Just to clarify: BGR666 is a three byte format, not a four byte format?
+>>>
+>>> Well... :-)
+>>>
+>>> Three drivers seem to support the BGR666 in mainline : sh_veu, s3c-camif
+>>> and exynos4-is. Further investigation shows that the sh_veu driver lists
+>>> the BGR666 format internally but doesn't expose it to userspace and
+>>> doesn't actually support it, so we're down to two drivers.
+>>>
+>>> Looking at the S3C6410 datasheet, it's unclear how the hardware stores
+>>> RGB666 pixels in memory. It could be either
+>>>
+>>> Byte 0   Byte 1   Byte 2   Byte 3
+>>>
+>>> -------- ------RR RRRRGGGG GGBBBBBB
+>>>
+>>> or
+>>>
+>>> GGBBBBBB RRRRGGGG ------RR --------
+>>>
+>>> None of those correspond to the RGB666 format defined in the spec.
+>>>
+>>> The Exynos4 FIMC isn't documented in the public datasheet, so I can't
+>>> check how the format is defined.
+>>>
+>>> Furthermore, various Renesas video-related IP cores support many different
+>>> RGB666 variants, on either 32 or 24 bits per pixel, with and without
+>>> alpha.
+>>>
+>>> Beside a loud *sigh*, any comment ? :-)
+>>
+>> You'll have to check with Samsung then. Sylwester, can you shed any light on
+>> what this format *really* is?
+> 
+> Ping ?
 
-The first one is handy for just trying out a PLL configuration without a
-need to apply it.
+My apologies, I didn't notice this earlier.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+In case of S5P/Exynos FIMC the format is:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 346ff5b..a1244e6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -240,7 +240,8 @@ static int smiapp_pll_configure(struct smiapp_sensor *sensor)
- 		sensor, SMIAPP_REG_U16_OP_SYS_CLK_DIV, pll->op.sys_clk_div);
- }
- 
--static int smiapp_pll_update(struct smiapp_sensor *sensor)
-+static int smiapp_pll_try(struct smiapp_sensor *sensor,
-+			  struct smiapp_pll *pll)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	struct smiapp_pll_limits lim = {
-@@ -274,6 +275,12 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 		.min_line_length_pck_bin = sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK_BIN],
- 		.min_line_length_pck = sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK],
- 	};
-+
-+	return smiapp_pll_calculate(&client->dev, &lim, pll);
-+}
-+
-+static int smiapp_pll_update(struct smiapp_sensor *sensor)
-+{
- 	struct smiapp_pll *pll = &sensor->pll;
- 	int rval;
- 
-@@ -284,7 +291,7 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 	pll->scale_m = sensor->scale_m;
- 	pll->bits_per_pixel = sensor->csi_format->compressed;
- 
--	rval = smiapp_pll_calculate(&client->dev, &lim, pll);
-+	rval = smiapp_pll_try(sensor, pll);
- 	if (rval < 0)
- 		return rval;
- 
--- 
-1.7.10.4
+Byte 0   Byte 1   Byte 2   Byte 3
 
+BBBBBBGG GGGGRRRR RR------ --------
+
+i.e. 4 byte per pixel, with 14-bit padding (don't care bits).
+
+As far as S3C6410 CAMIF is concerned it's hard to say. I primarily
+developed the s3c-camif driver for S3C2440 SoC, which doesn't support
+BGR666 format. I merged some patches from others adding s3c6410 support,
+before sending upstream.
+
+Nevertheless, looking at the S3C CAMIF datasheet the RGB666 format seems
+identical with the FIMC one. See [1], chapter "20.7.4 MEMORY STORING
+METHOD". This would make sense, since the S5P/Exynos FIMC is basically
+a significantly evolved S3C CAMIF AFAICT.
+
+--
+Regards,
+Sylwester
+
+[1] http://www.arm9board.net/download/OK6410/docs/S3C6410X.pdf
