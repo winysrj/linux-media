@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2673 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212AbaIUOss (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags field
-Date: Sun, 21 Sep 2014 16:48:24 +0200
-Message-Id: <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.kundenserver.de ([212.227.126.130]:49318 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbaIIRz1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 13:55:27 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
+Date: Tue, 09 Sep 2014 19:54:19 +0200
+Message-ID: <60097822.tu6OncvLxQ@wuerfel>
+In-Reply-To: <20140909120936.527bd852.m.chehab@samsung.com>
+References: <20140909124306.2d5a0d76@canb.auug.org.au> <540F15B2.3000902@samsung.com> <20140909120936.527bd852.m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tuesday 09 September 2014 12:09:36 Mauro Carvalho Chehab wrote:
+> -exynos4.c
+> > > index e51c078360f5..01eeacf28843 100644
+> > > --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > > +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > > @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+> > >     reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+> > >     writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+> > >  
+> > > +#ifndef CONFIG_COMPILE_TEST
+> > >     ndelay(100000);
+> > > +#endif
+> > 
+> > Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
+> > rather than sticking in a not so pretty #ifndef ?
+> 
+> Works for me. I'll submit a new version.
 
-Replace reserved2 by a flags field. This is used to tell whether
-setting a new store value is applied only once or every time that
-v4l2_ctrl_apply_store() is called for that store.
+New version looks good to me. On a more general level, I would argue
+that we should not disable code based on COMPILE_TEST. The typical
+use of this symbol is to make it possible to compile more code, not
+to change the behavior of code on machines that were able to build
+it already.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2ca44ed..fa84070 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1282,7 +1282,7 @@ struct v4l2_control {
- struct v4l2_ext_control {
- 	__u32 id;
- 	__u32 size;
--	__u32 reserved2[1];
-+	__u32 flags;
- 	union {
- 		__s32 value;
- 		__s64 value64;
-@@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
- 	};
- } __attribute__ ((packed));
- 
-+/* v4l2_ext_control flags */
-+#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
-+#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
-+
- struct v4l2_ext_controls {
- 	union {
- 		__u32 ctrl_class;
--- 
-2.1.0
-
+	Arnd
