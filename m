@@ -1,90 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:47353 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756128AbaICMQp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 08:16:45 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBB003CYRFWC930@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Sep 2014 08:16:44 -0400 (EDT)
-Date: Wed, 03 Sep 2014 09:16:39 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, stoth@kernellabs.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 17/20] cx23885: fix weird sizes.
-Message-id: <20140903091639.4ec7c996.m.chehab@samsung.com>
-In-reply-to: <5407048C.1050601@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
- <1408010045-24016-18-git-send-email-hverkuil@xs4all.nl>
- <20140903084624.2cc523b8.m.chehab@samsung.com> <5407048C.1050601@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:46281 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753844AbaIIQM2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 12:12:28 -0400
+Received: by mail-lb0-f177.google.com with SMTP id l4so6365013lbv.22
+        for <linux-media@vger.kernel.org>; Tue, 09 Sep 2014 09:12:26 -0700 (PDT)
+Message-ID: <540F26E5.50609@gmail.com>
+Date: Tue, 09 Sep 2014 09:12:21 -0700
+From: Steve Longerbeam <slongerbeam@gmail.com>
+MIME-Version: 1.0
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+In-Reply-To: <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Sep 2014 14:07:40 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Jean-Michel,
 
-> On 09/03/14 13:46, Mauro Carvalho Chehab wrote:
-> > Em Thu, 14 Aug 2014 11:54:02 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> These values make no sense. All SDTV standards have the same width.
-> >> This seems to be copied from the cx88 driver. Just drop these weird
-> >> values.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  drivers/media/pci/cx23885/cx23885.h | 6 +++---
-> >>  1 file changed, 3 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-> >> index 99a5fe0..f542ced 100644
-> >> --- a/drivers/media/pci/cx23885/cx23885.h
-> >> +++ b/drivers/media/pci/cx23885/cx23885.h
-> >> @@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
-> >>  
-> >>  static inline unsigned int norm_maxw(v4l2_std_id norm)
-> >>  {
-> >> -	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
-> >> +	return 720;
-> > 
-> > Not sure if you checked cx23885 datasheet. I didn't, but I don't doubt
-> > that it uses about the same A/D logic as cx88.
-> > 
-> > In the case of cx88, the sampling rate for a few standards is different,
-> > as recommended at the datasheet. This is done to provide the highest
-> > image quality, as there are some customized filters for some standards,
-> > but they require some specific sampling rates. That's why PAL-Nc and
-> > NTSC/PAL-M are handled on a different way.
-> 
-> I will double-check what the datasheet has to say about this. And if there
-> is a good reason for this then I will add a comment at the very least.
 
-OK.
+On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
+> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
+>
+>> Hi Jean-Michel, Phillip,
+> Hi Steve,
+>
+>> I've done some work on Philipp's June 12 patchset, converting
+>> the CSI driver to a CSI subdev entity, and fixing some issues here
+>> and there. This June 12 patchset doesn't appear to be a fully working
+>> driver, Phillip correct me if I am wrong. I can post this work as it
+>> exists, it is incomplete but compiles.
+> Dos it compile against a 3.17-rc3 kernel :) ?
 
-> 
-> > 
-> >>  }
-> >>  
-> >>  static inline unsigned int norm_maxh(v4l2_std_id norm)
-> >>  {
-> >> -	return (norm & V4L2_STD_625_50) ? 576 : 480;
-> >> +	return (norm & V4L2_STD_525_60) ? 480 : 576;
-> > 
-> > This is obviously wrong.
-> 
-> What is wrong? The original code or the new code? They are both right.
+No, not anymore, the original posted driver was against 3.16 IIRC.
 
-I think I expressed myself badly. I meant to say: the original code were
-obviously wrong.
+>
+>> I've also worked out what I think is a workable video pipeline graph for i.MX,
+>> suitable for defining the entities, pads, and links. Unfortunately I haven't
+>> been able to spend as much time as I'd like on it.
+> This is very interesting, do you have written this somewhere ?
 
-Basically, I agreed with you there ;)
+Yes, I'll try to find some time to create a pdf image.
+>
+>> The complete driver I posted to the list does have some minor issues
+>> mostly suggested by Hans Verkuil (switch to new selection API instead
+>> of cropping API for example). It is a full featured driver but it does not
+>> implement the media device framework, i.e. user does not have direct
+>> control of the video pipeline, rather the driver chooses the pipeline based
+>> on the traditional inputs from user (video format and controls).
+>>
+>> If there is interest I can submit another version of the traditional driver
+>> to resolve the issues. But media device is a major rework, so I don't
+>> know whether it would make sense to start from the traditional driver
+>> and then implement media device on top later, since media device
+>> is almost a complete rewrite.
+> I, at least, am interested by this driver, even in its "traditionnal"
+> form :). If you don't want to submit it directly because this is not
+> using media controller, this is ok, you can provide me a git repo in
+> order to get it, or send a patchset.
 
-Regards,
-Mauro
+I think I'll follow Hans' proposal and submit it again to media-tree as
+a staging driver.
+
+Steve
+
