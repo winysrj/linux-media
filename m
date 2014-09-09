@@ -1,121 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2495 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757395AbaITTQ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 15:16:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/3] vb2: fix VBI/poll regression
-Date: Sat, 20 Sep 2014 21:16:35 +0200
-Message-Id: <1411240597-2105-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:29733 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252AbaIISkr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 14:40:47 -0400
+Date: Tue, 09 Sep 2014 15:40:32 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
+Message-id: <20140909154032.01625bb0.m.chehab@samsung.com>
+In-reply-to: <60097822.tu6OncvLxQ@wuerfel>
+References: <20140909124306.2d5a0d76@canb.auug.org.au>
+ <540F15B2.3000902@samsung.com> <20140909120936.527bd852.m.chehab@samsung.com>
+ <60097822.tu6OncvLxQ@wuerfel>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 09 Sep 2014 19:54:19 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-The recent conversion of saa7134 to vb2 unconvered a poll() bug that
-broke the teletext applications alevt and mtt. These applications
-expect that calling poll() without having called VIDIOC_STREAMON will
-cause poll() to return POLLERR. That did not happen in vb2.
+> On Tuesday 09 September 2014 12:09:36 Mauro Carvalho Chehab wrote:
+> > -exynos4.c
+> > > > index e51c078360f5..01eeacf28843 100644
+> > > > --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > > > +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > > > @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+> > > >     reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+> > > >     writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+> > > >  
+> > > > +#ifndef CONFIG_COMPILE_TEST
+> > > >     ndelay(100000);
+> > > > +#endif
+> > > 
+> > > Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
+> > > rather than sticking in a not so pretty #ifndef ?
+> > 
+> > Works for me. I'll submit a new version.
+> 
+> New version looks good to me. On a more general level, I would argue
+> that we should not disable code based on COMPILE_TEST. The typical
+> use of this symbol is to make it possible to compile more code, not
+> to change the behavior of code on machines that were able to build
+> it already.
 
-This patch fixes that behavior. It also fixes what should happen when
-poll() is called when STREAMON is called but no buffers have been
-queued. In that case poll() will also return POLLERR, but only for
-capture queues since output queues will always return POLLOUT
-anyway in that situation.
+Yeah, agreed as a general concept. In this case, however, it were
+causing a compilation breakage on X86 (as it generates a non-existing
+_bad_ndelay() symbol, if the time is bigger than 20000). See
+include/asm-generic/delay.h.
 
-This brings the vb2 behavior in line with the old videobuf behavior.
+Btw, I suspect that the only reason why ndelay(100000) causes a
+compilation breakage is to avoid a big number, as the maximum limit
+check ndelay() code (20000) at asm-generic is identical to the one
+for udelay(). So, for ndelay, it means 20us, while, for udelay,
+it means 20ms. Even so, both calls the very same implementation code.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 17 ++++++++++++++---
- include/media/videobuf2-core.h           |  4 ++++
- 2 files changed, 18 insertions(+), 3 deletions(-)
+Perhaps we should fix it, for both to accept a maximum time of 20ms.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7e6aff6..a0aa694 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * to the userspace.
- 	 */
- 	req->count = allocated_buffers;
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	return 0;
- }
-@@ -1024,6 +1025,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 		q->memory = create->memory;
-+		q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 	}
- 
- 	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
-@@ -1801,6 +1803,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	 */
- 	list_add_tail(&vb->queued_entry, &q->queued_list);
- 	q->queued_count++;
-+	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
- 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
- 		/*
-@@ -2261,6 +2264,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 * their normal dequeued state.
- 	 */
- 	__vb2_queue_cancel(q);
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	dprintk(3, "successful\n");
- 	return 0;
-@@ -2583,10 +2587,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffer has been queued and the
--	 * queue isn't streaming, or if the error flag is set.
-+	 * There is nothing to wait for if the queue isn't streaming, or if the
-+	 * error flag is set.
- 	 */
--	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-+	if (!vb2_is_streaming(q) || q->error)
-+		return res | POLLERR;
-+	/*
-+	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize waiting_for_buffers to false.
-+	 */
-+	if (q->waiting_for_buffers)
- 		return res | POLLERR;
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5a10d8d..84f790c 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -381,6 +381,9 @@ struct v4l2_fh;
-  * @start_streaming_called: start_streaming() was called successfully and we
-  *		started streaming.
-  * @error:	a fatal error occurred on the queue
-+ * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
-+ *		buffers. Only set for capture queues if qbuf has not yet been
-+ *		called since poll() needs to return POLLERR in that situation.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-  */
-@@ -419,6 +422,7 @@ struct vb2_queue {
- 	unsigned int			streaming:1;
- 	unsigned int			start_streaming_called:1;
- 	unsigned int			error:1;
-+	unsigned int			waiting_for_buffers:1;
- 
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
--- 
-2.1.0
-
+Regards,
+Mauro
