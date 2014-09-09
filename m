@@ -1,108 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:50202 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbaIFCvL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Sep 2014 22:51:11 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBG004U2L99M4A0@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 05 Sep 2014 22:51:09 -0400 (EDT)
-Date: Fri, 05 Sep 2014 23:51:05 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend for
- APIv5
-Message-id: <20140905235105.3ab6e7c4.m.chehab@samsung.com>
-In-reply-to: <540A6CF3.4070401@iki.fi>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
- <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi>
- <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi>
- <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:28297 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932237AbaIIPaa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:30:30 -0400
+Message-id: <540F1D11.9030400@samsung.com>
+Date: Tue, 09 Sep 2014 17:30:25 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 8BIT
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
+References: <20140909124306.2d5a0d76@canb.auug.org.au>
+ <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
+ <b7343e6296b5d1d68b7229b8307442fd4141bcb3.1410273306.git.m.chehab@samsung.com>
+ <540F15B2.3000902@samsung.com> <20140909120936.527bd852.m.chehab@samsung.com>
+In-reply-to: <20140909120936.527bd852.m.chehab@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 06 Sep 2014 05:09:55 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Mauro, Sylwester,
 
-> Moro!
-> 
-> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
-> > moikka,
-> >
-> >> Start polling thread, which polls once per 2 sec or so, which reads RSSI
-> >> and writes value to struct dtv_frontend_properties. That it is, in my
-> >> understanding. Same for all those DVBv5 stats. Mauro knows better as he
-> >> designed that functionality.
-> >
-> > I understand that RSSI property should be set directly in the tuner driver,
-> > but I'm afraid that creating a kthread just for updating RSSI would be
-> > overkill and complicate matters.
-> >
-> > Would you give me an advice? >> Mauro
-> 
-> Now I know that as I implement it. I added kthread and it works 
-> correctly, just I though it is aimed to work. In my case signal strength 
-> is reported by demod, not tuner, because there is some logic in firmware 
-> to calculate it.
-> 
-> Here is patches you would like to look as a example:
-> 
-> af9033: implement DVBv5 statistic for signal strength
-> https://patchwork.linuxtv.org/patch/25748/
+On 09/09/2014 05:09 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 09 Sep 2014 16:58:58 +0200
+> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+>
+>> On 09/09/14 16:38, Mauro Carvalho Chehab wrote:
+>>> ERROR: "__bad_ndelay" [drivers/media/platform/s5p-jpeg/s5p-jpeg.ko] undefined!
+>>>
+>>> Yet, it sounds a bad idea to use ndelay to wait for 100 us
+>>> for the device to reset.
+>>>
+>>> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>>
+>>> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+>>> index e51c078360f5..01eeacf28843 100644
+>>> --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+>>> +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+>>> @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+>>>   	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+>>>   	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+>>>
+>>> +#ifndef CONFIG_COMPILE_TEST
+>>>   	ndelay(100000);
+>>> +#endif
+>>
+>> Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
+>> rather than sticking in a not so pretty #ifndef ?
+>
+> Works for me. I'll submit a new version.
+>
+>> I guess usleep_range() couldn't simply be used, since
+>> exynos4_jpeg_sw_reset() is called with a spinlock held.
+>
+> Ok.
 
-Actually, you don't need to add a separate kthread to collect the stats.
-The DVB frontend core already has a thread that calls the frontend status
-on every 3 seconds (the time can actually be different, depending on
-the value for fepriv->delay. So, if the device doesn't have any issues
-on getting stats on this period, it could just hook the DVBv5 stats logic
-at ops.read_status().
+Within few days I will perform some hardware tests, to verify
+if there is more room for improvement here.
 
->From the last time I reviewed the code, the PT3 driver seems to be using
-this approach already at the demod.
-
-Getting this value at the tuner makes it a little more trickier,
-as you need to use some tuner callback to update the demod cache.
-The .get_rf_strength ops is meant to get the signal strength from the
-tuner, but it doesn't allow the tuner to return a value in dBm.
-
-It shouldn't be the demod's task to convert a raw value on a tuner client
-into dBm. 
-
-After reading this thread and its comments, I think that the best would be
-to not add a new callback.
-
-Instead, change the implementation at the .get_rf_strength callback in
-a way that it will return an integer from 0 to 65535 that would represent
-a "percentage" level, where 100% means the maximum signal that the device
-can measure.
-
-Inside the tuner driver (mxl301rf), a call to .get_rf_strength will
-directly update the FE stats cache to reflect the signal measurements in
-dBm.
-
-So, from the bridge driver, it will just call .get_rf_strength() without
-using the returned results. If, latter, we use this tuner on some other
-configuration (for example, on an hybrid analog/digital or SDR/digital
-board), the V4L2 part will use the "percentage" level, as the V4L2 API
-doesn't support returning values in dBm.
-
-Regards,
-Mauro
-
-> af9033: implement DVBv5 statistic for CNR
-> https://patchwork.linuxtv.org/patch/25744/
-> 
-> af9033: implement DVBv5 stat block counters
-> https://patchwork.linuxtv.org/patch/25749/
-> 
-> af9033: implement DVBv5 post-Viterbi BER
-> https://patchwork.linuxtv.org/patch/25750/
-> 
-> regards
-> Antti
-> 
+Best Regards,
+Jacek Anaszewski
