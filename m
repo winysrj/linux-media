@@ -1,118 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3148 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbaIUOsq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 03/11] videodev2.h: rename reserved2 to config_store in v4l2_buffer.
-Date: Sun, 21 Sep 2014 16:48:21 +0200
-Message-Id: <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:54000 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757441AbaIIQ2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 12:28:55 -0400
+Received: by mail-la0-f43.google.com with SMTP id gi9so8167802lab.2
+        for <linux-media@vger.kernel.org>; Tue, 09 Sep 2014 09:28:54 -0700 (PDT)
+Message-ID: <540F2AC1.20700@gmail.com>
+Date: Tue, 09 Sep 2014 09:28:49 -0700
+From: Steve Longerbeam <slongerbeam@gmail.com>
+MIME-Version: 1.0
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+In-Reply-To: <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
+> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
+>
+>> The complete driver I posted to the list does have some minor issues
+>> mostly suggested by Hans Verkuil (switch to new selection API instead
+>> of cropping API for example). It is a full featured driver but it does not
+>> implement the media device framework, i.e. user does not have direct
+>> control of the video pipeline, rather the driver chooses the pipeline based
+>> on the traditional inputs from user (video format and controls).
+>>
+>> If there is interest I can submit another version of the traditional driver
+>> to resolve the issues. But media device is a major rework, so I don't
+>> know whether it would make sense to start from the traditional driver
+>> and then implement media device on top later, since media device
+>> is almost a complete rewrite.
+> I, at least, am interested by this driver, even in its "traditionnal"
+> form :). If you don't want to submit it directly because this is not
+> using media controller, this is ok, you can provide me a git repo in
+> order to get it, or send a patchset.
 
-When queuing buffers allow for passing the configuration store ID that
-should be associated with this buffer. Use the 'reserved2' field for this.
+Hi Jean-Michel, I forgot to mention I will be working on the staging
+capture driver in a copy of the media-tree on github at:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
- drivers/media/v4l2-core/videobuf2-core.c      | 4 +++-
- include/uapi/linux/videodev2.h                | 3 ++-
- 4 files changed, 8 insertions(+), 5 deletions(-)
+git@github.com:slongerbeam/mediatree.git
 
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 9caea83..0f28d2b 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
--	buf->reserved2 = 0;
-+	buf->config_store = 0;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index e502a5f..5afef3a 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -324,7 +324,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			config_store;
- 	__u32			reserved;
- };
- 
-@@ -489,7 +489,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved2, &up->reserved2) ||
-+		put_user(kp->config_store, &up->config_store) ||
- 		put_user(kp->reserved, &up->reserved))
- 			return -EFAULT;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7e6aff6..e3b6c50 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -655,7 +655,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 
- 	/* Copy back data such as timestamp, flags, etc. */
- 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
--	b->reserved2 = vb->v4l2_buf.reserved2;
-+	b->config_store = vb->v4l2_buf.config_store;
- 	b->reserved = vb->v4l2_buf.reserved;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
-@@ -680,6 +680,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		else if (q->memory == V4L2_MEMORY_DMABUF)
- 			b->m.fd = vb->v4l2_planes[0].m.fd;
- 	}
-+	b->config_store = vb->v4l2_buf.config_store;
- 
- 	/*
- 	 * Clear any buffer state related flags.
-@@ -1324,6 +1325,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 */
- 		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	}
-+	vb->v4l2_buf.config_store = b->config_store;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 		/*
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 83ef28a..2ca44ed 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -672,6 +672,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @config_store: this buffer should use this configuration store
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -695,7 +696,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			config_store;
- 	__u32			reserved;
- };
- 
--- 
-2.1.0
+Steve
+
 
