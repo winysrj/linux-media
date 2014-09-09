@@ -1,116 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1151 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755731AbaIICke (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 22:40:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s892eVUE079537
-	for <linux-media@vger.kernel.org>; Tue, 9 Sep 2014 04:40:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D6DE12A03DA
-	for <linux-media@vger.kernel.org>; Tue,  9 Sep 2014 04:40:28 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140909024028.D6DE12A03DA@tschai.lan>
-Date: Tue,  9 Sep 2014 04:40:28 +0200 (CEST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:32940 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219AbaIINSL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 09:18:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
+Date: Tue, 09 Sep 2014 16:18:15 +0300
+Message-ID: <1468017.Vb1L5kusHW@avalon>
+In-Reply-To: <53CD97D2.1010408@xs4all.nl>
+References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com> <1479223.veAhoGoXLY@avalon> <53CD97D2.1010408@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tuesday 22 July 2014 00:44:34 Hans Verkuil wrote:
+> On 07/22/2014 12:30 AM, Laurent Pinchart wrote:
+> > On Monday 21 July 2014 23:43:16 Hans Verkuil wrote:
+> >> On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
+> >>> The RGB666 pixel format doesn't include an alpha channel. Document it as
+> >>> such.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20
+> >>>  +++++----------
+> >>> 
+> >>> 1 file changed, 6 insertions(+), 14 deletions(-)
+> >>> 
+> >>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+> >>> 32feac9..c47692a 100644
+> >>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> @@ -330,20 +330,12 @@ colorspace
+> >>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>>
+> >>>  	    <entry></entry>
+> >>>  	    <entry>r<subscript>1</subscript></entry>
+> >>>  	    <entry>r<subscript>0</subscript></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry></entry>
+> >>> +	    <entry>-</entry>
+> >>> +	    <entry>-</entry>
+> >>> +	    <entry>-</entry>
+> >>> +	    <entry>-</entry>
+> >>> +	    <entry>-</entry>
+> >>> +	    <entry>-</entry>
+> >> 
+> >> Just to clarify: BGR666 is a three byte format, not a four byte format?
+> > 
+> > Well... :-)
+> > 
+> > Three drivers seem to support the BGR666 in mainline : sh_veu, s3c-camif
+> > and exynos4-is. Further investigation shows that the sh_veu driver lists
+> > the BGR666 format internally but doesn't expose it to userspace and
+> > doesn't actually support it, so we're down to two drivers.
+> > 
+> > Looking at the S3C6410 datasheet, it's unclear how the hardware stores
+> > RGB666 pixels in memory. It could be either
+> > 
+> > Byte 0   Byte 1   Byte 2   Byte 3
+> > 
+> > -------- ------RR RRRRGGGG GGBBBBBB
+> > 
+> > or
+> > 
+> > GGBBBBBB RRRRGGGG ------RR --------
+> > 
+> > None of those correspond to the RGB666 format defined in the spec.
+> > 
+> > The Exynos4 FIMC isn't documented in the public datasheet, so I can't
+> > check how the format is defined.
+> > 
+> > Furthermore, various Renesas video-related IP cores support many different
+> > RGB666 variants, on either 32 or 24 bits per pixel, with and without
+> > alpha.
+> > 
+> > Beside a loud *sigh*, any comment ? :-)
+> 
+> You'll have to check with Samsung then. Sylwester, can you shed any light on
+> what this format *really* is?
 
-Results of the daily build of media_tree:
+Ping ?
 
-date:		Tue Sep  9 04:00:24 CEST 2014
-git branch:	test
-git hash:	91f96e8b7255537da3a58805cf465003521d7c5f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-1.slh.4-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
