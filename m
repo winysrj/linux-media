@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49029 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753128AbaIXJRg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 05:17:36 -0400
-Message-ID: <54228C39.7080207@linux.intel.com>
-Date: Wed, 24 Sep 2014 12:17:45 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:65485 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754151AbaIIRTJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 13:19:09 -0400
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: Set entity->links NULL in cleanup
-References: <1401197269-18773-1-git-send-email-sakari.ailus@linux.intel.com> <3533594.Ac4LJj8QGP@avalon> <20140717115349.GN16460@valkosipuli.retiisi.org.uk> <4899501.NLaQ1XGmm5@avalon>
-In-Reply-To: <4899501.NLaQ1XGmm5@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20140909131036.7265121f.m.chehab@samsung.com>
+References: <20140909124306.2d5a0d76@canb.auug.org.au>
+	<6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
+	<b7343e6296b5d1d68b7229b8307442fd4141bcb3.1410273306.git.m.chehab@samsung.com>
+	<540F15B2.3000902@samsung.com>
+	<20140909120936.527bd852.m.chehab@samsung.com>
+	<540F1D11.9030400@samsung.com>
+	<20140909131036.7265121f.m.chehab@samsung.com>
+Date: Tue, 9 Sep 2014 14:19:07 -0300
+Message-ID: <CAOMZO5ASN_Kcp4q-stmsoXBFcmtJLyyeEEpwy=U40qqghT7vXA@mail.gmail.com>
+Subject: Re: [PATCHv2 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
+From: Fabio Estevam <festevam@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	linux-samsung-soc@vger.kernel.org,
+	"linux-next@vger.kernel.org" <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Oops. this got buried in my inbox...
-
-Laurent Pinchart wrote:
-> On Thursday 17 July 2014 14:53:49 Sakari Ailus wrote:
->> On Thu, Jul 17, 2014 at 01:43:09PM +0200, Laurent Pinchart wrote:
->>> On Tuesday 27 May 2014 16:27:49 Sakari Ailus wrote:
->>>> Calling media_entity_cleanup() on a cleaned-up entity would result into
->>>> double free of the entity->links pointer and likely memory corruption as
->>>> well.
->>>
->>> My first question is, why would anyone do that ? :-)
->>
->> Because it makes error handling easier. Many cleanup functions work this
->> way, but not media_entity_cleanup().
+On Tue, Sep 9, 2014 at 1:10 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> ERROR: "__bad_ndelay" [drivers/media/platform/s5p-jpeg/s5p-jpeg.ko] undefined!
 >
-> Do the cleanup functions support being called multiple times, or do they just
-> support being called on memory that has been zeroed and not further
-> initialized ? The media_entity_cleanup() function supports the latter.
+> That happens because asm-generic doesn't like any ndelay time
+> bigger than 20us.
+>
+> Currently, usleep_range() couldn't simply be used, since
+> exynos4_jpeg_sw_reset() is called with a spinlock held.
+>
+> So, let's use ndelay() instead.
 
-I'd hope they wouldn't be called multiple times, or on memory that's not 
-been zeroed, but in that case it's better to behave rather than corrupt 
-system memory. That could be an indication of other problems, too, so 
-one could consider adding WARN_ON() to this as well. What do you think?
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+You meant 'udelay() instead'.
