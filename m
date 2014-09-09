@@ -1,86 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:51506 "EHLO venus.vo.lu"
+Received: from mout.gmx.net ([212.227.17.22]:54053 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559AbaIWImx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 04:42:53 -0400
+	id S1755826AbaIIHmq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Sep 2014 03:42:46 -0400
+Date: Tue, 9 Sep 2014 09:42:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] V4L2: UVC: allow using larger buffers
+Message-ID: <Pine.LNX.4.64.1409090941280.1402@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Tue, 23 Sep 2014 10:42:29 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Digital Devices PCIe bridge update to 0.9.15a
-In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
-References: <1406951335-24026-1-git-send-email-crope@iki.fi>
-Message-ID: <90566e3465ba22d729c5d4d023208d8a@tuxicoman.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+A test in uvc_video_decode_isoc() checks whether an image has been
+received from the camera completely. For this the data amount is compared
+to the buffer length, which, however, doesn't have to be equal to the
+image size. Switch to using formats .sizeimage field for an exact
+expected image size.
 
-On 2014-08-02 05:48, Antti Palosaari wrote:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-> 
-> Tree for testing is here:
-> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=digitaldevices
-> 
+Thanks to Laurent for the idea
 
+ drivers/media/usb/uvc/uvc_v4l2.c  | 1 +
+ drivers/media/usb/uvc/uvc_video.c | 2 +-
+ drivers/media/usb/uvc/uvcvideo.h  | 1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-Hi Antti,
-
-I tried your digitaldevices branch but it does not work for me.
-
-Using w_scan, I'm not able to find any DVB-C transponder.
-The very same command works fine with the official drivers.
-
-There is no indication of what is wrong. Everything seems fine, I just 
-don't get a lock.
-
-See the relevant output below.
-
-Regards,
-   Guy
-
-02:00.0 Multimedia controller: Digital Devices GmbH Device 0005
-         Subsystem: Digital Devices GmbH Device 0004
-         Flags: bus master, fast devsel, latency 0, IRQ 17
-         Memory at d0500000 (64-bit, non-prefetchable) [size=64K]
-         Capabilities: [50] Power Management version 3
-         Capabilities: [70] MSI: Enable- Count=1/2 Maskable- 64bit+
-         Capabilities: [90] Express Endpoint, MSI 00
-         Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0 
-Len=00c <?>
-         Kernel driver in use: ddbridge
-         Kernel modules: ddbridge
-
-
-[40396.241811] Digital Devices PCIE bridge driver 0.9.15, Copyright (C) 
-2010-14 Digital Devices GmbH
-[40396.242318] DDBridge driver detected: Digital Devices Octopus V3 DVB 
-adapter
-[40396.242358] HW 00010000 REGMAP 00010004
-[40396.352992] Port 0 (TAB 1): DUAL DVB-C/T/T2
-[40396.354460] Port 1 (TAB 2): NO MODULE
-[40396.355691] Port 2 (TAB 3): NO MODULE
-[40396.464656] Port 3 (TAB 4): DUAL DVB-C/T/T2
-[40396.467376] 0 netstream channels
-[40396.467388] DVB: registering new adapter (DDBridge)
-[40396.467392] DVB: registering new adapter (DDBridge)
-[40396.467396] DVB: registering new adapter (DDBridge)
-[40396.467399] DVB: registering new adapter (DDBridge)
-[40396.505488] tda18212 0-0060: NXP TDA18212HN/M successfully identified
-[40396.505546] ddbridge 0000:02:00.0: DVB: registering adapter 0 
-frontend 0 (CXD2837 DVB-C DVB-T/T2)...
-[40396.552506] tda18212 0-0063: NXP TDA18212HN/S successfully identified
-[40396.552545] ddbridge 0000:02:00.0: DVB: registering adapter 1 
-frontend 0 (CXD2837 DVB-C DVB-T/T2)...
-[40396.599404] tda18212 3-0060: NXP TDA18212HN/M successfully identified
-[40396.599440] ddbridge 0000:02:00.0: DVB: registering adapter 2 
-frontend 0 (CXD2837 DVB-C DVB-T/T2)...
-[40396.647594] tda18212 3-0063: NXP TDA18212HN/S successfully identified
-[40396.647632] ddbridge 0000:02:00.0: DVB: registering adapter 3 
-frontend 0 (CXD2837 DVB-C DVB-T/T2)...
-
-
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3b548b8..87d15c2 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -318,6 +318,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming *stream,
+ 	stream->ctrl = probe;
+ 	stream->cur_format = format;
+ 	stream->cur_frame = frame;
++	stream->image_size = fmt->fmt.pix.sizeimage;
+ 
+ done:
+ 	mutex_unlock(&stream->mutex);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index e568e07..60abf6f 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1172,7 +1172,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 			urb->iso_frame_desc[i].actual_length);
+ 
+ 		if (buf->state == UVC_BUF_STATE_READY) {
+-			if (buf->length != buf->bytesused &&
++			if (stream->image_size != buf->bytesused &&
+ 			    !(stream->cur_format->flags &
+ 			      UVC_FMT_FLAG_COMPRESSED))
+ 				buf->error = 1;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 404793b..d3a3b71 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -480,6 +480,7 @@ struct uvc_streaming {
+ 	struct uvc_format *def_format;
+ 	struct uvc_format *cur_format;
+ 	struct uvc_frame *cur_frame;
++	size_t image_size;
+ 	/* Protect access to ctrl, cur_format, cur_frame and hardware video
+ 	 * probe control.
+ 	 */
+-- 
+1.9.3
 
