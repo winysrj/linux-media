@@ -1,92 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:34882 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbaIFWhe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 18:37:34 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBI0098J46LFT30@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 06 Sep 2014 18:37:33 -0400 (EDT)
-Date: Sat, 06 Sep 2014 19:37:28 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend for
- APIv5
-Message-id: <20140906193728.13b0f725.m.chehab@samsung.com>
-In-reply-to: <540B7E91.5000700@gmail.com>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
- <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi>
- <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi>
- <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi>
- <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
- <540B7E91.5000700@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33362 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835AbaIIRk2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 13:40:28 -0400
+Message-ID: <1410284421.3353.47.camel@paszta.hi.pengutronix.de>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Tue, 09 Sep 2014 19:40:21 +0200
+In-Reply-To: <540F26E5.50609@gmail.com>
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
+	 <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
+	 <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
+	 <1407153257.3979.30.camel@paszta.hi.pengutronix.de>
+	 <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
+	 <53FDE9E1.2000108@mentor.com>
+	 <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+	 <540F26E5.50609@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 06 Sep 2014 22:37:21 +0100
-Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+Hi Steve,
 
-> On 06/09/14 17:24, Malcolm Priestley wrote:
-> > On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
-> >> Em Sat, 06 Sep 2014 05:09:55 +0300
-> >> Antti Palosaari <crope@iki.fi> escreveu:
-> >>
-> >>> Moro!
-> >>>
-> >>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
-> >>>> moikka,
-> >>>>
-> >>>>> Start polling thread, which polls once per 2 sec or so, which reads
-> >>>>> RSSI
-> >>>>> and writes value to struct dtv_frontend_properties. That it is, in my
-> >>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
-> >>>>> as he
-> >>>>> designed that functionality.
-> >>>>
-> >>>> I understand that RSSI property should be set directly in the tuner
-> >>>> driver,
-> >>>> but I'm afraid that creating a kthread just for updating RSSI would be
-> >>>> overkill and complicate matters.
-> >>>>
-> >>>> Would you give me an advice? >> Mauro
-> >>>
-> >>> Now I know that as I implement it. I added kthread and it works
-> >>> correctly, just I though it is aimed to work. In my case signal strength
-> >>> is reported by demod, not tuner, because there is some logic in firmware
-> >>> to calculate it.
-> >>>
-> >>> Here is patches you would like to look as a example:
-> >>>
-> >>> af9033: implement DVBv5 statistic for signal strength
-> >>> https://patchwork.linuxtv.org/patch/25748/
-> >>
-> >> Actually, you don't need to add a separate kthread to collect the stats.
-> >> The DVB frontend core already has a thread that calls the frontend status
-> >> on every 3 seconds (the time can actually be different, depending on
-> >> the value for fepriv->delay. So, if the device doesn't have any issues
-> >> on getting stats on this period, it could just hook the DVBv5 stats logic
-> >> at ops.read_status().
-> >>
+Am Dienstag, den 09.09.2014, 09:12 -0700 schrieb Steve Longerbeam:
+> Hi Jean-Michel,
+> 
+> 
+> On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
+> > 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
 > >
-> > Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
+> >> Hi Jean-Michel, Phillip,
+> > Hi Steve,
+> >
+> >> I've done some work on Philipp's June 12 patchset, converting
+> >> the CSI driver to a CSI subdev entity, and fixing some issues here
+> >> and there. This June 12 patchset doesn't appear to be a fully working
+> >> driver, Phillip correct me if I am wrong. I can post this work as it
+> >> exists, it is incomplete but compiles.
+> > Dos it compile against a 3.17-rc3 kernel :) ?
 > 
-> The only way change this is by using algo DVBFE_ALGO_HW using the 
-> frontend ops tune.
+> No, not anymore, the original posted driver was against 3.16 IIRC.
 > 
-> As most frontends are using dvb_frontend_swzigzag it could be 
-> implemented by patching the frontend ops tune code at the lock
-> return in this function or in dvb_frontend_swzigzag_update_delay.
+> >
+> >> I've also worked out what I think is a workable video pipeline graph for i.MX,
+> >> suitable for defining the entities, pads, and links. Unfortunately I haven't
+> >> been able to spend as much time as I'd like on it.
+> > This is very interesting, do you have written this somewhere ?
+> 
+> Yes, I'll try to find some time to create a pdf image.
 
-Well, if a different value is needed, it shouldn't be hard to add a
-way to customize it, letting the demod to specify it, in the same way
-as fe->ops.info.frequency_stepsize (and other similar demot properties)
-are passed through the core.
+I'd be very interested in this, too. I have in the meantime started to
+implement everything that has a source or destination selector in the
+Frame Synchronization Unit (FSU) as media entity. I wonder which of
+these parts should reasonably be unified into a single entity:
 
-Regards,
-Mauro
+	CSI0
+	CSI1
+	SMFC0
+	SMFC1
+	SMFC2
+	SMFC3
+	IC preprocessor (input to VF and ENC, if I understood correctly)
+	IC viewfinder task (scaling, csc)
+	IC encoding task
+	IC post processing task
+	IRT viewfinder task (rotation)
+	IRT encoding task
+	IRT post processing task
+	VDIC (deinterlacing, combining)
+	(and probably some entry for DP/DC/DMFC for the direct
+	 viewfinder path)
+
+I suppose the SMFC channels need to be separate because they can belong
+to different pipelines (and each entity can only belong to one).
+The three IC task entities could probably be combined with their
+corresponding IRT task entity somehow, but that would be at the cost of
+not being able to tell the kernel whether to rotate before or after
+scaling, which might be useful when handling chroma subsampled formats.
+
+I have put my current state up here:
+
+git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+
+So far I've captured video through the SMFC on a Nitrogen6X board with
+OV5652 parallel camera with this.
+
+> >> The complete driver I posted to the list does have some minor issues
+> >> mostly suggested by Hans Verkuil (switch to new selection API instead
+> >> of cropping API for example). It is a full featured driver but it does not
+> >> implement the media device framework, i.e. user does not have direct
+> >> control of the video pipeline, rather the driver chooses the pipeline based
+> >> on the traditional inputs from user (video format and controls).
+> >>
+> >> If there is interest I can submit another version of the traditional driver
+> >> to resolve the issues. But media device is a major rework, so I don't
+> >> know whether it would make sense to start from the traditional driver
+> >> and then implement media device on top later, since media device
+> >> is almost a complete rewrite.
+> > I, at least, am interested by this driver, even in its "traditionnal"
+> > form :). If you don't want to submit it directly because this is not
+> > using media controller, this is ok, you can provide me a git repo in
+> > order to get it, or send a patchset.
+> 
+> I think I'll follow Hans' proposal and submit it again to media-tree as
+> a staging driver.
+
+I'm not too fond of adding a staging driver that we know will have to be
+replaced. Maybe we could work together to get a media entity based
+version up to speed?
+
+regards
+Philipp
+
