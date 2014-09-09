@@ -1,72 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-hk1on0132.outbound.protection.outlook.com ([134.170.140.132]:53973
-	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751937AbaIUIPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 04:15:11 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: buffer delivery stops with cx23885
-Date: Sun, 21 Sep 2014 08:15:05 +0000
-Message-ID: <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
- <541D469B.4000306@xs4all.nl>
- <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5220.4050107@xs4all.nl>
- <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5CD0.1000207@xs4all.nl>
- <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D61D7.3080202@xs4all.nl>
- <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
-In-Reply-To: <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:52418 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757345AbaIIQGO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 12:06:14 -0400
+Received: by mail-lb0-f180.google.com with SMTP id b12so2271782lbj.25
+        for <linux-media@vger.kernel.org>; Tue, 09 Sep 2014 09:06:12 -0700 (PDT)
+Message-ID: <540F256E.5080309@gmail.com>
+Date: Tue, 09 Sep 2014 09:06:06 -0700
+From: Steve Longerbeam <slongerbeam@gmail.com>
 MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com> <540EB1A8.9080804@xs4all.nl>
+In-Reply-To: <540EB1A8.9080804@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiA+DQo+ID4gQW5kIGltcG9ydGFudCBmb3IgbWUsIGJlY2F1c2UgaWYgaXQgSVMgcmVsYXRlZCB0
-byB0aGUgdmIyIGNvbnZlcnNpb24gdGhlbiBJDQo+ID4gbmVlZCB0byBrbm93IGFzYXAuDQo+ID4N
-Cj4gDQo+IE1pZ2h0IHRha2UgYSBmZXcgZGF5cyB0byBiZSBjb21wbGV0ZWx5IHN1cmUuIEkndmUg
-d29uZGVyZWQgaWYgaXQncyBzb21ldGhpbmcNCj4gdG8gZG8gd2l0aCB0aGUgc2lnbmFsIHRvbyAo
-bWF5YmUgc29tZSBidWcgd2hlbiBzaWduYWwgZXJyb3Igb2NjdXJzPykuIFNvDQo+IG1hbnkgdmFy
-aWFibGVzIDooDQo+IA0KDQpJIGNhbiByZWFzb25hYmx5IHJlbGlhYmx5IHJlcHJvZHVjZSB0aGUg
-cHJvYmxlbSB1c2luZyBkdmJzdHJlYW0uIHN0cmFjZSBvdXRwdXQgYmVsb3cuIEl0IGxvb2tzIHBy
-ZXR0eSBtdWNoIGFzIHlvdSdkIGV4cGVjdCAtIHBvbGwgcmV0dXJuaW5nIG5vcm1hbGx5IHVwIHVu
-dGlsIGl0IGRvZXNuJ3QgYW55bW9yZS4NCg0KSSdsbCB0ZXN0IG91dCB0aGUgZG93bmdyYWRlIHRv
-IDczZDgxMDIyOTg3MTk4NjNkNTQyNjRmNjI1MjEzNjI0ODdmODQyNTYganVzdCB0byBiZSBzdXJl
-LCB0aGVuIHNlZSBpZiBJIGNhbiB0YWtlIGl0IGZ1cnRoZXIgYmFjay4NCg0KSmFtZXMNCg0KcG9s
-bChbe2ZkPTcsIGV2ZW50cz1QT0xMSU58UE9MTFBSSX1dLCAxLCA1MDApID0gMSAoW3tmZD03LCBy
-ZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0pDQphY2NlcHQoMCwgMHg3MTJlMjAsIFswXSkgICAgICAg
-ICAgICAgICAgPSAtMSBFTk9UU09DSyAoU29ja2V0IG9wZXJhdGlvbiBvbiBub24tc29ja2V0KQ0K
-cmVhZCg3LCAiR1x2XDMwXDM3XDI1MlZcMzE3XDM3M1wyMVwzNzdcMzVcMjY1XDZcMjAwWlwyMDBc
-MzRcMjRcMzQyXDMzN2J3XDIzN1wyNjVcMzE0LDohYFxuXDM3MFw0Ii4uLiwgMTg4KSA9IDE4OA0K
-d3JpdGUoMywgIkdcdlwzMFwzN1wyNTJWXDMxN1wzNzNcMjFcMzc3XDM1XDI2NVw2XDIwMFpcMjAw
-XDM0XDI0XDM0MlwzMzdid1wyMzdcMjY1XDMxNCw6IWBcblwzNzBcNCIuLi4sIDE4OCkgPSAxODgN
-CnBvbGwoW3tmZD03LCBldmVudHM9UE9MTElOfFBPTExQUkl9XSwgMSwgNTAwKSA9IDEgKFt7ZmQ9
-NywgcmV2ZW50cz1QT0xMSU58UE9MTFBSSX1dKQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAg
-ICAgICAgICAgICAgID0gLTEgRU5PVFNPQ0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tl
-dCkNCnJlYWQoNywgIkdcdlwzMFwyMFxmMG4hXDIwMFwzMDFcMTApQCksXDI2MVwyNDFcMzMwXDI0
-MlwyMTNcMzc2XGZcMzQ1XDIyM1wyMVwyMDJATlwyYlwyMjRpIi4uLiwgMTg4KSA9IDE4OA0Kd3Jp
-dGUoMywgIkdcdlwzMFwyMFxmMG4hXDIwMFwzMDFcMTApQCksXDI2MVwyNDFcMzMwXDI0MlwyMTNc
-Mzc2XGZcMzQ1XDIyM1wyMVwyMDJATlwyYlwyMjRpIi4uLiwgMTg4KSA9IDE4OA0KcG9sbChbe2Zk
-PTcsIGV2ZW50cz1QT0xMSU58UE9MTFBSSX1dLCAxLCA1MDApID0gMSAoW3tmZD03LCByZXZlbnRz
-PVBPTExJTnxQT0xMUFJJfV0pDQphY2NlcHQoMCwgMHg3MTJlMjAsIFswXSkgICAgICAgICAgICAg
-ICAgPSAtMSBFTk9UU09DSyAoU29ja2V0IG9wZXJhdGlvbiBvbiBub24tc29ja2V0KQ0KcmVhZCg3
-LCAiR1x2XDMwXDIxJVwzNV1cMzU2XHJ2XDM3MitcMDIyMlwzNFwyMzNcMzEydixcMjMwXDM3MVwz
-NjNcMjA0c1wyMDVSUVwzMzRcMjQzXDIxXDMzN1wyMjMiLi4uLCAxODgpID0gMTg4DQp3cml0ZSgz
-LCAiR1x2XDMwXDIxJVwzNV1cMzU2XHJ2XDM3MitcMDIyMlwzNFwyMzNcMzEydixcMjMwXDM3MVwz
-NjNcMjA0c1wyMDVSUVwzMzRcMjQzXDIxXDMzN1wyMjMiLi4uLCAxODgpID0gMTg4DQpwb2xsKFt7
-ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkgPSAwIChUaW1lb3V0KQ0KYWNj
-ZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0gLTEgRU5PVFNPQ0sgKFNvY2tl
-dCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCnJlYWQoNywgMHg3ZmZmZjcxNDUxMjAsIDE4OCkg
-ICAgICAgICAgICA9IC0xIEVBR0FJTiAoUmVzb3VyY2UgdGVtcG9yYXJpbHkgdW5hdmFpbGFibGUp
-DQpwb2xsKFt7ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkgPSAwIChUaW1l
-b3V0KQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0gLTEgRU5PVFNP
-Q0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCnJlYWQoNywgMHg3ZmZmZjcxNDUx
-MjAsIDE4OCkgICAgICAgICAgICA9IC0xIEVBR0FJTiAoUmVzb3VyY2UgdGVtcG9yYXJpbHkgdW5h
-dmFpbGFibGUpDQpwb2xsKFt7ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkg
-PSAwIChUaW1lb3V0KQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0g
-LTEgRU5PVFNPQ0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCg==
+On 09/09/2014 12:52 AM, Hans Verkuil wrote:
+> On 09/09/14 09:49, Jean-Michel Hautbois wrote:
+>> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
+>>
+>>> Hi Jean-Michel, Phillip,
+>> Hi Steve,
+>>
+>>> I've done some work on Philipp's June 12 patchset, converting
+>>> the CSI driver to a CSI subdev entity, and fixing some issues here
+>>> and there. This June 12 patchset doesn't appear to be a fully working
+>>> driver, Phillip correct me if I am wrong. I can post this work as it
+>>> exists, it is incomplete but compiles.
+>> Dos it compile against a 3.17-rc3 kernel :) ?
+>>
+>>> I've also worked out what I think is a workable video pipeline graph for i.MX,
+>>> suitable for defining the entities, pads, and links. Unfortunately I haven't
+>>> been able to spend as much time as I'd like on it.
+>> This is very interesting, do you have written this somewhere ?
+>>
+>>> The complete driver I posted to the list does have some minor issues
+>>> mostly suggested by Hans Verkuil (switch to new selection API instead
+>>> of cropping API for example). It is a full featured driver but it does not
+>>> implement the media device framework, i.e. user does not have direct
+>>> control of the video pipeline, rather the driver chooses the pipeline based
+>>> on the traditional inputs from user (video format and controls).
+>>>
+>>> If there is interest I can submit another version of the traditional driver
+>>> to resolve the issues. But media device is a major rework, so I don't
+>>> know whether it would make sense to start from the traditional driver
+>>> and then implement media device on top later, since media device
+>>> is almost a complete rewrite.
+>> I, at least, am interested by this driver, even in its "traditionnal"
+>> form :). If you don't want to submit it directly because this is not
+>> using media controller, this is ok, you can provide me a git repo in
+>> order to get it, or send a patchset.
+> Is it possible to create a staging driver? Even if there are bits missing,
+> having the code in the kernel as a staging driver would help a lot.
+
+Hi Hans, that's a good idea. I can post it as a staging driver.
+
+The capture driver does require more support in the i.MX IPU driver which is
+not yet merged or proposed. Phillip has forwarded most of them to drm-next,
+but there are a few more required. I need to post those patches to drm-next
+as a first step.
+
+I can start working on converting the driver to staging and addressing
+the earlier issues, but posting it to media-tree will need to wait until the IPU
+patches are merged, unless I include the IPU patches along with the capture
+driver patchset.
+
+Steve
+
