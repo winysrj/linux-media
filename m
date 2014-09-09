@@ -1,116 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1832 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556AbaILNAh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 10/14] vb2: add 'new_cookies' flag
-Date: Fri, 12 Sep 2014 14:59:59 +0200
-Message-Id: <1410526803-25887-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:33480 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495AbaIIPJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:09:44 -0400
+Date: Tue, 09 Sep 2014 12:09:36 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
+Message-id: <20140909120936.527bd852.m.chehab@samsung.com>
+In-reply-to: <540F15B2.3000902@samsung.com>
+References: <20140909124306.2d5a0d76@canb.auug.org.au>
+ <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
+ <b7343e6296b5d1d68b7229b8307442fd4141bcb3.1410273306.git.m.chehab@samsung.com>
+ <540F15B2.3000902@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 09 Sep 2014 16:58:58 +0200
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
 
-This flag helps drivers that need to reprogram their DMA engine whenever
-a plane cookie (== DMA address or DMA scatter-gather list) changes.
+> On 09/09/14 16:38, Mauro Carvalho Chehab wrote:
+> > ERROR: "__bad_ndelay" [drivers/media/platform/s5p-jpeg/s5p-jpeg.ko] undefined!
+> > 
+> > Yet, it sounds a bad idea to use ndelay to wait for 100 us
+> > for the device to reset.
+> > 
+> > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > 
+> > diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > index e51c078360f5..01eeacf28843 100644
+> > --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
+> > @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
+> >  	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
+> >  	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+> >  
+> > +#ifndef CONFIG_COMPILE_TEST
+> >  	ndelay(100000);
+> > +#endif
+> 
+> Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
+> rather than sticking in a not so pretty #ifndef ?
 
-Otherwise they would have to reprogram the DMA engine for every frame.
+Works for me. I'll submit a new version.
 
-Note that it is not possible to do this in buf_init() since dma_map_sg has
-to be done first, which happens just before buf_prepare() in the prepare()
-memop. It is dma_map_sg that sets up the dma addresses that are needed to
-configure the DMA engine.
+> I guess usleep_range() couldn't simply be used, since
+> exynos4_jpeg_sw_reset() is called with a spinlock held.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |  5 +++++
- include/media/videobuf2-core.h           | 14 ++++++++++++--
- 2 files changed, 17 insertions(+), 2 deletions(-)
+Ok.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 01bab25..7217eb1 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -391,6 +391,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 				kfree(vb);
- 				break;
- 			}
-+			vb->new_cookies = 1;
- 		}
- 
- 		q->bufs[q->num_buffers + buffer] = vb;
-@@ -1373,6 +1374,8 @@ static int __buf_memory_prepare(struct vb2_buffer *vb)
- 		for (plane = 0; plane < vb->num_planes; ++plane)
- 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
- 		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+	} else {
-+		vb->new_cookies = 0;
- 	}
- 	return ret;
- }
-@@ -1467,6 +1470,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+		vb->new_cookies = 1;
- 	}
- 
- 	ret = __buf_memory_prepare(vb);
-@@ -1591,6 +1595,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+		vb->new_cookies = 1;
- 	}
- 
- 	ret = __buf_memory_prepare(vb);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bf8bde2..9304718 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -186,6 +186,11 @@ struct vb2_queue;
-  * @vb2_queue:		the queue to which this driver belongs
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue
-+ * @new_cookies:	the planes of the buffer have new cookie values.
-+ *			This happens if a new userptr or dmabuf is used for one
-+ *			or more of the buffer planes. This will change the cookie
-+ *			value of those planes and you may need to reprogram the DMA
-+ *			engine when buf_prepare is called.
-  * @state:		current buffer state; do not change
-  * @queued_entry:	entry on the queued buffers list, which holds all
-  *			buffers queued from userspace
-@@ -200,6 +205,7 @@ struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
- 
- 	unsigned int		num_planes;
-+	unsigned int		new_cookies:1;
- 
- /* Private: internal use only */
- 	enum vb2_buffer_state	state;
-@@ -290,8 +296,12 @@ struct vb2_buffer {
-  *			hardware operation in this callback; drivers that
-  *			support	VIDIOC_CREATE_BUFS must also validate the
-  *			buffer size, if they haven't done that yet in
-- *			@buf_prepare_for_cpu. If an error is returned, the
-- *			buffer will not be queued in the driver; optional.
-+ *			@buf_prepare_for_cpu. If one or more of the plane
-+ *			cookies (see vb2_plane_cookie) are updated, then
-+ *			vb->new_cookies is set to 1. If buf_prepare returns
-+ *			0 (success), then new_cookies is cleared automatically.
-+ *			If an error is returned, then the buffer will not be
-+ *			queued in the driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; the contents of the buffer cannot be
-  *			accessed by the cpu at this stage as it is still setup
--- 
-2.1.0
-
+Regards,
+Mauro
