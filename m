@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45769 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754396AbaI2SEV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:04:21 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 6/6] imx-drm: use for_each_endpoint_of_node macro in imx_drm_encoder_parse_of
-Date: Mon, 29 Sep 2014 20:03:39 +0200
-Message-Id: <1412013819-29181-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:34242 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751775AbaIJHWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 03:22:01 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] MAINTAINERS: add HackRF SDR driver
+Date: Wed, 10 Sep 2014 10:21:39 +0300
+Message-Id: <1410333699-19705-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the for_each_... macro should make the code bit shorter and
-easier to read. Since we can break out of the loop, we keep the
-call to of_node_put after the loop.
+HackRF SDR driver. Video4Linux USB device.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/imx-drm/imx-drm-core.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-index 9b5222c..8f2a802 100644
---- a/drivers/staging/imx-drm/imx-drm-core.c
-+++ b/drivers/staging/imx-drm/imx-drm-core.c
-@@ -438,17 +438,13 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	struct drm_encoder *encoder, struct device_node *np)
- {
- 	struct imx_drm_device *imxdrm = drm->dev_private;
--	struct device_node *ep = NULL;
-+	struct device_node *ep;
- 	uint32_t crtc_mask = 0;
--	int i;
-+	int i = 0;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 78b38e9..3e907d3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4146,6 +4146,16 @@ L:	linuxppc-dev@lists.ozlabs.org
+ S:	Odd Fixes
+ F:	drivers/tty/hvc/
  
--	for (i = 0; ; i++) {
-+	for_each_endpoint_of_node(np, ep) {
- 		u32 mask;
- 
--		ep = of_graph_get_next_endpoint(np, ep);
--		if (!ep)
--			break;
--
- 		mask = imx_drm_find_crtc_mask(imxdrm, ep);
- 
- 		/*
-@@ -461,6 +457,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- 			return -EPROBE_DEFER;
- 
- 		crtc_mask |= mask;
-+		i++;
- 	}
- 
- 	if (ep)
++HACKRF MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/media/usb/hackrf/
++
+ HARDWARE MONITORING
+ M:	Jean Delvare <jdelvare@suse.de>
+ M:	Guenter Roeck <linux@roeck-us.net>
 -- 
-2.1.0
+http://palosaari.fi/
 
