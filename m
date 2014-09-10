@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37068 "EHLO lists.s-osg.org"
+Received: from mx1.redhat.com ([209.132.183.28]:49199 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753538AbaIVQbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 12:31:36 -0400
-Message-ID: <54204ECC.7070806@osg.samsung.com>
-Date: Mon, 22 Sep 2014 10:31:08 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1751788AbaIJODs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 10:03:48 -0400
+Message-ID: <54105A40.5060701@redhat.com>
+Date: Wed, 10 Sep 2014 16:03:44 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: au0828_init_tuner() called without dev lock held
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Morgan Phillips <winter2718@gmail.com>
+Subject: [PULL patches for 3.18]: 2 more gspca cleanup patches
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Mauro,
+Hi Mauro,
 
-While I was making changes for media token work, I noticed there are
-several places au0828_init_tuner() gets called without holding dev lock.
+Please pull from my tree for 2 minor gspca cleanup patches:
 
-vidioc_s_std(), vidioc_g_tuner(), vidioc_s_tuner(), vidioc_streamon()
-au0828_v4l2_resume()
+The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
 
-Some of these might be intended since au0828_init_tuner() invokes
-s_std. All of these changes including the au0828_init_tuner() itself
-were added in ea86968fb91471493ccac7d8f2a65bc65db6803b
+  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
 
-au0828_v4l2_resume() also does this and this one for sure needs fixing
-very likely. I am not sure about the others. Thoughts??
+are available in the git repository at:
 
--- Shuah
+  git://linuxtv.org/hgoede/gspca.git media-for_v3.18
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+for you to fetch changes up to 5c0643f980be87fde6b98436776cd682bad3c069:
+
+  sn9c20x: fix checkpatch warning: sizeof cmatrix should be sizeof(cmatrix) (2014-09-10 15:51:50 +0200)
+
+----------------------------------------------------------------
+Morgan Phillips (2):
+      sn9c20x.c: fix checkpatch error: that open brace { should be on the previous line
+      sn9c20x: fix checkpatch warning: sizeof cmatrix should be sizeof(cmatrix)
+
+ drivers/media/usb/gspca/sn9c20x.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+Thanks & Regards,
+
+Hans
