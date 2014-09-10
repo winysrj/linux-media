@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3242 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755232AbaIQJO4 (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15474 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998AbaIJIES (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 05:14:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/4] DocBook media: fix poll specification
-Date: Wed, 17 Sep 2014 11:14:30 +0200
-Message-Id: <1410945272-48149-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Sep 2014 04:04:18 -0400
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCHv3 1/3] [media] disable OMAP1 COMPILE_TEST
+Date: Wed, 10 Sep 2014 10:04:12 +0200
+Message-id: <3055703.v1cXzV8T6U@amdc1032>
+In-reply-to: <5f850d5d45a27c50dabf3da08689cbedf986841b.1410288748.git.m.chehab@samsung.com>
+References: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
+ <5f850d5d45a27c50dabf3da08689cbedf986841b.1410288748.git.m.chehab@samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The poll specification mentioned that it would return POLLERR if no
-buffers are queued. This makes no sense since the buffer queue can
-become empty during capturing and you want poll to wait until another
-thread queues up a new buffer and not to return POLLERR.
+Hi,
 
-In the case where STREAMON is called without any buffers queued, the
-STREAMON ioctl will already check if enough buffers have been queued
-and return an error if that's not the case. This is driver dependent,
-some drivers require that buffers are queued, others don't.
+On Tuesday, September 09, 2014 03:54:04 PM Mauro Carvalho Chehab wrote:
+> This driver depends on a legacy OMAP DMA API. So, it won't
+> compile-test on other archs.
+> 
+> While we might add stubs to the functions, this is not a
+> good idea, as the hole API should be replaced.
 
-The poll() function certainly shouldn't check for this.
+This is also not a good idea becaouse it would break the driver
+for OMAP1 once somebody enables COMPILE_TEST option while also
+having ARCH_OMAP1 enabled (which is perfectly fine and shouldn't
+cause the driver breakage).  In general COMPILE_TEST option is
+completely independent from the arch specific ones and it should
+not change behaviour of the existing code.
 
-Just drop the part about POLLERR being returned if QBUF wasn't called.
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/func-poll.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
-index 85cad8b..2f91ca6 100644
---- a/Documentation/DocBook/media/v4l/func-poll.xml
-+++ b/Documentation/DocBook/media/v4l/func-poll.xml
-@@ -44,7 +44,7 @@ Capture devices set the <constant>POLLIN</constant> and
- flags. When the function timed out it returns a value of zero, on
- failure it returns <returnvalue>-1</returnvalue> and the
- <varname>errno</varname> variable is set appropriately. When the
--application did not call &VIDIOC-QBUF; or &VIDIOC-STREAMON; yet the
-+application did not call &VIDIOC-STREAMON; the
- <function>poll()</function> function succeeds, but sets the
- <constant>POLLERR</constant> flag in the
- <structfield>revents</structfield> field.</para>
--- 
-2.1.0
+> So, for now, let's just remove COMPILE_TEST and wait for
+> some time for people to fix. If not fixed, then we'll end
+> by removing this driver as a hole.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+> index 6af6c6dccda8..f2776cd415ca 100644
+> --- a/drivers/media/platform/soc_camera/Kconfig
+> +++ b/drivers/media/platform/soc_camera/Kconfig
+> @@ -63,7 +63,7 @@ config VIDEO_SH_MOBILE_CEU
+>  config VIDEO_OMAP1
+>  	tristate "OMAP1 Camera Interface driver"
+>  	depends on VIDEO_DEV && SOC_CAMERA
+> -	depends on ARCH_OMAP1 || COMPILE_TEST
+> +	depends on ARCH_OMAP1
+>  	depends on HAS_DMA
+>  	select VIDEOBUF_DMA_CONTIG
+>  	select VIDEOBUF_DMA_SG
 
