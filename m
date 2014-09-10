@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4608 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754681AbaIWLKu (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34112 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbaIJNsg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 07:10:50 -0400
-Message-ID: <5421550D.4070809@xs4all.nl>
-Date: Tue, 23 Sep 2014 13:10:05 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 10 Sep 2014 09:48:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Krzysztof Borowczyk <k.borowczyk@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Webcam problem
+Date: Wed, 10 Sep 2014 16:48:39 +0300
+Message-ID: <1634489.4ADxKSlpeA@avalon>
+In-Reply-To: <009701cfc83b$0dd0b100$29721300$%borowczyk@samsung.com>
+References: <009701cfc83b$0dd0b100$29721300$%borowczyk@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/2] [media] saa7134: Remove unused status var
-References: <37b38486a1497804b63482af58a945f0eee8893f.1411469967.git.mchehab@osg.samsung.com> <fa1d4addf88f8d419bc946f9f7debe3e8603d302.1411469967.git.mchehab@osg.samsung.com>
-In-Reply-To: <fa1d4addf88f8d419bc946f9f7debe3e8603d302.1411469967.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/23/14 12:59, Mauro Carvalho Chehab wrote:
-> drivers/media/pci/saa7134/saa7134-go7007.c: In function ‘saa7134_go7007_interface_reset’:
-> drivers/media/pci/saa7134/saa7134-go7007.c:147:6: warning: variable ‘status’ set but not used [-Wunused-but-set-variable]
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi Krzysztof,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-	Hans
-
+On Thursday 04 September 2014 14:23:36 Krzysztof Borowczyk wrote:
+> Hello,
 > 
-> diff --git a/drivers/media/pci/saa7134/saa7134-go7007.c b/drivers/media/pci/saa7134/saa7134-go7007.c
-> index d9af6f3dc8af..4f63e1ddbb68 100644
-> --- a/drivers/media/pci/saa7134/saa7134-go7007.c
-> +++ b/drivers/media/pci/saa7134/saa7134-go7007.c
-> @@ -144,7 +144,6 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
->  {
->  	struct saa7134_go7007 *saa = go->hpi_context;
->  	struct saa7134_dev *dev = saa->dev;
-> -	u32 status;
->  	u16 intr_val, intr_data;
->  	int count = 20;
->  
-> @@ -162,8 +161,8 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
->  	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
->  	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
->  
-> -	status = saa_readb(SAA7134_GPIO_GPSTATUS2);
-> -	/*pr_debug("status is %s\n", status & 0x40 ? "OK" : "not OK"); */
-> +	saa_readb(SAA7134_GPIO_GPSTATUS2);
-> +	/*pr_debug("status is %s\n", saa_readb(SAA7134_GPIO_GPSTATUS2) & 0x40 ? "OK" : "not OK"); */
->  
->  	/* enter command mode...(?) */
->  	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_REQ1);
-> @@ -172,7 +171,7 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
->  	do {
->  		saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
->  		saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-> -		status = saa_readb(SAA7134_GPIO_GPSTATUS2);
-> +		saa_readb(SAA7134_GPIO_GPSTATUS2);
->  		/*pr_info("gpio is %08x\n", saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2)); */
->  	} while (--count > 0);
->  
+> I’ve recently noticed a problem with Modecom Venus and A4Tech PK-333E
+> webcams. Both can be put into a “bad state” in which they refuse to do
+> anything until they’re reconnected to the usb port. The test case is
+> simple:
 > 
+> gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
+> Setting pipeline to PAUSED ...
+> Pipeline is live and does not need PREROLL ...
+> Setting pipeline to PLAYING ...
+> New clock: GstSystemClock
+> eKilled
+> 
+> gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
+> Setting pipeline to PAUSED ...
+> Pipeline is live and does not need PREROLL ...
+> Setting pipeline to PLAYING ...
+> New clock: GstSystemClock
+> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not
+> read from resource. Additional debug info:
+> gstv4l2bufferpool.c(994): gst_v4l2_buffer_pool_poll ():
+> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: poll error 1: Invalid argument
+> (22)
+> Execution ended after 0:00:00.046823946
+> Setting pipeline to PAUSED ...
+> Setting pipeline to READY ...
+> Setting pipeline to NULL ...
+> Freeing pipeline ...
+> 
+> The GStreamer process has to be killed with the -9:
+> kill -9 `pidof gst-launch-1.0`
+> 
+> The dmesg log shows this:
+> [88000.804362] usb 3-3: new high-speed USB device number 4 using xhci_hcd
+> [88000.864107] usb 3-3: New USB device found, idVendor=0ac8, idProduct=3460
+> [88000.864113] usb 3-3: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [88000.864116] usb 3-3: Product: Venus USB2.0 Camera
+> [88000.864118] usb 3-3: Manufacturer: Vimicro Corp.
+> [88000.865088] uvcvideo: Found UVC 1.00 device Venus USB2.0 Camera
+> (0ac8:3460)
+> [88000.866783] input: Venus USB2.0 Camera as
+> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3:1.0/input/input16
+> [88024.007404] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2:
+> -110 (exp. 2).
+> [88024.307041] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2:
+> -110 (exp. 2).
+> [88025.837884] uvcvideo: Failed to set UVC probe control : -32 (exp. 26).
+> [88030.830854] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+> [88035.824615] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+> [88040.818399] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+> [88045.812171] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+> [88050.805941] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
+> [88088.249967] xhci_hcd 0000:00:14.0: Signal while waiting for configure
+> endpoint command
+> [88088.250000] usb 3-3: Not enough bandwidth for altsetting 0
+> [88090.907927] xhci_hcd 0000:00:14.0: ERROR Transfer event for disabled
+> endpoint or incorrect stream ring
+> [88090.907940] xhci_hcd 0000:00:14.0: @0000000115c5f460 00000000 00000000
+> 0c000000 03058000
+> [88091.021791] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with
+> disabled ep ffff88006b0fa540
+> [88091.021797] xhci_hcd 0000:00:14.0: Trying to add endpoint 0x82 without
+> dropping it.
+> [88091.021802] usb 3-3: Not enough bandwidth for altsetting 7
+> [88091.021805] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with
+> disabled ep ffff88006b0fa540
+
+This looks like a low-level problem. Either the webcam firmware crashed, or 
+the XCHI USB controller get in a bad state. What kernel version are you 
+running ?
+
+-- 
+Regards,
+
+Laurent Pinchart
 
