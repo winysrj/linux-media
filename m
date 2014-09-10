@@ -1,99 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dougal.woof94.com ([125.63.57.136]:53510 "EHLO
-	dougal.woof94.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759AbaI0BtT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51207 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750734AbaIJMaA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 21:49:19 -0400
-Message-ID: <54261797.7080509@cloud.net.au>
-Date: Sat, 27 Sep 2014 11:49:11 +1000
-From: Hamish Moffatt <hamish@cloud.net.au>
+	Wed, 10 Sep 2014 08:30:00 -0400
+Date: Wed, 10 Sep 2014 15:29:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Maciej Matraszek <m.matraszek@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	stable@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] [media] v4l2-common: fix overflow in
+ v4l_bound_align_image()
+Message-ID: <20140910122953.GA2939@valkosipuli.retiisi.org.uk>
+References: <1410275801-17627-1-git-send-email-m.matraszek@samsung.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: problem with second tuner on Leadtek DTV dongle dual
-References: <542406DE.10403@cloud.net.au> <5424627F.9010306@iki.fi>
-In-Reply-To: <5424627F.9010306@iki.fi>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1410275801-17627-1-git-send-email-m.matraszek@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/09/14 04:44, Antti Palosaari wrote:
-> Moikka
-> Performance issues are fixed recently (at least I hope so), but it 
-> will took some time in order to get fixes in stable. Unfortunately I 
-> don't have any IT9135 BX (ver 2 chip) dual device to test like yours...
->
-> Could you install that kernel tree:
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
-> and firmwares from there:
-> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/ITE_3.25.0.0/
->
+Hi Maciej,
 
-OK I have 
-http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6 
-running now (reporting itself as 3.17-rc5), with the 3.40.1.0 firmware 
-from your site.
+Thanks for the patch!
 
-Both tuners work for all stations, except that the first tuning attempt 
-on each tuner simply doesn't lock. Doesn't seem to matter what I tune to.
+On Tue, Sep 09, 2014 at 05:16:41PM +0200, Maciej Matraszek wrote:
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index ccaa38f65cf1..506cf8b7763b 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -435,16 +435,13 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
+>  	/* Bits that must be zero to be aligned */
+>  	unsigned int mask = ~((1 << align) - 1);
+>  
+> +	/* Clamp to aligned min and max */
+> +	x = clamp_t(unsigned int, x, (min + ~mask) & mask, max & mask);
 
-[Unplug & replug device]
+I think you could use just clamp() since all the arguments are unsigned int.
+With that considered,
 
-[11:44AM] hamish@quokka:~ $ tzap -a3 'ABC'
-using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
-reading channels from file '/home/hamish/.tzap/channels.conf'
-tuning to 226500000 Hz
-video pid 0x0200, audio pid 0x028a
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-^C
-[11:44AM] hamish@quokka:~ $ tzap -a3 'ABC'
-using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
-reading channels from file '/home/hamish/.tzap/channels.conf'
-tuning to 226500000 Hz
-video pid 0x0200, audio pid 0x028a
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-^C
-[11:44AM] hamish@quokka:~ $ tzap -a2 'ABC'
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-reading channels from file '/home/hamish/.tzap/channels.conf'
-tuning to 226500000 Hz
-video pid 0x0200, audio pid 0x028a
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0032 | ber 00000000 | unc 00000000 |
-status 00 | signal ffff | snr 0028 | ber 00000000 | unc 00000000 |
-status 07 | signal ffff | snr 0028 | ber 00000000 | unc 00000000 |
-^C
-[11:45AM] hamish@quokka:~ $ tzap -a2 'ABC'
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-reading channels from file '/home/hamish/.tzap/channels.conf'
-tuning to 226500000 Hz
-video pid 0x0200, audio pid 0x028a
-status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0122 | ber 0009a140 | unc 00002685 | 
-FE_HAS_LOCK
-^C
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+> +
+>  	/* Round to nearest aligned value */
+>  	if (align)
+>  		x = (x + (1 << (align - 1))) & mask;
+> 
+> -	/* Clamp to aligned value of min and max */
+> -	if (x < min)
+> -		x = (min + ~mask) & mask;
+> -	else if (x > max)
+> -		x = max & mask;
+> -
+>  	return x;
+>  }
+>  
 
-I left it trying to tune for minutes, and occasionally it would get a 
-lock for one sample but then lose it again for the next.
+-- 
+Kind regards,
 
-Hamish
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
