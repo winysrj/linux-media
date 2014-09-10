@@ -1,83 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:10178 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413AbaIPNvC (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2335 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbaIJHBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Sep 2014 09:51:02 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBZ0007SYH1WW00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Sep 2014 09:51:01 -0400 (EDT)
-Date: Tue, 16 Sep 2014 10:50:53 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [RFC PATCH] vb2: regression fix for vbi capture & poll
-Message-id: <20140916105053.6b8504cf.m.chehab@samsung.com>
-In-reply-to: <541802B0.2020805@xs4all.nl>
-References: <541802B0.2020805@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 10 Sep 2014 03:01:41 -0400
+Message-ID: <540FF70E.9050203@xs4all.nl>
+Date: Wed, 10 Sep 2014 09:00:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Fancy Fang <chen.fang@freescale.com>, m.chehab@samsung.com,
+	viro@ZenIV.linux.org.uk
+CC: shawn.guo@freescale.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+In-Reply-To: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 16 Sep 2014 11:28:16 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 09/10/14 07:28, Fancy Fang wrote:
+> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
+> will assign the corresponding offset to the 'boff' field of the
+> videobuf_buffer for each requested buffer sequentially. Later, user
+> may call mmap() to map one or all of the buffers with the 'offset'
+> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+> value is only used to find the matched buffer instead of to be the
+> real offset from the buffer's physical start address as used by
+> vm_iomap_memory(). So, in some case that if the offset is not zero,
+> vm_iomap_memory() will fail.
 
-> (My proposal to fix this. Note that it is untested, I plan to do that this
-> evening)
-> 
-> Commit 9241650d62f7 broke vbi capture applications that expect POLLERR to be
-> returned if STREAMON wasn't called.
-> 
-> Rather than checking whether buffers were queued AND vb2 was not yet streaming,
-> just check whether streaming is in progress and return POLLERR if not.
-> 
-> This change makes it impossible to poll in one thread and call STREAMON in
-> another, but doing that breaks existing applications and is also not according
-> to the spec. So be it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7e6aff6..0452fb2 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
->  	}
->  
->  	/*
-> -	 * There is nothing to wait for if no buffer has been queued and the
-> -	 * queue isn't streaming, or if the error flag is set.
-> +	 * There is nothing to wait for if the queue isn't streaming, or if
-> +	 * the error flag is set.
->  	 */
-> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-> +	if (!vb2_is_streaming(q) || q->error)
->  		return res | POLLERR;
+Is this just a fix for something that can fail theoretically, or do you
+actually have a case where this happens? I am very reluctant to make
+any changes to videobuf. Drivers should all migrate to vb2.
 
-This makes the code even more different than what VB1 does. I suspect
-that this will likely cause even more regressions.
+I have CC-ed Marek as well since he knows a lot more about this stuff
+than I do.
 
-The following (untested) patch seems to be what matches best what VB1
-does, and are likely to cause less harm, but needs test of course. 
+Regards,
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5b808e25fc09..0d86526cbcb0 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2586,6 +2586,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	 * There is nothing to wait for if no buffer has been queued and the
- 	 * queue isn't streaming, or if the error flag is set.
- 	 */
-+	if (!vb2_is_streaming(q))
-+		vb2_internal_streamon(q, q->type);
-+
- 	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
- 		return res | POLLERR;
- 
+	Hans
+
+> 
+> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+> ---
+>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> index bf80f0f..8bd9889 100644
+> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  	/* Try to remap memory */
+>  	size = vma->vm_end - vma->vm_start;
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+> +	retval = remap_pfn_range(vma, vma->vm_start,
+> +				 mem->dma_handle >> PAGE_SHIFT,
+> +				 size, vma->vm_page_prot);
+>  	if (retval) {
+>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
+>  			retval);
+> 
+
