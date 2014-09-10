@@ -1,55 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:42387 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbaIFTfP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 15:35:15 -0400
-Received: by mail-pd0-f169.google.com with SMTP id y10so8736774pdj.14
-        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 12:35:14 -0700 (PDT)
-Message-ID: <540B61EE.8080708@gmail.com>
-Date: Sun, 07 Sep 2014 04:35:10 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from mail-bl2on0133.outbound.protection.outlook.com ([65.55.169.133]:41435
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751038AbaIJHqe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 03:46:34 -0400
+From: "chen.fang@freescale.com" <chen.fang@freescale.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"m.chehab@samsung.com" <m.chehab@samsung.com>,
+	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+CC: Shawn Guo <Shawn.Guo@freescale.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+Date: Wed, 10 Sep 2014 07:14:24 +0000
+Message-ID: <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+ <540FF70E.9050203@xs4all.nl>
+In-Reply-To: <540FF70E.9050203@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com> <540AAED4.8070108@iki.fi>
-In-Reply-To: <540AAED4.8070108@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-moikka!,
+It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
+So I need your confirmation on it.
 
-> Basically it is 2 functions, af9035_add_i2c_dev() and af9035_del_i2c_dev()
+Thanks.
 
-I used request_module()/try_module_get()/module_put()
-just like the above example (and bridge-core.c).
-It works, but when I unload bridge driver(earth_pt3),
-its demod and tuner modules stay loaded, with the refcount of 0.
-Is it ok that the auto loaded modules remain with 0 ref count?
+Best regards,
+Fancy Fang
 
-> Yet, using config to OUT seems to be bit hacky for my eyes too. I though
-> replacing all OUT with ops when converted af9033 driver. Currently
-> caller fills struct af9033_ops and then af9033 I2C probe populates ops.
-> See that patch:
-> https://patchwork.linuxtv.org/patch/25746/
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+Sent: Wednesday, September 10, 2014 3:01 PM
+To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+
+On 09/10/14 07:28, Fancy Fang wrote:
+> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
+> will assign the corresponding offset to the 'boff' field of the 
+> videobuf_buffer for each requested buffer sequentially. Later, user 
+> may call mmap() to map one or all of the buffers with the 'offset'
+> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+> value is only used to find the matched buffer instead of to be the 
+> real offset from the buffer's physical start address as used by 
+> vm_iomap_memory(). So, in some case that if the offset is not zero,
+> vm_iomap_memory() will fail.
+
+Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
+
+I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
+
+Regards,
+
+	Hans
+
 > 
-> Does this kind of ops sounds any better?
-
-Do you mean using ops in struct config?
-if so, I don't find much difference with the current situation
-where demod/tuner probe() sets dvb_frontend* to config->fe. 
-
-> I quickly overlooked that demod driver and one which looked crazy was
-> LNA stuff. You implement set_lna callback in demod, but it is then
-> passed back to PCI driver using frontend callback. Is there some reason
-> you hooked it via demod? You could implement set_lna in PCI driver too.
-
-Stupidly I forgot that FE's ops can be set from the PCI driver.
-I will remove those callbacks and set the corresponding ops instead.
-
-regards,
-akihiro
+> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+> ---
+>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c 
+> b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> index bf80f0f..8bd9889 100644
+> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  	/* Try to remap memory */
+>  	size = vma->vm_end - vma->vm_start;
+>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+> +	retval = remap_pfn_range(vma, vma->vm_start,
+> +				 mem->dma_handle >> PAGE_SHIFT,
+> +				 size, vma->vm_page_prot);
+>  	if (retval) {
+>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
+>  			retval);
+> 
 
