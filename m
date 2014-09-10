@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45751 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147AbaI2SEO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34106 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbaIJNl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:04:14 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 2/6] of: Add for_each_endpoint_of_node helper macro
-Date: Mon, 29 Sep 2014 20:03:35 +0200
-Message-Id: <1412013819-29181-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 10 Sep 2014 09:41:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Isaac Nickaein <nickaein.i@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Framerate is consistently divided by 2.5
+Date: Wed, 10 Sep 2014 16:41:28 +0300
+Message-ID: <1918377.tBK2dPDOH0@avalon>
+In-Reply-To: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com>
+References: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note that while of_graph_get_next_endpoint decrements the reference count
-of the child node passed to it, of_node_put(child) still has to be called
-manually when breaking out of the loop.
+Hi Isaac,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/of_graph.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+On Saturday 06 September 2014 12:35:25 Isaac Nickaein wrote:
+> Hi,
+> 
+> After patching the kernel, the rate that images are captured from the
+> camera reduce by a factor of 2.5.
 
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index befef42..e43442e 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -26,6 +26,17 @@ struct of_endpoint {
- 	const struct device_node *local_node;
- };
- 
-+/**
-+ * for_each_endpoint_of_node - iterate over every endpoint in a device node
-+ * @parent: parent device node containing ports and endpoints
-+ * @child: loop variable pointing to the current endpoint node
-+ *
-+ * When breaking out of the loop, of_node_put(child) has to be called manually.
-+ */
-+#define for_each_endpoint_of_node(parent, child) \
-+	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-+	     child = of_graph_get_next_endpoint(parent, child))
-+
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
+How have you patched the kernel ? If you have both a working and non-working 
+version you could use git-bisect to find the commit that causes this breakage.
+
+> Here are a list of frame rates I have tried followed by the resulted frame-
+> rate:
+> 
+> 10 fps --> 4 fps
+> 15 fps --> 6 fps
+> 25 fps --> 10 fps
+> 30 fps --> 12 fps
+> 
+> Note that all of the rates are consistently divided by 2.5. This seems
+> to be a clocking issue to me. Is there any multipliers in V4L2 (or
+> UVC?) code in framerate calculation which depends on the hardware and
+> be cause of this?
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
