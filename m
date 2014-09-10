@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:57814 "EHLO
-	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbaIXDrS (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1294 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751357AbaIJHWc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 23:47:18 -0400
-From: <Bimow.Chen@ite.com.tw>
-To: <mchehab@osg.samsung.com>, <crope@iki.fi>
-CC: <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-Date: Wed, 24 Sep 2014 03:47:11 +0000
-Message-ID: <FA28ACF9E7378C4E836BE776152E0E253AF5D5FF@TPEMAIL2.internal.ite.com.tw>
-References: <20140923085039.51765665@recife.lan>	<542160F0.1000407@iki.fi>
- <20140923101103.224370bb@recife.lan>
-In-Reply-To: <20140923101103.224370bb@recife.lan>
-Content-Language: zh-TW
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
+	Wed, 10 Sep 2014 03:22:32 -0400
+Message-ID: <540FFBF1.6060702@xs4all.nl>
+Date: Wed, 10 Sep 2014 09:21:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
+To: "chen.fang@freescale.com" <chen.fang@freescale.com>,
+	"m.chehab@samsung.com" <m.chehab@samsung.com>,
+	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+CC: Shawn Guo <Shawn.Guo@freescale.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com> <540FF70E.9050203@xs4all.nl> <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
+In-Reply-To: <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgYWxsLA0KDQpJdCdzIG15IG1pc3Rha2UuIFNsZWVwIGFmdGVyIGJvb3QgZm9yIGZpcm13YXJl
-IHJlYWR5LCBub3QgYmVmb3JlLg0KUGxlYXNlIHJlamVjdCB0aGlzIHBhdGNoLg0KVGhhbmsgeW91
-Lg0KDQpCZXN0IHJlZ2FyZHMsDQpCaW1vdw0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
-b206IE1hdXJvIENhcnZhbGhvIENoZWhhYiBbbWFpbHRvOm1jaGVoYWJAb3NnLnNhbXN1bmcuY29t
-XSANClNlbnQ6IFR1ZXNkYXksIFNlcHRlbWJlciAyMywgMjAxNCA5OjExIFBNDQpUbzogQW50dGkg
-UGFsb3NhYXJpDQpDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBCaW1vdyBDaGVuICiz
-r6TfwLcpDQpTdWJqZWN0OiBSZTogW1BBVENIIDQvNF0gVjRML0RWQjogQWRkIHNsZWVwIGZvciBm
-aXJtd2FyZSByZWFkeQ0KDQpFbSBUdWUsIDIzIFNlcCAyMDE0IDE1OjAwOjQ4ICswMzAwDQpBbnR0
-aSBQYWxvc2FhcmkgPGNyb3BlQGlraS5maT4gZXNjcmV2ZXU6DQoNCj4gSSBhbSBub3Qgc3VyZSBh
-cyBJIGNhbm5vdCByZXByb2R1Y2UgaXQuIEFsc28gMzBtcyB3YWl0IGhlcmUgaXMgbG9uZyBhcyAN
-Cj4gaGVsbCwgd2hpbHN0IGl0IGlzIG5vdCBjcml0aWNhbC4NCj4gDQo+IFdoZW4gSSBsb29rIHRo
-YXQgZmlybXdhcmUgZG93bmxvYWRpbmcgZnJvbSB0aGUgMS0yIG1vbnRoIG9sZCBIYXVwcGF1Z2Ug
-DQo+IGRyaXZlciBzbmlmZnMsIGl0IGlzIG5vdCB0aGVyZToNCj4gDQo+IFRoYXQgbGluZSBpcyBD
-TURfRldfQk9PVCwgY29tbWFuZCAweDIzIGl0IGlzIDNyZCBudW1iZXI6DQo+ICNkZWZpbmUgQ01E
-X0ZXX0JPT1QgICAgICAgICAgICAgICAgIDB4MjMNCj4gMDAwMzEzOiAgT1VUOiAwMDAwMDAgbXMg
-MDAxNDkwIG1zIEJVTEtbMDAwMDJdID4+PiAwNSAwMCAyMyA5YSA2NSBkYw0KPiANCj4gSGVyZSBp
-cyB3aG9sZSBzZXF1ZW5jZToNCj4gMDAwMzExOiAgT1VUOiAwMDAwMDAgbXMgMDAxNDg5IG1zIEJV
-TEtbMDAwMDJdID4+PiAxNSAwMCAyOSA5OSAwMyAwMSAwMA0KPiAwMSA1NyBmNyAwOSAwMiA2ZCA2
-YyAwMiA0ZiA5ZiAwMiA0ZiBhMiAwYiAxNg0KPiAwMDAzMTI6ICBPVVQ6IDAwMDAwMSBtcyAwMDE0
-ODkgbXMgQlVMS1swMDA4MV0gPDw8IDA0IDk5IDAwIDY2IGZmDQo+IDAwMDMxMzogIE9VVDogMDAw
-MDAwIG1zIDAwMTQ5MCBtcyBCVUxLWzAwMDAyXSA+Pj4gMDUgMDAgMjMgOWEgNjUgZGMNCj4gMDAw
-MzE0OiAgT1VUOiAwMDAwMTEgbXMgMDAxNDkwIG1zIEJVTEtbMDAwODFdIDw8PCAwNCA5YSAwMCA2
-NSBmZg0KPiAwMDAzMTU6ICBPVVQ6IDAwMDAwMCBtcyAwMDE1MDEgbXMgQlVMS1swMDAwMl0gPj4+
-IDBiIDAwIDAwIDliIDAxIDAyIDAwDQo+IDAwIDEyIDIyIDQwIGVjDQo+IDAwMDMxNjogIE9VVDog
-MDAwMDAwIG1zIDAwMTUwMSBtcyBCVUxLWzAwMDgxXSA8PDwgMDUgOWIgMDAgMDIgNjIgZmYNCj4g
-DQo+IA0KPiBTbyB3aW5kb3dzIGRyaXZlciB3YWl0cyAxMG1zIGFmdGVyIGJvb3QsIG5vdCBiZWZv
-cmUuDQo+IA0KPiBEdWUgdG8gdGhlc2UgcmVhc29ucywgSSB3b3VsZCBsaWtlIHRvIHNraXAgdGhh
-dCBwYXRjaCB1bnRpbCBJIHNlZSANCj4gZXJyb3Igb3IgZ2V0IGdvb2QgZXhwbGFuYXRpb24gd2h5
-IGl0IGlzIG5lZWRlZCBhbmQgc28uDQoNCk9rLiBJJ2xsIHRhZyBpdCBhcyBSRkMgdGhlbi4NCg0K
-PiANCj4gDQo+IHJlZ2FyZHMNCj4gQW50dGkNCj4gDQo+IA0KPiBPbiAwOS8yMy8yMDE0IDAyOjUw
-IFBNLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+ID4gQW50dGksDQo+ID4NCj4gPiBB
-ZnRlciB0aGUgZmlybXdhcmUgbG9hZCBjaGFuZ2VzLCBpcyB0aGlzIHBhdGNoIHN0aWxsIGFwcGxp
-Y2FibGU/DQo+ID4NCj4gPiBSZWdhcmRzLA0KPiA+IE1hdXJvDQo+ID4NCj4gPiBGb3J3YXJkZWQg
-bWVzc2FnZToNCj4gPg0KPiA+IERhdGU6IFR1ZSwgMDUgQXVnIDIwMTQgMTM6NDg6MDMgKzA4MDAN
-Cj4gPiBGcm9tOiBCaW1vdyBDaGVuIDxCaW1vdy5DaGVuQGl0ZS5jb20udHc+DQo+ID4gVG86IGxp
-bnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KPiA+IFN1YmplY3Q6IFtQQVRDSCA0LzRdIFY0TC9E
-VkI6IEFkZCBzbGVlcCBmb3IgZmlybXdhcmUgcmVhZHkNCj4gPg0KPiA+DQo+ID4gIEZyb20gYjE5
-ZmE4NjhjZTkzN2E2ZWYxMGYxNTkxYTQ5YjJhN2FkMTQ5NjRhOSBNb24gU2VwIDE3IDAwOjAwOjAw
-IA0KPiA+IDIwMDENCj4gPiBGcm9tOiBCaW1vdyBDaGVuIDxCaW1vdy5DaGVuQGl0ZS5jb20udHc+
-DQo+ID4gRGF0ZTogVHVlLCA1IEF1ZyAyMDE0IDExOjIwOjUzICswODAwDQo+ID4gU3ViamVjdDog
-W1BBVENIIDQvNF0gQWRkIHNsZWVwIGZvciBmaXJtd2FyZSByZWFkeS4NCj4gPg0KPiA+DQo+ID4g
-U2lnbmVkLW9mZi1ieTogQmltb3cgQ2hlbiA8Qmltb3cuQ2hlbkBpdGUuY29tLnR3Pg0KPiA+IC0t
-LQ0KPiA+ICAgZHJpdmVycy9tZWRpYS91c2IvZHZiLXVzYi12Mi9hZjkwMzUuYyB8ICAgIDIgKysN
-Cj4gPiAgIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQ0K
-PiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdXNiL2R2Yi11c2ItdjIvYWY5MDM1
-LmMgDQo+ID4gYi9kcml2ZXJzL21lZGlhL3VzYi9kdmItdXNiLXYyL2FmOTAzNS5jDQo+ID4gaW5k
-ZXggN2I5Yjc1Zi4uYTQ1MGNkYiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL21lZGlhL3VzYi9k
-dmItdXNiLXYyL2FmOTAzNS5jDQo+ID4gKysrIGIvZHJpdmVycy9tZWRpYS91c2IvZHZiLXVzYi12
-Mi9hZjkwMzUuYw0KPiA+IEBAIC02MDIsNiArNjAyLDggQEAgc3RhdGljIGludCBhZjkwMzVfZG93
-bmxvYWRfZmlybXdhcmUoc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkLA0KPiA+ICAgCWlmIChyZXQg
-PCAwKQ0KPiA+ICAgCQlnb3RvIGVycjsNCj4gPg0KPiA+ICsJbXNsZWVwKDMwKTsNCj4gPiArDQo+
-ID4gICAJLyogZmlybXdhcmUgbG9hZGVkLCByZXF1ZXN0IGJvb3QgKi8NCj4gPiAgIAlyZXEuY21k
-ID0gQ01EX0ZXX0JPT1Q7DQo+ID4gICAJcmV0ID0gYWY5MDM1X2N0cmxfbXNnKGQsICZyZXEpOw0K
-PiA+DQo+IA0K
+On 09/10/14 09:14, chen.fang@freescale.com wrote:
+> It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
+> So I need your confirmation on it.
+
+With which driver does this happen? On which architecture?
+
+Regards,
+
+	Hans
+
+> 
+> Thanks.
+> 
+> Best regards,
+> Fancy Fang
+> 
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+> Sent: Wednesday, September 10, 2014 3:01 PM
+> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
+> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+> 
+> On 09/10/14 07:28, Fancy Fang wrote:
+>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
+>> will assign the corresponding offset to the 'boff' field of the 
+>> videobuf_buffer for each requested buffer sequentially. Later, user 
+>> may call mmap() to map one or all of the buffers with the 'offset'
+>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+>> value is only used to find the matched buffer instead of to be the 
+>> real offset from the buffer's physical start address as used by 
+>> vm_iomap_memory(). So, in some case that if the offset is not zero,
+>> vm_iomap_memory() will fail.
+> 
+> Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
+> 
+> I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c 
+>> b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> index bf80f0f..8bd9889 100644
+>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>>  	/* Try to remap memory */
+>>  	size = vma->vm_end - vma->vm_start;
+>>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+>> +	retval = remap_pfn_range(vma, vma->vm_start,
+>> +				 mem->dma_handle >> PAGE_SHIFT,
+>> +				 size, vma->vm_page_prot);
+>>  	if (retval) {
+>>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
+>>  			retval);
+>>
+> 
+
