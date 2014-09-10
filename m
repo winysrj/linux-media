@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:62822 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222AbaIHPTM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 11:19:12 -0400
-Date: Mon, 8 Sep 2014 20:48:51 +0530
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Morgan Phillips <winter2718@gmail.com>
-Cc: brijohn@gmail.com, hdegoede@redhat.com, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] [media]: sn9c20x.c: fix checkpatch error: that open
- brace { should be on the previous line
-Message-ID: <20140908151851.GA23663@sudip-PC>
-References: <1410179542-3272-1-git-send-email-winter2718@gmail.com>
- <1410188158-6560-1-git-send-email-winter2718@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1410188158-6560-1-git-send-email-winter2718@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58768 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbaIJK6e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 06:58:34 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 4/8] of: Add for_each_endpoint_of_node helper macro
+Date: Wed, 10 Sep 2014 12:58:24 +0200
+Message-Id: <1410346708-5125-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 08, 2014 at 09:55:58AM -0500, Morgan Phillips wrote:
-> Change array initialization format to fix style error.
-> 	from:
-> 		u8 foo[] =
-> 			{1, 2, 3};
-> 	to:
-checkpatch is giving a warning here , but looks like a false positive.
+Note that while of_graph_get_next_endpoint decrements the reference count
+of the child node passed to it, of_node_put(child) still has to be called
+manually when breaking out of the loop.
 
-thanks
-sudip
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Added a comment about the child node reference count when breaking out
+   of the loop
+---
+ include/linux/of_graph.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> 		u8 foo[] = {
-> 			1, 2, 3
-> 		};
-> 
-> Signed-off-by: Morgan Phillips <winter2718@gmail.com>
-> ---
->  Changes since v2:
->    * adds a more verbose commit message
-> 
->  drivers/media/usb/gspca/sn9c20x.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-> index 41a9a89..95467f0 100644
-> --- a/drivers/media/usb/gspca/sn9c20x.c
-> +++ b/drivers/media/usb/gspca/sn9c20x.c
-> @@ -1787,8 +1787,9 @@ static int sd_init(struct gspca_dev *gspca_dev)
->  	struct sd *sd = (struct sd *) gspca_dev;
->  	int i;
->  	u8 value;
-> -	u8 i2c_init[9] =
-> -		{0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-> +	u8 i2c_init[9] = {
-> +		0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03
-> +	};
->  
->  	for (i = 0; i < ARRAY_SIZE(bridge_init); i++) {
->  		value = bridge_init[i][1];
-> @@ -2242,8 +2243,9 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
->  {
->  	struct sd *sd = (struct sd *) gspca_dev;
->  	int avg_lum, is_jpeg;
-> -	static const u8 frame_header[] =
-> -		{0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96};
-> +	static const u8 frame_header[] = {
-> +		0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96
-> +	};
->  
->  	is_jpeg = (sd->fmt & 0x03) == 0;
->  	if (len >= 64 && memcmp(data, frame_header, 6) == 0) {
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index befef42..e43442e 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -26,6 +26,17 @@ struct of_endpoint {
+ 	const struct device_node *local_node;
+ };
+ 
++/**
++ * for_each_endpoint_of_node - iterate over every endpoint in a device node
++ * @parent: parent device node containing ports and endpoints
++ * @child: loop variable pointing to the current endpoint node
++ *
++ * When breaking out of the loop, of_node_put(child) has to be called manually.
++ */
++#define for_each_endpoint_of_node(parent, child) \
++	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
++	     child = of_graph_get_next_endpoint(parent, child))
++
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
+-- 
+2.1.0
+
