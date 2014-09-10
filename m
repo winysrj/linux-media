@@ -1,147 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52697 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753510AbaI1UnN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Sep 2014 16:43:13 -0400
-Message-ID: <542872DB.3070003@iki.fi>
-Date: Sun, 28 Sep 2014 23:43:07 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bn1bbn0105.outbound.protection.outlook.com ([157.56.111.105]:2016
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750854AbaIJHaj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 03:30:39 -0400
+From: "chen.fang@freescale.com" <chen.fang@freescale.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"m.chehab@samsung.com" <m.chehab@samsung.com>,
+	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+CC: Shawn Guo <Shawn.Guo@freescale.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+Date: Wed, 10 Sep 2014 07:30:36 +0000
+Message-ID: <3763195dd9ba4d0793e5ed3b6b3dc1ee@BY2PR03MB556.namprd03.prod.outlook.com>
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+ <540FF70E.9050203@xs4all.nl>
+ <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
+ <540FFBF1.6060702@xs4all.nl>
+In-Reply-To: <540FFBF1.6060702@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: em28xx: Too many ISO frames scheduled when starting stream
-References: <54284488.60404@iki.fi>	<54284FE7.5090805@iki.fi> <20140928165741.47a19ddc@recife.lan>
-In-Reply-To: <20140928165741.47a19ddc@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On the Freescale imx6 platform which belongs to ARM architecture. The driver is our local v4l2 output driver which is not upstream yet unfortunately.
 
+Best regards,
+Fancy Fang
 
-On 09/28/2014 10:57 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 28 Sep 2014 21:13:59 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 09/28/2014 08:25 PM, Antti Palosaari wrote:
->>> I want raise that bug:
->>> Too many ISO frames scheduled when starting stream
->>> https://bugzilla.kernel.org/show_bug.cgi?id=72891
->>>
->>> Is there anyone who cares to study it? It looks like em28xx driver bug
->>> or USB host controller driver or both.
->>>
->>> According to comments bug appeared on kernel 3.13.
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+Sent: Wednesday, September 10, 2014 3:21 PM
+To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+
+On 09/10/14 09:14, chen.fang@freescale.com wrote:
+> It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
+> So I need your confirmation on it.
+
+With which driver does this happen? On which architecture?
+
+Regards,
+
+	Hans
+
+> 
+> Thanks.
+> 
+> Best regards,
+> Fancy Fang
+> 
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Wednesday, September 10, 2014 3:01 PM
+> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; 
+> linux-kernel@vger.kernel.org; Marek Szyprowski
+> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+> 
+> On 09/10/14 07:28, Fancy Fang wrote:
+>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
+>> will assign the corresponding offset to the 'boff' field of the 
+>> videobuf_buffer for each requested buffer sequentially. Later, user 
+>> may call mmap() to map one or all of the buffers with the 'offset'
+>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+>> value is only used to find the matched buffer instead of to be the 
+>> real offset from the buffer's physical start address as used by 
+>> vm_iomap_memory(). So, in some case that if the offset is not zero,
+>> vm_iomap_memory() will fail.
+> 
+> Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
+> 
+> I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 >>
->> em28xx didn't even get any notable changes at that time... I looked all
->> the 3.13 em28xx patches and there is no patch that could cause issues
->> listed. So root of cause is somewhere else or there is reports which has
->> kernel with media_build installed.
->> Also, em28xx uses ISOC to data transferred, whilst most devices are
->> using BULK. No other reports from other ISOC DVB devices so far though.
->> I suspect it may be some compatibility issue with em28xx chip / em28xx
->> driver / USB stack / USB host controller.
+>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
 >>
->> There were em28xx patches went to 3.13 (stable patches not included):
->> bdee6bd [media] em28xx-video: Swap release order to avoid lock nesting
->> 6dbea9f [media] Add support for KWorld UB435-Q V2
->> be353fa [media] V4L2: em28xx: tell the ov2640 driver to balance clock
->> enabling internally
->> fc5d0f8 [media] V4L2: em28xx: register a V4L2 clock source
->> 032f1dd [media] em28xx: fix error path in em28xx_start_analog_streaming()
->> b68cafc [media] em28xx: fix and unify the coding style of the GPIO
->> register write sequences
->> de0fc46 [media] em28xx: MaxMedia UB425-TC change demod settings
->> b6c7abb [media] em28xx: MaxMedia UB425-TC switch RF tuner driver to another
->> 8d100b2 [media] em28xx: MaxMedia UB425-TC offer firmware for demodulator
->
-> None of the above patches seem to be related. Also, I use a lot em28xx
-> here without any issues on an eHCI USB port. Even on a xHCI USB port,
-> I was unable to reproduce this bug with just one em28xx device plugged.
->
-> I _suspect_ that this issue is related to ISOC transfers, and the
-> return code is EFBIG.
->
-> The EFBIG return code happens if there's not enough space in a given
-> USB bus to reserve traffic for ISOC transfers when submitting the
-> URBs. Changing the URB size helps to reduce the amount of ISOC
-> transfers, making more unlikely for this bug to happen. However, the
-> em28xx driver already tries to use the max supported size, using the
-> USB descriptors.
->
-> There's one easy way to reproduce it: plug two em28xx devices with
-> analog TV and try to start both. The first analog TV stream will
-> allocate about 60% of the bus traffic, and the Kernel will return
-> EFBIG when trying to stream at the second one.
->
-> That's said, on a USB bus where there's just one device connected,
-> this error shouldn't happen, especially for DVB, where the bandwidth
-> requirements are generally lower.
->
-> It used to be possible to check how much was allocated for ISOC
-> traffic via:
->
-> # cat /sys/kernel/debug/usb/devices
->
-> T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=5000 MxCh= 1
-> B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-> D:  Ver= 3.00 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
-> P:  Vendor=1d6b ProdID=0003 Rev= 3.17
-> S:  Manufacturer=Linux 3.17.0-rc6+ xhci_hcd
-> S:  Product=xHCI Host Controller
-> S:  SerialNumber=0000:00:14.0
-> C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-> I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-> E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
->
-> The "Alloc" above would indicate how many slots were allocated.
-> However, at least here on an Atom NUC I'm testing and latest
-> upstream Kernel + media patches, no matter if I start some traffic
-> or not there, it still shows 0/800. It seems that there's a bug
-> somewhere on the USB stack that it is preventing it to show.
->
-> In any case, the return of EFBIG doesn't imply that there's a bug at
-> em28xx driver or at the usb stack. It is just an indication that the
-> bus has reached its maximum hardware capacity.
->
-> That's said, I was never ever be able to get EFBIG when there's
-> just one isoc device connected into an USB bus. Not sure if
-> this is the case of the reporter of BZ#72891.
->
-> I suggest you to double check if this is the only one device
-> connected at the bus that could be using ISOC traffic.
->
-> If there's just one device connected, and no other weird setup
-> (like trying to run the driver inside a VM, or some USB hubs
-> connected internally or externally), then we should seek for this
-> bug at the USB stack.
->
-> Btw, Hans de Goede faced with this issue a lot with his works with
-> gspca. I think he sent some patches to the USB stack to try to
-> reduce the changes of this error to happen.
->
-> Another possibility is that maybe the USB descriptors are broken
-> on some versions of the silicon, with makes the USB core to return
-> such error because em28xx is overriding the physical limits due to
-> a bad descriptor at the device's ROM. Never saw this on em28xx,
-> but I have some other USB devices with bad descriptors.
->
-> I hope that helps.
+>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> index bf80f0f..8bd9889 100644
+>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>>  	/* Try to remap memory */
+>>  	size = vma->vm_end - vma->vm_start;
+>>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+>> +	retval = remap_pfn_range(vma, vma->vm_start,
+>> +				 mem->dma_handle >> PAGE_SHIFT,
+>> +				 size, vma->vm_page_prot);
+>>  	if (retval) {
+>>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
+>>  			retval);
+>>
+> 
 
-Some related things I have noticed:
-* It happens very often when you scan channels. This is due to scan 
-starts and stops stream for every channel scanned.
-* It is not USB bw issue as I don't have any other devices. Also, it 
-occurs during scan which indicates same.
-* I have feeling it happens more often with newer em28xx devices, but it 
-could be due to reason I usually work with new devices.
-
-I have been scanning DVB-C channels in a loop one hour now using old 
-PCTV 520e. Kernel is 3.11.10 and drivers are from latest media tree. No 
-error seen so far...
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
