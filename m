@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48052 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734AbaIISyR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 14:54:17 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCHv3 1/3] [media] disable OMAP1 COMPILE_TEST
-Date: Tue,  9 Sep 2014 15:54:04 -0300
-Message-Id: <5f850d5d45a27c50dabf3da08689cbedf986841b.1410288748.git.m.chehab@samsung.com>
-In-Reply-To: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-References: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-bn1bon0119.outbound.protection.outlook.com ([157.56.111.119]:16205
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750789AbaIJGs0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 02:48:26 -0400
+From: Fancy Fang <chen.fang@freescale.com>
+To: <m.chehab@samsung.com>, <hverkuil@xs4all.nl>,
+	<viro@ZenIV.linux.org.uk>
+CC: <shawn.guo@freescale.com>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	Fancy Fang <chen.fang@freescale.com>
+Subject: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+Date: Wed, 10 Sep 2014 13:28:57 +0800
+Message-ID: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver depends on a legacy OMAP DMA API. So, it won't
-compile-test on other archs.
+When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
+will assign the corresponding offset to the 'boff' field of the
+videobuf_buffer for each requested buffer sequentially. Later, user
+may call mmap() to map one or all of the buffers with the 'offset'
+parameter which is equal to its 'boff' value. Obviously, the 'offset'
+value is only used to find the matched buffer instead of to be the
+real offset from the buffer's physical start address as used by
+vm_iomap_memory(). So, in some case that if the offset is not zero,
+vm_iomap_memory() will fail.
 
-While we might add stubs to the functions, this is not a
-good idea, as the hole API should be replaced.
+Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+---
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-So, for now, let's just remove COMPILE_TEST and wait for
-some time for people to fix. If not fixed, then we'll end
-by removing this driver as a hole.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 6af6c6dccda8..f2776cd415ca 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -63,7 +63,7 @@ config VIDEO_SH_MOBILE_CEU
- config VIDEO_OMAP1
- 	tristate "OMAP1 Camera Interface driver"
- 	depends on VIDEO_DEV && SOC_CAMERA
--	depends on ARCH_OMAP1 || COMPILE_TEST
-+	depends on ARCH_OMAP1
- 	depends on HAS_DMA
- 	select VIDEOBUF_DMA_CONTIG
- 	select VIDEOBUF_DMA_SG
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index bf80f0f..8bd9889 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	/* Try to remap memory */
+ 	size = vma->vm_end - vma->vm_start;
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	retval = vm_iomap_memory(vma, mem->dma_handle, size);
++	retval = remap_pfn_range(vma, vma->vm_start,
++				 mem->dma_handle >> PAGE_SHIFT,
++				 size, vma->vm_page_prot);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ",
+ 			retval);
 -- 
-1.9.3
+1.9.1
 
