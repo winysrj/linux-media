@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44437 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756224AbaICUdc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:32 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 07/46] [media] soc_camera: remove uneeded semicolons
-Date: Wed,  3 Sep 2014 17:32:39 -0300
-Message-Id: <d3599a11e3a1b7f14a6f402cec5d4bda68a1154f.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58766 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250AbaIJK6e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 06:58:34 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 1/8] [media] soc_camera: Do not decrement endpoint node refcount in the loop
+Date: Wed, 10 Sep 2014 12:58:21 +0200
+Message-Id: <1410346708-5125-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't use semicolons after curly braces in the middle of the
-code.
+In preparation for a following patch, stop decrementing the endpoint node
+refcount in the loop. This temporarily leaks a reference to the endpoint node,
+which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+of its prev argument instead.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 64dc80ccd6f9..66178fc9f9eb 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1694,7 +1694,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
- 		break;
- 	default:
- 		break;
--	};
-+	}
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..f752489 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,11 +1696,11 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
  
- 	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
- 		pcdev->platform_flags |= PXA_CAMERA_MASTER;
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 85d579f65f52..b122c2cf5b85 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1502,7 +1502,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	} else {
- 		priv->ici.nr = of_alias_get_id(pdev->dev.of_node, "vin");
- 		priv->chip = (enum chip_id)match->data;
--	};
-+	}
+-		of_node_put(epn);
+ 		of_node_put(ren);
  
- 	spin_lock_init(&priv->lock);
- 	INIT_LIST_HEAD(&priv->capture);
+ 		if (i) {
+ 			dev_err(dev, "multiple subdevices aren't supported yet!\n");
++			of_node_put(epn);
+ 			break;
+ 		}
+ 	}
 -- 
-1.9.3
+2.1.0
 
