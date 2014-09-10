@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2435 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755980AbaITMmH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58773 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404AbaIJK6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:42:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/16] cx88: don't pollute the kernel log
-Date: Sat, 20 Sep 2014 14:41:45 +0200
-Message-Id: <1411216911-7950-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Sep 2014 06:58:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 7/8] imx-drm: use for_each_endpoint_of_node macro in imx_drm_encoder_get_mux_id
+Date: Wed, 10 Sep 2014 12:58:27 +0200
+Message-Id: <1410346708-5125-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Using the for_each_... macro should make the code bit shorter and
+easier to read. This patch also properly decrements the endpoint node
+reference count before returning out of the loop.
 
-There is no reason to dump the sram code to the kernel log when you
-stop streaming. Remove those calls to cx88_sram_channel_dump.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/pci/cx88/cx88-vbi.c   | 2 --
- drivers/media/pci/cx88/cx88-video.c | 2 --
- 2 files changed, 4 deletions(-)
+ drivers/staging/imx-drm/imx-drm-core.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index 4e0747a..042f545 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -203,8 +203,6 @@ static void stop_streaming(struct vb2_queue *q)
- 	struct cx88_dmaqueue *dmaq = &dev->vbiq;
- 	unsigned long flags;
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 12303b3..9b5222c 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -493,18 +493,15 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+ 	if (!node || !imx_crtc)
+ 		return -EINVAL;
  
--	cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
+-	do {
+-		ep = of_graph_get_next_endpoint(node, ep);
+-		if (!ep)
+-			break;
 -
- 	cx_clear(MO_VID_DMACNTRL, 0x11);
- 	cx_clear(VID_CAPTURE_CONTROL, 0x06);
- 	cx8800_stop_vbi_dma(dev);
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index a74e21d..85c3d0c 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -563,8 +563,6 @@ static void stop_streaming(struct vb2_queue *q)
- 	struct cx88_dmaqueue *dmaq = &dev->vidq;
- 	unsigned long flags;
++	for_each_endpoint_of_node(node, ep) {
+ 		port = of_graph_get_remote_port(ep);
+ 		of_node_put(port);
+ 		if (port == imx_crtc->port) {
+ 			ret = of_graph_parse_endpoint(ep, &endpoint);
++			of_node_put(ep);
+ 			return ret ? ret : endpoint.port;
+ 		}
+-	} while (ep);
++	}
  
--	cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
--
- 	cx_clear(MO_VID_DMACNTRL, 0x11);
- 	cx_clear(VID_CAPTURE_CONTROL, 0x06);
- 	spin_lock_irqsave(&dev->slock, flags);
+ 	return -EINVAL;
+ }
 -- 
 2.1.0
 
