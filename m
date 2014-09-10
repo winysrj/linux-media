@@ -1,69 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2335 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbaIJHBl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 03:01:41 -0400
-Message-ID: <540FF70E.9050203@xs4all.nl>
-Date: Wed, 10 Sep 2014 09:00:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.18]:58843 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751490AbaIJIxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Sep 2014 04:53:19 -0400
+Date: Wed, 10 Sep 2014 10:53:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] V4L2: UVC: allow using larger buffers
+In-Reply-To: <1489636.2fkWtbAiXo@avalon>
+Message-ID: <Pine.LNX.4.64.1409101052541.13134@axis700.grange>
+References: <Pine.LNX.4.64.1409090941280.1402@axis700.grange>
+ <1489636.2fkWtbAiXo@avalon>
 MIME-Version: 1.0
-To: Fancy Fang <chen.fang@freescale.com>, m.chehab@samsung.com,
-	viro@ZenIV.linux.org.uk
-CC: shawn.guo@freescale.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
-In-Reply-To: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/14 07:28, Fancy Fang wrote:
-> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
-> will assign the corresponding offset to the 'boff' field of the
-> videobuf_buffer for each requested buffer sequentially. Later, user
-> may call mmap() to map one or all of the buffers with the 'offset'
-> parameter which is equal to its 'boff' value. Obviously, the 'offset'
-> value is only used to find the matched buffer instead of to be the
-> real offset from the buffer's physical start address as used by
-> vm_iomap_memory(). So, in some case that if the offset is not zero,
-> vm_iomap_memory() will fail.
+Hi Laurent,
 
-Is this just a fix for something that can fail theoretically, or do you
-actually have a case where this happens? I am very reluctant to make
-any changes to videobuf. Drivers should all migrate to vb2.
+On Wed, 10 Sep 2014, Laurent Pinchart wrote:
 
-I have CC-ed Marek as well since he knows a lot more about this stuff
-than I do.
+> Hi Guennadi,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 09 September 2014 09:42:43 Guennadi Liakhovetski wrote:
+> > A test in uvc_video_decode_isoc() checks whether an image has been
+> > received from the camera completely. For this the data amount is compared
+> > to the buffer length, which, however, doesn't have to be equal to the
+> > image size. Switch to using formats .sizeimage field for an exact
+> > expected image size.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > Thanks to Laurent for the idea
+> > 
+> >  drivers/media/usb/uvc/uvc_v4l2.c  | 1 +
+> >  drivers/media/usb/uvc/uvc_video.c | 2 +-
+> >  drivers/media/usb/uvc/uvcvideo.h  | 1 +
+> >  3 files changed, 3 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > b/drivers/media/usb/uvc/uvc_v4l2.c index 3b548b8..87d15c2 100644
+> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > @@ -318,6 +318,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
+> > *stream, stream->ctrl = probe;
+> >  	stream->cur_format = format;
+> >  	stream->cur_frame = frame;
+> > +	stream->image_size = fmt->fmt.pix.sizeimage;
+> > 
+> >  done:
+> >  	mutex_unlock(&stream->mutex);
+> > diff --git a/drivers/media/usb/uvc/uvc_video.c
+> > b/drivers/media/usb/uvc/uvc_video.c index e568e07..60abf6f 100644
+> > --- a/drivers/media/usb/uvc/uvc_video.c
+> > +++ b/drivers/media/usb/uvc/uvc_video.c
+> > @@ -1172,7 +1172,7 @@ static void uvc_video_decode_isoc(struct urb *urb,
+> > struct uvc_streaming *stream, urb->iso_frame_desc[i].actual_length);
+> > 
+> >  		if (buf->state == UVC_BUF_STATE_READY) {
+> > -			if (buf->length != buf->bytesused &&
+> > +			if (stream->image_size != buf->bytesused &&
+> >  			    !(stream->cur_format->flags &
+> >  			      UVC_FMT_FLAG_COMPRESSED))
+> >  				buf->error = 1;
+> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> > b/drivers/media/usb/uvc/uvcvideo.h index 404793b..d3a3b71 100644
+> > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > @@ -480,6 +480,7 @@ struct uvc_streaming {
+> >  	struct uvc_format *def_format;
+> >  	struct uvc_format *cur_format;
+> >  	struct uvc_frame *cur_frame;
+> > +	size_t image_size;
+> 
+> As UVC uses the term frame size instead of image size, would you mind renaming 
+> that field ? I can do that while applying the patch, there's no need to 
+> resubmit if you're fine with the change.
 
-Regards,
+Sure, np, go ahead with the change.
 
-	Hans
+Thanks
+Guennadi
 
 > 
-> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
-> ---
->  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> >  	/* Protect access to ctrl, cur_format, cur_frame and hardware video
+> >  	 * probe control.
+> >  	 */
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> index bf80f0f..8bd9889 100644
-> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  	/* Try to remap memory */
->  	size = vma->vm_end - vma->vm_start;
->  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
-> +	retval = remap_pfn_range(vma, vma->vm_start,
-> +				 mem->dma_handle >> PAGE_SHIFT,
-> +				 size, vma->vm_page_prot);
->  	if (retval) {
->  		dev_err(q->dev, "mmap: remap failed with error %d. ",
->  			retval);
+> -- 
+> Regards,
 > 
-
+> Laurent Pinchart
+> 
