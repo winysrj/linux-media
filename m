@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:38968 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbaIMIrt (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58772 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402AbaIJK6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Sep 2014 04:47:49 -0400
-Received: by mail-lb0-f180.google.com with SMTP id b12so2096691lbj.25
-        for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 01:47:47 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 0/4] em28xx: clean up the audio variable mess
-Date: Sat, 13 Sep 2014 10:49:00 +0200
-Message-Id: <1410598140-29994-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 10 Sep 2014 06:58:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 6/8] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
+Date: Wed, 10 Sep 2014 12:58:26 +0200
+Message-Id: <1410346708-5125-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The audio variables in em28xx are a big mess:
-- many have misleading names
-- some are completely unnecessary
-- some duplicate in parts or even completely the meaning of others
-- some device features are described by combinations of multiple variables,
-  which makes the code difficult to understand and allows inconsistencies
+Using the for_each_... macro should make the code a bit shorter and
+easier to read.
 
-So clean up the em28xx audio variables:
-- Patch 1 removes 3 unneeded audio variables.
-- Patch 2 replaces the variables "has_alsa_audio" and "has_audio_class" with a 
-  single enum variable describing the type of usb audio (no usb audio / audio class / vendor).
-- Patches 3+4 replace the variables "has_audio" and "ac97" of struct em28xx_audio_mode
-  with a single enum variable describing the type of internal audio connection (none / ac97 / i2s).
-  Variable "audio_mode" is finally removed together with the obsolete structs 
-  "em28xx_audio_mode" and "em28xx_ac97_mode".
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/gpu/drm/drm_of.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-This simplifies the audio code a lot, making it much more self-explaining and easier to understand.
-It will hopefully reduce the risk of audio regression in the future.
-
-
-Frank Schäfer (4):
-  em28xx: remove some unnecessary fields from struct em28xx_audio_mode
-  em28xx: simplify usb audio class handling
-  em28xx: get rid of field has_audio in struct em28xx_audio_mode
-  em28xx: get rid of structs em28xx_ac97_mode and em28xx_audio_mode
-
- drivers/media/usb/em28xx/em28xx-audio.c | 10 ++---
- drivers/media/usb/em28xx/em28xx-cards.c | 30 +++++++-------
- drivers/media/usb/em28xx/em28xx-core.c  | 72 +++++++++++----------------------
- drivers/media/usb/em28xx/em28xx-video.c |  8 ++--
- drivers/media/usb/em28xx/em28xx.h       | 28 +++++--------
- 5 files changed, 59 insertions(+), 89 deletions(-)
-
+diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
+index 16150a0..024fa77 100644
+--- a/drivers/gpu/drm/drm_of.c
++++ b/drivers/gpu/drm/drm_of.c
+@@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
+ 	struct device_node *remote_port, *ep = NULL;
+ 	uint32_t possible_crtcs = 0;
+ 
+-	do {
+-		ep = of_graph_get_next_endpoint(port, ep);
+-		if (!ep)
+-			break;
+-
++	for_each_endpoint_of_node(port, ep) {
+ 		remote_port = of_graph_get_remote_port(ep);
+ 		if (!remote_port) {
+ 			of_node_put(ep);
+@@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
+ 		possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
+ 
+ 		of_node_put(remote_port);
+-	} while (1);
++	}
+ 
+ 	return possible_crtcs;
+ }
 -- 
-1.8.4.5
+2.1.0
 
