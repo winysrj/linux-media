@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48590 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751351AbaIGBFZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 21:05:25 -0400
-Message-ID: <540BAF4E.5080504@iki.fi>
-Date: Sun, 07 Sep 2014 04:05:18 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34756 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbaIKJVa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 05:21:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v2 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Thu, 11 Sep 2014 12:21:33 +0300
+Message-ID: <1826645.Jx4afrVREc@avalon>
+In-Reply-To: <1410346708-5125-4-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de> <1410346708-5125-4-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com> <540AAED4.8070108@iki.fi> <540B61EE.8080708@gmail.com>
-In-Reply-To: <540B61EE.8080708@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Philipp,
 
+Thank you for the patch.
 
-On 09/06/2014 10:35 PM, Akihiro TSUKADA wrote:
-> moikka!,
->
->> Basically it is 2 functions, af9035_add_i2c_dev() and af9035_del_i2c_dev()
->
-> I used request_module()/try_module_get()/module_put()
-> just like the above example (and bridge-core.c).
-> It works, but when I unload bridge driver(earth_pt3),
-> its demod and tuner modules stay loaded, with the refcount of 0.
-> Is it ok that the auto loaded modules remain with 0 ref count?
+On Wednesday 10 September 2014 12:58:23 Philipp Zabel wrote:
+> Decrementing the reference count of the previous endpoint node allows to
+> use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> Prior to this patch, all current users of this function that actually pass
+> a non-NULL prev parameter should be changed to not decrement the passed
+> prev argument's refcount themselves.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-So there is no other problem than those modules were left loaded? If you 
-could unload those using rmmod it is OK then. Ref counting is here to 
-prevent unloading demod and tuner driver while those are used by some 
-other module. So when bridge is loaded, you should not be able to unload 
-demod or tuner. But when bridge is unloaded, you should be able to 
-unload demod and tuner.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-And your question, I think there is no way to unload modules 
-automatically or at least no need.
-
->> Yet, using config to OUT seems to be bit hacky for my eyes too. I though
->> replacing all OUT with ops when converted af9033 driver. Currently
->> caller fills struct af9033_ops and then af9033 I2C probe populates ops.
->> See that patch:
->> https://patchwork.linuxtv.org/patch/25746/
->>
->> Does this kind of ops sounds any better?
->
-> Do you mean using ops in struct config?
-> if so, I don't find much difference with the current situation
-> where demod/tuner probe() sets dvb_frontend* to config->fe.
-
-Alloc driver specific ops in bridge driver, then put pointer to that ops 
-to config struct. Driver fills ops during probe. Maybe that patch clears 
-the idea:
-af9033: Don't export functions for the hardware filter
-https://patchwork.linuxtv.org/patch/23087/
-
-Functionality is not much different than passing pointer to frontend 
-pointer from bridge to I2C demod driver via platform_data...
-
-Somehow you will need to transfer data during driver loading and there 
-is not many alternatives:
-* platform data pointer
-* driver data pointer
-* export function
-* i2c_clients_command (legacy)
-* device ID string (not very suitable)
-* + the rest from i2c client, not related at all
-
-regards
-Antti
+> ---
+>  drivers/of/base.c | 9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+> 
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index d8574ad..a49b5628 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+>   * @prev: previous endpoint node, or NULL to get first
+>   *
+>   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+> - * of the passed @prev node is not decremented, the caller have to use
+> - * of_node_put() on it when done.
+> + * of the passed @prev node is decremented.
+>   */
+>  struct device_node *of_graph_get_next_endpoint(const struct device_node
+> *parent, struct device_node *prev)
+> @@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const
+> struct device_node *parent, if (WARN_ONCE(!port, "%s(): endpoint %s has no
+> parent node\n",
+>  			      __func__, prev->full_name))
+>  			return NULL;
+> -
+> -		/*
+> -		 * Avoid dropping prev node refcount to 0 when getting the next
+> -		 * child below.
+> -		 */
+> -		of_node_get(prev);
+>  	}
+> 
+>  	while (1) {
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
