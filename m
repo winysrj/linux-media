@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:52245 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455AbaIBUfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Sep 2014 16:35:04 -0400
-Date: Tue, 2 Sep 2014 22:34:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-cc: linuxtv-commits@linuxtv.org
-Subject: Re: [git:media_tree/master] [media] atmel-isi: Fix a truncate warning
-In-Reply-To: <E1XOtGI-0007MC-Uf@www.linuxtv.org>
-Message-ID: <Pine.LNX.4.64.1409022227160.31953@axis700.grange>
-References: <E1XOtGI-0007MC-Uf@www.linuxtv.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55958 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756637AbaIKPdZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 11:33:25 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 3/8] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Thu, 11 Sep 2014 17:33:02 +0200
+Message-Id: <1410449587-1677-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 26 Aug 2014, Mauro Carvalho Chehab wrote:
+Decrementing the reference count of the previous endpoint node allows to
+use the of_graph_get_next_endpoint function in a for_each_... style macro.
+Prior to this patch, all current users of this function that actually pass
+a non-NULL prev parameter should be changed to not decrement the passed
+prev argument's refcount themselves.
 
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] atmel-isi: Fix a truncate warning
-> Author:  Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Date:    Fri Aug 22 05:53:27 2014 -0500
-> 
->    drivers/media/platform/soc_camera/atmel-isi.c: In function 'start_streaming':
->    drivers/media/platform/soc_camera/atmel-isi.c:397:26: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->      isi_writel(isi, ISI_INTDIS, ~0UL);
->                              ^
-> 
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=9842a417d46bf40f2d460120016b6392d3ac32c9
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index f87012b..96a4b11 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -394,7 +394,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->  		return ret;
->  	}
->  	/* Disable all interrupts */
-> -	isi_writel(isi, ISI_INTDIS, ~0UL);
-> +	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/of/base.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-Uhm... Wouldn't it have been much better to just remove the 'L' above to 
-make it "~0U" ?.. Too late, I guess.
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index d8574ad..a49b5628 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2058,8 +2058,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+  * @prev: previous endpoint node, or NULL to get first
+  *
+  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+- * of the passed @prev node is not decremented, the caller have to use
+- * of_node_put() on it when done.
++ * of the passed @prev node is decremented.
+  */
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *prev)
+@@ -2095,12 +2094,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+ 			      __func__, prev->full_name))
+ 			return NULL;
+-
+-		/*
+-		 * Avoid dropping prev node refcount to 0 when getting the next
+-		 * child below.
+-		 */
+-		of_node_get(prev);
+ 	}
+ 
+ 	while (1) {
+-- 
+2.1.0
 
-Thanks
-Guennadi
-
->  
->  	spin_lock_irq(&isi->lock);
->  	/* Clear any pending interrupt */
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-> 
