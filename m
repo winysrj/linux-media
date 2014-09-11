@@ -1,89 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:55383 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316AbaI1Lyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Sep 2014 07:54:33 -0400
-Date: Sun, 28 Sep 2014 13:54:05 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140928115405.GA30490@linuxtv.org>
-References: <20140926122721.GA11597@linuxtv.org>
- <20140926101222.778ebcaf@recife.lan>
- <20140926132513.GA30084@linuxtv.org>
- <20140926142543.GA3806@linuxtv.org>
- <54257888.90802@osg.samsung.com>
- <20140926150602.GA15766@linuxtv.org>
- <20140926152228.GA21876@linuxtv.org>
- <20140926124309.558c8682@recife.lan>
- <20140928105540.GA28748@linuxtv.org>
- <20140928081211.4b26aa18@recife.lan>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:51036 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754039AbaIKKpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 06:45:45 -0400
+Date: Thu, 11 Sep 2014 11:45:18 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Balaji T K <balajitk@ti.com>, Nishanth Menon <nm@ti.com>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	linux-omap <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH 1/3] omap-dma: Allow compile-testing omap1_camera driver
+Message-ID: <20140911104518.GA12379@n2100.arm.linux.org.uk>
+References: <20140909124306.2d5a0d76@canb.auug.org.au> <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com> <20140909144157.GF12361@n2100.arm.linux.org.uk> <20140909123654.37d60f38.m.chehab@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20140928081211.4b26aa18@recife.lan>
+In-Reply-To: <20140909123654.37d60f38.m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 28, 2014 at 08:12:11AM -0300, Mauro Carvalho Chehab wrote:
-> Em Sun, 28 Sep 2014 12:55:40 +0200
-> Johannes Stezenbach <js@linuxtv.org> escreveu:
+On Tue, Sep 09, 2014 at 12:36:54PM -0300, Mauro Carvalho Chehab wrote:
+> Hmm... it seems that there are still several drivers still relying on
+> the functions declared at: omap-dma.h:
 > 
-> > I tried again both with and without the patch.  The issue above
-> > odesn't reproduce, but after hibernate it fails to tune
-> > (while it works after suspend-to-ram).  Restarting dvbv5-zap
-> > does not fix it.  All I get is:
-> > 
-> > [  500.299216] drxk: Error -22 on dvbt_sc_command
-> > [  500.301012] drxk: Error -22 on set_dvbt
-> > [  500.301967] drxk: Error -22 on start
+> $ grep extern include/linux/omap-dma.h |perl -ne 'print "$1\n" if (m/extern\s\S+\s(.*)\(/)' >funcs && git grep -f funcs -l
+> arch/arm/mach-omap1/pm.c
+> arch/arm/mach-omap2/pm24xx.c
+> arch/arm/plat-omap/dma.c
+> drivers/dma/omap-dma.c
+> drivers/media/platform/omap/omap_vout_vrfb.c
+> drivers/media/platform/omap3isp/isphist.c
+> drivers/media/platform/soc_camera/omap1_camera.c
+> drivers/mtd/onenand/omap2.c
+> drivers/usb/gadget/udc/omap_udc.c
+> drivers/usb/musb/tusb6010_omap.c
+> drivers/video/fbdev/omap/omapfb_main.c
+> include/linux/omap-dma.h
 > 
-> Just to be 100% sure if I understood well: you're having exactly
-> the same behavior with and without my patch, right?
+> Perhaps we can remove the header and mark all the above as BROKEN.
 
-Yes, no observable difference in my tests.
+Not quite.  You'll notice that drivers/dma/omap-dma.c appears in that
+list.  That is because right now, the new code has to co-operate with
+the old legacy code to ensure that both do not try and operate on the
+same hardware channel simultaneously.
 
-> I'll see if I can work on another patch for you today. If not,
-> I won't be able to touch on it until the end of the week, as I'm
-> traveling next week.
+Right now, when anyone tries to use any of the drivers using the legacy
+APIs, they will get a warning printed in their kernel message log.  This
+is part of my attempt to try and find out:
 
-no need to hurry
+(a) whether anyone is using these drivers
+(b) whether we can delete these drivers
 
-(BTW, I still think you should make sure the hang-on-resume fix,
-revert of b89193e0b06f, goes into 3.17, but it's your call.)
+That warning has not been in the kernel long enough to be certain of
+anything - it was merged during the last merge window (despite me
+having it ready to go since the previous merge window, it would not
+have been correct to introduce a new warning during the -rc period.)
 
-> > On rmmod it Oopsed:
-...
-> Please try this change:
-> 
-> [media] em28xx: remove firmware before releasing xc5000 priv state
-> 
-> hybrid_tuner_release_state() can free the priv state, so we need to
-> release the firmware before calling it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab
-> 
-> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-> index e44c8aba6074..803a0e63d47e 100644
-> --- a/drivers/media/tuners/xc5000.c
-> +++ b/drivers/media/tuners/xc5000.c
-> @@ -1333,9 +1333,9 @@ static int xc5000_release(struct dvb_frontend *fe)
->  
->  	if (priv) {
->  		cancel_delayed_work(&priv->timer_sleep);
-> -		hybrid_tuner_release_state(priv);
->  		if (priv->firmware)
->  			release_firmware(priv->firmware);
-> +		hybrid_tuner_release_state(priv);
->  	}
->  
->  	mutex_unlock(&xc5000_list_mutex);
-> 
+What I recommend is that you just don't mark the OMAP drivers for
+compile testing right now, especially as their future is rather
+uncertain.
 
-Works.  And after module reload, dvbv5-zap can work again.
-
-
-Thanks,
-Johannes
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
