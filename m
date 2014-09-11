@@ -1,509 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:58849 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaIJJoH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49346 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755346AbaIKN1I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 05:44:07 -0400
-Received: by mail-wi0-f182.google.com with SMTP id z2so5905340wiv.3
-        for <linux-media@vger.kernel.org>; Wed, 10 Sep 2014 02:44:06 -0700 (PDT)
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH v4] media: spi: Add support for LMH0395
-Date: Wed, 10 Sep 2014 11:43:54 +0200
-Message-Id: <1410342234-7444-1-git-send-email-jean-michel.hautbois@vodalys.com>
+	Thu, 11 Sep 2014 09:27:08 -0400
+Message-ID: <1410442019.4011.63.camel@paszta.hi.pengutronix.de>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Thu, 11 Sep 2014 15:26:59 +0200
+In-Reply-To: <5410F80F.5060803@mentor.com>
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
+		 <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
+		 <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
+		 <1407153257.3979.30.camel@paszta.hi.pengutronix.de>
+		 <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
+		 <53FDE9E1.2000108@mentor.com>
+		 <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+		 <540F26E5.50609@gmail.com>
+	 <1410284421.3353.47.camel@paszta.hi.pengutronix.de>
+	 <5410F80F.5060803@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This device is a SPI based device from TI.
-It is a 3 Gbps HD/SD SDI Dual Output Low Power
-Extended Reach Adaptive Cable Equalizer.
+Hi Steve,
 
-LMH0395 enables the use of up to two outputs.
-These can be configured using DT.
+Am Mittwoch, den 10.09.2014, 18:17 -0700 schrieb Steve Longerbeam:
+[...]
+> On 09/09/2014 10:40 AM, Philipp Zabel wrote:
+[...]
+> >  I have in the meantime started to
+> > implement everything that has a source or destination selector in the
+> > Frame Synchronization Unit (FSU) as media entity. I wonder which of
+> > these parts should reasonably be unified into a single entity:
+[...]
+> > 	SMFC0
+> > 	SMFC1
+> > 	SMFC2
+> > 	SMFC3
+> 
+> I don't really see the need for an SMFC entity. The SMFC control can
+> be integrated into the CSI subdev.
 
-Controls should be accessible from userspace too.
-This will have to be done later.
+Granted, this is currently is a theoretical question, but could we
+handle a single MIPI link that carries two or more virtual channels with
+different MIPI IDs this way?
 
-v2: Add DT support
-v3: Change the bit set/clear in output_type as disabled means 'set the bit'
-v4: Clearer description of endpoints usage in Doc, and some init changes.
-    Add a dependency on OF and don't test CONFIG_OF anymore.
+> > 	IC preprocessor (input to VF and ENC, if I understood correctly)
+> > 	IC viewfinder task (scaling, csc)
+> > 	IC encoding task
+> > 	IC post processing task
+> 
+> I see either three different IC subdev entities (IC prpenc, IC prpvf,
+> IC pp), or a single IC entity with three sink pads for each IC task.
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
----
- .../devicetree/bindings/media/spi/lmh0395.txt      |  48 +++
- MAINTAINERS                                        |   6 +
- drivers/media/spi/Kconfig                          |  14 +
- drivers/media/spi/Makefile                         |   1 +
- drivers/media/spi/lmh0395.c                        | 354 +++++++++++++++++++++
- 5 files changed, 423 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/spi/lmh0395.txt
- create mode 100644 drivers/media/spi/Kconfig
- create mode 100644 drivers/media/spi/Makefile
- create mode 100644 drivers/media/spi/lmh0395.c
+The former could work, the latter won't allow to have pre and post
+processing on separate pipelines.
 
-diff --git a/Documentation/devicetree/bindings/media/spi/lmh0395.txt b/Documentation/devicetree/bindings/media/spi/lmh0395.txt
-new file mode 100644
-index 0000000..7cc0026
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/spi/lmh0395.txt
-@@ -0,0 +1,48 @@
-+* Texas Instruments lmh0395 3G HD/SD SDI equalizer
-+
-+The LMH0395 3 Gbps HD/SD SDI Dual Output Low Power Extended Reach Adaptive
-+Cable Equalizer is designed to equalize data transmitted over cable (or any
-+media with similar dispersive loss characteristics).
-+The equalizer operates over a wide range of data rates from 125 Mbps to 2.97 Gbps
-+and supports SMPTE 424M, SMPTE 292M, SMPTE344M, SMPTE 259M, and DVB-ASI standards.
-+
-+Required Properties :
-+- compatible: Must be "ti,lmh0395"
-+
-+The device node must contain one 'port' child node per device input and output
-+port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-+are numbered as follows.
-+
-+  Port			LMH0395
-+------------------------------------------------------------
-+  SDI input		0
-+  SDI output		1,2
-+
-+Example:
-+
-+ecspi@02010000 {
-+	...
-+	...
-+
-+	lmh0395@1 {
-+		compatible = "ti,lmh0395";
-+		reg = <1>;
-+		spi-max-frequency = <20000000>;
-+		ports {
-+			port@0 {
-+				reg = <0>;
-+				sdi0_in: endpoint {};
-+			};
-+			port@1 {
-+				reg = <1>;
-+				sdi0_out0: endpoint {};
-+			};
-+			port@2 {
-+				reg = <2>;
-+				/* endpoint not specified, disable output */
-+			};
-+		};
-+	};
-+	...
-+};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cf24bb5..ca42b9e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9141,6 +9141,12 @@ S:	Maintained
- F:	sound/soc/codecs/lm49453*
- F:	sound/soc/codecs/isabelle*
- 
-+TI LMH0395 DRIVER
-+M:	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/spi/lmh0395*
-+
- TI LP855x BACKLIGHT DRIVER
- M:	Milo Kim <milo.kim@ti.com>
- S:	Maintained
-diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
-new file mode 100644
-index 0000000..bcb1ab1
---- /dev/null
-+++ b/drivers/media/spi/Kconfig
-@@ -0,0 +1,14 @@
-+if VIDEO_V4L2
-+
-+config VIDEO_LMH0395
-+	tristate "LMH0395 equalizer"
-+	depends on VIDEO_V4L2 && SPI && MEDIA_CONTROLLER && OF
-+	---help---
-+	  Support for TI LMH0395 3G HD/SD SDI Dual Output Low Power
-+	  Extended Reach Adaptive Cable Equalizer.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called lmh0395.
-+
-+
-+endif
-diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
-new file mode 100644
-index 0000000..6c587e5
---- /dev/null
-+++ b/drivers/media/spi/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_LMH0395)	+= lmh0395.o
-diff --git a/drivers/media/spi/lmh0395.c b/drivers/media/spi/lmh0395.c
-new file mode 100644
-index 0000000..3eca0df
---- /dev/null
-+++ b/drivers/media/spi/lmh0395.c
-@@ -0,0 +1,354 @@
-+/*
-+ * LMH0395 SPI driver.
-+ * Copyright (C) 2014  Jean-Michel Hautbois
-+ *
-+ * 3G HD/SD SDI Dual Output Low Power Extended Reach Adaptive Cable Equalizer
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/ioctl.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/types.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <linux/spi/spi.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
-+
-+static int debug;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "debug level (0-1)");
-+
-+#define	LMH0395_SPI_CMD_WRITE	0x00
-+#define	LMH0395_SPI_CMD_READ	0x80
-+
-+/* Registers of LMH0395 */
-+#define LMH0395_GENERAL_CTRL		0x00
-+#define LMH0395_OUTPUT_DRIVER		0x01
-+#define LMH0395_LAUNCH_AMP_CTRL		0x02
-+#define LMH0395_MUTE_REF		0x03
-+#define LMH0395_DEVICE_ID		0x04
-+#define	LMH0395_RATE_INDICATOR		0x05
-+#define	LMH0395_CABLE_LENGTH_INDICATOR	0x06
-+#define	LMH0395_LAUNCH_AMP_INDICATION	0x07
-+
-+/* This is a one input, dual output device */
-+#define LMH0395_SDI_INPUT	0
-+#define LMH0395_SDI_OUT0	1
-+#define LMH0395_SDI_OUT1	2
-+
-+#define LMH0395_PADS_NUM	3
-+
-+/* Register LMH0395_MUTE_REF bits [7:6] */
-+enum lmh0395_output_type {
-+	LMH0395_OUTPUT_TYPE_NONE,
-+	LMH0395_OUTPUT_TYPE_SDO0,
-+	LMH0395_OUTPUT_TYPE_SDO1,
-+	LMH0395_OUTPUT_TYPE_BOTH
-+};
-+
-+static const char * const output_strs[] = {
-+	"No Output Driver",
-+	"Output Driver 0",
-+	"Output Driver 1",
-+	"Output Driver 0+1",
-+};
-+
-+
-+/* spi implementation */
-+
-+static int lmh0395_spi_write(struct spi_device *spi, u8 reg, u8 data)
-+{
-+	int err;
-+	u8 cmd[2];
-+
-+	cmd[0] = LMH0395_SPI_CMD_WRITE | reg;
-+	cmd[1] = data;
-+
-+	err = spi_write(spi, cmd, 2);
-+	if (err < 0) {
-+		dev_err(&spi->dev, "SPI failed to select reg\n");
-+		return err;
-+	}
-+
-+	return err;
-+}
-+
-+static int lmh0395_spi_read(struct spi_device *spi, u8 reg, u8 *data)
-+{
-+	int err;
-+	u8 cmd[2];
-+	u8 read_data[2];
-+
-+	cmd[0] = LMH0395_SPI_CMD_READ | reg;
-+	cmd[1] = 0xff;
-+
-+	err = spi_write(spi, cmd, 2);
-+	if (err < 0) {
-+		dev_err(&spi->dev, "SPI failed to select reg\n");
-+		return err;
-+	}
-+
-+	err = spi_read(spi, read_data, 2);
-+	if (err < 0) {
-+		dev_err(&spi->dev, "SPI failed to read reg\n");
-+		return err;
-+	}
-+	/* The first 8 bits is the adress used, drop it */
-+	*data = read_data[1];
-+
-+	return err;
-+}
-+
-+struct lmh0395_state {
-+	struct v4l2_subdev sd;
-+	struct media_pad pads[LMH0395_PADS_NUM];
-+	enum lmh0395_output_type output_type;
-+};
-+
-+static inline struct lmh0395_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct lmh0395_state, sd);
-+}
-+
-+static int lmh0395_set_output_type(struct v4l2_subdev *sd, u32 output)
-+{
-+	struct lmh0395_state *state = to_state(sd);
-+	struct spi_device *spi = v4l2_get_subdevdata(sd);
-+	u8 muteref_reg;
-+
-+	switch (output) {
-+	case LMH0395_OUTPUT_TYPE_SDO0:
-+		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
-+		muteref_reg &= ~(1 << 6);
-+		break;
-+	case LMH0395_OUTPUT_TYPE_SDO1:
-+		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
-+		muteref_reg &= (1 << 7);
-+		break;
-+	case LMH0395_OUTPUT_TYPE_BOTH:
-+		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
-+		muteref_reg |= 0x00 << 6;
-+		break;
-+	case LMH0395_OUTPUT_TYPE_NONE:
-+		lmh0395_spi_read(spi, LMH0395_MUTE_REF, &muteref_reg);
-+		muteref_reg |= 0x11 << 6;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	v4l2_dbg(1, debug, sd, "Selecting %s output type\n",
-+					output_strs[output]);
-+
-+	/* The following settings will have to be dynamic */
-+	muteref_reg &= ~(0x1f); /* Muteref enable */
-+	muteref_reg |= 1 << 5; /* Digital Muteref */
-+
-+	lmh0395_spi_write(spi, LMH0395_MUTE_REF, muteref_reg);
-+
-+	state->output_type = output;
-+	return 0;
-+
-+}
-+
-+static int lmh0395_get_rate(struct v4l2_subdev *sd, u8 *rate)
-+{
-+	struct spi_device *spi = v4l2_get_subdevdata(sd);
-+	int err;
-+	u8 ctrl;
-+
-+	err = lmh0395_spi_read(spi, LMH0395_RATE_INDICATOR, &ctrl);
-+	if (err < 0)
-+		return err;
-+
-+	*rate = ctrl & 0x20;
-+	v4l2_dbg(1, debug, sd, "Rate : %s\n", (ctrl & 0x20)?"3G/HD":"SD");
-+	return 0;
-+}
-+
-+static int lmh0395_get_cable_length(struct v4l2_subdev *sd, u8 rate)
-+{
-+	struct spi_device *spi = v4l2_get_subdevdata(sd);
-+	u8 length;
-+	u8 cli;
-+	int err;
-+
-+	err = lmh0395_spi_read(spi, LMH0395_CABLE_LENGTH_INDICATOR, &cli);
-+	if (err < 0)
-+		return err;
-+
-+	/* The cable length indicator (CLI) provides an indication of the
-+	 * length of the cable attached to input. CLI is accessible via bits
-+	 * [7:0] of SPI register 06h.
-+	 * The 8-bit setting ranges in decimal value from 0 to 247
-+	 * ("00000000" to "11110111" binary), corresponding to 0 to 400m of
-+	 * Belden 1694A cable.
-+	 * For 3G and HD input, CLI is 1.25m per step.
-+	 * For SD input, CLI is 1.25m per step, less 20m, from 0 to 191 decimal
-+	 * and 3.5m per step from 192 to 247 decimal.
-+	 */
-+
-+	length = cli*5/4;
-+	if (rate == 0) {
-+		if (cli <= 191)
-+			length -= 20;
-+		else
-+			length = ((191*5/4)-20) + ((cli-191)*7/2);
-+
-+	}
-+	v4l2_dbg(1, debug, sd, "Length estimated (BELDEN 1694A cables) : %dm\n",
-+			length);
-+	return 0;
-+}
-+
-+static int lmh0395_get_control(struct v4l2_subdev *sd)
-+{
-+	int err;
-+	struct spi_device *spi = v4l2_get_subdevdata(sd);
-+	u8 ctrl;
-+	u8 rate;
-+
-+	err = lmh0395_spi_read(spi, LMH0395_GENERAL_CTRL, &ctrl);
-+	if (err < 0)
-+		return err;
-+
-+	if (ctrl & 0x80) {
-+		v4l2_dbg(1, debug, sd, "Carrier detected\n");
-+		lmh0395_get_rate(sd, &rate);
-+		lmh0395_get_cable_length(sd, rate);
-+	}
-+	return 0;
-+}
-+
-+static int lmh0395_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
-+				u32 config)
-+{
-+	struct lmh0395_state *state = to_state(sd);
-+	int err = 0;
-+
-+	if (state->output_type != output)
-+		err = lmh0395_set_output_type(sd, output);
-+
-+	return err;
-+}
-+
-+static const struct v4l2_subdev_video_ops lmh0395_video_ops = {
-+	.s_routing = lmh0395_s_routing,
-+};
-+
-+static const struct v4l2_subdev_ops lmh0395_ops = {
-+	.video = &lmh0395_video_ops,
-+};
-+
-+static const struct spi_device_id lmh0395_id[] = {
-+	{ "lmh0395", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(spi, lmh0395_id);
-+
-+static const struct of_device_id lmh0395_of_match[] = {
-+	{.compatible = "ti,lmh0395", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, lmh0395_of_match);
-+
-+static int lmh0395_probe(struct spi_device *spi)
-+{
-+	u8 device_id;
-+	struct lmh0395_state *state;
-+	struct v4l2_subdev *sd;
-+	int err;
-+
-+	err = lmh0395_spi_read(spi, LMH0395_DEVICE_ID, &device_id);
-+	if (err < 0)
-+		return err;
-+
-+	dev_dbg(&spi->dev, "device_id 0x%x\n", device_id);
-+
-+	/* Now that the device is here, let's init V4L2 */
-+	state = devm_kzalloc(&spi->dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	sd = &state->sd;
-+	v4l2_spi_subdev_init(sd, spi, &lmh0395_ops);
-+
-+	v4l2_dbg(1, debug, sd, "Configuring equalizer\n");
-+	lmh0395_get_control(sd);
-+	/* Default is no output */
-+	lmh0395_set_output_type(sd, LMH0395_OUTPUT_TYPE_NONE);
-+
-+	if (spi->dev.of_node) {
-+		struct device_node *n = NULL;
-+		struct of_endpoint ep;
-+
-+		while ((n = of_graph_get_next_endpoint(spi->dev.of_node, n))
-+								!= NULL) {
-+			of_graph_parse_endpoint(n, &ep);
-+			dev_dbg(&spi->dev, "endpoint %d on port %d\n",
-+						ep.id, ep.port);
-+			/* port 1 => SDO0 */
-+			if (ep.port >= 1)
-+				lmh0395_set_output_type(sd, ep.port);
-+			of_node_put(n);
-+		}
-+	} else {
-+		dev_dbg(&spi->dev, "No DT configuration\n");
-+	}
-+
-+	state->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	state->pads[LMH0395_SDI_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[LMH0395_SDI_OUT0].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[LMH0395_SDI_OUT1].flags = MEDIA_PAD_FL_SOURCE;
-+	err = media_entity_init(&sd->entity, LMH0395_PADS_NUM, state->pads, 0);
-+	if (err)
-+		return err;
-+
-+	err = v4l2_async_register_subdev(sd);
-+	if (err < 0) {
-+		media_entity_cleanup(&sd->entity);
-+		return err;
-+	}
-+
-+	dev_dbg(&spi->dev, "device probed\n");
-+
-+	return 0;
-+}
-+
-+static int lmh0395_remove(struct spi_device *spi)
-+{
-+	struct v4l2_subdev *sd = spi_get_drvdata(spi);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	return 0;
-+}
-+
-+
-+static struct spi_driver lmh0395_driver = {
-+	.driver = {
-+		.of_match_table = lmh0395_of_match,
-+		.name = "lmh0395",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = lmh0395_probe,
-+	.remove = lmh0395_remove,
-+	.id_table = lmh0395_id,
-+};
-+
-+module_spi_driver(lmh0395_driver);
-+
-+MODULE_DESCRIPTION("spi device driver for LMH0395 equalizer");
-+MODULE_AUTHOR("Jean-Michel Hautbois");
-+MODULE_LICENSE("GPL");
--- 
-2.0.4
+> > 	IRT viewfinder task (rotation)
+> > 	IRT encoding task
+> > 	IRT post processing task
+> 
+> well, the IRT is really just a submodule enable bit, I see no need
+> for an IRT subdev, in fact IRT has already been folded into ipu-ic.c
+> as a simple submodule enable/disable. Rotation support can be
+> implemented as part of the IC entities.
+
+My current understanding is that the IRT is strictly a mem2mem device
+using its own DMA channels, which can be channel-linked to the IC (and
+other blocks) in various ways.
+
+> > 	VDIC (deinterlacing, combining)
+> 
+> I am thinking VDIC support can be part of the IC prpvf entity (well,
+> combining is not really on my radar, I haven't given that much thought).
+> 
+> > 	(and probably some entry for DP/DC/DMFC for the direct
+> > 	 viewfinder path)
+> 
+> Ugh, I've been ignoring that path as well. Freescale's BSP releases
+> and sample code from their SDK's have no example code for the
+> direct-to-DP/DC/DMFC camera viewfinder path, so given the quality
+> of the imx TRM, this could be a challenge to implement. Have you
+> gotten this path to work?
+
+Not yet, no.
+
+> > I suppose the SMFC channels need to be separate because they can belong
+> > to different pipelines (and each entity can only belong to one).
+> 
+> I see the chosen SMFC channel as an internal decision by the
+> CSI subdev.
+
+Can we handle multiple outputs from a single CSI this way?
+
+> > The three IC task entities could probably be combined with their
+> > corresponding IRT task entity somehow, but that would be at the cost of
+> > not being able to tell the kernel whether to rotate before or after
+> > scaling, which might be useful when handling chroma subsampled formats.
+> 
+> I'm fairly sure IC rotation must always occur _after_ scaling. I.e.
+> raw frames are first passed through IC prpenc/prpvf/pp for scaling/CSC,
+> then EOF completion of that task is hardware linked to IRT.
+
+There could be good reasons to do the rotation on the input side, for
+example when upscaling or when the output is 4:2:2 subsampled. At least
+the FSU registers suggest that channel linking the rotator before the IC
+is possible. This probably won't be useful for the capture path in most
+cases, but it might be for rotated playback.
+
+> > I have put my current state up here:
+> >
+> > git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+> >
+> > So far I've captured video through the SMFC on a Nitrogen6X board with
+> > OV5652 parallel camera with this.
+> 
+> Thanks Phillip, I'll take a look! Sounds like a good place to start.
+> I assume this is with the video mux entity and CSI driver? I.e. no
+> IC entity support yet for scaling, CSC, or rotation.
+
+Yes, exactly.
+
+regards
+Philipp
 
