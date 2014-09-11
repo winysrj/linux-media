@@ -1,86 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37582 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891AbaIXXO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:14:29 -0400
-Date: Wed, 24 Sep 2014 20:14:23 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: Re: [PATCH 09/18] [media] cx88: remove return after BUG()
-Message-ID: <20140924201423.4351be8e@recife.lan>
-In-Reply-To: <54234664.3030500@iki.fi>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-	<9558d5ca24c16761b267ac700661aeaa501f1b1e.1411597610.git.mchehab@osg.samsung.com>
-	<54234664.3030500@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55914 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756393AbaIKPdS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 11:33:18 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 6/8] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
+Date: Thu, 11 Sep 2014 17:33:05 +0200
+Message-Id: <1410449587-1677-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 25 Sep 2014 01:32:04 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Using the for_each_... macro should make the code a bit shorter and
+easier to read.
 
-> Are these even cases you should use BUG()? How about WARN()...
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/gpu/drm/drm_of.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Those are all very bad driver's behavior. Fixing it would
-likely require several fixups, as if one of those got hit,
-something evil happened.
+diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
+index 16150a0..024fa77 100644
+--- a/drivers/gpu/drm/drm_of.c
++++ b/drivers/gpu/drm/drm_of.c
+@@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
+ 	struct device_node *remote_port, *ep = NULL;
+ 	uint32_t possible_crtcs = 0;
+ 
+-	do {
+-		ep = of_graph_get_next_endpoint(port, ep);
+-		if (!ep)
+-			break;
+-
++	for_each_endpoint_of_node(port, ep) {
+ 		remote_port = of_graph_get_remote_port(ep);
+ 		if (!remote_port) {
+ 			of_node_put(ep);
+@@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
+ 		possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
+ 
+ 		of_node_put(remote_port);
+-	} while (1);
++	}
+ 
+ 	return possible_crtcs;
+ }
+-- 
+2.1.0
 
-Anyway, Hans is converting cx88 to VB2, and likely removing
-most of this code, if not all.
-
-Still, for now, it is better to have fewer sparse/spatch errors
-to allow a better detection on new errors introduced on new
-patches.
-
-Regards,
-Mauro
-
-> 
-> Antti
-> 
-> On 09/25/2014 01:27 AM, Mauro Carvalho Chehab wrote:
-> > As reported by smatch:
-> >
-> > drivers/media/pci/cx88/cx88-video.c:699 get_queue() info: ignoring unreachable code.
-> > drivers/media/pci/cx88/cx88-video.c:714 get_resource() info: ignoring unreachable code.
-> > drivers/media/pci/cx88/cx88-video.c:815 video_read() info: ignoring unreachable code.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-> > index ed8cb9037b6f..ce27e6d4f16e 100644
-> > --- a/drivers/media/pci/cx88/cx88-video.c
-> > +++ b/drivers/media/pci/cx88/cx88-video.c
-> > @@ -696,7 +696,6 @@ static struct videobuf_queue *get_queue(struct file *file)
-> >   		return &fh->vbiq;
-> >   	default:
-> >   		BUG();
-> > -		return NULL;
-> >   	}
-> >   }
-> >
-> > @@ -711,7 +710,6 @@ static int get_resource(struct file *file)
-> >   		return RESOURCE_VBI;
-> >   	default:
-> >   		BUG();
-> > -		return 0;
-> >   	}
-> >   }
-> >
-> > @@ -812,7 +810,6 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
-> >   					    file->f_flags & O_NONBLOCK);
-> >   	default:
-> >   		BUG();
-> > -		return 0;
-> >   	}
-> >   }
-> >
-> >
-> 
