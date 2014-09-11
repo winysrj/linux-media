@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43832 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750864AbaIYFIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 01:08:19 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 02/12] cx231xx: use own i2c_client for eeprom access
-Date: Thu, 25 Sep 2014 07:07:54 +0200
-Message-Id: <1411621684-8295-2-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:59621 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812AbaIKS3d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 14:29:33 -0400
+Received: from mfilter4-d.gandi.net (mfilter4-d.gandi.net [217.70.178.134])
+	by relay5-d.mail.gandi.net (Postfix) with ESMTP id 38A0E41C06C
+	for <linux-media@vger.kernel.org>; Thu, 11 Sep 2014 20:29:31 +0200 (CEST)
+Received: from relay5-d.mail.gandi.net ([217.70.183.197])
+	by mfilter4-d.gandi.net (mfilter4-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id qmBip3cosMLf for <linux-media@vger.kernel.org>;
+	Thu, 11 Sep 2014 20:29:29 +0200 (CEST)
+Received: from nuvo (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
+	(Authenticated sender: hadess@hadess.net)
+	by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id C03F241C061
+	for <linux-media@vger.kernel.org>; Thu, 11 Sep 2014 20:29:29 +0200 (CEST)
+Message-ID: <1410460155.32328.26.camel@hadess.net>
+Subject: OV5648 and GC2235 camera drivers?
+From: Bastien Nocera <hadess@hadess.net>
+To: linux-media@vger.kernel.org
+Date: Thu, 11 Sep 2014 20:29:15 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+Hey,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 791f00c..092fb85 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
- 
- }
- 
--static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
-+static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
-+		       u8 *eedata, int len)
- {
- 	int ret = 0;
--	u8 addr = 0xa0 >> 1;
- 	u8 start_offset = 0;
- 	int len_todo = len;
- 	u8 *eedata_cur = eedata;
- 	int i;
--	struct i2c_msg msg_write = { .addr = addr, .flags = 0,
-+	struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
- 		.buf = &start_offset, .len = 1 };
--	struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
--
--	/* mutex_lock(&dev->i2c_lock); */
--	cx231xx_enable_i2c_port_3(dev, false);
-+	struct i2c_msg msg_read = { .addr = client->addr, .flags = I2C_M_RD };
- 
- 	/* start reading at offset 0 */
--	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
-+	ret = i2c_transfer(client->adapter, &msg_write, 1);
- 	if (ret < 0) {
- 		cx231xx_err("Can't read eeprom\n");
- 		return ret;
-@@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
- 		msg_read.len = (len_todo > 64) ? 64 : len_todo;
- 		msg_read.buf = eedata_cur;
- 
--		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
-+		ret = i2c_transfer(client->adapter, &msg_read, 1);
- 		if (ret < 0) {
- 			cx231xx_err("Can't read eeprom\n");
- 			return ret;
-@@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 		{
- 			struct tveeprom tvee;
- 			static u8 eeprom[256];
-+			struct i2c_client client;
-+
-+			memset(&client, 0, sizeof(client));
-+			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.addr = 0xa0 >> 1;
- 
--			read_eeprom(dev, eeprom, sizeof(eeprom));
--			tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
-+			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-+			tveeprom_hauppauge_analog(&client,
- 						&tvee, eeprom + 0xc0);
- 			break;
- 		}
--- 
-2.1.1
+I have this tablet:
+http://www.onda-tablet.com/onda-v975w-quad-core-win-8-tablet-9-7-inch-retina-screen-ram-2gb-wifi-32gb.html
+which according to its BIOS has a GC2235 front camera and a OV5648 rear
+camera.
+
+The DSDT for the device is here:
+https://bugzilla.kernel.org/attachment.cgi?id=149331
+
+Look for "Device (CAM2)" for the OV5648 camera, and "Device (CAM3)" for
+the GC2235 camera.
+
+It looks like there are Android drivers for those devices:
+https://github.com/NoelMacwan/Kernel-C6806-KOT49H.S2.2052/blob/master/drivers/media/platform/msm/camera_v2/sensor/ov5648.c
+and:
+http://dl.linux-sunxi.org/SDK/A80/A80_SDK_20140728_stripped/lichee/linux-3.4/drivers/media/video/sunxi-vfe/device/gc2235.c
+
+I have no idea which framework the first one is using, but the second
+one looks like it could be used on an upstream Linux kernel (with some
+cleaning up...).
+
+Does anyone know if somebody is working on support for those drivers,
+either upstream or in a staging tree somewhere?
+
+Cheers
 
