@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37159 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934AbaIXODH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56000 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427AbaIKPdl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 10:03:07 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH 4/4] [media] qm1d1c0042: fix frequency calculus
-Date: Wed, 24 Sep 2014 11:02:29 -0300
-Message-Id: <4450f003086a9d346977f9461c1070cb01a9fd90.1411567328.git.mchehab@osg.samsung.com>
-In-Reply-To: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
-References: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
-In-Reply-To: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
-References: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
+	Thu, 11 Sep 2014 11:33:41 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 1/8] [media] soc_camera: Do not decrement endpoint node refcount in the loop
+Date: Thu, 11 Sep 2014 17:33:00 +0200
+Message-Id: <1410449587-1677-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset aee9cf18e96e broke the frequency calculus. Fix it.
+In preparation for a following patch, stop decrementing the endpoint node
+refcount in the loop. This temporarily leaks a reference to the endpoint node,
+which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+of its prev argument instead.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-index 2a990f406cf5..18bc745ed108 100644
---- a/drivers/media/tuners/qm1d1c0042.c
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -235,8 +235,8 @@ static int qm1d1c0042_set_params(struct dvb_frontend *fe)
- 	 * sd = b          (b >= 0)
- 	 *      1<<22 + b  (b < 0)
- 	 */
--	b = (s32)div64_s64(((s64) freq) << 20,
--			   state->cfg.xtal_freq - (((s64) a) << 20));
-+	b = (s32)div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
-+			   - (((s64) a) << 20);
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..f752489 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,11 +1696,11 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
  
- 	if (b >= 0)
- 		sd = b;
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+ 			dev_err(dev, "multiple subdevices aren't supported yet!\n");
++			of_node_put(epn);
+ 			break;
+ 		}
+ 	}
 -- 
-1.9.3
+2.1.0
 
