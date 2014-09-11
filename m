@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:37346 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754381AbaIXDHD (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:36535 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbaIKHj0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 23:07:03 -0400
-Received: by mail-la0-f50.google.com with SMTP id ty20so10011877lab.9
-        for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 20:07:01 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+	Thu, 11 Sep 2014 03:39:26 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBQ003TA82CJZ70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Sep 2014 08:42:12 +0100 (BST)
+Received: from AVDC551 ([106.120.205.44])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0NBQ00FQI7XNZG90@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Sep 2014 08:39:23 +0100 (BST)
+From: Krzysztof Borowczyk <k.borowczyk@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] cx23885: initialize config structs for T9580
-Date: Wed, 24 Sep 2014 06:06:54 +0300
-Message-Id: <1411528014-14650-1-git-send-email-olli.salonen@iki.fi>
+Subject: FW: Webcam problem
+Date: Thu, 11 Sep 2014 09:39:22 +0200
+Message-id: <008501cfcd93$818aaf30$84a00d90$%borowczyk@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The config structs used for DVBSky T9580 were not initialized. This patch fixes that.
+Hello,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/cx23885/cx23885-dvb.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+I'm posting the message on the list, I didn't notice I was replying only to private email yesterday:
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 13734b8..4cb9031 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1600,6 +1600,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 				break;
- 
- 			/* attach tuner */
-+			memset(&m88ts2022_config, 0, sizeof(m88ts2022_config));
- 			m88ts2022_config.fe = fe0->dvb.frontend;
- 			m88ts2022_config.clock = 27000000;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
-@@ -1635,6 +1636,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		/* port c - terrestrial/cable */
- 		case 2:
- 			/* attach frontend */
-+			memset(&si2168_config, 0, sizeof(si2168_config));
- 			si2168_config.i2c_adapter = &adapter;
- 			si2168_config.fe = &fe0->dvb.frontend;
- 			si2168_config.ts_mode = SI2168_TS_SERIAL;
-@@ -1654,6 +1656,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			port->i2c_client_demod = client_demod;
- 
- 			/* attach tuner */
-+			memset(&si2157_config, 0, sizeof(si2157_config));
- 			si2157_config.fe = fe0->dvb.frontend;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+-----Original Message-----
+From: Krzysztof Borowczyk [mailto:k.borowczyk@samsung.com] 
+Sent: Wednesday, September 10, 2014 4:14 PM
+To: 'Laurent Pinchart'
+Subject: RE: Webcam problem
+
+Hi Laurent,
+
+[...]
+
+> 
+> This looks like a low-level problem. Either the webcam firmware
+> crashed, or
+> the XCHI USB controller get in a bad state. What kernel version are you
+> running ?
+
+It's 3.13.0-35-generic on Ubuntu 14.04, 64bit system.
+If any other information will be helpful I'll happily provide it.
+
 -- 
-1.7.0.4
+Best regards,
+Krzysztof Borowczyk
 
