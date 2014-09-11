@@ -1,40 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:32937 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbaIAJyH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 05:54:07 -0400
-Received: by mail-pa0-f42.google.com with SMTP id lf10so11924793pab.1
-        for <linux-media@vger.kernel.org>; Mon, 01 Sep 2014 02:54:06 -0700 (PDT)
-Message-ID: <5404423A.3020307@gmail.com>
-Date: Mon, 01 Sep 2014 18:54:02 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34772 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbaIKJ0z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 05:26:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v2 5/8] of: Add of_graph_get_port_by_id function
+Date: Thu, 11 Sep 2014 12:26:58 +0300
+Message-ID: <1821937.Xurs6vFZSc@avalon>
+In-Reply-To: <1410346708-5125-6-git-send-email-p.zabel@pengutronix.de>
+References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de> <1410346708-5125-6-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-CC: Matthias Schwarzott <zzam@gentoo.org>, m.chehab@samsung.com
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi>
-In-Reply-To: <54037BFE.60606@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Philipp,
 
-> Also, I would like to see all new drivers (demod and tuner) implemented
-> as a standard kernel I2C drivers (or any other bus). I have converted
-> already quite many drivers, si2168, si2157, m88ds3103, m88ts2022,
-> it913x, tda18212, ...
+Thank you for the patch.
 
-I wrote the code in the old style using dvb_attach()
-because (I felt) it is simpler than using i2c_new_device() by
-introducing new i2c-related data structures,
-registering to both dvb and i2c, without any new practical
-features that i2c client provides.
+On Wednesday 10 September 2014 12:58:25 Philipp Zabel wrote:
+> This patch adds a function to get a port device tree node by port id,
+> or reg property value.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>  - Fixed whitespace in comment
+>  - Changed id parameter to of_graph_get_port_by_id to u32
+>  - Simplified of_graph_get_port_by_id as suggested by Laurent,
+>    making use of port id defaulting to 0 if no "reg" property is given.
+> ---
+>  drivers/of/base.c        | 26 ++++++++++++++++++++++++++
+>  include/linux/of_graph.h |  7 +++++++
+>  2 files changed, 33 insertions(+)
+> 
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index a49b5628..b282474 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2053,6 +2053,32 @@ int of_graph_parse_endpoint(const struct device_node
+> *node, EXPORT_SYMBOL(of_graph_parse_endpoint);
+> 
+>  /**
+> + * of_graph_get_port_by_id() - get the port matching a given id
+> + * @parent: pointer to the parent device node
+> + * @id: id of the port
+> + *
+> + * Return: A 'port' node pointer with refcount incremented. The caller
+> + * has to use of_node_put() on it when done.
+> + */
+> +struct device_node *of_graph_get_port_by_id(struct device_node *node, u32
+> id) +{
+> +	struct device_node *port = NULL;
 
-But if the use of dvb_attach() is (almost) deprecated and
-i2c client driver is the standard/prefered way,
-I'll convert my code.
+No need to initialize port to NULL.
 
-regards,
-akihiro
+> +	u32 port_id = 0;
+> +
+> +	while (true) {
+> +		port = of_get_next_child(node, port);
+> +		if (!port)
+> +			return NULL;
+
+How about using for_each_child_of_node() ?
+
+> +		if (of_node_cmp(port->name, "port") != 0)
+> +			continue;
+> +		of_property_read_u32(port, "reg", &port_id);
+
+A port with no reg property will be treated as having the id of the previous 
+port. You can fix this by moving the port_id variable declaration inside the 
+loop.
+
+> +		if (id == port_id)
+> +			return port;
+> +	}
+> +}
+> +EXPORT_SYMBOL(of_graph_get_port_by_id);
+> +
+> +/**
+>   * of_graph_get_next_endpoint() - get next endpoint node
+>   * @parent: pointer to the parent device node
+>   * @prev: previous endpoint node, or NULL to get first
+> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+> index e43442e..e028e49 100644
+> --- a/include/linux/of_graph.h
+> +++ b/include/linux/of_graph.h
+> @@ -40,6 +40,7 @@ struct of_endpoint {
+>  #ifdef CONFIG_OF
+>  int of_graph_parse_endpoint(const struct device_node *node,
+>  				struct of_endpoint *endpoint);
+> +struct device_node *of_graph_get_port_by_id(struct device_node *node, u32
+> id); struct device_node *of_graph_get_next_endpoint(const struct
+> device_node *parent, struct device_node *previous);
+>  struct device_node *of_graph_get_remote_port_parent(
+> @@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct
+> device_node *node, return -ENOSYS;
+>  }
+> 
+> +static inline struct device_node *of_graph_get_port_by_id(
+> +					struct device_node *node, int id)
+
+id should be u32 here.
+
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline struct device_node *of_graph_get_next_endpoint(
+>  					const struct device_node *parent,
+>  					struct device_node *previous)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
