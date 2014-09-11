@@ -1,146 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:52075 "EHLO
-	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbaI2Ioa (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43530 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbaIKRnV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 04:44:30 -0400
-Subject: [PATCH 2/2] af9033: fix snr value not correct issue
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi
-Content-Type: multipart/mixed; boundary="=-/XpKs2nAvlpx0Uk5ygu6"
-Date: Mon, 29 Sep 2014 16:47:38 +0800
-Message-ID: <1411980458.1747.12.camel@ite-desktop>
+	Thu, 11 Sep 2014 13:43:21 -0400
+Message-ID: <1410457391.4011.87.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH] [media] coda: Improve runtime PM support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 11 Sep 2014 19:43:11 +0200
+In-Reply-To: <1410356613-16811-1-git-send-email-ulf.hansson@linaro.org>
+References: <1410356613-16811-1-git-send-email-ulf.hansson@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Ulf,
 
---=-/XpKs2nAvlpx0Uk5ygu6
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+thanks for the patch!
 
-Snr returns value not correct. Fix it.
+Am Mittwoch, den 10.09.2014, 15:43 +0200 schrieb Ulf Hansson:
+> For several reasons it's good practice to leave devices in runtime PM
+> active state while those have been probed.
 
---=-/XpKs2nAvlpx0Uk5ygu6
-Content-Disposition: attachment; filename="0002-af9033-fix-snr-value-not-correct-issue.patch"
-Content-Type: text/x-patch; name="0002-af9033-fix-snr-value-not-correct-issue.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+It would be nice to mention those reasons.
 
->From 427a5c6ef49e3235ac35a0464c375f2a2706619e Mon Sep 17 00:00:00 2001
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-Date: Mon, 29 Sep 2014 16:30:52 +0800
-Subject: [PATCH 2/2] af9033: fix snr value not correct issue
+> In this cases we also want to prevent the device from going inactive,
+> until the firmware has been completely installed, especially when using
+> a PM domain.
+> 
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> ---
+>  drivers/media/platform/coda/coda-common.c | 42 ++++++++-----------------------
+>  1 file changed, 11 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 0997b5c..361f28d 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1703,39 +1703,16 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+>  	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
+>  	release_firmware(fw);
+>  
+> -	if (pm_runtime_enabled(&pdev->dev) && pdev->dev.pm_domain) {
+> -		/*
+> -		 * Enabling power temporarily will cause coda_hw_init to be
+> -		 * called via coda_runtime_resume by the pm domain.
+> -		 */
+> -		ret = pm_runtime_get_sync(&dev->plat_dev->dev);
+> -		if (ret < 0) {
+> -			v4l2_err(&dev->v4l2_dev, "failed to power on: %d\n",
+> -				 ret);
+> -			return;
+> -		}
+> -
+> -		ret = coda_check_firmware(dev);
+> -		if (ret < 0)
+> -			return;
+> -
+> -		pm_runtime_put_sync(&dev->plat_dev->dev);
+> -	} else {
+> -		/*
+> -		 * If runtime pm is disabled or pm_domain is not set,
+> -		 * initialize once manually.
+> -		 */
+> -		ret = coda_hw_init(dev);
+> -		if (ret < 0) {
+> -			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
+> -			return;
+> -		}
+> -
+> -		ret = coda_check_firmware(dev);
+> -		if (ret < 0)
+> -			return;
+> +	ret = coda_hw_init(dev);
+> +	if (ret < 0) {
+> +		v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
+> +		return;
+>  	}
+>  
+> +	ret = coda_check_firmware(dev);
+> +	if (ret < 0)
+> +		return;
+> +
 
-Snr returns value not correct. Fix it.
+Won't this keep the PM domain active indefinitely if hw_init or
+check_firmware fails? Other than that, this is a great change.
 
-Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
----
- drivers/media/dvb-frontends/af9033.c      |   52 ++++++++++++++++++++++++++---
- drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
- 2 files changed, 51 insertions(+), 6 deletions(-)
+>  	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+>  	if (IS_ERR(dev->alloc_ctx)) {
+>  		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
+> @@ -1771,6 +1748,7 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+>  	v4l2_info(&dev->v4l2_dev, "codec registered as /dev/video[%d-%d]\n",
+>  		  dev->vfd[0].num, dev->vfd[1].num);
+>  
+> +	pm_runtime_put_sync(&pdev->dev);
+>  	return;
+>  
+>  rel_m2m:
+> @@ -1998,6 +1976,8 @@ static int coda_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, dev);
+>  
+> +	pm_runtime_get_noresume(&pdev->dev);
+> +	pm_runtime_set_active(&pdev->dev);
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index e191bd5..30dc366 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -851,8 +851,8 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
- 
- 	/* use DVBv5 CNR */
--	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
--		*snr = div_s64(c->cnr.stat[0].svalue, 100); /* 1000x => 10x */
-+	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
-+		*snr = c->cnr.stat[0].uvalue;
- 	else
- 		*snr = 0;
- 
-@@ -1025,6 +1025,33 @@ static void af9033_stat_work(struct work_struct *work)
- 
- 		snr_val = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
- 
-+		/* read superframe number */
-+		ret = af9033_rd_reg(dev, 0x80f78b, &u8tmp);
-+		if (ret)
-+			goto err;
-+
-+		if (u8tmp)
-+			snr_val /= u8tmp;
-+
-+		/* read current transmission mode */
-+		ret = af9033_rd_reg(dev, 0x80f900, &u8tmp);
-+		if (ret)
-+			goto err;
-+
-+		switch ((u8tmp >> 0) & 3) {
-+		case 0:
-+			snr_val *= 4;
-+			break;
-+		case 1:
-+			snr_val *= 1;
-+			break;
-+		case 2:
-+			snr_val *= 2;
-+			break;
-+		default:
-+			goto err;
-+		}
-+
- 		/* read current modulation */
- 		ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
- 		if (ret)
-@@ -1048,14 +1075,29 @@ static void af9033_stat_work(struct work_struct *work)
- 		}
- 
- 		for (i = 0; i < len; i++) {
--			tmp = snr_lut[i].snr * 1000;
-+			tmp = snr_lut[i].snr;
- 			if (snr_val < snr_lut[i].val)
- 				break;
- 		}
- 
-+		/* scale value to 0x0000-0xffff */
-+		switch ((u8tmp >> 0) & 3) {
-+		case 0:
-+			tmp = tmp * 0xFFFF / 23;
-+			break;
-+		case 1:
-+			tmp = tmp * 0xFFFF / 26;
-+			break;
-+		case 2:
-+			tmp = tmp * 0xFFFF / 32;
-+			break;
-+		default:
-+			goto err;
-+		}
-+
- 		c->cnr.len = 1;
--		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
--		c->cnr.stat[0].svalue = tmp;
-+		c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
-+		c->cnr.stat[0].uvalue = tmp;
- 	} else {
- 		c->cnr.len = 1;
- 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index c9c8798..8e23275 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -181,7 +181,10 @@ static const struct val_snr qam64_snr_lut[] = {
- 	{ 0x05570d, 26 },
- 	{ 0x059feb, 27 },
- 	{ 0x05bf38, 28 },
--	{ 0xffffff, 29 },
-+	{ 0x05f78f, 29 },
-+	{ 0x0612c3, 30 },
-+	{ 0x0626be, 31 },
-+	{ 0xffffff, 32 },
- };
- 
- static const struct reg_val ofsm_init[] = {
--- 
-1.7.0.4
+Should we have a comment here why this is necessary?
 
-
---=-/XpKs2nAvlpx0Uk5ygu6--
+regards
+Philipp
 
