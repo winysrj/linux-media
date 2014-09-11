@@ -1,115 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38743 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35129 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927AbaIPLme (ORCPT
+	with ESMTP id S1752498AbaIKSSv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Sep 2014 07:42:34 -0400
+	Thu, 11 Sep 2014 14:18:51 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
-Date: Tue, 16 Sep 2014 14:42:36 +0300
-Message-ID: <1507629.uqIm3tmQgH@avalon>
-In-Reply-To: <20140916075812.04a8290d@concha.lan>
-References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com> <4972900.uUGnPegBxW@avalon> <20140916075812.04a8290d@concha.lan>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v3 5/8] of: Add of_graph_get_port_by_id function
+Date: Thu, 11 Sep 2014 21:18:52 +0300
+Message-ID: <4267060.0lIyimHcqU@avalon>
+In-Reply-To: <1410449587-1677-6-git-send-email-p.zabel@pengutronix.de>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de> <1410449587-1677-6-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Philipp,
 
-On Tuesday 16 September 2014 07:58:12 Mauro Carvalho Chehab wrote:
-> Em Tue, 16 Sep 2014 13:15:27 +0300 Laurent Pinchart escreveu:
-> > On Tuesday 16 September 2014 07:01:29 Mauro Carvalho Chehab wrote:
-> > > Em Tue, 16 Sep 2014 12:09:01 +0300 Laurent Pinchart escreveu:
-> > > > On Monday 15 September 2014 21:10:55 Mauro Carvalho Chehab wrote:
-> > > > > This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
-> > > > > 
-> > > > > The commit 9241650d62f7 was meant to solve an issue with Gstreamer
-> > > > > version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
-> > > > > a bad behavior ag Gstreamer.
-> > > > 
-> > > > That's not correct. The patch was created to solve an issue observed
-> > > > with the Gstreamer 0.10 v4l2src element accessing the video device
-> > > > directly, *without* libv4l.
-> > > 
-> > > Ok. From the discussions we took yesterday on the thread, I got the
-> > > wrong impression from Nicolas comments that this happens only with
-> > > gst < 1.4 and libv4l >= 1.2.
-> > 
-> > My understanding is that recent gst versions worked around the problem,
-> > and the above combination of versions might be problematic, but gst 0.10
-> > is definitely affected.
-> > 
-> > > > The V4L2 specification documents poll() as follows.
-> > > > 
-> > > > "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
-> > > > the poll() function succeeds, but sets the POLLERR flag in the revents
-> > > > field."
-> > > > 
-> > > > The vb2 poll implementation didn't conform with that, as it returned
-> > > > POLLERR when the buffer list was empty due to a transient buffer
-> > > > underrun, even if both VIDIOC_STREAMON and VIDIOC_QBUF have been
-> > > > called.
-> > > > 
-> > > > The commit thus brought the vb2 poll implementation in line with the
-> > > > specification. If we really want to revert it to its broken behaviour,
-> > > > then it would be fair to explain this in the revert message,
-> > > 
-> > > Ok, I'll rewrite the text. We likely want to fix the documentation too,
-> > > in order to reflect the way it is.
-> > > 
-> > > > and I want to know how you propose fixing this properly, as the revert
-> > > > really causes issues for userspace.
-> > > 
-> > > This patch simply broke all VBI applications. So, it should be reverted.
-> > > 
-> > > From what you're saying, using Gst 0.10 with a kernel before 3.16 and
-> > > VB2 was always broken, right?
-> > 
-> > Correct. And not only gst 0.10, any userspace application that doesn't
-> > specifically handles transient buffer underruns will be affected.
-> > 
-> > vb2 doesn't conform to the V4L2 specification, and I believe the
-> > specification is right in this case. Reverting this patch will push the
-> > problem to userspace, where all applications will have to handle buffer
-> > underruns manually.
+Thank you for the patch.
+
+On Thursday 11 September 2014 17:33:04 Philipp Zabel wrote:
+> This patch adds a function to get a port device tree node by port id,
+> or reg property value.
 > 
-> What happens with VB1? How is it solved there?
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> Changes since v2:
+>  - Fixed and simplified of_graph_get_port_by_id function
+> ---
+>  drivers/of/base.c        | 26 ++++++++++++++++++++++++++
+>  include/linux/of_graph.h |  7 +++++++
+>  2 files changed, 33 insertions(+)
 > 
-> I don't generally use gst 0.10, but I don't remember a single error
-> report about gst 0.10 and VB1-based drivers.
-
-I haven't tried VB1, but a quick look at the source code shows it to be 
-affected as well.
-
-The problem with gst 0.10 is only noticeable when a buffer underrun occurs 
-(when you don't requeue buffers fast enough and the queue buffers list becomes 
-temporarily empty), so it can very well go unnoticed for a long time.
-
-> > > And with VB1, is it also broken? If so, then this is a Gst 0.10 bug,
-> > > and the fix should be a patch for it, or a recommendation to upgrade
-> > > to a newer version without such bug.
-> > 
-> > As explained above, this isn't a gst bug.
-> > 
-> > > If, otherwise, it works with VB1, then we need to patch VB2 to have
-> > > exactly the same behavior as VB1 with that regards, as VBI works
-> > > with VB1.
-> > 
-> > One option would be to have implement a different poll behaviour for VBI
-> > and video.
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index a49b5628..76e2651 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2053,6 +2053,32 @@ int of_graph_parse_endpoint(const struct device_node
+> *node, EXPORT_SYMBOL(of_graph_parse_endpoint);
 > 
-> That would be a nightmare.
-
-I don't like it much either. Hans has posted a proposal to fix the problem an 
-hour ago, let's discuss it.
+>  /**
+> + * of_graph_get_port_by_id() - get the port matching a given id
+> + * @parent: pointer to the parent device node
+> + * @id: id of the port
+> + *
+> + * Return: A 'port' node pointer with refcount incremented. The caller
+> + * has to use of_node_put() on it when done.
+> + */
+> +struct device_node *of_graph_get_port_by_id(struct device_node *node, u32
+> id) +{
+> +	struct device_node *port;
+> +
+> +	for_each_child_of_node(node, port) {
+> +		u32 port_id = 0;
+> +
+> +		if (of_node_cmp(port->name, "port") != 0)
+> +			continue;
+> +		of_property_read_u32(port, "reg", &port_id);
+> +		if (id == port_id)
+> +			return port;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(of_graph_get_port_by_id);
+> +
+> +/**
+>   * of_graph_get_next_endpoint() - get next endpoint node
+>   * @parent: pointer to the parent device node
+>   * @prev: previous endpoint node, or NULL to get first
+> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+> index e43442e..3c1c95a 100644
+> --- a/include/linux/of_graph.h
+> +++ b/include/linux/of_graph.h
+> @@ -40,6 +40,7 @@ struct of_endpoint {
+>  #ifdef CONFIG_OF
+>  int of_graph_parse_endpoint(const struct device_node *node,
+>  				struct of_endpoint *endpoint);
+> +struct device_node *of_graph_get_port_by_id(struct device_node *node, u32
+> id); struct device_node *of_graph_get_next_endpoint(const struct
+> device_node *parent, struct device_node *previous);
+>  struct device_node *of_graph_get_remote_port_parent(
+> @@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct
+> device_node *node, return -ENOSYS;
+>  }
+> 
+> +static inline struct device_node *of_graph_get_port_by_id(
+> +					struct device_node *node, u32 id)
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline struct device_node *of_graph_get_next_endpoint(
+>  					const struct device_node *parent,
+>  					struct device_node *previous)
 
 -- 
 Regards,
