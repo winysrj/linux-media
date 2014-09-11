@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37590 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbaIXXZY convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55956 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756632AbaIKPdZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:25:24 -0400
-Date: Wed, 24 Sep 2014 20:25:14 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH 15/18] [media] s5p_mfc_opr: Fix warnings
-Message-ID: <20140924202514.0b1c6a3c@recife.lan>
-In-Reply-To: <CAOMZO5CoaX05r50p+Ug++napxZEoL_+CR8-T7tN6wtiSRfT1pw@mail.gmail.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-	<ed21f64844bd63573466c2667fd035f9e650a5f9.1411597610.git.mchehab@osg.samsung.com>
-	<CAOMZO5CoaX05r50p+Ug++napxZEoL_+CR8-T7tN6wtiSRfT1pw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 11 Sep 2014 11:33:25 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 2/8] imx-drm: Do not decrement endpoint node refcount in the loop
+Date: Thu, 11 Sep 2014 17:33:01 +0200
+Message-Id: <1410449587-1677-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 24 Sep 2014 20:02:19 -0300
-Fabio Estevam <festevam@gmail.com> escreveu:
+In preparation for the following patch, stop decrementing the endpoint node
+refcount in the loop. This temporarily leaks a reference to the endpoint node,
+which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+of its prev argument instead.
 
-> Hi Mauro,
-> 
-> On Wed, Sep 24, 2014 at 7:27 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> 
-> 
-> > drivers/media//platform/s5p-mfc/s5p_mfc_opr.c:44:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
-> 
-> ...
-> 
-> > -       mfc_debug(3, "Allocating priv: %d\n", b->size);
-> > +       mfc_debug(3, "Allocating priv: %zd\n", b->size);
-> 
-> This should be %zu instead.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/staging/imx-drm/imx-drm-core.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-Thanks! fixed on both patches.
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 6b22106..12303b3 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
+ 	return 0;
+ }
+ 
+-static struct device_node *imx_drm_of_get_next_endpoint(
+-		const struct device_node *parent, struct device_node *prev)
+-{
+-	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+-	of_node_put(prev);
+-	return node;
+-}
+-
+ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	struct drm_encoder *encoder, struct device_node *np)
+ {
+@@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	for (i = 0; ; i++) {
+ 		u32 mask;
+ 
+-		ep = imx_drm_of_get_next_endpoint(np, ep);
++		ep = of_graph_get_next_endpoint(np, ep);
+ 		if (!ep)
+ 			break;
+ 
+@@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+ 		return -EINVAL;
+ 
+ 	do {
+-		ep = imx_drm_of_get_next_endpoint(node, ep);
++		ep = of_graph_get_next_endpoint(node, ep);
+ 		if (!ep)
+ 			break;
+ 
+-- 
+2.1.0
 
-Regards,
-Mauro
