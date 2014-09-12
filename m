@@ -1,78 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2940 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984AbaIAN3l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 09:29:41 -0400
-Message-ID: <540474AE.4070706@xs4all.nl>
-Date: Mon, 01 Sep 2014 15:29:18 +0200
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1073 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086AbaILIIS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 04:08:18 -0400
+Message-ID: <5412A9DB.8080701@xs4all.nl>
+Date: Fri, 12 Sep 2014 10:07:55 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
-References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1409480361-12821-1-git-send-email-hdegoede@redhat.com>
-Content-Type: text/plain; charset=windows-1252
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: v4l2 ioctls
+References: <54124BDC.3000306@osg.samsung.com>
+In-Reply-To: <54124BDC.3000306@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 09/12/2014 03:26 AM, Shuah Khan wrote:
+> Hi Mauro/Hans,
+> 
+> I am working on adding sharing construct to dvb-core and v4l2-core.
+> In the case of dvb I have clean start and stop points to acquire the
+> tuner and release it. Tuner is acquired from dvb_frontend_start() and
+> released from dvb_frontend_thread() when thread exits. This works very
+> well.
+> 
+> The problem with analog case is there are no clear entry and exit
+> points. Instead of changing ioctls, it will be cleaner to change
+> the main ioctl entry routine __video_do_ioctl(). Is there an easy
+> way to tell which ioctls are query only and which are set?
+> 
+> So far I changed the following to check check for tuner token
+> before they invoke v4l2_ioctl_ops:
+> 
+> v4l_g_tuner()
 
-At first glance this looks fine. But making changes in videobuf is always scary :-)
-so I hope Marek can look at this as well.
+G_TUNER should work, even if the tuner is in a different mode. See my
+slides on that topic:
 
-How well was this tested?
+http://hverkuil.home.xs4all.nl/presentations/ambiguities2.odp
 
-I'll try do test this as well.
+> v4l_s_tuner()
+> v4l_s_modulator()
+> v4l_s_frequency()
+> v4l_s_hw_freq_seek()
+
+Other ioctls that should claim the tuner are:
+
+S_STD
+S_INPUT
+STREAMON
+QUERYSTD (depends on the hardware)
+
+Strictly speaking these ioctls only need to claim the tuner if
+they capture from the tuner input, but I think in most cases you aren't
+able to use a radio tuner at the same time as capturing from an S-Video
+or Composite input. Usually due to the audio muxing part that switches
+to a line-in jack when you start capturing video.
+
+Once an application takes ownership of a tuner (and multiple apps can
+own a tuner as long as they all want the same tuner mode), then that
+application stays owner for as long as the filehandle remains open.
+
+A tuner owner can switch tuner mode as long as there are no other owners.
+
+And opening a radio device should take tuner ownership immediately.
+Although, as I mentioned before, I think we should try to fix radio
+applications so that this is no longer necessary. It's very ugly
+behavior even though it is part of the V4L2 spec.
+
+> 
+> This isn't enough looks like, since I see tuner_s_std() getting
+> invoked and cutting off the dvb stream.
+
+You are right, I forgot about those ioctls. Calling S_STD, S_INPUT or
+STREAMON clearly indicates that you want to switch to TV mode.
+
+> I am currently releasing
+> the tuner from v4l2_fh_exit(), but I don't think that is a good
+> idea since all these ioctls are independent control paths. Each
+> ioctl might have to acquire and release it at the end. More on
+> this below.
+> 
+> For example, xawtv makes several ioctls before it even touches the
+> tuner to set frequency and starting the stream. What I am looking
+> for is an ioctl that would signal the intent to hold the tuner.
+> Is that possible?
+> 
+> The question is can we identify a clean start and stop points
+> for analog case for tuner ownership??
+
+The clean start points are the ioctls listed above. The stop point is
+when the filehandle is closed.
+
+> 
+> Would it make sense to treat all these ioctls as independent and
+> make them acquire and release lock or hold the tuner in shared
+> mode?
+
+I don't follow what you mean.
+
+> Shared doesn't really make sense to me since two user-space
+> analog apps can interfere with each other.
+
+This is allowed by the API. If you want to prevent other apps from
+making changes, then an application should raise its priority using
+S_PRIORITY. It's quite often very handy to have one application to
+do the streaming and another application to switch channels/inputs.
+
+> 
+> I am trying avoid changing tuner-core and if at all possible.
+> 
+> I can send the code I have now for review if you like. I have the
+> locking construct in a good state at the moment. dvb is in good
+> shape.
+
+I'm happy to look at it.
 
 Regards,
 
 	Hans
-
-On 08/31/2014 12:19 PM, Hans de Goede wrote:
-> All the infrastructure for this is already there, and despite our desires for
-> the old videobuf code to go away, it is currently still in use in 18 drivers.
-> 
-> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
-> making live easier for userspace, see e.g. :
-> https://bugzilla.gnome.org/show_bug.cgi?id=735660
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-> index fb5ee5d..b91a266 100644
-> --- a/drivers/media/v4l2-core/videobuf-core.c
-> +++ b/drivers/media/v4l2-core/videobuf-core.c
-> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->  	unsigned int size, count;
->  	int retval;
->  
-> -	if (req->count < 1) {
-> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
-> -		return -EINVAL;
-> -	}
-> -
->  	if (req->memory != V4L2_MEMORY_MMAP     &&
->  	    req->memory != V4L2_MEMORY_USERPTR  &&
->  	    req->memory != V4L2_MEMORY_OVERLAY) {
-> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->  		goto done;
->  	}
->  
-> +	if (req->count == 0) {
-> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
-> +		retval = __videobuf_free(q);
-> +		goto done;
-> +	}
-> +
->  	count = req->count;
->  	if (count > VIDEO_MAX_FRAME)
->  		count = VIDEO_MAX_FRAME;
-> 
 
