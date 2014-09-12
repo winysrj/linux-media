@@ -1,59 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:58724 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbaIFGJH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 02:09:07 -0400
-Received: by mail-pa0-f53.google.com with SMTP id fa1so23186440pad.26
-        for <linux-media@vger.kernel.org>; Fri, 05 Sep 2014 23:09:06 -0700 (PDT)
-Message-ID: <540AA4FD.5000703@gmail.com>
-Date: Sat, 06 Sep 2014 15:09:01 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:45566 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751663AbaILQ36 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 12:29:58 -0400
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+	by gateway2.nyi.internal (Postfix) with ESMTP id 9725620AE7
+	for <linux-media@vger.kernel.org>; Fri, 12 Sep 2014 12:29:57 -0400 (EDT)
+Date: Fri, 12 Sep 2014 09:29:56 -0700
+From: Greg KH <greg@kroah.com>
+To: Maciej Matraszek <m.matraszek@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	stable@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2] [media] v4l2-common: fix overflow in
+ v4l_bound_align_image()
+Message-ID: <20140912162956.GA27302@kroah.com>
+References: <1410367869-27688-1-git-send-email-m.matraszek@samsung.com>
+ <20140910171013.GA14048@kroah.com>
+ <1410538309.8852.30.camel@AMDC723>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com>
-In-Reply-To: <20140905232758.36946673.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1410538309.8852.30.camel@AMDC723>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi!
+On Fri, Sep 12, 2014 at 06:11:49PM +0200, Maciej Matraszek wrote:
+> On Wed, 2014-09-10 at 10:10 -0700, Greg KH wrote:
+> > > Fixes: b0d3159be9a3 ("V4L/DVB (11901): v4l2: Create helper function for bounding and aligning images")
+> > > Signed-off-by: Maciej Matraszek <m.matraszek@samsung.com>
+> > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > 
+> > > ---
+> > 
+> > <formletter>
+> > 
+> > This is not the correct way to submit patches for inclusion in the
+> > stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
+> > for how to do this properly.
+> > 
+> > </formletter>
+> 
+> Hi Greg,
+> 
+> I'm really sorry for this mistake.
+> Do I understand correctly that it is just a missing
+> 'Cc: <stable@vger.kernel.org>' line?
 
-> Yes, using the I2C binding way provides a better decoupling than using the
-> legacy way. The current dvb_attach() macros are hacks that were created
-> by the time where the I2C standard bind didn't work with DVB.
+In the signed-off-by: area of the patch, yes, that is what is needed.
 
-I understand. I converted my code to use i2c binding model,
-but I'm uncertain about a few things.
+Otherwise, just randomly sending the email to that address means
+nothing.
 
-1. How to load the modules of i2c driver?
-Currently I use request_module()/module_put()
-like an example (ddbrige-core.c) from Antti does,
-but I'd prefer implicit module loading/ref-counting
-like in dvb_attach() if it exists.
+thanks,
 
-
-2. Is there a standard way to pass around dvb_frontend*, i2c_client*,
-regmap* between bridge(dvb_adapter) and demod/tuner drivers?
-Currently I use config structure for the purpose, which is set to
-dev.platform_data (via i2c_board_info/i2c_new_device()) or
-dev.driver_data (via i2c_{get,set}_clientdata()),
-but using config as both IN/OUT looks a bit hacky.
-
-3. Should I also use RegMap API for register access?
-I tried using it but gave up,
-because it does not fit well to one of my use-case,
-where (only) reads must be done via 0xfb register, like
-   READ(reg, buf, len) -> [addr/w, 0xfb, reg], [addr/r, buf[0]...],
-   WRITE(reg, buf, len) -> [addr/w, reg, buf[0]...],
-and regmap looked to me overkill for 8bit-reg, 8bit-val cases
-and did not simplify the code.
-so I'd like to go without RegMap if possible,
-since I'm already puzzled enough by I2C binding, regmap, clock source,
-as well as dvb-core, PCI ;)
-
-regards,
-Akihiro
+greg k-h
