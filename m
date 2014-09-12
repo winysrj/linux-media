@@ -1,87 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4562 "EHLO
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2981 "EHLO
 	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059AbaIHOPM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:12 -0400
+	with ESMTP id S1752965AbaILNL7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 09:11:59 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC PATCH 07/12] vb2-dma-sg: add get_dmabuf
-Date: Mon,  8 Sep 2014 16:14:36 +0200
-Message-Id: <1410185681-20111-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [RFCv2 PATCH 08/14] vb2-vmalloc: add get_dmabuf support
+Date: Fri, 12 Sep 2014 14:59:57 +0200
+Message-Id: <1410526803-25887-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hansverk@cisco.com>
 
-Add DMABUF export support to vb2-dma-sg.
+Add support for DMABUF exporting to the vb2-vmalloc implementation.
+
+All memory models now have support for both importing and exporting of DMABUFs.
 
 Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 174 ++++++++++++++++++++++++++++
+ 1 file changed, 174 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 6d922c0..b494b49 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -385,6 +385,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index d77e397..437fbcd 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -31,6 +31,9 @@ struct vb2_vmalloc_buf {
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct dma_buf			*dbuf;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+@@ -210,6 +213,176 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
  }
  
  /*********************************************/
 +/*         DMABUF ops for exporters          */
 +/*********************************************/
 +
-+struct vb2_dma_sg_attachment {
++struct vb2_vmalloc_attachment {
 +	struct sg_table sgt;
 +	enum dma_data_direction dir;
 +};
 +
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++static int vb2_vmalloc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
 +	struct dma_buf_attachment *dbuf_attach)
 +{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
++	struct vb2_vmalloc_attachment *attach;
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
++	int num_pages = PAGE_ALIGN(buf->size) / PAGE_SIZE;
 +	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
++	struct scatterlist *sg;
++	void *vaddr = buf->vaddr;
 +	int ret;
++	int i;
 +
 +	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
 +	if (!attach)
 +		return -ENOMEM;
 +
 +	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
++	ret = sg_alloc_table(sgt, num_pages, GFP_KERNEL);
 +	if (ret) {
 +		kfree(attach);
-+		return -ENOMEM;
++		return ret;
 +	}
++	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
++		struct page *page = vmalloc_to_page(vaddr);
 +
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
++		if (!page) {
++			sg_free_table(sgt);
++			kfree(attach);
++			return -ENOMEM;
++		}
++		sg_set_page(sg, page, PAGE_SIZE, 0);
++		vaddr += PAGE_SIZE;
 +	}
 +
 +	attach->dir = DMA_NONE;
 +	dbuf_attach->priv = attach;
-+
 +	return 0;
 +}
 +
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
++static void vb2_vmalloc_dmabuf_ops_detach(struct dma_buf *dbuf,
 +	struct dma_buf_attachment *db_attach)
 +{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	struct vb2_vmalloc_attachment *attach = db_attach->priv;
 +	struct sg_table *sgt;
 +
 +	if (!attach)
@@ -98,10 +113,10 @@ index 6d922c0..b494b49 100644
 +	db_attach->priv = NULL;
 +}
 +
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
++static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
 +	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
 +{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	struct vb2_vmalloc_attachment *attach = db_attach->priv;
 +	/* stealing dmabuf mutex to serialize map/unmap operations */
 +	struct mutex *lock = &db_attach->dmabuf->lock;
 +	struct sg_table *sgt;
@@ -138,59 +153,59 @@ index 6d922c0..b494b49 100644
 +	return sgt;
 +}
 +
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++static void vb2_vmalloc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
 +	struct sg_table *sgt, enum dma_data_direction dir)
 +{
 +	/* nothing to be done here */
 +}
 +
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
++static void vb2_vmalloc_dmabuf_ops_release(struct dma_buf *dbuf)
 +{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
++	/* drop reference obtained in vb2_vmalloc_get_dmabuf */
++	vb2_vmalloc_put(dbuf->priv);
 +}
 +
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
++static void *vb2_vmalloc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
 +{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
 +
 +	return buf->vaddr + pgnum * PAGE_SIZE;
 +}
 +
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
++static void *vb2_vmalloc_dmabuf_ops_vmap(struct dma_buf *dbuf)
 +{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
 +
-+	return vb2_dma_sg_vaddr(buf);
++	return buf->vaddr;
 +}
 +
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
++static int vb2_vmalloc_dmabuf_ops_mmap(struct dma_buf *dbuf,
 +	struct vm_area_struct *vma)
 +{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
++	return vb2_vmalloc_mmap(dbuf->priv, vma);
 +}
 +
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
++static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
++	.attach = vb2_vmalloc_dmabuf_ops_attach,
++	.detach = vb2_vmalloc_dmabuf_ops_detach,
++	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
++	.kmap = vb2_vmalloc_dmabuf_ops_kmap,
++	.kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
++	.vmap = vb2_vmalloc_dmabuf_ops_vmap,
++	.mmap = vb2_vmalloc_dmabuf_ops_mmap,
++	.release = vb2_vmalloc_dmabuf_ops_release,
 +};
 +
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
++static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flags)
 +{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct vb2_vmalloc_buf *buf = buf_priv;
 +	struct dma_buf *dbuf;
 +
-+	if (WARN_ON(!buf->dma_sgt))
++	if (WARN_ON(!buf->vaddr))
 +		return NULL;
 +
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
++	dbuf = dma_buf_export(buf, &vb2_vmalloc_dmabuf_ops, buf->size, flags, NULL);
 +	if (IS_ERR(dbuf))
 +		return NULL;
 +
@@ -204,14 +219,14 @@ index 6d922c0..b494b49 100644
  /*       callbacks for DMABUF buffers        */
  /*********************************************/
  
-@@ -494,6 +663,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+@@ -265,6 +438,7 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+ 	.put		= vb2_vmalloc_put,
+ 	.get_userptr	= vb2_vmalloc_get_userptr,
+ 	.put_userptr	= vb2_vmalloc_put_userptr,
++	.get_dmabuf	= vb2_vmalloc_get_dmabuf,
+ 	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
+ 	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
 -- 
 2.1.0
 
