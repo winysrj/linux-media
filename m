@@ -1,122 +1,360 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2329 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756115AbaITMmJ (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3786 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753573AbaILNAa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:42:09 -0400
+	Fri, 12 Sep 2014 09:00:30 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 16/16] cx88: fix VBI support
-Date: Sat, 20 Sep 2014 14:41:51 +0200
-Message-Id: <1411216911-7950-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 01/14] vb2: introduce buf_prepare/finish_for_cpu
+Date: Fri, 12 Sep 2014 14:59:50 +0200
+Message-Id: <1410526803-25887-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Now works with both NTSC and PAL. Tested with CC/XDS for NTSC and
-teletext/WSS for PAL. The start lines were wrong, the WSS signal
-wasn't captured and there was no difference between NTSC and PAL
-w.r.t. the count[] values so NTSC returned way too many lines.
+This splits the buf_prepare and buf_finish actions into two: one
+called while the cpu can still access the buffer contents, and one where
+the memory has been prepared for DMA and the cpu no longer can access it.
+
+Update a few drivers that use buf_finish where they really meant
+buf_finish_for_cpu.
+
+The reason for this split is that some drivers need to modify the buffer,
+either before or after the DMA has taken place, in order to e.g. add JPEG
+headers or do other touch ups.
+
+You cannot do that in buf_prepare since at that time the buffer is already
+synced for DMA and the CPU shouldn't touch it. So add these extra ops to
+make this explicit.
+
+Note that the dma-sg memory model doesn't sync the buffers yet in the memop
+prepare. This will change in future patches.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx88/cx88-vbi.c | 28 ++++++++++++++++++++--------
- drivers/media/pci/cx88/cx88.h     |  3 ++-
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ drivers/media/parport/bw-qcam.c              |  4 +--
+ drivers/media/pci/sta2x11/sta2x11_vip.c      |  4 +--
+ drivers/media/platform/vivid/vivid-vid-cap.c |  4 +--
+ drivers/media/usb/go7007/go7007-v4l2.c       |  4 +--
+ drivers/media/usb/pwc/pwc-if.c               |  4 +--
+ drivers/media/usb/uvc/uvc_queue.c            |  4 +--
+ drivers/media/v4l2-core/videobuf2-core.c     | 29 ++++++++++++-----
+ include/media/videobuf2-core.h               | 48 ++++++++++++++++++++++------
+ 8 files changed, 72 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index 042f545..6ab6e27 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -23,20 +23,22 @@ int cx8800_vbi_fmt (struct file *file, void *priv,
- 	f->fmt.vbi.samples_per_line = VBI_LINE_LENGTH;
- 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
- 	f->fmt.vbi.offset = 244;
--	f->fmt.vbi.count[0] = VBI_LINE_COUNT;
--	f->fmt.vbi.count[1] = VBI_LINE_COUNT;
- 
- 	if (dev->core->tvnorm & V4L2_STD_525_60) {
- 		/* ntsc */
- 		f->fmt.vbi.sampling_rate = 28636363;
- 		f->fmt.vbi.start[0] = 10;
- 		f->fmt.vbi.start[1] = 273;
-+		f->fmt.vbi.count[0] = VBI_LINE_NTSC_COUNT;
-+		f->fmt.vbi.count[1] = VBI_LINE_NTSC_COUNT;
- 
- 	} else if (dev->core->tvnorm & V4L2_STD_625_50) {
- 		/* pal */
- 		f->fmt.vbi.sampling_rate = 35468950;
--		f->fmt.vbi.start[0] = 7 -1;
--		f->fmt.vbi.start[1] = 319 -1;
-+		f->fmt.vbi.start[0] = V4L2_VBI_ITU_625_F1_START + 5;
-+		f->fmt.vbi.start[1] = V4L2_VBI_ITU_625_F2_START + 5;
-+		f->fmt.vbi.count[0] = VBI_LINE_PAL_COUNT;
-+		f->fmt.vbi.count[1] = VBI_LINE_PAL_COUNT;
- 	}
- 	return 0;
+diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+index 67b9da1..528558f 100644
+--- a/drivers/media/parport/bw-qcam.c
++++ b/drivers/media/parport/bw-qcam.c
+@@ -667,7 +667,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
  }
-@@ -111,8 +113,13 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
- 			   unsigned int sizes[], void *alloc_ctxs[])
+ 
+-static void buffer_finish(struct vb2_buffer *vb)
++static void buffer_finish_for_cpu(struct vb2_buffer *vb)
  {
-+	struct cx8800_dev *dev = q->drv_priv;
+ 	struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
+ 	void *vbuf = vb2_plane_vaddr(vb, 0);
+@@ -699,7 +699,7 @@ static void buffer_finish(struct vb2_buffer *vb)
+ static struct vb2_ops qcam_video_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_queue		= buffer_queue,
+-	.buf_finish		= buffer_finish,
++	.buf_finish_for_cpu	= buffer_finish_for_cpu,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 365bd21..bfb05cb 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	}
+ 	spin_unlock(&vip->lock);
+ }
+-static void buffer_finish(struct vb2_buffer *vb)
++static void buffer_finish_for_cpu(struct vb2_buffer *vb)
+ {
+ 	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vip_buffer *vip_buf = to_vip_buffer(vb);
+@@ -380,7 +380,7 @@ static struct vb2_ops vip_video_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_init		= buffer_init,
+ 	.buf_prepare		= buffer_prepare,
+-	.buf_finish		= buffer_finish,
++	.buf_finish_for_cpu	= buffer_finish_for_cpu,
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+ 	.stop_streaming		= stop_streaming,
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index b016aed..d46f3e4 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -201,7 +201,7 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-static void vid_cap_buf_finish(struct vb2_buffer *vb)
++static void vid_cap_buf_finish_for_cpu(struct vb2_buffer *vb)
+ {
+ 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct v4l2_timecode *tc = &vb->v4l2_buf.timecode;
+@@ -284,7 +284,7 @@ static void vid_cap_stop_streaming(struct vb2_queue *vq)
+ const struct vb2_ops vivid_vid_cap_qops = {
+ 	.queue_setup		= vid_cap_queue_setup,
+ 	.buf_prepare		= vid_cap_buf_prepare,
+-	.buf_finish		= vid_cap_buf_finish,
++	.buf_finish_for_cpu	= vid_cap_buf_finish_for_cpu,
+ 	.buf_queue		= vid_cap_buf_queue,
+ 	.start_streaming	= vid_cap_start_streaming,
+ 	.stop_streaming		= vid_cap_stop_streaming,
+diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
+index ec799b4..5bef286 100644
+--- a/drivers/media/usb/go7007/go7007-v4l2.c
++++ b/drivers/media/usb/go7007/go7007-v4l2.c
+@@ -404,7 +404,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-static void go7007_buf_finish(struct vb2_buffer *vb)
++static void go7007_buf_finish_for_cpu(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+ 	struct go7007 *go = vb2_get_drv_priv(vq);
+@@ -478,7 +478,7 @@ static struct vb2_ops go7007_video_qops = {
+ 	.queue_setup    = go7007_queue_setup,
+ 	.buf_queue      = go7007_buf_queue,
+ 	.buf_prepare    = go7007_buf_prepare,
+-	.buf_finish     = go7007_buf_finish,
++	.buf_finish_for_cpu = go7007_buf_finish_for_cpu,
+ 	.start_streaming = go7007_start_streaming,
+ 	.stop_streaming = go7007_stop_streaming,
+ 	.wait_prepare   = vb2_ops_wait_prepare,
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 15b754d..879b455 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -614,7 +614,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-static void buffer_finish(struct vb2_buffer *vb)
++static void buffer_finish_for_cpu(struct vb2_buffer *vb)
+ {
+ 	struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
+@@ -700,7 +700,7 @@ static struct vb2_ops pwc_vb_queue_ops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_init		= buffer_init,
+ 	.buf_prepare		= buffer_prepare,
+-	.buf_finish		= buffer_finish,
++	.buf_finish_for_cpu	= buffer_finish_for_cpu,
+ 	.buf_cleanup		= buffer_cleanup,
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 6e92d20..86a67cd 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -106,7 +106,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ }
+ 
+-static void uvc_buffer_finish(struct vb2_buffer *vb)
++static void uvc_buffer_finish_for_cpu(struct vb2_buffer *vb)
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct uvc_streaming *stream =
+@@ -135,7 +135,7 @@ static struct vb2_ops uvc_queue_qops = {
+ 	.queue_setup = uvc_queue_setup,
+ 	.buf_prepare = uvc_buffer_prepare,
+ 	.buf_queue = uvc_buffer_queue,
+-	.buf_finish = uvc_buffer_finish,
++	.buf_finish_for_cpu = uvc_buffer_finish_for_cpu,
+ 	.wait_prepare = uvc_wait_prepare,
+ 	.wait_finish = uvc_wait_finish,
+ };
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7e6aff6..e5247a4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -501,14 +501,17 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 				  vb->cnt_mem_map_dmabuf != vb->cnt_mem_unmap_dmabuf ||
+ 				  vb->cnt_buf_queue != vb->cnt_buf_done ||
+ 				  vb->cnt_buf_prepare != vb->cnt_buf_finish ||
++				  vb->cnt_buf_prepare_for_cpu != vb->cnt_buf_finish_for_cpu ||
+ 				  vb->cnt_buf_init != vb->cnt_buf_cleanup;
+ 
+ 		if (unbalanced || debug) {
+ 			pr_info("vb2:   counters for queue %p, buffer %d:%s\n",
+ 				q, buffer, unbalanced ? " UNBALANCED!" : "");
+-			pr_info("vb2:     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
+-				vb->cnt_buf_init, vb->cnt_buf_cleanup,
+-				vb->cnt_buf_prepare, vb->cnt_buf_finish);
++			pr_info("vb2:     buf_init: %u buf_cleanup: %u\n",
++				vb->cnt_buf_init, vb->cnt_buf_cleanup);
++			pr_info("vb2:     buf_prepare_for_cpu: %u buf_prepare: %u buf_finish: %u buf_finish_for_cpu: %u\n",
++				vb->cnt_buf_prepare_for_cpu, vb->cnt_buf_prepare,
++				vb->cnt_buf_finish, vb->cnt_buf_finish_for_cpu);
+ 			pr_info("vb2:     buf_queue: %u buf_done: %u\n",
+ 				vb->cnt_buf_queue, vb->cnt_buf_done);
+ 			pr_info("vb2:     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
+@@ -1192,6 +1195,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, state);
+ 
++	call_void_vb_qop(vb, buf_finish, vb);
 +
- 	*num_planes = 1;
--	sizes[0] = VBI_LINE_COUNT * VBI_LINE_LENGTH * 2;
-+	if (dev->core->tvnorm & V4L2_STD_525_60)
-+		sizes[0] = VBI_LINE_NTSC_COUNT * VBI_LINE_LENGTH * 2;
-+	else
-+		sizes[0] = VBI_LINE_PAL_COUNT * VBI_LINE_LENGTH * 2;
- 	return 0;
- }
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+@@ -1622,6 +1627,12 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	vb->v4l2_buf.timestamp.tv_usec = 0;
+ 	vb->v4l2_buf.sequence = 0;
  
-@@ -122,10 +129,15 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
- 	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+	unsigned int lines;
- 	unsigned int size;
- 	int rc;
++	ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
++	if (ret) {
++		dprintk(1, "buf_prepare_for_cpu failed\n");
++		return ret;
++	}
++
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		ret = __qbuf_mmap(vb, b);
+@@ -1637,8 +1648,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = -EINVAL;
+ 	}
  
--	size = VBI_LINE_COUNT * VBI_LINE_LENGTH * 2;
-+	if (dev->core->tvnorm & V4L2_STD_525_60)
-+		lines = VBI_LINE_NTSC_COUNT;
-+	else
-+		lines = VBI_LINE_PAL_COUNT;
-+	size = lines * VBI_LINE_LENGTH * 2;
- 	if (vb2_plane_size(vb, 0) < size)
+-	if (ret)
++	if (ret) {
+ 		dprintk(1, "buffer preparation failed: %d\n", ret);
++		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
++	}
+ 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
+ 
+ 	return ret;
+@@ -2048,7 +2061,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
  		return -EINVAL;
- 	vb2_set_plane_payload(vb, 0, size);
-@@ -135,9 +147,9 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		return -EIO;
+ 	}
  
- 	cx88_risc_buffer(dev->pci, &buf->risc, sgt->sgl,
--			 0, VBI_LINE_LENGTH * VBI_LINE_COUNT,
-+			 0, VBI_LINE_LENGTH * lines,
- 			 VBI_LINE_LENGTH, 0,
--			 VBI_LINE_COUNT);
-+			 lines);
- 	return 0;
- }
+-	call_void_vb_qop(vb, buf_finish, vb);
++	call_void_vb_qop(vb, buf_finish_for_cpu, vb);
  
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index 2fa4aa9..3b0ae75 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -61,7 +61,8 @@
- #define FORMAT_FLAGS_PACKED       0x01
- #define FORMAT_FLAGS_PLANAR       0x02
+ 	/* Fill buffer information for the userspace */
+ 	__fill_v4l2_buffer(vb, b);
+@@ -2076,7 +2089,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+  * Should be called from vidioc_dqbuf ioctl handler of a driver.
+  * This function:
+  * 1) verifies the passed buffer,
+- * 2) calls buf_finish callback in the driver (if provided), in which
++ * 2) calls buf_finish_for_cpu callback in the driver (if provided), in which
+  *    driver can perform any additional operations that may be required before
+  *    returning the buffer to userspace, such as cache sync,
+  * 3) the buffer struct members are filled with relevant information for
+@@ -2139,7 +2152,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
  
--#define VBI_LINE_COUNT              17
-+#define VBI_LINE_PAL_COUNT              18
-+#define VBI_LINE_NTSC_COUNT             12
- #define VBI_LINE_LENGTH           2048
+ 	/*
+ 	 * Reinitialize all buffers for next use.
+-	 * Make sure to call buf_finish for any queued buffers. Normally
++	 * Make sure to call buf_finish_for_cpu for any queued buffers. Normally
+ 	 * that's done in dqbuf, but that's not going to happen when we
+ 	 * cancel the whole queue. Note: this code belongs here, not in
+ 	 * __vb2_dqbuf() since in vb2_internal_dqbuf() there is a critical
+@@ -2151,7 +2164,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
  
- #define AUD_RDS_LINES		     4
+ 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+ 			vb->state = VB2_BUF_STATE_PREPARED;
+-			call_void_vb_qop(vb, buf_finish, vb);
++			call_void_vb_qop(vb, buf_finish_for_cpu, vb);
+ 		}
+ 		__vb2_dqbuf(vb);
+ 	}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5a10d8d..fff159c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -227,8 +227,10 @@ struct vb2_buffer {
+ 	u32		cnt_mem_mmap;
+ 
+ 	u32		cnt_buf_init;
++	u32		cnt_buf_prepare_for_cpu;
+ 	u32		cnt_buf_prepare;
+ 	u32		cnt_buf_finish;
++	u32		cnt_buf_finish_for_cpu;
+ 	u32		cnt_buf_cleanup;
+ 	u32		cnt_buf_queue;
+ 
+@@ -268,17 +270,43 @@ struct vb2_buffer {
+  *			perform additional buffer-related initialization;
+  *			initialization failure (return != 0) will prevent
+  *			queue setup from completing successfully; optional.
+- * @buf_prepare:	called every time the buffer is queued from userspace
++ * @buf_prepare_for_cpu:called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+- *			perform any initialization required before each hardware
+- *			operation in this callback; drivers that support
+- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+- *			if an error is returned, the buffer will not be queued
+- *			in driver; optional.
++ *			use this to access and modify the contents of the buffer
++ *			before it is prepared for DMA in the next step
++ *			(@buf_prepare). Drivers that support VIDIOC_CREATE_BUFS
++ *			must also validate the buffer size. If an error is
++ *			returned, the buffer will not be queued	in the driver;
++ *			optional.
++ * @buf_prepare:	called every time the buffer is queued from userspace
++ *			and from the VIDIOC_PREPARE_BUF ioctl; at this point
++ *			the buffer is prepared for DMA and the drivers may no
++ *			longer access the contents of the buffer. The driver
++ *			must perform any initialization required before each
++ *			hardware operation in this callback; drivers that
++ *			support	VIDIOC_CREATE_BUFS must also validate the
++ *			buffer size, if they haven't done that yet in
++ *			@buf_prepare_for_cpu. If an error is returned, the
++ *			buffer will not be queued in the driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+- *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional. The
+- *			buffer state can be one of the following: DONE and
++ *			userspace; the contents of the buffer cannot be
++ *			accessed by the cpu at this stage as it is still setup
++ *			for DMA. Drivers may perform any operations required
++ *			before userspace accesses the buffer; optional.
++ *			The buffer state can be one of the following: DONE and
++ *			ERROR occur while streaming is in progress, and the
++ *			PREPARED state occurs when the queue has been canceled
++ *			and all pending buffers are being returned to their
++ *			default DEQUEUED state. Typically you only have to do
++ *			something if the state is VB2_BUF_STATE_DONE, since in
++ *			all other cases the buffer contents will be ignored
++ *			anyway.
++ * @buf_finish_for_cpu:	called before every dequeue of the buffer back to
++ *			userspace; at this stage the contents of the buffer is
++ *			accessible to the CPU. Drivers may perform any
++ *			operations required before userspace accesses the
++ *			buffer; optional.
++ *			The buffer state can be one of the following: DONE and
+  *			ERROR occur while streaming is in progress, and the
+  *			PREPARED state occurs when the queue has been canceled
+  *			and all pending buffers are being returned to their
+@@ -323,8 +351,10 @@ struct vb2_ops {
+ 	void (*wait_finish)(struct vb2_queue *q);
+ 
+ 	int (*buf_init)(struct vb2_buffer *vb);
++	int (*buf_prepare_for_cpu)(struct vb2_buffer *vb);
+ 	int (*buf_prepare)(struct vb2_buffer *vb);
+ 	void (*buf_finish)(struct vb2_buffer *vb);
++	void (*buf_finish_for_cpu)(struct vb2_buffer *vb);
+ 	void (*buf_cleanup)(struct vb2_buffer *vb);
+ 
+ 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
 -- 
 2.1.0
 
