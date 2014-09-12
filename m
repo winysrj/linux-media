@@ -1,110 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34613 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932706AbaIRV5x (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3040 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967AbaILNAb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 17:57:53 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 12 Sep 2014 09:00:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 3/3] omap3isp: Return buffers back to videobuf2 if pipeline streamon fails
-Date: Fri, 19 Sep 2014 00:57:49 +0300
-Message-Id: <1411077469-29178-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
-References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 04/14] vb2: memop prepare: return errors
+Date: Fri, 12 Sep 2014 14:59:53 +0200
+Message-Id: <1410526803-25887-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the video buffer queue was stopped before the stream source was started
-in omap3isp_streamon(), the buffers were not returned back to videobuf2.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+For vb2-dma-sg the dma_map_sg function can return an error. This means that
+the prepare memop also needs to change so an error can be returned.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/omap3isp/isp.c      |    4 ++--
- drivers/media/platform/omap3isp/ispvideo.c |   16 ++++++++++------
- drivers/media/platform/omap3isp/ispvideo.h |    3 ++-
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++--
+ include/media/videobuf2-core.h                 | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 72265e5..2aa0a8e 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1062,9 +1062,9 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe)
- {
- 	if (pipe->input)
--		omap3isp_video_cancel_stream(pipe->input);
-+		omap3isp_video_cancel_stream(pipe->input, VB2_BUF_STATE_ERROR);
- 	if (pipe->output)
--		omap3isp_video_cancel_stream(pipe->output);
-+		omap3isp_video_cancel_stream(pipe->output, VB2_BUF_STATE_ERROR);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 6675f12..ca870aa 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -111,16 +111,17 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+ 	return atomic_read(&buf->refcount);
  }
  
- /*
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index b233c8e..73c0194 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -443,8 +443,10 @@ static int isp_video_start_streaming(struct vb2_queue *queue,
- 
- 	ret = omap3isp_pipeline_set_stream(pipe,
- 					   ISP_PIPELINE_STREAM_CONTINUOUS);
--	if (ret < 0)
-+	if (ret < 0) {
-+		omap3isp_video_cancel_stream(video, VB2_BUF_STATE_QUEUED);
- 		return ret;
-+	}
- 
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	if (list_empty(&video->dmaqueue))
-@@ -566,10 +568,12 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
-  * omap3isp_video_cancel_stream - Cancel stream on a video node
-  * @video: ISP video object
-  *
-- * Cancelling a stream mark all buffers on the video node as erroneous and makes
-- * sure no new buffer can be queued.
-+ * Cancelling a stream mark all buffers on the video node as erroneous
-+ * and makes sure no new buffer can be queued. Buffers are returned
-+ * back to videobuf2 in the given state.
-  */
--void omap3isp_video_cancel_stream(struct isp_video *video)
-+void omap3isp_video_cancel_stream(struct isp_video *video,
-+				  enum vb2_buffer_state state)
+-static void vb2_dc_prepare(void *buf_priv)
++static int vb2_dc_prepare(void *buf_priv)
  {
- 	unsigned long flags;
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	struct sg_table *sgt = buf->dma_sgt;
  
-@@ -581,7 +585,7 @@ void omap3isp_video_cancel_stream(struct isp_video *video)
- 		buf = list_first_entry(&video->dmaqueue,
- 				       struct isp_buffer, irqlist);
- 		list_del(&buf->irqlist);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb, state);
+ 	/* DMABUF exporter will flush the cache for us */
+ 	if (!sgt || buf->db_attach)
+-		return;
++		return 0;
+ 
+ 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	return 0;
+ }
+ 
+ static void vb2_dc_finish(void *buf_priv)
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index f3bc01b..abd5252 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -170,12 +170,12 @@ static void vb2_dma_sg_put(void *buf_priv)
  	}
+ }
  
- 	video->error = true;
-@@ -1166,7 +1170,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+-static void vb2_dma_sg_prepare(void *buf_priv)
++static int vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 	struct sg_table *sgt = &buf->sg_table;
  
- 	/* Stop the stream. */
- 	omap3isp_pipeline_set_stream(pipe, ISP_PIPELINE_STREAM_STOPPED);
--	omap3isp_video_cancel_stream(video);
-+	omap3isp_video_cancel_stream(video, VB2_BUF_STATE_ERROR);
+-	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
+ }
  
- 	mutex_lock(&video->queue_lock);
- 	vb2_streamoff(&vfh->queue, type);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 0b7efed..7e4732a 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -201,7 +201,8 @@ int omap3isp_video_register(struct isp_video *video,
- 			    struct v4l2_device *vdev);
- void omap3isp_video_unregister(struct isp_video *video);
- struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video);
--void omap3isp_video_cancel_stream(struct isp_video *video);
-+void omap3isp_video_cancel_stream(struct isp_video *video,
-+				  enum vb2_buffer_state state);
- void omap3isp_video_resume(struct isp_video *video, int continuous);
- struct media_pad *omap3isp_video_remote_pad(struct isp_video *video);
+ static void vb2_dma_sg_finish(void *buf_priv)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 02b96ef..0ac65a6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -91,7 +91,7 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
  
+-	void		(*prepare)(void *buf_priv);
++	int		(*prepare)(void *buf_priv);
+ 	void		(*finish)(void *buf_priv);
+ 
+ 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
 -- 
-1.7.10.4
+2.1.0
 
