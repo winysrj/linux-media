@@ -1,78 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:34026 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751881AbaI2Rom (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 13:44:42 -0400
-Date: Mon, 29 Sep 2014 19:44:30 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/6] some fixes and cleanups for the em28xx-based HVR-930C
-Message-ID: <20140929174430.GA18967@linuxtv.org>
-References: <cover.1411956856.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1411956856.git.mchehab@osg.samsung.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1850 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645AbaILNAj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 09:00:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 11/14] tw68: only reprogram DMA engine when necessary
+Date: Fri, 12 Sep 2014 15:00:00 +0200
+Message-Id: <1410526803-25887-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sun, Sep 28, 2014 at 11:23:17PM -0300, Mauro Carvalho Chehab wrote:
-> This patch series addresses some issues with suspend2ram of devices
-> based on DRX-K.
-> 
-> With this patch series, it is now possible to suspend to ram while
-> streaming. At resume, the stream will continue to play.
-> 
-> While doing that, I added a few other changes:
-> 
-> - I moved the init code to .init. That is an initial step to fix
->   suspend to disk;
-> 
-> - There's a fix to an issue that happens at xc5000 removal (sent
->   already as a RFC patch);
-> 
-> - A dprintk change at his logic to not require both a boot parameter and
->   a dynamic_printk enablement. It also re-adds __func__ to the printks,
->   that got previously removed;
-> 
-> - It removes the unused mfe_sharing var from the dvb attach logic.
-> 
-> Mauro Carvalho Chehab (6):
->   [media] em28xx: remove firmware before releasing xc5000 priv state
->   [media] drxk: Fix debug printks
->   [media] em28xx-dvb: remove unused mfe_sharing
->   [media] em28xx-dvb: handle to stop/start streaming at PM
->   [media] em28xx: move board-specific init code
->   [media] drxk: move device init code to .init callback
-> 
->  drivers/media/dvb-frontends/drxk_hard.c | 117 ++++++++++++++++----------------
->  drivers/media/tuners/xc5000.c           |   2 +-
->  drivers/media/usb/em28xx/em28xx-dvb.c   |  45 ++++++++----
->  3 files changed, 92 insertions(+), 72 deletions(-)
+Use the new 'new_cookies' flag to determine when the risc program
+needs to be regenerated.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/tw68/tw68-video.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-Disregarding your mails from the "em28xx breaks after hibernate"
-that hibernate doesn't work for you, I decided to give these
-changes a try on top of today's media_tree.git
-(cf3167c -> 3.17.0-rc5-00741-g9a3fbd8), still inside qemu
-(can't upgrade/reboot my main machine right now).
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index 13e9650..c69e6a5 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -468,6 +468,9 @@ static int tw68_buf_prepare(struct vb2_buffer *vb)
+ 		return -EINVAL;
+ 	vb2_set_plane_payload(vb, 0, size);
+ 
++	if (!vb->new_cookies)
++		return 0;
++
+ 	bpl = (dev->width * dev->fmt->depth) >> 3;
+ 	switch (dev->field) {
+ 	case V4L2_FIELD_TOP:
+@@ -497,13 +500,15 @@ static int tw68_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-static void tw68_buf_finish_for_cpu(struct vb2_buffer *vb)
++static void tw68_buf_cleanup(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+ 	struct tw68_dev *dev = vb2_get_drv_priv(vq);
+ 	struct tw68_buf *buf = container_of(vb, struct tw68_buf, vb);
+ 
+-	pci_free_consistent(dev->pci, buf->size, buf->cpu, buf->dma);
++	if (buf->cpu)
++		pci_free_consistent(dev->pci, buf->size, buf->cpu, buf->dma);
++	buf->cpu = NULL;
+ }
+ 
+ static int tw68_start_streaming(struct vb2_queue *q, unsigned int count)
+@@ -536,7 +541,7 @@ static struct vb2_ops tw68_video_qops = {
+ 	.queue_setup	= tw68_queue_setup,
+ 	.buf_queue	= tw68_buf_queue,
+ 	.buf_prepare	= tw68_buf_prepare,
+-	.buf_finish_for_cpu = tw68_buf_finish_for_cpu,
++	.buf_cleanup	= tw68_buf_cleanup,
+ 	.start_streaming = tw68_start_streaming,
+ 	.stop_streaming = tw68_stop_streaming,
+ 	.wait_prepare	= vb2_ops_wait_prepare,
+-- 
+2.1.0
 
-Works!  For hibernate, using "echo reboot >/sys/power/disk", so
-the host driver cannot interfere with the qemu driver during hibernate.
-Qemu causes several USB resets to the device during
-hibernate -> resume, but the USB power is not cut.
-It works even while running dvbv5-zap and streaming to mplayer.
-
-I tried both suspend-to-ram and hibernate a couple of times,
-at least in Qemu it all works.
-
-There are a lot of drxk debug prints now enabled by default,
-not sure if that was intentional.
-
-
-Thanks,
-Johannes
