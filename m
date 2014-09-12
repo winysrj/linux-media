@@ -1,96 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:10164 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218AbaIOGtP (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1832 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556AbaILNAh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:49:15 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00E7BKA27MB0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:49:14 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
+	Fri, 12 Sep 2014 09:00:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 15/17] [media] s5p-mfc: remove reduntant clock on & clock off
-Date: Mon, 15 Sep 2014 12:13:10 +0530
-Message-id: <1410763393-12183-16-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 10/14] vb2: add 'new_cookies' flag
+Date: Fri, 12 Sep 2014 14:59:59 +0200
+Message-Id: <1410526803-25887-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sysmmu will control mfc device clock on/off wherever
-needed. Explicit clock on/off in the driver is not needed
-anymore. Remove such reduntant clock on/off in the driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+This flag helps drivers that need to reprogram their DMA engine whenever
+a plane cookie (== DMA address or DMA scatter-gather list) changes.
+
+Otherwise they would have to reprogram the DMA engine for every frame.
+
+Note that it is not possible to do this in buf_init() since dma_map_sg has
+to be done first, which happens just before buf_prepare() in the prepare()
+memop. It is dma_map_sg that sets up the dma addresses that are needed to
+configure the DMA engine.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |    2 --
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    6 ------
- 2 files changed, 0 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c |  5 +++++
+ include/media/videobuf2-core.h           | 14 ++++++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index f4cb7f2..3a1f97e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -883,7 +883,6 @@ static int s5p_mfc_release(struct file *file)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 01bab25..7217eb1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -391,6 +391,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 				kfree(vb);
+ 				break;
+ 			}
++			vb->new_cookies = 1;
+ 		}
  
- 	mfc_debug_enter();
- 	mutex_lock(&dev->mfc_mutex);
--	s5p_mfc_clock_on();
- 	vb2_queue_release(&ctx->vq_src);
- 	vb2_queue_release(&ctx->vq_dst);
- 	/* Mark context as idle */
-@@ -906,7 +905,6 @@ static int s5p_mfc_release(struct file *file)
- 			mfc_err("Power off failed\n");
+ 		q->bufs[q->num_buffers + buffer] = vb;
+@@ -1373,6 +1374,8 @@ static int __buf_memory_prepare(struct vb2_buffer *vb)
+ 		for (plane = 0; plane < vb->num_planes; ++plane)
+ 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
++	} else {
++		vb->new_cookies = 0;
  	}
- 	mfc_debug(2, "Shutting down clock\n");
--	s5p_mfc_clock_off();
- 	dev->ctx[ctx->num] = NULL;
- 	s5p_mfc_dec_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index ca4b69f9..d0bdbfb 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -487,8 +487,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- {
- 	int ret = 0;
- 
--	s5p_mfc_clock_on();
--
- 	if (reqbufs->count == 0) {
- 		mfc_debug(2, "Freeing buffers\n");
- 		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-@@ -525,7 +523,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 		ret = -EINVAL;
- 	}
- out:
--	s5p_mfc_clock_off();
- 	if (ret)
- 		mfc_err("Failed allocating buffers for OUTPUT queue\n");
  	return ret;
-@@ -536,8 +533,6 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- {
- 	int ret = 0;
- 
--	s5p_mfc_clock_on();
--
- 	if (reqbufs->count == 0) {
- 		mfc_debug(2, "Freeing buffers\n");
- 		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-@@ -579,7 +574,6 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 		ret = -EINVAL;
+ }
+@@ -1467,6 +1470,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			dprintk(1, "buffer initialization failed\n");
+ 			goto err;
+ 		}
++		vb->new_cookies = 1;
  	}
- out:
--	s5p_mfc_clock_off();
- 	if (ret)
- 		mfc_err("Failed allocating buffers for CAPTURE queue\n");
- 	return ret;
+ 
+ 	ret = __buf_memory_prepare(vb);
+@@ -1591,6 +1595,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			dprintk(1, "buffer initialization failed\n");
+ 			goto err;
+ 		}
++		vb->new_cookies = 1;
+ 	}
+ 
+ 	ret = __buf_memory_prepare(vb);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bf8bde2..9304718 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -186,6 +186,11 @@ struct vb2_queue;
+  * @vb2_queue:		the queue to which this driver belongs
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue
++ * @new_cookies:	the planes of the buffer have new cookie values.
++ *			This happens if a new userptr or dmabuf is used for one
++ *			or more of the buffer planes. This will change the cookie
++ *			value of those planes and you may need to reprogram the DMA
++ *			engine when buf_prepare is called.
+  * @state:		current buffer state; do not change
+  * @queued_entry:	entry on the queued buffers list, which holds all
+  *			buffers queued from userspace
+@@ -200,6 +205,7 @@ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+ 
+ 	unsigned int		num_planes;
++	unsigned int		new_cookies:1;
+ 
+ /* Private: internal use only */
+ 	enum vb2_buffer_state	state;
+@@ -290,8 +296,12 @@ struct vb2_buffer {
+  *			hardware operation in this callback; drivers that
+  *			support	VIDIOC_CREATE_BUFS must also validate the
+  *			buffer size, if they haven't done that yet in
+- *			@buf_prepare_for_cpu. If an error is returned, the
+- *			buffer will not be queued in the driver; optional.
++ *			@buf_prepare_for_cpu. If one or more of the plane
++ *			cookies (see vb2_plane_cookie) are updated, then
++ *			vb->new_cookies is set to 1. If buf_prepare returns
++ *			0 (success), then new_cookies is cleared automatically.
++ *			If an error is returned, then the buffer will not be
++ *			queued in the driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; the contents of the buffer cannot be
+  *			accessed by the cpu at this stage as it is still setup
 -- 
-1.7.3.rc2
+2.1.0
 
