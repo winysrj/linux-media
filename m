@@ -1,117 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1266 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214AbaIZCmj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36052 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439AbaILWCI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 22:42:39 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8Q2gZfx032653
-	for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 04:42:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5108B2A1CED
-	for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 04:42:23 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140926024223.5108B2A1CED@tschai.lan>
-Date: Fri, 26 Sep 2014 04:42:23 +0200 (CEST)
+	Fri, 12 Sep 2014 18:02:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 09/14] vb2: replace 'write' by 'dma_dir'
+Date: Sat, 13 Sep 2014 01:02:11 +0300
+Message-ID: <1451773.l8tAPSQMui@avalon>
+In-Reply-To: <1410526803-25887-10-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl> <1410526803-25887-10-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Fri Sep 26 04:00:16 CEST 2014
-git branch:	test
-git hash:	c0aaf696d45e2a72048a56441e81dad78659c698
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-2.slh.3-amd64
+On Friday 12 September 2014 14:59:58 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The 'write' argument is very ambiguous. I first assumed that if it is 1,
+> then we're doing video output but instead it meant the reverse.
+> 
+> Since it is used to setup the dma_dir value anyway it is now replaced by
+> the correct dma_dir value which is unambiguous.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+Given my comments to one of your earlier patches, I can only agree with you 
+here :-)
 
-Detailed results are available here:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+However, how about moving this patch up in the series, before adding the write 
+argument to the alloc function ?
 
-Full logs are available here:
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c       | 15 +++++----
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 46 ++++++++++++-----------
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 46 +++++++++++------------
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    | 20 ++++++-----
+>  include/media/videobuf2-core.h                 | 11 +++---
+>  5 files changed, 73 insertions(+), 65 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+-- 
+Regards,
 
-The Media Infrastructure API from this daily build is here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
