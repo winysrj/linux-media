@@ -1,182 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:22156 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbaIBT0u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 15:26:50 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBA006P1GOP3530@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Sep 2014 15:26:49 -0400 (EDT)
-Date: Tue, 02 Sep 2014 16:26:44 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.18] Add vivid test driver,
- remove old vivi test driver
-Message-id: <20140902162644.6fd0ca36.m.chehab@samsung.com>
-In-reply-to: <54001DF8.2070503@xs4all.nl>
-References: <54001DF8.2070503@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4581 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967AbaILNAf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 09:00:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 06/14] vb2-dma-sg: add dmabuf import support
+Date: Fri, 12 Sep 2014 14:59:55 +0200
+Message-Id: <1410526803-25887-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Aug 2014 08:30:16 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Mauro,
-> 
-> This adds the new vivid driver as a replacement for the old vivi.
-> 
-> This pull request is identical to the v2 patch series posted earlier:
-> 
-> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/81354
-> 
-> except for the final patch that removes the vivi driver which is new to this
-> pull request.
-> 
-> One question: the vivid driver (like the vivi driver) is not build by default.
+Add support for dmabuf to vb2-dma-sg.
 
-We should never build a driver by default. What makes sense is to enable
-dependent drivers by default, not main ones.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 125 +++++++++++++++++++++++++++--
+ 1 file changed, 118 insertions(+), 7 deletions(-)
 
-> Should that be changed? In my opinion this driver should be enabled by distros,
-> so I am in favor of changing Kconfig. Let me know if you agree and I'll make a
-> follow up patch or you can change this yourself.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index abd5252..6d922c0 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
++	struct sg_table			*dma_sgt;
+ 	size_t				size;
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct vm_area_struct		*vma;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+@@ -113,6 +117,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -123,7 +128,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	if (ret)
+ 		goto fail_pages_alloc;
+ 
+-	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, 0, size, gfp_flags);
+ 	if (ret)
+ 		goto fail_table_alloc;
+@@ -161,7 +166,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 			buf->num_pages);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+-		sg_free_table(&buf->sg_table);
++		sg_free_table(buf->dma_sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
+@@ -173,7 +178,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+ static int vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return 0;
+ 
+ 	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
+ }
+@@ -181,7 +190,11 @@ static int vb2_dma_sg_prepare(void *buf_priv)
+ static void vb2_dma_sg_finish(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -209,6 +222,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+@@ -261,7 +275,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+-	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
+@@ -297,7 +311,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	       __func__, buf->num_pages);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+-	sg_free_table(&buf->sg_table);
++	sg_free_table(buf->dma_sgt);
+ 	while (--i >= 0) {
+ 		if (buf->write)
+ 			set_page_dirty_lock(buf->pages[i]);
+@@ -370,11 +384,104 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++/*********************************************/
++/*       callbacks for DMABUF buffers        */
++/*********************************************/
++
++static int vb2_dma_sg_map_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to pin a non attached buffer\n");
++		return -EINVAL;
++	}
++
++	if (WARN_ON(buf->dma_sgt)) {
++		pr_err("dmabuf buffer is already pinned\n");
++		return 0;
++	}
++
++	/* get the associated scatterlist for this buffer */
++	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	if (IS_ERR_OR_NULL(sgt)) {
++		pr_err("Error getting dmabuf scatterlist\n");
++		return -EINVAL;
++	}
++
++	buf->dma_sgt = sgt;
++	return 0;
++}
++
++static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to unpin a not attached buffer\n");
++		return;
++	}
++
++	if (WARN_ON(!sgt)) {
++		pr_err("dmabuf buffer is already unpinned\n");
++		return;
++	}
++
++	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++
++	buf->dma_sgt = NULL;
++}
++
++static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++
++	/* if vb2 works correctly you should never detach mapped buffer */
++	if (WARN_ON(buf->dma_sgt))
++		vb2_dma_sg_unmap_dmabuf(buf);
++
++	/* detach this attachment */
++	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
++	kfree(buf);
++}
++
++static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
++	unsigned long size, int write)
++{
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
++	struct vb2_dma_sg_buf *buf;
++	struct dma_buf_attachment *dba;
++
++	if (dbuf->size < size)
++		return ERR_PTR(-EFAULT);
++
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	buf->dev = conf->dev;
++	/* create attachment for the dmabuf with the user device */
++	dba = dma_buf_attach(dbuf, buf->dev);
++	if (IS_ERR(dba)) {
++		pr_err("failed to attach dmabuf\n");
++		kfree(buf);
++		return dba;
++	}
++
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->size = size;
++	buf->db_attach = dba;
++
++	return buf;
++}
++
+ static void *vb2_dma_sg_cookie(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 
+-	return &buf->sg_table;
++	return buf->dma_sgt;
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_sg_memops = {
+@@ -387,6 +494,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
++	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
++	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
++	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
+ 	.cookie		= vb2_dma_sg_cookie,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+-- 
+2.1.0
 
-If you want the distros to enable it, you should talk to the distro
-maintainers. I think that, on most, the best way of doing that is to
-open bugzillas.
-
-IMHO, it doesn't make sense for distros to enable it at their
-mainstream Kernel, but it does make sense for them to enable on
-their debug kernels (on distros that provide both, like Fedora).
-Just my 2 cents.
-
-But, again, it is up to the distro Kernel maintainer to decide.
-
-Regards,
-Mauro
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit b250392f7b5062cf026b1423e27265e278fd6b30:
-> 
->   [media] media: ttpci: fix av7110 build to be compatible with CONFIG_INPUT_EVDEV (2014-08-21 15:25:38 -0500)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git vivid2
-> 
-> for you to fetch changes up to d5f410f54e87ba420de839dec4e806707cc2aff2:
-> 
->   vivi: remove driver, it's replaced by vivid. (2014-08-25 13:49:53 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (13):
->       vb2: fix multiplanar read() with non-zero data_offset
->       vivid.txt: add documentation for the vivid driver
->       vivid: add core driver code
->       vivid: add the control handling code
->       vivid: add the video capture and output parts
->       vivid: add VBI capture and output code
->       vivid: add the kthread code that controls the video rate
->       vivid: add a simple framebuffer device for overlay testing
->       vivid: add the Test Pattern Generator
->       vivid: add support for radio receivers and transmitters
->       vivid: add support for software defined radio
->       vivid: enable the vivid driver
->       vivi: remove driver, it's replaced by vivid.
-> 
->  Documentation/video4linux/vivid.txt               | 1109 +++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/Kconfig                    |   15 +-
->  drivers/media/platform/Makefile                   |    2 +-
->  drivers/media/platform/vivi.c                     | 1542 -----------------------------------------------------------------
->  drivers/media/platform/vivid/Kconfig              |   19 +
->  drivers/media/platform/vivid/Makefile             |    6 +
->  drivers/media/platform/vivid/vivid-core.c         | 1390 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-core.h         |  520 ++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-ctrls.c        | 1502 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-ctrls.h        |   34 ++
->  drivers/media/platform/vivid/vivid-kthread-cap.c  |  885 +++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-kthread-cap.h  |   26 ++
->  drivers/media/platform/vivid/vivid-kthread-out.c  |  304 +++++++++++++
->  drivers/media/platform/vivid/vivid-kthread-out.h  |   26 ++
->  drivers/media/platform/vivid/vivid-osd.c          |  400 +++++++++++++++++
->  drivers/media/platform/vivid/vivid-osd.h          |   27 ++
->  drivers/media/platform/vivid/vivid-radio-common.c |  189 ++++++++
->  drivers/media/platform/vivid/vivid-radio-common.h |   40 ++
->  drivers/media/platform/vivid/vivid-radio-rx.c     |  287 ++++++++++++
->  drivers/media/platform/vivid/vivid-radio-rx.h     |   31 ++
->  drivers/media/platform/vivid/vivid-radio-tx.c     |  141 ++++++
->  drivers/media/platform/vivid/vivid-radio-tx.h     |   29 ++
->  drivers/media/platform/vivid/vivid-rds-gen.c      |  165 +++++++
->  drivers/media/platform/vivid/vivid-rds-gen.h      |   53 +++
->  drivers/media/platform/vivid/vivid-sdr-cap.c      |  499 +++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-sdr-cap.h      |   34 ++
->  drivers/media/platform/vivid/vivid-tpg-colors.c   |  310 +++++++++++++
->  drivers/media/platform/vivid/vivid-tpg-colors.h   |   64 +++
->  drivers/media/platform/vivid/vivid-tpg.c          | 1439 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-tpg.h          |  438 +++++++++++++++++++
->  drivers/media/platform/vivid/vivid-vbi-cap.c      |  356 +++++++++++++++
->  drivers/media/platform/vivid/vivid-vbi-cap.h      |   40 ++
->  drivers/media/platform/vivid/vivid-vbi-gen.c      |  248 +++++++++++
->  drivers/media/platform/vivid/vivid-vbi-gen.h      |   33 ++
->  drivers/media/platform/vivid/vivid-vbi-out.c      |  247 +++++++++++
->  drivers/media/platform/vivid/vivid-vbi-out.h      |   34 ++
->  drivers/media/platform/vivid/vivid-vid-cap.c      | 1729 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-vid-cap.h      |   71 +++
->  drivers/media/platform/vivid/vivid-vid-common.c   |  571 ++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-vid-common.h   |   61 +++
->  drivers/media/platform/vivid/vivid-vid-out.c      | 1205 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-vid-out.h      |   57 +++
->  drivers/media/v4l2-core/videobuf2-core.c          |    6 +
->  43 files changed, 14628 insertions(+), 1556 deletions(-)
->  create mode 100644 Documentation/video4linux/vivid.txt
->  delete mode 100644 drivers/media/platform/vivi.c
->  create mode 100644 drivers/media/platform/vivid/Kconfig
->  create mode 100644 drivers/media/platform/vivid/Makefile
->  create mode 100644 drivers/media/platform/vivid/vivid-core.c
->  create mode 100644 drivers/media/platform/vivid/vivid-core.h
->  create mode 100644 drivers/media/platform/vivid/vivid-ctrls.c
->  create mode 100644 drivers/media/platform/vivid/vivid-ctrls.h
->  create mode 100644 drivers/media/platform/vivid/vivid-kthread-cap.c
->  create mode 100644 drivers/media/platform/vivid/vivid-kthread-cap.h
->  create mode 100644 drivers/media/platform/vivid/vivid-kthread-out.c
->  create mode 100644 drivers/media/platform/vivid/vivid-kthread-out.h
->  create mode 100644 drivers/media/platform/vivid/vivid-osd.c
->  create mode 100644 drivers/media/platform/vivid/vivid-osd.h
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-common.c
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-common.h
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-rx.c
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-rx.h
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-tx.c
->  create mode 100644 drivers/media/platform/vivid/vivid-radio-tx.h
->  create mode 100644 drivers/media/platform/vivid/vivid-rds-gen.c
->  create mode 100644 drivers/media/platform/vivid/vivid-rds-gen.h
->  create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.c
->  create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.h
->  create mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
->  create mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
->  create mode 100644 drivers/media/platform/vivid/vivid-tpg.c
->  create mode 100644 drivers/media/platform/vivid/vivid-tpg.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-cap.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-cap.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-gen.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-gen.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-out.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vbi-out.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-cap.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-cap.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-common.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-common.h
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-out.c
->  create mode 100644 drivers/media/platform/vivid/vivid-vid-out.h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
