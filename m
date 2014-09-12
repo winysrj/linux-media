@@ -1,175 +1,665 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:45040 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932117AbaIRSMK (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2126 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754624AbaILNAd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 14:12:10 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hi2so730366wib.17
-        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 11:12:09 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+	Fri, 12 Sep 2014 09:00:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH v2] libdvbv5: MPEG TS parser documentation
-Date: Thu, 18 Sep 2014 20:11:56 +0200
-Message-Id: <1411063916-4762-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 02/14] vb2-dma-sg: add allocation context to dma-sg
+Date: Fri, 12 Sep 2014 14:59:51 +0200
+Message-Id: <1410526803-25887-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+Require that dma-sg also uses an allocation context. This is in preparation
+for adding prepare/finish memops to sync the memory between DMA and CPU.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- doxygen_libdvbv5.cfg           |  1 +
- lib/include/libdvbv5/mpeg_ts.h | 96 ++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 94 insertions(+), 3 deletions(-)
+ drivers/media/pci/cx23885/cx23885-417.c         |  1 +
+ drivers/media/pci/cx23885/cx23885-core.c        | 10 +++++-
+ drivers/media/pci/cx23885/cx23885-dvb.c         |  1 +
+ drivers/media/pci/cx23885/cx23885-vbi.c         |  1 +
+ drivers/media/pci/cx23885/cx23885-video.c       |  1 +
+ drivers/media/pci/cx23885/cx23885.h             |  1 +
+ drivers/media/pci/saa7134/saa7134-core.c        | 18 +++++++---
+ drivers/media/pci/saa7134/saa7134-ts.c          |  1 +
+ drivers/media/pci/saa7134/saa7134-vbi.c         |  1 +
+ drivers/media/pci/saa7134/saa7134-video.c       |  1 +
+ drivers/media/pci/saa7134/saa7134.h             |  1 +
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 10 ++++++
+ drivers/media/pci/solo6x10/solo6x10.h           |  1 +
+ drivers/media/pci/tw68/tw68-core.c              | 15 +++++++--
+ drivers/media/pci/tw68/tw68-video.c             |  1 +
+ drivers/media/pci/tw68/tw68.h                   |  1 +
+ drivers/media/platform/marvell-ccic/mcam-core.c |  7 ++++
+ drivers/media/platform/marvell-ccic/mcam-core.h |  1 +
+ drivers/media/v4l2-core/videobuf2-core.c        |  3 +-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c  |  4 ++-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c      | 44 +++++++++++++++++++++++--
+ drivers/media/v4l2-core/videobuf2-vmalloc.c     |  3 +-
+ include/media/videobuf2-core.h                  |  3 +-
+ include/media/videobuf2-dma-sg.h                |  3 ++
+ 24 files changed, 118 insertions(+), 15 deletions(-)
 
-diff --git a/doxygen_libdvbv5.cfg b/doxygen_libdvbv5.cfg
-index f1f9ab4..bbdaf9a 100644
---- a/doxygen_libdvbv5.cfg
-+++ b/doxygen_libdvbv5.cfg
-@@ -765,6 +765,7 @@ INPUT                  = $(SRCDIR)/doc/libdvbv5-index.doc \
- 			 $(SRCDIR)/lib/include/libdvbv5/vct.h \
- 			 $(SRCDIR)/lib/include/libdvbv5/crc32.h \
- 			 $(SRCDIR)/lib/include/libdvbv5/mpeg_es.h \
-+			 $(SRCDIR)/lib/include/libdvbv5/mpeg_ts.h \
-
- # This tag can be used to specify the character encoding of the source files
- # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
-diff --git a/lib/include/libdvbv5/mpeg_ts.h b/lib/include/libdvbv5/mpeg_ts.h
-index 3eab029..2662543 100644
---- a/lib/include/libdvbv5/mpeg_ts.h
-+++ b/lib/include/libdvbv5/mpeg_ts.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ * Copyright (c) 2013-2014 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -21,12 +21,52 @@
- #ifndef _MPEG_TS_H
- #define _MPEG_TS_H
-
-+/**
-+ * @file mpeg_ts.h
-+ * @ingroup dvb_table
-+ * @brief Provides the table parser for the MPEG-PES Elementary Stream
-+ * @copyright GNU General Public License version 2 (GPLv2)
-+ * @author Andre Roth
-+ *
-+ * @par Relevant specs
-+ * The table described herein is defined in ISO 13818-1
-+ *
-+ * @see
-+ * http://en.wikipedia.org/wiki/MPEG_transport_stream
-+ *
-+ * @par Bug Report
-+ * Please submit bug reports and patches to linux-media@vger.kernel.org
-+ */
- #include <stdint.h>
- #include <unistd.h> /* ssize_t */
-
-+/**
-+ * @def DVB_MPEG_TS
-+ *	@brief MPEG Transport Stream magic
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_TS_PACKET_SIZE
-+ *	@brief Size of an MPEG packet
-+ *	@ingroup dvb_table
-+ */
- #define DVB_MPEG_TS  0x47
- #define DVB_MPEG_TS_PACKET_SIZE  188
-
-+/**
-+ * @struct dvb_mpeg_ts_adaption
-+ * @brief MPEG TS header adaption field
-+ *
-+ * @param type			DVB_MPEG_ES_SEQ_START
-+ * @param length		1 bit	Adaptation Field Length
-+ * @param discontinued		1 bit	Discontinuity indicator
-+ * @param random_access		1 bit	Random Access indicator
-+ * @param priority		1 bit	Elementary stream priority indicator
-+ * @param PCR			1 bit	PCR flag
-+ * @param OPCR			1 bit	OPCR flag
-+ * @param splicing_point	1 bit	Splicing point flag
-+ * @param private_data		1 bit	Transport private data flag
-+ * @param extension		1 bit	Adaptation field extension flag
-+ * @param data			Pointer to data
-+ */
- struct dvb_mpeg_ts_adaption {
- 	uint8_t length;
- 	struct {
-@@ -42,8 +82,23 @@ struct dvb_mpeg_ts_adaption {
- 	uint8_t data[];
- } __attribute__((packed));
-
-+/**
-+ * @structdvb_mpeg_ts
-+ * @brief MPEG TS header
-+ *
-+ * @param sync_byte		DVB_MPEG_TS
-+ * @param tei			1 bit	Transport Error Indicator
-+ * @param payload_start		1 bit	Payload Unit Start Indicator
-+ * @param priority		1 bit	Transport Priority
-+ * @param pid			13 bits	Packet Identifier
-+ * @param scrambling		2 bits	Scrambling control
-+ * @param adaptation_field	1 bit	Adaptation field exist
-+ * @param payload		1 bit	Contains payload
-+ * @param continuity_counter	4 bits	Continuity counter
-+ * @param adaption		Pointer to optional adaption fiels (struct dvb_mpeg_ts_adaption)
-+ */
- struct dvb_mpeg_ts {
--	uint8_t sync_byte; // DVB_MPEG_TS
-+	uint8_t sync_byte;
- 	union {
- 		uint16_t bitfield;
- 		struct {
-@@ -68,8 +123,43 @@ struct dvb_v5_fe_parms;
- extern "C" {
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index 6973055..b7e143a 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1148,6 +1148,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	dev->ts1.ts_packet_count = mpeglines;
+ 	*num_planes = 1;
+ 	sizes[0] = mpeglinesize * mpeglines;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	*num_buffers = mpegbufs;
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index cb94366b..8a36fcd 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -1997,9 +1997,14 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+ 	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+ 		err = -EIO;
+-		goto fail_irq;
++		goto fail_context;
+ 	}
+ 
++	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
++	if (IS_ERR(dev->alloc_ctx)) {
++		err = -ENOMEM;
++		goto fail_context;
++	}
+ 	err = request_irq(pci_dev->irq, cx23885_irq,
+ 			  IRQF_SHARED, dev->name, dev);
+ 	if (err < 0) {
+@@ -2028,6 +2033,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+ 	return 0;
+ 
+ fail_irq:
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
++fail_context:
+ 	cx23885_dev_unregister(dev);
+ fail_ctrl:
+ 	v4l2_ctrl_handler_free(hdl);
+@@ -2053,6 +2060,7 @@ static void cx23885_finidev(struct pci_dev *pci_dev)
+ 	free_irq(pci_dev->irq, dev);
+ 
+ 	cx23885_dev_unregister(dev);
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 	v4l2_device_unregister(v4l2_dev);
+ 	kfree(dev);
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 332e6fa..80e2356 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -97,6 +97,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	port->ts_packet_count = 32;
+ 	*num_planes = 1;
+ 	sizes[0] = port->ts_packet_size * port->ts_packet_count;
++	alloc_ctxs[0] = port->dev->alloc_ctx;
+ 	*num_buffers = 32;
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
+index 67b71f9..a0e5b3f 100644
+--- a/drivers/media/pci/cx23885/cx23885-vbi.c
++++ b/drivers/media/pci/cx23885/cx23885-vbi.c
+@@ -132,6 +132,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 		lines = VBI_NTSC_LINE_COUNT;
+ 	*num_planes = 1;
+ 	sizes[0] = lines * VBI_LINE_LENGTH * 2;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index f0ea904..be67836 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -323,6 +323,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 
+ 	*num_planes = 1;
+ 	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 0e4f406..352896e 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -412,6 +412,7 @@ struct cx23885_dev {
+ 	struct vb2_queue           vb2_vidq;
+ 	struct cx23885_dmaqueue    vbiq;
+ 	struct vb2_queue           vb2_vbiq;
++	void			   *alloc_ctx;
+ 
+ 	spinlock_t                 slock;
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 9ff03a6..b63529a 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -995,13 +995,18 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+ 	saa7134_board_init1(dev);
+ 	saa7134_hwinit1(dev);
+ 
++	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
++	if (IS_ERR(dev->alloc_ctx)) {
++		err = -ENOMEM;
++		goto fail3;
++	}
+ 	/* get irq */
+ 	err = request_irq(pci_dev->irq, saa7134_irq,
+ 			  IRQF_SHARED, dev->name, dev);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "%s: can't get IRQ %d\n",
+ 		       dev->name,pci_dev->irq);
+-		goto fail3;
++		goto fail4;
+ 	}
+ 
+ 	/* wait a bit, register i2c bus */
+@@ -1059,7 +1064,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+ 	if (err < 0) {
+ 		printk(KERN_INFO "%s: can't register video device\n",
+ 		       dev->name);
+-		goto fail4;
++		goto fail5;
+ 	}
+ 	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
+ 	       dev->name, video_device_node_name(dev->video_dev));
+@@ -1072,7 +1077,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+ 	err = video_register_device(dev->vbi_dev,VFL_TYPE_VBI,
+ 				    vbi_nr[dev->nr]);
+ 	if (err < 0)
+-		goto fail4;
++		goto fail5;
+ 	printk(KERN_INFO "%s: registered device %s\n",
+ 	       dev->name, video_device_node_name(dev->vbi_dev));
+ 
+@@ -1083,7 +1088,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+ 		err = video_register_device(dev->radio_dev,VFL_TYPE_RADIO,
+ 					    radio_nr[dev->nr]);
+ 		if (err < 0)
+-			goto fail4;
++			goto fail5;
+ 		printk(KERN_INFO "%s: registered device %s\n",
+ 		       dev->name, video_device_node_name(dev->radio_dev));
+ 	}
+@@ -1097,10 +1102,12 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+ 	request_submodules(dev);
+ 	return 0;
+ 
+- fail4:
++ fail5:
+ 	saa7134_unregister_video(dev);
+ 	saa7134_i2c_unregister(dev);
+ 	free_irq(pci_dev->irq, dev);
++ fail4:
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+  fail3:
+ 	saa7134_hwfini(dev);
+ 	iounmap(dev->lmmio);
+@@ -1167,6 +1174,7 @@ static void saa7134_finidev(struct pci_dev *pci_dev)
+ 
+ 	/* release resources */
+ 	free_irq(pci_dev->irq, dev);
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+ 	iounmap(dev->lmmio);
+ 	release_mem_region(pci_resource_start(pci_dev,0),
+ 			   pci_resource_len(pci_dev,0));
+diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
+index bd25323..8eff4a7 100644
+--- a/drivers/media/pci/saa7134/saa7134-ts.c
++++ b/drivers/media/pci/saa7134/saa7134-ts.c
+@@ -142,6 +142,7 @@ int saa7134_ts_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 		*nbuffers = 3;
+ 	*nplanes = 1;
+ 	sizes[0] = size;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(saa7134_ts_queue_setup);
+diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
+index c06dbe1..803e7df 100644
+--- a/drivers/media/pci/saa7134/saa7134-vbi.c
++++ b/drivers/media/pci/saa7134/saa7134-vbi.c
+@@ -156,6 +156,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	*nbuffers = saa7134_buffer_count(size, *nbuffers);
+ 	*nplanes = 1;
+ 	sizes[0] = size;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 0cfa2ca..5e3c48d 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -932,6 +932,7 @@ static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	*nbuffers = saa7134_buffer_count(size, *nbuffers);
+ 	*nplanes = 1;
+ 	sizes[0] = size;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index e47edd4..1c21c47 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -583,6 +583,7 @@ struct saa7134_dev {
+ 
+ 
+ 	/* video+ts+vbi capture */
++	void			   *alloc_ctx;
+ 	struct saa7134_dmaqueue    video_q;
+ 	struct vb2_queue           video_vbq;
+ 	struct saa7134_dmaqueue    vbi_q;
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 28023f9..0517fc9 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -720,7 +720,10 @@ static int solo_enc_queue_setup(struct vb2_queue *q,
+ 				unsigned int *num_planes, unsigned int sizes[],
+ 				void *alloc_ctxs[])
+ {
++	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(q);
++
+ 	sizes[0] = FRAME_BUF_SIZE;
++	alloc_ctxs[0] = solo_enc->alloc_ctx;
+ 	*num_planes = 1;
+ 
+ 	if (*num_buffers < MIN_VID_BUFFERS)
+@@ -1263,6 +1266,11 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	hdl = &solo_enc->hdl;
++	solo_enc->alloc_ctx = vb2_dma_sg_init_ctx(&solo_dev->pdev->dev);
++	if (IS_ERR(solo_enc->alloc_ctx)) {
++		ret = -ENOMEM;
++		goto hdl_free;
++	}
+ 	v4l2_ctrl_handler_init(hdl, 10);
+ 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
+ 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+@@ -1366,6 +1374,7 @@ pci_free:
+ 			solo_enc->desc_items, solo_enc->desc_dma);
+ hdl_free:
+ 	v4l2_ctrl_handler_free(hdl);
++	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
+ 	kfree(solo_enc);
+ 	return ERR_PTR(ret);
+ }
+@@ -1377,6 +1386,7 @@ static void solo_enc_free(struct solo_enc_dev *solo_enc)
+ 
+ 	video_unregister_device(solo_enc->vfd);
+ 	v4l2_ctrl_handler_free(&solo_enc->hdl);
++	vb2_dma_sg_cleanup_ctx(solo_enc->alloc_ctx);
+ 	kfree(solo_enc);
+ }
+ 
+diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+index 72017b7..bd8edfa 100644
+--- a/drivers/media/pci/solo6x10/solo6x10.h
++++ b/drivers/media/pci/solo6x10/solo6x10.h
+@@ -180,6 +180,7 @@ struct solo_enc_dev {
+ 	u32			sequence;
+ 	struct vb2_queue	vidq;
+ 	struct list_head	vidq_active;
++	void			*alloc_ctx;
+ 	int			desc_count;
+ 	int			desc_nelts;
+ 	struct solo_p2m_desc	*desc_items;
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index a6fb48c..c505fe0 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -304,13 +304,19 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+ 	/* Then do any initialisation wanted before interrupts are on */
+ 	tw68_hw_init1(dev);
+ 
++	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
++	if (IS_ERR(dev->alloc_ctx)) {
++		err = -ENOMEM;
++		goto fail3;
++	}
++
+ 	/* get irq */
+ 	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw68_irq,
+ 			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+ 	if (err < 0) {
+ 		pr_err("%s: can't get IRQ %d\n",
+ 		       dev->name, pci_dev->irq);
+-		goto fail3;
++		goto fail4;
+ 	}
+ 
+ 	/*
+@@ -324,7 +330,7 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+ 	if (err < 0) {
+ 		pr_err("%s: can't register video device\n",
+ 		       dev->name);
+-		goto fail4;
++		goto fail5;
+ 	}
+ 	tw_setl(TW68_INTMASK, dev->pci_irqmask);
+ 
+@@ -333,8 +339,10 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+ 
+ 	return 0;
+ 
+-fail4:
++fail5:
+ 	video_unregister_device(&dev->vdev);
++fail4:
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+ fail3:
+ 	iounmap(dev->lmmio);
+ fail2:
+@@ -358,6 +366,7 @@ static void tw68_finidev(struct pci_dev *pci_dev)
+ 	/* unregister */
+ 	video_unregister_device(&dev->vdev);
+ 	v4l2_ctrl_handler_free(&dev->hdl);
++	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+ 
+ 	/* release resources */
+ 	iounmap(dev->lmmio);
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index 5c94ac7..50dcce6 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -384,6 +384,7 @@ static int tw68_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	unsigned tot_bufs = q->num_buffers + *num_buffers;
+ 
+ 	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	/*
+ 	 * We allow create_bufs, but only if the sizeimage is the same as the
+ 	 * current sizeimage. The tw68_buffer_count calculation becomes quite
+diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
+index 2c8abe2..7a7501b 100644
+--- a/drivers/media/pci/tw68/tw68.h
++++ b/drivers/media/pci/tw68/tw68.h
+@@ -181,6 +181,7 @@ struct tw68_dev {
+ 	unsigned		field;
+ 	struct vb2_queue	vidq;
+ 	struct list_head	active;
++	void			*alloc_ctx;
+ 
+ 	/* various v4l controls */
+ 	const struct tw68_tvnorm *tvnorm;	/* video */
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 7a86c77..20d53b6 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1080,6 +1080,8 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+ 		*nbufs = minbufs;
+ 	if (cam->buffer_mode == B_DMA_contig)
+ 		alloc_ctxs[0] = cam->vb_alloc_ctx;
++	else if (cam->buffer_mode == B_DMA_sg)
++		alloc_ctxs[0] = cam->vb_alloc_ctx_sg;
+ 	return 0;
+ }
+ 
+@@ -1298,6 +1300,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 		vq->ops = &mcam_vb2_sg_ops;
+ 		vq->mem_ops = &vb2_dma_sg_memops;
+ 		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
++		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
+ 		vq->io_modes = VB2_MMAP | VB2_USERPTR;
+ 		cam->dma_setup = mcam_ctlr_dma_sg;
+ 		cam->frame_complete = mcam_dma_sg_done;
+@@ -1326,6 +1329,10 @@ static void mcam_cleanup_vb2(struct mcam_camera *cam)
+ 	if (cam->buffer_mode == B_DMA_contig)
+ 		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
  #endif
-
--ssize_t dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+/**
-+ * @brief Initialize a struct dvb_mpeg_ts from buffer
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param buf		Buffer
-+ * @param buflen	Length of buffer
-+ * @param table		Pointer to allocated struct dvb_mpeg_ts
-+ * @param table_length	Pointer to size_t where length will be written to
-+ *
-+ * @return		Length of data in table
-+ *
-+ * This function copies the length of struct dvb_mpeg_ts
-+ * to table and fixes endianness. table has to be allocated
-+ * with malloc.
-+ */
-+ssize_t dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen,
-+		uint8_t *table, ssize_t *table_length);
++#ifdef MCAM_MODE_DMA_SG
++	if (cam->buffer_mode == B_DMA_sg)
++		vb2_dma_sg_cleanup_ctx(cam->vb_alloc_ctx_sg);
++#endif
+ }
+ 
+ 
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index e0e628c..7b8c201 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -176,6 +176,7 @@ struct mcam_camera {
+ 	/* DMA buffers - DMA modes */
+ 	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
+ 	struct vb2_alloc_ctx *vb_alloc_ctx;
++	struct vb2_alloc_ctx *vb_alloc_ctx_sg;
+ 
+ 	/* Mode-specific ops, set at open time */
+ 	void (*dma_setup)(struct mcam_camera *cam);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index e5247a4..087cd62 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -189,6 +189,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
+ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 	void *mem_priv;
+ 	int plane;
+ 
+@@ -200,7 +201,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+ 
+ 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+-				      size, q->gfp_flags);
++				      size, write, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 4a02ade..6675f12 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -155,7 +155,8 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
+ }
+ 
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
++			  gfp_t gfp_flags)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -176,6 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ 	/* Prevent the device from being released while the buffer is used */
+ 	buf->dev = get_device(dev);
+ 	buf->size = size;
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dc_put;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index adefc31..9b7a041 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -30,11 +30,17 @@ module_param(debug, int, 0644);
+ 			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
+ 	} while (0)
+ 
++struct vb2_dma_sg_conf {
++	struct device		*dev;
++};
 +
-+/**
-+ * @brief Deallocate memory associated with a struct dvb_mpeg_ts
-+ * @ingroup file
-+ *
-+ * @param ts	struct dvb_mpeg_ts to be deallocated
-+ *
-+ * This function assumes frees dynamically allocated memory by the
-+ * dvb_mpeg_ts_init function.
-+ */
- void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts);
+ struct vb2_dma_sg_buf {
++	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
+ 	int				write;
+ 	int				offset;
++	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+ 	size_t				size;
+ 	unsigned int			num_pages;
+@@ -86,22 +92,27 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+ 	return 0;
+ }
+ 
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
++			      gfp_t gfp_flags)
+ {
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+ 	int ret;
+ 	int num_pages;
+ 
++	if (WARN_ON(alloc_ctx == NULL))
++		return NULL;
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+ 
+ 	buf->vaddr = NULL;
+-	buf->write = 0;
++	buf->write = write;
+ 	buf->offset = 0;
+ 	buf->size = size;
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -117,6 +128,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	if (ret)
+ 		goto fail_table_alloc;
+ 
++	/* Prevent the device from being released while the buffer is used */
++	buf->dev = get_device(conf->dev);
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dma_sg_put;
+ 	buf->handler.arg = buf;
+@@ -152,6 +165,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
++		put_device(buf->dev);
+ 		kfree(buf);
+ 	}
+ }
+@@ -164,6 +178,7 @@ static inline int vma_is_io(struct vm_area_struct *vma)
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size, int write)
+ {
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+ 	unsigned long first, last;
+ 	int num_pages_from_user;
+@@ -177,6 +192,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->write = write;
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+@@ -233,6 +249,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
++	/* Prevent the device from being released while the buffer is used */
++	buf->dev = get_device(conf->dev);
+ 	return buf;
+ 
+ userptr_fail_alloc_table_from_pages:
+@@ -272,6 +290,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	}
+ 	kfree(buf->pages);
+ 	vb2_put_vma(buf->vma);
++	put_device(buf->dev);
+ 	kfree(buf);
+ }
+ 
+@@ -354,6 +373,27 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
+ 
++void *vb2_dma_sg_init_ctx(struct device *dev)
++{
++	struct vb2_dma_sg_conf *conf;
 +
-+/**
-+ * @brief Print details of struct dvb_mpeg_ts
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param seq_start	Pointer to struct dvb_mpeg_ts to print
-+ *
-+ * This function prints the fields of struct dvb_mpeg_ts
-+ */
- void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts);
-
- #ifdef __cplusplus
---
-1.9.1
++	conf = kzalloc(sizeof(*conf), GFP_KERNEL);
++	if (!conf)
++		return ERR_PTR(-ENOMEM);
++
++	conf->dev = dev;
++
++	return conf;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_sg_init_ctx);
++
++void vb2_dma_sg_cleanup_ctx(void *alloc_ctx)
++{
++	if (!IS_ERR_OR_NULL(alloc_ctx))
++		kfree(alloc_ctx);
++}
++EXPORT_SYMBOL_GPL(vb2_dma_sg_cleanup_ctx);
++
+ MODULE_DESCRIPTION("dma scatter/gather memory handling routines for videobuf2");
+ MODULE_AUTHOR("Andrzej Pietrasiewicz");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 313d977..d77e397 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -35,7 +35,8 @@ struct vb2_vmalloc_buf {
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
++			       gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index fff159c..02b96ef 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -82,7 +82,8 @@ struct vb2_threadio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
++	void		*(*alloc)(void *alloc_ctx, unsigned long size, int write,
++				  gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+ 
+diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
+index 7b89852..14ce306 100644
+--- a/include/media/videobuf2-dma-sg.h
++++ b/include/media/videobuf2-dma-sg.h
+@@ -21,6 +21,9 @@ static inline struct sg_table *vb2_dma_sg_plane_desc(
+ 	return (struct sg_table *)vb2_plane_cookie(vb, plane_no);
+ }
+ 
++void *vb2_dma_sg_init_ctx(struct device *dev);
++void vb2_dma_sg_cleanup_ctx(void *alloc_ctx);
++
+ extern const struct vb2_mem_ops vb2_dma_sg_memops;
+ 
+ #endif
+-- 
+2.1.0
 
