@@ -1,313 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:47379 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756128AbaICMRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 08:17:42 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBB003DGRHHC930@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Sep 2014 08:17:42 -0400 (EDT)
-Date: Wed, 03 Sep 2014 09:17:37 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	stoth@kernellabs.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 15/20] cx23885: convert to vb2
-Message-id: <20140903091737.7046c718.m.chehab@samsung.com>
-In-reply-to: <54070228.2000007@cisco.com>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
- <1408010045-24016-16-git-send-email-hverkuil@xs4all.nl>
- <20140903083251.5c5f286c.m.chehab@samsung.com> <54070228.2000007@cisco.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-la0-f52.google.com ([209.85.215.52]:57640 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187AbaILBLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Sep 2014 21:11:36 -0400
+MIME-Version: 1.0
+In-Reply-To: <1408542118-32723-3-git-send-email-j.anaszewski@samsung.com>
+References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com> <1408542118-32723-3-git-send-email-j.anaszewski@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Thu, 11 Sep 2014 18:11:11 -0700
+Message-ID: <CAK5ve-+Trcg+ZL5gBZmpY_Zcqk5VOhP7jowS8Liqcz0pO_UbBQ@mail.gmail.com>
+Subject: Re: [PATCH/RFC v5 2/4] leds: implement sysfs interface locking mechanism
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com, Richard Purdie <rpurdie@rpsys.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Sep 2014 13:57:28 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+On Wed, Aug 20, 2014 at 6:41 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> Add a mechanism for locking LED subsystem sysfs interface.
+> This patch prepares ground for addition of LED Flash Class
+> extension, whose API will be integrated with V4L2 Flash API.
+> Such a fusion enforces introducing a locking scheme, which
+> will secure consistent access to the LED Flash Class device.
+>
+> The mechanism being introduced allows for disabling LED
+> subsystem sysfs interface by calling led_sysfs_lock function
+> and enabling it by calling led_sysfs_unlock. The functions
+> alter the LED_SYSFS_LOCK flag state and must be called
+> under mutex lock. The state of the lock is checked with use
+> of led_sysfs_is_locked function. Such a design allows for
+> providing immediate feedback to the user space on whether
+> the LED Flash Class device is available or is under V4L2 Flash
+> sub-device control.
+>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  drivers/leds/led-class.c    |   23 ++++++++++++++++++++---
+>  drivers/leds/led-core.c     |   18 ++++++++++++++++++
+>  drivers/leds/led-triggers.c |   15 ++++++++++++---
+>  include/linux/leds.h        |   32 ++++++++++++++++++++++++++++++++
+>  4 files changed, 82 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+> index 6f82a76..0bc0ba9 100644
+> --- a/drivers/leds/led-class.c
+> +++ b/drivers/leds/led-class.c
+> @@ -39,17 +39,31 @@ static ssize_t brightness_store(struct device *dev,
+>  {
+>         struct led_classdev *led_cdev = dev_get_drvdata(dev);
+>         unsigned long state;
+> -       ssize_t ret = -EINVAL;
+> +       ssize_t ret;
+> +
+> +#ifdef CONFIG_V4L2_FLASH_LED_CLASS
 
-> Hi Mauro,
-> 
-> On 09/03/14 13:32, Mauro Carvalho Chehab wrote:
-> > Em Thu, 14 Aug 2014 11:54:00 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> As usual, this patch is very large due to the fact that half a vb2 conversion
-> >> isn't possible. And since this affects 417, alsa, core, dvb, vbi and video the
-> >> changes are all over.
-> >>
-> >> What made this more difficult was the peculiar way the risc program was setup.
-> >> The driver allowed for running out of buffers in which case the DMA would stop
-> >> and restart when the next buffer was queued. There was also a complicated
-> >> timeout system for when buffers weren't filled. This was replaced by a much
-> >> simpler scheme where there is always one buffer around and the DMA will just
-> >> cycle that buffer until a new buffer is queued. In that case the previous
-> >> buffer will be chained to the new buffer. An interrupt is generated at the
-> >> start of the new buffer telling the driver that the previous buffer can be
-> >> passed on to userspace.
-> >>
-> >> Much simpler and more robust. The old code seems to be copied from the
-> >> cx88 driver. But it didn't fit the vb2 ops very well and replacing it with
-> >> the new scheme made the code easier to understand. Not to mention that this
-> >> patch removes 600 lines of code.
-> > 
-> > Great job!
-> 
-> Thank you.
-> 
-> > Still, there are some issue. In special, the RISC changes should go
-> > to a separate patch, as such changes have the potential of causing
-> > some regressions. See below.
-> 
-> I tried (I mentioned that in my git pull request), but I was not able
-> to separate the two. I couldn't make the risc changes to work with vb1,
-> and the reverse would be equally painful. Not only that, but I would
-> have to test this twice (once with just the risc changes or vb2 changes,
-> and again when both are in place).
-> 
-> I can try to do the vb2 conversion first and the risc changes second, but
-> this too might be too complicated to get to work.
+Can we remove this #ifdef? Following code looks good to the common LED class.
 
-Ok. Then, just split that VBI fixup on a separate patch.
+> +       mutex_lock(&led_cdev->led_lock);
 
-Regards,
-Mauro
+Can we choose more meaningful name instead of led_lock here?
+Then use led_sysfs_enable() instead of led_sysfs_unlock()
+led_sysfs_disable instead of led_sysfs_lock()
+led_sysfs_is_disabled instead of led_sysfs_is_locked()
 
-> 
-> <snip>
-> 
-> >> @@ -1320,7 +1373,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> >>  				struct v4l2_format *f)
-> >>  {
-> >>  	struct cx23885_dev *dev = video_drvdata(file);
-> >> -	struct cx23885_fh  *fh  = file->private_data;
-> >>  
-> >>  	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
-> >>  	f->fmt.pix.bytesperline = 0;
-> >> @@ -1329,9 +1381,9 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> >>  	f->fmt.pix.colorspace   = 0;
-> >>  	f->fmt.pix.width        = dev->ts1.width;
-> >>  	f->fmt.pix.height       = dev->ts1.height;
-> >> -	f->fmt.pix.field        = fh->mpegq.field;
-> >> -	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
-> >> -		dev->ts1.width, dev->ts1.height, fh->mpegq.field);
-> >> +	f->fmt.pix.field        = V4L2_FIELD_INTERLACED;
-> > 
-> > Why? There are other supported formats, right?
-> 
-> Not for the compressed video node. Only MPEG is supported there.
-> 
-> > 
-> >> +	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d\n",
-> >> +		dev->ts1.width, dev->ts1.height);
-> >>  	return 0;
-> >>  }
-> >>  
-> >> @@ -1339,15 +1391,15 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> >>  				struct v4l2_format *f)
-> >>  {
-> >>  	struct cx23885_dev *dev = video_drvdata(file);
-> >> -	struct cx23885_fh  *fh  = file->private_data;
-> >>  
-> >>  	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
-> >>  	f->fmt.pix.bytesperline = 0;
-> >>  	f->fmt.pix.sizeimage    =
-> >>  		dev->ts1.ts_packet_size * dev->ts1.ts_packet_count;
-> >>  	f->fmt.pix.colorspace   = 0;
-> >> -	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
-> >> -		dev->ts1.width, dev->ts1.height, fh->mpegq.field);
-> >> +	f->fmt.pix.field        = V4L2_FIELD_INTERLACED;
-> > 
-> > Why? There are other supported formats, right?
-> 
-> Ditto.
-> 
-> > 
-> >> +	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d\n",
-> >> +		dev->ts1.width, dev->ts1.height);
-> >>  	return 0;
-> >>  }
-> >>  
-> 
-> <snip>
-> 
-> >>  
-> >>  int cx23885_sram_channel_setup(struct cx23885_dev *dev,
-> >> @@ -482,8 +466,8 @@ int cx23885_sram_channel_setup(struct cx23885_dev *dev,
-> >>  		lines = 6;
-> >>  	BUG_ON(lines < 2);
-> >>  
-> >> -	cx_write(8 + 0, RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
-> >> -	cx_write(8 + 4, 8);
-> >> +	cx_write(8 + 0, RISC_JUMP | RISC_CNT_RESET);
-> >> +	cx_write(8 + 4, 12);
-> > 
-> > The above doesn't sound as being a pure vb2 conversion, and might cause
-> > regressions, as we're changing the channel setups. I would very much
-> > prefer to have such changes on a separate changeset, as it makes easier
-> > to do bisect if ever needed.
-> 
-> See my comment at the top.
-> 
-> > 
-> >>  	cx_write(8 + 8, 0);
-> >>  
-> >>  	/* write CDT */
-> >> @@ -699,10 +683,6 @@ static int get_resources(struct cx23885_dev *dev)
-> >>  	return -EBUSY;
-> >>  }
-> >>  
-> >> -static void cx23885_timeout(unsigned long data);
-> >> -int cx23885_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >> -				u32 reg, u32 mask, u32 value);
-> >> -
-> >>  static int cx23885_init_tsport(struct cx23885_dev *dev,
-> >>  	struct cx23885_tsport *port, int portno)
-> >>  {
-> >> @@ -719,11 +699,6 @@ static int cx23885_init_tsport(struct cx23885_dev *dev,
-> >>  	port->nr = portno;
-> >>  
-> >>  	INIT_LIST_HEAD(&port->mpegq.active);
-> >> -	INIT_LIST_HEAD(&port->mpegq.queued);
-> >> -	port->mpegq.timeout.function = cx23885_timeout;
-> >> -	port->mpegq.timeout.data = (unsigned long)port;
-> >> -	init_timer(&port->mpegq.timeout);
-> >> -
-> >>  	mutex_init(&port->frontends.lock);
-> >>  	INIT_LIST_HEAD(&port->frontends.felist);
-> >>  	port->frontends.active_fe_id = 0;
-> >> @@ -776,9 +751,6 @@ static int cx23885_init_tsport(struct cx23885_dev *dev,
-> >>  		BUG();
-> >>  	}
-> >>  
-> >> -	cx23885_risc_stopper(dev->pci, &port->mpegq.stopper,
-> >> -		     port->reg_dma_ctl, port->dma_ctl_val, 0x00);
-> >> -
-> >>  	return 0;
-> >>  }
-> >>  
-> >> @@ -1089,11 +1061,18 @@ static void cx23885_dev_unregister(struct cx23885_dev *dev)
-> >>  static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
-> >>  			       unsigned int offset, u32 sync_line,
-> >>  			       unsigned int bpl, unsigned int padding,
-> >> -			       unsigned int lines,  unsigned int lpi)
-> >> +			       unsigned int lines,  unsigned int lpi, bool jump)
-> >>  {
-> >>  	struct scatterlist *sg;
-> >>  	unsigned int line, todo, sol;
-> >>  
-> >> +
-> >> +	if (jump) {
-> >> +		*(rp++) = cpu_to_le32(RISC_JUMP);
-> >> +		*(rp++) = cpu_to_le32(0);
-> >> +		*(rp++) = cpu_to_le32(0); /* bits 63-32 */
-> >> +	}
-> >> +
-> > 
-> > Here it seem clear: you're now adding a code to support different
-> > frame interlacing layouts, but the best is to have such changes on
-> > a separate changeset, as this is one thing that we may have troubles
-> > in the future.
-> > 
-> > The way I see is that we might start having a flood of complains about
-> > regressions, and all of them will point to this single patch, making
-> > really hard to identify what part of the change broke it.
-> > 
-> > So, let's split those risc changes on a pre (or post) patch, making
-> > easier if someone needs to report an issue, for us to track what
-> > patch broke it.
-> > 
-> >>  	/* sync instruction */
-> >>  	if (sync_line != NO_SYNC_LINE)
-> >>  		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
-> >> @@ -1168,7 +1147,7 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >>  	/* write and jump need and extra dword */
-> >>  	instructions  = fields * (1 + ((bpl + padding) * lines)
-> >>  		/ PAGE_SIZE + lines);
-> >> -	instructions += 2;
-> >> +	instructions += 5;
-> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
-> >>  	if (rc < 0)
-> >>  		return rc;
-> >> @@ -1177,10 +1156,10 @@ int cx23885_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >>  	rp = risc->cpu;
-> >>  	if (UNSET != top_offset)
-> >>  		rp = cx23885_risc_field(rp, sglist, top_offset, 0,
-> >> -					bpl, padding, lines, 0);
-> >> +					bpl, padding, lines, 0, true);
-> >>  	if (UNSET != bottom_offset)
-> >>  		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x200,
-> >> -					bpl, padding, lines, 0);
-> >> +					bpl, padding, lines, 0, UNSET == top_offset);
-> >>  
-> >>  	/* save pointer to jmp instruction address */
-> >>  	risc->jmp = rp;
-> >> @@ -1204,7 +1183,7 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
-> >>  	   than PAGE_SIZE */
-> >>  	/* Jump and write need an extra dword */
-> >>  	instructions  = 1 + (bpl * lines) / PAGE_SIZE + lines;
-> >> -	instructions += 1;
-> >> +	instructions += 4;
-> >>  
-> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
-> >>  	if (rc < 0)
-> >> @@ -1213,7 +1192,7 @@ int cx23885_risc_databuffer(struct pci_dev *pci,
-> >>  	/* write risc instructions */
-> >>  	rp = risc->cpu;
-> >>  	rp = cx23885_risc_field(rp, sglist, 0, NO_SYNC_LINE,
-> >> -				bpl, 0, lines, lpi);
-> >> +				bpl, 0, lines, lpi, lpi == 0);
-> >>  
-> >>  	/* save pointer to jmp instruction address */
-> >>  	risc->jmp = rp;
-> >> @@ -1243,7 +1222,7 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >>  	/* write and jump need and extra dword */
-> >>  	instructions  = fields * (1 + ((bpl + padding) * lines)
-> >>  		/ PAGE_SIZE + lines);
-> >> -	instructions += 2;
-> >> +	instructions += 5;
-> >>  	rc = btcx_riscmem_alloc(pci, risc, instructions*12);
-> >>  	if (rc < 0)
-> >>  		return rc;
-> >> @@ -1253,12 +1232,12 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >>  	/* Sync to line 6, so US CC line 21 will appear in line '12'
-> >>  	 * in the userland vbi payload */
-> >>  	if (UNSET != top_offset)
-> >> -		rp = cx23885_risc_field(rp, sglist, top_offset, 6,
-> >> -					bpl, padding, lines, 0);
-> >> +		rp = cx23885_risc_field(rp, sglist, top_offset, 0,
-> >> +					bpl, padding, lines, 0, true);
-> >>  
-> >>  	if (UNSET != bottom_offset)
-> >> -		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x207,
-> >> -					bpl, padding, lines, 0);
-> >> +		rp = cx23885_risc_field(rp, sglist, bottom_offset, 0x200,
-> >> +					bpl, padding, lines, 0, UNSET == top_offset);
-> > 
-> > Why to change the 4th argument of cx23885_risc_field() call?
-> 
-> This was a bug. Hmm, perhaps that should be moved to a separate patch.
-> The VBI offset was wrong without this.
-> 
-> > 
-> >>  
-> >>  
-> >>  
-> >> @@ -1269,38 +1248,10 @@ int cx23885_risc_vbibuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >>  }
-> >>  
-> >>  
-> >> -int cx23885_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
-> >> -				u32 reg, u32 mask, u32 value)
-> > 
-> > What happened with this function?
-> 
-> No longer needed after the risc changes.
-> 
-> Regards,
-> 
-> 	Hans
+And the flag LED_SYSFS_LOCK -> LED_SYSFS_DISABLE
+
+I was just confused by the name lock and unlock and mutex lock.
+
+The idea looks good to me.
+
+Thanks,
+-Bryan
+
+> +
+> +       if (led_sysfs_is_locked(led_cdev)) {
+> +               ret = -EBUSY;
+> +               goto unlock;
+> +       }
+> +#endif
+>
+>         ret = kstrtoul(buf, 10, &state);
+>         if (ret)
+> -               return ret;
+> +               goto unlock;
+>
+>         if (state == LED_OFF)
+>                 led_trigger_remove(led_cdev);
+>         __led_set_brightness(led_cdev, state);
+>
+> -       return size;
+> +       ret = size;
+> +unlock:
+> +#ifdef CONFIG_V4L2_FLASH_LED_CLASS
+> +       mutex_unlock(&led_cdev->led_lock);
+> +#endif
+> +       return ret;
+>  }
+>  static DEVICE_ATTR_RW(brightness);
+>
+> @@ -215,6 +229,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+>  #ifdef CONFIG_LEDS_TRIGGERS
+>         init_rwsem(&led_cdev->trigger_lock);
+>  #endif
+> +       mutex_init(&led_cdev->led_lock);
+>         /* add to the list of leds */
+>         down_write(&leds_list_lock);
+>         list_add_tail(&led_cdev->node, &leds_list);
+> @@ -266,6 +281,8 @@ void led_classdev_unregister(struct led_classdev *led_cdev)
+>         down_write(&leds_list_lock);
+>         list_del(&led_cdev->node);
+>         up_write(&leds_list_lock);
+> +
+> +       mutex_destroy(&led_cdev->led_lock);
+>  }
+>  EXPORT_SYMBOL_GPL(led_classdev_unregister);
+>
+> diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+> index 466ce5a..4649ea5 100644
+> --- a/drivers/leds/led-core.c
+> +++ b/drivers/leds/led-core.c
+> @@ -143,3 +143,21 @@ int led_update_brightness(struct led_classdev *led_cdev)
+>         return ret;
+>  }
+>  EXPORT_SYMBOL(led_update_brightness);
+> +
+> +/* Caller must ensure led_cdev->led_lock held */
+> +void led_sysfs_lock(struct led_classdev *led_cdev)
+> +{
+> +       lockdep_assert_held(&led_cdev->led_lock);
+> +
+> +       led_cdev->flags |= LED_SYSFS_LOCK;
+> +}
+> +EXPORT_SYMBOL_GPL(led_sysfs_lock);
+> +
+> +/* Caller must ensure led_cdev->led_lock held */
+> +void led_sysfs_unlock(struct led_classdev *led_cdev)
+> +{
+> +       lockdep_assert_held(&led_cdev->led_lock);
+> +
+> +       led_cdev->flags &= ~LED_SYSFS_LOCK;
+> +}
+> +EXPORT_SYMBOL_GPL(led_sysfs_unlock);
+> diff --git a/drivers/leds/led-triggers.c b/drivers/leds/led-triggers.c
+> index c3734f1..d391a5d 100644
+> --- a/drivers/leds/led-triggers.c
+> +++ b/drivers/leds/led-triggers.c
+> @@ -37,6 +37,11 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>         char trigger_name[TRIG_NAME_MAX];
+>         struct led_trigger *trig;
+>         size_t len;
+> +       int ret = count;
+> +
+> +#ifdef CONFIG_V4L2_FLASH_LED_CLASS
+> +       mutex_lock(&led_cdev->led_lock);
+> +#endif
+>
+>         trigger_name[sizeof(trigger_name) - 1] = '\0';
+>         strncpy(trigger_name, buf, sizeof(trigger_name) - 1);
+> @@ -47,7 +52,7 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>
+>         if (!strcmp(trigger_name, "none")) {
+>                 led_trigger_remove(led_cdev);
+> -               return count;
+> +               goto exit_unlock;
+>         }
+>
+>         down_read(&triggers_list_lock);
+> @@ -58,12 +63,16 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>                         up_write(&led_cdev->trigger_lock);
+>
+>                         up_read(&triggers_list_lock);
+> -                       return count;
+> +                       goto exit_unlock;
+>                 }
+>         }
+>         up_read(&triggers_list_lock);
+>
+> -       return -EINVAL;
+> +exit_unlock:
+> +#ifdef CONFIG_V4L2_FLASH_LED_CLASS
+> +       mutex_unlock(&led_cdev->led_lock);
+> +#endif
+> +       return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(led_trigger_store);
+>
+> diff --git a/include/linux/leds.h b/include/linux/leds.h
+> index cc85b16..ef343f1 100644
+> --- a/include/linux/leds.h
+> +++ b/include/linux/leds.h
+> @@ -13,6 +13,7 @@
+>  #define __LINUX_LEDS_H_INCLUDED
+>
+>  #include <linux/list.h>
+> +#include <linux/mutex.h>
+>  #include <linux/rwsem.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/workqueue.h>
+> @@ -41,6 +42,7 @@ struct led_classdev {
+>  #define LED_BLINK_ONESHOT      (1 << 17)
+>  #define LED_BLINK_ONESHOT_STOP (1 << 18)
+>  #define LED_BLINK_INVERT       (1 << 19)
+> +#define LED_SYSFS_LOCK         (1 << 20)
+>
+>         /* Set LED brightness level */
+>         /* Must not sleep, use a workqueue if needed */
+> @@ -84,6 +86,9 @@ struct led_classdev {
+>         /* true if activated - deactivate routine uses it to do cleanup */
+>         bool                    activated;
+>  #endif
+> +
+> +       /* Ensures consistent access to the LED Flash Class device */
+> +       struct mutex            led_lock;
+>  };
+>
+>  extern int led_classdev_register(struct device *parent,
+> @@ -150,6 +155,33 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
+>   */
+>  extern int led_update_brightness(struct led_classdev *led_cdev);
+>
+> +/**
+> + * led_sysfs_lock - lock LED sysfs interface
+> + * @led_cdev: the LED to set
+> + *
+> + * Lock the LED's sysfs interface
+> + */
+> +extern void led_sysfs_lock(struct led_classdev *led_cdev);
+> +
+> +/**
+> + * led_sysfs_unlock - unlock LED sysfs interface
+> + * @led_cdev: the LED to set
+> + *
+> + * Unlock the LED's sysfs interface
+> + */
+> +extern void led_sysfs_unlock(struct led_classdev *led_cdev);
+> +
+> +/**
+> + * led_sysfs_is_locked
+> + * @led_cdev: the LED to query
+> + *
+> + * Returns: true if the sysfs interface of the led is locked
+> + */
+> +static inline bool led_sysfs_is_locked(struct led_classdev *led_cdev)
+> +{
+> +       return led_cdev->flags & LED_SYSFS_LOCK;
+> +}
+> +
+>  /*
+>   * LED Triggers
+>   */
+> --
+> 1.7.9.5
+>
