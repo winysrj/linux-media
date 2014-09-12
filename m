@@ -1,62 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31278 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218AbaIAJnN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 05:43:13 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NB70072XV4RQ830@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Sep 2014 10:46:03 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org
-References: <5400844A.5030603@collabora.com>
-In-reply-to: <5400844A.5030603@collabora.com>
-Subject: RE: s5p-mfc should allow multiple call to REQBUFS before we start
- streaming
-Date: Mon, 01 Sep 2014 11:43:09 +0200
-Message-id: <06ac01cfc5c9$248443e0$6d8ccba0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36005 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715AbaILVZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 17:25:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 01/14] vb2: introduce buf_prepare/finish_for_cpu
+Date: Sat, 13 Sep 2014 00:25:36 +0300
+Message-ID: <4342247.xaaAE16GTC@avalon>
+In-Reply-To: <1410526803-25887-2-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl> <1410526803-25887-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Hi Hans,
 
+Thank you for the patch.
 
-> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
-> Sent: Friday, August 29, 2014 3:47 PM
+On Friday 12 September 2014 14:59:50 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Hi Kamil,
+> This splits the buf_prepare and buf_finish actions into two: one
+> called while the cpu can still access the buffer contents, and one where
+> the memory has been prepared for DMA and the cpu no longer can access it.
+
+I don't think this applies to all drivers, or rather to all memory models. vb2 
+vmalloc allows drivers to touch buffers that have been prepared, and USB 
+drivers certainly expect that behaviour in order to copy the content of URBs 
+to the buffer as they are received.
+
+> Update a few drivers that use buf_finish where they really meant
+> buf_finish_for_cpu.
+
+I don't think this applies to the UVC driver. The buf_finish implementation 
+doesn't touch the contents of the buffer.
+
+> The reason for this split is that some drivers need to modify the buffer,
+> either before or after the DMA has taken place, in order to e.g. add JPEG
+> headers or do other touch ups.
 > 
-> after a discussion on IRC, we concluded that s5p-mfc have this bug that
-> disallow multiple reqbufs calls before streaming. This has the impact
-> that it forces to call REQBUFS(0) before setting the new number of
-> buffers during re-negotiation, and is against the spec too.
+> You cannot do that in buf_prepare since at that time the buffer is already
+> synced for DMA and the CPU shouldn't touch it. So add these extra ops to
+> make this explicit.
+> 
+> Note that the dma-sg memory model doesn't sync the buffers yet in the memop
+> prepare. This will change in future patches.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/parport/bw-qcam.c              |  4 +--
+>  drivers/media/pci/sta2x11/sta2x11_vip.c      |  4 +--
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  4 +--
+>  drivers/media/usb/go7007/go7007-v4l2.c       |  4 +--
+>  drivers/media/usb/pwc/pwc-if.c               |  4 +--
+>  drivers/media/usb/uvc/uvc_queue.c            |  4 +--
+>  drivers/media/v4l2-core/videobuf2-core.c     | 29 ++++++++++++-----
+>  include/media/videobuf2-core.h               | 48 +++++++++++++++++++------
+>  8 files changed, 72 insertions(+), 29 deletions(-)
 
-I was out of office last week. Could you shed more light on this subject?
-Do you have the irc log?
-
-> As an example, in reqbufs_output() REQBUFS is only allowed in
-> QUEUE_FREE state, and setting buffers exits this state. We think that
-> the call to
-> <http://lxr.free-
-> electrons.com/ident?i=reqbufs_output>s5p_mfc_open_mfc_inst()
-> should be post-poned until STREAMON is called.
-> <http://lxr.free-electrons.com/ident?i=reqbufs_output>
-
-How is this connected to the renegotiation scenario?
-Are you sure you wanted to mention s5p_mfc_open_mfc_inst?
- 
-> cheers,
-> Nicolas
-> <http://lxr.free-electrons.com/ident?i=reqbufs_output>
-
-Best wishes,
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+Regards,
+
+Laurent Pinchart
 
