@@ -1,50 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44313 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001AbaICUd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 46/46] [media] cx231xx: just return 0 instead of using a var
-Date: Wed,  3 Sep 2014 17:33:18 -0300
-Message-Id: <548182d6e44729dbff257d48299c911955fe9e0d.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4367 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbaILJCS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Sep 2014 05:02:18 -0400
+Message-ID: <5412B68A.1020702@xs4all.nl>
+Date: Fri, 12 Sep 2014 11:02:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Martin Bugge <marbugge@cisco.com>
+Subject: [PATCH for v3.17] adv7604: fix inverted condition
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating a var to store 0 and just return it,
-change the code to return 0 directly.
+The log_status function should show HDMI information, but the test checking for
+an HDMI input was inverted. Fix this.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: stable@vger.kernel.org      # for v3.12 and up
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 2adfecf70236..6c7b5e250eed 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -403,8 +403,6 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
- 
- int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq)
- {
--	int status = 0;
--
- 	if ((dev->dvb != NULL) && (dev->dvb->frontend != NULL)) {
- 
- 		struct dvb_tuner_ops *dops = &dev->dvb->frontend->ops.tuner_ops;
-@@ -423,7 +421,7 @@ int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq)
- 
- 	}
- 
--	return status;
-+	return 0;
- }
- 
- int cx231xx_reset_analog_tuner(struct cx231xx *dev)
--- 
-1.9.3
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d4fa213..de88b98 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2325,7 +2325,7 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "HDCP keys read: %s%s\n",
+ 			(hdmi_read(sd, 0x04) & 0x20) ? "yes" : "no",
+ 			(hdmi_read(sd, 0x04) & 0x10) ? "ERROR" : "");
+-	if (!is_hdmi(sd)) {
++	if (is_hdmi(sd)) {
+ 		bool audio_pll_locked = hdmi_read(sd, 0x04) & 0x01;
+ 		bool audio_sample_packet_detect = hdmi_read(sd, 0x18) & 0x01;
+ 		bool audio_mute = io_read(sd, 0x65) & 0x40;
