@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:14220 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282AbaIANSJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 09:18:09 -0400
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] v4l: vsp1: fix driver dependencies
-Date: Mon, 01 Sep 2014 15:18:02 +0200
-Message-id: <25174054.f3JtKIKjvH@amdc1032>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=us-ascii
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2664 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763AbaIMJ2O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Sep 2014 05:28:14 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8D9SA2U064326
+	for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 11:28:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4D2AB2A03DA
+	for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 11:28:02 +0200 (CEST)
+Message-ID: <54140E22.3000804@xs4all.nl>
+Date: Sat, 13 Sep 2014 11:28:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media: fix wrong prototype
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Renesas VSP1 Video Processing Engine support should be available
-only on Renesas ARM SoCs.
+G_EDID is an RW ioctl, so the struct v4l2_edid isn't const.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Magnus Damm <magnus.damm@gmail.com>
----
- drivers/media/platform/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Index: b/drivers/media/platform/Kconfig
-===================================================================
---- a/drivers/media/platform/Kconfig	2014-09-01 14:51:37.024553544 +0200
-+++ b/drivers/media/platform/Kconfig	2014-09-01 15:17:34.284594657 +0200
-@@ -213,6 +213,7 @@ config VIDEO_SH_VEU
- config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
-+	depends on ARCH_SHMOBILE || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+index fa91651..6df40db 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+@@ -24,7 +24,7 @@
+ 	<funcdef>int <function>ioctl</function></funcdef>
+ 	<paramdef>int <parameter>fd</parameter></paramdef>
+ 	<paramdef>int <parameter>request</parameter></paramdef>
+-	<paramdef>const struct v4l2_edid *<parameter>argp</parameter></paramdef>
++	<paramdef>struct v4l2_edid *<parameter>argp</parameter></paramdef>
+       </funcprototype>
+     </funcsynopsis>
+   </refsynopsisdiv>
