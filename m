@@ -1,152 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49619 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753536AbaI2U2G (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2531 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927AbaIMCmG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 16:28:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 12 Sep 2014 22:42:06 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8D2g27R094465
+	for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 04:42:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0567D2A03DA
+	for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 04:41:54 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 05/11] v4l: of: Add v4l2_of_parse_link() function
-Date: Mon, 29 Sep 2014 23:27:51 +0300
-Message-Id: <1412022477-28749-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140913024154.0567D2A03DA@tschai.lan>
+Date: Sat, 13 Sep 2014 04:41:54 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function fills a link data structure with the device node and port
-number at both the local and remote ends of a link defined by one of its
-endpoint nodes.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-of.c | 61 +++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-of.h           | 27 +++++++++++++++++
- 2 files changed, 88 insertions(+)
+Results of the daily build of media_tree:
 
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+date:		Sat Sep 13 04:00:26 CEST 2014
+git branch:	test
+git hash:	f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.4-amd64
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index b4ed9a9..c473479 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -142,3 +142,64 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/**
-+ * v4l2_of_parse_link() - parse a link between two endpoints
-+ * @node: pointer to the endpoint at the local end of the link
-+ * @link: pointer to the V4L2 OF link data structure
-+ *
-+ * Fill the link structure with the local and remote nodes and port numbers.
-+ * The local_node and remote_node fields are set to point to the local and
-+ * remote port parent nodes respectively (the port parent node being the parent
-+ * node of the port node if that node isn't a 'ports' node, or the grand-parent
-+ * node of the port node otherwise).
-+ *
-+ * A reference is taken to both the local and remote nodes, the caller must use
-+ * v4l2_of_put_link() to drop the references when done with the link.
-+ *
-+ * Return: 0 on success, or -ENOLINK if the remote endpoint can't be found.
-+ */
-+int v4l2_of_parse_link(const struct device_node *node,
-+		       struct v4l2_of_link *link)
-+{
-+	struct device_node *np;
-+
-+	memset(link, 0, sizeof(*link));
-+
-+	np = of_get_parent(node);
-+	of_property_read_u32(np, "reg", &link->local_port);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "ports") == 0)
-+		np = of_get_next_parent(np);
-+	link->local_node = np;
-+
-+	np = of_parse_phandle(node, "remote-endpoint", 0);
-+	if (!np) {
-+		of_node_put(link->local_node);
-+		return -ENOLINK;
-+	}
-+
-+	np = of_get_parent(np);
-+	of_property_read_u32(np, "reg", &link->remote_port);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "ports") == 0)
-+		np = of_get_next_parent(np);
-+	link->remote_node = np;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_link);
-+
-+/**
-+ * v4l2_of_put_link() - drop references to nodes in a link
-+ * @link: pointer to the V4L2 OF link data structure
-+ *
-+ * Drop references to the local and remote nodes in the link. This function must
-+ * be called on every link parsed with v4l2_of_parse_link().
-+ */
-+void v4l2_of_put_link(struct v4l2_of_link *link)
-+{
-+	of_node_put(link->local_node);
-+	of_node_put(link->remote_node);
-+}
-+EXPORT_SYMBOL(v4l2_of_put_link);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 70fa7b7..078846d 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -66,9 +66,26 @@ struct v4l2_of_endpoint {
- 	struct list_head head;
- };
- 
-+/**
-+ * struct v4l2_of_link - a link between two endpoints
-+ * @local_node: pointer to device_node of this endpoint
-+ * @local_port: identifier of the port this endpoint belongs to
-+ * @remote_node: pointer to device_node of the remote endpoint
-+ * @remote_port: identifier of the port the remote endpoint belongs to
-+ */
-+struct v4l2_of_link {
-+	struct device_node *local_node;
-+	unsigned int local_port;
-+	struct device_node *remote_node;
-+	unsigned int remote_port;
-+};
-+
- #ifdef CONFIG_OF
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint);
-+int v4l2_of_parse_link(const struct device_node *node,
-+		       struct v4l2_of_link *link);
-+void v4l2_of_put_link(struct v4l2_of_link *link);
- #else /* CONFIG_OF */
- 
- static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-@@ -77,6 +94,16 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
- 
-+static inline int v4l2_of_parse_link(const struct device_node *node,
-+				     struct v4l2_of_link *link)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void v4l2_of_put_link(struct v4l2_of_link *link)
-+{
-+}
-+
- #endif /* CONFIG_OF */
- 
- #endif /* _V4L2_OF_H */
--- 
-1.8.5.5
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
