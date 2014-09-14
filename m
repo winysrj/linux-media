@@ -1,104 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:27030 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbaIFMuF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 08:50:05 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBH005S8CZFHA80@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 06 Sep 2014 08:50:03 -0400 (EDT)
-Date: Sat, 06 Sep 2014 09:49:58 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend for
- APIv5
-Message-id: <20140906094958.0c2d7d20.m.chehab@samsung.com>
-In-reply-to: <540AE39E.1010402@iki.fi>
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com>
- <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi>
- <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi>
- <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi>
- <20140905235105.3ab6e7c4.m.chehab@samsung.com>
- <20140905235432.5eeab2a3.m.chehab@samsung.com> <540A7B09.2090300@iki.fi>
- <20140906001726.4929ba2f.m.chehab@samsung.com> <540A88DB.5020306@gmail.com>
- <540AE39E.1010402@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:51838 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340AbaINHBv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Sep 2014 03:01:51 -0400
+Received: by mail-lb0-f177.google.com with SMTP id l4so2915464lbv.22
+        for <linux-media@vger.kernel.org>; Sun, 14 Sep 2014 00:01:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1410185681-20111-7-git-send-email-hverkuil@xs4all.nl>
+References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl> <1410185681-20111-7-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 14 Sep 2014 14:55:24 +0800
+Message-ID: <CAMm-=zA=RYod5KPLK0f9nrE0eb3CRSfoFfT8v4xYaqVNyeKcrQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 06/12] vb2-dma-sg: add dmabuf import support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 06 Sep 2014 13:36:14 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Hans,
+Thank you for the patch.
 
-> On 09/06/2014 07:08 AM, Akihiro TSUKADA wrote:
-> > Moikka!,
-> > thanks for the comments and advices.
-> >
-> > I had been updating my code and during that, I also found that
-> > updating property cache in tuner_ops.get_signal_strength() was
-> > simple and (seemed to me) better than using a kthread,
-> > so the current implementation (under testing) is just like
-> > what Mauro proposed, but,
-> >
-> >> In time: not implementing its own thread has one drawback: the driver needs
-> >> to check if the minimal time needed to get a new stats were already archived.
-> >
-> > since I don't know the minimal time and
-> > whether there's a limit in the first place,
-> > I'd like to let users take the responsibility.
+On Mon, Sep 8, 2014 at 10:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Add support for dmabuf to vb2-dma-sg.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c | 125 +++++++++++++++++++++++++++--
+>  1 file changed, 118 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index abd5252..6d922c0 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
+>         int                             offset;
+>         enum dma_data_direction         dma_dir;
+>         struct sg_table                 sg_table;
+> +       struct sg_table                 *dma_sgt;
 
-For RSSI measurements, in general there's no minimal time, but for measures
-like BER, PER, UCB, you'll need to wait for a while before the stats to be
-updated. So, you'll need to at least track those.
+I think we should document and/or have a bit better naming here. Maybe
+sgt_in_use?
 
-> You could add some simple jiffie (some kind of kernel global time) which 
-> limits calls to some reasonable level.
-> 
-> if (jiffies > jiffies_previous + 1 sec)
->    return 0;
-> else
->    jiffies_previous = jiffies;
+>         size_t                          size;
+>         unsigned int                    num_pages;
+>         atomic_t                        refcount;
+>         struct vb2_vmarea_handler       handler;
+>         struct vm_area_struct           *vma;
+> +
+> +       /* DMABUF related */
+> +       struct dma_buf_attachment       *db_attach;
+>  };
+>
+>  static void vb2_dma_sg_put(void *buf_priv);
+> @@ -113,6 +117,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+>         /* size is already page aligned */
+>         buf->num_pages = size >> PAGE_SHIFT;
+>         buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> +       buf->dma_sgt = &buf->sg_table;
+>
+>         buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>                              GFP_KERNEL);
+> @@ -123,7 +128,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+>         if (ret)
+>                 goto fail_pages_alloc;
+>
+> -       ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+> +       ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+>                         buf->num_pages, 0, size, gfp_flags);
+>         if (ret)
+>                 goto fail_table_alloc;
+> @@ -161,7 +166,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+>                         buf->num_pages);
+>                 if (buf->vaddr)
+>                         vm_unmap_ram(buf->vaddr, buf->num_pages);
+> -               sg_free_table(&buf->sg_table);
+> +               sg_free_table(buf->dma_sgt);
+>                 while (--i >= 0)
+>                         __free_page(buf->pages[i]);
+>                 kfree(buf->pages);
+> @@ -173,7 +178,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+>  static int vb2_dma_sg_prepare(void *buf_priv)
+>  {
+>         struct vb2_dma_sg_buf *buf = buf_priv;
+> -       struct sg_table *sgt = &buf->sg_table;
+> +       struct sg_table *sgt = buf->dma_sgt;
+> +
+> +       /* DMABUF exporter will flush the cache for us */
+> +       if (buf->db_attach)
+> +               return 0;
+>
+>         return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
+>  }
+> @@ -181,7 +190,11 @@ static int vb2_dma_sg_prepare(void *buf_priv)
+>  static void vb2_dma_sg_finish(void *buf_priv)
+>  {
+>         struct vb2_dma_sg_buf *buf = buf_priv;
+> -       struct sg_table *sgt = &buf->sg_table;
+> +       struct sg_table *sgt = buf->dma_sgt;
+> +
+> +       /* DMABUF exporter will flush the cache for us */
+> +       if (buf->db_attach)
+> +               return;
+>
+>         dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>  }
+> @@ -209,6 +222,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+>         buf->offset = vaddr & ~PAGE_MASK;
+>         buf->size = size;
+>         buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> +       buf->dma_sgt = &buf->sg_table;
+>
+>         first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+>         last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+> @@ -261,7 +275,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+>         if (num_pages_from_user != buf->num_pages)
+>                 goto userptr_fail_get_user_pages;
+>
+> -       if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+> +       if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+>                         buf->num_pages, buf->offset, size, 0))
+>                 goto userptr_fail_alloc_table_from_pages;
+>
+> @@ -297,7 +311,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>                __func__, buf->num_pages);
+>         if (buf->vaddr)
+>                 vm_unmap_ram(buf->vaddr, buf->num_pages);
+> -       sg_free_table(&buf->sg_table);
+> +       sg_free_table(buf->dma_sgt);
+>         while (--i >= 0) {
+>                 if (buf->write)
+>                         set_page_dirty_lock(buf->pages[i]);
+> @@ -370,11 +384,104 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+>         return 0;
+>  }
+>
+> +/*********************************************/
+> +/*       callbacks for DMABUF buffers        */
+> +/*********************************************/
+> +
+> +static int vb2_dma_sg_map_dmabuf(void *mem_priv)
+> +{
+> +       struct vb2_dma_sg_buf *buf = mem_priv;
+> +       struct sg_table *sgt;
+> +
+> +       if (WARN_ON(!buf->db_attach)) {
+> +               pr_err("trying to pin a non attached buffer\n");
 
-Don't use jiffies like that. jiffies can be overflowed and the update
-will never occur. The right way is to use the macros time_after() and
-time_before(), or, alternatively, time_is_after_jiffies() and
-time_is_before_jiffies().
+s/a non attached/an unattached/
+In general, it would perhaps be nice to clean up/pretty up messages in
+this file while we have the chance please...
 
-> 
-> ... continue
-> 
-> >>> ... I simply don't understand why you want hook that RF strength call
-> >>> via demod? The frontend cache is shared between demod and tuner. We use
-> >>> it for tuner drivr as well demod driver. Let the tuner driver make RSSI
-> >>> calculation independently without any unneeded relation to demod driver.
-> >
-> > I think the main reason for the hook is because the dvb-core calls
-> > ops.get_frontend() everytime before reading of any property cache,
-> > so it is already a nice place to trigger property updates,
-> > and reading any property involves demod (FE as a whole) anyway.
-> 
-> That must be changed 'resently'. IIRC originally get_frontend() was 
-> called by dvb-core only once, just after demod lock was gained. Also 
-> userspace could call it using some IOCTL (GET_FRONTEND?).
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (WARN_ON(buf->dma_sgt)) {
+> +               pr_err("dmabuf buffer is already pinned\n");
+> +               return 0;
+> +       }
+> +
+> +       /* get the associated scatterlist for this buffer */
 
-No, get_frontend() is not automatically called by the dvb kthread after
-lock has gained. Just double-checked.
+This comment doesn't really add value, and there is a few like this around.
+I know they are copied from dma-contig, but I think we should remove them.
+Others include "detach", "create attachment", etc.
 
-> But if it is not called periodically by dvb-core, you could not use it 
-> for bit error measurements, as you will usually need to start 
-> measurement, then wait complete, read values and return.
-
-Probably, the application you're using for tests are calling it
-periodically.
-
-What the core calls periodically for sure is read_status(). That's why
-most drivers that provide DVBv5 stats hook the cache update there.
-
-> Signal strength and SNR are typically provided by chip without any waiting.
-> 
-> regards
-> Antti
-> 
+-- 
+Best regards,
+Pawel Osciak
