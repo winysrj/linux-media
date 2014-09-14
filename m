@@ -1,59 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0118.outbound.protection.outlook.com ([157.56.111.118]:17591
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751281AbaIYDL7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 23:11:59 -0400
-From: Fancy Fang <chen.fang@freescale.com>
-To: <m.szyprowski@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.chehab@samsung.com>
-CC: <shawn.guo@freescale.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v2] [media] videobuf-dma-contig: set vm_pgoff to be zero to pass the sanity check in vm_iomap_memory().
-Date: Thu, 25 Sep 2014 10:07:13 +0800
-Message-ID: <1411610833-22590-1-git-send-email-chen.fang@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1271 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752328AbaINClu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Sep 2014 22:41:50 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8E2fl7g003418
+	for <linux-media@vger.kernel.org>; Sun, 14 Sep 2014 04:41:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6000B2A03DA
+	for <linux-media@vger.kernel.org>; Sun, 14 Sep 2014 04:41:36 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140914024136.6000B2A03DA@tschai.lan>
+Date: Sun, 14 Sep 2014 04:41:36 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
-will assign the corresponding offset to the 'boff' field of the
-videobuf_buffer for each requested buffer sequentially. Later, user
-may call mmap() to map one or all of the buffers with the 'offset'
-parameter which is equal to its 'boff' value. Obviously, the 'offset'
-value is only used to find the matched buffer instead of to be the
-real offset from the buffer's physical start address as used by
-vm_iomap_memory(). So, in some case that if the offset is not zero,
-vm_iomap_memory() will fail.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Fancy Fang <chen.fang@freescale.com>
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index bf80f0f..e02353e 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -305,6 +305,15 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	/* Try to remap memory */
- 	size = vma->vm_end - vma->vm_start;
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+
-+	/* the "vm_pgoff" is just used in v4l2 to find the
-+	 * corresponding buffer data structure which is allocated
-+	 * earlier and it does not mean the offset from the physical
-+	 * buffer start address as usual. So set it to 0 to pass
-+	 * the sanity check in vm_iomap_memory().
-+	 */
-+	vma->vm_pgoff = 0;
-+
- 	retval = vm_iomap_memory(vma, mem->dma_handle, size);
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ",
--- 
-1.9.1
+date:		Sun Sep 14 04:00:14 CEST 2014
+git branch:	test
+git hash:	f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.4-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
