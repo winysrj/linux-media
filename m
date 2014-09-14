@@ -1,51 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3846 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318AbaIVQhm (ORCPT
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:63262 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373AbaINDgi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 12:37:42 -0400
-Message-ID: <5420503E.7010608@xs4all.nl>
-Date: Mon, 22 Sep 2014 18:37:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 13 Sep 2014 23:36:38 -0400
+Received: by mail-lb0-f172.google.com with SMTP id w7so2833139lbi.31
+        for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 20:36:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: au0828_init_tuner() called without dev lock held
-References: <54204ECC.7070806@osg.samsung.com>
-In-Reply-To: <54204ECC.7070806@osg.samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1410526803-25887-3-git-send-email-hverkuil@xs4all.nl>
+References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl> <1410526803-25887-3-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sun, 14 Sep 2014 11:29:46 +0800
+Message-ID: <CAMm-=zBj6Azt5gxP3-kfq0VRjpL+GSohqG8p=e81K0x9Jv4-8A@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 02/14] vb2-dma-sg: add allocation context to dma-sg
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/22/2014 06:31 PM, Shuah Khan wrote:
-> Hi Hans and Mauro,
-> 
-> While I was making changes for media token work, I noticed there are
-> several places au0828_init_tuner() gets called without holding dev lock.
+Hi Hans,
+Thank you for working on this!
 
-au0828 sets the lock pointer in struct video_device to the dev lock.
-That means that all v4l2 ioctl calls are serialized in v4l2_ioctl()
-in v4l2-dev.c. So these calls *do* hold the device lock.
+On Fri, Sep 12, 2014 at 8:59 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Require that dma-sg also uses an allocation context. This is in preparation
+> for adding prepare/finish memops to sync the memory between DMA and CPU.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Not au0828_v4l2_resume() though, that's not an ioctl op.
+[...]
 
-Regards,
+> diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+> index cb94366b..8a36fcd 100644
+> --- a/drivers/media/pci/cx23885/cx23885-core.c
+> +++ b/drivers/media/pci/cx23885/cx23885-core.c
+> @@ -1997,9 +1997,14 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+>         if (!pci_dma_supported(pci_dev, 0xffffffff)) {
+>                 printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+>                 err = -EIO;
+> -               goto fail_irq;
+> +               goto fail_context;
+>         }
+>
+> +       dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+> +       if (IS_ERR(dev->alloc_ctx)) {
+> +               err = -ENOMEM;
 
-	Hans
+err = PTR_ERR(dev->alloc_ctx) ?
 
-> 
-> vidioc_s_std(), vidioc_g_tuner(), vidioc_s_tuner(), vidioc_streamon()
-> au0828_v4l2_resume()
-> 
-> Some of these might be intended since au0828_init_tuner() invokes
-> s_std. All of these changes including the au0828_init_tuner() itself
-> were added in ea86968fb91471493ccac7d8f2a65bc65db6803b
-> 
-> au0828_v4l2_resume() also does this and this one for sure needs fixing
-> very likely. I am not sure about the others. Thoughts??
-> 
-> -- Shuah
-> 
+> +               goto fail_context;
+> +       }
+>         err = request_irq(pci_dev->irq, cx23885_irq,
+>                           IRQF_SHARED, dev->name, dev);
+>         if (err < 0) {
+> @@ -2028,6 +2033,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
+>         return 0;
+>
+>  fail_irq:
+> +       vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+> +fail_context:
+>         cx23885_dev_unregister(dev);
+>  fail_ctrl:
+>         v4l2_ctrl_handler_free(hdl);
+> @@ -2053,6 +2060,7 @@ static void cx23885_finidev(struct pci_dev *pci_dev)
+>         free_irq(pci_dev->irq, dev);
+>
+>         cx23885_dev_unregister(dev);
+> +       vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
+>         v4l2_ctrl_handler_free(&dev->ctrl_handler);
+>         v4l2_device_unregister(v4l2_dev);
+>         kfree(dev);
 
+[...]
+
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+> index e0e628c..7b8c201 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+> @@ -176,6 +176,7 @@ struct mcam_camera {
+>         /* DMA buffers - DMA modes */
+>         struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
+>         struct vb2_alloc_ctx *vb_alloc_ctx;
+> +       struct vb2_alloc_ctx *vb_alloc_ctx_sg;
+
+Should this be under #ifdef MCAM_MODE_DMA_SG?
+
+>
+>         /* Mode-specific ops, set at open time */
+>         void (*dma_setup)(struct mcam_camera *cam);
+
+[...]
+
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index 313d977..d77e397 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -35,7 +35,8 @@ struct vb2_vmalloc_buf {
+>
+>  static void vb2_vmalloc_put(void *buf_priv);
+>
+> -static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+> +static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
+> +                              gfp_t gfp_flags)
+
+I agree with Laurent that "write" is confusing, this could be a
+direction flag, but the dma direction allows bidirectional, which we
+would not be using. So I would personally prefer a binary flag or
+enum. So perhaps we should keep this, only documenting it please.
+
+-- 
+Best regards,
+Pawel Osciak
