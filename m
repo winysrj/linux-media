@@ -1,52 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45501 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182AbaI3J53 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:9844 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753100AbaIOGrr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 05:57:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 09/10] [media] coda: try to only queue a single JPEG into the bitstream
-Date: Tue, 30 Sep 2014 11:57:10 +0200
-Message-Id: <1412071031-32016-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 15 Sep 2014 02:47:47 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NBX00GEQK7LOL80@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:47:45 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com
+Subject: [PATCH 01/17] [media] s5p-mfc: support MIN_BUFFERS query for encoder
+Date: Mon, 15 Sep 2014 12:12:56 +0530
+Message-id: <1410763393-12183-2-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With bitstream padding, it is possible to decode a single JPEG in the bitstream
-immediately. This allows us to only ever queue a single JPEG into the bitstream
-buffer, except to increase payload over 512 bytes or to back out of hold state.
-This is a measure to decrease JPEG decoder latency.
+Add V4L2_CID_MIN_BUFFERS_FOR_OUTPUT query for encoder.
+Once mfc encoder state is HEAD_PARSED, which is sequence
+header produced, dpb_count is avaialable. Let user space
+query this value.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
 ---
- drivers/media/platform/coda/coda-bit.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   42 ++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 27e0764..2a6810e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -221,6 +221,14 @@ void coda_fill_bitstream(struct coda_ctx *ctx)
- 	u32 start;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index d26b248..ecd2bd1 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -690,6 +690,16 @@ static struct mfc_control controls[] = {
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
++	{
++		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Minimum number of output bufs",
++		.minimum = 1,
++		.maximum = 32,
++		.step = 1,
++		.default_value = 1,
++		.is_volatile = 1,
++	},
+ };
  
- 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
-+		/*
-+		 * Only queue a single JPEG into the bitstream buffer, except
-+		 * to increase payload over 512 bytes or if in hold state.
-+		 */
-+		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG &&
-+		    (coda_get_bitstream_payload(ctx) >= 512) && !ctx->hold)
-+			break;
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -1643,8 +1653,40 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return ret;
+ }
+ 
++static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct s5p_mfc_ctx *ctx = ctrl_to_ctx(ctrl);
++	struct s5p_mfc_dev *dev = ctx->dev;
 +
- 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
++	switch (ctrl->id) {
++	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->pb_count;
++			break;
++		} else if (ctx->state != MFCINST_INIT) {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		/* Should wait for the header to be produced */
++		s5p_mfc_clean_ctx_int_flags(ctx);
++		s5p_mfc_wait_for_done_ctx(ctx,
++				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->pb_count;
++		} else {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		break;
++	}
++	return 0;
++}
++
+ static const struct v4l2_ctrl_ops s5p_mfc_enc_ctrl_ops = {
+ 	.s_ctrl = s5p_mfc_enc_s_ctrl,
++	.g_volatile_ctrl = s5p_mfc_enc_g_v_ctrl,
+ };
  
- 		/* Buffer start position */
+ static int vidioc_s_parm(struct file *file, void *priv,
 -- 
-2.1.0
+1.7.3.rc2
 
