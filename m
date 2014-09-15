@@ -1,78 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:54039 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbaIONzK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 09:55:10 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBY00HER3ZX4D70@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 09:55:09 -0400 (EDT)
-Date: Mon, 15 Sep 2014 10:55:03 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient
- buffer underruns
-Message-id: <20140915105503.105233bf.m.chehab@samsung.com>
-In-reply-to: <5416E208.5010302@collabora.com>
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <5416CA2B.1080004@xs4all.nl> <20140915090224.5a2889a1.m.chehab@samsung.com>
- <11047185.EGVanoRbYV@avalon> <5416E208.5010302@collabora.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from lists.s-osg.org ([54.187.51.154]:36212 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760236AbaIOXP4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Sep 2014 19:15:56 -0400
+Message-ID: <54177328.1050007@osg.samsung.com>
+Date: Mon, 15 Sep 2014 17:15:52 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: v4l2 ioctls
+References: <54124BDC.3000306@osg.samsung.com> <5412A9DB.8080701@xs4all.nl> <20140912121950.7edfee4e.m.chehab@samsung.com> <541391B9.4070708@osg.samsung.com> <20140915085458.1faea714.m.chehab@samsung.com>
+In-Reply-To: <20140915085458.1faea714.m.chehab@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Sep 2014 08:56:40 -0400
-Nicolas Dufresne <nicolas.dufresne@collabora.com> escreveu:
+On 09/15/2014 05:54 AM, Mauro Carvalho Chehab wrote:
+> Hi Shuah,
+> 
+> Em Fri, 12 Sep 2014 18:37:13 -0600
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Mauro/Hans,
+>>
+>> Thanks for both for your replies. I finally have it working with
+>> the following:
+> 
+> One additional info: While in DVB mode, opening the device in
+> readonly mode should not take the tuner locking.
+
+That's what the code does for dvb. It gets the tuner lock in
+dvb_frontend_start() which is called from dvb_frontend_open()
+when dvb is opened in R/W mode.
 
 > 
-> Le 2014-09-15 08:49, Laurent Pinchart a écrit :
-> > Reverting the patch will also be a regression, as that would break
-> > applications that now rely on the new behaviour (I've developed this patch to
-> > fix a problem I've noticed with gstreamer). One way or another, we're screwed
-> > and we'll break userspace.
-
-Well, VB1 is working with the old behavior, as the breakage on saa7134
-only happened after its migration to VB2. So, the Gstreamer version
-you tested is still very likely broken with VB1.
-
-So, I still think that the less damage is to revert the POLLERR patch,
-with, according to Hans, is also a violation at the documented API.
-
-> We have worked around this issue in GStreamer 1.4+,
-
-Good to know.
-
-> for older version, 
-> the problem may be faced again by users, specially if using a newer 
-> libv4l2 where the locking has been fixed (or no libv4l2).
-
-The DQBUF locking fixup was merged on libv4l2 for version 1.2. So, the
-potential breakage happens when libv4l2 is 1.2 and Gstreamer versions
-before 1.4.
-
-Do you have any procedure on gstreamer to fix a bug on stable releases?
-
-Those VBI applications don't have any, as they're not actively
-maintained anymore. Even if we patch them today, I guess it could take
-a long time for those changes to be propagated on distros.
-
-So, I guess that the best is to try to fix Gstreamer on the distros
-that are using libv4l version 1.2 and a pre-1.4 Gstreamer version.
-
+> If you need/want to test it, please use:
+> 	$ dvb-fe-tool --femon
 > 
-> cheers,
-> Nicolas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I implemented this functionality this weekend, so you'll need
+> to update your v4l-utils tool to be able to test it.
+> 
+
+ok - I will update v4l-utils on my system.
+
+-- Shuah
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
