@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58767 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251AbaIJK6e (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17446 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbaIOGtG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 06:58:34 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 2/8] imx-drm: Do not decrement endpoint node refcount in the loop
-Date: Wed, 10 Sep 2014 12:58:22 +0200
-Message-Id: <1410346708-5125-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
-References: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 15 Sep 2014 02:49:06 -0400
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NBX00KLXK9T5I50@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:49:05 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com
+Subject: [PATCH 13/17] [media] s5p-mfc: Remove unused alloc field from private
+ buffer struct.
+Date: Mon, 15 Sep 2014 12:13:08 +0530
+Message-id: <1410763393-12183-14-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for the following patch, stop decrementing the endpoint node
-refcount in the loop. This temporarily leaks a reference to the endpoint node,
-which will be fixed by having of_graph_get_next_endpoint decrement the refcount
-of its prev argument instead.
+From: Pawel Osciak <posciak@chromium.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+This field is no longer used as MFC driver doesn't use vb2 alloc contexts
+anymore.
+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
 ---
- drivers/staging/imx-drm/imx-drm-core.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-index 6b22106..12303b3 100644
---- a/drivers/staging/imx-drm/imx-drm-core.c
-+++ b/drivers/staging/imx-drm/imx-drm-core.c
-@@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
- 	return 0;
- }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index c72a338..2dda27d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -237,8 +237,6 @@ struct s5p_mfc_variant {
  
--static struct device_node *imx_drm_of_get_next_endpoint(
--		const struct device_node *parent, struct device_node *prev)
--{
--	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
--	of_node_put(prev);
--	return node;
--}
--
- int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	struct drm_encoder *encoder, struct device_node *np)
- {
-@@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	for (i = 0; ; i++) {
- 		u32 mask;
- 
--		ep = imx_drm_of_get_next_endpoint(np, ep);
-+		ep = of_graph_get_next_endpoint(np, ep);
- 		if (!ep)
- 			break;
- 
-@@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
- 		return -EINVAL;
- 
- 	do {
--		ep = imx_drm_of_get_next_endpoint(node, ep);
-+		ep = of_graph_get_next_endpoint(node, ep);
- 		if (!ep)
- 			break;
- 
+ /**
+  * struct s5p_mfc_priv_buf - represents internal used buffer
+- * @alloc:		allocation-specific context for each buffer
+- *			(videobuf2 allocator)
+  * @ofs:		offset of each buffer, will be used for MFC
+  * @virt:		kernel virtual address, only valid when the
+  *			buffer accessed by driver
+@@ -246,7 +244,6 @@ struct s5p_mfc_variant {
+  * @size:		size of the buffer
+  */
+ struct s5p_mfc_priv_buf {
+-	void		*alloc;
+ 	unsigned long	ofs;
+ 	void		*virt;
+ 	dma_addr_t	dma;
 -- 
-2.1.0
+1.7.3.rc2
 
