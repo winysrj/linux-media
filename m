@@ -1,173 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52551 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610AbaIXMv3 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:18899 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681AbaIOOmu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 08:51:29 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH] [media] Fix smatch warning: unknown field name in initializer
-Date: Wed, 24 Sep 2014 09:51:14 -0300
-Message-Id: <a51536f693c64c92151b4a7f530e97fa9b0d867d.1411563071.git.mchehab@osg.samsung.com>
+	Mon, 15 Sep 2014 10:42:50 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBY006AY6C38O50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:45:39 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Kiran AVND' <avnd.kiran@samsung.com>, linux-media@vger.kernel.org
+Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
+	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com
+References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+ <1410763393-12183-11-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1410763393-12183-11-git-send-email-avnd.kiran@samsung.com>
+Subject: RE: [PATCH 10/17] [media] s5p-mfc: modify mfc wakeup sequence for V8
+Date: Mon, 15 Sep 2014 16:42:47 +0200
+Message-id: <022d01cfd0f3$519eb6a0$f4dc23e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is detected with:
-	gcc-4.8.3-7.fc20.x86_64
+Hi Kiran,
 
-Smatch, up to this patch:
-	commit de462ba2c79d9347368c887ed93113e7818a7b07
-	Author: Dan Carpenter <dan.carpenter@oracle.com>
-	Date:   Wed Sep 17 13:31:16 2014 +0300
+> From: Kiran AVND [mailto:avnd.kiran@samsung.com]
+> Sent: Monday, September 15, 2014 8:43 AM
+> 
+> From: Arun Mankuzhi <arun.m@samsung.com>
+> 
+> From MFC V8, the MFC wakeup sequence has changed.
+> MFC wakeup command has to be sent after the host receives firmware load
+> complete status from risc.
+> 
+> Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   78
+> +++++++++++++++++++-----
+>  1 files changed, 61 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index 24d5252..8531c72 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -352,6 +352,58 @@ int s5p_mfc_sleep(struct s5p_mfc_dev *dev)
+>  	return ret;
+>  }
+> 
+> +static int s5p_mfc_v8_wait_wakeup(struct s5p_mfc_dev *dev) {
+> +	int ret;
+> +
+> +	/* Release reset signal to the RISC */
+> +	dev->risc_on = 1;
+> +	mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+> +
+> +	if (s5p_mfc_wait_for_done_dev(dev,
+> S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
+> +		mfc_err("Failed to reset MFCV8\n");
+> +		return -EIO;
+> +	}
+> +	mfc_debug(2, "Write command to wakeup MFCV8\n");
+> +	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
+> +	if (ret) {
+> +		mfc_err("Failed to send command to MFCV8 - timeout\n");
+> +		return ret;
+> +	}
+> +
+> +	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
+> +		mfc_err("Failed to wakeup MFC\n");
+> +		return -EIO;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static int s5p_mfc_wait_wakeup(struct s5p_mfc_dev *dev) {
+> +	int ret;
+> +
+> +	/* Send MFC wakeup command */
+> +	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
+> +	if (ret) {
+> +		mfc_err("Failed to send command to MFC - timeout\n");
+> +		return ret;
+> +	}
+> +
+> +	/* Release reset signal to the RISC */
+> +	if (IS_MFCV6_PLUS(dev)) {
+> +		dev->risc_on = 1;
+> +		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+> +	} else {
+> +		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+> +	}
+> +
+> +	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
+> +		mfc_err("Failed to wakeup MFC\n");
+> +		return -EIO;
+> +	}
+> +	return ret;
+> +}
+> +
+>  int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)  {
+>  	int ret;
+> @@ -364,6 +416,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+>  	ret = s5p_mfc_reset(dev);
+>  	if (ret) {
+>  		mfc_err("Failed to reset MFC - timeout\n");
+> +		s5p_mfc_clock_off();
+>  		return ret;
+>  	}
+>  	mfc_debug(2, "Done MFC reset..\n");
+> @@ -372,25 +425,16 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+>  	/* 2. Initialize registers of channel I/F */
+>  	s5p_mfc_clear_cmds(dev);
+>  	s5p_mfc_clean_dev_int_flags(dev);
+> -	/* 3. Initialize firmware */
+> -	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
+> -	if (ret) {
+> -		mfc_err("Failed to send command to MFC - timeout\n");
+> -		return ret;
+> -	}
+> -	/* 4. Release reset signal to the RISC */
+> -	if (IS_MFCV6_PLUS(dev)) {
+> -		dev->risc_on = 1;
+> -		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+> -	}
+> +	/* 3. Send MFC wakeup command and wait for completion*/
+> +	if (IS_MFCV8(dev))
+> +		ret = s5p_mfc_v8_wait_wakeup(dev);
+>  	else
+> -		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
 
-drivers/media/v4l2-core/v4l2-dv-timings.c:34:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:35:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:36:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:37:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:38:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:39:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:40:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:41:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:42:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:43:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:44:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:45:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:46:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:47:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:48:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:49:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:50:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:51:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:52:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:53:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:54:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:55:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:56:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:57:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:58:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:59:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:60:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:61:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:62:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:63:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:64:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:65:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:66:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:67:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:68:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:69:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:70:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:71:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:72:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:73:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:74:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:75:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:76:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:77:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:78:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:79:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:80:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:81:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:82:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:83:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:84:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:85:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:86:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:87:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:88:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:89:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:90:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:91:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:92:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:93:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:94:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:95:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:96:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:97:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:98:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:99:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:100:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:101:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:102:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:103:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:104:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:105:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:106:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:107:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:108:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:109:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:110:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:111:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:112:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:113:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:114:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:115:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:116:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:117:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:118:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:119:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:120:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:121:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:122:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:123:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:124:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:125:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:126:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:127:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:128:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:129:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:130:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:131:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:132:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:133:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:134:9: error: unknown field name in initializer
-drivers/media/v4l2-core/v4l2-dv-timings.c:135:9: error: too many errors
-drivers/media/usb/hdpvr/hdpvr-video.c:42:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:43:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:44:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:45:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:46:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:47:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:48:9: error: unknown field name in initializer
-drivers/media/usb/hdpvr/hdpvr-video.c:49:9: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:493:18: error: unknown field name in initializer
+I think that this solution is messy. There are two functions - one
+for v8, another for other versions. In the latter there are if conditions
+that further change its behaviour accordingly to the version.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I think there are two possible solutions:
+- introduce one function per version
+- use one function with if statements to change its behaviour for various
+  MFC versions
 
-diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-index 6c8f159e416e..6a0764c89fcb 100644
---- a/include/uapi/linux/v4l2-dv-timings.h
-+++ b/include/uapi/linux/v4l2-dv-timings.h
-@@ -21,17 +21,8 @@
- #ifndef _V4L2_DV_TIMINGS_H
- #define _V4L2_DV_TIMINGS_H
- 
--#if __GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 6))
--/* Sadly gcc versions older than 4.6 have a bug in how they initialize
--   anonymous unions where they require additional curly brackets.
--   This violates the C1x standard. This workaround adds the curly brackets
--   if needed. */
- #define V4L2_INIT_BT_TIMINGS(_width, args...) \
- 	{ .bt = { _width , ## args } }
--#else
--#define V4L2_INIT_BT_TIMINGS(_width, args...) \
--	.bt = { _width , ## args }
--#endif
- 
- /* CEA-861-E timings (i.e. standard HDTV timings) */
- 
+The former will introduce repeated code, hence I suggest the latter
+solution.
+
+Best wishes,
 -- 
-1.9.3
+Kamil Debski
+Samsung R&D Institute Poland
+
+> -	mfc_debug(2, "Ok, now will write a command to wakeup the
+> system\n");
+> -	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
+> -		mfc_err("Failed to load firmware\n");
+> -		return -EIO;
+> -	}
+> +		ret = s5p_mfc_wait_wakeup(dev);
+> +
+>  	s5p_mfc_clock_off();
+> +	if (ret)
+> +		return ret;
+> +
+>  	dev->int_cond = 0;
+>  	if (dev->int_err != 0 || dev->int_type !=
+>  						S5P_MFC_R2H_CMD_WAKEUP_RET)
+{
+> --
+> 1.7.3.rc2
 
