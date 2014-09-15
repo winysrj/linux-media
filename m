@@ -1,85 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:47304 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753986AbaIZMCr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 08:02:47 -0400
-Date: Fri, 26 Sep 2014 14:02:33 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140926120233.GA2063@linuxtv.org>
-References: <54241C81.60301@osg.samsung.com>
- <20140925160134.GA6207@linuxtv.org>
- <5424539D.8090503@osg.samsung.com>
- <20140925181747.GA21522@linuxtv.org>
- <542462C4.7020907@osg.samsung.com>
- <20140926080030.GB31491@linuxtv.org>
- <20140926080824.GA8382@linuxtv.org>
- <20140926071411.61a011bd@recife.lan>
- <20140926110727.GA880@linuxtv.org>
- <20140926084215.772adce9@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140926084215.772adce9@recife.lan>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22715 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbaIOOmh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Sep 2014 10:42:37 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBY0008R6BNAO50@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:45:23 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Kiran AVND' <avnd.kiran@samsung.com>, linux-media@vger.kernel.org
+Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
+	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com
+References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+ <1410763393-12183-16-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1410763393-12183-16-git-send-email-avnd.kiran@samsung.com>
+Subject: RE: [PATCH 15/17] [media] s5p-mfc: remove reduntant clock on & clock
+ off
+Date: Mon, 15 Sep 2014 16:42:34 +0200
+Message-id: <022b01cfd0f3$499a6800$dccf3800$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 26, 2014 at 08:42:15AM -0300, Mauro Carvalho Chehab wrote:
-> Could you please try this patch (untested):
+Hi Kiran,
+
+> From: Kiran AVND [mailto:avnd.kiran@samsung.com]
+> Sent: Monday, September 15, 2014 8:43 AM
 > 
-> [media] drxk: load firmware again at resume
+> sysmmu will control mfc device clock on/off wherever
+> needed. Explicit clock on/off in the driver is not needed
+> anymore. Remove such reduntant clock on/off in the driver.
 
-No joy.  I think you need to keep the firmware around
-for reuse after resume instead of requesting it again.
+What if... iommu is not used? MFC can work with either iommu or CMA.
 
-[    2.521597] PM: Image loading progress:  80%
-[    2.535627] PM: Image loading progress:  90%
-[    2.552505] PM: Image loading done.
-[    2.553169] PM: Read 107920 kbytes in 0.50 seconds (215.84 MB/s)
-[    2.562310] em2884 #0: Suspending extensions
-[    2.969484] Switched to clocksource tsc
-[    3.792296] ------------[ cut here ]------------
-[    3.794177] WARNING: CPU: 0 PID: 38 at drivers/base/firmware_class.c:1124 _request_firmware+0x205/0x568()
-[    3.796157] Modules linked in:
-[    3.796723] CPU: 0 PID: 38 Comm: kworker/0:1 Not tainted 3.17.0-rc5-00734-g214635f-dirty #84
-[    3.798197] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.7.5-20140531_083030-gandalf 04/01/2014
-[    3.800121] Workqueue: events request_module_async
-[    3.801115]  0000000000000000 ffff88003dfefb38 ffffffff814bcae8 0000000000000000
-[    3.802533]  ffff88003dfefb70 ffffffff81032d75 ffffffff81320b3c 00000000fffffff5
-[    3.803900]  ffff880039e63de0 ffff88003cfaf880 ffff8800363aa900 ffff88003dfefb80
-[    3.805283] Call Trace:
-[    3.805723]  [<ffffffff814bcae8>] dump_stack+0x4e/0x7a
-[    3.806617]  [<ffffffff81032d75>] warn_slowpath_common+0x7a/0x93
-[    3.807636]  [<ffffffff81320b3c>] ? _request_firmware+0x205/0x568
-[    3.808673]  [<ffffffff81032e32>] warn_slowpath_null+0x15/0x17
-[    3.809638]  [<ffffffff81320b3c>] _request_firmware+0x205/0x568
-[    3.810611]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
-[    3.811545]  [<ffffffff81063c2c>] ? lockdep_init_map+0xc4/0x13f
-[    3.812477]  [<ffffffff81320ecf>] request_firmware+0x30/0x42
-[    3.813399]  [<ffffffff813f974f>] drxk_attach+0x546/0x651
-[    3.814233]  [<ffffffff814c22c3>] em28xx_dvb_init.part.3+0xa3e/0x1cdf
-[    3.815235]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
-[    3.816341]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
-[    3.817280]  [<ffffffff814c5b65>] ? mutex_unlock+0x9/0xb
-[    3.818127]  [<ffffffff814c0f70>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
-[    3.819176]  [<ffffffff814230f4>] em28xx_dvb_init+0x1d/0x1f
-[    3.820078]  [<ffffffff8141cff0>] em28xx_init_extension+0x51/0x67
-[    3.821026]  [<ffffffff8141e5e8>] request_module_async+0x19/0x1b
-[    3.821966]  [<ffffffff8104585c>] process_one_work+0x1d2/0x38a
-[    3.822884]  [<ffffffff810462f0>] worker_thread+0x1f6/0x2a3
-[    3.823752]  [<ffffffff810460fa>] ? rescuer_thread+0x214/0x214
-[    3.824697]  [<ffffffff81049c09>] kthread+0xc7/0xcf
-[    3.825451]  [<ffffffff8125d487>] ? debug_smp_processor_id+0x17/0x19
-[    3.826430]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
-[    3.827501]  [<ffffffff81049b42>] ? __kthread_parkme+0x62/0x62
-[    3.828449]  [<ffffffff814c866c>] ret_from_fork+0x7c/0xb0
-[    3.829315]  [<ffffffff81049b42>] ? __kthread_parkme+0x62/0x62
-[    3.830228] ---[ end trace 9c556ab09f9d1814 ]---
-[    3.830932] usb 1-1: firmware: dvb-usb-hauppauge-hvr930c-drxk.fw will not be loaded
-[    3.832134] drxk: Could not load firmware file dvb-usb-hauppauge-hvr930c-drxk.fw.
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
+> 
+> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |    2 --
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    6 ------
+>  2 files changed, 0 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index f4cb7f2..3a1f97e 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -883,7 +883,6 @@ static int s5p_mfc_release(struct file *file)
+> 
+>  	mfc_debug_enter();
+>  	mutex_lock(&dev->mfc_mutex);
+> -	s5p_mfc_clock_on();
+>  	vb2_queue_release(&ctx->vq_src);
+>  	vb2_queue_release(&ctx->vq_dst);
+>  	/* Mark context as idle */
+> @@ -906,7 +905,6 @@ static int s5p_mfc_release(struct file *file)
+>  			mfc_err("Power off failed\n");
+>  	}
+>  	mfc_debug(2, "Shutting down clock\n");
+> -	s5p_mfc_clock_off();
+>  	dev->ctx[ctx->num] = NULL;
+>  	s5p_mfc_dec_ctrls_delete(ctx);
+>  	v4l2_fh_del(&ctx->fh);
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index ca4b69f9..d0bdbfb 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -487,8 +487,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
+> struct s5p_mfc_ctx *ctx,
+>  {
+>  	int ret = 0;
+> 
+> -	s5p_mfc_clock_on();
+> -
+>  	if (reqbufs->count == 0) {
+>  		mfc_debug(2, "Freeing buffers\n");
+>  		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+> @@ -525,7 +523,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
+> struct s5p_mfc_ctx *ctx,
+>  		ret = -EINVAL;
+>  	}
+>  out:
+> -	s5p_mfc_clock_off();
+>  	if (ret)
+>  		mfc_err("Failed allocating buffers for OUTPUT queue\n");
+>  	return ret;
+> @@ -536,8 +533,6 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev,
+> struct s5p_mfc_ctx *ctx,
+>  {
+>  	int ret = 0;
+> 
+> -	s5p_mfc_clock_on();
+> -
+>  	if (reqbufs->count == 0) {
+>  		mfc_debug(2, "Freeing buffers\n");
+>  		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+> @@ -579,7 +574,6 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev,
+> struct s5p_mfc_ctx *ctx,
+>  		ret = -EINVAL;
+>  	}
+>  out:
+> -	s5p_mfc_clock_off();
+>  	if (ret)
+>  		mfc_err("Failed allocating buffers for CAPTURE queue\n");
+>  	return ret;
+> --
+> 1.7.3.rc2
 
-Johannes
