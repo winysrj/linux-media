@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37319 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753292AbaIWXSp convert rfc822-to-8bit (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17415 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbaIOGs7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 19:18:45 -0400
-Date: Tue, 23 Sep 2014 20:18:38 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/2] em28xx: fix VBI handling logic
-Message-ID: <20140923201838.48cddea1@recife.lan>
-In-Reply-To: <5421CAB2.3030804@googlemail.com>
-References: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
-	<8444ab3f16a454ab8d2eaefb8990193313c2ac33.1411142521.git.mchehab@osg.samsung.com>
-	<5421CAB2.3030804@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 15 Sep 2014 02:48:59 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NBX00LXSK9MQY30@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:58 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com
+Subject: [PATCH 11/17] [media] s5p-mfc: De-init MFC when watchdog kicks in
+Date: Mon, 15 Sep 2014 12:13:06 +0530
+Message-id: <1410763393-12183-12-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 23 Sep 2014 21:32:02 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Arun Mankuzhi <arun.m@samsung.com>
 
-> 
-> Am 19.09.2014 um 18:02 schrieb Mauro Carvalho Chehab:
-> > When both VBI and video are streaming, and video stream is stopped,
-> > a subsequent trial to restart it will fail, because S_FMT will
-> > return -EBUSY.
-> >
-> > That prevents applications like zvbi to work properly.
-> >
-> > Please notice that, while this fix it fully for zvbi, the
-> > best is to get rid of streaming_users and res_get logic as a hole.
-> >
-> > However, this single-line patch is better to be merged at -stable.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > index 08569cbccd95..d75e7f82dfb9 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > @@ -1351,7 +1351,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> >  	struct em28xx *dev = video_drvdata(file);
-> >  	struct em28xx_v4l2 *v4l2 = dev->v4l2;
-> >  
-> > -	if (v4l2->streaming_users > 0)
-> > +	if (vb2_is_busy(&v4l2->vb_vidq))
-> Looks dangerous.
+If the software watchdog kicks in, we need to de-init MFC
+before reloading firmware and re-intializing it again.
 
-Why Dangerous? 
+Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Did you identify any problem? With what application?
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index cc9fd0c..f4cb7f2 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -167,6 +167,10 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
+ 	}
+ 	clear_bit(0, &dev->hw_lock);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
++
++	/* De-init MFC */
++	s5p_mfc_deinit_hw(dev);
++
+ 	/* Double check if there is at least one instance running.
+ 	 * If no instance is in memory than no firmware should be present */
+ 	if (dev->num_inst > 0) {
+-- 
+1.7.3.rc2
 
-Regards,
-Mauro
