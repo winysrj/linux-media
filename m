@@ -1,178 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37210 "EHLO mail.kapsi.fi"
+Received: from mail.ispras.ru ([83.149.199.45]:57820 "EHLO mail.ispras.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752848AbaIYPZe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:25:34 -0400
-Message-ID: <542433E8.9020504@iki.fi>
-Date: Thu, 25 Sep 2014 18:25:28 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 10/12] cx231xx: register i2c mux adapters for master1
- and use as I2C_1 and I2C_3
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-10-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-10-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1755226AbaIOVgo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Sep 2014 17:36:44 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Kevin Baradon <kevin.baradon@gmail.com>,
+	Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Subject: [PATCH] [media] imon: fix usbdev leaks
+Date: Tue, 16 Sep 2014 01:36:15 +0400
+Message-Id: <1410816975-5334-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <54106920.7000103@ispras.ru>
+References: <54106920.7000103@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+imon_probe() does three usb_get_dev(), but there is no any
+usb_put_dev() in the driver.
 
-I2C adapter naming is the thing here I ask you consider. After that 
-patch, you have 2 muxed I2C segments named I2C_1 and I2C_3. Real adapter 
-having these muxed adapter is I2C_1. So you reuse I2C_1 for muxed 
-adapter, which is possible as you don't need real adapter anywhere. I 
-would still like to see:
-I2C_1 (real adapter, mux parent)
-I2C_1_MUX_0 (I2C adapter1, mux segment 0)
-I2C_1_MUX_1 (I2C adapter1, mux segment 1)
+The patch adds usb_put_dev() to error paths, to imon_disconnect()
+and to imon_probe() as far as usbdev is not saved anywhere.
 
+Found by Linux Driver Verification project (linuxtesting.org).
 
-regards
-Antti
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/rc/imon.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-
-On 09/25/2014 08:08 AM, Matthias Schwarzott wrote:
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/Kconfig        |  1 +
->   drivers/media/usb/cx231xx/cx231xx-core.c |  5 ++++
->   drivers/media/usb/cx231xx/cx231xx-i2c.c  | 45 ++++++++++++++++++++++++++++++--
->   drivers/media/usb/cx231xx/cx231xx.h      |  4 +++
->   4 files changed, 53 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-> index 569aa29..173c0e2 100644
-> --- a/drivers/media/usb/cx231xx/Kconfig
-> +++ b/drivers/media/usb/cx231xx/Kconfig
-> @@ -7,6 +7,7 @@ config VIDEO_CX231XX
->   	select VIDEOBUF_VMALLOC
->   	select VIDEO_CX25840
->   	select VIDEO_CX2341X
-> +	select I2C_MUX
->
->   	---help---
->   	  This is a video4linux driver for Conexant 231xx USB based TV cards.
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-> index 180103e..c8a6d20 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-> @@ -1300,6 +1300,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
->   	cx231xx_i2c_register(&dev->i2c_bus[1]);
->   	cx231xx_i2c_register(&dev->i2c_bus[2]);
->
-> +	cx231xx_i2c_mux_register(dev, 0);
-> +	cx231xx_i2c_mux_register(dev, 1);
-> +
->   	/* init hardware */
->   	/* Note : with out calling set power mode function,
->   	afe can not be set up correctly */
-> @@ -1414,6 +1417,8 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
->   void cx231xx_dev_uninit(struct cx231xx *dev)
->   {
->   	/* Un Initialize I2C bus */
-> +	cx231xx_i2c_mux_unregister(dev, 1);
-> +	cx231xx_i2c_mux_unregister(dev, 0);
->   	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
->   	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
->   	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index a8c0f90..848aec2 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -24,6 +24,7 @@
->   #include <linux/kernel.h>
->   #include <linux/usb.h>
->   #include <linux/i2c.h>
-> +#include <linux/i2c-mux.h>
->   #include <media/v4l2-common.h>
->   #include <media/tuner.h>
->
-> @@ -552,17 +553,57 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
->   	return 0;
->   }
->
-> +/*
-> + * cx231xx_i2c_mux_select()
-> + * switch i2c master number 1 between port1 and port3
-> + */
-> +static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
-> +			void *mux_priv, u32 chan_id)
-> +{
-> +	struct cx231xx *dev = mux_priv;
-> +
-> +	return cx231xx_enable_i2c_port_3(dev, chan_id);
-> +}
-> +
-> +int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
-> +{
-> +	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
-> +	/* what is the correct mux_dev? */
-> +	struct device *mux_dev = &dev->udev->dev;
-> +
-> +	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
-> +				mux_dev,
-> +				dev /* mux_priv */,
-> +				0,
-> +				mux_no /* chan_id */,
-> +				0 /* class */,
-> +				&cx231xx_i2c_mux_select,
-> +				NULL);
-> +
-> +	if (!dev->i2c_mux_adap[mux_no])
-> +		cx231xx_warn("%s: i2c mux %d register FAILED\n",
-> +			     dev->name, mux_no);
-> +
-> +	return 0;
-> +}
-> +
-> +void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
-> +{
-> +	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
-> +	dev->i2c_mux_adap[mux_no] = NULL;
-> +}
-> +
->   struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
->   {
->   	switch (i2c_port) {
->   	case I2C_0:
->   		return &dev->i2c_bus[0].i2c_adap;
->   	case I2C_1:
-> -		return &dev->i2c_bus[1].i2c_adap;
-> +		return dev->i2c_mux_adap[0];
->   	case I2C_2:
->   		return &dev->i2c_bus[2].i2c_adap;
->   	case I2C_3:
-> -		return &dev->i2c_bus[1].i2c_adap;
-> +		return dev->i2c_mux_adap[1];
->   	default:
->   		return NULL;
->   	}
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index cefeb30..9234cd7 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -627,6 +627,8 @@ struct cx231xx {
->
->   	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
->   	struct cx231xx_i2c i2c_bus[3];
-> +	struct i2c_adapter *i2c_mux_adap[2];
-> +
->   	unsigned int xc_fw_load_done:1;
->   	unsigned int port_3_switch_enabled:1;
->   	/* locks */
-> @@ -754,6 +756,8 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
->   void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus);
->   int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-> +int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
-> +void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
->   struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
->
->   /* Internal block control functions */
->
-
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 7115e68ba697..06ff61ec3e1e 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2181,6 +2181,7 @@ idev_setup_failed:
+ 	usb_kill_urb(ictx->rx_urb_intf0);
+ urb_submit_failed:
+ find_endpoint_failed:
++	usb_put_dev(ictx->usbdev_intf0);
+ 	mutex_unlock(&ictx->lock);
+ 	usb_free_urb(tx_urb);
+ tx_urb_alloc_failed:
+@@ -2253,6 +2254,7 @@ urb_submit_failed:
+ 		input_unregister_device(ictx->touch);
+ touch_setup_failed:
+ find_endpoint_failed:
++	usb_put_dev(ictx->usbdev_intf1);
+ 	mutex_unlock(&ictx->lock);
+ 	usb_free_urb(rx_urb);
+ rx_urb_alloc_failed:
+@@ -2366,11 +2368,13 @@ static int imon_probe(struct usb_interface *interface,
+ 		 usbdev->bus->busnum, usbdev->devnum);
+ 
+ 	mutex_unlock(&driver_lock);
++	usb_put_dev(usbdev);
+ 
+ 	return 0;
+ 
+ fail:
+ 	mutex_unlock(&driver_lock);
++	usb_put_dev(usbdev);
+ 	dev_err(dev, "unable to register, err %d\n", ret);
+ 
+ 	return ret;
+@@ -2410,6 +2414,7 @@ static void imon_disconnect(struct usb_interface *interface)
+ 	if (ifnum == 0) {
+ 		ictx->dev_present_intf0 = false;
+ 		usb_kill_urb(ictx->rx_urb_intf0);
++		usb_put_dev(ictx->usbdev_intf0);
+ 		input_unregister_device(ictx->idev);
+ 		rc_unregister_device(ictx->rdev);
+ 		if (ictx->display_supported) {
+@@ -2421,6 +2426,7 @@ static void imon_disconnect(struct usb_interface *interface)
+ 	} else {
+ 		ictx->dev_present_intf1 = false;
+ 		usb_kill_urb(ictx->rx_urb_intf1);
++		usb_put_dev(ictx->usbdev_intf1);
+ 		if (ictx->display_type == IMON_DISPLAY_TYPE_VGA) {
+ 			input_unregister_device(ictx->touch);
+ 			del_timer_sync(&ictx->ttimer);
 -- 
-http://palosaari.fi/
+1.9.1
+
