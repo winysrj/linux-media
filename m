@@ -1,64 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59320 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272AbaIXNiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 09:38:07 -0400
-Message-ID: <5422C93A.2050203@iki.fi>
-Date: Wed, 24 Sep 2014 16:38:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Akihiro TSUKADA <tskd08@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
-References: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>	<5422B8CD.8050302@gmail.com> <20140924103445.31aeca91@recife.lan>
-In-Reply-To: <20140924103445.31aeca91@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4529 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205AbaIOCmG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Sep 2014 22:42:06 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8F2g2lW037051
+	for <linux-media@vger.kernel.org>; Mon, 15 Sep 2014 04:42:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E7A6F2A05AA
+	for <linux-media@vger.kernel.org>; Mon, 15 Sep 2014 04:41:50 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140915024150.E7A6F2A05AA@tschai.lan>
+Date: Mon, 15 Sep 2014 04:41:50 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 09/24/2014 04:34 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 24 Sep 2014 21:27:57 +0900
-> Akihiro TSUKADA <tskd08@gmail.com> escreveu:
->
->>> -	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
->>> +	b = (s32)div64_s64(((s64) freq) << 20,
->>> +			   state->cfg.xtal_freq - (((s64) a) << 20));
->>> +
->>
->> I'm afraid it should be like the following.
->>> +	b = (s32)(div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
->>> +			- (((s64) a) << 20));
->
-> Are you talking about coding style?
+date:		Mon Sep 15 04:00:20 CEST 2014
+git branch:	test
+git hash:	f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-1.slh.4-amd64
 
-It is calculation order of operators. '/' vs. '-'
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
->
-> Instead of using something like:
->
-> 	var = foo_func(a, c
-> 		- b);
->
-> We generally use:
-> 	var = foo_func(a,
-> 		       c - b);
->
-> As it is quicker for reviewers to read.
->
->>
->> regads,
->> akihiro
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Detailed results are available here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
