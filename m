@@ -1,54 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55062 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756871AbaIQUpf (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:40345 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753705AbaIOLzE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:35 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id C009C60098
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:32 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 16/17] smiapp: Update PLL when setting format
-Date: Wed, 17 Sep 2014 23:45:40 +0300
-Message-Id: <1410986741-6801-17-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 15 Sep 2014 07:55:04 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBX002YWYFQDO70@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Sep 2014 07:55:02 -0400 (EDT)
+Date: Mon, 15 Sep 2014 08:54:58 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: v4l2 ioctls
+Message-id: <20140915085458.1faea714.m.chehab@samsung.com>
+In-reply-to: <541391B9.4070708@osg.samsung.com>
+References: <54124BDC.3000306@osg.samsung.com> <5412A9DB.8080701@xs4all.nl>
+ <20140912121950.7edfee4e.m.chehab@samsung.com>
+ <541391B9.4070708@osg.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media bus format BPP does affect PLL. Recalculate PLL if the format
-changes.
+Hi Shuah,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Em Fri, 12 Sep 2014 18:37:13 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 798c129..537ca92 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1758,8 +1758,18 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
- 
- 			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
- 				if (csi_format->width !=
--				    sensor->csi_format->width)
-+				    sensor->csi_format->width) {
-+					int rval;
-+
-+					rval = smiapp_pll_update(sensor);
-+					if (rval) {
-+						mutex_unlock(&sensor->mutex);
-+						return rval;
-+					}
-+
- 					range_changed = true;
-+				}
-+
- 
- 				sensor->csi_format = csi_format;
- 			}
--- 
-1.7.10.4
+> Mauro/Hans,
+> 
+> Thanks for both for your replies. I finally have it working with
+> the following:
 
+One additional info: While in DVB mode, opening the device in
+readonly mode should not take the tuner locking.
+
+If you need/want to test it, please use:
+	$ dvb-fe-tool --femon
+
+I implemented this functionality this weekend, so you'll need
+to update your v4l-utils tool to be able to test it.
+
+> 
+> S_INPUT
+> S_OUTPUT
+> S_MODULATOR
+> S_TUNER
+> S_STD
+> S_FREQUENCY
+> S_HW_FREQ_SEEK
+> S_FMT
+>  - get tuner in shared mode and hold it
+>  - i.e return with tuner held
+> 
+> STREAMON
+>  - get tuner in shared mode and hold it
+>  - i.e return with tuner held
+> STREAMOFF
+>  - put tuner (get is done in STREAMON)
+> 
+> QUERYSTD
+> G_TUNER (au0828 does tuner init in its g_tuner ops)
+
+As this is something specific for some devices, it is probably better
+to implement the locking for G_TUNER inside the driver.
+
+>  - get tuner in shared mode and hold it
+>  - service request
+>  - put tuner
+> 
+
+
+> With these changes now I have digital stream not get
+> disrupted as soon as xawtv starts. I am working through
+> issues related to unbalanced nature of tuner holds in
+> analog mode.
+> 
+> -- Shuah
+> 
+Regards,
+Mauro
