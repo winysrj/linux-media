@@ -1,102 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34127 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751271AbaIXW1y (ORCPT
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:38840 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752061AbaIOM4p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guoxiong Yan <yanguoxiong@huawei.com>,
-	Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH 01/18] [media] ir-hix5hd2: fix address space casting
-Date: Wed, 24 Sep 2014 19:27:01 -0300
-Message-Id: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+	Mon, 15 Sep 2014 08:56:45 -0400
+Message-ID: <5416E208.5010302@collabora.com>
+Date: Mon, 15 Sep 2014 08:56:40 -0400
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient
+ buffer underruns
+References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <5416CA2B.1080004@xs4all.nl> <20140915090224.5a2889a1.m.chehab@samsung.com> <11047185.EGVanoRbYV@avalon>
+In-Reply-To: <11047185.EGVanoRbYV@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/rc/ir-hix5hd2.c:99:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:99:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:99:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:100:16: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:100:16:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:100:16:    got void *
-drivers/media/rc/ir-hix5hd2.c:117:40: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:117:40:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:117:40:    got void *
-drivers/media/rc/ir-hix5hd2.c:119:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:119:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:119:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:121:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:121:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:121:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:147:18: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:147:18:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:147:18:    got void *
-drivers/media/rc/ir-hix5hd2.c:155:28: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:155:28:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:155:28:    got void *
-drivers/media/rc/ir-hix5hd2.c:157:25: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:157:25:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:157:25:    got void *
-drivers/media/rc/ir-hix5hd2.c:159:61: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:159:61:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:159:61:    got void *
-drivers/media/rc/ir-hix5hd2.c:167:28: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:167:28:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:167:28:    got void *
-drivers/media/rc/ir-hix5hd2.c:169:36: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:169:36:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:169:36:    got void *
-drivers/media/rc/ir-hix5hd2.c:188:64: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:188:64:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:188:64:    got void *
-drivers/media/rc/ir-hix5hd2.c:190:68: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:190:68:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:190:68:    got void *
-drivers/media/rc/ir-hix5hd2.c:220:20: warning: incorrect type in assignment (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:220:20:    expected void *base
-drivers/media/rc/ir-hix5hd2.c:220:20:    got void [noderef] <asn:2>*
-drivers/media/rc/ir-hix5hd2.c:315:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:315:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:315:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:316:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:316:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:316:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:317:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:317:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:317:41:    got void *
-drivers/media/rc/ir-hix5hd2.c:318:41: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/ir-hix5hd2.c:318:41:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/ir-hix5hd2.c:318:41:    got void *
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Le 2014-09-15 08:49, Laurent Pinchart a écrit :
+> Reverting the patch will also be a regression, as that would break
+> applications that now rely on the new behaviour (I've developed this patch to
+> fix a problem I've noticed with gstreamer). One way or another, we're screwed
+> and we'll break userspace.
 
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index 94967d0e0478..c555ca2aed0e 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -68,7 +68,7 @@
- 
- struct hix5hd2_ir_priv {
- 	int			irq;
--	void			*base;
-+	void volatile __iomem	*base;
- 	struct device		*dev;
- 	struct rc_dev		*rdev;
- 	struct regmap		*regmap;
-@@ -218,8 +218,8 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	priv->base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(priv->base))
--		return PTR_ERR(priv->base);
-+	if (IS_ERR((__force void *)priv->base))
-+		return PTR_ERR((__force void *)priv->base);
- 
- 	priv->irq = platform_get_irq(pdev, 0);
- 	if (priv->irq < 0) {
--- 
-1.9.3
+We have worked around this issue in GStreamer 1.4+, for older version, 
+the problem may be faced again by users, specially if using a newer 
+libv4l2 where the locking has been fixed (or no libv4l2).
 
+cheers,
+Nicolas
