@@ -1,127 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:48197 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944AbaICTkt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:40:49 -0400
-Received: by mail-ie0-f202.google.com with SMTP id rl12so1559919iec.3
-        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 12:40:49 -0700 (PDT)
-From: Vincent Palatin <vpalatin@chromium.org>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Pawel Osciak <posciak@chromium.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:41308 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676AbaIPALP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Sep 2014 20:11:15 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Vincent Palatin <vpalatin@chromium.org>
-Subject: [PATCH v3 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
-Date: Wed,  3 Sep 2014 12:40:38 -0700
-Message-Id: <1409773238-32177-1-git-send-email-vpalatin@chromium.org>
-In-Reply-To: <CACHYQ-qST1gyyKCZp+tN9FbR3_=2q_+=PbVwfu3KgfTpkdDFCA@mail.gmail.com>
-References: <CACHYQ-qST1gyyKCZp+tN9FbR3_=2q_+=PbVwfu3KgfTpkdDFCA@mail.gmail.com>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
+Date: Mon, 15 Sep 2014 21:10:55 -0300
+Message-Id: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
-CT_PANTILT_RELATIVE_CONTROL terminal control request.
+This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
 
-Tested by plugging a Logitech ConferenceCam C3000e USB camera
-and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-Verified that it can pan and tilt at the same time in both directions.
+The commit 9241650d62f7 was meant to solve an issue with Gstreamer
+version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
+a bad behavior ag Gstreamer.
 
-Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+It does that by returning POLERR if VB2 is not streaming.
 
-Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
+However, it broke VBI userspace support on alevt and mtt (and maybe
+other VBI apps), as they rely on the old behavior.
+
+Due to that, we need to roll back and restore the previous behavior.
+
+It means that there are still some potential regressions by reverting it,
+but those are known to occur only if:
+	- libv4l is version 1.2 or upper (due to DQBUF fixup);
+	- Gstreamer version 1.2 or before are being used, as this bug
+got fixed on Gstreamer 1.4.
+
+As both libv4l 1.2 and Gstreamer version 1.4 were released about the same
+time, and the fix went only on Kernel 3.16 and were not backported to
+stable, it is very unlikely that reverting it would cause much harm.
+
+For more details, see:
+	https://bugzilla.kernel.org/show_bug.cgi?id=84401
+
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
-Changes from v1/v2:
-- rebased
+ drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 55 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 0eb82106..d703cb0 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
- 		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
- 		.index		= 12,
- 		.size		= 4,
--		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
--				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
--				| UVC_CTRL_FLAG_GET_DEF
-+		.flags		= UVC_CTRL_FLAG_SET_CUR
-+				| UVC_CTRL_FLAG_GET_RANGE
- 				| UVC_CTRL_FLAG_AUTO_UPDATE,
- 	},
- 	{
-@@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
- 	data[2] = min((int)abs(value), 0xff);
- }
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7e6aff673a5a..7387821e7c72 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
  
-+static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
-+	__u8 query, const __u8 *data)
-+{
-+	int first = mapping->offset / 8;
-+	__s8 rel = (__s8)data[first];
-+
-+	switch (query) {
-+	case UVC_GET_CUR:
-+		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
-+						 : -data[first+1]);
-+	case UVC_GET_MIN:
-+		return -data[first+1];
-+	case UVC_GET_MAX:
-+	case UVC_GET_RES:
-+	case UVC_GET_DEF:
-+	default:
-+		return data[first+1];
-+	}
-+}
-+
-+static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
-+	__s32 value, __u8 *data)
-+{
-+	int first = mapping->offset / 8;
-+
-+	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
-+	data[first+1] = min_t(int, abs(value), 0xff);
-+}
-+
- static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 	{
- 		.id		= V4L2_CID_BRIGHTNESS,
-@@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
- 	},
- 	{
-+		.id		= V4L2_CID_PAN_SPEED,
-+		.name		= "Pan (Speed)",
-+		.entity		= UVC_GUID_UVC_CAMERA,
-+		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-+		.size		= 16,
-+		.offset		= 0,
-+		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-+		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.get		= uvc_ctrl_get_rel_speed,
-+		.set		= uvc_ctrl_set_rel_speed,
-+	},
-+	{
-+		.id		= V4L2_CID_TILT_SPEED,
-+		.name		= "Tilt (Speed)",
-+		.entity		= UVC_GUID_UVC_CAMERA,
-+		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-+		.size		= 16,
-+		.offset		= 16,
-+		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-+		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.get		= uvc_ctrl_get_rel_speed,
-+		.set		= uvc_ctrl_set_rel_speed,
-+	},
-+	{
- 		.id		= V4L2_CID_PRIVACY,
- 		.name		= "Privacy",
- 		.entity		= UVC_GUID_UVC_CAMERA,
+ 	/*
+-	 * There is nothing to wait for if no buffer has been queued and the
+-	 * queue isn't streaming, or if the error flag is set.
++	 * There is nothing to wait for if no buffer has been queued
++	 * or if the error flag is set.
+ 	 */
+-	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
++	if ((list_empty(&q->queued_list) || q->error)
+ 		return res | POLLERR;
+ 
+ 	/*
 -- 
-2.1.0.rc2.206.gedb03e5
+1.9.3
 
