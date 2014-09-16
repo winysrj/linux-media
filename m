@@ -1,61 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49639 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbaI2UlD (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:10178 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753413AbaIPNvC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 16:41:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more standard place
-Date: Mon, 29 Sep 2014 23:41:09 +0300
-Message-ID: <3849580.CgKEmcV7as@avalon>
-In-Reply-To: <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
-References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com> <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 16 Sep 2014 09:51:02 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NBZ0007SYH1WW00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 16 Sep 2014 09:51:01 -0400 (EDT)
+Date: Tue, 16 Sep 2014 10:50:53 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [RFC PATCH] vb2: regression fix for vbi capture & poll
+Message-id: <20140916105053.6b8504cf.m.chehab@samsung.com>
+In-reply-to: <541802B0.2020805@xs4all.nl>
+References: <541802B0.2020805@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+Em Tue, 16 Sep 2014 11:28:16 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you for the patch.
-
-On Monday 29 September 2014 16:02:39 Boris Brezillon wrote:
-> Rename mediabus formats and move the enum into a separate header file so
-> that it can be used by DRM/KMS subsystem without any reference to the V4L2
-> subsystem.
+> (My proposal to fix this. Note that it is untested, I plan to do that this
+> evening)
 > 
-> Old V4L2_MBUS_FMT_ definitions are now macros that points to VIDEO_BUS_FMT_
-> definitions.
+> Commit 9241650d62f7 broke vbi capture applications that expect POLLERR to be
+> returned if STREAMON wasn't called.
 > 
-> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  include/uapi/linux/Kbuild             |   1 +
->  include/uapi/linux/v4l2-mediabus.h    | 183 +++++++++++++------------------
->  include/uapi/linux/video-bus-format.h | 127 +++++++++++++++++++++++
->  3 files changed, 207 insertions(+), 104 deletions(-)
->  create mode 100644 include/uapi/linux/video-bus-format.h
+> Rather than checking whether buffers were queued AND vb2 was not yet streaming,
+> just check whether streaming is in progress and return POLLERR if not.
+> 
+> This change makes it impossible to poll in one thread and call STREAMON in
+> another, but doing that breaks existing applications and is also not according
+> to the spec. So be it.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7e6aff6..0452fb2 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+>  	}
+>  
+>  	/*
+> -	 * There is nothing to wait for if no buffer has been queued and the
+> -	 * queue isn't streaming, or if the error flag is set.
+> +	 * There is nothing to wait for if the queue isn't streaming, or if
+> +	 * the error flag is set.
+>  	 */
+> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+> +	if (!vb2_is_streaming(q) || q->error)
+>  		return res | POLLERR;
 
-One of the self-inflicted rules in V4L2 is to properly document every new 
-media bus format when adding it to the kernel. The documentation is located in 
-Documentation/DocBook/media/v4l/subdev-formats.xml. If we move the formats to 
-a centralized header (which I believe is a good idea), we should also update 
-the documentation, and possibly its location. I really want to avoid getting 
-undocumented formats merged, and this will happen if we don't make the rule 
-clear and/or don't make the documentation easily accessible.
+This makes the code even more different than what VB1 does. I suspect
+that this will likely cause even more regressions.
 
-Incidentally, patch 2/5 in this series is missing a documentation update ;-)
+The following (untested) patch seems to be what matches best what VB1
+does, and are likely to cause less harm, but needs test of course. 
 
--- 
-Regards,
-
-Laurent Pinchart
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5b808e25fc09..0d86526cbcb0 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2586,6 +2586,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	 * There is nothing to wait for if no buffer has been queued and the
+ 	 * queue isn't streaming, or if the error flag is set.
+ 	 */
++	if (!vb2_is_streaming(q))
++		vb2_internal_streamon(q, q->type);
++
+ 	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+ 		return res | POLLERR;
+ 
