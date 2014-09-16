@@ -1,83 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3719 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbaIUOsv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38670 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbaIPKQ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/11] videodev2.h: add v4l2_ctrl_selection compound control type.
-Date: Sun, 21 Sep 2014 16:48:27 +0200
-Message-Id: <1411310909-32825-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 16 Sep 2014 06:16:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [git:media_tree/devel] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
+Date: Tue, 16 Sep 2014 13:17 +0300
+Message-ID: <3594310.Q7x9Lis8zJ@avalon>
+In-Reply-To: <E1XTgMx-0000Vl-4j@www.linuxtv.org>
+References: <E1XTgMx-0000Vl-4j@www.linuxtv.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-This will be used by a new selection control.
+On Tuesday 16 September 2014 02:05:38 Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following
+> patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR
+> during transient buffer underruns" Author:  Mauro Carvalho Chehab
+> <m.chehab@samsung.com>
+> Date:    Mon Sep 15 20:58:01 2014 -0300
+> 
+> This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
+> 
+> The commit 9241650d62f7 was meant to solve an issue with Gstreamer
+> version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
+> a bad behavior ag Gstreamer.
+> 
+> It does that by returning POLERR if VB2 is not streaming.
+> 
+> However, it broke VBI userspace support on alevt and mtt (and maybe
+> other VBI apps), as they rely on the old behavior.
+> 
+> Due to that, we need to roll back and restore the previous behavior.
+> 
+> It means that there are still some potential regressions by reverting it,
+> but those are known to occur only if:
+> 	- libv4l is version 1.2 or upper (due to DQBUF fixup);
+> 	- Gstreamer version 1.2 or before are being used, as this bug
+> got fixed on Gstreamer 1.4.
+> 
+> As both libv4l 1.2 and Gstreamer version 1.4 were released about the same
+> time, and the fix went only on Kernel 3.16 and were not backported to
+> stable, it is very unlikely that reverting it would cause much harm.
+> 
+> For more details, see:
+> 	https://bugzilla.kernel.org/show_bug.cgi?id=84401
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Pawel Osciak <pawel@osciak.com>
+> Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=e0857d1d1af8478b33e63db
+> b22bb2160a807d868
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff6..7387821 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait) }
+> 
+>  	/*
+> -	 * There is nothing to wait for if no buffer has been queued and the
+> -	 * queue isn't streaming, or if the error flag is set.
+> +	 * There is nothing to wait for if no buffer has been queued
+> +	 * or if the error flag is set.
+>  	 */
+> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+> +	if ((list_empty(&q->queued_list) || q->error)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-ctrls.h     | 2 ++
- include/uapi/linux/videodev2.h | 8 ++++++++
- 2 files changed, 10 insertions(+)
+This has probably not been compile-tested.
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 3005d88..c2fd050 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -46,6 +46,7 @@ struct poll_table_struct;
-  * @p_u16:	Pointer to a 16-bit unsigned value.
-  * @p_u32:	Pointer to a 32-bit unsigned value.
-  * @p_char:	Pointer to a string.
-+ * @p_sel:	Pointer to a struct v4l2_ctrl_selection.
-  * @p:		Pointer to a compound value.
-  */
- union v4l2_ctrl_ptr {
-@@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
- 	u16 *p_u16;
- 	u32 *p_u32;
- 	char *p_char;
-+	struct v4l2_ctrl_selection *p_sel;
- 	void *p;
- };
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fa84070..e956472 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1271,6 +1271,12 @@ struct v4l2_output {
- #define V4L2_OUT_CAP_CUSTOM_TIMINGS	V4L2_OUT_CAP_DV_TIMINGS /* For compatibility */
- #define V4L2_OUT_CAP_STD		0x00000004 /* Supports S_STD */
- 
-+struct v4l2_ctrl_selection {
-+	__u32 flags;
-+	struct v4l2_rect r;
-+	__u32 reserved[9];
-+};
-+
- /*
-  *	C O N T R O L S
-  */
-@@ -1290,6 +1296,7 @@ struct v4l2_ext_control {
- 		__u8 __user *p_u8;
- 		__u16 __user *p_u16;
- 		__u32 __user *p_u32;
-+		struct v4l2_ctrl_selection __user *p_sel;
- 		void __user *ptr;
- 	};
- } __attribute__ ((packed));
-@@ -1330,6 +1337,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_U8	     = 0x0100,
- 	V4L2_CTRL_TYPE_U16	     = 0x0101,
- 	V4L2_CTRL_TYPE_U32	     = 0x0102,
-+	V4L2_CTRL_TYPE_SELECTION     = 0x0103,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+>  		return res | POLLERR;
+> 
+>  	/*
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
