@@ -1,115 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36533 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756501AbaIRKuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 06:50:11 -0400
-Date: Thu, 18 Sep 2014 07:50:05 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hansverk@cisco.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38668 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbaIPKP1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Sep 2014 06:15:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	Pawel Osciak <pawel@osciak.com>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [PATCH v2] [media] BZ#84401: Revert "[media] v4l: vb2: Don't
- return POLLERR during transient buffer underruns"
-Message-ID: <20140918075005.11bd495f@recife.lan>
-In-Reply-To: <541AAFA6.6080605@cisco.com>
-References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
-	<20140918070619.32d4e4b1@recife.lan>
-	<541AAFA6.6080605@cisco.com>
+Subject: Re: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
+Date: Tue, 16 Sep 2014 13:15:27 +0300
+Message-ID: <4972900.uUGnPegBxW@avalon>
+In-Reply-To: <20140916070129.3779bf34.m.chehab@samsung.com>
+References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com> <1803893.9xIcqpbx23@avalon> <20140916070129.3779bf34.m.chehab@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Sep 2014 12:10:46 +0200
-Hans Verkuil <hansverk@cisco.com> escreveu:
+Hi Mauro,
 
-> Mauro,
+On Tuesday 16 September 2014 07:01:29 Mauro Carvalho Chehab wrote:
+> Em Tue, 16 Sep 2014 12:09:01 +0300 Laurent Pinchart escreveu:
+> > On Monday 15 September 2014 21:10:55 Mauro Carvalho Chehab wrote:
+> > > This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
+> > > 
+> > > The commit 9241650d62f7 was meant to solve an issue with Gstreamer
+> > > version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
+> > > a bad behavior ag Gstreamer.
+> > 
+> > That's not correct. The patch was created to solve an issue observed with
+> > the Gstreamer 0.10 v4l2src element accessing the video device directly,
+> > *without* libv4l.
 > 
-> This doesn't fix the problem *at all*.
-> 
-> See http://www.mail-archive.com/linux-media@vger.kernel.org/msg79474.html for
-> the right fix.
+> Ok. From the discussions we took yesterday on the thread, I got the
+> wrong impression from Nicolas comments that this happens only with
+> gst < 1.4 and libv4l >= 1.2.
 
-I won't apply patch 1/4 on stable. It is simply too risky, as it changes
-a behavior that is there for a very long time.
+My understanding is that recent gst versions worked around the problem, and 
+the above combination of versions might be problematic, but gst 0.10 is 
+definitely affected.
 
-We can of course try this at topic/devel and play with it for a while,
-testing with different applications and devices, but we need a quick
-solution for the regression introduced on 3.16.
+> > The V4L2 specification documents poll() as follows.
+> > 
+> > "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet the
+> > poll() function succeeds, but sets the POLLERR flag in the revents field."
+> > 
+> > The vb2 poll implementation didn't conform with that, as it returned
+> > POLLERR when the buffer list was empty due to a transient buffer
+> > underrun, even if both VIDIOC_STREAMON and VIDIOC_QBUF have been called.
+> > 
+> > The commit thus brought the vb2 poll implementation in line with the
+> > specification. If we really want to revert it to its broken behaviour,
+> > then it would be fair to explain this in the revert message,
+> 
+> Ok, I'll rewrite the text. We likely want to fix the documentation too,
+> in order to reflect the way it is.
+> 
+> > and I want to know how you propose fixing this properly, as the revert
+> > really causes issues for userspace.
+> 
+> This patch simply broke all VBI applications. So, it should be reverted.
+>
+> From what you're saying, using Gst 0.10 with a kernel before 3.16 and
+> VB2 was always broken, right?
 
+Correct. And not only gst 0.10, any userspace application that doesn't 
+specifically handles transient buffer underruns will be affected.
 
+vb2 doesn't conform to the V4L2 specification, and I believe the specification 
+is right in this case. Reverting this patch will push the problem to 
+userspace, where all applications will have to handle buffer underruns 
+manually.
 
-> 
-> So for your patch:
-> 
-> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 09/18/14 12:06, Mauro Carvalho Chehab wrote:
-> > This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
-> > 
-> > The commit 9241650d62f7 was meant to solve a race issue that
-> > affects Gstreamer version 0.10, when streaming for a long time.
-> > 
-> > It does that by returning POLERR if VB2 is not streaming.
-> > 
-> > However, it broke VBI userspace support on alevt and mtt (and maybe
-> > other VBI apps), as they rely on the old behavior.
-> > 
-> > Due to that, we need to roll back and restore the previous behavior.
-> > 
-> > For more details, see:
-> > 	https://bugzilla.kernel.org/show_bug.cgi?id=84401
-> > 
-> > So, let's rollback the change for now, and work on some other
-> > fix for it.
-> > 
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Pawel Osciak <pawel@osciak.com>
-> > Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > 
-> > 
-> > --
-> > 
-> > v2: Just changed the description.
-> > 
-> > This is a regression that broke a core feature with most (all) VBI
-> > apps. We should hurry sending a fix for it.
-> > 
-> > So, let's just revert the patch while we're discussing/testing a
-> > solution that would solve Laurent's usecase scenario without breaking
-> > VBI.
-> > 
-> > PS.: this patch should, of course, be c/c to 3.16 too, but I think we'll
-> > need to do a manual backport, as the check for q->error is likely newer
-> > than 3.16.
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 7e6aff673a5a..da2d0adcc992 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
-> >  	}
-> >  
-> >  	/*
-> > -	 * There is nothing to wait for if no buffer has been queued and the
-> > -	 * queue isn't streaming, or if the error flag is set.
-> > +	 * There is nothing to wait for if no buffer has been queued
-> > +	 * or if the error flag is set.
-> >  	 */
-> > -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-> > +	if (list_empty(&q->queued_list) || q->error)
-> >  		return res | POLLERR;
-> >  
-> >  	/*
-> > 
+> And with VB1, is it also broken? If so, then this is a Gst 0.10 bug,
+> and the fix should be a patch for it, or a recommendation to upgrade
+> to a newer version without such bug.
+
+As explained above, this isn't a gst bug.
+
+> If, otherwise, it works with VB1, then we need to patch VB2 to have
+> exactly the same behavior as VB1 with that regards, as VBI works
+> with VB1.
+
+One option would be to have implement a different poll behaviour for VBI and 
+video.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
