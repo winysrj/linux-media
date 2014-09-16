@@ -1,155 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55757 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757084AbaIDChE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:04 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 27/37] af9033: remove I2C addr from config
-Date: Thu,  4 Sep 2014 05:36:35 +0300
-Message-Id: <1409798205-25645-27-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38743 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752927AbaIPLme (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Sep 2014 07:42:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
+Date: Tue, 16 Sep 2014 14:42:36 +0300
+Message-ID: <1507629.uqIm3tmQgH@avalon>
+In-Reply-To: <20140916075812.04a8290d@concha.lan>
+References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com> <4972900.uUGnPegBxW@avalon> <20140916075812.04a8290d@concha.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C driver address is passed as a i2c_new_device() parameter when
-device is created. Thus no need to keep it in config struct.
+Hi Mauro,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.h  |  9 ++++-----
- drivers/media/usb/dvb-usb-v2/af9035.c | 29 ++++++++++++++---------------
- drivers/media/usb/dvb-usb-v2/af9035.h |  1 +
- 3 files changed, 19 insertions(+), 20 deletions(-)
+On Tuesday 16 September 2014 07:58:12 Mauro Carvalho Chehab wrote:
+> Em Tue, 16 Sep 2014 13:15:27 +0300 Laurent Pinchart escreveu:
+> > On Tuesday 16 September 2014 07:01:29 Mauro Carvalho Chehab wrote:
+> > > Em Tue, 16 Sep 2014 12:09:01 +0300 Laurent Pinchart escreveu:
+> > > > On Monday 15 September 2014 21:10:55 Mauro Carvalho Chehab wrote:
+> > > > > This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
+> > > > > 
+> > > > > The commit 9241650d62f7 was meant to solve an issue with Gstreamer
+> > > > > version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
+> > > > > a bad behavior ag Gstreamer.
+> > > > 
+> > > > That's not correct. The patch was created to solve an issue observed
+> > > > with the Gstreamer 0.10 v4l2src element accessing the video device
+> > > > directly, *without* libv4l.
+> > > 
+> > > Ok. From the discussions we took yesterday on the thread, I got the
+> > > wrong impression from Nicolas comments that this happens only with
+> > > gst < 1.4 and libv4l >= 1.2.
+> > 
+> > My understanding is that recent gst versions worked around the problem,
+> > and the above combination of versions might be problematic, but gst 0.10
+> > is definitely affected.
+> > 
+> > > > The V4L2 specification documents poll() as follows.
+> > > > 
+> > > > "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
+> > > > the poll() function succeeds, but sets the POLLERR flag in the revents
+> > > > field."
+> > > > 
+> > > > The vb2 poll implementation didn't conform with that, as it returned
+> > > > POLLERR when the buffer list was empty due to a transient buffer
+> > > > underrun, even if both VIDIOC_STREAMON and VIDIOC_QBUF have been
+> > > > called.
+> > > > 
+> > > > The commit thus brought the vb2 poll implementation in line with the
+> > > > specification. If we really want to revert it to its broken behaviour,
+> > > > then it would be fair to explain this in the revert message,
+> > > 
+> > > Ok, I'll rewrite the text. We likely want to fix the documentation too,
+> > > in order to reflect the way it is.
+> > > 
+> > > > and I want to know how you propose fixing this properly, as the revert
+> > > > really causes issues for userspace.
+> > > 
+> > > This patch simply broke all VBI applications. So, it should be reverted.
+> > > 
+> > > From what you're saying, using Gst 0.10 with a kernel before 3.16 and
+> > > VB2 was always broken, right?
+> > 
+> > Correct. And not only gst 0.10, any userspace application that doesn't
+> > specifically handles transient buffer underruns will be affected.
+> > 
+> > vb2 doesn't conform to the V4L2 specification, and I believe the
+> > specification is right in this case. Reverting this patch will push the
+> > problem to userspace, where all applications will have to handle buffer
+> > underruns manually.
+> 
+> What happens with VB1? How is it solved there?
+> 
+> I don't generally use gst 0.10, but I don't remember a single error
+> report about gst 0.10 and VB1-based drivers.
 
-diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
-index 1b968d0..6ad22b6 100644
---- a/drivers/media/dvb-frontends/af9033.h
-+++ b/drivers/media/dvb-frontends/af9033.h
-@@ -24,13 +24,12 @@
- 
- #include <linux/kconfig.h>
- 
-+/*
-+ * I2C address (TODO: are these in 8-bit format?)
-+ * 0x38, 0x3a, 0x3c, 0x3e
-+ */
- struct af9033_config {
- 	/*
--	 * I2C address
--	 */
--	u8 i2c_addr;
--
--	/*
- 	 * clock Hz
- 	 * 12000000, 22000000, 24000000, 34000000, 32000000, 28000000, 26000000,
- 	 * 30000000, 36000000, 20480000, 16384000
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index ec62133..b491707 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -330,15 +330,15 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 		if (msg[0].len > 40 || msg[1].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
--		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
--			   (msg[0].addr == state->af9033_config[1].i2c_addr) ||
-+		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
-+			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
- 			   (state->chip_type == 0x9135)) {
- 			/* demod access via firmware interface */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
- 
--			if (msg[0].addr == state->af9033_config[1].i2c_addr ||
--			    msg[0].addr == (state->af9033_config[1].i2c_addr >> 1))
-+			if (msg[0].addr == state->af9033_i2c_addr[1] ||
-+			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
- 				reg |= 0x100000;
- 
- 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
-@@ -362,15 +362,15 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 		if (msg[0].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
--		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
--			   (msg[0].addr == state->af9033_config[1].i2c_addr) ||
-+		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
-+			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
- 			   (state->chip_type == 0x9135)) {
- 			/* demod access via firmware interface */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
- 
--			if (msg[0].addr == state->af9033_config[1].i2c_addr ||
--			    msg[0].addr == (state->af9033_config[1].i2c_addr >> 1))
-+			if (msg[0].addr == state->af9033_i2c_addr[1] ||
-+			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
- 				reg |= 0x100000;
- 
- 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
-@@ -736,8 +736,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	u16 tmp16, addr;
- 
- 	/* demod I2C "address" */
--	state->af9033_config[0].i2c_addr = 0x38;
--	state->af9033_config[1].i2c_addr = 0x3a;
-+	state->af9033_i2c_addr[0] = 0x38;
-+	state->af9033_i2c_addr[1] = 0x3a;
- 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
- 	state->af9033_config[1].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
- 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
-@@ -789,7 +789,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 			goto err;
- 
- 		if (tmp)
--			state->af9033_config[1].i2c_addr = tmp;
-+			state->af9033_i2c_addr[1] = tmp;
- 
- 		dev_dbg(&d->udev->dev, "%s: 2nd demod I2C addr=%02x\n",
- 				__func__, tmp);
-@@ -1092,8 +1092,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	state->af9033_config[adap->id].fe = &adap->fe[0];
- 	state->af9033_config[adap->id].ops = &state->ops;
--	ret = af9035_add_i2c_dev(d, "af9033",
--			state->af9033_config[adap->id].i2c_addr,
-+	ret = af9035_add_i2c_dev(d, "af9033", state->af9033_i2c_addr[adap->id],
- 			&state->af9033_config[adap->id]);
- 	if (ret)
- 		goto err;
-@@ -1348,7 +1347,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 		}
- 
- 		ret = af9035_add_i2c_dev(d, "it913x",
--				state->af9033_config[adap->id].i2c_addr >> 1,
-+				state->af9033_i2c_addr[adap->id] >> 1,
- 				&it913x_config);
- 		if (ret)
- 			goto err;
-@@ -1373,7 +1372,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 		}
- 
- 		ret = af9035_add_i2c_dev(d, "it913x",
--				state->af9033_config[adap->id].i2c_addr >> 1,
-+				state->af9033_i2c_addr[adap->id] >> 1,
- 				&it913x_config);
- 		if (ret)
- 			goto err;
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index 2196077..edb3871 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -61,6 +61,7 @@ struct state {
- 	u16 chip_type;
- 	u8 dual_mode:1;
- 	u16 eeprom_addr;
-+	u8 af9033_i2c_addr[2];
- 	struct af9033_config af9033_config[2];
- 	struct af9033_ops ops;
- 	#define AF9035_I2C_CLIENT_MAX 4
+I haven't tried VB1, but a quick look at the source code shows it to be 
+affected as well.
+
+The problem with gst 0.10 is only noticeable when a buffer underrun occurs 
+(when you don't requeue buffers fast enough and the queue buffers list becomes 
+temporarily empty), so it can very well go unnoticed for a long time.
+
+> > > And with VB1, is it also broken? If so, then this is a Gst 0.10 bug,
+> > > and the fix should be a patch for it, or a recommendation to upgrade
+> > > to a newer version without such bug.
+> > 
+> > As explained above, this isn't a gst bug.
+> > 
+> > > If, otherwise, it works with VB1, then we need to patch VB2 to have
+> > > exactly the same behavior as VB1 with that regards, as VBI works
+> > > with VB1.
+> > 
+> > One option would be to have implement a different poll behaviour for VBI
+> > and video.
+> 
+> That would be a nightmare.
+
+I don't like it much either. Hans has posted a proposal to fix the problem an 
+hour ago, let's discuss it.
+
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
 
