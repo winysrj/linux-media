@@ -1,116 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2094 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422AbaIHClZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Sep 2014 22:41:25 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s882fLPg096410
-	for <linux-media@vger.kernel.org>; Mon, 8 Sep 2014 04:41:23 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C07EF2A008A
-	for <linux-media@vger.kernel.org>; Mon,  8 Sep 2014 04:41:20 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140908024120.C07EF2A008A@tschai.lan>
-Date: Mon,  8 Sep 2014 04:41:20 +0200 (CEST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38626 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752699AbaIPJJA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Sep 2014 05:09:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [PATCH] [media] BZ#84401: Revert "[media] v4l: vb2: Don't return POLLERR during transient buffer underruns"
+Date: Tue, 16 Sep 2014 12:09:01 +0300
+Message-ID: <1803893.9xIcqpbx23@avalon>
+In-Reply-To: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
+References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+On Monday 15 September 2014 21:10:55 Mauro Carvalho Chehab wrote:
+> This reverts commit 9241650d62f79a3da01f1d5e8ebd195083330b75.
+> 
+> The commit 9241650d62f7 was meant to solve an issue with Gstreamer
+> version 0.10 with libv4l 1.2, where a fixup patch for DQBUF exposed
+> a bad behavior ag Gstreamer.
 
-date:		Mon Sep  8 04:00:22 CEST 2014
-git branch:	test
-git hash:	89fffac802c18caebdf4e91c0785b522c9f6399a
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-1.slh.4-amd64
+That's not correct. The patch was created to solve an issue observed with the 
+Gstreamer 0.10 v4l2src element accessing the video device directly, *without* 
+libv4l.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+The V4L2 specification documents poll() as follows.
 
-Detailed results are available here:
+"When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet the 
+poll() function succeeds, but sets the POLLERR flag in the revents field."
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+The vb2 poll implementation didn't conform with that, as it returned POLLERR 
+when the buffer list was empty due to a transient buffer underrun, even if 
+both VIDIOC_STREAMON and VIDIOC_QBUF have been called.
 
-Full logs are available here:
+The commit thus brought the vb2 poll implementation in line with the 
+specification. If we really want to revert it to its broken behaviour, then it 
+would be fair to explain this in the revert message, and I want to know how 
+you propose fixing this properly, as the revert really causes issues for 
+userspace.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> It does that by returning POLERR if VB2 is not streaming.
+> 
+> However, it broke VBI userspace support on alevt and mtt (and maybe
+> other VBI apps), as they rely on the old behavior.
+> 
+> Due to that, we need to roll back and restore the previous behavior.
+> 
+> It means that there are still some potential regressions by reverting it,
+> but those are known to occur only if:
+> 	- libv4l is version 1.2 or upper (due to DQBUF fixup);
+> 	- Gstreamer version 1.2 or before are being used, as this bug
+> got fixed on Gstreamer 1.4.
+> 
+> As both libv4l 1.2 and Gstreamer version 1.4 were released about the same
+> time, and the fix went only on Kernel 3.16 and were not backported to
+> stable, it is very unlikely that reverting it would cause much harm.
+> 
+> For more details, see:
+> 	https://bugzilla.kernel.org/show_bug.cgi?id=84401
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Pawel Osciak <pawel@osciak.com>
+> Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff673a5a..7387821e7c72
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait) }
+> 
+>  	/*
+> -	 * There is nothing to wait for if no buffer has been queued and the
+> -	 * queue isn't streaming, or if the error flag is set.
+> +	 * There is nothing to wait for if no buffer has been queued
+> +	 * or if the error flag is set.
+>  	 */
+> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+> +	if ((list_empty(&q->queued_list) || q->error)
+>  		return res | POLLERR;
+> 
+>  	/*
 
-The Media Infrastructure API from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
+
