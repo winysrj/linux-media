@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45787 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754838AbaI2SE3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38698 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753393AbaIPKcv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:04:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tue, 16 Sep 2014 06:32:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 4/6] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
-Date: Mon, 29 Sep 2014 20:03:37 +0200
-Message-Id: <1412013819-29181-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [RFC PATCH] vb2: regression fix for vbi capture & poll
+Date: Tue, 16 Sep 2014 13:32:54 +0300
+Message-ID: <1622124.9R2KLtfafx@avalon>
+In-Reply-To: <541810E2.4040509@cisco.com>
+References: <541810E2.4040509@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the for_each_... macro should make the code a bit shorter and
-easier to read.
+Hi Hans,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/gpu/drm/drm_of.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
-index 16150a0..024fa77 100644
---- a/drivers/gpu/drm/drm_of.c
-+++ b/drivers/gpu/drm/drm_of.c
-@@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 	struct device_node *remote_port, *ep = NULL;
- 	uint32_t possible_crtcs = 0;
- 
--	do {
--		ep = of_graph_get_next_endpoint(port, ep);
--		if (!ep)
--			break;
--
-+	for_each_endpoint_of_node(port, ep) {
- 		remote_port = of_graph_get_remote_port(ep);
- 		if (!remote_port) {
- 			of_node_put(ep);
-@@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 		possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
- 
- 		of_node_put(remote_port);
--	} while (1);
-+	}
- 
- 	return possible_crtcs;
- }
+On Tuesday 16 September 2014 12:28:50 Hans Verkuil wrote:
+> (My proposal to fix this. Note that it is untested, I plan to do that this
+> evening)
+> 
+> Commit 9241650d62f7 broke vbi capture applications that expect POLLERR to be
+> returned if STREAMON wasn't called.
+> 
+> Rather than checking whether buffers were queued AND vb2 was not yet
+> streaming, just check whether streaming is in progress and return POLLERR
+> if not.
+> 
+> This change makes it impossible to poll in one thread and call STREAMON in
+> another, but doing that breaks existing applications and is also not
+> according to the spec. So be it.
+
+I like this approach better than reverting the offending patch, as it doesn't 
+break my use case :-)
+
+If we decide that this is the right fix, we should update the V4L2 
+specification to reflect that.
+
+I've proposed an alternative solution in a reply to the "[PATCH/RFC v2 1/2] 
+v4l: vb2: Don't return POLLERR during transient buffer underruns" mail thread. 
+I think I like this patch better, as the behaviour is simpler, even if it 
+doesn't strictly conform to the spec.
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff6..0452fb2 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2583,10 +2583,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait) }
+> 
+>  	/*
+> -	 * There is nothing to wait for if no buffer has been queued and the
+> -	 * queue isn't streaming, or if the error flag is set.
+> +	 * There is nothing to wait for if the queue isn't streaming, or if
+> +	 * the error flag is set.
+>  	 */
+> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+> +	if (!vb2_is_streaming(q) || q->error)
+>  		return res | POLLERR;
+> 
+>  	/*
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
