@@ -1,94 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37918 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754022AbaIAPgX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Sep 2014 11:36:23 -0400
-Message-ID: <54049268.3060004@redhat.com>
-Date: Mon, 01 Sep 2014 17:36:08 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38802 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbaIPMi2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Sep 2014 08:38:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Isaac Nickaein <nickaein.i@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Framerate is consistently divided by 2.5
+Date: Tue, 16 Sep 2014 15:38:30 +0300
+Message-ID: <16820941.OvJExUqjyW@avalon>
+In-Reply-To: <CA+NJmkdSXNkY70xiZ1m=dB7gTwr8jJ49gVt1B4VgXqqk1yca2g@mail.gmail.com>
+References: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com> <1918377.tBK2dPDOH0@avalon> <CA+NJmkdSXNkY70xiZ1m=dB7gTwr8jJ49gVt1B4VgXqqk1yca2g@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
-References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com> <540474AE.4070706@xs4all.nl>
-In-Reply-To: <540474AE.4070706@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Isaac,
 
-On 09/01/2014 03:29 PM, Hans Verkuil wrote:
-> Hi Hans,
-> 
-> At first glance this looks fine. But making changes in videobuf is always scary :-)
-> so I hope Marek can look at this as well.
-> 
-> How well was this tested?
+On Sunday 14 September 2014 01:57:02 Isaac Nickaein wrote:
+> Ah sorry for the confusion. The USB camera was not working on the old
+> kernel of ARM board. After patching the kernel, I can grab images but
+> the framerate is 1/2.5 of expected framerate. The camera works without
+> any issue on my PC (with kernel 3.13) though.
 
-I ran some tests on bttv which all ran well.
+The uvcvideo driver drops erroneous frame by default. Could you please try 
+turning that off by setting the nodrop module parameter to 1 and check if the 
+frame rate changes ? Please use the yavta command line test application 
+(http://git.ideasonboard.org/yavta.git) as other applications might not 
+correctly handle frames with the error bit set, or might not take them into 
+account to compute the frame rate.
 
-Note that the code already allowed for going from say 4 buffers to 1,
-and the old code path for reqbufs was already calling __videobuf_free()
-before re-allocating the buffers again. So in essence this just changes
-things to allow the 4 buffers to 1 case to also be 4 buffers to 0.
+The following command line should be all you need (you might want to change 
+the resolution and video device to match your system).
 
+yavta -c -f YUYV -s 640x480 /dev/video0
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
 
-
-> 
-> I'll try do test this as well.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 08/31/2014 12:19 PM, Hans de Goede wrote:
->> All the infrastructure for this is already there, and despite our desires for
->> the old videobuf code to go away, it is currently still in use in 18 drivers.
->>
->> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
->> making live easier for userspace, see e.g. :
->> https://bugzilla.gnome.org/show_bug.cgi?id=735660
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
->>  1 file changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
->> index fb5ee5d..b91a266 100644
->> --- a/drivers/media/v4l2-core/videobuf-core.c
->> +++ b/drivers/media/v4l2-core/videobuf-core.c
->> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->>  	unsigned int size, count;
->>  	int retval;
->>  
->> -	if (req->count < 1) {
->> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
->> -		return -EINVAL;
->> -	}
->> -
->>  	if (req->memory != V4L2_MEMORY_MMAP     &&
->>  	    req->memory != V4L2_MEMORY_USERPTR  &&
->>  	    req->memory != V4L2_MEMORY_OVERLAY) {
->> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->>  		goto done;
->>  	}
->>  
->> +	if (req->count == 0) {
->> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
->> +		retval = __videobuf_free(q);
->> +		goto done;
->> +	}
->> +
->>  	count = req->count;
->>  	if (count > VIDEO_MAX_FRAME)
->>  		count = VIDEO_MAX_FRAME;
->>
-> 
