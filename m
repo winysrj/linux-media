@@ -1,91 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0157.hostedemail.com ([216.40.44.157]:53948 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753486AbaIVSAF (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3263 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755233AbaIQJO4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 14:00:05 -0400
-Received: from smtprelay.hostedemail.com (ff-bigip1 [10.5.19.254])
-	by smtpgrave07.hostedemail.com (Postfix) with ESMTP id C77F211A262
-	for <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 17:50:48 +0000 (UTC)
-Message-ID: <1411408235.2952.52.camel@joe-AO725>
-Subject: [PATCH] [media] tda18271-common: Convert _tda_printk to return void
-From: Joe Perches <joe@perches.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 22 Sep 2014 10:50:35 -0700
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Sep 2014 05:14:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/4] DocBook media: update poll() documentation
+Date: Wed, 17 Sep 2014 11:14:31 +0200
+Message-Id: <1410945272-48149-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No caller or macro uses the return value so make it void.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
+No mention was made about the handling of POLLPRI. And the section
+on write() was missing that, just like in the read() case, the driver
+will start streaming if it wasn't yet in streaming mode.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-This change is associated to a desire to eventually
-change printk to return void.
+ Documentation/DocBook/media/v4l/func-poll.xml | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
- drivers/media/tuners/tda18271-common.c | 19 ++++++++-----------
- drivers/media/tuners/tda18271-priv.h   |  4 ++--
- 2 files changed, 10 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
-index 18c77af..86e5e31 100644
---- a/drivers/media/tuners/tda18271-common.c
-+++ b/drivers/media/tuners/tda18271-common.c
-@@ -714,12 +714,11 @@ fail:
- 	return ret;
- }
+diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
+index 2f91ca6..ac61c37 100644
+--- a/Documentation/DocBook/media/v4l/func-poll.xml
++++ b/Documentation/DocBook/media/v4l/func-poll.xml
+@@ -49,6 +49,10 @@ application did not call &VIDIOC-STREAMON; the
+ <constant>POLLERR</constant> flag in the
+ <structfield>revents</structfield> field.</para>
  
--int _tda_printk(struct tda18271_priv *state, const char *level,
--		const char *func, const char *fmt, ...)
-+void _tda_printk(struct tda18271_priv *state, const char *level,
-+		 const char *func, const char *fmt, ...)
- {
- 	struct va_format vaf;
- 	va_list args;
--	int rtn;
++    <para>If an event occurred (see &VIDIOC-DQEVENT;) then
++<constant>POLLPRI</constant> will be set in the <structfield>revents</structfield>
++field and <function>poll()</function> will return.</para>
++
+     <para>When use of the <function>read()</function> function has
+ been negotiated and the driver does not capture yet, the
+ <function>poll</function> function starts capturing. When that fails
+@@ -58,10 +62,18 @@ continuously (as opposed to, for example, still images) the function
+ may return immediately.</para>
  
- 	va_start(args, fmt);
+     <para>When use of the <function>write()</function> function has
+-been negotiated the <function>poll</function> function just waits
++been negotiated and the driver does not stream yet, the
++<function>poll</function> function starts streaming. When that fails
++it returns a <constant>POLLERR</constant> as above. Otherwise it waits
+ until the driver is ready for a non-blocking
+ <function>write()</function> call.</para>
  
-@@ -727,15 +726,13 @@ int _tda_printk(struct tda18271_priv *state, const char *level,
- 	vaf.va = &args;
- 
- 	if (state)
--		rtn = printk("%s%s: [%d-%04x|%c] %pV",
--			     level, func, i2c_adapter_id(state->i2c_props.adap),
--			     state->i2c_props.addr,
--			     (state->role == TDA18271_MASTER) ? 'M' : 'S',
--			     &vaf);
-+		printk("%s%s: [%d-%04x|%c] %pV",
-+		       level, func, i2c_adapter_id(state->i2c_props.adap),
-+		       state->i2c_props.addr,
-+		       (state->role == TDA18271_MASTER) ? 'M' : 'S',
-+		       &vaf);
- 	else
--		rtn = printk("%s%s: %pV", level, func, &vaf);
-+		printk("%s%s: %pV", level, func, &vaf);
- 
- 	va_end(args);
--
--	return rtn;
- }
-diff --git a/drivers/media/tuners/tda18271-priv.h b/drivers/media/tuners/tda18271-priv.h
-index 454c152..b36a7b7 100644
---- a/drivers/media/tuners/tda18271-priv.h
-+++ b/drivers/media/tuners/tda18271-priv.h
-@@ -139,8 +139,8 @@ extern int tda18271_debug;
- #define DBG_CAL  16
- 
- __attribute__((format(printf, 4, 5)))
--int _tda_printk(struct tda18271_priv *state, const char *level,
--		const char *func, const char *fmt, ...);
-+void _tda_printk(struct tda18271_priv *state, const char *level,
-+		 const char *func, const char *fmt, ...);
- 
- #define tda_printk(st, lvl, fmt, arg...)			\
- 	_tda_printk(st, lvl, __func__, fmt, ##arg)
-
++    <para>If the caller is only interested in events (just
++<constant>POLLPRI</constant> is set in the <structfield>events</structfield>
++field), then <function>poll()</function> will <emphasis>not</emphasis>
++start streaming if the driver does not stream yet. This makes it
++possible to just poll for events and not for buffers.</para>
++
+     <para>All drivers implementing the <function>read()</function> or
+ <function>write()</function> function or streaming I/O must also
+ support the <function>poll()</function> function.</para>
+-- 
+2.1.0
 
