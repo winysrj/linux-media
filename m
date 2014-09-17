@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:48212 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753529AbaIZM1b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 08:27:31 -0400
-Date: Fri, 26 Sep 2014 14:27:21 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140926122721.GA11597@linuxtv.org>
-References: <20140925160134.GA6207@linuxtv.org>
- <5424539D.8090503@osg.samsung.com>
- <20140925181747.GA21522@linuxtv.org>
- <542462C4.7020907@osg.samsung.com>
- <20140926080030.GB31491@linuxtv.org>
- <20140926080824.GA8382@linuxtv.org>
- <20140926071411.61a011bd@recife.lan>
- <20140926110727.GA880@linuxtv.org>
- <20140926084215.772adce9@recife.lan>
- <20140926090316.5ae56d93@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140926090316.5ae56d93@recife.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55055 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756231AbaIQUpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Sep 2014 16:45:32 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id ADDF86009F
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:29 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 01/17] smiapp-pll: Correct clock debug prints
+Date: Wed, 17 Sep 2014 23:45:25 +0300
+Message-Id: <1410986741-6801-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 26, 2014 at 09:03:16AM -0300, Mauro Carvalho Chehab wrote:
-> 
-> The patch I sent you (or some fixed version of it) is part of the
-> solution, but this still bothers me:
-> 
-> > > [    3.776854]  [<ffffffff813f974f>] drxk_attach+0x546/0x656
-> > > [    3.777675]  [<ffffffff814c22a3>] em28xx_dvb_init.part.3+0xa3e/0x1cdf
-> > > [    3.778652]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
-> > > [    3.779690]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
-> > > [    3.780615]  [<ffffffff814c5b45>] ? mutex_unlock+0x9/0xb
-> > > [    3.781428]  [<ffffffff814c0f50>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
-> > > [    3.782487]  [<ffffffff814230cf>] em28xx_dvb_init+0x1d/0x1f
-> 
-> Why em28xx_dvb_init() is being called?
-> 
-> That should only happen if the device is re-probed again, but
-> the reset_resume code should have been preventing it.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Well, I stuck a WARN_ON(1) into drxk_release(), it is not called
-during hibernate+resume.
-Do you have a better suggestion to debug it?
+The PLL flags were not used correctly.
 
-Johannes
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 2335529..ab5d9a3 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -67,7 +67,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
+ {
+ 	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
+ 	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
+-	if (pll->flags != SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
++	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
+ 		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
+ 		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
+ 	}
+@@ -77,7 +77,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
+ 	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
+ 	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
+ 	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
+-	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
++	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
+ 		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
+ 			pll->op_sys_clk_freq_hz);
+ 		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
+-- 
+1.7.10.4
+
