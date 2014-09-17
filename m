@@ -1,84 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37390 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754312AbaIXN4q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 09:56:46 -0400
-Message-ID: <5422CD95.7010905@osg.samsung.com>
-Date: Wed, 24 Sep 2014 07:56:37 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.co,
-	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 1/5] media: add media token device resource framework
-References: <cover.1411397045.git.shuahkh@osg.samsung.com> <78fed57ab9b3bed4269a078c9a7361bfe9ff6d92.1411397045.git.shuahkh@osg.samsung.com> <5422AA63.1070406@xs4all.nl>
-In-Reply-To: <5422AA63.1070406@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55062 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756625AbaIQUpe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Sep 2014 16:45:34 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 239EA600A6
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:31 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 08/17] smiapp: The PLL calculator handles sensors with VT clocks only
+Date: Wed, 17 Sep 2014 23:45:32 +0300
+Message-Id: <1410986741-6801-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2014 05:26 AM, Hans Verkuil wrote:
-> Hi Shuah,
-> 
-> Here is my review...
-> 
-> On 09/22/2014 05:00 PM, Shuah Khan wrote:
->> Add media token device resource framework to allow sharing
->> resources such as tuner, dma, audio etc. across media drivers
->> and non-media sound drivers that control media hardware. The
->> Media token resource is created at the main struct device that
->> is common to all drivers that claim various pieces of the main
->> media device, which allows them to find the resource using the
->> main struct device. As an example, digital, analog, and
->> snd-usb-audio drivers can use the media token resource API
->> using the main struct device for the interface the media device
->> is attached to.
->>
->> The media token resource contains token for tuner, dma, and
->> audio.
-> 
-> Why dma and audio? Neither is being used in this patch series. I
-> would leave them out until you actually show how they are used in a
-> driver.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Yeah I can remove these. I am not using them in this series.
+No need to pretend the OP limits are there anymore.
 
->> +static int __media_get_tkn(struct media_tkn *tkn,
->> +                enum media_tkn_mode mode, bool exclusive)
->> +{
->> +    int rc = 0;
->> +
->> +    spin_lock(&tkn->lock);
->> +    if (tkn->is_exclusive)
->> +        rc = -EBUSY;
->> +    else if (tkn->owners && ((mode != tkn->mode) || exclusive))
->> +        rc = -EBUSY;
->> +    else {
->> +        if (tkn->owners < INT_MAX)
->> +            tkn->owners++;
->> +        else
->> +            tkn->owners = 1;
-> 
-> Somewhat weird. Can owners ever become INT_MAX?
-> 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-I didn't have this at first. I was testing with tvtime and
-noticed the count going up to 40k+ while it is streaming.
-The count kept going up. So I figured I might as well add
-the check to cover for cases where application like tvtime
-run for a very longtime like a couple of hours.
-
-thanks,
--- Shuah
-
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 2f81c9c..54cb136 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -277,16 +277,6 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
+ 	struct smiapp_pll *pll = &sensor->pll;
+ 	int rval;
+ 
+-	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0) {
+-		/*
+-		 * Fill in operational clock divisors limits from the
+-		 * video timing ones. On profile 0 sensors the
+-		 * requirements regarding them are essentially the
+-		 * same as on VT ones.
+-		 */
+-		lim.op = lim.vt;
+-	}
+-
+ 	pll->binning_horizontal = sensor->binning_horizontal;
+ 	pll->binning_vertical = sensor->binning_vertical;
+ 	pll->link_freq =
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.7.10.4
+
