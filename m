@@ -1,67 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2573 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932284AbaICMug (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 08:50:36 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s83CoVl8046551
-	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 14:50:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 2CE602A075A
-	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 14:50:27 +0200 (CEST)
-Message-ID: <54070E74.7030705@xs4all.nl>
-Date: Wed, 03 Sep 2014 14:49:56 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] cx23885: vb2 conversion
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55058 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756266AbaIQUpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Sep 2014 16:45:32 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 50490600A2
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:30 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 04/17] smiapp-pll: External clock frequency isn't an output value
+Date: Wed, 17 Sep 2014 23:45:28 +0300
+Message-Id: <1410986741-6801-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-This pull request is for the cx23885 vb2 conversion. In this pull request
-I dropped the VBI offset change from the first patch (as discussed on irc)
-and the 'weird sizes' patch. Those will come later when I have a bit more
-time for further testing and digging into the datasheet.
+It's input. Move it elsewhere in the struct.
 
-But I'd like to get this stuff in at least.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index 5ce2b61..2885cd7 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -53,6 +53,7 @@ struct smiapp_pll {
+ 	uint8_t scale_n;
+ 	uint8_t bits_per_pixel;
+ 	uint32_t link_freq;
++	uint32_t ext_clk_freq_hz;
+ 
+ 	/* output values */
+ 	uint16_t pre_pll_clk_div;
+@@ -62,7 +63,6 @@ struct smiapp_pll {
+ 	uint16_t vt_sys_clk_div;
+ 	uint16_t vt_pix_clk_div;
+ 
+-	uint32_t ext_clk_freq_hz;
+ 	uint32_t pll_ip_clk_freq_hz;
+ 	uint32_t pll_op_clk_freq_hz;
+ 	uint32_t op_sys_clk_freq_hz;
+-- 
+1.7.10.4
 
-	Hans
-
-The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
-
-  [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cx23c
-
-for you to fetch changes up to a3f45ff9e8ac28e6a8fdb89e9ff353a47b863418:
-
-  cx23885: Add busy checks before changing formats (2014-09-03 14:40:47 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      cx23885: convert to vb2
-      cx23885: fix field handling
-      cx23885: remove btcx-risc dependency
-      cx23885: Add busy checks before changing formats
-
- drivers/media/pci/cx23885/Kconfig         |   5 +-
- drivers/media/pci/cx23885/Makefile        |   1 -
- drivers/media/pci/cx23885/altera-ci.c     |   4 +-
- drivers/media/pci/cx23885/cx23885-417.c   | 322 +++++++------------
- drivers/media/pci/cx23885/cx23885-alsa.c  |   9 +-
- drivers/media/pci/cx23885/cx23885-core.c  | 337 ++++++--------------
- drivers/media/pci/cx23885/cx23885-dvb.c   | 131 +++++---
- drivers/media/pci/cx23885/cx23885-vbi.c   | 275 ++++++++--------
- drivers/media/pci/cx23885/cx23885-video.c | 830 ++++++++++++++-----------------------------------
- drivers/media/pci/cx23885/cx23885.h       |  79 ++---
- 10 files changed, 710 insertions(+), 1283 deletions(-)
