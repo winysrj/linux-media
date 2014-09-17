@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34306 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55060 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750777AbaIDHDt (ORCPT
+	by vger.kernel.org with ESMTP id S1755801AbaIQUpe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 03:03:49 -0400
-Date: Thu, 4 Sep 2014 10:03:40 +0300
+	Wed, 17 Sep 2014 16:45:34 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id B3EF0600A4
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:30 +0300 (EEST)
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 16/46] [media] smiapp-core: use true/false for boolean
- vars
-Message-ID: <20140904070340.GJ30024@valkosipuli.retiisi.org.uk>
-References: <cover.1409775488.git.m.chehab@samsung.com>
- <64a4483b3c2e3864dfdc0029497c9e4188a88887.1409775488.git.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <64a4483b3c2e3864dfdc0029497c9e4188a88887.1409775488.git.m.chehab@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 06/17] smiapp-pll: Don't validate OP clocks if there are none
+Date: Wed, 17 Sep 2014 23:45:30 +0300
+Message-Id: <1410986741-6801-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 03, 2014 at 05:32:48PM -0300, Mauro Carvalho Chehab wrote:
-> Instead of using 0 or 1 for boolean, use the true/false
-> defines.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Thanks!
+Profile 0 sensors have no OP clocks, don't validate them.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Would you like me to pick this patch to my tree, or would you like to apply
-it directly? I'm fine with either.
-
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 40a18ba..f83f25f 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -129,6 +129,14 @@ static int check_all_bounds(struct device *dev,
+ 			limits->op.min_pix_clk_freq_hz,
+ 			limits->op.max_pix_clk_freq_hz,
+ 			"op_pix_clk_freq_hz");
++
++	/*
++	 * If there are no OP clocks, the VT clocks are contained in
++	 * the OP clock struct.
++	 */
++	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)
++		return rval;
++
+ 	if (!rval)
+ 		rval = bounds_check(
+ 			dev, pll->vt.sys_clk_freq_hz,
 -- 
-Kind regards,
+1.7.10.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
