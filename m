@@ -1,79 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:55667 "EHLO
-	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754145AbaIVPHO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55057 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756245AbaIQUpc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:07:14 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.co, hverkuil@xs4all.nl, ramakrmu@cisco.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 4/5] media: dvb-core changes to use media tuner token api
-Date: Mon, 22 Sep 2014 09:00:48 -0600
-Message-Id: <cc4b6198b88277b2c0d56d288bde0e4c35e14d8b.1411397045.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
-References: <cover.1411397045.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
-References: <cover.1411397045.git.shuahkh@osg.samsung.com>
+	Wed, 17 Sep 2014 16:45:32 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1E0F2600A1
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:30 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 03/17] smiapp-pll: Separate bounds checking into a separate function
+Date: Wed, 17 Sep 2014 23:45:27 +0300
+Message-Id: <1410986741-6801-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change to hold media tuner token exclusive mode in
-dvb_frontend_start() before starting the dvb thread
-and release from dvb_frontend_thread() when thread
-exits. dvb frontend thread is started only when the
-dvb device is opened in Read/Write mode.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Enough work for this function already.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/i2c/smiapp-pll.c |  110 +++++++++++++++++++++-------------------
+ 1 file changed, 59 insertions(+), 51 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index c862ad7..22833c6 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -41,6 +41,7 @@
- #include <linux/jiffies.h>
- #include <linux/kthread.h>
- #include <asm/processor.h>
-+#include <linux/media_tknres.h>
- 
- #include "dvb_frontend.h"
- #include "dvbdev.h"
-@@ -742,6 +743,7 @@ restart:
- 	if (semheld)
- 		up(&fepriv->sem);
- 	dvb_frontend_wakeup(fe);
-+	media_put_tuner_tkn(fe->dvb->device, MEDIA_MODE_DVB);
- 	return 0;
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index d14af5c..bde8eb8 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -87,6 +87,64 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
+ 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
  }
  
-@@ -836,6 +838,13 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
- 	fepriv->state = FESTATE_IDLE;
- 	fe->exit = DVB_FE_NO_EXIT;
- 	fepriv->thread = NULL;
++static int check_all_bounds(struct device *dev,
++			    const struct smiapp_pll_limits *limits,
++			    struct smiapp_pll *pll)
++{
++	int rval;
 +
-+	ret = media_get_tuner_tkn(fe->dvb->device, MEDIA_MODE_DVB);
-+	if (ret == -EBUSY) {
-+		dev_info(fe->dvb->device, "dvb: Tuner is busy\n");
-+		return ret;
-+	}
++	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
++			    limits->min_pll_ip_freq_hz,
++			    limits->max_pll_ip_freq_hz,
++			    "pll_ip_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->pll_multiplier,
++			limits->min_pll_multiplier, limits->max_pll_multiplier,
++			"pll_multiplier");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->pll_op_clk_freq_hz,
++			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
++			"pll_op_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_sys_clk_div,
++			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
++			"op_sys_clk_div");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_pix_clk_div,
++			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
++			"op_pix_clk_div");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_sys_clk_freq_hz,
++			limits->op.min_sys_clk_freq_hz,
++			limits->op.max_sys_clk_freq_hz,
++			"op_sys_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_pix_clk_freq_hz,
++			limits->op.min_pix_clk_freq_hz,
++			limits->op.max_pix_clk_freq_hz,
++			"op_pix_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->vt_sys_clk_freq_hz,
++			limits->vt.min_sys_clk_freq_hz,
++			limits->vt.max_sys_clk_freq_hz,
++			"vt_sys_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->vt_pix_clk_freq_hz,
++			limits->vt.min_pix_clk_freq_hz,
++			limits->vt.max_pix_clk_freq_hz,
++			"vt_pix_clk_freq_hz");
 +
- 	mb();
++	return rval;
++}
++
+ /*
+  * Heuristically guess the PLL tree for a given common multiplier and
+  * divisor. Begin with the operational timing and continue to video
+@@ -117,7 +175,6 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	uint32_t min_vt_div, max_vt_div, vt_div;
+ 	uint32_t min_sys_div, max_sys_div;
+ 	unsigned int i;
+-	int rval;
  
- 	fe_thread = kthread_run(dvb_frontend_thread, fe,
-@@ -846,6 +855,7 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
- 				"dvb_frontend_start: failed to start kthread (%d)\n",
- 				ret);
- 		up(&fepriv->sem);
-+		media_put_tuner_tkn(fe->dvb->device, MEDIA_MODE_DVB);
- 		return ret;
- 	}
- 	fepriv->thread = fe_thread;
+ 	/*
+ 	 * Get pre_pll_clk_div so that our pll_op_clk_freq_hz won't be
+@@ -323,56 +380,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	pll->pixel_rate_csi =
+ 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
+ 
+-	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
+-			    limits->min_pll_ip_freq_hz,
+-			    limits->max_pll_ip_freq_hz,
+-			    "pll_ip_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->pll_multiplier,
+-			limits->min_pll_multiplier, limits->max_pll_multiplier,
+-			"pll_multiplier");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->pll_op_clk_freq_hz,
+-			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
+-			"pll_op_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_sys_clk_div,
+-			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
+-			"op_sys_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_pix_clk_div,
+-			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
+-			"op_pix_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_sys_clk_freq_hz,
+-			limits->op.min_sys_clk_freq_hz,
+-			limits->op.max_sys_clk_freq_hz,
+-			"op_sys_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_pix_clk_freq_hz,
+-			limits->op.min_pix_clk_freq_hz,
+-			limits->op.max_pix_clk_freq_hz,
+-			"op_pix_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->vt_sys_clk_freq_hz,
+-			limits->vt.min_sys_clk_freq_hz,
+-			limits->vt.max_sys_clk_freq_hz,
+-			"vt_sys_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->vt_pix_clk_freq_hz,
+-			limits->vt.min_pix_clk_freq_hz,
+-			limits->vt.max_pix_clk_freq_hz,
+-			"vt_pix_clk_freq_hz");
+-
+-	return rval;
++	return check_all_bounds(dev, limits, pll);
+ }
+ 
+ int smiapp_pll_calculate(struct device *dev,
 -- 
 1.7.10.4
 
