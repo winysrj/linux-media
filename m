@@ -1,85 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0143.outbound.protection.outlook.com ([157.56.111.143]:24400
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751272AbaIYCfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 22:35:34 -0400
-From: "chen.fang@freescale.com" <chen.fang@freescale.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
-CC: Shengchao Guo <Shawn.Guo@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-Date: Thu, 25 Sep 2014 02:20:13 +0000
-Message-ID: <8dc8e93630584c6488405c91b0fabc05@BY2PR03MB556.namprd03.prod.outlook.com>
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
- <540FF70E.9050203@xs4all.nl> <5422BBDB.7050904@samsung.com>
- <5422BC49.3050000@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55066 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756839AbaIQUpe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Sep 2014 16:45:34 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id EB918600AA
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:31 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 12/17] smiapp: Take mutex during PLL update in sensor initialisation
+Date: Wed, 17 Sep 2014 23:45:36 +0300
+Message-Id: <1410986741-6801-13-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhhbmtzIGZvciB5b3VyIGlkZWEsIE1hcmVrIGFuZCBIYW5zLiBUaGlzIGNoYW5nZSBtYWtlcyBz
-ZW5zZS4gQW5kIEkndmUgYWxyZWFkeSB2ZXJpZmllZCBpdC4gSSdsbCByZXN1Ym1pdCBteSBjaGFu
-Z2Ugc29vbi4NCg0KQmVzdCByZWdhcmRzLA0KRmFuY3kgRmFuZw0KDQotLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KRnJvbTogSGFucyBWZXJrdWlsIFttYWlsdG86aHZlcmt1aWxAeHM0YWxsLm5s
-XQ0KU2VudDogV2VkbmVzZGF5LCBTZXB0ZW1iZXIgMjQsIDIwMTQgODo0MyBQTQ0KVG86IE1hcmVr
-IFN6eXByb3dza2k7IEZhbmcgQ2hlbi1CNDc1NDM7IG0uY2hlaGFiQHNhbXN1bmcuY29tOyB2aXJv
-QFplbklWLmxpbnV4Lm9yZy51aw0KQ2M6IEd1byBTaGF3bi1SNjUwNzM7IGxpbnV4LW1lZGlhQHZn
-ZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUmU6
-IFtQQVRDSF0gW21lZGlhXSB2aWRlb2J1Zi1kbWEtY29udGlnOiByZXBsYWNlIHZtX2lvbWFwX21l
-bW9yeSgpIHdpdGggcmVtYXBfcGZuX3JhbmdlKCkuDQoNCg0KDQpPbiAwOS8yNC8yMDE0IDAyOjQw
-IFBNLCBNYXJlayBTenlwcm93c2tpIHdyb3RlOg0KPiBIZWxsbywNCj4NCj4gT24gMjAxNC0wOS0x
-MCAwOTowMCwgSGFucyBWZXJrdWlsIHdyb3RlOg0KPj4gT24gMDkvMTAvMTQgMDc6MjgsIEZhbmN5
-IEZhbmcgd3JvdGU6DQo+Pj4gV2hlbiB1c2VyIHJlcXVlc3RzIFY0TDJfTUVNT1JZX01NQVAgdHlw
-ZSBidWZmZXJzLCB0aGUgdmlkZW9idWYtY29yZSANCj4+PiB3aWxsIGFzc2lnbiB0aGUgY29ycmVz
-cG9uZGluZyBvZmZzZXQgdG8gdGhlICdib2ZmJyBmaWVsZCBvZiB0aGUgDQo+Pj4gdmlkZW9idWZf
-YnVmZmVyIGZvciBlYWNoIHJlcXVlc3RlZCBidWZmZXIgc2VxdWVudGlhbGx5LiBMYXRlciwgdXNl
-ciANCj4+PiBtYXkgY2FsbCBtbWFwKCkgdG8gbWFwIG9uZSBvciBhbGwgb2YgdGhlIGJ1ZmZlcnMg
-d2l0aCB0aGUgJ29mZnNldCcNCj4+PiBwYXJhbWV0ZXIgd2hpY2ggaXMgZXF1YWwgdG8gaXRzICdi
-b2ZmJyB2YWx1ZS4gT2J2aW91c2x5LCB0aGUgJ29mZnNldCcNCj4+PiB2YWx1ZSBpcyBvbmx5IHVz
-ZWQgdG8gZmluZCB0aGUgbWF0Y2hlZCBidWZmZXIgaW5zdGVhZCBvZiB0byBiZSB0aGUgDQo+Pj4g
-cmVhbCBvZmZzZXQgZnJvbSB0aGUgYnVmZmVyJ3MgcGh5c2ljYWwgc3RhcnQgYWRkcmVzcyBhcyB1
-c2VkIGJ5IA0KPj4+IHZtX2lvbWFwX21lbW9yeSgpLiBTbywgaW4gc29tZSBjYXNlIHRoYXQgaWYg
-dGhlIG9mZnNldCBpcyBub3QgemVybywNCj4+PiB2bV9pb21hcF9tZW1vcnkoKSB3aWxsIGZhaWwu
-DQo+PiBJcyB0aGlzIGp1c3QgYSBmaXggZm9yIHNvbWV0aGluZyB0aGF0IGNhbiBmYWlsIHRoZW9y
-ZXRpY2FsbHksIG9yIGRvIA0KPj4geW91IGFjdHVhbGx5IGhhdmUgYSBjYXNlIHdoZXJlIHRoaXMg
-aGFwcGVucz8gSSBhbSB2ZXJ5IHJlbHVjdGFudCB0byANCj4+IG1ha2UgYW55IGNoYW5nZXMgdG8g
-dmlkZW9idWYuIERyaXZlcnMgc2hvdWxkIGFsbCBtaWdyYXRlIHRvIHZiMi4NCj4+DQo+PiBJIGhh
-dmUgQ0MtZWQgTWFyZWsgYXMgd2VsbCBzaW5jZSBoZSBrbm93cyBhIGxvdCBtb3JlIGFib3V0IHRo
-aXMgc3R1ZmYgDQo+PiB0aGFuIEkgZG8uDQo+DQo+IEknbSBzb3JyeSBmb3IgYSBkZWxheSwgSSB3
-YXMgcmVhbGx5IGJ1c3kgd2l0aCBvdGhlciB0aGluZ3MuDQo+DQo+Pj4gU2lnbmVkLW9mZi1ieTog
-RmFuY3kgRmFuZyA8Y2hlbi5mYW5nQGZyZWVzY2FsZS5jb20+DQo+Pj4gLS0tDQo+Pj4gICBkcml2
-ZXJzL21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMgfCA0ICsrKy0NCj4+PiAg
-IDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4+Pg0KPj4+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGln
-LmMgDQo+Pj4gYi9kcml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMN
-Cj4+PiBpbmRleCBiZjgwZjBmLi44YmQ5ODg5IDEwMDY0NA0KPj4+IC0tLSBhL2RyaXZlcnMvbWVk
-aWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYw0KPj4+ICsrKyBiL2RyaXZlcnMvbWVk
-aWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYw0KPj4+IEBAIC0zMDUsNyArMzA1LDkg
-QEAgc3RhdGljIGludCBfX3ZpZGVvYnVmX21tYXBfbWFwcGVyKHN0cnVjdCB2aWRlb2J1Zl9xdWV1
-ZSAqcSwNCj4+PiAgICAgICAvKiBUcnkgdG8gcmVtYXAgbWVtb3J5ICovDQo+Pj4gICAgICAgc2l6
-ZSA9IHZtYS0+dm1fZW5kIC0gdm1hLT52bV9zdGFydDsNCj4+PiAgICAgICB2bWEtPnZtX3BhZ2Vf
-cHJvdCA9IHBncHJvdF9ub25jYWNoZWQodm1hLT52bV9wYWdlX3Byb3QpOw0KPj4+IC0gICAgcmV0
-dmFsID0gdm1faW9tYXBfbWVtb3J5KHZtYSwgbWVtLT5kbWFfaGFuZGxlLCBzaXplKTsNCj4+PiAr
-ICAgIHJldHZhbCA9IHJlbWFwX3Bmbl9yYW5nZSh2bWEsIHZtYS0+dm1fc3RhcnQsDQo+Pj4gKyAg
-ICAgICAgICAgICAgICAgbWVtLT5kbWFfaGFuZGxlID4+IFBBR0VfU0hJRlQsDQo+Pj4gKyAgICAg
-ICAgICAgICAgICAgc2l6ZSwgdm1hLT52bV9wYWdlX3Byb3QpOw0KPj4+ICAgICAgIGlmIChyZXR2
-YWwpIHsNCj4+PiAgICAgICAgICAgZGV2X2VycihxLT5kZXYsICJtbWFwOiByZW1hcCBmYWlsZWQg
-d2l0aCBlcnJvciAlZC4gIiwNCj4+PiAgICAgICAgICAgICAgIHJldHZhbCk7DQo+DQo+IEkgdGhp
-bmsgd2UgZG9uJ3QgbmVlZCB0byByZXZlcnQgdGhlIGNvZGUgdG8gdXNlIHJlbWFwX3Bmbl9yYW5n
-ZSgpIA0KPiBhZ2FpbiAobGlrZSBpdCB3YXMgaW4gcHJlIHYzLjEwIHRpbWVzKS4gVGhlIHNpbXBs
-ZXN0IHdheSB3aWxsIGJlIHRvIA0KPiBjb3JyZWN0bHkgZml4DQo+IHZtYS0+dm1fcGdvZmYgYW5k
-IHNldCBpdCB0byB6ZXJvIGJlZm9yZSBjYWxsaW5nIHZtX2lvbWFwX21lbW9yeSgpLiBJdCANCj4g
-dm1hLT5pcw0KPiBkb25lIHRoZSBzYW1lIHdheSBpbiB2YjJfZG1hX2NvbnRpZy5jOnZiMl9kY19t
-bWFwKCkuDQo+DQo+IFRvIHN1bSB1cCAtIHBsZWFzZSBjaGFuZ2UgeW91ciBwYXRjaDoga2VlcCB2
-bV9pb21hcF9tZW1vcnkoKSBjYWxsIGFuZCANCj4gYWRkICJ2bWEtPnZtX3Bnb2ZmID0gMDsiIGxp
-bmUgYmVmb3JlIGl0IHdpdGggc3VpdGFibGUgY29tbWVudC4NCg0KTXVjaCBiZXR0ZXIsIEkgYWdy
-ZWUgY29tcGxldGVseS4NCg0KUmVnYXJkcywNCg0KCUhhbnMNCg==
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+The mutex does not serialise anything in this case but avoids a lockdep
+warning from the control framework.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 6db0e8d..346ff5b 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2667,7 +2667,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
+ 	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
+ 
++	mutex_lock(&sensor->mutex);
+ 	rval = smiapp_update_mode(sensor);
++	mutex_unlock(&sensor->mutex);
+ 	if (rval) {
+ 		dev_err(&client->dev, "update mode failed\n");
+ 		goto out_nvm_release;
+-- 
+1.7.10.4
+
