@@ -1,203 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39329 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044AbaIJQ0S (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55061 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756386AbaIQUpe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 12:26:18 -0400
-Date: Wed, 10 Sep 2014 16:25:59 +0000
-From: Tony Lindgren <tony@atomide.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Balaji T K <balajitk@ti.com>, Nishanth Menon <nm@ti.com>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	linux-omap <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 1/3] omap-dma: Allow compile-testing omap1_camera driver
-Message-ID: <20140910162559.GC1058@atomide.com>
-References: <20140909124306.2d5a0d76@canb.auug.org.au>
- <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
- <20140909144157.GF12361@n2100.arm.linux.org.uk>
- <20140909123654.37d60f38.m.chehab@samsung.com>
- <20140909145217.4bce41b0@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20140909145217.4bce41b0@recife.lan>
+	Wed, 17 Sep 2014 16:45:34 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id E5B25600A5
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:30 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 07/17] smiapp-pll: Calculate OP clocks only for sensors that have them
+Date: Wed, 17 Sep 2014 23:45:31 +0300
+Message-Id: <1410986741-6801-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Mauro Carvalho Chehab <mchehab@infradead.org> [140909 17:52]:
-> Em Tue, 09 Sep 2014 12:36:54 -0300
-> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-> 
-> > Em Tue, 9 Sep 2014 15:41:58 +0100
-> > Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
-> > 
-> > > On Tue, Sep 09, 2014 at 11:38:17AM -0300, Mauro Carvalho Chehab wrote:
-> > > > We want to be able to COMPILE_TEST the omap1_camera driver.
-> > > > It compiles fine, but it fails linkediting:
-> > > > 
-> > > > ERROR: "omap_stop_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_start_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_dma_link_lch" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_set_dma_dest_burst_mode" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_set_dma_src_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_request_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_set_dma_transfer_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_set_dma_dest_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > ERROR: "omap_free_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > > > 
-> > > > So, add some stub functions to avoid it.
-> > > 
-> > > The real answer to this is to find someone who still uses it, and convert
-> > > it to the DMA engine API.  If there's no users, the driver might as well
-> > > be killed off.
-> > 
-> > Hmm... it seems that there are still several drivers still relying on
-> > the functions declared at: omap-dma.h:
-> > 
-> > $ grep extern include/linux/omap-dma.h |perl -ne 'print "$1\n" if (m/extern\s\S+\s(.*)\(/)' >funcs && git grep -f funcs -l
-> > arch/arm/mach-omap1/pm.c
-> > arch/arm/mach-omap2/pm24xx.c
-> > arch/arm/plat-omap/dma.c
-> > drivers/dma/omap-dma.c
-> > drivers/media/platform/omap/omap_vout_vrfb.c
-> > drivers/media/platform/omap3isp/isphist.c
-> > drivers/media/platform/soc_camera/omap1_camera.c
-> > drivers/mtd/onenand/omap2.c
-> > drivers/usb/gadget/udc/omap_udc.c
-> > drivers/usb/musb/tusb6010_omap.c
-> > drivers/video/fbdev/omap/omapfb_main.c
-> > include/linux/omap-dma.h
-> > 
-> > Perhaps we can remove the header and mark all the above as BROKEN.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-No, not quite yet. That would currently cause major issues for omap2
-and omap3.
+Profile 0 sensors have no OP clock branck in the clock tree. The PLL
+calculator still calculated them, they just weren't used for anything.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |   82 +++++++++++++++++++++++++---------------
+ 1 file changed, 52 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index f83f25f..862ca0c 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -89,7 +89,9 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
  
-> > If nobody fixes, we can strip all of them from the Kernel.
-> 
-> Are all the functions declared at omap-dma.h part of the
-> old DMA API that should be deprecated?
-
-For the drivers yes. For the platform code, there are few functions
-needed, that's at least omap_dma_global_context_save()
-and omap_dma_global_context_restore(). But those can be in a local
-header file in arch/arm/plat-omap/include/plat.
+ static int check_all_bounds(struct device *dev,
+ 			    const struct smiapp_pll_limits *limits,
+-			    struct smiapp_pll *pll)
++			    const struct smiapp_pll_branch_limits *op_limits,
++			    struct smiapp_pll *pll,
++			    struct smiapp_pll_branch *op_pll)
+ {
+ 	int rval;
  
-> If so, it seems that the OMAP2 and OMAP3 also depends on this 
-> thing, as all the PM code for OMAP depends on the functions
-> declared inside omap-dma.h, and marking them as BROKEN
-> causes compilation to failure:
-> 
-> arch/arm/mach-omap2/built-in.o: In function `omap3_save_scratchpad_contents':
-> :(.text+0x798): undefined reference to `omap3_restore_3630'
-> :(.text+0x7a8): undefined reference to `omap3_restore'
-> :(.text+0x7ac): undefined reference to `omap3_restore_es3'
-> arch/arm/mach-omap2/built-in.o: In function `omap3_sram_restore_context':
-> :(.text+0x925c): undefined reference to `omap_push_sram_idle'
-> arch/arm/mach-omap2/built-in.o: In function `option_set':
-> :(.text+0xc15c): undefined reference to `omap3_pm_off_mode_enable'
-> arch/arm/mach-omap2/built-in.o: In function `pwrdm_suspend_set':
-> :(.text+0xc1a0): undefined reference to `omap3_pm_set_suspend_state'
-> arch/arm/mach-omap2/built-in.o: In function `pwrdm_suspend_get':
-> :(.text+0xc1e4): undefined reference to `omap3_pm_get_suspend_state'
-> arch/arm/mach-omap2/built-in.o: In function `omap3_enter_idle_bm':
-> :(.text+0xc7ec): undefined reference to `omap_sram_idle'
-> :(.text+0xc848): undefined reference to `pm34xx_errata'
-> arch/arm/mach-omap2/built-in.o: In function `omap2420_init_late':
-> :(.init.text+0xf64): undefined reference to `omap2_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap2430_init_late':
-> :(.init.text+0x1024): undefined reference to `omap2_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap3_init_late':
-> :(.init.text+0x1248): undefined reference to `omap3_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap3430_init_late':
-> :(.init.text+0x1264): undefined reference to `omap3_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap35xx_init_late':
-> :(.init.text+0x1280): undefined reference to `omap3_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap3630_init_late':
-> :(.init.text+0x129c): undefined reference to `omap3_pm_init'
-> arch/arm/mach-omap2/built-in.o: In function `am35xx_init_late':
-> :(.init.text+0x12b8): undefined reference to `omap3_pm_init'
-> arch/arm/mach-omap2/built-in.o::(.init.text+0x12d4): more undefined references to `omap3_pm_init' follow
-> 
-> This was compiled with allmodconfig on arm, with COMPILE_TEST
-> disabled (a few sub-archs disabled too), to avoid spurious
-> unrelated compilation issues).
-
-OK thanks for pointing that out. I'll take a look at dealing with the
-with omap_dma_global_context_save() and omap_dma_global_context_restore()
-to fix the above.
+@@ -109,25 +111,25 @@ static int check_all_bounds(struct device *dev,
+ 			"pll_op_clk_freq_hz");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, pll->op.sys_clk_div,
+-			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
++			dev, op_pll->sys_clk_div,
++			op_limits->min_sys_clk_div, op_limits->max_sys_clk_div,
+ 			"op_sys_clk_div");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, pll->op.pix_clk_div,
+-			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
++			dev, op_pll->pix_clk_div,
++			op_limits->min_pix_clk_div, op_limits->max_pix_clk_div,
+ 			"op_pix_clk_div");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, pll->op.sys_clk_freq_hz,
+-			limits->op.min_sys_clk_freq_hz,
+-			limits->op.max_sys_clk_freq_hz,
++			dev, op_pll->sys_clk_freq_hz,
++			op_limits->min_sys_clk_freq_hz,
++			op_limits->max_sys_clk_freq_hz,
+ 			"op_sys_clk_freq_hz");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, pll->op.pix_clk_freq_hz,
+-			limits->op.min_pix_clk_freq_hz,
+-			limits->op.max_pix_clk_freq_hz,
++			dev, op_pll->pix_clk_freq_hz,
++			op_limits->min_pix_clk_freq_hz,
++			op_limits->max_pix_clk_freq_hz,
+ 			"op_pix_clk_freq_hz");
  
-> Am I missing something?
-> 
-> BTW, CONFIG_PM is auto-selected by ARCH_OMAP3.
-> 
-> And those are the functions that the OMAP3 code uses from omap-dma.h:
-> 
-> arch/arm/mach-omap2/pm34xx.c:92:2: error: implicit declaration of function ‘omap_dma_global_context_save’ [-Werror=implicit-function-declaration]
-> arch/arm/mach-omap2/pm34xx.c:103:2: error: implicit declaration of function ‘omap_dma_global_context_restore’ [-Werror=implicit-function-declaration]
-> arch/arm/mach-omap2/pm24xx.c:170:2: error: implicit declaration of function ‘omap_dma_running’ [-Werror=implicit-function-declaration]
-> 
-> Just enabling this won't work, as the code at arch/arm/plat-omap/dma.c
-> depends on several other functions inside omap-dma.h.
-
-OK so looks like omap_dma_running() is needed by the platform code too,
-it's the same story.
+ 	/*
+@@ -164,10 +166,11 @@ static int check_all_bounds(struct device *dev,
+  *
+  * @return Zero on success, error code on error.
+  */
+-static int __smiapp_pll_calculate(struct device *dev,
+-				  const struct smiapp_pll_limits *limits,
+-				  struct smiapp_pll *pll, uint32_t mul,
+-				  uint32_t div, uint32_t lane_op_clock_ratio)
++static int __smiapp_pll_calculate(
++	struct device *dev, const struct smiapp_pll_limits *limits,
++	const struct smiapp_pll_branch_limits *op_limits,
++	struct smiapp_pll *pll, struct smiapp_pll_branch *op_pll, uint32_t mul,
++	uint32_t div, uint32_t lane_op_clock_ratio)
+ {
+ 	uint32_t sys_div;
+ 	uint32_t best_pix_div = INT_MAX >> 1;
+@@ -204,7 +207,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		more_mul_max);
+ 	/* Don't go above the division capability of op sys clock divider. */
+ 	more_mul_max = min(more_mul_max,
+-			   limits->op.max_sys_clk_div * pll->pre_pll_clk_div
++			   op_limits->max_sys_clk_div * pll->pre_pll_clk_div
+ 			   / div);
+ 	dev_dbg(dev, "more_mul_max: max_op_sys_clk_div check: %u\n",
+ 		more_mul_max);
+@@ -234,8 +237,8 @@ static int __smiapp_pll_calculate(struct device *dev,
  
-> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Subject: [PATCH] omap-dma: remove deprecated omap-dma.h API
-> 
-> We want to be able to COMPILE_TEST the omap1_camera driver.
-> It compiles fine, but it fails linkediting:
-> 
-> ERROR: "omap_stop_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_start_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_dma_link_lch" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_set_dma_dest_burst_mode" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_set_dma_src_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_request_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_set_dma_transfer_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_set_dma_dest_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> ERROR: "omap_free_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> 
-> That's because OMAP1 is using a legacy deprecated API.
-> Instead of fixing it, the right thing to do is to convert the
-> remaining OMAP drivers that use the legacy API to the standard
-> DMA API.
-> 
-> While this doesn't happen, let's mark the broken stuff with
-> BROKEN.
+ 	more_mul_factor = lcm(div, pll->pre_pll_clk_div) / div;
+ 	dev_dbg(dev, "more_mul_factor: %u\n", more_mul_factor);
+-	more_mul_factor = lcm(more_mul_factor, limits->op.min_sys_clk_div);
+-	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %u\n",
++	more_mul_factor = lcm(more_mul_factor, op_limits->min_sys_clk_div);
++	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %d\n",
+ 		more_mul_factor);
+ 	i = roundup(more_mul_min, more_mul_factor);
+ 	if (!is_one_or_even(i))
+@@ -248,8 +251,8 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	}
+ 
+ 	pll->pll_multiplier = mul * i;
+-	pll->op.sys_clk_div = div * i / pll->pre_pll_clk_div;
+-	dev_dbg(dev, "op_sys_clk_div: %u\n", pll->op.sys_clk_div);
++	op_pll->sys_clk_div = div * i / pll->pre_pll_clk_div;
++	dev_dbg(dev, "op_sys_clk_div: %u\n", op_pll->sys_clk_div);
+ 
+ 	pll->pll_ip_clk_freq_hz = pll->ext_clk_freq_hz
+ 		/ pll->pre_pll_clk_div;
+@@ -258,14 +261,19 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		* pll->pll_multiplier;
+ 
+ 	/* Derive pll_op_clk_freq_hz. */
+-	pll->op.sys_clk_freq_hz =
+-		pll->pll_op_clk_freq_hz / pll->op.sys_clk_div;
++	op_pll->sys_clk_freq_hz =
++		pll->pll_op_clk_freq_hz / op_pll->sys_clk_div;
+ 
+-	pll->op.pix_clk_div = pll->bits_per_pixel;
+-	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op.pix_clk_div);
++	op_pll->pix_clk_div = pll->bits_per_pixel;
++	dev_dbg(dev, "op_pix_clk_div: %u\n", op_pll->pix_clk_div);
+ 
+-	pll->op.pix_clk_freq_hz =
+-		pll->op.sys_clk_freq_hz / pll->op.pix_clk_div;
++	op_pll->pix_clk_freq_hz =
++		op_pll->sys_clk_freq_hz / op_pll->pix_clk_div;
++
++	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
++		/* No OP clocks --- VT clocks are used instead. */
++		goto out_skip_vt_calc;
++	}
+ 
+ 	/*
+ 	 * Some sensors perform analogue binning and some do this
+@@ -293,7 +301,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	 * Find absolute limits for the factor of vt divider.
+ 	 */
+ 	dev_dbg(dev, "scale_m: %u\n", pll->scale_m);
+-	min_vt_div = DIV_ROUND_UP(pll->op.pix_clk_div * pll->op.sys_clk_div
++	min_vt_div = DIV_ROUND_UP(op_pll->pix_clk_div * op_pll->sys_clk_div
+ 				  * pll->scale_n,
+ 				  lane_op_clock_ratio * vt_op_binning_div
+ 				  * pll->scale_m);
+@@ -385,16 +393,19 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	pll->vt.pix_clk_freq_hz =
+ 		pll->vt.sys_clk_freq_hz / pll->vt.pix_clk_div;
+ 
++out_skip_vt_calc:
+ 	pll->pixel_rate_csi =
+-		pll->op.pix_clk_freq_hz * lane_op_clock_ratio;
++		op_pll->pix_clk_freq_hz * lane_op_clock_ratio;
+ 
+-	return check_all_bounds(dev, limits, pll);
++	return check_all_bounds(dev, limits, op_limits, pll, op_pll);
+ }
+ 
+ int smiapp_pll_calculate(struct device *dev,
+ 			 const struct smiapp_pll_limits *limits,
+ 			 struct smiapp_pll *pll)
+ {
++	const struct smiapp_pll_branch_limits *op_limits = &limits->op;
++	struct smiapp_pll_branch *op_pll = &pll->op;
+ 	uint16_t min_pre_pll_clk_div;
+ 	uint16_t max_pre_pll_clk_div;
+ 	uint32_t lane_op_clock_ratio;
+@@ -402,6 +413,16 @@ int smiapp_pll_calculate(struct device *dev,
+ 	unsigned int i;
+ 	int rval = -EINVAL;
+ 
++	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
++		/*
++		 * If there's no OP PLL at all, use the VT values
++		 * instead. The OP values are ignored for the rest of
++		 * the PLL calculation.
++		 */
++		op_limits = &limits->vt;
++		op_pll = &pll->vt;
++	}
++
+ 	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE)
+ 		lane_op_clock_ratio = pll->csi2.lanes;
+ 	else
+@@ -457,7 +478,8 @@ int smiapp_pll_calculate(struct device *dev,
+ 	for (pll->pre_pll_clk_div = min_pre_pll_clk_div;
+ 	     pll->pre_pll_clk_div <= max_pre_pll_clk_div;
+ 	     pll->pre_pll_clk_div += 2 - (pll->pre_pll_clk_div & 1)) {
+-		rval = __smiapp_pll_calculate(dev, limits, pll, mul, div,
++		rval = __smiapp_pll_calculate(dev, limits, op_limits, pll,
++					      op_pll, mul, div,
+ 					      lane_op_clock_ratio);
+ 		if (rval)
+ 			continue;
+-- 
+1.7.10.4
 
-As pointed out, the proper fix for the above is to remove the broken
-driver that nobody is using. Or update it to use dmaengine API if
-somebody is still using it.
-
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -11,6 +11,16 @@ config ARCH_OMAP2
->  	select CPU_V6
->  	select SOC_HAS_OMAP2_SDRC
->  
-> +config OMAP2_PM24XX
-> +	bool
-> +	depends on ARCH_OMAP2
-> +	depends on BROKEN
-> +
-> +config OMAP2_PM34XX
-> +	bool
-> +	depends on ARCH_OMAP3
-> +	depends on BROKEN
-> +
-
-And all this should not be needed, I'll move those to a local platform
-specific header file.
-
-Regards,
-
-Tony
