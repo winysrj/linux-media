@@ -1,92 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:23064 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933276AbaIDBMW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 21:12:22 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBC00A3CRCKYE60@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Sep 2014 21:12:20 -0400 (EDT)
-Date: Wed, 03 Sep 2014 22:12:15 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 32/46] [media] e4000: simplify boolean tests
-Message-id: <20140903221215.3843a9e9.m.chehab@samsung.com>
-In-reply-to: <5407AAA3.1090607@iki.fi>
-References: <cover.1409775488.git.m.chehab@samsung.com>
- <86da9d3c8d8ced8d61c8c57b774da2e7f7a2a4ef.1409775488.git.m.chehab@samsung.com>
- <5407AAA3.1090607@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3173 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbaIQJOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Sep 2014 05:14:52 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8H9Em4F075265
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 11:14:50 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5EA1A2A0553
+	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 11:14:34 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/4] vb2/saa7134 regression/documentation fixes
+Date: Wed, 17 Sep 2014 11:14:28 +0200
+Message-Id: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 04 Sep 2014 02:56:19 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+This fixes the VBI regression seen in saa7134 when it was converted
+to vb2. Tested with my saa7134 board.
 
-> Which is static analyzer you are referring to fix these?
+It also updates the poll documentation and fixes a saa7134 bug where
+the WSS signal was never captured.
 
-Coccinelle. See: scripts/coccinelle/misc/boolinit.cocci
+The first patch should go to 3.17. It won't apply to older kernels,
+so I guess once this is merged we should post a patch to stable for
+those older kernels, certainly 3.16.
 
-> Using true/false for boolean datatype sounds OK, but personally I 
-> dislike use of negation operator. For my eyes (foo = 0) / (foo == false) 
-> is better and I have changed all the time negate operators to equal 
-> operators from my drivers.
-
-The usage of the negation operator on such tests is there since
-the beginning of C.
-
-By being shorter, a reviewer can read it faster and, at least for
-me, it is a non-brain to understand !foo. On the other hand,
-"false" is not part of standard C. So, it takes more time for my
-brain to parse it.
-
-Anyway, from my side, the real reasone for using it is not due to
-that. It is that I (and other Kernel developers) run from time to
-time static analyzers like smatch and coccinelle, in order to identify
-real errors. Having a less-polluted log helps to identify the newer
-errors/warnings.
+I would expect this to be an issue for em28xx as well, but I will
+need to test that. If that driver is affected as well, then this
+fix needs to go into 3.9 and up.
 
 Regards,
-Mauro
-> 
-> regards
-> Antti
-> 
-> On 09/03/2014 11:33 PM, Mauro Carvalho Chehab wrote:
-> > Instead of using if (foo == false), just use
-> > if (!foo).
-> >
-> > That allows a faster mental parsing when analyzing the
-> > code.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> >
-> > diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> > index 90d93348f20c..cd9cf643f602 100644
-> > --- a/drivers/media/tuners/e4000.c
-> > +++ b/drivers/media/tuners/e4000.c
-> > @@ -400,7 +400,7 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-> >   	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
-> >   	int ret;
-> >
-> > -	if (s->active == false)
-> > +	if (!s->active)
-> >   		return 0;
-> >
-> >   	switch (ctrl->id) {
-> > @@ -423,7 +423,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
-> >   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> >   	int ret;
-> >
-> > -	if (s->active == false)
-> > +	if (!s->active)
-> >   		return 0;
-> >
-> >   	switch (ctrl->id) {
-> >
-> 
+
+	Hans
+
