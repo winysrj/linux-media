@@ -1,99 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37194 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:36562 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753997AbaIWNLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 09:11:08 -0400
-Date: Tue, 23 Sep 2014 10:11:03 -0300
+	id S1755653AbaIRMtP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:49:15 -0400
+Date: Thu, 18 Sep 2014 09:49:09 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: Re: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-Message-ID: <20140923101103.224370bb@recife.lan>
-In-Reply-To: <542160F0.1000407@iki.fi>
-References: <20140923085039.51765665@recife.lan>
-	<542160F0.1000407@iki.fi>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [PATCH v2] [media] BZ#84401: Revert "[media] v4l: vb2: Don't
+ return POLLERR during transient buffer underruns"
+Message-ID: <20140918094909.5147bd1e@recife.lan>
+In-Reply-To: <541ACE4E.1040308@cisco.com>
+References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>
+	<20140918070619.32d4e4b1@recife.lan>
+	<541AAFA6.6080605@cisco.com>
+	<20140918075005.11bd495f@recife.lan>
+	<541ACAF9.4030204@cisco.com>
+	<20140918091516.42dc6bb3@recife.lan>
+	<541ACE4E.1040308@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 23 Sep 2014 15:00:48 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
-
-> I am not sure as I cannot reproduce it. Also 30ms wait here is long as 
-> hell, whilst it is not critical.
-> 
-> When I look that firmware downloading from the 1-2 month old Hauppauge 
-> driver sniffs, it is not there:
-> 
-> That line is CMD_FW_BOOT, command 0x23 it is 3rd number:
-> #define CMD_FW_BOOT                 0x23
-> 000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
-> 
-> Here is whole sequence:
-> 000311:  OUT: 000000 ms 001489 ms BULK[00002] >>> 15 00 29 99 03 01 00 
-> 01 57 f7 09 02 6d 6c 02 4f 9f 02 4f a2 0b 16
-> 000312:  OUT: 000001 ms 001489 ms BULK[00081] <<< 04 99 00 66 ff
-> 000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
-> 000314:  OUT: 000011 ms 001490 ms BULK[00081] <<< 04 9a 00 65 ff
-> 000315:  OUT: 000000 ms 001501 ms BULK[00002] >>> 0b 00 00 9b 01 02 00 
-> 00 12 22 40 ec
-> 000316:  OUT: 000000 ms 001501 ms BULK[00081] <<< 05 9b 00 02 62 ff
-> 
-> 
-> So windows driver waits 10ms after boot, not before.
-> 
-> Due to these reasons, I would like to skip that patch until I see error 
-> or get good explanation why it is needed and so.
-
-Ok. I'll tag it as RFC then.
+Em Thu, 18 Sep 2014 14:21:34 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
 > 
 > 
-> regards
-> Antti
+> On 09/18/14 14:15, Mauro Carvalho Chehab wrote:
+> > Em Thu, 18 Sep 2014 14:07:21 +0200
+> > Hans Verkuil <hansverk@cisco.com> escreveu:
+> > 
+> >> My patch is the *only* fix for that since that's the one that addresses
+> >> the real issue.
+> >>
+> >> One option is to merge my fix for 3.18 with a CC to stable for 3.16.
+> >>
+> >> That way it will be in the tree for longer.
+> >>
+> >> Again, the revert that you did won't solve the regression at all. Please
+> >> revert the revert.
+> > 
+> > Well, some patch that went between 3.15 and 3.16 broke VBI. If it was
+> > not this patch, what's the patch that broke it?
 > 
+> The conversion of saa7134 to vb2 in 3.16 broke the VBI support in saa7134.
 > 
-> On 09/23/2014 02:50 PM, Mauro Carvalho Chehab wrote:
-> > Antti,
-> >
-> > After the firmware load changes, is this patch still applicable?
-> >
-> > Regards,
-> > Mauro
-> >
-> > Forwarded message:
-> >
-> > Date: Tue, 05 Aug 2014 13:48:03 +0800
-> > From: Bimow Chen <Bimow.Chen@ite.com.tw>
-> > To: linux-media@vger.kernel.org
-> > Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-> >
-> >
-> >  From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00 2001
-> > From: Bimow Chen <Bimow.Chen@ite.com.tw>
-> > Date: Tue, 5 Aug 2014 11:20:53 +0800
-> > Subject: [PATCH 4/4] Add sleep for firmware ready.
-> >
-> >
-> > Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
-> > ---
-> >   drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
-> >   1 files changed, 2 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> > index 7b9b75f..a450cdb 100644
-> > --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> > +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> > @@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
-> >   	if (ret < 0)
-> >   		goto err;
-> >
-> > +	msleep(30);
-> > +
-> >   	/* firmware loaded, request boot */
-> >   	req.cmd = CMD_FW_BOOT;
-> >   	ret = af9035_ctrl_msg(d, &req);
-> >
+> It turns out that vb2 NEVER did this right.
 > 
+> Remember that saa7134 was only the second driver with VBI support (after
+> em28xx) that was converted to vb2, and that this issue only happens with
+> teletext applications that do not call STREAMON before calling poll().
+> 
+> They rely on the fact that poll returns POLLERR to call STREAMON. Ugly
+> as hell, and not normal behavior for applications.
+> 
+> So that explains why it was never found before.
+
+I don't doubt that your fix solved this specific VBI issue.
+
+What I don't know is what else it broke (if any). If you take a look
+at the videobuf-core, the check for an empty queue that you've removed
+is also there. So, the special handling if the list is empty is at kernel
+for a long time:
+
+7a7d9a89d0307 drivers/media/video/videobuf-core.c     (Mauro Carvalho Chehab 2007-08-23 16:26:14 -0300 1125)    if (q->streaming) {
+7a7d9a89d0307 drivers/media/video/videobuf-core.c     (Mauro Carvalho Chehab 2007-08-23 16:26:14 -0300 1126)            if (!list_empty(&q->stream))
+
+This changeset was merged on v2.6.24. Before that, the videobuf1
+monolithic code were also using it. So, I won't doubt that this check
+is there since the start of V4L2 API.
+
+Changing the syscall behavior of such an old code is really risky
+and can bring all sorts of unpredictable results.
+
+I won't apply any change like that without a comprehensive test,
+checking every single application to be at least 99.999% sure that
+it won't cause even more regressions.
+
+So, until we proof that nothing bad happens, and keep this code
+for test for a reasonable amount of time, I'm nacking your VB2 
+change patch.
+
+We need to find a solution that will make VB2 to act just like
+VB1 with regards to poll() syscall, and not to redefine the
+V4L2 API and apply a partial half-baked, not mature hack on it.
+
+> Note that em28xx (converted to vb2 quite some time before) fails as well.
+> So this regression has been there since 3.9 (when em28xx was converted).
+> I tested my fix with em28xx as well and that will worked fine.
+> 
+> Regards,
+> 
+> 	Hans
