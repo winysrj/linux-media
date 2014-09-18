@@ -1,45 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:9290 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaIANGI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 09:06:08 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NB80018T4E6PP40@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Sep 2014 22:06:07 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from kozue.soulik.info ([108.61.200.231]:39754 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbaIRTlh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 15:41:37 -0400
+From: ayaka <ayaka@soulik.info>
 To: linux-media@vger.kernel.org
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 2/4] s5p-jpeg: remove stray call to readl
-Date: Mon, 01 Sep 2014 15:05:50 +0200
-Message-id: <1409576752-24729-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1409576752-24729-1-git-send-email-j.anaszewski@samsung.com>
-References: <1409576752-24729-1-git-send-email-j.anaszewski@samsung.com>
+Cc: k.debski@samsung.com, arun.m@samsung.com, arun.kk@samsung.com,
+	ayaka <ayaka@soulik.info>
+Subject: [PATCH] media: fix enum_fmt for s5p-mfc
+Date: Fri, 19 Sep 2014 03:41:12 +0800
+Message-Id: <1411069272-16896-2-git-send-email-ayaka@soulik.info>
+In-Reply-To: <1411069272-16896-1-git-send-email-ayaka@soulik.info>
+References: <1411069272-16896-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to read INT_EN_REG before enabling interrupts.
+As the s5p-mfc is a driver which use  multiplanar api, so the
+vidioc_enum_fmt_vid serial of ioctl should only for
+multiplanar, non-multiplanar shouldn't be implemented at all.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: ayaka <ayaka@soulik.info>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 24 +++---------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 24 +++---------------------
+ 2 files changed, 6 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-index da8d6a1..2de81c7 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-@@ -151,9 +151,6 @@ void exynos4_jpeg_set_enc_out_fmt(void __iomem *base, unsigned int out_fmt)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4d93835..6611a7a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -283,17 +283,13 @@ static int vidioc_querycap(struct file *file, void *priv,
  
- void exynos4_jpeg_set_interrupt(void __iomem *base)
+ /* Enumerate format */
+ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
+-							bool mplane, bool out)
++							bool out)
  {
--	unsigned int reg;
--
--	reg = readl(base + EXYNOS4_INT_EN_REG) & ~EXYNOS4_INT_EN_MASK;
- 	writel(EXYNOS4_INT_EN_ALL, base + EXYNOS4_INT_EN_REG);
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_fmt *fmt;
+ 	int i, j = 0;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+-		if (mplane && formats[i].num_planes == 1)
+-			continue;
+-		else if (!mplane && formats[i].num_planes > 1)
+-			continue;
+ 		if (out && formats[i].type != MFC_FMT_DEC)
+ 			continue;
+ 		else if (!out && formats[i].type != MFC_FMT_RAW)
+@@ -313,28 +309,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
+ 	return 0;
  }
  
+-static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
+-							struct v4l2_fmtdesc *f)
+-{
+-	return vidioc_enum_fmt(file, f, false, false);
+-}
+-
+ static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
+ 							struct v4l2_fmtdesc *f)
+ {
+-	return vidioc_enum_fmt(file, f, true, false);
+-}
+-
+-static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
+-							struct v4l2_fmtdesc *f)
+-{
+-	return vidioc_enum_fmt(file, f, false, true);
++	return vidioc_enum_fmt(file, f, false);
+ }
+ 
+ static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *priv,
+ 							struct v4l2_fmtdesc *f)
+ {
+-	return vidioc_enum_fmt(file, f, true, true);
++	return vidioc_enum_fmt(file, f, true);
+ }
+ 
+ /* Get format */
+@@ -878,9 +862,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ /* v4l2_ioctl_ops */
+ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_querycap = vidioc_querycap,
+-	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+ 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
+-	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
+ 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
+ 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
+ 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 3abe468..4725a6f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -953,17 +953,13 @@ static int vidioc_querycap(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
+-							bool mplane, bool out)
++							bool out)
+ {
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_fmt *fmt;
+ 	int i, j = 0;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+-		if (mplane && formats[i].num_planes == 1)
+-			continue;
+-		else if (!mplane && formats[i].num_planes > 1)
+-			continue;
+ 		if (out && formats[i].type != MFC_FMT_RAW)
+ 			continue;
+ 		else if (!out && formats[i].type != MFC_FMT_ENC)
+@@ -983,28 +979,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
+ 	return -EINVAL;
+ }
+ 
+-static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
+-				   struct v4l2_fmtdesc *f)
+-{
+-	return vidioc_enum_fmt(file, f, false, false);
+-}
+-
+ static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
+ 					  struct v4l2_fmtdesc *f)
+ {
+-	return vidioc_enum_fmt(file, f, true, false);
+-}
+-
+-static int vidioc_enum_fmt_vid_out(struct file *file, void *prov,
+-				   struct v4l2_fmtdesc *f)
+-{
+-	return vidioc_enum_fmt(file, f, false, true);
++	return vidioc_enum_fmt(file, f, false);
+ }
+ 
+ static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *prov,
+ 					  struct v4l2_fmtdesc *f)
+ {
+-	return vidioc_enum_fmt(file, f, true, true);
++	return vidioc_enum_fmt(file, f, true);
+ }
+ 
+ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+@@ -1751,9 +1735,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ 
+ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
+ 	.vidioc_querycap = vidioc_querycap,
+-	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+ 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
+-	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
+ 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
+ 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
+ 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
 -- 
-1.7.9.5
+1.9.3
 
