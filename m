@@ -1,194 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37299 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708AbaIFXGr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 19:06:47 -0400
-Message-ID: <540B9381.6010903@iki.fi>
-Date: Sun, 07 Sep 2014 02:06:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/3] si2168: avoid firmware loading if it has been loaded
- previously
-References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>	<1408990024-1642-3-git-send-email-olli.salonen@iki.fi>	<540975F0.8070407@iki.fi>	<CAAZRmGx6d4ch2BY7Q5obPtjp3H2qy9YjW6UYcHLag5RN_eqEKg@mail.gmail.com> <CAAZRmGzhNUhajfBM_-CanNTrJpqKmuLddLU2PZMYx2S+8NqevA@mail.gmail.com>
-In-Reply-To: <CAAZRmGzhNUhajfBM_-CanNTrJpqKmuLddLU2PZMYx2S+8NqevA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34609 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932196AbaIRV5x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 17:57:53 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/3] vb2: Buffers returned to videobuf2 from start_streaming in QUEUED state
+Date: Fri, 19 Sep 2014 00:57:47 +0300
+Message-Id: <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
+References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moro!
-Removing 85 causes lose of DVB-T2 lock, but DVB-T works for me too 
-(Si2168 B40). So you were correct. I will apply that patch as it is.
+Patch "[media] v4l: vb2: Fix stream start and buffer completion race" has a
+sets q->start_streaming_called before calling queue op start_streaming() in
+order to fix a bug. This has the side effect that buffers returned to
+videobuf2 in VB2_BUF_STATE_QUEUED will cause a WARN_ON() to be called.
 
-That tuner sleep/firmware download patch is another thing. Maybe I will 
-apply it too as it prevents unnecessary firmware downloading for Si2158 
-(my Si2157 does not need fw upgrade at all). It harms me a little bit to 
-lose 18mA @5V idle power consumption, but 18mA is still not too much. 
-Reality is that most of these Linux DVB drivers are so broken that USB 
-device consumes more than 100mA on sleep. I am only person who has done 
-these measurements and tried to fix all leakages, and many times done it 
-even better than Windows drivers :) If Linux DVB power management is 
-almost always broken, it is still not very successful on windows I have 
-noticed.
+Add a new field called done_buffers_queued_state to struct vb2_queue, which
+must be set if the new state of buffers returned to videobuf2 must be
+VB2_BUF_STATE_QUEUED, i.e. buffers returned in start_streaming op.
 
-It is annoying though maintain these drivers without a hardware...
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    5 +++--
+ include/media/videobuf2-core.h           |    4 ++++
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-regards
-Antti
-
-
-On 09/06/2014 08:36 PM, Olli Salonen wrote:
-> Moro Antti,
->
-> Tried removing the command 85 after resume, but the result is that the
-> demod doesn't lock after sleep. Curiously this only impacts HD or
-> DVB-T2 channels. DVB-T SD channels are fine even after resume.
->
-> Log of the testing here:
-> http://paste.ubuntu.com/8271949/
->
-> Same thing happens after applying the "si2157: sleep hack" patch: my
-> TT CT2-4400 does not lock on the second tune, ie. after sleep.
->
-> Log of the testing of that patch is here:
-> http://paste.ubuntu.com/8271869/
->
-> Cheers,
-> -olli
->
-> On 5 September 2014 21:54, Olli Salonen <olli.salonen@iki.fi> wrote:
->> Moro,
->>
->> I'll test it once more when testing the "si2157 sleep hack" you
->> posted. Though I remember that the command 85 seemed to be the magic
->> trick that finally made it work - I agree it sounds a bit strange
->> considering it's run later on anyway. The proprietary driver seems to
->> do a command 85 after wake up, but of course that's not a guarantee of
->> anything.
->>
->> My sniff using the proprietary driver is here:
->> http://trsqr.net/olli/ct2-4400/ct2-4400-wakeup-tune-sleep.txt
->>
->> Cheers,
->> -olli
->>
->> On 5 September 2014 11:36, Antti Palosaari <crope@iki.fi> wrote:
->>> Moikka
->>> Did you really need command 85 here? It will be given later in any case. For
->>> my Si2168 B40 there was no need for it.
->>>
->>> regards
->>> Antti
->>>
->>> On 08/25/2014 09:07 PM, Olli Salonen wrote:
->>>>
->>>> Add a variable to keep track if firmware is loaded or not and skip parts
->>>> of the
->>>> initialization if fw is already loaded. Resume from sleep with a different
->>>> command compared to initial power up and run command 85 after resume
->>>> command.
->>>> This behaviour is observed when using manufacturer provided binary-only
->>>> si2168
->>>> driver for TechnoTrend CT2-4400.
->>>>
->>>> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->>>> ---
->>>>    drivers/media/dvb-frontends/si2168.c      | 31
->>>> ++++++++++++++++++++++++++++---
->>>>    drivers/media/dvb-frontends/si2168_priv.h |  1 +
->>>>    2 files changed, 29 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/drivers/media/dvb-frontends/si2168.c
->>>> b/drivers/media/dvb-frontends/si2168.c
->>>> index 55a4212..a0797fd 100644
->>>> --- a/drivers/media/dvb-frontends/si2168.c
->>>> +++ b/drivers/media/dvb-frontends/si2168.c
->>>> @@ -363,6 +363,7 @@ static int si2168_init(struct dvb_frontend *fe)
->>>>
->>>>          dev_dbg(&s->client->dev, "\n");
->>>>
->>>> +       /* initialize */
->>>>          memcpy(cmd.args,
->>>> "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
->>>>          cmd.wlen = 13;
->>>>          cmd.rlen = 0;
->>>> @@ -370,6 +371,26 @@ static int si2168_init(struct dvb_frontend *fe)
->>>>          if (ret)
->>>>                  goto err;
->>>>
->>>> +       if (s->fw_loaded) {
->>>> +               /* resume */
->>>> +               memcpy(cmd.args, "\xc0\x06\x08\x0f\x00\x20\x21\x01", 8);
->>>> +               cmd.wlen = 8;
->>>> +               cmd.rlen = 1;
->>>> +               ret = si2168_cmd_execute(s, &cmd);
->>>> +               if (ret)
->>>> +                       goto err;
->>>> +
->>>> +               memcpy(cmd.args, "\x85", 1);
->>>> +               cmd.wlen = 1;
->>>> +               cmd.rlen = 1;
->>>> +               ret = si2168_cmd_execute(s, &cmd);
->>>> +               if (ret)
->>>> +                       goto err;
->>>> +
->>>> +               goto warm;
->>>> +       }
->>>> +
->>>> +       /* power up */
->>>>          memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
->>>>          cmd.wlen = 8;
->>>>          cmd.rlen = 1;
->>>> @@ -466,9 +487,6 @@ static int si2168_init(struct dvb_frontend *fe)
->>>>          if (ret)
->>>>                  goto err;
->>>>
->>>> -       dev_info(&s->client->dev, "found a '%s' in warm state\n",
->>>> -                       si2168_ops.info.name);
->>>> -
->>>>          /* set ts mode */
->>>>          memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
->>>>          cmd.args[4] |= s->ts_mode;
->>>> @@ -478,6 +496,12 @@ static int si2168_init(struct dvb_frontend *fe)
->>>>          if (ret)
->>>>                  goto err;
->>>>
->>>> +       s->fw_loaded = true;
->>>> +
->>>> +warm:
->>>> +       dev_info(&s->client->dev, "found a '%s' in warm state\n",
->>>> +                       si2168_ops.info.name);
->>>> +
->>>>          s->active = true;
->>>>
->>>>          return 0;
->>>> @@ -645,6 +669,7 @@ static int si2168_probe(struct i2c_client *client,
->>>>          *config->i2c_adapter = s->adapter;
->>>>          *config->fe = &s->fe;
->>>>          s->ts_mode = config->ts_mode;
->>>> +       s->fw_loaded = false;
->>>>
->>>>          i2c_set_clientdata(client, s);
->>>>
->>>> diff --git a/drivers/media/dvb-frontends/si2168_priv.h
->>>> b/drivers/media/dvb-frontends/si2168_priv.h
->>>> index 0f83284..e13983e 100644
->>>> --- a/drivers/media/dvb-frontends/si2168_priv.h
->>>> +++ b/drivers/media/dvb-frontends/si2168_priv.h
->>>> @@ -36,6 +36,7 @@ struct si2168 {
->>>>          fe_delivery_system_t delivery_system;
->>>>          fe_status_t fe_status;
->>>>          bool active;
->>>> +       bool fw_loaded;
->>>>          u8 ts_mode;
->>>>    };
->>>>
->>>>
->>>
->>> --
->>> http://palosaari.fi/
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7e6aff6..202e2a5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1174,7 +1174,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+ 		return;
+ 
+-	if (!q->start_streaming_called) {
++	if (q->done_buffers_queued_state) {
+ 		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
+ 			state = VB2_BUF_STATE_QUEUED;
+ 	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+@@ -1742,9 +1742,10 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 		__enqueue_in_driver(vb);
+ 
+ 	/* Tell the driver to start streaming */
+-	q->start_streaming_called = 1;
++	q->done_buffers_queued_state = q->start_streaming_called = 1;
+ 	ret = call_qop(q, start_streaming, q,
+ 		       atomic_read(&q->owned_by_drv_count));
++	q->done_buffers_queued_state = 0;
+ 	if (!ret)
+ 		return 0;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5a10d8d..7c0dac6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -380,6 +380,9 @@ struct v4l2_fh;
+  * @streaming:	current streaming state
+  * @start_streaming_called: start_streaming() was called successfully and we
+  *		started streaming.
++ * @done_buffers_queued_state: buffers returned to videobuf2 must go
++ *		to VB2_BUF_STATE_QUEUED state. This is the case whilst
++ *		the driver's start_streaming op is called.
+  * @error:	a fatal error occurred on the queue
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+@@ -418,6 +421,7 @@ struct vb2_queue {
+ 
+ 	unsigned int			streaming:1;
+ 	unsigned int			start_streaming_called:1;
++	unsigned int			done_buffers_queued_state:1;
+ 	unsigned int			error:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
 -- 
-http://palosaari.fi/
+1.7.10.4
+
