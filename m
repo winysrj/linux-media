@@ -1,66 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34283 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbaIXW2A (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:62000 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932225AbaIRPvm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:28:00 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: [PATCH 04/18] [media] saa7164-core: declare symbols as static
-Date: Wed, 24 Sep 2014 19:27:04 -0300
-Message-Id: <c2514892ac4ce7d8d645abd90916480d884a49eb.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+	Thu, 18 Sep 2014 11:51:42 -0400
+Received: by mail-wi0-f173.google.com with SMTP id em10so3385064wid.12
+        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 08:51:41 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 18 Sep 2014 17:51:41 +0200
+Message-ID: <CAL9G6WXe27sk-aM-+SDQYdrtywXBw11dd9V-vvpvNYGBK8SEBw@mail.gmail.com>
+Subject: smsusb_onresponse error
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those symbols are used only at saa7164-core.
+Hello all,
 
-drivers/media/pci/saa7164/saa7164-core.c:55:14: warning: symbol 'fw_debug' was not declared. Should it be static?
-drivers/media/pci/saa7164/saa7164-core.c:75:14: warning: symbol 'print_histogram' was not declared. Should it be static?
-drivers/media/pci/saa7164/saa7164-core.c:83:14: warning: symbol 'guard_checking' was not declared. Should it be static?
+I have Hauppauge WinTV-MiniStick in a Debian Wheezy (3.2 kernel), I
+notice that I have lots of firmware errors in dmesg:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+# dmesg | grep smsusb
+[    6.717599] usbcore: registered new interface driver smsusb
+[63792.528700] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+[63792.528949] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+[63792.529197] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+[63792.529446] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+[63792.529707] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+[63792.529947] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
 
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index 1bf06970ca3e..cc1be8a7a451 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -52,7 +52,7 @@ unsigned int saa_debug;
- module_param_named(debug, saa_debug, int, 0644);
- MODULE_PARM_DESC(debug, "enable debug messages");
- 
--unsigned int fw_debug;
-+static unsigned int fw_debug;
- module_param(fw_debug, int, 0644);
- MODULE_PARM_DESC(fw_debug, "Firmware debug level def:2");
- 
-@@ -72,7 +72,7 @@ static unsigned int card[]  = {[0 ... (SAA7164_MAXBOARDS - 1)] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card, "card type");
- 
--unsigned int print_histogram = 64;
-+static unsigned int print_histogram = 64;
- module_param(print_histogram, int, 0644);
- MODULE_PARM_DESC(print_histogram, "print histogram values once");
- 
-@@ -80,7 +80,7 @@ unsigned int crc_checking = 1;
- module_param(crc_checking, int, 0644);
- MODULE_PARM_DESC(crc_checking, "enable crc sanity checking on buffers");
- 
--unsigned int guard_checking = 1;
-+static unsigned int guard_checking = 1;
- module_param(guard_checking, int, 0644);
- MODULE_PARM_DESC(guard_checking,
- 	"enable dma sanity checking for buffer overruns");
+I am using this firmware:
+
+# md5sum /lib/firmware/sms1xxx-hcw-55xxx-dvbt-02.fw
+b44807098ba26e52cbedeadc052ba58f  /lib/firmware/sms1xxx-hcw-55xxx-dvbt-02.fw
+
+Is something wrong with the firmware? Is this normal?
+
+Thanks and best regards.
+
 -- 
-1.9.3
-
+Josu Lazkano
