@@ -1,477 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45091 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754304AbaIHRdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Sep 2014 13:33:08 -0400
-Message-ID: <540DE851.60701@iki.fi>
-Date: Mon, 08 Sep 2014 20:33:05 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:24117 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbaIRMVi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:21:38 -0400
+Message-ID: <541ACE4E.1040308@cisco.com>
+Date: Thu, 18 Sep 2014 14:21:34 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-To: tskd08@gmail.com, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH v4 1/4] mxl301rf: add driver for MaxLinear MxL301RF OFDM
- tuner
-References: <1410196843-26168-1-git-send-email-tskd08@gmail.com> <1410196843-26168-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1410196843-26168-2-git-send-email-tskd08@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [PATCH v2] [media] BZ#84401: Revert "[media] v4l: vb2: Don't
+ return POLLERR during transient buffer underruns"
+References: <1410826255-2025-1-git-send-email-m.chehab@samsung.com>	<20140918070619.32d4e4b1@recife.lan>	<541AAFA6.6080605@cisco.com>	<20140918075005.11bd495f@recife.lan>	<541ACAF9.4030204@cisco.com> <20140918091516.42dc6bb3@recife.lan>
+In-Reply-To: <20140918091516.42dc6bb3@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-It looks technically correct for my eyes, no any big issue. Driver 
-itself is quite stub as most of the chip logic is put inside bridge 
-firmware, though.
-
-regards
-Antti
 
 
-On 09/08/2014 08:20 PM, tskd08@gmail.com wrote:
-> From: Akihiro Tsukada <tskd08@gmail.com>
->
-> This patch adds driver for mxl301rf OFDM tuner chips.
-> It is used as an ISDB-T tuner in earthsoft pt3 cards.
->
-> Note that this driver does not initilize the chip,
-> because the initilization sequence / register setting is not disclosed.
-> Thus, the driver assumes that the chips are initilized externally
-> by its parent board driver before tuner_ops->init() are called,
-> like in PT3 driver where the bridge chip contains the init sequence
-> in its private memory and provides a command to trigger the sequence.
->
-> Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
-> ---
-> Changes in v4:
-> - improved I2C transaction for register read
-> - removed unnecessary .get_status()
-> - removed initial frequency setting and moved to the bridge driver
-> - added a comment to notice incompleteness of the driver
->
->   drivers/media/tuners/Kconfig    |   7 +
->   drivers/media/tuners/Makefile   |   1 +
->   drivers/media/tuners/mxl301rf.c | 349 ++++++++++++++++++++++++++++++++++++++++
->   drivers/media/tuners/mxl301rf.h |  26 +++
->   4 files changed, 383 insertions(+)
->   create mode 100644 drivers/media/tuners/mxl301rf.c
->   create mode 100644 drivers/media/tuners/mxl301rf.h
->
-> diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-> index d79fd1c..cd3f8ee 100644
-> --- a/drivers/media/tuners/Kconfig
-> +++ b/drivers/media/tuners/Kconfig
-> @@ -257,4 +257,11 @@ config MEDIA_TUNER_R820T
->   	default m if !MEDIA_SUBDRV_AUTOSELECT
->   	help
->   	  Rafael Micro R820T silicon tuner driver.
-> +
-> +config MEDIA_TUNER_MXL301RF
-> +	tristate "MaxLinear MxL301RF tuner"
-> +	depends on MEDIA_SUPPORT && I2C
-> +	default m if !MEDIA_SUBDRV_AUTOSELECT
-> +	help
-> +	  MaxLinear MxL301RF OFDM tuner driver.
->   endmenu
-> diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-> index 5591699..6d5bf48 100644
-> --- a/drivers/media/tuners/Makefile
-> +++ b/drivers/media/tuners/Makefile
-> @@ -39,6 +39,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
->   obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
->   obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
->   obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
-> +obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
->
->   ccflags-y += -I$(srctree)/drivers/media/dvb-core
->   ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-> diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
-> new file mode 100644
-> index 0000000..1575a5d
-> --- /dev/null
-> +++ b/drivers/media/tuners/mxl301rf.c
-> @@ -0,0 +1,349 @@
-> +/*
-> + * MaxLinear MxL301RF OFDM tuner driver
-> + *
-> + * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +/*
-> + * NOTICE:
-> + * This driver is incomplete and lacks init/config of the chips,
-> + * as the necessary info is not disclosed.
-> + * Other features like get_if_frequency() are missing as well.
-> + * It assumes that users of this driver (such as a PCI bridge of
-> + * DTV receiver cards) properly init and configure the chip
-> + * via I2C *before* calling this driver's init() function.
-> + *
-> + * Currently, PT3 driver is the only one that uses this driver,
-> + * and contains init/config code in its firmware.
-> + * Thus some part of the code might be dependent on PT3 specific config.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include "mxl301rf.h"
-> +
-> +struct mxl301rf_state {
-> +	struct mxl301rf_config cfg;
-> +	struct i2c_client *i2c;
-> +};
-> +
-> +static struct mxl301rf_state *cfg_to_state(struct mxl301rf_config *c)
-> +{
-> +	return container_of(c, struct mxl301rf_state, cfg);
-> +}
-> +
-> +static int raw_write(struct mxl301rf_state *state, const u8 *buf, int len)
-> +{
-> +	int ret;
-> +
-> +	ret = i2c_master_send(state->i2c, buf, len);
-> +	if (ret >= 0 && ret < len)
-> +		ret = -EIO;
-> +	return (ret == len) ? 0 : ret;
-> +}
-> +
-> +static int reg_write(struct mxl301rf_state *state, u8 reg, u8 val)
-> +{
-> +	u8 buf[2] = { reg, val };
-> +
-> +	return raw_write(state, buf, 2);
-> +}
-> +
-> +static int reg_read(struct mxl301rf_state *state, u8 reg, u8 *val)
-> +{
-> +	u8 wbuf[2] = { 0xfb, reg };
-> +	int ret;
-> +
-> +	ret = raw_write(state, wbuf, sizeof(wbuf));
-> +	if (ret == 0)
-> +		ret = i2c_master_recv(state->i2c, val, 1);
-> +	if (ret >= 0 && ret < 1)
-> +		ret = -EIO;
-> +	return (ret == 1) ? 0 : ret;
-> +}
-> +
-> +/* tuner_ops */
-> +
-> +/* get RSSI and update propery cache, set to *out in % */
-> +static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, u16 *out)
-> +{
-> +	struct mxl301rf_state *state;
-> +	int ret;
-> +	u8  rf_in1, rf_in2, rf_off1, rf_off2;
-> +	u16 rf_in, rf_off;
-> +	s64 level;
-> +	struct dtv_fe_stats *rssi;
-> +
-> +	rssi = &fe->dtv_property_cache.strength;
-> +	rssi->len = 1;
-> +	rssi->stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-> +	*out = 0;
-> +
-> +	state = fe->tuner_priv;
-> +	ret = reg_write(state, 0x14, 0x01);
-> +	if (ret < 0)
-> +		return ret;
-> +	usleep_range(1000, 2000);
-> +
-> +	ret = reg_read(state, 0x18, &rf_in1);
-> +	if (ret == 0)
-> +		ret = reg_read(state, 0x19, &rf_in2);
-> +	if (ret == 0)
-> +		ret = reg_read(state, 0xd6, &rf_off1);
-> +	if (ret == 0)
-> +		ret = reg_read(state, 0xd7, &rf_off2);
-> +	if (ret != 0)
-> +		return ret;
-> +
-> +	rf_in = (rf_in2 & 0x07) << 8 | rf_in1;
-> +	rf_off = (rf_off2 & 0x0f) << 5 | (rf_off1 >> 3);
-> +	level = rf_in - rf_off - (113 << 3); /* x8 dBm */
-> +	level = level * 1000 / 8;
-> +	rssi->stat[0].svalue = level;
-> +	rssi->stat[0].scale = FE_SCALE_DECIBEL;
-> +	/* *out = (level - min) * 100 / (max - min) */
-> +	*out = (rf_in - rf_off + (1 << 9) - 1) * 100 / ((5 << 9) - 2);
-> +	return 0;
-> +}
-> +
-> +/* spur shift parameters */
-> +struct shf {
-> +	u32	freq;		/* Channel center frequency */
-> +	u32	ofst_th;	/* Offset frequency threshold */
-> +	u8	shf_val;	/* Spur shift value */
-> +	u8	shf_dir;	/* Spur shift direction */
-> +};
-> +
-> +static const struct shf shf_tab[] = {
-> +	{  64500, 500, 0x92, 0x07 },
-> +	{ 191500, 300, 0xe2, 0x07 },
-> +	{ 205500, 500, 0x2c, 0x04 },
-> +	{ 212500, 500, 0x1e, 0x04 },
-> +	{ 226500, 500, 0xd4, 0x07 },
-> +	{  99143, 500, 0x9c, 0x07 },
-> +	{ 173143, 500, 0xd4, 0x07 },
-> +	{ 191143, 300, 0xd4, 0x07 },
-> +	{ 207143, 500, 0xce, 0x07 },
-> +	{ 225143, 500, 0xce, 0x07 },
-> +	{ 243143, 500, 0xd4, 0x07 },
-> +	{ 261143, 500, 0xd4, 0x07 },
-> +	{ 291143, 500, 0xd4, 0x07 },
-> +	{ 339143, 500, 0x2c, 0x04 },
-> +	{ 117143, 500, 0x7a, 0x07 },
-> +	{ 135143, 300, 0x7a, 0x07 },
-> +	{ 153143, 500, 0x01, 0x07 }
-> +};
-> +
-> +struct reg_val {
-> +	u8 reg;
-> +	u8 val;
-> +} __attribute__ ((__packed__));
-> +
-> +static const struct reg_val set_idac[] = {
-> +	{ 0x0d, 0x00 },
-> +	{ 0x0c, 0x67 },
-> +	{ 0x6f, 0x89 },
-> +	{ 0x70, 0x0c },
-> +	{ 0x6f, 0x8a },
-> +	{ 0x70, 0x0e },
-> +	{ 0x6f, 0x8b },
-> +	{ 0x70, 0x1c },
-> +};
-> +
-> +static int mxl301rf_set_params(struct dvb_frontend *fe)
-> +{
-> +	struct reg_val tune0[] = {
-> +		{ 0x13, 0x00 },		/* abort tuning */
-> +		{ 0x3b, 0xc0 },
-> +		{ 0x3b, 0x80 },
-> +		{ 0x10, 0x95 },		/* BW */
-> +		{ 0x1a, 0x05 },
-> +		{ 0x61, 0x00 },		/* spur shift value (placeholder) */
-> +		{ 0x62, 0xa0 }		/* spur shift direction (placeholder) */
-> +	};
-> +
-> +	struct reg_val tune1[] = {
-> +		{ 0x11, 0x40 },		/* RF frequency L (placeholder) */
-> +		{ 0x12, 0x0e },		/* RF frequency H (placeholder) */
-> +		{ 0x13, 0x01 }		/* start tune */
-> +	};
-> +
-> +	struct mxl301rf_state *state;
-> +	u32 freq;
-> +	u16 f;
-> +	u32 tmp, div;
-> +	int i, ret;
-> +
-> +	state = fe->tuner_priv;
-> +	freq = fe->dtv_property_cache.frequency;
-> +
-> +	/* spur shift function (for analog) */
-> +	for (i = 0; i < ARRAY_SIZE(shf_tab); i++) {
-> +		if (freq >= (shf_tab[i].freq - shf_tab[i].ofst_th) * 1000 &&
-> +		    freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000) {
-> +			tune0[5].val = shf_tab[i].shf_val;
-> +			tune0[6].val = 0xa0 | shf_tab[i].shf_dir;
-> +			break;
-> +		}
-> +	}
-> +	ret = raw_write(state, (u8 *) tune0, sizeof(tune0));
-> +	if (ret < 0)
-> +		goto failed;
-> +	usleep_range(3000, 4000);
-> +
-> +	/* convert freq to 10.6 fixed point float [MHz] */
-> +	f = freq / 1000000;
-> +	tmp = freq % 1000000;
-> +	div = 1000000;
-> +	for (i = 0; i < 6; i++) {
-> +		f <<= 1;
-> +		div >>= 1;
-> +		if (tmp > div) {
-> +			tmp -= div;
-> +			f |= 1;
-> +		}
-> +	}
-> +	if (tmp > 7812)
-> +		f++;
-> +	tune1[0].val = f & 0xff;
-> +	tune1[1].val = f >> 8;
-> +	ret = raw_write(state, (u8 *) tune1, sizeof(tune1));
-> +	if (ret < 0)
-> +		goto failed;
-> +	msleep(31);
-> +
-> +	ret = reg_write(state, 0x1a, 0x0d);
-> +	if (ret < 0)
-> +		goto failed;
-> +	ret = raw_write(state, (u8 *) set_idac, sizeof(set_idac));
-> +	if (ret < 0)
-> +		goto failed;
-> +	return 0;
-> +
-> +failed:
-> +	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-> +		__func__, fe->dvb->num, fe->id);
-> +	return ret;
-> +}
-> +
-> +static const struct reg_val standby_data[] = {
-> +	{ 0x01, 0x00 },
-> +	{ 0x13, 0x00 }
-> +};
-> +
-> +static int mxl301rf_sleep(struct dvb_frontend *fe)
-> +{
-> +	struct mxl301rf_state *state;
-> +	int ret;
-> +
-> +	state = fe->tuner_priv;
-> +	ret = raw_write(state, (u8 *)standby_data, sizeof(standby_data));
-> +	if (ret < 0)
-> +		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-> +			__func__, fe->dvb->num, fe->id);
-> +	return ret;
-> +}
-> +
-> +
-> +/* init sequence is not public.
-> + * the parent must have init'ed the device.
-> + * just wake up here.
-> + */
-> +static int mxl301rf_init(struct dvb_frontend *fe)
-> +{
-> +	struct mxl301rf_state *state;
-> +	int ret;
-> +
-> +	state = fe->tuner_priv;
-> +
-> +	ret = reg_write(state, 0x01, 0x01);
-> +	if (ret < 0) {
-> +		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-> +			 __func__, fe->dvb->num, fe->id);
-> +		return ret;
-> +	}
-> +	return 0;
-> +}
-> +
-> +/* I2C driver functions */
-> +
-> +static const struct dvb_tuner_ops mxl301rf_ops = {
-> +	.info = {
-> +		.name = "MaxLinear MxL301RF",
-> +
-> +		.frequency_min =  93000000,
-> +		.frequency_max = 803142857,
-> +	},
-> +
-> +	.init = mxl301rf_init,
-> +	.sleep = mxl301rf_sleep,
-> +
-> +	.set_params = mxl301rf_set_params,
-> +	.get_rf_strength = mxl301rf_get_rf_strength,
-> +};
-> +
-> +
-> +static int mxl301rf_probe(struct i2c_client *client,
-> +			  const struct i2c_device_id *id)
-> +{
-> +	struct mxl301rf_state *state;
-> +	struct mxl301rf_config *cfg;
-> +	struct dvb_frontend *fe;
-> +
-> +	state = kzalloc(sizeof(*state), GFP_KERNEL);
-> +	if (!state)
-> +		return -ENOMEM;
-> +
-> +	state->i2c = client;
-> +	cfg = client->dev.platform_data;
-> +
-> +	memcpy(&state->cfg, cfg, sizeof(state->cfg));
-> +	fe = cfg->fe;
-> +	fe->tuner_priv = state;
-> +	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(mxl301rf_ops));
-> +
-> +	i2c_set_clientdata(client, &state->cfg);
-> +	dev_info(&client->dev, "MaxLinear MxL301RF attached.\n");
-> +	return 0;
-> +}
-> +
-> +static int mxl301rf_remove(struct i2c_client *client)
-> +{
-> +	struct mxl301rf_state *state;
-> +
-> +	state = cfg_to_state(i2c_get_clientdata(client));
-> +	state->cfg.fe->tuner_priv = NULL;
-> +	kfree(state);
-> +	return 0;
-> +}
-> +
-> +
-> +static const struct i2c_device_id mxl301rf_id[] = {
-> +	{"mxl301rf", 0},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
-> +
-> +static struct i2c_driver mxl301rf_driver = {
-> +	.driver = {
-> +		.name	= "mxl301rf",
-> +	},
-> +	.probe		= mxl301rf_probe,
-> +	.remove		= mxl301rf_remove,
-> +	.id_table	= mxl301rf_id,
-> +};
-> +
-> +module_i2c_driver(mxl301rf_driver);
-> +
-> +MODULE_DESCRIPTION("MaxLinear MXL301RF tuner");
-> +MODULE_AUTHOR("Akihiro TSUKADA");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
-> new file mode 100644
-> index 0000000..19e6840
-> --- /dev/null
-> +++ b/drivers/media/tuners/mxl301rf.h
-> @@ -0,0 +1,26 @@
-> +/*
-> + * MaxLinear MxL301RF OFDM tuner driver
-> + *
-> + * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef MXL301RF_H
-> +#define MXL301RF_H
-> +
-> +#include "dvb_frontend.h"
-> +
-> +struct mxl301rf_config {
-> +	struct dvb_frontend *fe;
-> +};
-> +
-> +#endif /* MXL301RF_H */
->
+On 09/18/14 14:15, Mauro Carvalho Chehab wrote:
+> Em Thu, 18 Sep 2014 14:07:21 +0200
+> Hans Verkuil <hansverk@cisco.com> escreveu:
+> 
+>> My patch is the *only* fix for that since that's the one that addresses
+>> the real issue.
+>>
+>> One option is to merge my fix for 3.18 with a CC to stable for 3.16.
+>>
+>> That way it will be in the tree for longer.
+>>
+>> Again, the revert that you did won't solve the regression at all. Please
+>> revert the revert.
+> 
+> Well, some patch that went between 3.15 and 3.16 broke VBI. If it was
+> not this patch, what's the patch that broke it?
 
--- 
-http://palosaari.fi/
+The conversion of saa7134 to vb2 in 3.16 broke the VBI support in saa7134.
+
+It turns out that vb2 NEVER did this right.
+
+Remember that saa7134 was only the second driver with VBI support (after
+em28xx) that was converted to vb2, and that this issue only happens with
+teletext applications that do not call STREAMON before calling poll().
+
+They rely on the fact that poll returns POLLERR to call STREAMON. Ugly
+as hell, and not normal behavior for applications.
+
+So that explains why it was never found before.
+
+Note that em28xx (converted to vb2 quite some time before) fails as well.
+So this regression has been there since 3.9 (when em28xx was converted).
+I tested my fix with em28xx as well and that will worked fine.
+
+Regards,
+
+	Hans
