@@ -1,36 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:34979 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725AbaIXXFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:05:48 -0400
-Received: by mail-la0-f53.google.com with SMTP id ge10so11725201lab.12
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 16:05:46 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:36538 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756780AbaIRLWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 07:22:38 -0400
+Date: Thu, 18 Sep 2014 08:22:33 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] si2157: change command for sleep
+Message-ID: <20140918082233.16ce4a37@recife.lan>
+In-Reply-To: <54097579.6000507@iki.fi>
+References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
+	<54097579.6000507@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <5824d4d8b177c3778cea8ef5e345d126e6c46767.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-	<5824d4d8b177c3778cea8ef5e345d126e6c46767.1411597610.git.mchehab@osg.samsung.com>
-Date: Wed, 24 Sep 2014 20:05:46 -0300
-Message-ID: <CAOMZO5BeuqG77tax==sRAWv00YYRcS5x7zKF61uk1Gg15CCPZA@mail.gmail.com>
-Subject: Re: [PATCH 13/18] [media] s5p_mfc_opr_v5: Fix lots of warnings on x86_64
-From: Fabio Estevam <festevam@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 24, 2014 at 7:27 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
+Em Fri, 05 Sep 2014 11:34:01 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-> -       mfc_debug(2, "buf_size1: %d, buf_size2: %d\n", buf_size1, buf_size2);
-> +       mfc_debug(2, "buf_size1: %zd, buf_size2: %zd\n", buf_size1, buf_size2);
+> Moikka Olli
+> 
+> I ran some PM tests for that patch set, using PCTV 292e, which is em28xx 
+> + Si2168 B40 + Si2157 A30. Here is results:
+> 
+> current impementation
+> -------------------------------------
+> cold plugin     40 mA
+> streaming      235 mA
+> sleeping        42 mA
+> 
+> si2157: change command for sleep
+> -------------------------------------
+> cold plugin     40 mA
+> streaming      235 mA
+> sleeping        60 mA
+> 
+> So it increases sleep power usage surprisingly much, almost 20mA from 
+> the USB, nominal 5V.
+> 
+> It is also funny that you will not lose firmware for Si2168 when sleep 
+> with command 13, but that Si2157 tuner behaves differently.
+> 
+> I think I will still apply that, it is just firmware download time vs. 
+> current use in sleep.
 
+IMHO, the best is to keep it saving more power. Ok, it will take more
+time to wake up but so what? If someone is putting the machine to sleep,
+it is because he/she wants to save power.
 
-This should be %zu. Same for other %zd ocurrences.
+So, IMHO, we should keep the default behavior as-is. Nothing prevents
+that we would add a modprobe parameter or to use some other method that
+would allow the user to choose between those two different ways.
+
+Regards,
+Mauro
+
+> 
+> Antti
+> 
+> 
+> On 08/25/2014 09:07 PM, Olli Salonen wrote:
+> > Instead of sending command 13 to the tuner, send command 16 when sleeping. This
+> > behaviour is observed when using manufacturer provided binary-only Linux driver
+> > for TechnoTrend CT2-4400 (Windows driver does not do power management).
+> >
+> > The issue with command 13 is that firmware loading is necessary after that.
+> > This is not an issue with tuners that do not require firmware, but resuming
+> > from sleep on an Si2158 takes noticeable time as firmware is loaded on resume.
+> >
+> > Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> > ---
+> >   drivers/media/tuners/si2157.c | 7 ++++---
+> >   1 file changed, 4 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> > index efb5cce..c84f7b8 100644
+> > --- a/drivers/media/tuners/si2157.c
+> > +++ b/drivers/media/tuners/si2157.c
+> > @@ -197,9 +197,10 @@ static int si2157_sleep(struct dvb_frontend *fe)
+> >
+> >   	s->active = false;
+> >
+> > -	memcpy(cmd.args, "\x13", 1);
+> > -	cmd.wlen = 1;
+> > -	cmd.rlen = 0;
+> > +	/* standby */
+> > +	memcpy(cmd.args, "\x16\x00", 2);
+> > +	cmd.wlen = 2;
+> > +	cmd.rlen = 1;
+> >   	ret = si2157_cmd_execute(s, &cmd);
+> >   	if (ret)
+> >   		goto err;
+> >
+> 
