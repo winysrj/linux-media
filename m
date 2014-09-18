@@ -1,123 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:38078 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbaI3Ncs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 09:32:48 -0400
-Received: by mail-la0-f49.google.com with SMTP id ge10so5514695lab.22
-        for <linux-media@vger.kernel.org>; Tue, 30 Sep 2014 06:32:46 -0700 (PDT)
-From: Tomas Melin <tomas.melin@iki.fi>
-To: m.chehab@samsung.com
-Cc: james.hogan@imgtec.com, david@hardeman.nu, a.seppala@gmail.com,
-	linux-media@vger.kernel.org, Tomas Melin <tomas.melin@iki.fi>
-Subject: [PATCH] [media] rc-main: fix lockdep splash for rc-main
-Date: Tue, 30 Sep 2014 16:32:08 +0300
-Message-Id: <1412083928-7255-1-git-send-email-tomas.melin@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:36565 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099AbaIRMz0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:55:26 -0400
+Date: Thu, 18 Sep 2014 09:55:22 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/4] vb2/saa7134 regression/documentation fixes
+Message-ID: <20140918095522.17ac0dc7@recife.lan>
+In-Reply-To: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
+References: <1410945272-48149-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lockdep reports a potential circular dependecy deadlock when registering input device.
+Em Wed, 17 Sep 2014 11:14:28 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Unlock mutex rc_dev->lock prior to calling ir_raw_event_register to avoid the circular
-dependency since that function also calls input_register_device and rc_open.
+> This fixes the VBI regression seen in saa7134 when it was converted
+> to vb2. Tested with my saa7134 board.
+> 
+> It also updates the poll documentation and fixes a saa7134 bug where
+> the WSS signal was never captured.
+> 
+> The first patch should go to 3.17. It won't apply to older kernels,
+> so I guess once this is merged we should post a patch to stable for
+> those older kernels, certainly 3.16.
+> 
+> I would expect this to be an issue for em28xx as well, but I will
+> need to test that. If that driver is affected as well, then this
+> fix needs to go into 3.9 and up.
 
- ======================================================
- [ INFO: possible circular locking dependency detected ]
- 3.17.0-rc7+ #24 Not tainted
- -------------------------------------------------------
- modprobe/647 is trying to acquire lock:
-  (input_mutex){+.+.+.}, at: [<ffffffff812ed81c>] input_register_device+0x2ba/0x381
+For now:
 
- but task is already holding lock:
-  (ir_raw_handler_lock){+.+.+.}, at: [<ffffffff813186ed>] ir_raw_event_register+0x102/0x190
+Nacked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
- which lock already depends on the new lock.
 
-[cut text]
+Changing the V4L2 API is *not* the right way to fix a regression.
 
- other info that might help us debug this:
+Also, this changes a behavior that it is there since 2.6.24.
+We can't do that, except if you're sure that no userspace applications
+rely on the old behavior, with seems unlikely.
 
- Chain exists of:
-   input_mutex --> &dev->lock --> ir_raw_handler_lock
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   lock(ir_raw_handler_lock);
-                                lock(&dev->lock);
-                                lock(ir_raw_handler_lock);
-   lock(input_mutex);
-
-  *** DEADLOCK ***
-
- 4 locks held by modprobe/647:
-  #0:  (&dev->mutex){......}, at: [<ffffffff812d19f3>] device_lock+0xf/0x11
-  #1:  (&dev->mutex){......}, at: [<ffffffff812d19f3>] device_lock+0xf/0x11
-  #2:  (&dev->lock){+.+.+.}, at: [<ffffffff81317fff>] rc_register_device+0x55d/0x58a
-  #3:  (ir_raw_handler_lock){+.+.+.}, at: [<ffffffff813186ed>] ir_raw_event_register+0x102/0x190
-
- stack backtrace:
- CPU: 0 PID: 647 Comm: modprobe Not tainted 3.17.0-rc7+ #24
-
- Call Trace:
-  [<ffffffff81489d6a>] dump_stack+0x46/0x58
-  [<ffffffff81487699>] print_circular_bug+0x1f8/0x209
-  [<ffffffff81074353>] __lock_acquire+0xb54/0xeda
-  [<ffffffff81080f17>] ? console_unlock+0x34d/0x399
-  [<ffffffff81074c01>] lock_acquire+0xd9/0x111
-  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
-  [<ffffffff8148e650>] mutex_lock_interruptible_nested+0x57/0x381
-  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
-  [<ffffffff81124e03>] ? kfree+0x7c/0x96
-  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
-  [<ffffffff81072531>] ? trace_hardirqs_on+0xd/0xf
-  [<ffffffff812ed81c>] input_register_device+0x2ba/0x381
-  [<ffffffff8131a537>] ir_mce_kbd_register+0x109/0x139
-  [<ffffffff81318728>] ir_raw_event_register+0x13d/0x190
-  [<ffffffff81317e40>] rc_register_device+0x39e/0x58a
-  [<ffffffff81072531>] ? trace_hardirqs_on+0xd/0xf
-  [<ffffffffa00cf2e3>] nvt_probe+0x5ad/0xd52 [nuvoton_cir]
-  [<ffffffffa00ced36>] ? nvt_resume+0x80/0x80 [nuvoton_cir]
-  [<ffffffff81296003>] pnp_device_probe+0x8c/0xa9
-  [<ffffffff812d1b94>] ? driver_sysfs_add+0x6e/0x93
-  [<ffffffff812d203a>] driver_probe_device+0xa1/0x1e3
-  [<ffffffff812d217c>] ? driver_probe_device+0x1e3/0x1e3
-  [<ffffffff812d21ca>] __driver_attach+0x4e/0x6f
-  [<ffffffff812d075b>] bus_for_each_dev+0x5a/0x8c
-  [<ffffffff812d1b24>] driver_attach+0x19/0x1b
-  [<ffffffff812d1879>] bus_add_driver+0xf1/0x1d6
-  [<ffffffff812d2817>] driver_register+0x87/0xbe
-  [<ffffffffa0120000>] ? 0xffffffffa0120000
-  [<ffffffff81295da4>] pnp_register_driver+0x1c/0x1e
-  [<ffffffffa0120010>] nvt_init+0x10/0x1000 [nuvoton_cir]
-  [<ffffffff8100030e>] do_one_initcall+0xea/0x18c
-  [<ffffffff8111497f>] ? __vunmap+0x9d/0xc7
-  [<ffffffff810a3ca1>] load_module+0x1c21/0x1f2c
-  [<ffffffff810a0bce>] ? show_initstate+0x44/0x44
-  [<ffffffff810a404e>] SyS_init_module+0xa2/0xb1
-  [<ffffffff81490ed2>] system_call_fastpath+0x16/0x1b
-
-Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
----
- drivers/media/rc/rc-main.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a7991c7..296de85 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1414,7 +1414,10 @@ int rc_register_device(struct rc_dev *dev)
- 			ir_raw_init();
- 			raw_init = true;
- 		}
-+		/* calls ir_register_device so unlock mutex here*/
-+		mutex_unlock(&dev->lock);
- 		rc = ir_raw_event_register(dev);
-+		mutex_lock(&dev->lock);
- 		if (rc < 0)
- 			goto out_input;
- 	}
--- 
-1.7.10.4
-
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
