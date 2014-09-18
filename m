@@ -1,62 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-hk1on0146.outbound.protection.outlook.com ([134.170.140.146]:38902
-	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754897AbaITLVN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 07:21:13 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: buffer delivery stops with cx23885
-Date: Sat, 20 Sep 2014 11:05:17 +0000
-Message-ID: <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
- <541D469B.4000306@xs4all.nl>
- <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5220.4050107@xs4all.nl>
- <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5CD0.1000207@xs4all.nl>
-In-Reply-To: <541D5CD0.1000207@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail.kapsi.fi ([217.30.184.167]:50234 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751024AbaIRMBF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:01:05 -0400
+Message-ID: <541AC97B.1020508@iki.fi>
+Date: Thu, 18 Sep 2014 15:00:59 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] si2157: change command for sleep
+References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>	<54097579.6000507@iki.fi>	<20140918082233.16ce4a37@recife.lan> <20140918085055.15375d0b@recife.lan>
+In-Reply-To: <20140918085055.15375d0b@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiA+IEkgd2FzIGxvb2tpbmcgdGhyb3VnaCB0aGUgcGF0Y2hlcyBhbmQgc2F3IGEgZGF0ZSBvZiBB
-dWd1c3QgMTQgb24gdGhlDQo+ID4gY3gyMzg4NSB0byB2YjIgcGF0Y2ggYW5kIHRob3VnaHQgdGhh
-dCBjb3VsZCBoYXZlIGJlZW4gYXJvdW5kIHdoZW4gaXQNCj4gPiBzdGFydGVkIGJyZWFraW5nLCBi
-dXQgdGhlbiB0aGUNCj4gPiA3M2Q4MTAyMjk4NzE5ODYzZDU0MjY0ZjYyNTIxMzYyNDg3Zjg0MjU2
-IGlzIGRhdGVkIFNlcHRlbWJlciAzIGFuZCBJJ20NCj4gPiBwcmV0dHkgc3VyZSBpdCBoYWQgc3Rh
-cnRlZCBwbGF5aW5nIHVwIGJlZm9yZSB0aGVuLiBBYm91dCB3aGF0IGRhdGUNCj4gPiB3b3VsZCBJ
-IGhhdmUgc2VlbiB0aGUgNDUzYWZkZDljZTMzMjkzZjY0MGU4NGRjMTdlNWYzNjY3MDE1MTZlOA0K
-PiA+ICJjeDIzODg1OiBjb252ZXJ0IHRvIHZiMiIgcGF0Y2g/DQo+IA0KPiBUaGF0IHBhdGNoIHdh
-cyBtZXJnZWQgaW4gdGhlIG1hc3RlciBicmFuY2ggU2VwdGVtYmVyIDguDQo+IA0KPiBJZiB5b3Un
-dmUgc2VlbiBpdCBlYXJsaWVyLCB0aGVuIGl0IG1heSBub3QgYmUgcmVsYXRlZCB0byB2YjIgYWZ0
-ZXIgYWxsLg0KPiANCg0KSSdkIHNheSBub3QuDQoNCj4gSWYgaXQgaXMgcG9sbGluZyByZWxhdGVk
-LCB0aGVuIGl0IG1pZ2h0IGJlIGNvbW1pdA0KPiA5MjQxNjUwZDYyZjc5YTNkYTAxZjFkNWU4ZWJk
-MTk1MDgzMzMwYjc1DQo+IChEb24ndCByZXR1cm4gUE9MTEVSUiBkdXJpbmcgdHJhbnNpZW50IGJ1
-ZmZlciB1bmRlcnJ1bnMpIHdoaWNoIHdhcyBhZGRlZA0KPiB0bw0KPiB0aGUgbWFzdGVyIGJyYW5j
-aCBvbiBKdWx5IDE3dGggYW5kIHdhcyBtZXJnZWQgZm9yIDMuMTcuIE9yIGl0IGNvdWxkIGJlDQo+
-IHNvbWV0aGluZyBlbnRpcmVseSBkaWZmZXJlbnQuDQo+IA0KPiBZb3UgY291bGQgdHJ5IHJldmVy
-dGluZyB0aGF0IGNvbW1pdCBhbmQgc2VlIGlmIHRoYXQgaGVscHMuDQoNClRoYXQgc291bmRzIHBs
-YXVzaWJsZSB3cnQgdGltZWZyYW1lLCBidXQgaWYgY3gyMzg4NSBvbmx5IHN0YXJ0ZWQgdXNpbmcg
-dmIyIGFmdGVyIFNlcHQgOCB0aGVuIGl0IGNvdWxkbid0IGhhdmUgYWZmZWN0ZWQgbWUgYmVmb3Jl
-IHRoZW4gcmlnaHQ/DQoNCj4gPiBJbiBhbnkgY2FzZSBpdCBzaG91bGQgYmUgZWFzeSBlbm91Z2gg
-dG8gcmV2ZXJ0IGFuZCBidWlsZCBzbyBJJ2xsIGRvDQo+ID4gdGhhdCB0b21vcnJvdyBvbmNlIEkg
-Y2FuIHByb3ZlIGl0IHN0aWxsIGZhaWxzIHdpdGggdGhlIGN1cnJlbnQNCj4gPiByZWdyZXNzaW9u
-IHBhdGNoIGFwcGxpZWQuDQo+IA0KPiBXaGljaCBwYXRjaCBhcmUgeW91IHVzaW5nPyBUaGVyZSBo
-YXZlIGJlZW4gc2V2ZXJhbCB2ZXJzaW9ucyBwb3N0ZWQuIFRoaXMNCj4gaXMgdGhlIG9uZSB5b3Ug
-c2hvdWxkIHVzZToNCj4gDQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmxpbnV4dHYub3JnL3BhdGNoLzI1
-OTkyLw0KPiANCg0KVGhhdCdzIHRoZSBvbmUgSSBhcHBsaWVkIC0geW91IGNhbiBldmVuIHNlZSBt
-eSBxdWVzdGlvbnMgYmVsb3cgaW4gdGhhdCBsaW5rIDopIEJhc2VkIG9uIHdoYXQgeW91IGhhdmUg
-c2FpZCBJIHRoaW5rIHRoYXQncyBub3QgZ29pbmcgdG8gc29sdmUgYW55dGhpbmcgZm9yIG1lIHRo
-b3VnaC4NCg0KU28gSSBndWVzcyBteSBwbGFuIGlzOg0KLiBSZXZlcnQgdG8gNzNkODEwMjI5ODcx
-OTg2M2Q1NDI2NGY2MjUyMTM2MjQ4N2Y4NDI1NiBhbmQgdGVzdCAobm90IGxpa2VseSB0byBmaXgg
-YnV0IGVhc3kgdG8gdGVzdCkNCi4gUmV2ZXJ0IHRvIHNvbWV0aW1lIGFyb3VuZCBKdW5lIHdoZW4g
-SSBzdWJtaXR0ZWQgbXkgcGF0Y2ggZm9yIEZ1c2lvbiBEdWFsIEV4cHJlc3MgMiBkcml2ZXIgd2hl
-biBJIGtub3cgaXQgd2FzIHJlbGlhYmxlIGFuZCB0ZXN0DQoNCk90aGVyIHBvc3NpYmlsaXRpZXMg
-YXJlOg0KLiBNeXRoVFYgYnVnDQouIERlZmVjdGl2ZSBjYXJkDQoNClRpbWUgdG8gZ29vZ2xlIGEg
-Y29tbWFuZCBsaW5lIGR2YiBzdHJlYW0gdG8gcnVsZSBvdXQgbXl0aHR2IEkgZ3Vlc3MuLi4NCg0K
-VGhhbmtzDQoNCkphbWVzDQoNCg==
+On 09/18/2014 02:50 PM, Mauro Carvalho Chehab wrote:
+> Sorry, I misunderstood this patch.
+>
+> There are actually two different things, each requiring a different PM
+> setting:
+>
+> 1) to put the tuner to sleep while it is not in usage;
+>
+> 2) put the machine to suspend.
+>
+> This patch is for (1). That's FINE. I'll apply it.
+>
+> Yet, for (2), assuming a suspend to ram, the best is to save more
+> power.
+>
+> In the past, the DVB core didn't make any distinction between those
+> two, but we recently added a hook for suspend there.
+>
+> So, it makes sense to keep the tuner powerdown mode for suspend.
+
+
+I think old deep sleep should be used for suspend, whilst on warm state 
+that new is OK.
+
+I2C driver has suspend/resume support and it is one thing I am going to 
+study in near future. Currently I have 128GB SSD and no swap at all, so 
+I cannot test it now. I have already bought 256GB SSD and I am just 
+waiting for Fedora 21 alpha version, which I will install with proper 
+swap. Unfortunately they have delayed many times already Fedora 21 alpha...
+
+I am not even sure if DVB frontend needs any special suspend/resume 
+handling, isn't it possible to use standard kernel PM here? (I already 
+added some initial PM to DVB FE ~2 years ago, but IIRC those will only 
+kill threads and so which are not allowed when suspend).
+
+So is there some reason DVB FE needs suspend/resume hooks?
+
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
