@@ -1,34 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:42139 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbaI3Iux (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40195 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751619AbaIRIZV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 04:50:53 -0400
-Received: by mail-ie0-f179.google.com with SMTP id tp5so16351676ieb.24
-        for <linux-media@vger.kernel.org>; Tue, 30 Sep 2014 01:50:52 -0700 (PDT)
+	Thu, 18 Sep 2014 04:25:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sriram V <vshrirama@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: OMAP3 Multiple camera support
+Date: Thu, 18 Sep 2014 11:25:25 +0300
+Message-ID: <25198985.8uoHdSYb8S@avalon>
+In-Reply-To: <CAH9_wRM_wd_GkS=j-7pkYTFRg4U1oN=NO+Wfhp56vKturYb+cg@mail.gmail.com>
+References: <CAH9_wRM_wd_GkS=j-7pkYTFRg4U1oN=NO+Wfhp56vKturYb+cg@mail.gmail.com>
 MIME-Version: 1.0
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Tue, 30 Sep 2014 09:50:32 +0100
-Message-ID: <CAPueXH4puHLAPWpBS9gjGHd5AGb1gAxZqSggXDaGEJ3WYC_nMA@mail.gmail.com>
-Subject: uvcvideo fails on 3.16 and 3.17 kernels
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I referring to the following bug:
+Hi Sriram,
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1362358
+On Wednesday 17 September 2014 23:06:42 Sriram V wrote:
+> Hi
+> 
+> Does OMAP3 camera driver support multiple cameras at the same time.
+> 
+> As i understand - You can have simultaneous YUV422 (Directly to memory)
+> and another one passing through camera controller ISP?
+> 
+> I Also, wanted to check if anyone has tried having multiple cameras on omap3
+> with the existing driver.
 
-I've run some tests and after increasing verbosity for uvcvideo, I get:
-EOF on empty payload
+The driver does support capturing from multiple cameras at the same time, 
+provided one of them is connected to the CSI2A receiver. You can then capture 
+raw frames from the CSI2A receiver output while processing frames from the 
+other camera (connected to CSI1/CCP2, CSI2C or parallel interface) using the 
+whole ISP pipeline.
 
-this seems consistent with the zero size frames returned by the driver.
-After VIDIOC_DQBUF | VIDIOC_QBUF, I get buf.bytesused=0
+Please note that the consumer OMAP3 variants are documented by TI as not 
+including the CSI receivers. However, several developers have reported that 
+the receivers are present and usable at least in some of the chips.
 
-Testing with an eye toy 2 (gspca), everything works fine, so this is
-definitly related to uvcvideo.
-This happens on all available formats (YUYV and MJPEG)
-
+-- 
 Regards,
-Paulo
+
+Laurent Pinchart
+
