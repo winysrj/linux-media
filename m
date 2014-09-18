@@ -1,68 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:54646 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707AbaITHZE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 03:25:04 -0400
-Date: Sat, 20 Sep 2014 09:24:38 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v3 1/8] [media] soc_camera: Do not decrement endpoint
- node refcount in the loop
-In-Reply-To: <1410449587-1677-2-git-send-email-p.zabel@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1409200923160.21175@axis700.grange>
-References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
- <1410449587-1677-2-git-send-email-p.zabel@pengutronix.de>
+Received: from userp1040.oracle.com ([156.151.31.81]:31453 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659AbaIRMXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:23:54 -0400
+Date: Thu, 18 Sep 2014 15:23:36 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] mx2-camera: potential negative underflow bug
+Message-ID: <20140918122336.GA13147@mwanda>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philippe,
+My static checker complains:
 
-On Thu, 11 Sep 2014, Philipp Zabel wrote:
+	drivers/media/platform/soc_camera/mx2_camera.c:1070
+	mx2_emmaprp_resize() warn: no lower bound on 'num'
 
-> In preparation for a following patch, stop decrementing the endpoint node
-> refcount in the loop. This temporarily leaks a reference to the endpoint node,
-> which will be fixed by having of_graph_get_next_endpoint decrement the refcount
-> of its prev argument instead.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index f4308fe..f752489 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1696,11 +1696,11 @@ static void scan_of_host(struct soc_camera_host *ici)
->  		if (!i)
->  			soc_of_bind(ici, epn, ren->parent);
->  
-> -		of_node_put(epn);
->  		of_node_put(ren);
->  
->  		if (i) {
->  			dev_err(dev, "multiple subdevices aren't supported yet!\n");
-> +			of_node_put(epn);
+The heuristic is that it's looking for values which the user can
+influence and we put an upper bound on them but we (perhaps
+accidentally) allow negative numbers.
 
-Sorry, this doesn't look right to me. I think you want to drop the last 
-reference _after_ the loop, not in this temporary check for multiple 
-endpoints, which your patch has nothing to do with.
+I am not very familiar with this code but I have looked at it and think
+there might be a bug.  Making the variable unsigned seems like a safe
+option either way and this silences the static checker warning.
 
-Thanks
-Guennadi
+The call tree is:
+  -> subdev_do_ioctl()
+     -> mx2_camera_set_fmt()
+        -> mx2_emmaprp_resize()
+The check:
+	if (num > RESIZE_NUM_MAX)
+can underflow and then we use "num" on the else path.
 
->  			break;
->  		}
->  	}
-> -- 
-> 2.1.0
-> 
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index b40bc2e..bc27a47 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -1003,7 +1003,7 @@ static int mx2_emmaprp_resize(struct mx2_camera_dev *pcdev,
+ 			      struct v4l2_mbus_framefmt *mf_in,
+ 			      struct v4l2_pix_format *pix_out, bool apply)
+ {
+-	int num, den;
++	unsigned int num, den;
+ 	unsigned long m;
+ 	int i, dir;
+ 
