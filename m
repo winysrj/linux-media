@@ -1,100 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:9844 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100AbaIOGrr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34610 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932212AbaIRV5x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:47:47 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00GEQK7LOL80@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:47:45 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
+	Thu, 18 Sep 2014 17:57:53 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 01/17] [media] s5p-mfc: support MIN_BUFFERS query for encoder
-Date: Mon, 15 Sep 2014 12:12:56 +0530
-Message-id: <1410763393-12183-2-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 2/3] omap3isp: Move starting the sensor from streamon IOCTL handler to VB2 QOP
+Date: Fri, 19 Sep 2014 00:57:48 +0300
+Message-Id: <1411077469-29178-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
+References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_MIN_BUFFERS_FOR_OUTPUT query for encoder.
-Once mfc encoder state is HEAD_PARSED, which is sequence
-header produced, dpb_count is avaialable. Let user space
-query this value.
+Move the starting of the sensor from the VIDIOC_STREAMON handler to the
+videobuf2 queue op start_streaming. This avoids failing starting the stream
+after vb2_streamon() has already finished.
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   42 ++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c |   49 +++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index d26b248..ecd2bd1 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -690,6 +690,16 @@ static struct mfc_control controls[] = {
- 		.step = 1,
- 		.default_value = 0,
- 	},
-+	{
-+		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Minimum number of output bufs",
-+		.minimum = 1,
-+		.maximum = 32,
-+		.step = 1,
-+		.default_value = 1,
-+		.is_volatile = 1,
-+	},
- };
- 
- #define NUM_CTRLS ARRAY_SIZE(controls)
-@@ -1643,8 +1653,40 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return ret;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index bc38c88..b233c8e 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -425,10 +425,40 @@ static void isp_video_buffer_queue(struct vb2_buffer *buf)
+ 	}
  }
  
-+static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl *ctrl)
++static int isp_video_start_streaming(struct vb2_queue *queue,
++				     unsigned int count)
 +{
-+	struct s5p_mfc_ctx *ctx = ctrl_to_ctx(ctrl);
-+	struct s5p_mfc_dev *dev = ctx->dev;
++	struct isp_video_fh *vfh = vb2_get_drv_priv(queue);
++	struct isp_video *video = vfh->video;
++	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
++	unsigned long flags;
++	int ret;
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
-+		if (ctx->state >= MFCINST_HEAD_PARSED &&
-+		    ctx->state < MFCINST_ABORT) {
-+			ctrl->val = ctx->pb_count;
-+			break;
-+		} else if (ctx->state != MFCINST_INIT) {
-+			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
-+			return -EINVAL;
-+		}
-+		/* Should wait for the header to be produced */
-+		s5p_mfc_clean_ctx_int_flags(ctx);
-+		s5p_mfc_wait_for_done_ctx(ctx,
-+				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
-+		if (ctx->state >= MFCINST_HEAD_PARSED &&
-+		    ctx->state < MFCINST_ABORT) {
-+			ctrl->val = ctx->pb_count;
-+		} else {
-+			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
-+			return -EINVAL;
-+		}
-+		break;
-+	}
++	/* In sensor-to-memory mode, the stream can be started synchronously
++	 * to the stream on command. In memory-to-memory mode, it will be
++	 * started when buffers are queued on both the input and output.
++	 */
++	if (pipe->input)
++		return 0;
++
++	ret = omap3isp_pipeline_set_stream(pipe,
++					   ISP_PIPELINE_STREAM_CONTINUOUS);
++	if (ret < 0)
++		return ret;
++
++	spin_lock_irqsave(&video->irqlock, flags);
++	if (list_empty(&video->dmaqueue))
++		video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
++	spin_unlock_irqrestore(&video->irqlock, flags);
++
 +	return 0;
 +}
 +
- static const struct v4l2_ctrl_ops s5p_mfc_enc_ctrl_ops = {
- 	.s_ctrl = s5p_mfc_enc_s_ctrl,
-+	.g_volatile_ctrl = s5p_mfc_enc_g_v_ctrl,
+ static const struct vb2_ops isp_video_queue_ops = {
+ 	.queue_setup = isp_video_queue_setup,
+ 	.buf_prepare = isp_video_buffer_prepare,
+ 	.buf_queue = isp_video_buffer_queue,
++	.start_streaming = isp_video_start_streaming,
  };
  
- static int vidioc_s_parm(struct file *file, void *priv,
+ /*
+@@ -1077,28 +1107,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_check_format;
+ 
+-	/* In sensor-to-memory mode, the stream can be started synchronously
+-	 * to the stream on command. In memory-to-memory mode, it will be
+-	 * started when buffers are queued on both the input and output.
+-	 */
+-	if (pipe->input == NULL) {
+-		ret = omap3isp_pipeline_set_stream(pipe,
+-					      ISP_PIPELINE_STREAM_CONTINUOUS);
+-		if (ret < 0)
+-			goto err_set_stream;
+-		spin_lock_irqsave(&video->irqlock, flags);
+-		if (list_empty(&video->dmaqueue))
+-			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-	}
+-
+ 	mutex_unlock(&video->stream_lock);
+ 	return 0;
+ 
+-err_set_stream:
+-	mutex_lock(&video->queue_lock);
+-	vb2_streamoff(&vfh->queue, type);
+-	mutex_unlock(&video->queue_lock);
+ err_check_format:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ err_pipeline_start:
 -- 
-1.7.3.rc2
+1.7.10.4
 
