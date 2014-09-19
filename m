@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:29733 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252AbaIISkr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 14:40:47 -0400
-Date: Tue, 09 Sep 2014 15:40:32 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
-Message-id: <20140909154032.01625bb0.m.chehab@samsung.com>
-In-reply-to: <60097822.tu6OncvLxQ@wuerfel>
-References: <20140909124306.2d5a0d76@canb.auug.org.au>
- <540F15B2.3000902@samsung.com> <20140909120936.527bd852.m.chehab@samsung.com>
- <60097822.tu6OncvLxQ@wuerfel>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from 5.mo2.mail-out.ovh.net ([87.98.181.248]:39655 "EHLO
+	mo2.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932212AbaISUBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Sep 2014 16:01:07 -0400
+Received: from mail637.ha.ovh.net (gw6.ovh.net [213.251.189.206])
+	by mo2.mail-out.ovh.net (Postfix) with SMTP id 91EACFF9EAA
+	for <linux-media@vger.kernel.org>; Fri, 19 Sep 2014 21:55:31 +0200 (CEST)
+Message-ID: <541C8A26.6050207@ventoso.org>
+Date: Fri, 19 Sep 2014 21:55:18 +0200
+From: Luca Olivetti <luca@ventoso.org>
+MIME-Version: 1.0
+To: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Fengguang Wu <fengguang.wu@intel.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
+	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
+	LKP <lkp@01.org>, linux-kernel@vger.kernel.org, crope@iki.fi
+Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
+ (WAS: [media/em28xx] BUG: unable to handle kernel)
+References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com>
+In-Reply-To: <541C826D.7060702@googlemail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 09 Sep 2014 19:54:19 +0200
-Arnd Bergmann <arnd@arndb.de> escreveu:
+El 19/09/14 21:22, Frank Schäfer ha escrit:
 
-> On Tuesday 09 September 2014 12:09:36 Mauro Carvalho Chehab wrote:
-> > -exynos4.c
-> > > > index e51c078360f5..01eeacf28843 100644
-> > > > --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> > > > +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> > > > @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
-> > > >     reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
-> > > >     writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
-> > > >  
-> > > > +#ifndef CONFIG_COMPILE_TEST
-> > > >     ndelay(100000);
-> > > > +#endif
-> > > 
-> > > Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
-> > > rather than sticking in a not so pretty #ifndef ?
-> > 
-> > Works for me. I'll submit a new version.
+>>
+>> So symbol_request() returns pointers.!= NULL
+>>
+>> A closer look at the definition of symbol_request() shows, that it does
+>> nothing if CONFIG_MODULES is disabled (it just returns its argument).
+>>
+>>
+>> One possibility to fix this bug would be to embrace these three lines with
+>>
+>> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
+>> ...
+>> #endif
+> Luca, what do you think ?
 > 
-> New version looks good to me. On a more general level, I would argue
-> that we should not disable code based on COMPILE_TEST. The typical
-> use of this symbol is to make it possible to compile more code, not
-> to change the behavior of code on machines that were able to build
-> it already.
+> This seems to be an ancient bug, which is known at least since 5 1/2 years:
+> https://lkml.org/lkml/2009/2/4/350
 
-Yeah, agreed as a general concept. In this case, however, it were
-causing a compilation breakage on X86 (as it generates a non-existing
-_bad_ndelay() symbol, if the time is bigger than 20000). See
-include/asm-generic/delay.h.
+Well, it's been a while so I don't remember the details, but I think the
+same now as then ;-)
+The idea behind CONFIG_DVB_USB_AF9005_REMOTE was to provide an
+alternative implementation (based on lirc, at the time it wasn't in the
+kernel), since this adapter doesn't decode the IR pulses by itself.
+In theory you could leave it undefined but still provide an
+implementation in a different module. Just adding
 
-Btw, I suspect that the only reason why ndelay(100000) causes a
-compilation breakage is to avoid a big number, as the maximum limit
-check ndelay() code (20000) at asm-generic is identical to the one
-for udelay(). So, for ndelay, it means 20us, while, for udelay,
-it means 20ms. Even so, both calls the very same implementation code.
+#ifdef CONFIG_DVB_USB_AF9005_REMOTE
 
-Perhaps we should fix it, for both to accept a maximum time of 20ms.
+would nuke the (futile?) effort.
 
-Regards,
-Mauro
+Now, since the problem seems to be with CONFIG_MODULES disabled, maybe
+you could combine both conditions
+
+#if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
+
+Bye
+-- 
+Luca
+
