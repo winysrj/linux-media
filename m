@@ -1,122 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4828 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbaIHOPK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:15:10 -0400
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2549 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797AbaISQPx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Sep 2014 12:15:53 -0400
+Message-ID: <541C56A7.5060708@xs4all.nl>
+Date: Fri, 19 Sep 2014 18:15:35 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 05/12] vb2: call memop prepare before the buf_prepare op is called
-Date: Mon,  8 Sep 2014 16:14:34 +0200
-Message-Id: <1410185681-20111-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410185681-20111-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [RFC PATCH] vb2: yet another attempt to fix the vb2/VBI/poll regression
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+After a long discussion on irc the decision was taken that poll() should:
 
-The prepare memop now returns an error, so we need to be able to handle that.
-In addition, prepare has to be called before buf_prepare since in the dma-sg
-case buf_prepare expects that the dma memory is mapped and it can use the
-sg_table.
+- return POLLERR when not streaming or when q->error is set
+- return POLLERR when streaming from a capture queue, but no buffers have been
+  queued yet, and it is not part of an M2M device.
 
-So call the prepare memop before calling buf_prepare and clean up the memory
-in case of an error.
+The first rule is logical, the second less so. It emulates vb1 behavior that some
+applications might rely on. It is behavior that we don't want for output devices
+or M2M devices because calling STREAMON without QBUF makes a lot of sense for
+output devices, and for M2M devices I want to avoid causing a regression by
+potentially changing the behavior of M2M capture queues. We don't have legacy apps
+to support there, so let's make sure that those queue types remain unchanged.
+
+I do that by setting needs_buffers to false in v4l2_m2m_streamon. All M2M drivers
+use that function with the exception of s5p-mfc, but there STREAMON will return
+an error if not enough buffers are queued so it's not able to do STREAMON without
+a QBUF anyway.
+
+There will be a second version, since I need to update some comments in the header
+and adjust the spec, but I would like to get code reviews as soon as possible.
+
+Just explaining that second rule makes my head hurt, which is usually a bad sign.
+
+	Hans
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 46 +++++++++++++++++++++++---------
- 1 file changed, 34 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 80c588f..c8d2b5b 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -463,6 +463,7 @@ int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, type);
++	vq->needs_buffers = false;
+ 	ret = vb2_streamon(vq, type);
+ 	if (!ret)
+ 		v4l2_m2m_try_schedule(m2m_ctx);
 diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 087cd62..1cb3423 100644
+index 7e6aff6..efbf1ce 100644
 --- a/drivers/media/v4l2-core/videobuf2-core.c
 +++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1346,13 +1346,43 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 	}
- }
- 
-+static int __buf_memory_prepare(struct vb2_buffer *vb)
-+{
-+	int ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
-+	unsigned int plane;
-+
-+	if (ret)
-+		return ret;
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		ret = call_memop(vb, prepare, vb->planes[plane].mem_priv);
-+		if (ret) {
-+			for (; plane; plane--)
-+				call_void_memop(vb, finish, vb->planes[plane - 1].mem_priv);
-+			call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+			dprintk(1, "buffer memory preparation failed\n");
-+			return ret;
-+		}
-+	}
-+
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "buffer preparation failed\n");
-+		for (plane = 0; plane < vb->num_planes; ++plane)
-+			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+	}
-+	return ret;
-+}
-+
- /**
-  * __qbuf_mmap() - handle qbuf of an MMAP buffer
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
- 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	return call_vb_qop(vb, buf_prepare, vb);
-+	return __buf_memory_prepare(vb);
- }
- 
- /**
-@@ -1437,11 +1467,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 	}
- 
--	ret = call_vb_qop(vb, buf_prepare, vb);
-+	ret = __buf_memory_prepare(vb);
- 	if (ret) {
--		dprintk(1, "buffer preparation failed\n");
- 		call_void_vb_qop(vb, buf_cleanup, vb);
--		goto err;
-+		return ret;
- 	}
+@@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	 * to the userspace.
+ 	 */
+ 	req->count = allocated_buffers;
++	q->needs_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
  
  	return 0;
-@@ -1561,9 +1590,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
+ }
+@@ -1801,6 +1802,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	 */
+ 	list_add_tail(&vb->queued_entry, &q->queued_list);
+ 	q->queued_count++;
++	q->needs_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+ 		/*
+@@ -2583,10 +2585,18 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
  	}
  
--	ret = call_vb_qop(vb, buf_prepare, vb);
-+	ret = __buf_memory_prepare(vb);
- 	if (ret) {
--		dprintk(1, "buffer preparation failed\n");
- 		call_void_vb_qop(vb, buf_cleanup, vb);
- 		goto err;
- 	}
-@@ -1628,12 +1656,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	vb->v4l2_buf.timestamp.tv_usec = 0;
- 	vb->v4l2_buf.sequence = 0;
+ 	/*
+-	 * There is nothing to wait for if no buffer has been queued and the
+-	 * queue isn't streaming, or if the error flag is set.
++	 * There is nothing to wait for if the queue isn't streaming, or if the
++	 * error flag is set.
+ 	 */
+-	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
++	if (!vb2_is_streaming(q) || q->error)
++		return res | POLLERR;
++	/*
++	 * For compatibility with vb1: if QBUF hasn't been called yet, then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize needs_buffers to false. M2M devices
++	 * also set needs_buffers to false in v4l2_m2m_streamon().
++	 */
++	if (q->needs_buffers)
+ 		return res | POLLERR;
  
--	ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
--	if (ret) {
--		dprintk(1, "buf_prepare_for_cpu failed\n");
--		return ret;
--	}
--
- 	switch (q->memory) {
- 	case V4L2_MEMORY_MMAP:
- 		ret = __qbuf_mmap(vb, b);
--- 
-2.1.0
-
+ 	/*
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5a10d8d..1c218b1 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -419,6 +419,7 @@ struct vb2_queue {
+ 	unsigned int			streaming:1;
+ 	unsigned int			start_streaming_called:1;
+ 	unsigned int			error:1;
++	unsigned int			needs_buffers:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
