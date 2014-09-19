@@ -1,68 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43861 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751875AbaIYFIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 01:08:32 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 12/12] cx231xx: scan all four existing i2c busses instead of the 3 masters
-Date: Thu, 25 Sep 2014 07:08:04 +0200
-Message-Id: <1411621684-8295-12-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36914 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751154AbaISIAV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Sep 2014 04:00:21 -0400
+Date: Fri, 19 Sep 2014 10:59:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/3] vb2: Buffers returned to videobuf2 from
+ start_streaming in QUEUED state
+Message-ID: <20140919075945.GJ2939@valkosipuli.retiisi.org.uk>
+References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
+ <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-core.c | 6 ++++++
- drivers/media/usb/cx231xx/cx231xx-i2c.c  | 8 ++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+On Fri, Sep 19, 2014 at 12:57:47AM +0300, Sakari Ailus wrote:
+> @@ -1174,7 +1174,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+>  		return;
+>  
+> -	if (!q->start_streaming_called) {
+> +	if (q->done_buffers_queued_state) {
+>  		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
+>  			state = VB2_BUF_STATE_QUEUED;
+>  	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index c49022f..f6b6d26 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1303,6 +1303,12 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	cx231xx_i2c_mux_register(dev, 0);
- 	cx231xx_i2c_mux_register(dev, 1);
- 
-+	/* scan the real bus segments */
-+	cx231xx_do_i2c_scan(dev, I2C_0);
-+	cx231xx_do_i2c_scan(dev, I2C_1);
-+	cx231xx_do_i2c_scan(dev, I2C_2);
-+	cx231xx_do_i2c_scan(dev, I2C_3);
-+
- 	/* init hardware */
- 	/* Note : with out calling set power mode function,
- 	afe can not be set up correctly */
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 848aec2..13c476c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -492,6 +492,9 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
- 	int i, rc;
- 	struct i2c_client client;
- 
-+	if (!i2c_scan)
-+		return;
-+
- 	memset(&client, 0, sizeof(client));
- 	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
- 
-@@ -533,10 +536,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	i2c_add_adapter(&bus->i2c_adap);
- 
--	if (0 == bus->i2c_rc) {
--		if (i2c_scan)
--			cx231xx_do_i2c_scan(dev, bus->nr);
--	} else
-+	if (0 != bus->i2c_rc)
- 		cx231xx_warn("%s: i2c bus %d register FAILED\n",
- 			     dev->name, bus->nr);
- 
+This condition needs to be changed, too. I'll resend a corrected version.
+
 -- 
-2.1.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
