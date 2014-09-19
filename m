@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:51581 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753128AbaIVV2L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 17:28:11 -0400
-Received: from minime.bse ([24.134.147.13]) by mail.gmx.com (mrgmx102) with
- ESMTPSA (Nemesis) id 0Lb90f-1XyxW436uP-00khzR for
- <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 23:28:09 +0200
-From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37033 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751204AbaISIWB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Sep 2014 04:22:01 -0400
+Date: Fri, 19 Sep 2014 11:21:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Thomas Voegtle <tv@lio96.de>, linux-media@vger.kernel.org,
-	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-Subject: [PATCH] saa7146: generate device name early
-Date: Mon, 22 Sep 2014 23:27:41 +0200
-Message-Id: <1411421261-9076-1-git-send-email-daniel-gl@gmx.net>
-In-Reply-To: <alpine.LNX.2.00.1409222115570.2699@er-systems.de>
-References: <alpine.LNX.2.00.1409222115570.2699@er-systems.de>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/3] vb2: Buffers returned to videobuf2 from
+ start_streaming in QUEUED state
+Message-ID: <20140919082122.GK2939@valkosipuli.retiisi.org.uk>
+References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi>
+ <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
+ <541BE5C5.5040205@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <541BE5C5.5040205@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is needed when requesting the irq.
+Hi Hans,
 
-Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
----
- drivers/media/common/saa7146/saa7146_core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Fri, Sep 19, 2014 at 10:13:57AM +0200, Hans Verkuil wrote:
+> On 09/18/2014 11:57 PM, Sakari Ailus wrote:
+> > Patch "[media] v4l: vb2: Fix stream start and buffer completion race" has a
+> > sets q->start_streaming_called before calling queue op start_streaming() in
+> > order to fix a bug. This has the side effect that buffers returned to
+> > videobuf2 in VB2_BUF_STATE_QUEUED will cause a WARN_ON() to be called.
+> > 
+> > Add a new field called done_buffers_queued_state to struct vb2_queue, which
+> > must be set if the new state of buffers returned to videobuf2 must be
+> > VB2_BUF_STATE_QUEUED, i.e. buffers returned in start_streaming op.
+> 
+> I posted a fix for this over a month ago:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg77871.html
+> 
+> Unfortunately, the pull request with that patch (https://patchwork.linuxtv.org/patch/25162/)
+> fell through the cracks as I discovered yesterday. Hopefully Mauro will pick
+> up that pull request quickly.
+> 
+> I prefer my patch since that avoids introducing yet another state variable.
 
-diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
-index 97afee6..4418119 100644
---- a/drivers/media/common/saa7146/saa7146_core.c
-+++ b/drivers/media/common/saa7146/saa7146_core.c
-@@ -364,6 +364,9 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
- 		goto out;
- 	}
- 
-+	/* create a nice device name */
-+	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
-+
- 	DEB_EE("pci:%p\n", pci);
- 
- 	err = pci_enable_device(pci);
-@@ -438,9 +441,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
- 
- 	/* the rest + print status message */
- 
--	/* create a nice device name */
--	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
--
- 	pr_info("found saa7146 @ mem %p (revision %d, irq %d) (0x%04x,0x%04x)\n",
- 		dev->mem, dev->revision, pci->irq,
- 		pci->subsystem_vendor, pci->subsystem_device);
+Using less state variables is good, but with your patch returning buffers
+back to videobuf2 to state VB2_BUF_STATE_QUEUED is possible also after
+start_stream() has finished. That's probably a lesser problem, though.
+
+I'm fine with your patch as well.
+
 -- 
-1.8.3.4
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
