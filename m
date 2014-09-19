@@ -1,1057 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49619 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895AbaI2U2F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 16:28:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH 03/11] v4l: Sort YUV formats of v4l2_mbus_pixelcode
-Date: Mon, 29 Sep 2014 23:27:49 +0300
-Message-Id: <1412022477-28749-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:44859 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751617AbaISIHj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Sep 2014 04:07:39 -0400
+Date: Fri, 19 Sep 2014 16:06:38 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [next:master 6630/6742]
+ drivers/media/platform/coda/coda-bit.c:231:4: error: implicit declaration
+ of function 'kmalloc'
+Message-ID: <541be40e.BU15UVvdJLAqODYA%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+head:   6a10bca9b608df445baa23c3bfafc510d93d425b
+commit: 8fdb4a28beeda1e6626c43b70cd0575512173c3a [6630/6742] Merge remote-tracking branch 'v4l-dvb/master'
+config: arm-imx_v6_v7_defconfig
+reproduce:
+  wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+  chmod +x ~/bin/make.cross
+  git checkout 8fdb4a28beeda1e6626c43b70cd0575512173c3a
+  make.cross ARCH=arm  imx_v6_v7_defconfig
+  make.cross ARCH=arm 
 
-Keep the formats sorted by type, bus_width, bits per component, samples
-per pixel and order of subsamples, in that order.
+All error/warnings:
 
-Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+   drivers/media/platform/coda/coda-bit.c: In function 'coda_fill_bitstream':
+>> drivers/media/platform/coda/coda-bit.c:231:4: error: implicit declaration of function 'kmalloc' [-Werror=implicit-function-declaration]
+       ts = kmalloc(sizeof(*ts), GFP_KERNEL);
+       ^
+>> drivers/media/platform/coda/coda-bit.c:231:7: warning: assignment makes pointer from integer without a cast
+       ts = kmalloc(sizeof(*ts), GFP_KERNEL);
+          ^
+   drivers/media/platform/coda/coda-bit.c: In function 'coda_alloc_framebuffers':
+>> drivers/media/platform/coda/coda-bit.c:312:3: error: implicit declaration of function 'kfree' [-Werror=implicit-function-declaration]
+      kfree(name);
+      ^
+   cc1: some warnings being treated as errors
+
+vim +/kmalloc +231 drivers/media/platform/coda/coda-bit.c
+
+79924ca9 Philipp Zabel 2014-07-23  225  			/*
+79924ca9 Philipp Zabel 2014-07-23  226  			 * Source buffer is queued in the bitstream ringbuffer;
+79924ca9 Philipp Zabel 2014-07-23  227  			 * queue the timestamp and mark source buffer as done
+79924ca9 Philipp Zabel 2014-07-23  228  			 */
+79924ca9 Philipp Zabel 2014-07-23  229  			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+79924ca9 Philipp Zabel 2014-07-23  230  
+79924ca9 Philipp Zabel 2014-07-23  231  			ts = kmalloc(sizeof(*ts), GFP_KERNEL);
+79924ca9 Philipp Zabel 2014-07-23  232  			if (ts) {
+79924ca9 Philipp Zabel 2014-07-23  233  				ts->sequence = src_buf->v4l2_buf.sequence;
+79924ca9 Philipp Zabel 2014-07-23  234  				ts->timecode = src_buf->v4l2_buf.timecode;
+79924ca9 Philipp Zabel 2014-07-23  235  				ts->timestamp = src_buf->v4l2_buf.timestamp;
+79924ca9 Philipp Zabel 2014-07-23  236  				list_add_tail(&ts->list, &ctx->timestamp_list);
+79924ca9 Philipp Zabel 2014-07-23  237  			}
+79924ca9 Philipp Zabel 2014-07-23  238  
+79924ca9 Philipp Zabel 2014-07-23  239  			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+79924ca9 Philipp Zabel 2014-07-23  240  		} else {
+79924ca9 Philipp Zabel 2014-07-23  241  			break;
+79924ca9 Philipp Zabel 2014-07-23  242  		}
+79924ca9 Philipp Zabel 2014-07-23  243  	}
+79924ca9 Philipp Zabel 2014-07-23  244  }
+79924ca9 Philipp Zabel 2014-07-23  245  
+79924ca9 Philipp Zabel 2014-07-23  246  void coda_bit_stream_end_flag(struct coda_ctx *ctx)
+79924ca9 Philipp Zabel 2014-07-23  247  {
+79924ca9 Philipp Zabel 2014-07-23  248  	struct coda_dev *dev = ctx->dev;
+79924ca9 Philipp Zabel 2014-07-23  249  
+79924ca9 Philipp Zabel 2014-07-23  250  	ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
+79924ca9 Philipp Zabel 2014-07-23  251  
+f23797b6 Philipp Zabel 2014-08-06  252  	/* If this context is currently running, update the hardware flag */
+79924ca9 Philipp Zabel 2014-07-23  253  	if ((dev->devtype->product == CODA_960) &&
+79924ca9 Philipp Zabel 2014-07-23  254  	    coda_isbusy(dev) &&
+79924ca9 Philipp Zabel 2014-07-23  255  	    (ctx->idx == coda_read(dev, CODA_REG_BIT_RUN_INDEX))) {
+f23797b6 Philipp Zabel 2014-08-06  256  		coda_write(dev, ctx->bit_stream_param,
+f23797b6 Philipp Zabel 2014-08-06  257  			   CODA_REG_BIT_BIT_STREAM_PARAM);
+79924ca9 Philipp Zabel 2014-07-23  258  	}
+79924ca9 Philipp Zabel 2014-07-23  259  }
+79924ca9 Philipp Zabel 2014-07-23  260  
+79924ca9 Philipp Zabel 2014-07-23  261  static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
+79924ca9 Philipp Zabel 2014-07-23  262  {
+79924ca9 Philipp Zabel 2014-07-23  263  	struct coda_dev *dev = ctx->dev;
+79924ca9 Philipp Zabel 2014-07-23  264  	u32 *p = ctx->parabuf.vaddr;
+79924ca9 Philipp Zabel 2014-07-23  265  
+79924ca9 Philipp Zabel 2014-07-23  266  	if (dev->devtype->product == CODA_DX6)
+79924ca9 Philipp Zabel 2014-07-23  267  		p[index] = value;
+79924ca9 Philipp Zabel 2014-07-23  268  	else
+79924ca9 Philipp Zabel 2014-07-23  269  		p[index ^ 1] = value;
+79924ca9 Philipp Zabel 2014-07-23  270  }
+79924ca9 Philipp Zabel 2014-07-23  271  
+79924ca9 Philipp Zabel 2014-07-23  272  static void coda_free_framebuffers(struct coda_ctx *ctx)
+79924ca9 Philipp Zabel 2014-07-23  273  {
+79924ca9 Philipp Zabel 2014-07-23  274  	int i;
+79924ca9 Philipp Zabel 2014-07-23  275  
+79924ca9 Philipp Zabel 2014-07-23  276  	for (i = 0; i < CODA_MAX_FRAMEBUFFERS; i++)
+79924ca9 Philipp Zabel 2014-07-23  277  		coda_free_aux_buf(ctx->dev, &ctx->internal_frames[i]);
+79924ca9 Philipp Zabel 2014-07-23  278  }
+79924ca9 Philipp Zabel 2014-07-23  279  
+79924ca9 Philipp Zabel 2014-07-23  280  static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+79924ca9 Philipp Zabel 2014-07-23  281  				   struct coda_q_data *q_data, u32 fourcc)
+79924ca9 Philipp Zabel 2014-07-23  282  {
+79924ca9 Philipp Zabel 2014-07-23  283  	struct coda_dev *dev = ctx->dev;
+79924ca9 Philipp Zabel 2014-07-23  284  	int width, height;
+79924ca9 Philipp Zabel 2014-07-23  285  	dma_addr_t paddr;
+79924ca9 Philipp Zabel 2014-07-23  286  	int ysize;
+79924ca9 Philipp Zabel 2014-07-23  287  	int ret;
+79924ca9 Philipp Zabel 2014-07-23  288  	int i;
+79924ca9 Philipp Zabel 2014-07-23  289  
+79924ca9 Philipp Zabel 2014-07-23  290  	if (ctx->codec && (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 ||
+79924ca9 Philipp Zabel 2014-07-23  291  	     ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264)) {
+79924ca9 Philipp Zabel 2014-07-23  292  		width = round_up(q_data->width, 16);
+79924ca9 Philipp Zabel 2014-07-23  293  		height = round_up(q_data->height, 16);
+79924ca9 Philipp Zabel 2014-07-23  294  	} else {
+79924ca9 Philipp Zabel 2014-07-23  295  		width = round_up(q_data->width, 8);
+79924ca9 Philipp Zabel 2014-07-23  296  		height = q_data->height;
+79924ca9 Philipp Zabel 2014-07-23  297  	}
+79924ca9 Philipp Zabel 2014-07-23  298  	ysize = width * height;
+79924ca9 Philipp Zabel 2014-07-23  299  
+79924ca9 Philipp Zabel 2014-07-23  300  	/* Allocate frame buffers */
+79924ca9 Philipp Zabel 2014-07-23  301  	for (i = 0; i < ctx->num_internal_frames; i++) {
+79924ca9 Philipp Zabel 2014-07-23  302  		size_t size;
+79924ca9 Philipp Zabel 2014-07-23  303  		char *name;
+79924ca9 Philipp Zabel 2014-07-23  304  
+79924ca9 Philipp Zabel 2014-07-23  305  		size = ysize + ysize / 2;
+79924ca9 Philipp Zabel 2014-07-23  306  		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+79924ca9 Philipp Zabel 2014-07-23  307  		    dev->devtype->product != CODA_DX6)
+79924ca9 Philipp Zabel 2014-07-23  308  			size += ysize / 4;
+79924ca9 Philipp Zabel 2014-07-23  309  		name = kasprintf(GFP_KERNEL, "fb%d", i);
+79924ca9 Philipp Zabel 2014-07-23  310  		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i],
+79924ca9 Philipp Zabel 2014-07-23  311  					     size, name);
+79924ca9 Philipp Zabel 2014-07-23  312  		kfree(name);
+79924ca9 Philipp Zabel 2014-07-23  313  		if (ret < 0) {
+79924ca9 Philipp Zabel 2014-07-23  314  			coda_free_framebuffers(ctx);
+79924ca9 Philipp Zabel 2014-07-23  315  			return ret;
+
+:::::: The code at line 231 was first introduced by commit
+:::::: 79924ca9cf95544213d320e3f20d0aff3288e0cb [media] coda: move BIT specific functions into separate file
+
+:::::: TO: Philipp Zabel <p.zabel@pengutronix.de>
+:::::: CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 600 ++++++++++-----------
- include/uapi/linux/v4l2-mediabus.h                 |  12 +-
- 2 files changed, 306 insertions(+), 306 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index d0fb3c7..588aed4 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2239,11 +2239,15 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-UYVY8-1X16">
--	      <entry>V4L2_MBUS_FMT_UYVY8_1X16</entry>
--	      <entry>0x200f</entry>
-+	    <row id="V4L2-MBUS-FMT-UYVY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_UYVY12_2X12</entry>
-+	      <entry>0x201c</entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2252,6 +2256,16 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2265,7 +2279,11 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2274,6 +2292,16 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2283,11 +2311,15 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-VYUY8-1X16">
--	      <entry>V4L2_MBUS_FMT_VYUY8_1X16</entry>
--	      <entry>0x2010</entry>
-+	    <row id="V4L2-MBUS-FMT-VYUY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_VYUY12_2X12</entry>
-+	      <entry>0x201d</entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2296,6 +2328,16 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2309,7 +2351,11 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2318,6 +2364,16 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2327,11 +2383,15 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YUYV8-1X16">
--	      <entry>V4L2_MBUS_FMT_YUYV8_1X16</entry>
--	      <entry>0x2011</entry>
-+	    <row id="V4L2-MBUS-FMT-YUYV12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YUYV12_2X12</entry>
-+	      <entry>0x201e</entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2340,6 +2400,16 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2353,7 +2423,11 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2362,6 +2436,16 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2371,11 +2455,15 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YVYU8-1X16">
--	      <entry>V4L2_MBUS_FMT_YVYU8_1X16</entry>
--	      <entry>0x2012</entry>
-+	    <row id="V4L2-MBUS-FMT-YVYU12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YVYU12_2X12</entry>
-+	      <entry>0x201f</entry>
- 	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2384,6 +2472,16 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2397,29 +2495,11 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-16;
--	      <entry>y<subscript>7</subscript></entry>
--	      <entry>y<subscript>6</subscript></entry>
--	      <entry>y<subscript>5</subscript></entry>
--	      <entry>y<subscript>4</subscript></entry>
--	      <entry>y<subscript>3</subscript></entry>
--	      <entry>y<subscript>2</subscript></entry>
--	      <entry>y<subscript>1</subscript></entry>
--	      <entry>y<subscript>0</subscript></entry>
--	      <entry>u<subscript>7</subscript></entry>
--	      <entry>u<subscript>6</subscript></entry>
--	      <entry>u<subscript>5</subscript></entry>
--	      <entry>u<subscript>4</subscript></entry>
--	      <entry>u<subscript>3</subscript></entry>
--	      <entry>u<subscript>2</subscript></entry>
--	      <entry>u<subscript>1</subscript></entry>
--	      <entry>u<subscript>0</subscript></entry>
--	    </row>
--	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
--	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
--	      <entry>0x2014</entry>
--	      <entry></entry>
--	      &dash-ent-16;
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2428,28 +2508,16 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
- 	    </row>
- 	    <row>
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-16;
--	      <entry>y<subscript>7</subscript></entry>
--	      <entry>y<subscript>6</subscript></entry>
--	      <entry>y<subscript>5</subscript></entry>
--	      <entry>y<subscript>4</subscript></entry>
--	      <entry>y<subscript>3</subscript></entry>
--	      <entry>y<subscript>2</subscript></entry>
--	      <entry>y<subscript>1</subscript></entry>
--	      <entry>y<subscript>0</subscript></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2459,57 +2527,11 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-16;
--	      <entry>y<subscript>7</subscript></entry>
--	      <entry>y<subscript>6</subscript></entry>
--	      <entry>y<subscript>5</subscript></entry>
--	      <entry>y<subscript>4</subscript></entry>
--	      <entry>y<subscript>3</subscript></entry>
--	      <entry>y<subscript>2</subscript></entry>
--	      <entry>y<subscript>1</subscript></entry>
--	      <entry>y<subscript>0</subscript></entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	      <entry>d</entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
-+	    <row id="V4L2-MBUS-FMT-UYVY8-1X16">
-+	      <entry>V4L2_MBUS_FMT_UYVY8_1X16</entry>
-+	      <entry>0x200f</entry>
- 	      <entry></entry>
- 	      &dash-ent-16;
--	      <entry>y<subscript>7</subscript></entry>
--	      <entry>y<subscript>6</subscript></entry>
--	      <entry>y<subscript>5</subscript></entry>
--	      <entry>y<subscript>4</subscript></entry>
--	      <entry>y<subscript>3</subscript></entry>
--	      <entry>y<subscript>2</subscript></entry>
--	      <entry>y<subscript>1</subscript></entry>
--	      <entry>y<subscript>0</subscript></entry>
--	      <entry>v<subscript>7</subscript></entry>
--	      <entry>v<subscript>6</subscript></entry>
--	      <entry>v<subscript>5</subscript></entry>
--	      <entry>v<subscript>4</subscript></entry>
--	      <entry>v<subscript>3</subscript></entry>
--	      <entry>v<subscript>2</subscript></entry>
--	      <entry>v<subscript>1</subscript></entry>
--	      <entry>v<subscript>0</subscript></entry>
--	    </row>
--	    <row id="V4L2-MBUS-FMT-UYVY10-1X20">
--	      <entry>V4L2_MBUS_FMT_UYVY10_1X20</entry>
--	      <entry>0x201a</entry>
--	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>u<subscript>9</subscript></entry>
--	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2518,8 +2540,6 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2533,9 +2553,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>v<subscript>9</subscript></entry>
--	      <entry>v<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2544,8 +2562,6 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2555,13 +2571,11 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-VYUY10-1X20">
--	      <entry>V4L2_MBUS_FMT_VYUY10_1X20</entry>
--	      <entry>0x201b</entry>
-+	    <row id="V4L2-MBUS-FMT-VYUY8-1X16">
-+	      <entry>V4L2_MBUS_FMT_VYUY8_1X16</entry>
-+	      <entry>0x2010</entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>v<subscript>9</subscript></entry>
--	      <entry>v<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2570,8 +2584,6 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2585,9 +2597,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>u<subscript>9</subscript></entry>
--	      <entry>u<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2596,8 +2606,6 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2607,13 +2615,11 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
--	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
--	      <entry>0x200d</entry>
-+	    <row id="V4L2-MBUS-FMT-YUYV8-1X16">
-+	      <entry>V4L2_MBUS_FMT_YUYV8_1X16</entry>
-+	      <entry>0x2011</entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2622,8 +2628,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>u<subscript>9</subscript></entry>
--	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2637,9 +2641,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2648,8 +2650,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>v<subscript>9</subscript></entry>
--	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2659,13 +2659,11 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YVYU10-1X20">
--	      <entry>V4L2_MBUS_FMT_YVYU10_1X20</entry>
--	      <entry>0x200e</entry>
-+	    <row id="V4L2-MBUS-FMT-YVYU8-1X16">
-+	      <entry>V4L2_MBUS_FMT_YVYU8_1X16</entry>
-+	      <entry>0x2012</entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2674,8 +2672,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>v<subscript>9</subscript></entry>
--	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2689,9 +2685,51 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-12;
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
-+	      &dash-ent-16;
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YDYUYDYV8-1X16">
-+	      <entry>V4L2_MBUS_FMT_YDYUYDYV8_1X16</entry>
-+	      <entry>0x2014</entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2700,8 +2738,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>u<subscript>9</subscript></entry>
--	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
- 	      <entry>u<subscript>6</subscript></entry>
- 	      <entry>u<subscript>5</subscript></entry>
-@@ -2711,14 +2747,11 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
--	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
--	      <entry>0x2016</entry>
-+	    <row>
- 	      <entry></entry>
--	      <entry>-</entry>
--	      <entry>-</entry>
--	      <entry>y<subscript>9</subscript></entry>
--	      <entry>y<subscript>8</subscript></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2727,39 +2760,20 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>u<subscript>9</subscript></entry>
--	      <entry>u<subscript>8</subscript></entry>
--	      <entry>u<subscript>7</subscript></entry>
--	      <entry>u<subscript>6</subscript></entry>
--	      <entry>u<subscript>5</subscript></entry>
--	      <entry>u<subscript>4</subscript></entry>
--	      <entry>u<subscript>3</subscript></entry>
--	      <entry>u<subscript>2</subscript></entry>
--	      <entry>u<subscript>1</subscript></entry>
--	      <entry>u<subscript>0</subscript></entry>
--	      <entry>v<subscript>9</subscript></entry>
--	      <entry>v<subscript>8</subscript></entry>
--	      <entry>v<subscript>7</subscript></entry>
--	      <entry>v<subscript>6</subscript></entry>
--	      <entry>v<subscript>5</subscript></entry>
--	      <entry>v<subscript>4</subscript></entry>
--	      <entry>v<subscript>3</subscript></entry>
--	      <entry>v<subscript>2</subscript></entry>
--	      <entry>v<subscript>1</subscript></entry>
--	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-AYUV8-1X32">
--	      <entry>V4L2_MBUS_FMT_AYUV8_1X32</entry>
--	      <entry>0x2017</entry>
-+	    <row>
- 	      <entry></entry>
--	      <entry>a<subscript>7</subscript></entry>
--	      <entry>a<subscript>6</subscript></entry>
--	      <entry>a<subscript>5</subscript></entry>
--	      <entry>a<subscript>4</subscript></entry>
--	      <entry>a<subscript>3</subscript></entry>
--	      <entry>a<subscript>2</subscript></entry>
--	      <entry>a<subscript>1</subscript></entry>
--	      <entry>a<subscript>0</subscript></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
- 	      <entry>y<subscript>7</subscript></entry>
- 	      <entry>y<subscript>6</subscript></entry>
- 	      <entry>y<subscript>5</subscript></entry>
-@@ -2768,14 +2782,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	      <entry>u<subscript>7</subscript></entry>
--	      <entry>u<subscript>6</subscript></entry>
--	      <entry>u<subscript>5</subscript></entry>
--	      <entry>u<subscript>4</subscript></entry>
--	      <entry>u<subscript>3</subscript></entry>
--	      <entry>u<subscript>2</subscript></entry>
--	      <entry>u<subscript>1</subscript></entry>
--	      <entry>u<subscript>0</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
- 	      <entry>v<subscript>6</subscript></entry>
- 	      <entry>v<subscript>5</subscript></entry>
-@@ -2785,13 +2791,11 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-UYVY12-2X12">
--	      <entry>V4L2_MBUS_FMT_UYVY12_2X12</entry>
--	      <entry>0x201c</entry>
-+	    <row id="V4L2-MBUS-FMT-UYVY10-1X20">
-+	      <entry>V4L2_MBUS_FMT_UYVY10_1X20</entry>
-+	      <entry>0x201a</entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>u<subscript>11</subscript></entry>
--	      <entry>u<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>u<subscript>9</subscript></entry>
- 	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
-@@ -2802,14 +2806,6 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2825,9 +2821,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>v<subscript>11</subscript></entry>
--	      <entry>v<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>v<subscript>9</subscript></entry>
- 	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
-@@ -2838,14 +2832,6 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2857,13 +2843,11 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-VYUY12-2X12">
--	      <entry>V4L2_MBUS_FMT_VYUY12_2X12</entry>
--	      <entry>0x201d</entry>
-+	    <row id="V4L2-MBUS-FMT-VYUY10-1X20">
-+	      <entry>V4L2_MBUS_FMT_VYUY10_1X20</entry>
-+	      <entry>0x201b</entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>v<subscript>11</subscript></entry>
--	      <entry>v<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>v<subscript>9</subscript></entry>
- 	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
-@@ -2874,14 +2858,6 @@
- 	      <entry>v<subscript>2</subscript></entry>
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2897,9 +2873,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>u<subscript>11</subscript></entry>
--	      <entry>u<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>u<subscript>9</subscript></entry>
- 	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
-@@ -2910,14 +2884,6 @@
- 	      <entry>u<subscript>2</subscript></entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2929,13 +2895,11 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YUYV12-2X12">
--	      <entry>V4L2_MBUS_FMT_YUYV12_2X12</entry>
--	      <entry>0x201e</entry>
-+	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
-+	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
-+	      <entry>0x200d</entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2946,14 +2910,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>u<subscript>11</subscript></entry>
--	      <entry>u<subscript>10</subscript></entry>
- 	      <entry>u<subscript>9</subscript></entry>
- 	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
-@@ -2969,9 +2925,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -2982,14 +2936,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>v<subscript>11</subscript></entry>
--	      <entry>v<subscript>10</subscript></entry>
- 	      <entry>v<subscript>9</subscript></entry>
- 	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
-@@ -3001,13 +2947,11 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
--	    <row id="V4L2-MBUS-FMT-YVYU12-2X12">
--	      <entry>V4L2_MBUS_FMT_YVYU12_2X12</entry>
--	      <entry>0x201f</entry>
-+	    <row id="V4L2-MBUS-FMT-YVYU10-1X20">
-+	      <entry>V4L2_MBUS_FMT_YVYU10_1X20</entry>
-+	      <entry>0x200e</entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -3018,14 +2962,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>v<subscript>11</subscript></entry>
--	      <entry>v<subscript>10</subscript></entry>
- 	      <entry>v<subscript>9</subscript></entry>
- 	      <entry>v<subscript>8</subscript></entry>
- 	      <entry>v<subscript>7</subscript></entry>
-@@ -3041,9 +2977,7 @@
- 	      <entry></entry>
- 	      <entry></entry>
- 	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>y<subscript>11</subscript></entry>
--	      <entry>y<subscript>10</subscript></entry>
-+	      &dash-ent-12;
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
- 	      <entry>y<subscript>7</subscript></entry>
-@@ -3054,14 +2988,6 @@
- 	      <entry>y<subscript>2</subscript></entry>
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
--	    </row>
--	    <row>
--	      <entry></entry>
--	      <entry></entry>
--	      <entry></entry>
--	      &dash-ent-20;
--	      <entry>u<subscript>11</subscript></entry>
--	      <entry>u<subscript>10</subscript></entry>
- 	      <entry>u<subscript>9</subscript></entry>
- 	      <entry>u<subscript>8</subscript></entry>
- 	      <entry>u<subscript>7</subscript></entry>
-@@ -3313,6 +3239,80 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
-+	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
-+	      <entry>0x2016</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>-</entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-AYUV8-1X32">
-+	      <entry>V4L2_MBUS_FMT_AYUV8_1X32</entry>
-+	      <entry>0x2017</entry>
-+	      <entry></entry>
-+	      <entry>a<subscript>7</subscript></entry>
-+	      <entry>a<subscript>6</subscript></entry>
-+	      <entry>a<subscript>5</subscript></entry>
-+	      <entry>a<subscript>4</subscript></entry>
-+	      <entry>a<subscript>3</subscript></entry>
-+	      <entry>a<subscript>2</subscript></entry>
-+	      <entry>a<subscript>1</subscript></entry>
-+	      <entry>a<subscript>0</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 8ea4f26..9be976f 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -71,6 +71,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
- 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
- 	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
-+	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
-+	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
-+	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
-+	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
- 	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
- 	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
- 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
-@@ -80,16 +84,12 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
--	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
--	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
--	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
--	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
--	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
--	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
- 	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
- 	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
- 	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
- 	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
-+	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
-+	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
- 
- 	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
--- 
-1.8.5.5
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
