@@ -1,36 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:43059 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879AbaIBOsO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 10:48:14 -0400
-Received: by mail-oi0-f44.google.com with SMTP id i138so4506477oig.17
-        for <linux-media@vger.kernel.org>; Tue, 02 Sep 2014 07:48:13 -0700 (PDT)
-MIME-Version: 1.0
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Tue, 2 Sep 2014 16:47:58 +0200
-Message-ID: <CAL8zT=gEXzeP1KPJZBrDUOQWRotvV8XidPuoeQZecKLKCdJEPw@mail.gmail.com>
-Subject: ADV76xx : Endpoint parsing
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3914 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbaITI4h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 04:56:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurentp@cse-semaphore.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, lars@metafoo.de
-Content-Type: text/plain; charset=UTF-8
+Cc: laurent.pinchart@ideasonboard.com, m.chehab@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/3] DocBook media: fix the poll() 'no QBUF' documentation
+Date: Sat, 20 Sep 2014 10:56:14 +0200
+Message-Id: <1411203375-15310-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I am trying to understand how endpoint parsing is done in adv7604/11
-and the main objective is to get adv7604 endpoint parsing from DT for
-all its ports (4 HDMI and one VGA as input, one output).
-I am stuck on the function adv7604_parse_dt().
-Tell me if I am wrong, but this function takes the first endpoint from
-DT, puts the node, and that's all...
+Clarify what poll() returns if STREAMON was called but not QBUF.
+Make explicit the different behavior for this scenario for
+capture and output devices.
 
-At least for ADV7611, there is two endpoints : one HDMI as input, one output.
-I am not even sure that this function gets both...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/func-poll.xml | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-And last but not least, how can we get support for all endpoints in
-the ADV7604 case ?
+diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
+index 85cad8b..b7ed9e8 100644
+--- a/Documentation/DocBook/media/v4l/func-poll.xml
++++ b/Documentation/DocBook/media/v4l/func-poll.xml
+@@ -44,10 +44,18 @@ Capture devices set the <constant>POLLIN</constant> and
+ flags. When the function timed out it returns a value of zero, on
+ failure it returns <returnvalue>-1</returnvalue> and the
+ <varname>errno</varname> variable is set appropriately. When the
+-application did not call &VIDIOC-QBUF; or &VIDIOC-STREAMON; yet the
++application did not call &VIDIOC-STREAMON; the
+ <function>poll()</function> function succeeds, but sets the
+ <constant>POLLERR</constant> flag in the
+-<structfield>revents</structfield> field.</para>
++<structfield>revents</structfield> field. When the
++application calls &VIDIOC-STREAMON; for a capture device without a
++preceeding &VIDIOC-QBUF; the <function>poll()</function> function
++succeeds, but sets the <constant>POLLERR</constant> flag in the
++<structfield>revents</structfield> field. For output devices this
++same situation will cause <function>poll()</function> to succeed
++as well, but it sets the <constant>POLLOUT</constant> and
++<constant>POLLWRNORM</constant> flags in the <structfield>revents</structfield>
++field.</para>
+ 
+     <para>When use of the <function>read()</function> function has
+ been negotiated and the driver does not capture yet, the
+-- 
+2.1.0
 
-Thanks,
-JM
