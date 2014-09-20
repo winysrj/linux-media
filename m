@@ -1,97 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40256 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830AbaI3OFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 10:05:18 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/3] libv4l2: Move alignment of dest_fmt resolution to v4l2_set_src_and_dest_format
-Date: Tue, 30 Sep 2014 16:05:01 +0200
-Message-Id: <1412085901-18528-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1412085901-18528-1-git-send-email-hdegoede@redhat.com>
-References: <1412085901-18528-1-git-send-email-hdegoede@redhat.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4681 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783AbaITKgy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:36:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: matrandg@cisco.com, marbugge@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/2] adv7604/adv7842: fix il_vbackporch typo and zero the struct
+Date: Sat, 20 Sep 2014 12:36:39 +0200
+Message-Id: <1411209399-24478-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411209399-24478-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411209399-24478-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So that we always do the alignment, this is necessary because there are
-several code paths where dest_fmt gets set to a fmt which has not been
-passed through libv4lconvert_try_fmt, and thus is not aligned.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Also call v4lconvert_fixup_fmt when aligment has changed the height / width,
-so that bytesperline and sizeimage get set correctly.
+Both adv7604 and adv7842 had the same typo in the code that sets
+the vertical backporch for the second interlaced field: it was
+assigned to vbackporch instead of il_vbackporch.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+In addition, the timings struct wasn't zeroed in the adv7842 driver,
+leaving several fields to undefined values causing the timing match
+function to fail.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- lib/include/libv4lconvert.h |  3 +++
- lib/libv4l2/libv4l2.c       | 25 ++++++++++++++-----------
- 2 files changed, 17 insertions(+), 11 deletions(-)
+ drivers/media/i2c/adv7604.c | 2 +-
+ drivers/media/i2c/adv7842.c | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
-index e94d3bd..d425c51 100644
---- a/lib/include/libv4lconvert.h
-+++ b/lib/include/libv4lconvert.h
-@@ -147,6 +147,9 @@ LIBV4L_PUBLIC int v4lconvert_supported_dst_format(unsigned int pixelformat);
- LIBV4L_PUBLIC int v4lconvert_get_fps(struct v4lconvert_data *data);
- LIBV4L_PUBLIC void v4lconvert_set_fps(struct v4lconvert_data *data, int fps);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d4fa213..a836de6 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1593,7 +1593,7 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 			bt->height += hdmi_read16(sd, 0x0b, 0xfff);
+ 			bt->il_vfrontporch = hdmi_read16(sd, 0x2c, 0x1fff) / 2;
+ 			bt->il_vsync = hdmi_read16(sd, 0x30, 0x1fff) / 2;
+-			bt->vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
++			bt->il_vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
+ 		}
+ 		adv7604_fill_optional_dv_timings_fields(sd, timings);
+ 	} else {
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 0d55491..48b628b 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1435,6 +1435,8 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
  
-+/* Fixup bytesperline and sizeimage for supported destination formats */
-+LIBV4L_PUBLIC void v4lconvert_fixup_fmt(struct v4l2_format *fmt);
+ 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
+ 
++	memset(timings, 0, sizeof(struct v4l2_dv_timings));
 +
- #ifdef __cplusplus
- }
- #endif /* __cplusplus */
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index bdfb2fe..966a000 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -765,16 +765,6 @@ no_capture:
- 	v4l2_set_src_and_dest_format(index, &devices[index].src_fmt,
- 				     &devices[index].dest_fmt);
- 
--	/* When a user does a try_fmt with the current dest_fmt and the dest_fmt
--	   is a supported one we will align the resolution (see try_fmt for why).
--	   Do the same here now, so that a try_fmt on the result of a get_fmt done
--	   immediately after open leaves the fmt unchanged. */
--	if (v4lconvert_supported_dst_format(
--				devices[index].dest_fmt.fmt.pix.pixelformat)) {
--		devices[index].dest_fmt.fmt.pix.width &= ~7;
--		devices[index].dest_fmt.fmt.pix.height &= ~1;
--	}
--
- 	pthread_mutex_init(&devices[index].stream_lock, NULL);
- 
- 	devices[index].no_frames = 0;
-@@ -948,6 +938,18 @@ static int v4l2_pix_fmt_identical(struct v4l2_format *a, struct v4l2_format *b)
- static void v4l2_set_src_and_dest_format(int index,
- 		struct v4l2_format *src_fmt, struct v4l2_format *dest_fmt)
- {
-+	/*
-+	 * When a user does a try_fmt with the current dest_fmt and the
-+	 * dest_fmt is a supported one we will align the resolution (see
-+	 * libv4lconvert_try_fmt). We do this here too, in case dest_fmt gets
-+	 * set without having gone through libv4lconvert_try_fmt, so that a
-+	 * try_fmt on the result of a get_fmt always returns the same result.
-+	 */
-+	if (v4lconvert_supported_dst_format(dest_fmt->fmt.pix.pixelformat)) {
-+		dest_fmt->fmt.pix.width &= ~7;
-+		dest_fmt->fmt.pix.height &= ~1;
-+	}
-+
- 	/* Sigh some drivers (pwc) do not properly reflect what one really gets
- 	   after a s_fmt in their try_fmt answer. So update dest format (which we
- 	   report as result from s_fmt / g_fmt to the app) with all info from the src
-@@ -958,7 +960,8 @@ static void v4l2_set_src_and_dest_format(int index,
- 	if (v4l2_pix_fmt_compat(src_fmt, dest_fmt)) {
- 		dest_fmt->fmt.pix.bytesperline = src_fmt->fmt.pix.bytesperline;
- 		dest_fmt->fmt.pix.sizeimage = src_fmt->fmt.pix.sizeimage;
--	}
-+	} else
-+		v4lconvert_fixup_fmt(dest_fmt);
- 
- 	devices[index].src_fmt = *src_fmt;
- 	devices[index].dest_fmt = *dest_fmt;
+ 	/* SDP block */
+ 	if (state->mode == ADV7842_MODE_SDP)
+ 		return -ENODATA;
+@@ -1483,7 +1485,7 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+ 					hdmi_read(sd, 0x2d)) / 2;
+ 			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
+ 					hdmi_read(sd, 0x31)) / 2;
+-			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
++			bt->il_vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
+ 					hdmi_read(sd, 0x35)) / 2;
+ 		}
+ 		adv7842_fill_optional_dv_timings_fields(sd, timings);
 -- 
 2.1.0
 
