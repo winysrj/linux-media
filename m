@@ -1,53 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:52185 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526AbaIFP1n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 11:27:43 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/5] media: davinci: vpif_display: drop setting of vb2 buffer state to ACTIVE
-Date: Sat,  6 Sep 2014 16:26:47 +0100
-Message-Id: <1410017211-15438-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from [58.27.64.247] ([58.27.64.247]:30418 "EHLO
+	mail2.airforce.gov.my" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753558AbaIVNHk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 09:07:40 -0400
+Date: Sat, 20 Sep 2014 22:09:41 +0800 (MYT)
+From: Finance Department <bu.subang@airforce.gov.my>
+Reply-To: Finance Department <dpfuk@qq.com>
+Message-ID: <817703956.125780.1411222181255.JavaMail.zimbra@airforce.gov.my>
+Subject: Payment
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch drops setting of vb2 buffer state to VB2_BUF_STATE_ACTIVE,
-as any buffer queued to the driver is marked ACTIVE by the vb2 core.
+Dear Recipient,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c | 4 ----
- 1 file changed, 4 deletions(-)
+You have been awarded the sum of  8,000,000.00 (Eight Million Pounds sterling) with reference number 77100146 by office of the ministry of finance UK.Send us your personal details to deliver your funds.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 2ce3ddf..76f829d 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -196,8 +196,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	list_del(&common->cur_frm->list);
- 	spin_unlock_irqrestore(&common->irqlock, flags);
--	/* Mark state of the current frame to active */
--	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
- 
- 	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
- 	common->set_addr((addr + common->ytop_off),
-@@ -306,8 +304,6 @@ static void process_progressive_mode(struct common_obj *common)
- 	/* Remove that buffer from the buffer queue */
- 	list_del(&common->next_frm->list);
- 	spin_unlock(&common->irqlock);
--	/* Mark status of the buffer as active */
--	common->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
- 
- 	/* Set top and bottom field addrs in VPIF registers */
- 	addr = vb2_dma_contig_plane_dma_addr(&common->next_frm->vb, 0);
--- 
-1.9.1
-
+Gloria Pete
