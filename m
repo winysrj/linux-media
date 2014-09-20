@@ -1,194 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:49470 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbaI2MFQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 08:05:16 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so792934pdi.33
-        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 05:05:15 -0700 (PDT)
-Date: Mon, 29 Sep 2014 20:05:13 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
-Subject: Re: [PATCH 5/5] cx23855: add CI support for DVBSky T980C
-Message-ID: <201409292005062504051@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Received: from mail-sg1on0148.outbound.protection.outlook.com ([134.170.132.148]:8221
+	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750903AbaITKa6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:30:58 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: buffer delivery stops with cx23885
+Date: Sat, 20 Sep 2014 10:30:51 +0000
+Message-ID: <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+ <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5220.4050107@xs4all.nl>
+In-Reply-To: <541D5220.4050107@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-In hardware design, the CI host controller is wired with GPIO_0 of CX23885.
-The GPIO_0 can be configed as the interrupt source.
-Interrupt mode in PCIe driver is more faster than poll mode to detect CAM insert/remove operations etc.
-
->Add CI support for DVBSky T980C.
->
->I used the new host device independent CIMaX SP2 I2C driver to implement it.
->
->cx23885_sp2_ci_ctrl function is borrowed entirely from cimax2.c.
->
->Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->---
-> drivers/media/pci/cx23885/cx23885-dvb.c | 105 +++++++++++++++++++++++++++++++-
-> 1 file changed, 103 insertions(+), 2 deletions(-)
->
->diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
->index cc88997..70dbcd6 100644
->--- a/drivers/media/pci/cx23885/cx23885-dvb.c
->+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
->@@ -71,6 +71,7 @@
-> #include "si2165.h"
-> #include "si2168.h"
-> #include "si2157.h"
->+#include "sp2.h"
-> #include "m88ds3103.h"
-> #include "m88ts2022.h"
-> 
->@@ -616,6 +617,76 @@ static int dvbsky_t9580_set_voltage(struct dvb_frontend *fe,
-> 	return 0;
-> }
-> 
->+static int cx23885_sp2_ci_ctrl(void *priv, u8 read, int addr,
->+				u8 data, int *mem)
->+{
->+
->+	/* MC417 */
->+	#define SP2_DATA              0x000000ff
->+	#define SP2_WR                0x00008000
->+	#define SP2_RD                0x00004000
->+	#define SP2_ACK               0x00001000
->+	#define SP2_ADHI              0x00000800
->+	#define SP2_ADLO              0x00000400
->+	#define SP2_CS1               0x00000200
->+	#define SP2_CS0               0x00000100
->+	#define SP2_EN_ALL            0x00001000
->+	#define SP2_CTRL_OFF          (SP2_CS1 | SP2_CS0 | SP2_WR | SP2_RD)
->+
->+	struct cx23885_tsport *port = priv;
->+	struct cx23885_dev *dev = port->dev;
->+	int ret;
->+	int tmp;
->+	unsigned long timeout;
->+
->+	mutex_lock(&dev->gpio_lock);
->+
->+	/* write addr */
->+	cx_write(MC417_OEN, SP2_EN_ALL);
->+	cx_write(MC417_RWD, SP2_CTRL_OFF |
->+				SP2_ADLO | (0xff & addr));
->+	cx_clear(MC417_RWD, SP2_ADLO);
->+	cx_write(MC417_RWD, SP2_CTRL_OFF |
->+				SP2_ADHI | (0xff & (addr >> 8)));
->+	cx_clear(MC417_RWD, SP2_ADHI);
->+
->+	if (read) { /* data in */
->+		cx_write(MC417_OEN, SP2_EN_ALL | SP2_DATA);
->+	} else /* data out */
->+		cx_write(MC417_RWD, SP2_CTRL_OFF | data);
->+
->+	/* chip select 0 */
->+	cx_clear(MC417_RWD, SP2_CS0);
->+
->+	/* read/write */
->+	cx_clear(MC417_RWD, (read) ? SP2_RD : SP2_WR);
->+
->+	timeout = jiffies + msecs_to_jiffies(1);
->+	for (;;) {
->+		tmp = cx_read(MC417_RWD);
->+		if ((tmp & SP2_ACK) == 0)
->+			break;
->+		if (time_after(jiffies, timeout))
->+			break;
->+		udelay(1);
->+	}
->+
->+	cx_set(MC417_RWD, SP2_CTRL_OFF);
->+	*mem = tmp & 0xff;
->+
->+	mutex_unlock(&dev->gpio_lock);
->+
->+	if (!read)
->+		if (*mem < 0) {
->+			ret = -EREMOTEIO;
->+			goto err;
->+		}
->+
->+	return 0;
->+err:
->+	return ret;
->+}
->+
-> static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
-> {
-> 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
->@@ -944,11 +1015,11 @@ static int dvb_register(struct cx23885_tsport *port)
-> 	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
-> 	struct si2168_config si2168_config;
-> 	struct si2157_config si2157_config;
->+	struct sp2_config sp2_config;
-> 	struct m88ts2022_config m88ts2022_config;
-> 	struct i2c_board_info info;
-> 	struct i2c_adapter *adapter;
->-	struct i2c_client *client_demod;
->-	struct i2c_client *client_tuner;
->+	struct i2c_client *client_demod, *client_tuner, *client_ci;
-> 	int mfe_shared = 0; /* bus not shared by default */
-> 	int ret;
-> 
->@@ -1683,6 +1754,7 @@ static int dvb_register(struct cx23885_tsport *port)
-> 		break;
-> 	case CX23885_BOARD_DVBSKY_T980C:
-> 		i2c_bus = &dev->i2c_bus[1];
->+		i2c_bus2 = &dev->i2c_bus[0];
-> 
-> 		/* attach frontend */
-> 		memset(&si2168_config, 0, sizeof(si2168_config));
->@@ -1820,6 +1892,35 @@ static int dvb_register(struct cx23885_tsport *port)
-> 	case CX23885_BOARD_DVBSKY_T980C: {
-> 		u8 eeprom[256]; /* 24C02 i2c eeprom */
-> 
->+		/* attach CI */
->+		memset(&sp2_config, 0, sizeof(sp2_config));
->+		sp2_config.dvb_adap = &port->frontends.adapter;
->+		sp2_config.priv = port;
->+		sp2_config.ci_control = cx23885_sp2_ci_ctrl;
->+		memset(&info, 0, sizeof(struct i2c_board_info));
->+		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
->+		info.addr = 0x40;
->+		info.platform_data = &sp2_config;
->+		request_module(info.type);
->+		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
->+		if (client_ci == NULL ||
->+				client_ci->dev.driver == NULL) {
->+			module_put(client_tuner->dev.driver->owner);
->+			i2c_unregister_device(client_tuner);
->+			module_put(client_demod->dev.driver->owner);
->+			i2c_unregister_device(client_demod);
->+			goto frontend_detach;
->+		}
->+		if (!try_module_get(client_ci->dev.driver->owner)) {
->+			i2c_unregister_device(client_ci);
->+			module_put(client_tuner->dev.driver->owner);
->+			i2c_unregister_device(client_tuner);
->+			module_put(client_demod->dev.driver->owner);
->+			i2c_unregister_device(client_demod);
->+			goto frontend_detach;
->+		}
->+		port->i2c_client_ci = client_ci;
->+
-> 		if (port->nr != 1)
-> 			break;
-> 
->-- 
->1.9.1
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->.
-
+PiA+IE9vcHMgSSBzaG91bGQgaGF2ZSBtZW50aW9uZWQgdGhhdC4gSSdtIHVzaW5nIERlYmlhbiAi
+SmVzc2llIiB3aXRoDQo+ID4gMy4xNiBrZXJuZWwgYW5kIGFscmVhZHkgdXNpbmcgdGhlIGxhdGVz
+dCB2NGwgYXMgcGVyIGxpbmsgeW91IHNlbnQgKG15DQo+ID4gRFZpQ08gRnVzaW9uSERUViBEVkIt
+VCBEdWFsIEV4cHJlc3MyIHBhdGNoIGlzIGluIDMuMTcgSSB0aGluaywgYnV0DQo+ID4gdGhhdCdz
+IG5vdCBpbiBEZWJpYW4geWV0KS4NCj4gDQo+IEFoLCB5ZXMsIHRoYXQncyByYXRoZXIgaW1wb3J0
+YW50IGluZm9ybWF0aW9uIDotKQ0KPiANCj4gSSdsbCB0cnkgdG8gcmVwcm9kdWNlIGl0Lg0KPiAN
+Cj4gSG93IG9mdGVuIGRvZXMgaXQgaGFwcGVuPw0KPiANCj4gSSd2ZSBzZXR1cCBhIHRlc3Qgd2hl
+cmUgSSBqdXN0IGtlZXAgc3RyZWFtaW5nIHRvIHNlZSBpZiBJIGNhbiByZXByb2R1Y2UNCj4gaXQu
+DQo+IA0KDQpIYXBwZW5zIHdpdGhpbiA1IG1pbnV0ZXMgc29tZSBuaWdodHMgKGFuZCByZWxpYWJs
+eSB3aXRoaW4gMSBtaW51dGUgd2hlbiBJIHdhcyB0ZXN0aW5nIHdpdGggYWxsIHRoZSBwcmludGsg
+dHVybmVkIG9uKSwgdGhlbiBub3QgZm9yIGhvdXJzIG90aGVyIG5pZ2h0cy4gUmlnaHQgbm93IGl0
+IGhhc24ndCBjcmFzaGVkIHNpbmNlIEkgYXBwbGllZCB0aGUgVkJJL3BvbGwgcmVncmVzc2lvbiBw
+YXRjaCAobXkga2lkcyBhcmUgcmVjb3JkaW5nIGEgZmV3IG1vdmllcyBzbyBJIHRoaW5rIEknZCBi
+ZSBpbiB0cm91YmxlIGlmIEkgdGlua2VyZWQgd2l0aCBpdCBhbnkgbW9yZSB0b25pZ2h0IDopDQoN
+ClRoYXQncyBhIGZhaXJseSBjb21tb24gcGF0dGVybiB0aG91Z2ggLSBwbGF5cyB1cCB3aGVuIHRo
+ZSBraWRzIGFyZSByZWNvcmRpbmcgdGhlaXIgYWZ0ZXJub29uIHNob3dzIHdoZW4gdGhleSBnZXQg
+aG9tZSBmcm9tIHNjaG9vbCwgYnV0IHRoZW4gaXMgb2Z0ZW4gZmFpcmx5IHN0YWJsZSBhZnRlciBh
+cm91bmQgOHBtIHdoZW4gbW92aWVzIHN0YXJ0LiBJIGNhbid0IHJlYWxseSBtYWtlIHNlbnNlIG9m
+IGl0LiBTb21lb25lIG1lbnRpb25lZCBzZWVpbmcgYSBmZXcgb2RkaXRpZXMgd2hlbiBteXRodHYg
+d2FzIGJ1c3kgZG93bmxvYWRpbmcgRUlUIGd1aWRlIGJ1dCBJIGNhbiBzZWUgd2hlbiB0aGF0IGhh
+cHBlbnMgYW5kIHRoZXJlIGlzbid0IGEgY29ycmVsYXRpb24uDQogDQo+ID4gSSB0aGluayBpdCBv
+bmx5IGJyb2tlIHNpbmNlIHRoZSByZXdyaXRlLiBCZWZvcmUgdGhhdCBpdCBzZWVtZWQgdG8gYmUN
+Cj4gPiBidWxsZXRwcm9vZi4gVGhhdCB3YXMgd2h5IEkgYXNrZWQgYWJvdXQgdGhlIHBhdGNoIGp1
+c3QgYmVmb3JlIC0gSQ0KPiA+IGNhbid0IHRlbGwgeWV0IGlmIHRoZSBkcml2ZXIgc3RvcHMgc3Vw
+cGx5aW5nIGRhdGEgb3IgaWYgbXl0aHR2IHN0b3BzDQo+ID4gYXNraW5nIGZvciBkYXRhLiBJZiB0
+aGVyZSB3YXMgc29tZXRoaW5nIGZ1bm55IGFib3V0IHRoZSBwb2xsIGxvb3ANCj4gPiB0aGVuIHRo
+YXQgY291bGQgY2F1c2UgaXQuIEkgc3VwcG9zZSBJIGNhbiB0cnkgYW5kIGdvIGJhY2sgdG8gYW4g
+b2xkZXINCj4gPiB2ZXJzaW9uIG9mIHRoZSBjb2RlIGFuZCBzZWUgd2hhdCBoYXBwZW5zPw0KPiAN
+Cj4gQ2FuIHlvdSB0ZXN0IHdpdGggdGhlIG1lZGlhX3RyZWUuZ2l0IG1hc3RlciBicmFuY2gsIGJ1
+dCBnb2luZyBiYWNrIHRvDQo+IGNvbW1pdCA3M2Q4MTAyMjk4NzE5ODYzZDU0MjY0ZjYyNTIxMzYy
+NDg3Zjg0MjU2Pw0KPiANCj4gVGhhdCBoYXMgdGhlIGN4MjM4ODUgdGhhdCBoYXMgbm90IHlldCBi
+ZWVuIGNvbnZlcnRlZCB0byB2YjIuDQo+IA0KPiBUZXN0IHdpdGggdGhhdCBmb3IgYSB3aGlsZSB0
+byBzZWUgaWYgdGhhdCB3b3JrcyB3aXRob3V0IHByb2JsZW1zLiBUaGVuDQo+IGdvIGJhY2sgdG8g
+dGhlIEhFQUQgb2YgdGhlIG1hc3RlciBicmFuY2ggYW5kIHRyeSBhZ2Fpbi4NCj4gDQo+IElmIGl0
+IGJyZWFrcywgdGhlbiBJIG1heSBoYXZlIHRvIHJldmVydCB0aGUgY3gyMzg4NSB2YjIgY2hhbmdl
+cyB1bnRpbCBJDQo+IGZpZ3VyZSBvdXQgd2hhdCdzIHdyb25nLg0KPiANCg0KSSB3YXMgbG9va2lu
+ZyB0aHJvdWdoIHRoZSBwYXRjaGVzIGFuZCBzYXcgYSBkYXRlIG9mIEF1Z3VzdCAxNCBvbiB0aGUg
+Y3gyMzg4NSB0byB2YjIgcGF0Y2ggYW5kIHRob3VnaHQgdGhhdCBjb3VsZCBoYXZlIGJlZW4gYXJv
+dW5kIHdoZW4gaXQgc3RhcnRlZCBicmVha2luZywgYnV0IHRoZW4gdGhlIDczZDgxMDIyOTg3MTk4
+NjNkNTQyNjRmNjI1MjEzNjI0ODdmODQyNTYgaXMgZGF0ZWQgU2VwdGVtYmVyIDMgYW5kIEknbSBw
+cmV0dHkgc3VyZSBpdCBoYWQgc3RhcnRlZCBwbGF5aW5nIHVwIGJlZm9yZSB0aGVuLiBBYm91dCB3
+aGF0IGRhdGUgd291bGQgSSBoYXZlIHNlZW4gdGhlIDQ1M2FmZGQ5Y2UzMzI5M2Y2NDBlODRkYzE3
+ZTVmMzY2NzAxNTE2ZTggImN4MjM4ODU6IGNvbnZlcnQgdG8gdmIyIiBwYXRjaD8NCg0KSW4gYW55
+IGNhc2UgaXQgc2hvdWxkIGJlIGVhc3kgZW5vdWdoIHRvIHJldmVydCBhbmQgYnVpbGQgc28gSSds
+bCBkbyB0aGF0IHRvbW9ycm93IG9uY2UgSSBjYW4gcHJvdmUgaXQgc3RpbGwgZmFpbHMgd2l0aCB0
+aGUgY3VycmVudCByZWdyZXNzaW9uIHBhdGNoIGFwcGxpZWQuDQoNClRoYW5rcyBmb3IgeW91ciB0
+aW1lIQ0KDQpKYW1lcw0KDQo=
