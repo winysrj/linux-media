@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36538 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756780AbaIRLWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 07:22:38 -0400
-Date: Thu, 18 Sep 2014 08:22:33 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] si2157: change command for sleep
-Message-ID: <20140918082233.16ce4a37@recife.lan>
-In-Reply-To: <54097579.6000507@iki.fi>
-References: <1408990024-1642-1-git-send-email-olli.salonen@iki.fi>
-	<54097579.6000507@iki.fi>
+Received: from mail-sg1bn0103.outbound.protection.outlook.com ([134.170.132.103]:42297
+	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751735AbaITJ03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 05:26:29 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>, James Harper <james@maxsum.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: buffer delivery stops with cx23885
+Date: Sat, 20 Sep 2014 09:26:23 +0000
+Message-ID: <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+In-Reply-To: <541D469B.4000306@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 05 Sep 2014 11:34:01 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
-
-> Moikka Olli
-> 
-> I ran some PM tests for that patch set, using PCTV 292e, which is em28xx 
-> + Si2168 B40 + Si2157 A30. Here is results:
-> 
-> current impementation
-> -------------------------------------
-> cold plugin     40 mA
-> streaming      235 mA
-> sleeping        42 mA
-> 
-> si2157: change command for sleep
-> -------------------------------------
-> cold plugin     40 mA
-> streaming      235 mA
-> sleeping        60 mA
-> 
-> So it increases sleep power usage surprisingly much, almost 20mA from 
-> the USB, nominal 5V.
-> 
-> It is also funny that you will not lose firmware for Si2168 when sleep 
-> with command 13, but that Si2157 tuner behaves differently.
-> 
-> I think I will still apply that, it is just firmware download time vs. 
-> current use in sleep.
-
-IMHO, the best is to keep it saving more power. Ok, it will take more
-time to wake up but so what? If someone is putting the machine to sleep,
-it is because he/she wants to save power.
-
-So, IMHO, we should keep the default behavior as-is. Nothing prevents
-that we would add a modprobe parameter or to use some other method that
-would allow the user to choose between those two different ways.
-
-Regards,
-Mauro
-
-> 
-> Antti
-> 
-> 
-> On 08/25/2014 09:07 PM, Olli Salonen wrote:
-> > Instead of sending command 13 to the tuner, send command 16 when sleeping. This
-> > behaviour is observed when using manufacturer provided binary-only Linux driver
-> > for TechnoTrend CT2-4400 (Windows driver does not do power management).
-> >
-> > The issue with command 13 is that firmware loading is necessary after that.
-> > This is not an issue with tuners that do not require firmware, but resuming
-> > from sleep on an Si2158 takes noticeable time as firmware is loaded on resume.
-> >
-> > Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> > ---
-> >   drivers/media/tuners/si2157.c | 7 ++++---
-> >   1 file changed, 4 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> > index efb5cce..c84f7b8 100644
-> > --- a/drivers/media/tuners/si2157.c
-> > +++ b/drivers/media/tuners/si2157.c
-> > @@ -197,9 +197,10 @@ static int si2157_sleep(struct dvb_frontend *fe)
-> >
-> >   	s->active = false;
-> >
-> > -	memcpy(cmd.args, "\x13", 1);
-> > -	cmd.wlen = 1;
-> > -	cmd.rlen = 0;
-> > +	/* standby */
-> > +	memcpy(cmd.args, "\x16\x00", 2);
-> > +	cmd.wlen = 2;
-> > +	cmd.rlen = 1;
-> >   	ret = si2157_cmd_execute(s, &cmd);
-> >   	if (ret)
-> >   		goto err;
-> >
-> 
+PiANCj4gT24gMDkvMjAvMjAxNCAwNTozMiBBTSwgSmFtZXMgSGFycGVyIHdyb3RlOg0KPiA+DQo+
+ID4gTXkgY3gyMzg4NSBiYXNlZCBEVmlDTyBGdXNpb25IRFRWIERWQi1UIER1YWwgRXhwcmVzczIg
+KEkgc3VibWl0dGVkIGENCj4gPiBwYXRjaCBmb3IgdGhpcyBhIGxpdHRsZSB3aGlsZSBhZ28pIGhh
+cyBiZWVuIHdvcmtpbmcgZ3JlYXQgYnV0IG92ZXINCj4gPiB0aGUgbGFzdCBmZXcgbW9udGhzIGl0
+IGhhcyBzdGFydGVkIHBsYXlpbmcgdXAuIE5vdGhpbmcgaGFzIHJlYWxseQ0KPiA+IGNoYW5nZWQg
+dGhhdCBJIGNhbiBwdXQgbXkgZmluZ2VyIG9uLiBCYXNpY2FsbHkgbXl0aHR2IHN0b3BzIHJlY29y
+ZGluZw0KPiA+IGFmdGVyIGEgZmV3IG1pbnV0ZXMgc29tZXRpbWVzLiBSYXJlbHkgd2hlbiB0aGlz
+IGhhcHBlbnMgSSBzZWUgc29tZQ0KPiA+IGkyYyBlcnJvcnMgYnV0IG1vc3RseSBub3QuDQo+ID4N
+Cj4gPiBXaXRoIGN4MjM4ODUgZGVidWcgb3B0aW9ucyB0dXJuZWQgb24gKGRlYnVnPTkgdmJpX2Rl
+YnVnPTkNCj4gdjRsX2RlYnVnPTkNCj4gPiB2aWRlb19kZWJ1Zz05IGlycV9kZWJ1Zz05IGNpX2Ri
+Zz05KSBpdCBzZWVtcyBsaWtlIHRoZSBjYXJkIGp1c3Qgc3RvcHMNCj4gPiBkZWxpdmVyaW5nIGJ1
+ZmZlcnMgKHNlZSBkbWVzZyBvdXRwdXQgZm9sbG93aW5nKS4gSWYgSSBzdG9wIG15dGh0diwNCj4g
+PiBhbGwgdGhlIGJ1ZmZlcnMgYXJlIGNhbmNlbGxlZCAoY3gyMzg4NV9zdG9wX2RtYSgpKSBldGMs
+IGFuZCB0aGVuDQo+ID4gcmVzdGFydGluZyBteXRodHYgd2lsbCBnZXQgdGhlIHJlY29yZGluZyBn
+b2luZyBhZ2FpbiwgZm9yIGEgc2hvcnQNCj4gPiB0aW1lIChtaW51dGVzKS4NCj4gPg0KPiA+IEFu
+eSBzdWdnZXN0aW9ucyB0byB3aGVyZSBJIGNvdWxkIHN0YXJ0IGxvb2tpbmc/IElzIGl0IHBvc3Np
+YmxlIHRoYXQNCj4gPiBteSBjYXJkIGl0c2VsZiBpcyBicm9rZW4/IChhcGFydCBmcm9tIHRoaXMg
+aXQncyBmbGF3bGVzcykuDQo+IA0KPiBJIHNlZSBub3RoaW5nIHdyb25nIGluIHRoZSBsb2csIGJ1
+dCB5b3UgY2FuIHRyeSB0byB1c2UgdGhlIGN1cnJlbnQgbWVkaWFfdHJlZQ0KPiBjb2RlLiBUaGUg
+Y3gyMzg4NSdzIERNQSBlbmdpbmUgaGFzIGVmZmVjdGl2ZWx5IGJlZW4gcmV3cml0dGVuIHRoZXJl
+LA0KPiBzaW1wbGlmeWluZw0KPiB0aGUgY29udHJvbCBmbG93Lg0KPiANCg0KT29wcyBJIHNob3Vs
+ZCBoYXZlIG1lbnRpb25lZCB0aGF0LiBJJ20gdXNpbmcgRGViaWFuICJKZXNzaWUiIHdpdGggMy4x
+NiBrZXJuZWwgYW5kIGFscmVhZHkgdXNpbmcgdGhlIGxhdGVzdCB2NGwgYXMgcGVyIGxpbmsgeW91
+IHNlbnQgKG15ICBEVmlDTyBGdXNpb25IRFRWIERWQi1UIER1YWwgRXhwcmVzczIgcGF0Y2ggaXMg
+aW4gMy4xNyBJIHRoaW5rLCBidXQgdGhhdCdzIG5vdCBpbiBEZWJpYW4geWV0KS4NCg0KSSB0aGlu
+ayBpdCBvbmx5IGJyb2tlIHNpbmNlIHRoZSByZXdyaXRlLiBCZWZvcmUgdGhhdCBpdCBzZWVtZWQg
+dG8gYmUgYnVsbGV0cHJvb2YuIFRoYXQgd2FzIHdoeSBJIGFza2VkIGFib3V0IHRoZSBwYXRjaCBq
+dXN0IGJlZm9yZSAtIEkgY2FuJ3QgdGVsbCB5ZXQgaWYgdGhlIGRyaXZlciBzdG9wcyBzdXBwbHlp
+bmcgZGF0YSBvciBpZiBteXRodHYgc3RvcHMgYXNraW5nIGZvciBkYXRhLiBJZiB0aGVyZSB3YXMg
+c29tZXRoaW5nIGZ1bm55IGFib3V0IHRoZSBwb2xsIGxvb3AgdGhlbiB0aGF0IGNvdWxkIGNhdXNl
+IGl0LiBJIHN1cHBvc2UgSSBjYW4gdHJ5IGFuZCBnbyBiYWNrIHRvIGFuIG9sZGVyIHZlcnNpb24g
+b2YgdGhlIGNvZGUgYW5kIHNlZSB3aGF0IGhhcHBlbnM/DQoNCldvdWxkIHRoZSBidWcgZml4ZWQg
+YnkgeW91ciAiZml4IFZCSS9wb2xsIHJlZ3Jlc3Npb24iIHBhdGNoIGNhdXNlIGludGVybWl0dGVu
+dCBzdGFsbHMsIG9yIHdvdWxkIHRoZSBhcHBsaWNhdGlvbiB0aGF0IHJlbGllZCBvbiB0aGUgbWlz
+c2luZyBiZWhhdmlvdXIgc2ltcGx5IG5vdCB3b3JrIGF0IGFsbD8NCg0KSW4gYW55IGNhc2UgSSd2
+ZSBqdXN0IGFwcGxpZWQgdGhlIHBhdGNoIGFuZCBhYm91dCB0byByZWJvb3QuDQoNClRoYW5rcw0K
+DQpKYW1lcw0KDQo=
