@@ -1,124 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2963 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625AbaILNAf (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1435 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401AbaITNTs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:35 -0400
+	Sat, 20 Sep 2014 09:19:48 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 05/14] vb2: call memop prepare before the buf_prepare op is called
-Date: Fri, 12 Sep 2014 14:59:54 +0200
-Message-Id: <1410526803-25887-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 2/2] cx23885: fix size helper functions
+Date: Sat, 20 Sep 2014 15:19:33 +0200
+Message-Id: <1411219173-32869-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411219173-32869-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411219173-32869-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The prepare memop now returns an error, so we need to be able to handle that.
-In addition, prepare has to be called before buf_prepare since in the dma-sg
-case buf_prepare expects that the dma memory is mapped and it can use the
-sg_table.
+The norm_swidth function was unused and is dropped. It's not clear
+what the purpose of that function was.
 
-So call the prepare memop before calling buf_prepare and clean up the memory
-in case of an error.
+The norm_maxh function was changed so it tests for 60 Hz standards
+rather than for 50 Hz standards. The is the preferred order.
+
+The norm_maxw function was poorly written and used: it gives the maximum
+allowed line width for the given standard. For 60 Hz that's 720, but
+for 50 Hz that's 768 which allows for 768x576 which gives you square
+pixels. For 60 Hz formats it is 640x480 that gives square pixels, so
+there is no need to go beyond 720.
+
+The initial width was set using norm_maxh(), which was wrong. Just set
+to 720, that's what you normally use. Since the initial standard was
+NTSC anyway the initial width was always 720 anyway.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 46 +++++++++++++++++++++++---------
- 1 file changed, 34 insertions(+), 12 deletions(-)
+ drivers/media/pci/cx23885/cx23885-video.c | 2 +-
+ drivers/media/pci/cx23885/cx23885.h       | 9 ++-------
+ 2 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 087cd62..1cb3423 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1346,13 +1346,43 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 	}
- }
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index f0ea904..682a4f9 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1154,7 +1154,7 @@ int cx23885_video_register(struct cx23885_dev *dev)
+ 	dev->tvnorm = V4L2_STD_NTSC_M;
+ 	dev->fmt = format_by_fourcc(V4L2_PIX_FMT_YUYV);
+ 	dev->field = V4L2_FIELD_INTERLACED;
+-	dev->width = norm_maxw(dev->tvnorm);
++	dev->width = 720;
+ 	dev->height = norm_maxh(dev->tvnorm);
  
-+static int __buf_memory_prepare(struct vb2_buffer *vb)
-+{
-+	int ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
-+	unsigned int plane;
-+
-+	if (ret)
-+		return ret;
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		ret = call_memop(vb, prepare, vb->planes[plane].mem_priv);
-+		if (ret) {
-+			for (; plane; plane--)
-+				call_void_memop(vb, finish, vb->planes[plane - 1].mem_priv);
-+			call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+			dprintk(1, "buffer memory preparation failed\n");
-+			return ret;
-+		}
-+	}
-+
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "buffer preparation failed\n");
-+		for (plane = 0; plane < vb->num_planes; ++plane)
-+			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+		call_void_vb_qop(vb, buf_finish_for_cpu, vb);
-+	}
-+	return ret;
-+}
-+
- /**
-  * __qbuf_mmap() - handle qbuf of an MMAP buffer
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	/* init video dma queues */
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 0e4f406..39a8985 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -612,15 +612,10 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
+ 
+ static inline unsigned int norm_maxw(v4l2_std_id norm)
  {
- 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	return call_vb_qop(vb, buf_prepare, vb);
-+	return __buf_memory_prepare(vb);
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
++	return (norm & V4L2_STD_525_60) ? 720 : 768;
  }
  
- /**
-@@ -1437,11 +1467,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 	}
- 
--	ret = call_vb_qop(vb, buf_prepare, vb);
-+	ret = __buf_memory_prepare(vb);
- 	if (ret) {
--		dprintk(1, "buffer preparation failed\n");
- 		call_void_vb_qop(vb, buf_cleanup, vb);
--		goto err;
-+		return ret;
- 	}
- 
- 	return 0;
-@@ -1561,9 +1590,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 	}
- 
--	ret = call_vb_qop(vb, buf_prepare, vb);
-+	ret = __buf_memory_prepare(vb);
- 	if (ret) {
--		dprintk(1, "buffer preparation failed\n");
- 		call_void_vb_qop(vb, buf_cleanup, vb);
- 		goto err;
- 	}
-@@ -1628,12 +1656,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	vb->v4l2_buf.timestamp.tv_usec = 0;
- 	vb->v4l2_buf.sequence = 0;
- 
--	ret = call_vb_qop(vb, buf_prepare_for_cpu, vb);
--	if (ret) {
--		dprintk(1, "buf_prepare_for_cpu failed\n");
--		return ret;
--	}
+ static inline unsigned int norm_maxh(v4l2_std_id norm)
+ {
+-	return (norm & V4L2_STD_625_50) ? 576 : 480;
+-}
 -
- 	switch (q->memory) {
- 	case V4L2_MEMORY_MMAP:
- 		ret = __qbuf_mmap(vb, b);
+-static inline unsigned int norm_swidth(v4l2_std_id norm)
+-{
+-	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
++	return (norm & V4L2_STD_525_60) ? 480 : 576;
+ }
 -- 
 2.1.0
 
