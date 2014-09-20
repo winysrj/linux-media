@@ -1,192 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:65228 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766AbaIMIvC (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42198 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756729AbaITScv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Sep 2014 04:51:02 -0400
-Received: by mail-lb0-f179.google.com with SMTP id p9so2114426lbv.10
-        for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 01:51:00 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/4] em28xx: get rid of structs em28xx_ac97_mode and em28xx_audio_mode
-Date: Sat, 13 Sep 2014 10:52:22 +0200
-Message-Id: <1410598342-31094-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1410598342-31094-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1410598342-31094-1-git-send-email-fschaefer.oss@googlemail.com>
+	Sat, 20 Sep 2014 14:32:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
+Date: Sat, 20 Sep 2014 21:32:54 +0300
+Message-ID: <1554010.2WmUDpr8lj@avalon>
+In-Reply-To: <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have enum em28xx_int_audio (none/i2s/ac97), it is no longer
-necessary to check dev->audio_mode.ac97 to determine the type of internal audio connection.
-There is also no need to save the type of the detected AC97 chip.
+Hi Hans,
 
-So replce the remaining checks of dev->audio_mode.ac97 with equivalent checks
-of dev->int_audio_type and get rid of struct em28xx_ac97_mode and finally the
-whole struct em28xx_audio_mode.
+Thank you for the patch.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-audio.c |  2 +-
- drivers/media/usb/em28xx/em28xx-core.c  | 36 ++++++---------------------------
- drivers/media/usb/em28xx/em28xx-video.c |  2 +-
- drivers/media/usb/em28xx/em28xx.h       | 13 ------------
- 4 files changed, 8 insertions(+), 45 deletions(-)
+On Saturday 20 September 2014 10:56:13 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
+> broke the teletext applications alevt and mtt. These applications
+> expect that calling poll() without having called VIDIOC_STREAMON will
+> cause poll() to return POLLERR. That did not happen in vb2.
+> 
+> This patch fixes that behavior. It also fixes what should happen when
+> poll() is called when STREAMON is called but no buffers have been
+> queued. In that case poll() will also return POLLERR, but only for
+> capture queues since output queues will always return POLLOUT
+> anyway in that situation.
+> 
+> This brings the vb2 behavior in line with the old videobuf behavior.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 15 ++++++++++++---
+>  include/media/videobuf2-core.h           |  4 ++++
+>  2 files changed, 16 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff6..f3762a8 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct
+> v4l2_requestbuffers *req) * to the userspace.
+>  	 */
+>  	req->count = allocated_buffers;
+> +	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 90c7a83..c3a4224 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -933,7 +933,7 @@ static int em28xx_audio_init(struct em28xx *dev)
- 
- 	INIT_WORK(&adev->wq_trigger, audio_trigger);
- 
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
- 		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
- 		em28xx_cvol_new(card, dev, "Line In", AC97_LINE);
- 		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE);
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index ed83e4e..7464e70 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -405,12 +405,8 @@ static int em28xx_set_audio_source(struct em28xx *dev)
- 		return ret;
- 	msleep(5);
- 
--	switch (dev->audio_mode.ac97) {
--	case EM28XX_NO_AC97:
--		break;
--	default:
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97)
- 		ret = set_ac97_input(dev);
--	}
- 
- 	return ret;
- }
-@@ -439,7 +435,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
- 	/* It is assumed that all devices use master volume for output.
- 	   It would be possible to use also line output.
- 	 */
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
- 		/* Mute all outputs */
- 		for (i = 0; i < ARRAY_SIZE(outputs); i++) {
- 			ret = em28xx_write_ac97(dev, outputs[i].reg, 0x8000);
-@@ -462,7 +458,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
- 	ret = em28xx_set_audio_source(dev);
- 
- 	/* Sets volume */
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
- 		int vol;
- 
- 		em28xx_write_ac97(dev, AC97_POWERDOWN, 0x4200);
-@@ -544,14 +540,11 @@ int em28xx_audio_setup(struct em28xx *dev)
- 		em28xx_info("I2S Audio (%d sample rate(s))\n",
- 					       i2s_samplerates);
- 		/* Skip the code that does AC97 vendor detection */
--		dev->audio_mode.ac97 = EM28XX_NO_AC97;
- 		goto init_audio;
- 	} else {
- 		dev->int_audio_type = EM28XX_INT_AUDIO_AC97;
- 	}
- 
--	dev->audio_mode.ac97 = EM28XX_AC97_OTHER;
--
- 	vid1 = em28xx_read_ac97(dev, AC97_VENDOR_ID1);
- 	if (vid1 < 0) {
- 		/*
-@@ -560,7 +553,6 @@ int em28xx_audio_setup(struct em28xx *dev)
- 		 *	 CHIPCFG register, even not having an AC97 chip
- 		 */
- 		em28xx_warn("AC97 chip type couldn't be determined\n");
--		dev->audio_mode.ac97 = EM28XX_NO_AC97;
- 		if (dev->usb_audio_type == EM28XX_USB_AUDIO_VENDOR)
- 			dev->usb_audio_type = EM28XX_USB_AUDIO_NONE;
- 		dev->int_audio_type = EM28XX_INT_AUDIO_NONE;
-@@ -582,30 +574,14 @@ int em28xx_audio_setup(struct em28xx *dev)
- 
- 	/* Try to identify what audio processor we have */
- 	if (((vid == 0xffffffff) || (vid == 0x83847650)) && (feat == 0x6a90))
--		dev->audio_mode.ac97 = EM28XX_AC97_EM202;
--	else if ((vid >> 8) == 0x838476)
--		dev->audio_mode.ac97 = EM28XX_AC97_SIGMATEL;
--
--init_audio:
--	/* Reports detected AC97 processor */
--	switch (dev->audio_mode.ac97) {
--	case EM28XX_NO_AC97:
--		em28xx_info("No AC97 audio processor\n");
--		break;
--	case EM28XX_AC97_EM202:
- 		em28xx_info("Empia 202 AC97 audio processor detected\n");
--		break;
--	case EM28XX_AC97_SIGMATEL:
-+	else if ((vid >> 8) == 0x838476)
- 		em28xx_info("Sigmatel audio processor detected (stac 97%02x)\n",
- 			    vid & 0xff);
--		break;
--	case EM28XX_AC97_OTHER:
-+	else
- 		em28xx_warn("Unknown AC97 audio processor detected!\n");
--		break;
--	default:
--		break;
--	}
- 
-+init_audio:
- 	return em28xx_audio_analog_set(dev);
- }
- EXPORT_SYMBOL_GPL(em28xx_audio_setup);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 3284de9..c4e1364 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2384,7 +2384,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 			__func__, ret);
- 		goto unregister_dev;
- 	}
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_AC97) {
- 		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
- 			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
- 		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 857ad0c..3108eee 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -300,17 +300,6 @@ enum enum28xx_itype {
- 	EM28XX_RADIO,
- };
- 
--enum em28xx_ac97_mode {
--	EM28XX_NO_AC97 = 0,
--	EM28XX_AC97_EM202,
--	EM28XX_AC97_SIGMATEL,
--	EM28XX_AC97_OTHER,
--};
--
--struct em28xx_audio_mode {
--	enum em28xx_ac97_mode ac97;
--};
--
- enum em28xx_int_audio_type {
- 	EM28XX_INT_AUDIO_NONE = 0,
- 	EM28XX_INT_AUDIO_AC97,
-@@ -627,8 +616,6 @@ struct em28xx {
- 
- 	u32 i2s_speed;		/* I2S speed for audio digital stream */
- 
--	struct em28xx_audio_mode audio_mode;
--
- 	int tuner_type;		/* type of the tuner */
- 
- 	/* i2c i/o */
+I think you also need to set waiting_for_buffers at STREAMOFF time, otherwise 
+a STREAMOFF/STREAMON without a REQBUFS in-between won't work as expected.
+
+>  	return 0;
+>  }
+> @@ -1801,6 +1802,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
+> struct v4l2_buffer *b) */
+>  	list_add_tail(&vb->queued_entry, &q->queued_list);
+>  	q->queued_count++;
+> +	q->waiting_for_buffers = false;
+>  	vb->state = VB2_BUF_STATE_QUEUED;
+>  	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+>  		/*
+> @@ -2583,10 +2585,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait) }
+> 
+>  	/*
+> -	 * There is nothing to wait for if no buffer has been queued and the
+> -	 * queue isn't streaming, or if the error flag is set.
+> +	 * There is nothing to wait for if the queue isn't streaming, or if the
+> +	 * error flag is set.
+>  	 */
+> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
+> +	if (!vb2_is_streaming(q) || q->error)
+> +		return res | POLLERR;
+> +	/*
+> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> +	 * return POLLERR as well. This only affects capture queues, output
+> +	 * queues will always initialize waiting_for_buffers to false.
+> +	 */
+> +	if (q->waiting_for_buffers)
+>  		return res | POLLERR;
+> 
+>  	/*
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 5a10d8d..84f790c 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -381,6 +381,9 @@ struct v4l2_fh;
+>   * @start_streaming_called: start_streaming() was called successfully and
+> we *		started streaming.
+>   * @error:	a fatal error occurred on the queue
+> + * @waiting_for_buffers: used in poll() to check if vb2 is still waiting
+> for + *		buffers. Only set for capture queues if qbuf has not yet been +
+> *		called since poll() needs to return POLLERR in that situation. *
+> @fileio:	file io emulator internal data, used only if emulator is active 
+*
+> @threadio:	thread io internal data, used only if thread is active */
+> @@ -419,6 +422,7 @@ struct vb2_queue {
+>  	unsigned int			streaming:1;
+>  	unsigned int			start_streaming_called:1;
+>  	unsigned int			error:1;
+> +	unsigned int			waiting_for_buffers:1;
+> 
+>  	struct vb2_fileio_data		*fileio;
+>  	struct vb2_threadio_data	*threadio;
+
 -- 
-1.8.4.5
+Regards,
+
+Laurent Pinchart
 
