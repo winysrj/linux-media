@@ -1,71 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50810 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598AbaI3WbO (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4357 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756014AbaITMmF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 18:31:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: uvcvideo fails on 3.16 and 3.17 kernels
-Date: Wed, 01 Oct 2014 01:31:11 +0300
-Message-ID: <3332528.UXGlNqFTSJ@avalon>
-In-Reply-To: <CAPueXH73_yHoBhHKn+zroC6WViBmU1XH-B-FPVE2Q-V56bcBFQ@mail.gmail.com>
-References: <CAPueXH4puHLAPWpBS9gjGHd5AGb1gAxZqSggXDaGEJ3WYC_nMA@mail.gmail.com> <CAPueXH73_yHoBhHKn+zroC6WViBmU1XH-B-FPVE2Q-V56bcBFQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 20 Sep 2014 08:42:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/16] cx88: drop the bogus 'queue' list in dmaqueue.
+Date: Sat, 20 Sep 2014 14:41:37 +0200
+Message-Id: <1411216911-7950-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paulo,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for investigation this.
+This list is used some buffers have a different format, but that can
+never happen. Remove it and all associated code.
 
-On Tuesday 30 September 2014 13:56:15 Paulo Assis wrote:
-> Ok,
-> so I've set a workaround in guvcview, it now uses the length filed if
-> bytesused is set to zero.
-> Anyway I think this violates the v4l2 api:
-> http://linuxtv.org/downloads/v4l-dvb-apis/buffer.html
-> 
-> bytesused - ..., Drivers must set this field when type refers to an
-> input stream, ...
-> 
-> without this value we have no way of knowing the exact frame size for
-> compressed formats.
-> 
-> And this was working in uvcvideo up until 3.16, I don't know how many
-> userspace apps rely on this value, but at least guvcview does, and
-> it's currently broken for uvcvideo devices in the latest kernels.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx88/cx88-mpeg.c  | 31 -----------------------------
+ drivers/media/pci/cx88/cx88-video.c | 39 +++----------------------------------
+ drivers/media/pci/cx88/cx88.h       |  1 -
+ 3 files changed, 3 insertions(+), 68 deletions(-)
 
-It took me some time to debug the problem, and I think the problem is actually 
-on guvcview's side. When dequeuing a video buffer, the application requeues it 
-immediately before processing the buffer's contents. The VIDIOC_QBUF ioctl 
-will reset the bytesused field to 0.
-
-While you could work around the problem by using a different struct 
-v4l2_buffer instance for the VIDIOC_QBUF call, the V4L2 doesn't allow 
-userspace application to access a queued buffer. You must process the buffer 
-before requeuing it.
-
-> 2014-09-30 9:50 GMT+01:00 Paulo Assis <pj.assis@gmail.com>:
-> > I referring to the following bug:
-> > 
-> > https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1362358
-> > 
-> > I've run some tests and after increasing verbosity for uvcvideo, I get:
-> > EOF on empty payload
-> > 
-> > this seems consistent with the zero size frames returned by the driver.
-> > After VIDIOC_DQBUF | VIDIOC_QBUF, I get buf.bytesused=0
-> > 
-> > Testing with an eye toy 2 (gspca), everything works fine, so this is
-> > definitly related to uvcvideo.
-> > This happens on all available formats (YUYV and MJPEG)
-
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index 2803b6f..5f59901 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -210,37 +210,7 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
+ 
+ 	dprintk( 1, "cx8802_restart_queue\n" );
+ 	if (list_empty(&q->active))
+-	{
+-		struct cx88_buffer *prev;
+-		prev = NULL;
+-
+-		dprintk(1, "cx8802_restart_queue: queue is empty\n" );
+-
+-		for (;;) {
+-			if (list_empty(&q->queued))
+-				return 0;
+-			buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
+-			if (NULL == prev) {
+-				list_move_tail(&buf->vb.queue, &q->active);
+-				cx8802_start_dma(dev, q, buf);
+-				buf->vb.state = VIDEOBUF_ACTIVE;
+-				buf->count    = q->count++;
+-				mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+-				dprintk(1,"[%p/%d] restart_queue - first active\n",
+-					buf,buf->vb.i);
+-
+-			} else {
+-				list_move_tail(&buf->vb.queue, &q->active);
+-				buf->vb.state = VIDEOBUF_ACTIVE;
+-				buf->count    = q->count++;
+-				prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+-				dprintk(1,"[%p/%d] restart_queue - move to active\n",
+-					buf,buf->vb.i);
+-			}
+-			prev = buf;
+-		}
+ 		return 0;
+-	}
+ 
+ 	buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
+ 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
+@@ -486,7 +456,6 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+ 
+ 	/* init dma queue */
+ 	INIT_LIST_HEAD(&dev->mpegq.active);
+-	INIT_LIST_HEAD(&dev->mpegq.queued);
+ 	dev->mpegq.timeout.function = cx8802_timeout;
+ 	dev->mpegq.timeout.data     = (unsigned long)dev;
+ 	init_timer(&dev->mpegq.timeout);
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 3075179..10fea4d 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -470,7 +470,7 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+ 			       struct cx88_dmaqueue *q)
+ {
+ 	struct cx88_core *core = dev->core;
+-	struct cx88_buffer *buf, *prev;
++	struct cx88_buffer *buf;
+ 
+ 	if (!list_empty(&q->active)) {
+ 		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
+@@ -480,33 +480,8 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+ 		list_for_each_entry(buf, &q->active, vb.queue)
+ 			buf->count = q->count++;
+ 		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+-		return 0;
+-	}
+-
+-	prev = NULL;
+-	for (;;) {
+-		if (list_empty(&q->queued))
+-			return 0;
+-		buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
+-		if (NULL == prev) {
+-			list_move_tail(&buf->vb.queue, &q->active);
+-			start_video_dma(dev, q, buf);
+-			buf->vb.state = VIDEOBUF_ACTIVE;
+-			buf->count    = q->count++;
+-			mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+-			dprintk(2,"[%p/%d] restart_queue - first active\n",
+-				buf,buf->vb.i);
+-
+-		} else {
+-			list_move_tail(&buf->vb.queue, &q->active);
+-			buf->vb.state = VIDEOBUF_ACTIVE;
+-			buf->count    = q->count++;
+-			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+-			dprintk(2,"[%p/%d] restart_queue - move to active\n",
+-				buf,buf->vb.i);
+-		}
+-		prev = buf;
+ 	}
++	return 0;
+ }
+ 
+ /* ------------------------------------------------------------------ */
+@@ -613,13 +588,7 @@ buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+ 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
+ 	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
+ 
+-	if (!list_empty(&q->queued)) {
+-		list_add_tail(&buf->vb.queue,&q->queued);
+-		buf->vb.state = VIDEOBUF_QUEUED;
+-		dprintk(2,"[%p/%d] buffer_queue - append to queued\n",
+-			buf, buf->vb.i);
+-
+-	} else if (list_empty(&q->active)) {
++	if (list_empty(&q->active)) {
+ 		list_add_tail(&buf->vb.queue,&q->active);
+ 		start_video_dma(dev, q, buf);
+ 		buf->vb.state = VIDEOBUF_ACTIVE;
+@@ -1694,7 +1663,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+-	INIT_LIST_HEAD(&dev->vidq.queued);
+ 	dev->vidq.timeout.function = cx8800_vid_timeout;
+ 	dev->vidq.timeout.data     = (unsigned long)dev;
+ 	init_timer(&dev->vidq.timeout);
+@@ -1703,7 +1671,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	/* init vbi dma queues */
+ 	INIT_LIST_HEAD(&dev->vbiq.active);
+-	INIT_LIST_HEAD(&dev->vbiq.queued);
+ 	dev->vbiq.timeout.function = cx8800_vbi_timeout;
+ 	dev->vbiq.timeout.data     = (unsigned long)dev;
+ 	init_timer(&dev->vbiq.timeout);
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index ddc7991..77ec542 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -324,7 +324,6 @@ struct cx88_buffer {
+ 
+ struct cx88_dmaqueue {
+ 	struct list_head       active;
+-	struct list_head       queued;
+ 	struct timer_list      timeout;
+ 	struct btcx_riscmem    stopper;
+ 	u32                    count;
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
