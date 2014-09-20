@@ -1,81 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36527 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757091AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:05 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2495 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757395AbaITTQ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 15:16:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 34/37] af9033: implement DVBv5 post-Viterbi BER
-Date: Thu,  4 Sep 2014 05:36:42 +0300
-Message-Id: <1409798205-25645-34-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/3] vb2: fix VBI/poll regression
+Date: Sat, 20 Sep 2014 21:16:35 +0200
+Message-Id: <1411240597-2105-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement following DTV API commands:
-DTV_STAT_POST_ERROR_BIT_COUNT
-DTV_STAT_POST_TOTAL_BIT_COUNT
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-These will provide post-Viterbi bit error rate reporting.
+The recent conversion of saa7134 to vb2 unconvered a poll() bug that
+broke the teletext applications alevt and mtt. These applications
+expect that calling poll() without having called VIDIOC_STREAMON will
+cause poll() to return POLLERR. That did not happen in vb2.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This patch fixes that behavior. It also fixes what should happen when
+poll() is called when STREAMON is called but no buffers have been
+queued. In that case poll() will also return POLLERR, but only for
+capture queues since output queues will always return POLLOUT
+anyway in that situation.
+
+This brings the vb2 behavior in line with the old videobuf behavior.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/af9033.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 17 ++++++++++++++---
+ include/media/videobuf2-core.h           |  4 ++++
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 7b85346..b6b90e6 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -38,6 +38,8 @@ struct af9033_dev {
- 	fe_status_t fe_status;
- 	u32 ber;
- 	u32 ucb;
-+	u64 post_bit_error;
-+	u64 post_bit_count;
- 	u64 error_block_count;
- 	u64 total_block_count;
- 	struct delayed_work stat_work;
-@@ -1093,6 +1095,8 @@ static void af9033_stat_work(struct work_struct *work)
- 	if (dev->fe_status & FE_HAS_LOCK) {
- 		/* outer FEC, 204 byte packets */
- 		u16 abort_packet_count, rsd_packet_count;
-+		/* inner FEC, bits */
-+		u32 rsd_bit_err_count;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7e6aff6..a0aa694 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	 * to the userspace.
+ 	 */
+ 	req->count = allocated_buffers;
++	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
  
- 		/*
- 		 * Packet count used for measurement is 10000
-@@ -1104,10 +1108,13 @@ static void af9033_stat_work(struct work_struct *work)
- 			goto err;
- 
- 		abort_packet_count = (buf[1] << 8) | (buf[0] << 0);
-+		rsd_bit_err_count = (buf[4] << 16) | (buf[3] << 8) | buf[2];
- 		rsd_packet_count = (buf[6] << 8) | (buf[5] << 0);
- 
- 		dev->error_block_count += abort_packet_count;
- 		dev->total_block_count += rsd_packet_count;
-+		dev->post_bit_error += rsd_bit_err_count;
-+		dev->post_bit_count += rsd_packet_count * 204 * 8;
- 
- 		c->block_count.len = 1;
- 		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
-@@ -1116,6 +1123,14 @@ static void af9033_stat_work(struct work_struct *work)
- 		c->block_error.len = 1;
- 		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
- 		c->block_error.stat[0].uvalue = dev->error_block_count;
-+
-+		c->post_bit_count.len = 1;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
-+
-+		c->post_bit_error.len = 1;
-+		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
+ 	return 0;
+ }
+@@ -1024,6 +1025,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
+ 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
+ 		q->memory = create->memory;
++		q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
  	}
  
- err_schedule_delayed_work:
+ 	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
+@@ -1801,6 +1803,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	 */
+ 	list_add_tail(&vb->queued_entry, &q->queued_list);
+ 	q->queued_count++;
++	q->waiting_for_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+ 		/*
+@@ -2261,6 +2264,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ 	 * their normal dequeued state.
+ 	 */
+ 	__vb2_queue_cancel(q);
++	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 
+ 	dprintk(3, "successful\n");
+ 	return 0;
+@@ -2583,10 +2587,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
+ 
+ 	/*
+-	 * There is nothing to wait for if no buffer has been queued and the
+-	 * queue isn't streaming, or if the error flag is set.
++	 * There is nothing to wait for if the queue isn't streaming, or if the
++	 * error flag is set.
+ 	 */
+-	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
++	if (!vb2_is_streaming(q) || q->error)
++		return res | POLLERR;
++	/*
++	 * For compatibility with vb1: if QBUF hasn't been called yet, then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize waiting_for_buffers to false.
++	 */
++	if (q->waiting_for_buffers)
+ 		return res | POLLERR;
+ 
+ 	/*
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5a10d8d..84f790c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -381,6 +381,9 @@ struct v4l2_fh;
+  * @start_streaming_called: start_streaming() was called successfully and we
+  *		started streaming.
+  * @error:	a fatal error occurred on the queue
++ * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
++ *		buffers. Only set for capture queues if qbuf has not yet been
++ *		called since poll() needs to return POLLERR in that situation.
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -419,6 +422,7 @@ struct vb2_queue {
+ 	unsigned int			streaming:1;
+ 	unsigned int			start_streaming_called:1;
+ 	unsigned int			error:1;
++	unsigned int			waiting_for_buffers:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
 -- 
-http://palosaari.fi/
+2.1.0
 
