@@ -1,574 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:56796 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751873AbaIGMmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Sep 2014 08:42:20 -0400
-Received: by mail-pa0-f51.google.com with SMTP id kx10so1279962pab.38
-        for <linux-media@vger.kernel.org>; Sun, 07 Sep 2014 05:42:20 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH v3 2/4] qm1d1c0042: add driver for Sharp QM1D1C0042 ISDB-S tuner
-Date: Sun,  7 Sep 2014 21:41:28 +0900
-Message-Id: <1410093690-5674-3-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1410093690-5674-1-git-send-email-tskd08@gmail.com>
-References: <1410093690-5674-1-git-send-email-tskd08@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2511 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbaITJQB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 05:16:01 -0400
+Message-ID: <541D45C7.4050509@xs4all.nl>
+Date: Sat, 20 Sep 2014 11:15:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: beta992 <beta992@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Fwd: kernel BUG at mm/slub.c on cx23885
+References: <CAEVwYfiwkF8mYjYvj0gCmojm35reGKv-Hw25VVciAYbPpUf+Kg@mail.gmail.com> <CAEVwYfguLZNy-TdHqregwU+skYJP_kF=vc-3kE6+hhOBQ66aMw@mail.gmail.com>
+In-Reply-To: <CAEVwYfguLZNy-TdHqregwU+skYJP_kF=vc-3kE6+hhOBQ66aMw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+On 09/20/2014 01:51 AM, beta992 wrote:
+> Hauppauge HVR-5500 using the latest git build, keeps crashing with the
+> following error:
 
-This patch adds driver for qm1d1c0042 tuner chips.
-It is used as an ISDB-S tuner in earthsoft pt3 cards.
+Fixed in this patch:
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
-Changes in v3:
-- moved to I2C binding model
-- small improvements in register read/write
+https://patchwork.linuxtv.org/patch/25123/
 
- drivers/media/tuners/Kconfig      |   7 +
- drivers/media/tuners/Makefile     |   1 +
- drivers/media/tuners/qm1d1c0042.c | 456 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/qm1d1c0042.h |  38 ++++
- 4 files changed, 502 insertions(+)
- create mode 100644 drivers/media/tuners/qm1d1c0042.c
- create mode 100644 drivers/media/tuners/qm1d1c0042.h
+Should have been merged quite some time ago but we discovered a few days
+ago that this one fell between the cracks. Hopefully it will be merged soon
+now.
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index cd3f8ee..8125d1d 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -264,4 +264,11 @@ config MEDIA_TUNER_MXL301RF
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  MaxLinear MxL301RF OFDM tuner driver.
-+
-+config MEDIA_TUNER_QM1D1C0042
-+	tristate "Sharp QM1D1C0042 tuner"
-+	depends on MEDIA_SUPPORT && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Sharp QM1D1C0042 trellis coded 8PSK tuner driver.
- endmenu
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index 6d5bf48..04d5efc 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -40,6 +40,7 @@ obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
- obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
- obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
- obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
-+obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
- 
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-new file mode 100644
-index 0000000..bcc26fb
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -0,0 +1,456 @@
-+/*
-+ * Sharp QM1D1C0042 8PSK tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include "qm1d1c0042.h"
-+
-+#define QM1D1C0042_NUM_REGS 0x20
-+
-+static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
-+	0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-+	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-+	0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-+	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-+};
-+
-+static const struct qm1d1c0042_config default_cfg = {
-+	.init_freq = 0,
-+	.xtal_freq = 16000,
-+	.lpf = 1,
-+	.fast_srch = 0,
-+	.lpf_wait = 20,
-+	.fast_srch_wait = 4,
-+	.normal_srch_wait = 15,
-+};
-+
-+struct qm1d1c0042_state {
-+	struct qm1d1c0042_config cfg;
-+	struct i2c_client *i2c;
-+	u8 regs[QM1D1C0042_NUM_REGS];
-+};
-+
-+static struct qm1d1c0042_state *cfg_to_state(struct qm1d1c0042_config *c)
-+{
-+	return container_of(c, struct qm1d1c0042_state, cfg);
-+}
-+
-+static int reg_write(struct qm1d1c0042_state *state, u8 reg, u8 val)
-+{
-+	u8 wbuf[2] = { reg, val };
-+	int ret;
-+
-+	ret = i2c_master_send(state->i2c, wbuf, sizeof(wbuf));
-+	if (ret >= 0 && ret < sizeof(wbuf))
-+		ret = -EIO;
-+	return (ret == sizeof(wbuf)) ? 0 : ret;
-+}
-+
-+static int reg_read(struct qm1d1c0042_state *state, u8 reg, u8 *val)
-+{
-+	struct i2c_msg msgs[2] = {
-+		{
-+			.addr = state->i2c->addr,
-+			.flags = 0,
-+			.buf = &reg,
-+			.len = 1,
-+		},
-+		{
-+			.addr = state->i2c->addr,
-+			.flags = I2C_M_RD,
-+			.buf = val,
-+			.len = 1,
-+		},
-+	};
-+	int ret;
-+
-+	ret = i2c_transfer(state->i2c->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (ret >= 0 && ret < ARRAY_SIZE(msgs))
-+		ret = -EIO;
-+	return (ret == ARRAY_SIZE(msgs)) ? 0 : ret;
-+}
-+
-+
-+static int qm1d1c0042_set_srch_mode(struct qm1d1c0042_state *state, bool fast)
-+{
-+	if (fast)
-+		state->regs[0x03] |= 0x01; /* set fast search mode */
-+	else
-+		state->regs[0x03] &= ~0x01 & 0xff;
-+
-+	return reg_write(state, 0x03, state->regs[0x03]);
-+}
-+
-+static int qm1d1c0042_wakeup(struct qm1d1c0042_state *state)
-+{
-+	int ret;
-+
-+	state->regs[0x01] |= 1 << 3;             /* BB_Reg_enable */
-+	state->regs[0x01] &= (~(1 << 0)) & 0xff; /* NORMAL (wake-up) */
-+	state->regs[0x05] &= (~(1 << 3)) & 0xff; /* pfd_rst NORMAL */
-+	ret = reg_write(state, 0x01, state->regs[0x01]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x05, state->regs[0x05]);
-+
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, state->cfg.fe->dvb->num, state->cfg.fe->id);
-+	return ret;
-+}
-+
-+/* tuner_ops */
-+
-+static int qm1d1c0042_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct qm1d1c0042_state *state;
-+	struct qm1d1c0042_config *cfg;
-+
-+	state = fe->tuner_priv;
-+	cfg = priv_cfg;
-+
-+	if (cfg->fe)
-+		state->cfg.fe = cfg->fe;
-+
-+	state->cfg.init_freq = cfg->init_freq;
-+
-+	if (cfg->xtal_freq != QM1D1C0042_CFG_XTAL_DFLT)
-+		dev_warn(&state->i2c->dev,
-+			"(%s) changing xtal_freq not supported. ", __func__);
-+	state->cfg.xtal_freq = default_cfg.xtal_freq;
-+
-+	state->cfg.lpf = cfg->lpf;
-+	state->cfg.fast_srch = cfg->fast_srch;
-+
-+	if (cfg->lpf_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.lpf_wait = cfg->lpf_wait;
-+	else
-+		state->cfg.lpf_wait = default_cfg.lpf_wait;
-+
-+	if (cfg->fast_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.fast_srch_wait = cfg->fast_srch_wait;
-+	else
-+		state->cfg.fast_srch_wait = default_cfg.fast_srch_wait;
-+
-+	if (cfg->normal_srch_wait != QM1D1C0042_CFG_WAIT_DFLT)
-+		state->cfg.normal_srch_wait = cfg->normal_srch_wait;
-+	else
-+		state->cfg.normal_srch_wait = default_cfg.normal_srch_wait;
-+	return 0;
-+}
-+
-+/* divisor, vco_band parameters */
-+/*  {maxfreq,  param1(band?), param2(div?) */
-+static const u32 conv_table[9][3] = {
-+	{ 2151000, 1, 7 },
-+	{ 1950000, 1, 6 },
-+	{ 1800000, 1, 5 },
-+	{ 1600000, 1, 4 },
-+	{ 1450000, 1, 3 },
-+	{ 1250000, 1, 2 },
-+	{ 1200000, 0, 7 },
-+	{  975000, 0, 6 },
-+	{  950000, 0, 0 }
-+};
-+
-+static int qm1d1c0042_set_params(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	u32 freq;
-+	int i, ret;
-+	u8 val, mask;
-+	u32 a, sd;
-+	s32 b;
-+
-+	state = fe->tuner_priv;
-+	freq = fe->dtv_property_cache.frequency;
-+
-+	state->regs[0x08] &= 0xf0;
-+	state->regs[0x08] |= 0x09;
-+
-+	state->regs[0x13] &= 0x9f;
-+	state->regs[0x13] |= 0x20;
-+
-+	/* div2/vco_band */
-+	val = state->regs[0x02] & 0x0f;
-+	for (i = 0; i < 8; i++)
-+		if (freq < conv_table[i][0] && freq >= conv_table[i + 1][0]) {
-+			val |= conv_table[i][1] << 7;
-+			val |= conv_table[i][2] << 4;
-+			break;
-+		}
-+	ret = reg_write(state, 0x02, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	a = (freq + state->cfg.xtal_freq / 2) / state->cfg.xtal_freq;
-+
-+	state->regs[0x06] &= 0x40;
-+	state->regs[0x06] |= (a - 12) / 4;
-+	ret = reg_write(state, 0x06, state->regs[0x06]);
-+	if (ret < 0)
-+		return ret;
-+
-+	state->regs[0x07] &= 0xf0;
-+	state->regs[0x07] |= (a - 4 * ((a - 12) / 4 + 1) - 5) & 0x0f;
-+	ret = reg_write(state, 0x07, state->regs[0x07]);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* LPF */
-+	val = state->regs[0x08];
-+	if (state->cfg.lpf) {
-+		/* LPF_CLK, LPF_FC */
-+		val &= 0xf0;
-+		val |= 0x02;
-+	}
-+	ret = reg_write(state, 0x08, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * b = (freq / state->cfg.xtal_freq - a) << 20;
-+	 * sd = b          (b >= 0)
-+	 *      1<<22 + b  (b < 0)
-+	 */
-+	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
-+	if (b >= 0)
-+		sd = b;
-+	else
-+		sd = (1 << 22) + b;
-+
-+	state->regs[0x09] &= 0xc0;
-+	state->regs[0x09] |= (sd >> 16) & 0x3f;
-+	state->regs[0x0a] = (sd >> 8) & 0xff;
-+	state->regs[0x0b] = sd & 0xff;
-+	ret = reg_write(state, 0x09, state->regs[0x09]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x0a, state->regs[0x0a]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x0b, state->regs[0x0b]);
-+	if (ret != 0)
-+		return ret;
-+
-+	if (!state->cfg.lpf) {
-+		/* CSEL_Offset */
-+		ret = reg_write(state, 0x13, state->regs[0x13]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* VCO_TM, LPF_TM */
-+	mask = state->cfg.lpf ? 0x3f : 0x7f;
-+	val = state->regs[0x0c] & mask;
-+	ret = reg_write(state, 0x0c, val);
-+	if (ret < 0)
-+		return ret;
-+	usleep_range(2000, 3000);
-+	val = state->regs[0x0c] | ~mask;
-+	ret = reg_write(state, 0x0c, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (state->cfg.lpf)
-+		msleep(state->cfg.lpf_wait);
-+	else if (state->regs[0x03] & 0x01)
-+		msleep(state->cfg.fast_srch_wait);
-+	else
-+		msleep(state->cfg.normal_srch_wait);
-+
-+	if (state->cfg.lpf) {
-+		/* LPF_FC */
-+		ret = reg_write(state, 0x08, 0x09);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* CSEL_Offset */
-+		ret = reg_write(state, 0x13, state->regs[0x13]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	return 0;
-+}
-+
-+static int qm1d1c0042_get_status(struct dvb_frontend *fe, u32 *status)
-+{
-+	struct qm1d1c0042_state *state;
-+	int ret;
-+
-+	*status = 0;
-+	state = fe->tuner_priv;
-+	ret = reg_read(state, 0x0d, &state->regs[0x0d]);
-+	if (ret == 0 && state->regs[0x0d] & 0x40)
-+		*status = TUNER_STATUS_LOCKED;
-+	return ret;
-+}
-+
-+static int qm1d1c0042_sleep(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	int ret;
-+
-+	state = fe->tuner_priv;
-+	state->regs[0x01] &= (~(1 << 3)) & 0xff; /* BB_Reg_disable */
-+	state->regs[0x01] |= 1 << 0;             /* STDBY */
-+	state->regs[0x05] |= 1 << 3;             /* pfd_rst STANDBY */
-+	ret = reg_write(state, 0x05, state->regs[0x05]);
-+	if (ret == 0)
-+		ret = reg_write(state, 0x01, state->regs[0x01]);
-+	if (ret < 0)
-+		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+			__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+static int qm1d1c0042_init(struct dvb_frontend *fe)
-+{
-+	struct qm1d1c0042_state *state;
-+	u8 val;
-+	int i, ret;
-+
-+	state = fe->tuner_priv;
-+	memcpy(state->regs, reg_initval, sizeof(reg_initval));
-+
-+	reg_write(state, 0x01, 0x0c);
-+	reg_write(state, 0x01, 0x0c);
-+
-+	ret = reg_write(state, 0x01, 0x0c); /* soft reset on */
-+	if (ret < 0)
-+		goto failed;
-+	usleep_range(2000, 3000);
-+
-+	val = state->regs[0x01] | 0x10;
-+	ret = reg_write(state, 0x01, val); /* soft reset off */
-+	if (ret < 0)
-+		goto failed;
-+
-+	/* check ID */
-+	ret = reg_read(state, 0x00, &val);
-+	if (ret < 0 || val != 0x48)
-+		goto failed;
-+	usleep_range(2000, 3000);
-+
-+	state->regs[0x0c] |= 0x40;
-+	ret = reg_write(state, 0x0c, state->regs[0x0c]);
-+	if (ret < 0)
-+		goto failed;
-+	msleep(state->cfg.lpf_wait);
-+
-+	/* set all writable registers */
-+	for (i = 1; i <= 0x0c ; i++) {
-+		ret = reg_write(state, i, state->regs[i]);
-+		if (ret < 0)
-+			goto failed;
-+	}
-+	for (i = 0x11; i < QM1D1C0042_NUM_REGS; i++) {
-+		ret = reg_write(state, i, state->regs[i]);
-+		if (ret < 0)
-+			goto failed;
-+	}
-+
-+	ret = qm1d1c0042_wakeup(state);
-+	if (ret < 0)
-+		goto failed;
-+
-+	ret = qm1d1c0042_set_srch_mode(state, state->cfg.fast_srch);
-+	if (ret < 0)
-+		goto failed;
-+
-+	if (state->cfg.init_freq > 0) {
-+		u32 f = fe->dtv_property_cache.frequency;
-+
-+		fe->dtv_property_cache.frequency = state->cfg.init_freq;
-+		ret = qm1d1c0042_set_params(fe);
-+		fe->dtv_property_cache.frequency = f;
-+	}
-+	return ret;
-+
-+failed:
-+	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-+		__func__, fe->dvb->num, fe->id);
-+	return ret;
-+}
-+
-+/* I2C driver functions */
-+
-+static const struct dvb_tuner_ops qm1d1c0042_ops = {
-+	.info = {
-+		.name = "Sharp QM1D1C0042",
-+
-+		.frequency_min =  950000,
-+		.frequency_max = 2150000,
-+	},
-+
-+	.init = qm1d1c0042_init,
-+	.sleep = qm1d1c0042_sleep,
-+	.set_config = qm1d1c0042_set_config,
-+	.set_params = qm1d1c0042_set_params,
-+	.get_status = qm1d1c0042_get_status,
-+};
-+
-+
-+static int qm1d1c0042_probe(struct i2c_client *client,
-+			    const struct i2c_device_id *id)
-+{
-+	struct qm1d1c0042_state *state;
-+	struct qm1d1c0042_config *cfg;
-+	struct dvb_frontend *fe;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+	state->i2c = client;
-+
-+	cfg = client->dev.platform_data;
-+	fe = cfg->fe;
-+	fe->tuner_priv = state;
-+	qm1d1c0042_set_config(fe, cfg);
-+	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(qm1d1c0042_ops));
-+
-+	i2c_set_clientdata(client, &state->cfg);
-+	dev_info(&client->dev, "Sharp QM1D1C0042 attached.\n");
-+	return 0;
-+}
-+
-+static int qm1d1c0042_remove(struct i2c_client *client)
-+{
-+	struct qm1d1c0042_state *state;
-+
-+	state = cfg_to_state(i2c_get_clientdata(client));
-+	state->cfg.fe->tuner_priv = NULL;
-+	kfree(state);
-+	return 0;
-+}
-+
-+
-+static const struct i2c_device_id qm1d1c0042_id[] = {
-+	{"qm1d1c0042", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
-+
-+static struct i2c_driver qm1d1c0042_driver = {
-+	.driver = {
-+		.name	= "qm1d1c0042",
-+	},
-+	.probe		= qm1d1c0042_probe,
-+	.remove		= qm1d1c0042_remove,
-+	.id_table	= qm1d1c0042_id,
-+};
-+
-+module_i2c_driver(qm1d1c0042_driver);
-+
-+MODULE_DESCRIPTION("Sharp QM1D1C0042 tuner");
-+MODULE_AUTHOR("Akihiro TSUKADA");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
-new file mode 100644
-index 0000000..a0ff466
---- /dev/null
-+++ b/drivers/media/tuners/qm1d1c0042.h
-@@ -0,0 +1,38 @@
-+/*
-+ * Sharp QM1D1C0042 8PSK tuner driver
-+ *
-+ * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef QM1D1C0042_H
-+#define QM1D1C0042_H
-+
-+#include "dvb_frontend.h"
-+
-+
-+struct qm1d1c0042_config {
-+	struct dvb_frontend *fe;
-+
-+	u32  init_freq;    /* initial frequency to be tuned. [kHz] */
-+	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
-+	bool lpf;          /* enable LPF */
-+	bool fast_srch;    /* enable fast search mode, no LPF */
-+	u32  lpf_wait;         /* wait in tuning with LPF enabled. [ms] */
-+	u32  fast_srch_wait;   /* with fast-search mode, no LPF. [ms] */
-+	u32  normal_srch_wait; /* with no LPF/fast-search mode. [ms] */
-+};
-+/* special values indicating to use the default in qm1d1c0042_config */
-+#define QM1D1C0042_CFG_XTAL_DFLT 0
-+#define QM1D1C0042_CFG_WAIT_DFLT 0
-+
-+#endif /* QM1D1C0042_H */
--- 
-2.1.0
+Regards,
+
+	Hans
+
+> 
+> [ 2111.934790] kernel BUG at mm/slub.c:1416!
+> [ 2111.934877] invalid opcode: 0000 [#1] PREEMPT SMP
+> [ 2111.934993] Modules linked in: ftdi_sio usbserial xt_recent
+> si2165(O) a8293(O) tda10071(O) tea5767(O) tuner(O) cx23885(OF)
+> eeepc_wmi asus_wmi sparse_keymap led_class rfkill video kvm_amd kvm
+> nls_iso8859_1 altera_ci(O) ext4 tda18271(O) microcode crc16 mbcache
+> altera_stapl videobuf2_dvb(O) serio_raw videobuf2_dma_sg(O) jbd2
+> psmouse tveeprom(O) pcspkr cx2341x(O) k10temp evdev dvb_core(O)
+> ip6t_REJECT mac_hid r8169 rc_core(O) mii videobuf2_memops(O)
+> videobuf2_core(O) v4l2_common(O) xt_hl ip6t_rt radeon videodev(O)
+> media(O) nf_conntrack_ipv6 nf_defrag_ipv6 snd_hda_codec_via
+> snd_hda_codec_generic i2c_algo_bit snd_hda_intel ttm ipt_REJECT
+> snd_hda_controller drm_kms_helper xt_LOG snd_hda_codec drm xt_limit
+> snd_hwdep xt_tcpudp snd_pcm wmi sp5100_tco xt_addrtype snd_timer
+> i2c_piix4 acpi_cpufreq snd hwmon button
+> [ 2111.936816]  i2c_core shpchp soundcore processor nf_conntrack_ipv4
+> nf_defrag_ipv4 xt_conntrack ip6table_filter ip6_tables
+> nf_conntrack_netbios_ns nf_conntrack_broadcast nf_nat_ftp nf_nat
+> nf_conntrack_ftp nf_conntrack iptable_filter ip_tables x_tables
+> crc32c_generic btrfs xor raid6_pq xts gf128mul algif_skcipher af_alg
+> dm_crypt dm_mod hid_generic usbhid hid sd_mod crct10dif_generic
+> crc_t10dif crct10dif_common atkbd libps2 ahci libahci libata ohci_pci
+> ohci_hcd ehci_pci ehci_hcd usbcore scsi_mod usb_common i8042 serio
+> vfat fat nls_cp437
+> [ 2111.938018] CPU: 1 PID: 2404 Comm: tvheadend Tainted: GF          O
+>  3.16.3-1-ARCH #1
+> [ 2111.938174] Hardware name: System manufacturer System Product
+> Name/C60M1-I, BIOS 0305 08/07/2012
+> [ 2111.938350] task: ffff88009fff3d20 ti: ffff880229768000 task.ti:
+> ffff880229768000
+> [ 2111.938499] RIP: 0010:[<ffffffff811a3120>]  [<ffffffff811a3120>]
+> new_slab+0x2e0/0x330
+> [ 2111.938673] RSP: 0018:ffff88022976b928  EFLAGS: 00010002
+> [ 2111.938782] RAX: ffff88009fff3d20 RBX: 0000000000000001 RCX: ffff88022976b9d0
+> [ 2111.938924] RDX: 00000000ffffffff RSI: 0000000000000004 RDI: ffff880236801c00
+> [ 2111.939065] RBP: ffff88022976ba48 R08: 0000000000000000 R09: 0000000000000004
+> [ 2111.939206] R10: ffff88022c7e41b0 R11: 0000000000000000 R12: ffff880236800f40
+> [ 2111.939346] R13: 0000000000000004 R14: ffff880236801c00 R15: ffff88023eff9c38
+> [ 2111.939489] FS:  00007fa986c47780(0000) GS:ffff88023ed00000(0000)
+> knlGS:0000000000000000
+> [ 2111.939649] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 2111.939765] CR2: 00007f123d2bd4a0 CR3: 00000002294d8000 CR4: 00000000000007e0
+> [ 2111.939905] Stack:
+> [ 2111.939951]  ffffffff811a56a4 0000000000000000 ffff88023ed17380
+> ffff88009fff3d20
+> [ 2111.940123]  0000000000001c00 ffff88009fff3d20 ffff88023ed17390
+> 0000000000000000
+> [ 2111.940293]  0000000000000000 0000000100000000 ffff8802ffffffff
+> ffffffff812b2469
+> [ 2111.940463] Call Trace:
+> [ 2111.940527]  [<ffffffff811a56a4>] ? __slab_alloc.isra.53+0x4f4/0x5e0
+> [ 2111.940664]  [<ffffffff812b2469>] ? sg_kmalloc+0x19/0x30
+> [ 2111.940779]  [<ffffffff811558a0>] ? __alloc_pages_nodemask+0x180/0xc20
+> [ 2111.940916]  [<ffffffff811a5f93>] __kmalloc+0x163/0x1c0
+> [ 2111.941028]  [<ffffffff812b2469>] ? sg_kmalloc+0x19/0x30
+> [ 2111.941142]  [<ffffffff812b2469>] sg_kmalloc+0x19/0x30
+> [ 2111.941252]  [<ffffffff812b2330>] __sg_alloc_table+0x70/0x160
+> [ 2111.941372]  [<ffffffff812b2450>] ? sg_kfree+0x30/0x30
+> [ 2111.941484]  [<ffffffff812b277f>] sg_alloc_table+0x1f/0x60
+> [ 2111.941600]  [<ffffffff812b2844>] sg_alloc_table_from_pages+0x84/0x1c0
+> [ 2111.941744]  [<ffffffffa068e751>] vb2_dma_sg_alloc+0x161/0xa10
+> [videobuf2_dma_sg]
+> [ 2111.941906]  [<ffffffffa063333a>] __vb2_queue_alloc+0x10a/0x600
+> [videobuf2_core]
+> [ 2111.942065]  [<ffffffffa06364eb>] __reqbufs.isra.13+0x1ab/0x3f0
+> [videobuf2_core]
+> [ 2111.942221]  [<ffffffffa06f3200>] ? vb2_dvb_start_feed+0xc0/0xc0
+> [videobuf2_dvb]
+> [ 2111.942379]  [<ffffffffa06372a7>] __vb2_init_fileio+0xc7/0x370
+> [videobuf2_core]
+> [ 2111.948071]  [<ffffffffa06f3200>] ? vb2_dvb_start_feed+0xc0/0xc0
+> [videobuf2_dvb]
+> [ 2111.953792]  [<ffffffffa0638ffe>] vb2_thread_start+0xae/0x10b0
+> [videobuf2_core]
+> [ 2111.959554]  [<ffffffffa06f31c8>] vb2_dvb_start_feed+0x88/0xc0
+> [videobuf2_dvb]
+> [ 2111.965285]  [<ffffffffa0673b82>]
+> dmx_section_feed_start_filtering+0xe2/0x190 [dvb_core]
+> [ 2111.971032]  [<ffffffffa0670eee>]
+> dvb_dmxdev_filter_start+0x20e/0x3d0 [dvb_core]
+> [ 2111.976802]  [<ffffffffa0671a20>] dvb_demux_do_ioctl+0x4e0/0x640 [dvb_core]
+> [ 2111.982414]  [<ffffffffa066f985>] dvb_usercopy+0x115/0x190 [dvb_core]
+> [ 2111.987846]  [<ffffffffa0671540>] ?
+> dvb_dmxdev_ts_callback+0xf0/0xf0 [dvb_core]
+> [ 2111.993136]  [<ffffffff810b65c4>] ? add_wait_queue+0x44/0x50
+> [ 2111.998236]  [<ffffffff81206a80>] ? ep_ptable_queue_proc+0x60/0xa0
+> [ 2112.003169]  [<ffffffffa066fe35>] dvb_demux_ioctl+0x15/0x20 [dvb_core]
+> [ 2112.007948]  [<ffffffff811d4af0>] do_vfs_ioctl+0x2d0/0x4b0
+> [ 2112.012531]  [<ffffffff811df22e>] ? __fget+0x6e/0xb0
+> [ 2112.016918]  [<ffffffff811d4d51>] SyS_ioctl+0x81/0xa0
+> [ 2112.021107]  [<ffffffff81531129>] system_call_fastpath+0x16/0x1b
+> [ 2112.025245] Code: 00 00 20 00 4c 89 f6 48 c1 ee 10 e8 fb 6f ff ff
+> 49 89 c5 83 e3 10 0f 84 f2 fd ff ff e9 e6 fd ff ff 66 2e 0f 1f 84 00
+> 00 00 00 00 <0f> 0b ba 00 10 00 00 be 5a 00 00 00 48 89 df 48 d3 e2 e8
+> 69 bb
+> [ 2112.034327] RIP  [<ffffffff811a3120>] new_slab+0x2e0/0x330
+> [ 2112.038633]  RSP <ffff88022976b928>
+> [ 2112.086908] ---[ end trace 3027fe21b48c2303 ]---
+> 
+> It seems to be coming up when the TV-card has to tune to multiple
+> channels, but don't know for sure.
+> 
+> If more debug info is needed, please let me know.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
