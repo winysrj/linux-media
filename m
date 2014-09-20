@@ -1,69 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:36837 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbaIBPCr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 11:02:47 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBA00DIY4GL2140@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Sep 2014 11:02:45 -0400 (EDT)
-Date: Tue, 02 Sep 2014 12:02:40 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Changbing Xiong <cb.xiong@samsung.com>
-Cc: linux-media@vger.kernel.org, crope@iki.fi
-Subject: Re: [PATCH 1/3] media: fix kernel deadlock due to tuner pull-out while
- playing
-Message-id: <20140902120240.2e85bd68.m.chehab@samsung.com>
-In-reply-to: <1408586666-2105-1-git-send-email-cb.xiong@samsung.com>
-References: <1408586666-2105-1-git-send-email-cb.xiong@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2579 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755944AbaITMmF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 08:42:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/16] cx88: remove fmt from the buffer struct
+Date: Sat, 20 Sep 2014 14:41:36 +0200
+Message-Id: <1411216911-7950-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Changbing,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-All 3 patches on this series seem OK on my eyes. I'll do some tests with them
-and see what happens.
+This is a duplicate of dev->fmt and can be removed. As a consequence a
+lot of tests that check if the format has changed midstream can be
+removed as well: the format cannot change midstream, so this is a bogus
+check.
 
-Yet, there are some issues on the way you're sending the patches.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx88/cx88-mpeg.c  |   6 +-
+ drivers/media/pci/cx88/cx88-video.c | 116 ++++++++++++++----------------------
+ drivers/media/pci/cx88/cx88.h       |   1 -
+ 3 files changed, 46 insertions(+), 77 deletions(-)
 
-First of all, it seems that patchwork is messing with your From:, removing
-your name. I just fixed it there.
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index 74b7b86..2803b6f 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -229,17 +229,13 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
+ 				dprintk(1,"[%p/%d] restart_queue - first active\n",
+ 					buf,buf->vb.i);
+ 
+-			} else if (prev->vb.width  == buf->vb.width  &&
+-				   prev->vb.height == buf->vb.height &&
+-				   prev->fmt       == buf->fmt) {
++			} else {
+ 				list_move_tail(&buf->vb.queue, &q->active);
+ 				buf->vb.state = VIDEOBUF_ACTIVE;
+ 				buf->count    = q->count++;
+ 				prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+ 				dprintk(1,"[%p/%d] restart_queue - move to active\n",
+ 					buf,buf->vb.i);
+-			} else {
+-				return 0;
+ 			}
+ 			prev = buf;
+ 		}
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index ed8cb90..3075179 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -420,7 +420,7 @@ static int start_video_dma(struct cx8800_dev    *dev,
+ 	cx88_sram_channel_setup(core, &cx88_sram_channels[SRAM_CH21],
+ 				buf->bpl, buf->risc.dma);
+ 	cx88_set_scale(core, buf->vb.width, buf->vb.height, buf->vb.field);
+-	cx_write(MO_COLOR_CTRL, buf->fmt->cxformat | ColorFormatGamma);
++	cx_write(MO_COLOR_CTRL, dev->fmt->cxformat | ColorFormatGamma);
+ 
+ 	/* reset counter */
+ 	cx_write(MO_VIDY_GPCNTRL,GP_COUNT_CONTROL_RESET);
+@@ -497,17 +497,13 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+ 			dprintk(2,"[%p/%d] restart_queue - first active\n",
+ 				buf,buf->vb.i);
+ 
+-		} else if (prev->vb.width  == buf->vb.width  &&
+-			   prev->vb.height == buf->vb.height &&
+-			   prev->fmt       == buf->fmt) {
++		} else {
+ 			list_move_tail(&buf->vb.queue, &q->active);
+ 			buf->vb.state = VIDEOBUF_ACTIVE;
+ 			buf->count    = q->count++;
+ 			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+ 			dprintk(2,"[%p/%d] restart_queue - move to active\n",
+ 				buf,buf->vb.i);
+-		} else {
+-			return 0;
+ 		}
+ 		prev = buf;
+ 	}
+@@ -538,7 +534,7 @@ buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
+ 	struct cx88_core *core = dev->core;
+ 	struct cx88_buffer *buf = container_of(vb,struct cx88_buffer,vb);
+ 	struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
+-	int rc, init_buffer = 0;
++	int rc;
+ 
+ 	BUG_ON(NULL == dev->fmt);
+ 	if (dev->width  < 48 || dev->width  > norm_maxw(core->tvnorm) ||
+@@ -548,59 +544,47 @@ buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
+ 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
+ 		return -EINVAL;
+ 
+-	if (buf->fmt       != dev->fmt    ||
+-	    buf->vb.width  != dev->width  ||
+-	    buf->vb.height != dev->height ||
+-	    buf->vb.field  != field) {
+-		buf->fmt       = dev->fmt;
+-		buf->vb.width  = dev->width;
+-		buf->vb.height = dev->height;
+-		buf->vb.field  = field;
+-		init_buffer = 1;
+-	}
+-
++	buf->vb.width  = dev->width;
++	buf->vb.height = dev->height;
++	buf->vb.field  = field;
+ 	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+-		init_buffer = 1;
+ 		if (0 != (rc = videobuf_iolock(q,&buf->vb,NULL)))
+ 			goto fail;
+ 	}
+ 
+-	if (init_buffer) {
+-		buf->bpl = buf->vb.width * buf->fmt->depth >> 3;
+-		switch (buf->vb.field) {
+-		case V4L2_FIELD_TOP:
+-			cx88_risc_buffer(dev->pci, &buf->risc,
+-					 dma->sglist, 0, UNSET,
+-					 buf->bpl, 0, buf->vb.height);
+-			break;
+-		case V4L2_FIELD_BOTTOM:
+-			cx88_risc_buffer(dev->pci, &buf->risc,
+-					 dma->sglist, UNSET, 0,
+-					 buf->bpl, 0, buf->vb.height);
+-			break;
+-		case V4L2_FIELD_INTERLACED:
+-			cx88_risc_buffer(dev->pci, &buf->risc,
+-					 dma->sglist, 0, buf->bpl,
+-					 buf->bpl, buf->bpl,
+-					 buf->vb.height >> 1);
+-			break;
+-		case V4L2_FIELD_SEQ_TB:
+-			cx88_risc_buffer(dev->pci, &buf->risc,
+-					 dma->sglist,
+-					 0, buf->bpl * (buf->vb.height >> 1),
+-					 buf->bpl, 0,
+-					 buf->vb.height >> 1);
+-			break;
+-		case V4L2_FIELD_SEQ_BT:
+-			cx88_risc_buffer(dev->pci, &buf->risc,
+-					 dma->sglist,
+-					 buf->bpl * (buf->vb.height >> 1), 0,
+-					 buf->bpl, 0,
+-					 buf->vb.height >> 1);
+-			break;
+-		default:
+-			BUG();
+-		}
++	buf->bpl = buf->vb.width * dev->fmt->depth >> 3;
++	switch (buf->vb.field) {
++	case V4L2_FIELD_TOP:
++		cx88_risc_buffer(dev->pci, &buf->risc,
++				 dma->sglist, 0, UNSET,
++				 buf->bpl, 0, buf->vb.height);
++		break;
++	case V4L2_FIELD_BOTTOM:
++		cx88_risc_buffer(dev->pci, &buf->risc,
++				 dma->sglist, UNSET, 0,
++				 buf->bpl, 0, buf->vb.height);
++		break;
++	case V4L2_FIELD_SEQ_TB:
++		cx88_risc_buffer(dev->pci, &buf->risc,
++				 dma->sglist,
++				 0, buf->bpl * (buf->vb.height >> 1),
++				 buf->bpl, 0,
++				 buf->vb.height >> 1);
++		break;
++	case V4L2_FIELD_SEQ_BT:
++		cx88_risc_buffer(dev->pci, &buf->risc,
++				 dma->sglist,
++				 buf->bpl * (buf->vb.height >> 1), 0,
++				 buf->bpl, 0,
++				 buf->vb.height >> 1);
++		break;
++	case V4L2_FIELD_INTERLACED:
++	default:
++		cx88_risc_buffer(dev->pci, &buf->risc,
++				 dma->sglist, 0, buf->bpl,
++				 buf->bpl, buf->bpl,
++				 buf->vb.height >> 1);
++		break;
+ 	}
+ 	dprintk(2,"[%p/%d] buffer_prepare - %dx%d %dbpp \"%s\" - dma=0x%08lx\n",
+ 		buf, buf->vb.i,
+@@ -646,22 +630,12 @@ buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+ 
+ 	} else {
+ 		prev = list_entry(q->active.prev, struct cx88_buffer, vb.queue);
+-		if (prev->vb.width  == buf->vb.width  &&
+-		    prev->vb.height == buf->vb.height &&
+-		    prev->fmt       == buf->fmt) {
+-			list_add_tail(&buf->vb.queue,&q->active);
+-			buf->vb.state = VIDEOBUF_ACTIVE;
+-			buf->count    = q->count++;
+-			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+-			dprintk(2,"[%p/%d] buffer_queue - append to active\n",
+-				buf, buf->vb.i);
+-
+-		} else {
+-			list_add_tail(&buf->vb.queue,&q->queued);
+-			buf->vb.state = VIDEOBUF_QUEUED;
+-			dprintk(2,"[%p/%d] buffer_queue - first queued\n",
+-				buf, buf->vb.i);
+-		}
++		list_add_tail(&buf->vb.queue, &q->active);
++		buf->vb.state = VIDEOBUF_ACTIVE;
++		buf->count    = q->count++;
++		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
++		dprintk(2, "[%p/%d] buffer_queue - append to active\n",
++			buf, buf->vb.i);
+ 	}
+ }
+ 
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index 28893a6..ddc7991 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -319,7 +319,6 @@ struct cx88_buffer {
+ 	/* cx88 specific */
+ 	unsigned int           bpl;
+ 	struct btcx_riscmem    risc;
+-	const struct cx8800_fmt *fmt;
+ 	u32                    count;
+ };
+ 
+-- 
+2.1.0
 
-Em Thu, 21 Aug 2014 10:04:25 +0800
-Changbing Xiong <cb.xiong@samsung.com> escreveu:
-
-> Enviroment: odroidx2 + Hauppauge(WinTV-Aero-M)
-> Normally, ADAP_STREAMING bit is set in dvb_usb_start_feed and cleared in dvb_usb_stop_feed.
-> But in exceptional cases, for example, when the tv is playing programs, and the tuner is pulled out.
-> then dvb_usbv2_disconnect is called, it will first call dvb_usbv2_adapter_frontend_exit to stop
-> dvb_frontend_thread, and then call dvb_usbv2_adapter_dvb_exit to clear ADAP_STREAMING bit, At this point,
-> if dvb_frontend_thread is sleeping and wait for ADAP_STREAMING to be cleared to get out of sleep.
-> then dvb_frontend_thread can never be stoped, because clearing ADAP_STREAMING bit is performed after
-> dvb_frontend_thread is stopped(i.e. performed in dvb_usbv2_adapter_dvb_exit), So deadlock becomes true.
-
-Second, please avoid big lines and just one paragraph. I rewrote this.
-
-It is really boring and harder to understand when it is like that. Also,
-we generally use no more than 72 cols on the patches, as we want to be
-able to read them well with 80 cols standard tty terminals.
-
-See the patch that will be merged.
-
->  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->  mode change 100644 => 100755 drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-
-Third, why are you changing the mode on all your 3 patches?
-
-It makes no sense to transform a .c file into an exec file.
-
-No need to further action from you, as I already fixed them when
-applying, but please fix your environment to avoid future rework
-from the maintainers.
-
-Regards,
-Mauro
