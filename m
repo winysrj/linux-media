@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:62453 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbaIYNwg (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2146 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750751AbaITI4d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 09:52:36 -0400
-Message-ID: <54241E7D.3050201@googlemail.com>
-Date: Thu, 25 Sep 2014 15:54:05 +0200
-From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Luca Olivetti <luca@ventoso.org>,
-	Fengguang Wu <fengguang.wu@intel.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
-	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
-	LKP <lkp@01.org>, linux-kernel@vger.kernel.org, crope@iki.fi
-Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
- (WAS: [media/em28xx] BUG: unable to handle kernel)
-References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com> <541C8A26.6050207@ventoso.org> <5421C187.2070407@googlemail.com> <5421E00B.2050404@ventoso.org>
-In-Reply-To: <5421E00B.2050404@ventoso.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Sat, 20 Sep 2014 04:56:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, m.chehab@samsung.com
+Subject: [PATCH 0/3] vb2: fix VBI/poll regression
+Date: Sat, 20 Sep 2014 10:56:12 +0200
+Message-Id: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+OK, this is the final (?) patch series to resolve the vb2 VBI poll regression
+where alevt and mtt fail on drivers using vb2.
 
-Am 23.09.2014 um 23:03 schrieb Luca Olivetti:
-> El 23/09/14 20:52, Frank Schäfer ha escrit:
->
->>>> This seems to be an ancient bug, which is known at least since 5 1/2 years:
->>>> https://lkml.org/lkml/2009/2/4/350
-> [...]
->>> #if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
->> What happens, if CONFIG_MODULES is enabled, but neither module
->> af9005-remote nor any other IR module is available ?
->> Has this ever been tested ?
-> I think I tested at the time and symbol_request returned NULL in that
-> case, however I'm not sure and I cannot find any documentation on how
-> symbol_request is supposed to work in that case.
+These applications call REQBUFS, queue the buffers and then poll() without
+calling STREAMON first. They rely on poll() to return POLLERR in that case
+and they do the STREAMON at that time. This is correct according to the spec,
+but this was never implemented in vb2.
 
-Ok, thanks.
-I assume noone wants to invest some time into this old driver and covert
-it to todays kernel IR infrastructure as suggested by Antti ? :-)
-Then I'm going to send a patch with the 
+This is fixed together with an other vb2 regression: calling REQBUFS, then
+STREAMON, then poll() without doing a QBUF first should return POLLERR as
+well according to the spec. This has been fixed as well and the spec has
+been clarified that this is only done for capture queues. Output queues in
+the same situation will return as well, but with POLLOUT|POLLWRNORM set
+instead of POLLERR.
 
-#if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
-
-approach.
-That's at least better than leaving the bug unfixed.
+The final patch adds missing documentation to poll() regarding event handling
+and improves the documentation regarding stream I/O and output queues.
 
 Regards,
-Frank
+
+	Hans
+
 
