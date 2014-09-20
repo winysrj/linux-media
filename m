@@ -1,3006 +1,3838 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4841 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755992AbaITMmG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:42:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/16] cx88: convert to vb2
-Date: Sat, 20 Sep 2014 14:41:39 +0200
-Message-Id: <1411216911-7950-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:53922 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750903AbaITKui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:50:38 -0400
+Date: Sat, 20 Sep 2014 18:49:51 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: dib0700_devices.c:undefined reference to
+ `dib9000_i2c_enumeration'
+Message-ID: <541d5bcf.fn+Bexoaq1+XLlGx%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="=_541d5bcf.D/LoKwg9o6krD0eyM04+MvUAC7U+RnfyvWedlCpSHkkX0k5D"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a multi-part message in MIME format.
 
-As usual, this patch is very large due to the fact that half a vb2 conversion
-isn't possible. And since this affects blackbird, alsa, core, dvb, vbi and
-video the changes are all over.
+--=_541d5bcf.D/LoKwg9o6krD0eyM04+MvUAC7U+RnfyvWedlCpSHkkX0k5D
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-What made this more difficult was the peculiar way the risc program was setup.
-The driver allowed for running out of buffers in which case the DMA would stop
-and restart when the next buffer was queued. There was also a complicated
-timeout system for when buffers weren't filled. This was replaced by a much
-simpler scheme where there is always one buffer around and the DMA will just
-cycle that buffer until a new buffer is queued. In that case the previous
-buffer will be chained to the new buffer. An interrupt is generated at the
-start of the new buffer telling the driver that the previous buffer can be
-passed on to userspace.
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+head:   46be7b73e82453447cd97b3440d523159eab09f8
+commit: 7b34be71db533f3e0cf93d53cf62d036cdb5418a [media] use IS_ENABLED() macro
+date:   1 year, 7 months ago
+config: x86_64-randconfig-hsb1-09201827 (attached as .config)
+reproduce:
+  git checkout 7b34be71db533f3e0cf93d53cf62d036cdb5418a
+  # save the attached .config to linux build tree
+  make ARCH=x86_64 
 
-Much simpler and more robust.
+All error/warnings:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+   drivers/built-in.o: In function `dib8096p_agc_startup':
+   dib0700_devices.c:(.text+0x2dc82e): undefined reference to `dib0090_pwm_gain_reset'
+   dib0700_devices.c:(.text+0x2dc836): undefined reference to `dib0090_get_wbd_target'
+   drivers/built-in.o: In function `dib90x0_tuner_sleep':
+>> dib0700_devices.c:(.text+0x2de6fb): undefined reference to `dib9000_set_gpio'
+   drivers/built-in.o: In function `dib90x0_tuner_reset':
+>> dib0700_devices.c:(.text+0x2de719): undefined reference to `dib9000_set_gpio'
+   drivers/built-in.o: In function `stk9090m_frontend_attach':
+>> dib0700_devices.c:(.text+0x2de8f4): undefined reference to `dib9000_i2c_enumeration'
+   drivers/built-in.o: In function `nim9090md_frontend_attach':
+>> dib0700_devices.c:(.text+0x2debe3): undefined reference to `dib9000_i2c_enumeration'
+>> dib0700_devices.c:(.text+0x2decbf): undefined reference to `dib9000_get_i2c_master'
+>> dib0700_devices.c:(.text+0x2decd9): undefined reference to `dib9000_i2c_enumeration'
+>> dib0700_devices.c:(.text+0x2ded81): undefined reference to `dib9000_set_slave_frontend'
+   drivers/built-in.o: In function `dib8096_set_param_override':
+   dib0700_devices.c:(.text+0x2df368): undefined reference to `dib0090_get_wbd_target'
+   dib0700_devices.c:(.text+0x2df3b6): undefined reference to `dib0090_set_tune_state'
+   dib0700_devices.c:(.text+0x2df3be): undefined reference to `dib0090_gain_control'
+   dib0700_devices.c:(.text+0x2df3cd): undefined reference to `dib0090_get_tune_state'
+   dib0700_devices.c:(.text+0x2df422): undefined reference to `dib0090_get_current_gain'
+   dib0700_devices.c:(.text+0x2df463): undefined reference to `dib0090_pwm_gain_reset'
+   dib0700_devices.c:(.text+0x2df482): undefined reference to `dib0090_pwm_gain_reset'
+   drivers/built-in.o: In function `dib90x0_pid_filter':
+>> dib0700_devices.c:(.text+0x2df74e): undefined reference to `dib9000_fw_pid_filter'
+   drivers/built-in.o: In function `dib90x0_pid_filter_ctrl':
+>> dib0700_devices.c:(.text+0x2df769): undefined reference to `dib9000_fw_pid_filter_ctrl'
+   drivers/built-in.o: In function `dib7090_agc_startup':
+   dib0700_devices.c:(.text+0x2dfb19): undefined reference to `dib0090_pwm_gain_reset'
+   dib0700_devices.c:(.text+0x2dfb21): undefined reference to `dib0090_get_wbd_target'
+   drivers/built-in.o: In function `dib9090_tuner_attach':
+>> dib0700_devices.c:(.text+0x2e0ab9): undefined reference to `dib9000_get_tuner_interface'
+>> dib0700_devices.c:(.text+0x2e0b9f): undefined reference to `dib9000_get_i2c_master'
+>> dib0700_devices.c:(.text+0x2e0bdf): undefined reference to `dib9000_firmware_post_pll_init'
+   drivers/built-in.o: In function `nim9090md_tuner_attach':
+>> dib0700_devices.c:(.text+0x2e0c4a): undefined reference to `dib9000_get_tuner_interface'
+>> dib0700_devices.c:(.text+0x2e0d21): undefined reference to `dib9000_get_i2c_master'
+>> dib0700_devices.c:(.text+0x2e0d5e): undefined reference to `dib9000_firmware_post_pll_init'
+>> dib0700_devices.c:(.text+0x2e0d87): undefined reference to `dib9000_get_slave_frontend'
+>> dib0700_devices.c:(.text+0x2e0dc2): undefined reference to `dib9000_get_component_bus_interface'
+>> dib0700_devices.c:(.text+0x2e0dcd): undefined reference to `dib9000_set_i2c_adapter'
+>> dib0700_devices.c:(.text+0x2e0dd5): undefined reference to `dib9000_get_tuner_interface'
+>> dib0700_devices.c:(.text+0x2e0ebe): undefined reference to `dib9000_fw_set_component_bus_speed'
+
 ---
- drivers/media/pci/cx88/Kconfig          |   4 +-
- drivers/media/pci/cx88/cx88-blackbird.c | 438 +++++++++-----------
- drivers/media/pci/cx88/cx88-core.c      |  83 +---
- drivers/media/pci/cx88/cx88-dvb.c       | 155 ++++---
- drivers/media/pci/cx88/cx88-mpeg.c      | 117 ++----
- drivers/media/pci/cx88/cx88-vbi.c       | 193 ++++-----
- drivers/media/pci/cx88/cx88-video.c     | 697 +++++++++-----------------------
- drivers/media/pci/cx88/cx88.h           |  64 ++-
- 8 files changed, 651 insertions(+), 1100 deletions(-)
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
 
-diff --git a/drivers/media/pci/cx88/Kconfig b/drivers/media/pci/cx88/Kconfig
-index a63a9ad..d5b125e 100644
---- a/drivers/media/pci/cx88/Kconfig
-+++ b/drivers/media/pci/cx88/Kconfig
-@@ -3,7 +3,7 @@ config VIDEO_CX88
- 	depends on VIDEO_DEV && PCI && I2C && RC_CORE
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
--	select VIDEOBUF_DMA_SG
-+	select VIDEOBUF2_DMA_SG
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_WM8775 if MEDIA_SUBDRV_AUTOSELECT
-@@ -45,7 +45,7 @@ config VIDEO_CX88_BLACKBIRD
- config VIDEO_CX88_DVB
- 	tristate "DVB/ATSC Support for cx2388x based TV cards"
- 	depends on VIDEO_CX88 && DVB_CORE
--	select VIDEOBUF_DVB
-+	select VIDEOBUF2_DVB
- 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_MT352 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_ZL10353 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 150bb76..25d06f3 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -45,10 +45,6 @@ MODULE_AUTHOR("Jelle Foks <jelle@foks.us>, Gerd Knorr <kraxel@bytesex.org> [SuSE
- MODULE_LICENSE("GPL");
- MODULE_VERSION(CX88_VERSION);
- 
--static unsigned int mpegbufs = 32;
--module_param(mpegbufs,int,0644);
--MODULE_PARM_DESC(mpegbufs,"number of mpeg buffers, range 2-32");
--
- static unsigned int debug;
- module_param(debug,int,0644);
- MODULE_PARM_DESC(debug,"enable debug messages [blackbird]");
-@@ -589,9 +585,8 @@ static int blackbird_initialize_codec(struct cx8802_dev *dev)
- 	return 0;
- }
- 
--static int blackbird_start_codec(struct file *file, void *priv)
-+static int blackbird_start_codec(struct cx8802_dev *dev)
- {
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
- 	struct cx88_core *core = dev->core;
- 	/* start capturing to the host interface */
- 	u32 reg;
-@@ -647,45 +642,131 @@ static int blackbird_stop_codec(struct cx8802_dev *dev)
- 
- /* ------------------------------------------------------------------ */
- 
--static int bb_buf_setup(struct videobuf_queue *q,
--			unsigned int *count, unsigned int *size)
-+static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
-+			   unsigned int *num_buffers, unsigned int *num_planes,
-+			   unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct cx8802_fh *fh = q->priv_data;
--
--	fh->dev->ts_packet_size  = 188 * 4; /* was: 512 */
--	fh->dev->ts_packet_count = mpegbufs; /* was: 100 */
-+	struct cx8802_dev *dev = q->drv_priv;
- 
--	*size = fh->dev->ts_packet_size * fh->dev->ts_packet_count;
--	*count = fh->dev->ts_packet_count;
-+	*num_planes = 1;
-+	dev->ts_packet_size  = 188 * 4;
-+	dev->ts_packet_count  = 32;
-+	sizes[0] = dev->ts_packet_size * dev->ts_packet_count;
- 	return 0;
- }
- 
--static int
--bb_buf_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
--	       enum v4l2_field field)
-+static int buffer_prepare(struct vb2_buffer *vb)
- {
--	struct cx8802_fh *fh = q->priv_data;
--	return cx8802_buf_prepare(q, fh->dev, (struct cx88_buffer*)vb, field);
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+
-+	return cx8802_buf_prepare(vb->vb2_queue, dev, buf, dev->field);
- }
- 
--static void
--bb_buf_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static void buffer_finish(struct vb2_buffer *vb)
- {
--	struct cx8802_fh *fh = q->priv_data;
--	cx8802_buf_queue(fh->dev, (struct cx88_buffer*)vb);
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+
-+	cx88_free_buffer(vb->vb2_queue, buf);
-+
-+	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
--static void
--bb_buf_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static void buffer_queue(struct vb2_buffer *vb)
- {
--	cx88_free_buffer(q, (struct cx88_buffer*)vb);
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer    *buf = container_of(vb, struct cx88_buffer, vb);
-+
-+	cx8802_buf_queue(dev, buf);
- }
- 
--static struct videobuf_queue_ops blackbird_qops = {
--	.buf_setup    = bb_buf_setup,
--	.buf_prepare  = bb_buf_prepare,
--	.buf_queue    = bb_buf_queue,
--	.buf_release  = bb_buf_release,
-+static int start_streaming(struct vb2_queue *q, unsigned int count)
-+{
-+	struct cx8802_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->mpegq;
-+	struct cx8802_driver *drv;
-+	struct cx88_buffer *buf;
-+	unsigned long flags;
-+	int err;
-+
-+	/* Make sure we can acquire the hardware */
-+	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-+	if (!drv) {
-+		dprintk(1, "%s: blackbird driver is not loaded\n", __func__);
-+		err = -ENODEV;
-+		goto fail;
-+	}
-+
-+	err = drv->request_acquire(drv);
-+	if (err != 0) {
-+		dprintk(1, "%s: Unable to acquire hardware, %d\n", __func__, err);
-+		goto fail;
-+	}
-+
-+	if (blackbird_initialize_codec(dev) < 0) {
-+		drv->request_release(drv);
-+		err = -EINVAL;
-+		goto fail;
-+	}
-+
-+	err = blackbird_start_codec(dev);
-+	if (err == 0) {
-+		buf = list_entry(dmaq->active.next, struct cx88_buffer, list);
-+		cx8802_start_dma(dev, dmaq, buf);
-+		return 0;
-+	}
-+
-+fail:
-+	spin_lock_irqsave(&dev->slock, flags);
-+	while (!list_empty(&dmaq->active)) {
-+		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
-+
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+	}
-+	spin_unlock_irqrestore(&dev->slock, flags);
-+	return err;
-+}
-+
-+static void stop_streaming(struct vb2_queue *q)
-+{
-+	struct cx8802_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->mpegq;
-+	struct cx8802_driver *drv = NULL;
-+	unsigned long flags;
-+
-+	cx8802_cancel_buffers(dev);
-+	blackbird_stop_codec(dev);
-+
-+	/* Make sure we release the hardware */
-+	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
-+	WARN_ON(!drv);
-+	if (drv)
-+		drv->request_release(drv);
-+
-+	spin_lock_irqsave(&dev->slock, flags);
-+	while (!list_empty(&dmaq->active)) {
-+		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
-+
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	spin_unlock_irqrestore(&dev->slock, flags);
-+}
-+
-+static struct vb2_ops blackbird_qops = {
-+	.queue_setup    = queue_setup,
-+	.buf_prepare  = buffer_prepare,
-+	.buf_finish = buffer_finish,
-+	.buf_queue    = buffer_queue,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
-+	.start_streaming = start_streaming,
-+	.stop_streaming = stop_streaming,
- };
- 
- /* ------------------------------------------------------------------ */
-@@ -693,8 +774,8 @@ static struct videobuf_queue_ops blackbird_qops = {
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
--	struct cx88_core  *core = dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	strcpy(cap->driver, "cx88_blackbird");
- 	sprintf(cap->bus_info, "PCI:%s", pci_name(dev->pci));
-@@ -717,50 +798,47 @@ static int vidioc_enum_fmt_vid_cap (struct file *file, void  *priv,
- static int vidioc_g_fmt_vid_cap (struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
-+	struct cx8802_dev *dev = video_drvdata(file);
- 
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
--	f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
-+	f->fmt.pix.sizeimage    = dev->ts_packet_size * dev->ts_packet_count;
- 	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
--	f->fmt.pix.field        = fh->mpegq.field;
-+	f->fmt.pix.field        = dev->field;
- 	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
--		dev->width, dev->height, fh->mpegq.field );
-+		dev->width, dev->height, dev->field);
- 	return 0;
- }
- 
- static int vidioc_try_fmt_vid_cap (struct file *file, void *priv,
- 			struct v4l2_format *f)
- {
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
-+	struct cx8802_dev *dev = video_drvdata(file);
- 
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
--	f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
-+	f->fmt.pix.sizeimage    = dev->ts_packet_size * dev->ts_packet_count;
- 	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
- 	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
--		dev->width, dev->height, fh->mpegq.field );
-+		dev->width, dev->height, dev->field);
- 	return 0;
- }
- 
- static int vidioc_s_fmt_vid_cap (struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
-+	struct cx8802_dev *dev = video_drvdata(file);
- 	struct cx88_core  *core = dev->core;
- 
- 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
- 	f->fmt.pix.bytesperline = 0;
--	f->fmt.pix.sizeimage    = 188 * 4 * mpegbufs; /* 188 * 4 * 1024; */
-+	f->fmt.pix.sizeimage    = dev->ts_packet_size * dev->ts_packet_count;
- 	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
- 	dev->width              = f->fmt.pix.width;
- 	dev->height             = f->fmt.pix.height;
--	fh->mpegq.field         = f->fmt.pix.field;
-+	dev->field         = f->fmt.pix.field;
- 	cx88_set_scale(core, f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field);
- 	blackbird_api_cmd(dev, CX2341X_ENC_SET_FRAME_SIZE, 2, 0,
- 				f->fmt.pix.height, f->fmt.pix.width);
-@@ -769,57 +847,11 @@ static int vidioc_s_fmt_vid_cap (struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_reqbufs (struct file *file, void *priv, struct v4l2_requestbuffers *p)
--{
--	struct cx8802_fh  *fh   = priv;
--	return (videobuf_reqbufs(&fh->mpegq, p));
--}
--
--static int vidioc_querybuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct cx8802_fh  *fh   = priv;
--	return (videobuf_querybuf(&fh->mpegq, p));
--}
--
--static int vidioc_qbuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct cx8802_fh  *fh   = priv;
--	return (videobuf_qbuf(&fh->mpegq, p));
--}
--
--static int vidioc_dqbuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct cx8802_fh  *fh   = priv;
--	return (videobuf_dqbuf(&fh->mpegq, p,
--				file->f_flags & O_NONBLOCK));
--}
--
--static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
--
--	if (!dev->mpeg_active)
--		blackbird_start_codec(file, fh);
--	return videobuf_streamon(&fh->mpegq);
--}
--
--static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
--
--	if (dev->mpeg_active)
--		blackbird_stop_codec(dev);
--	return videobuf_streamoff(&fh->mpegq);
--}
--
- static int vidioc_s_frequency (struct file *file, void *priv,
- 				const struct v4l2_frequency *f)
- {
--	struct cx8802_fh  *fh   = priv;
--	struct cx8802_dev *dev  = fh->dev;
--	struct cx88_core  *core = dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (unlikely(UNSET == core->board.tuner_type))
- 		return -EINVAL;
-@@ -831,14 +863,14 @@ static int vidioc_s_frequency (struct file *file, void *priv,
- 	cx88_set_freq (core,f);
- 	blackbird_initialize_codec(dev);
- 	cx88_set_scale(dev->core, dev->width, dev->height,
--			fh->mpegq.field);
-+			dev->field);
- 	return 0;
- }
- 
- static int vidioc_log_status (struct file *file, void *priv)
- {
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
--	struct cx88_core  *core = dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	char name[32 + 2];
- 
- 	snprintf(name, sizeof(name), "%s/2", core->name);
-@@ -850,15 +882,16 @@ static int vidioc_log_status (struct file *file, void *priv)
- static int vidioc_enum_input (struct file *file, void *priv,
- 				struct v4l2_input *i)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	return cx88_enum_input (core,i);
- }
- 
- static int vidioc_g_frequency (struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct cx8802_fh  *fh   = priv;
--	struct cx88_core  *core = fh->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (unlikely(UNSET == core->board.tuner_type))
- 		return -EINVAL;
-@@ -873,7 +906,8 @@ static int vidioc_g_frequency (struct file *file, void *priv,
- 
- static int vidioc_g_input (struct file *file, void *priv, unsigned int *i)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	*i = core->input;
- 	return 0;
-@@ -881,24 +915,24 @@ static int vidioc_g_input (struct file *file, void *priv, unsigned int *i)
- 
- static int vidioc_s_input (struct file *file, void *priv, unsigned int i)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (i >= 4)
- 		return -EINVAL;
- 	if (0 == INPUT(i).type)
- 		return -EINVAL;
- 
--	mutex_lock(&core->lock);
- 	cx88_newstation(core);
- 	cx88_video_mux(core,i);
--	mutex_unlock(&core->lock);
- 	return 0;
- }
- 
- static int vidioc_g_tuner (struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	u32 reg;
- 
- 	if (unlikely(UNSET == core->board.tuner_type))
-@@ -920,7 +954,8 @@ static int vidioc_g_tuner (struct file *file, void *priv,
- static int vidioc_s_tuner (struct file *file, void *priv,
- 				const struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (UNSET == core->board.tuner_type)
- 		return -EINVAL;
-@@ -933,7 +968,8 @@ static int vidioc_s_tuner (struct file *file, void *priv,
- 
- static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
- {
--	struct cx88_core *core = ((struct cx8802_fh *)priv)->dev->core;
-+	struct cx8802_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	*tvnorm = core->tvnorm;
- 	return 0;
-@@ -941,155 +977,21 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
- 
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- {
--	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
--
--	mutex_lock(&core->lock);
--	cx88_set_tvnorm(core, id);
--	mutex_unlock(&core->lock);
--	return 0;
--}
--
--/* FIXME: cx88_ioctl_hook not implemented */
--
--static int mpeg_open(struct file *file)
--{
--	struct video_device *vdev = video_devdata(file);
- 	struct cx8802_dev *dev = video_drvdata(file);
--	struct cx8802_fh *fh;
--	struct cx8802_driver *drv = NULL;
--	int err;
--
--	dprintk( 1, "%s\n", __func__);
--
--	mutex_lock(&dev->core->lock);
--
--	/* Make sure we can acquire the hardware */
--	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
--	if (!drv) {
--		dprintk(1, "%s: blackbird driver is not loaded\n", __func__);
--		mutex_unlock(&dev->core->lock);
--		return -ENODEV;
--	}
--
--	err = drv->request_acquire(drv);
--	if (err != 0) {
--		dprintk(1,"%s: Unable to acquire hardware, %d\n", __func__, err);
--		mutex_unlock(&dev->core->lock);
--		return err;
--	}
--
--	if (!dev->core->mpeg_users && blackbird_initialize_codec(dev) < 0) {
--		drv->request_release(drv);
--		mutex_unlock(&dev->core->lock);
--		return -EINVAL;
--	}
--	dprintk(1, "open dev=%s\n", video_device_node_name(vdev));
--
--	/* allocate + initialize per filehandle data */
--	fh = kzalloc(sizeof(*fh),GFP_KERNEL);
--	if (NULL == fh) {
--		drv->request_release(drv);
--		mutex_unlock(&dev->core->lock);
--		return -ENOMEM;
--	}
--	v4l2_fh_init(&fh->fh, vdev);
--	file->private_data = fh;
--	fh->dev      = dev;
--
--	videobuf_queue_sg_init(&fh->mpegq, &blackbird_qops,
--			    &dev->pci->dev, &dev->slock,
--			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
--			    V4L2_FIELD_INTERLACED,
--			    sizeof(struct cx88_buffer),
--			    fh, NULL);
--
--	/* FIXME: locking against other video device */
--	cx88_set_scale(dev->core, dev->width, dev->height,
--			fh->mpegq.field);
--
--	dev->core->mpeg_users++;
--	mutex_unlock(&dev->core->lock);
--	v4l2_fh_add(&fh->fh);
--	return 0;
--}
--
--static int mpeg_release(struct file *file)
--{
--	struct cx8802_fh  *fh  = file->private_data;
--	struct cx8802_dev *dev = fh->dev;
--	struct cx8802_driver *drv = NULL;
--
--	mutex_lock(&dev->core->lock);
--
--	if (dev->mpeg_active && dev->core->mpeg_users == 1)
--		blackbird_stop_codec(dev);
--
--	cx8802_cancel_buffers(fh->dev);
--	/* stop mpeg capture */
--	videobuf_stop(&fh->mpegq);
--
--	videobuf_mmap_free(&fh->mpegq);
--
--	v4l2_fh_del(&fh->fh);
--	v4l2_fh_exit(&fh->fh);
--	file->private_data = NULL;
--	kfree(fh);
--
--	/* Make sure we release the hardware */
--	drv = cx8802_get_driver(dev, CX88_MPEG_BLACKBIRD);
--	WARN_ON(!drv);
--	if (drv)
--		drv->request_release(drv);
--
--	dev->core->mpeg_users--;
--
--	mutex_unlock(&dev->core->lock);
-+	struct cx88_core *core = dev->core;
- 
-+	cx88_set_tvnorm(core, id);
- 	return 0;
- }
- 
--static ssize_t
--mpeg_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
--{
--	struct cx8802_fh *fh = file->private_data;
--	struct cx8802_dev *dev = fh->dev;
--
--	if (!dev->mpeg_active)
--		blackbird_start_codec(file, fh);
--
--	return videobuf_read_stream(&fh->mpegq, data, count, ppos, 0,
--				    file->f_flags & O_NONBLOCK);
--}
--
--static unsigned int
--mpeg_poll(struct file *file, struct poll_table_struct *wait)
--{
--	unsigned long req_events = poll_requested_events(wait);
--	struct cx8802_fh *fh = file->private_data;
--	struct cx8802_dev *dev = fh->dev;
--
--	if (!dev->mpeg_active && (req_events & (POLLIN | POLLRDNORM)))
--		blackbird_start_codec(file, fh);
--
--	return v4l2_ctrl_poll(file, wait) | videobuf_poll_stream(file, &fh->mpegq, wait);
--}
--
--static int
--mpeg_mmap(struct file *file, struct vm_area_struct * vma)
--{
--	struct cx8802_fh *fh = file->private_data;
--
--	return videobuf_mmap_mapper(&fh->mpegq, vma);
--}
--
- static const struct v4l2_file_operations mpeg_fops =
- {
- 	.owner	       = THIS_MODULE,
--	.open	       = mpeg_open,
--	.release       = mpeg_release,
--	.read	       = mpeg_read,
--	.poll          = mpeg_poll,
--	.mmap	       = mpeg_mmap,
-+	.open	       = v4l2_fh_open,
-+	.release       = vb2_fop_release,
-+	.read	       = vb2_fop_read,
-+	.poll          = vb2_fop_poll,
-+	.mmap	       = vb2_fop_mmap,
- 	.unlocked_ioctl = video_ioctl2,
- };
- 
-@@ -1099,12 +1001,12 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_g_fmt_vid_cap     = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
--	.vidioc_reqbufs       = vidioc_reqbufs,
--	.vidioc_querybuf      = vidioc_querybuf,
--	.vidioc_qbuf          = vidioc_qbuf,
--	.vidioc_dqbuf         = vidioc_dqbuf,
--	.vidioc_streamon      = vidioc_streamon,
--	.vidioc_streamoff     = vidioc_streamoff,
-+	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_querybuf      = vb2_ioctl_querybuf,
-+	.vidioc_qbuf          = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
-+	.vidioc_streamon      = vb2_ioctl_streamon,
-+	.vidioc_streamoff     = vb2_ioctl_streamoff,
- 	.vidioc_s_frequency   = vidioc_s_frequency,
- 	.vidioc_log_status    = vidioc_log_status,
- 	.vidioc_enum_input    = vidioc_enum_input,
-@@ -1189,11 +1091,12 @@ static int blackbird_register_video(struct cx8802_dev *dev)
- {
- 	int err;
- 
--	dev->mpeg_dev = cx88_vdev_init(dev->core,dev->pci,
--				       &cx8802_mpeg_template,"mpeg");
-+	dev->mpeg_dev = cx88_vdev_init(dev->core, dev->pci,
-+				       &cx8802_mpeg_template, "mpeg");
- 	dev->mpeg_dev->ctrl_handler = &dev->cxhdl.hdl;
- 	video_set_drvdata(dev->mpeg_dev, dev);
--	err = video_register_device(dev->mpeg_dev,VFL_TYPE_GRABBER, -1);
-+	dev->mpeg_dev->queue = &dev->vb2_mpegq;
-+	err = video_register_device(dev->mpeg_dev, VFL_TYPE_GRABBER, -1);
- 	if (err < 0) {
- 		printk(KERN_INFO "%s/2: can't register mpeg device\n",
- 		       dev->core->name);
-@@ -1210,6 +1113,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- {
- 	struct cx88_core *core = drv->core;
- 	struct cx8802_dev *dev = core->dvbdev;
-+	struct vb2_queue *q;
- 	int err;
- 
- 	dprintk( 1, "%s\n", __func__);
-@@ -1229,6 +1133,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	} else {
- 		dev->height = 576;
- 	}
-+	dev->field = V4L2_FIELD_INTERLACED;
- 	dev->cxhdl.port = CX2341X_PORT_STREAMING;
- 	dev->cxhdl.width = dev->width;
- 	dev->cxhdl.height = dev->height;
-@@ -1252,11 +1157,28 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	cx88_video_mux(core,0);
- 	cx2341x_handler_set_50hz(&dev->cxhdl, dev->height == 576);
- 	cx2341x_handler_setup(&dev->cxhdl);
-+
-+	q = &dev->vb2_mpegq;
-+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	q->gfp_flags = GFP_DMA32;
-+	q->min_buffers_needed = 2;
-+	q->drv_priv = dev;
-+	q->buf_struct_size = sizeof(struct cx88_buffer);
-+	q->ops = &blackbird_qops;
-+	q->mem_ops = &vb2_dma_sg_memops;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &core->lock;
-+
-+	err = vb2_queue_init(q);
-+	if (err < 0)
-+		goto fail_core;
-+
- 	blackbird_register_video(dev);
- 
- 	return 0;
- 
-- fail_core:
-+fail_core:
- 	return err;
- }
- 
-diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
-index 7163023..f027408 100644
---- a/drivers/media/pci/cx88/cx88-core.c
-+++ b/drivers/media/pci/cx88/cx88-core.c
-@@ -76,11 +76,16 @@ static DEFINE_MUTEX(devlist);
- static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
- 			    unsigned int offset, u32 sync_line,
- 			    unsigned int bpl, unsigned int padding,
--			    unsigned int lines, unsigned int lpi)
-+			    unsigned int lines, unsigned int lpi, bool jump)
- {
- 	struct scatterlist *sg;
- 	unsigned int line,todo,sol;
- 
-+	if (jump) {
-+		(*rp++) = cpu_to_le32(RISC_JUMP);
-+		(*rp++) = 0;
-+	}
-+
- 	/* sync instruction */
- 	if (sync_line != NO_SYNC_LINE)
- 		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
-@@ -147,7 +152,7 @@ int cx88_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
- 	   can cause next bpl to start close to a page border.  First DMA
- 	   region may be smaller than PAGE_SIZE */
- 	instructions  = fields * (1 + ((bpl + padding) * lines) / PAGE_SIZE + lines);
--	instructions += 2;
-+	instructions += 4;
- 	if ((rc = btcx_riscmem_alloc(pci,risc,instructions*8)) < 0)
- 		return rc;
- 
-@@ -155,10 +160,10 @@ int cx88_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
- 	rp = risc->cpu;
- 	if (UNSET != top_offset)
- 		rp = cx88_risc_field(rp, sglist, top_offset, 0,
--				     bpl, padding, lines, 0);
-+				     bpl, padding, lines, 0, true);
- 	if (UNSET != bottom_offset)
- 		rp = cx88_risc_field(rp, sglist, bottom_offset, 0x200,
--				     bpl, padding, lines, 0);
-+				     bpl, padding, lines, 0, top_offset == UNSET);
- 
- 	/* save pointer to jmp instruction address */
- 	risc->jmp = rp;
-@@ -179,13 +184,13 @@ int cx88_risc_databuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
- 	   there is no padding and no sync.  First DMA region may be smaller
- 	   than PAGE_SIZE */
- 	instructions  = 1 + (bpl * lines) / PAGE_SIZE + lines;
--	instructions += 1;
-+	instructions += 3;
- 	if ((rc = btcx_riscmem_alloc(pci,risc,instructions*8)) < 0)
- 		return rc;
- 
- 	/* write risc instructions */
- 	rp = risc->cpu;
--	rp = cx88_risc_field(rp, sglist, 0, NO_SYNC_LINE, bpl, 0, lines, lpi);
-+	rp = cx88_risc_field(rp, sglist, 0, NO_SYNC_LINE, bpl, 0, lines, lpi, !lpi);
- 
- 	/* save pointer to jmp instruction address */
- 	risc->jmp = rp;
-@@ -193,37 +198,10 @@ int cx88_risc_databuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
- 	return 0;
- }
- 
--int cx88_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
--		      u32 reg, u32 mask, u32 value)
--{
--	__le32 *rp;
--	int rc;
--
--	if ((rc = btcx_riscmem_alloc(pci, risc, 4*16)) < 0)
--		return rc;
--
--	/* write risc instructions */
--	rp = risc->cpu;
--	*(rp++) = cpu_to_le32(RISC_WRITECR  | RISC_IRQ2 | RISC_IMM);
--	*(rp++) = cpu_to_le32(reg);
--	*(rp++) = cpu_to_le32(value);
--	*(rp++) = cpu_to_le32(mask);
--	*(rp++) = cpu_to_le32(RISC_JUMP);
--	*(rp++) = cpu_to_le32(risc->dma);
--	return 0;
--}
--
- void
--cx88_free_buffer(struct videobuf_queue *q, struct cx88_buffer *buf)
-+cx88_free_buffer(struct vb2_queue *q, struct cx88_buffer *buf)
- {
--	struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
--
--	BUG_ON(in_interrupt());
--	videobuf_waiton(q, &buf->vb, 0, 0);
--	videobuf_dma_unmap(q->dev, dma);
--	videobuf_dma_free(dma);
--	btcx_riscmem_free(to_pci_dev(q->dev), &buf->risc);
--	buf->vb.state = VIDEOBUF_NEEDS_INIT;
-+	btcx_riscmem_free(to_pci_dev(q->drv_priv), &buf->risc);
- }
- 
- /* ------------------------------------------------------------------ */
-@@ -539,33 +517,12 @@ void cx88_wakeup(struct cx88_core *core,
- 		 struct cx88_dmaqueue *q, u32 count)
- {
- 	struct cx88_buffer *buf;
--	int bc;
--
--	for (bc = 0;; bc++) {
--		if (list_empty(&q->active))
--			break;
--		buf = list_entry(q->active.next,
--				 struct cx88_buffer, vb.queue);
--		/* count comes from the hw and is is 16bit wide --
--		 * this trick handles wrap-arounds correctly for
--		 * up to 32767 buffers in flight... */
--		if ((s16) (count - buf->count) < 0)
--			break;
--		v4l2_get_timestamp(&buf->vb.ts);
--		dprintk(2,"[%p/%d] wakeup reg=%d buf=%d\n",buf,buf->vb.i,
--			count, buf->count);
--		buf->vb.state = VIDEOBUF_DONE;
--		list_del(&buf->vb.queue);
--		wake_up(&buf->vb.done);
--	}
--	if (list_empty(&q->active)) {
--		del_timer(&q->timeout);
--	} else {
--		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
--	}
--	if (bc != 1)
--		dprintk(2, "%s: %d buffers handled (should be 1)\n",
--			__func__, bc);
-+
-+	buf = list_entry(q->active.next,
-+			 struct cx88_buffer, list);
-+	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
-+	list_del(&buf->list);
-+	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
- }
- 
- void cx88_shutdown(struct cx88_core *core)
-@@ -1043,6 +1000,7 @@ struct video_device *cx88_vdev_init(struct cx88_core *core,
- 	vfd->v4l2_dev = &core->v4l2_dev;
- 	vfd->dev_parent = &pci->dev;
- 	vfd->release = video_device_release;
-+	vfd->lock = &core->lock;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
- 		 core->name, type, core->board.name);
- 	return vfd;
-@@ -1114,7 +1072,6 @@ EXPORT_SYMBOL(cx88_shutdown);
- 
- EXPORT_SYMBOL(cx88_risc_buffer);
- EXPORT_SYMBOL(cx88_risc_databuffer);
--EXPORT_SYMBOL(cx88_risc_stopper);
- EXPORT_SYMBOL(cx88_free_buffer);
- 
- EXPORT_SYMBOL(cx88_sram_channels);
-diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
-index 053ed1b..d7e5c45 100644
---- a/drivers/media/pci/cx88/cx88-dvb.c
-+++ b/drivers/media/pci/cx88/cx88-dvb.c
-@@ -82,43 +82,86 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- /* ------------------------------------------------------------------ */
- 
--static int dvb_buf_setup(struct videobuf_queue *q,
--			 unsigned int *count, unsigned int *size)
-+static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
-+			   unsigned int *num_buffers, unsigned int *num_planes,
-+			   unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct cx8802_dev *dev = q->priv_data;
-+	struct cx8802_dev *dev = q->drv_priv;
- 
-+	*num_planes = 1;
- 	dev->ts_packet_size  = 188 * 4;
- 	dev->ts_packet_count = dvb_buf_tscnt;
--
--	*size  = dev->ts_packet_size * dev->ts_packet_count;
--	*count = dvb_buf_tscnt;
-+	sizes[0] = dev->ts_packet_size * dev->ts_packet_count;
-+	*num_buffers = dvb_buf_tscnt;
- 	return 0;
- }
- 
--static int dvb_buf_prepare(struct videobuf_queue *q,
--			   struct videobuf_buffer *vb, enum v4l2_field field)
-+static int buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+
-+	return cx8802_buf_prepare(vb->vb2_queue, dev, buf, dev->field);
-+}
-+
-+static void buffer_finish(struct vb2_buffer *vb)
-+{
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+
-+	cx88_free_buffer(vb->vb2_queue, buf);
-+
-+	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
-+}
-+
-+static void buffer_queue(struct vb2_buffer *vb)
- {
--	struct cx8802_dev *dev = q->priv_data;
--	return cx8802_buf_prepare(q, dev, (struct cx88_buffer*)vb,field);
-+	struct cx8802_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer    *buf = container_of(vb, struct cx88_buffer, vb);
-+
-+	cx8802_buf_queue(dev, buf);
- }
- 
--static void dvb_buf_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static int start_streaming(struct vb2_queue *q, unsigned int count)
- {
--	struct cx8802_dev *dev = q->priv_data;
--	cx8802_buf_queue(dev, (struct cx88_buffer*)vb);
-+	struct cx8802_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->mpegq;
-+	struct cx88_buffer *buf;
-+
-+	buf = list_entry(dmaq->active.next, struct cx88_buffer, list);
-+	cx8802_start_dma(dev, dmaq, buf);
-+	return 0;
- }
- 
--static void dvb_buf_release(struct videobuf_queue *q,
--			    struct videobuf_buffer *vb)
-+static void stop_streaming(struct vb2_queue *q)
- {
--	cx88_free_buffer(q, (struct cx88_buffer*)vb);
-+	struct cx8802_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->mpegq;
-+	unsigned long flags;
-+
-+	cx8802_cancel_buffers(dev);
-+
-+	spin_lock_irqsave(&dev->slock, flags);
-+	while (!list_empty(&dmaq->active)) {
-+		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
-+
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	spin_unlock_irqrestore(&dev->slock, flags);
- }
- 
--static const struct videobuf_queue_ops dvb_qops = {
--	.buf_setup    = dvb_buf_setup,
--	.buf_prepare  = dvb_buf_prepare,
--	.buf_queue    = dvb_buf_queue,
--	.buf_release  = dvb_buf_release,
-+static struct vb2_ops dvb_qops = {
-+	.queue_setup    = queue_setup,
-+	.buf_prepare  = buffer_prepare,
-+	.buf_finish = buffer_finish,
-+	.buf_queue    = buffer_queue,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
-+	.start_streaming = start_streaming,
-+	.stop_streaming = stop_streaming,
- };
- 
- /* ------------------------------------------------------------------ */
-@@ -130,7 +173,7 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
- 	int ret = 0;
- 	int fe_id;
- 
--	fe_id = videobuf_dvb_find_frontend(&dev->frontends, fe);
-+	fe_id = vb2_dvb_find_frontend(&dev->frontends, fe);
- 	if (!fe_id) {
- 		printk(KERN_ERR "%s() No frontend found\n", __func__);
- 		return -EINVAL;
-@@ -154,8 +197,8 @@ static int cx88_dvb_bus_ctrl(struct dvb_frontend* fe, int acquire)
- 
- static void cx88_dvb_gate_ctrl(struct cx88_core  *core, int open)
- {
--	struct videobuf_dvb_frontends *f;
--	struct videobuf_dvb_frontend *fe;
-+	struct vb2_dvb_frontends *f;
-+	struct vb2_dvb_frontend *fe;
- 
- 	if (!core->dvbdev)
- 		return;
-@@ -166,9 +209,9 @@ static void cx88_dvb_gate_ctrl(struct cx88_core  *core, int open)
- 		return;
- 
- 	if (f->gate <= 1) /* undefined or fe0 */
--		fe = videobuf_dvb_get_frontend(f, 1);
-+		fe = vb2_dvb_get_frontend(f, 1);
- 	else
--		fe = videobuf_dvb_get_frontend(f, f->gate);
-+		fe = vb2_dvb_get_frontend(f, f->gate);
- 
- 	if (fe && fe->dvb.frontend && fe->dvb.frontend->ops.i2c_gate_ctrl)
- 		fe->dvb.frontend->ops.i2c_gate_ctrl(fe->dvb.frontend, open);
-@@ -565,7 +608,7 @@ static const struct xc5000_config dvico_fusionhdtv7_tuner_config = {
- static int attach_xc3028(u8 addr, struct cx8802_dev *dev)
- {
- 	struct dvb_frontend *fe;
--	struct videobuf_dvb_frontend *fe0 = NULL;
-+	struct vb2_dvb_frontend *fe0 = NULL;
- 	struct xc2028_ctrl ctl;
- 	struct xc2028_config cfg = {
- 		.i2c_adap  = &dev->core->i2c_adap,
-@@ -574,7 +617,7 @@ static int attach_xc3028(u8 addr, struct cx8802_dev *dev)
- 	};
- 
- 	/* Get the first frontend */
--	fe0 = videobuf_dvb_get_frontend(&dev->frontends, 1);
-+	fe0 = vb2_dvb_get_frontend(&dev->frontends, 1);
- 	if (!fe0)
- 		return -EINVAL;
- 
-@@ -611,10 +654,10 @@ static int attach_xc3028(u8 addr, struct cx8802_dev *dev)
- static int attach_xc4000(struct cx8802_dev *dev, struct xc4000_config *cfg)
- {
- 	struct dvb_frontend *fe;
--	struct videobuf_dvb_frontend *fe0 = NULL;
-+	struct vb2_dvb_frontend *fe0 = NULL;
- 
- 	/* Get the first frontend */
--	fe0 = videobuf_dvb_get_frontend(&dev->frontends, 1);
-+	fe0 = vb2_dvb_get_frontend(&dev->frontends, 1);
- 	if (!fe0)
- 		return -EINVAL;
- 
-@@ -745,7 +788,7 @@ static const struct stv0288_config tevii_tuner_earda_config = {
- static int cx8802_alloc_frontends(struct cx8802_dev *dev)
- {
- 	struct cx88_core *core = dev->core;
--	struct videobuf_dvb_frontend *fe = NULL;
-+	struct vb2_dvb_frontend *fe = NULL;
- 	int i;
- 
- 	mutex_init(&dev->frontends.lock);
-@@ -757,10 +800,10 @@ static int cx8802_alloc_frontends(struct cx8802_dev *dev)
- 	printk(KERN_INFO "%s() allocating %d frontend(s)\n", __func__,
- 			 core->board.num_frontends);
- 	for (i = 1; i <= core->board.num_frontends; i++) {
--		fe = videobuf_dvb_alloc_frontend(&dev->frontends, i);
-+		fe = vb2_dvb_alloc_frontend(&dev->frontends, i);
- 		if (!fe) {
- 			printk(KERN_ERR "%s() failed to alloc\n", __func__);
--			videobuf_dvb_dealloc_frontends(&dev->frontends);
-+			vb2_dvb_dealloc_frontends(&dev->frontends);
- 			return -ENOMEM;
- 		}
- 	}
-@@ -958,7 +1001,7 @@ static const struct stv0299_config samsung_stv0299_config = {
- static int dvb_register(struct cx8802_dev *dev)
- {
- 	struct cx88_core *core = dev->core;
--	struct videobuf_dvb_frontend *fe0, *fe1 = NULL;
-+	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
- 	int mfe_shared = 0; /* bus not shared by default */
- 	int res = -EINVAL;
- 
-@@ -968,7 +1011,7 @@ static int dvb_register(struct cx8802_dev *dev)
- 	}
- 
- 	/* Get the first frontend */
--	fe0 = videobuf_dvb_get_frontend(&dev->frontends, 1);
-+	fe0 = vb2_dvb_get_frontend(&dev->frontends, 1);
- 	if (!fe0)
- 		goto frontend_detach;
- 
-@@ -1046,7 +1089,7 @@ static int dvb_register(struct cx8802_dev *dev)
- 				goto frontend_detach;
- 		}
- 		/* MFE frontend 2 */
--		fe1 = videobuf_dvb_get_frontend(&dev->frontends, 2);
-+		fe1 = vb2_dvb_get_frontend(&dev->frontends, 2);
- 		if (!fe1)
- 			goto frontend_detach;
- 		/* DVB-T init */
-@@ -1415,7 +1458,7 @@ static int dvb_register(struct cx8802_dev *dev)
- 				goto frontend_detach;
- 		}
- 		/* MFE frontend 2 */
--		fe1 = videobuf_dvb_get_frontend(&dev->frontends, 2);
-+		fe1 = vb2_dvb_get_frontend(&dev->frontends, 2);
- 		if (!fe1)
- 			goto frontend_detach;
- 		/* DVB-T Init */
-@@ -1594,7 +1637,7 @@ static int dvb_register(struct cx8802_dev *dev)
- 	call_all(core, core, s_power, 0);
- 
- 	/* register everything */
--	res = videobuf_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
-+	res = vb2_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
- 		&dev->pci->dev, adapter_nr, mfe_shared);
- 	if (res)
- 		goto frontend_detach;
-@@ -1602,7 +1645,7 @@ static int dvb_register(struct cx8802_dev *dev)
- 
- frontend_detach:
- 	core->gate_ctrl = NULL;
--	videobuf_dvb_dealloc_frontends(&dev->frontends);
-+	vb2_dvb_dealloc_frontends(&dev->frontends);
- 	return res;
- }
- 
-@@ -1697,7 +1740,7 @@ static int cx8802_dvb_probe(struct cx8802_driver *drv)
- 	struct cx88_core *core = drv->core;
- 	struct cx8802_dev *dev = drv->core->dvbdev;
- 	int err;
--	struct videobuf_dvb_frontend *fe;
-+	struct vb2_dvb_frontend *fe;
- 	int i;
- 
- 	dprintk( 1, "%s\n", __func__);
-@@ -1726,19 +1769,31 @@ static int cx8802_dvb_probe(struct cx8802_driver *drv)
- 
- 	err = -ENODEV;
- 	for (i = 1; i <= core->board.num_frontends; i++) {
--		fe = videobuf_dvb_get_frontend(&core->dvbdev->frontends, i);
-+		struct vb2_queue *q;
-+
-+		fe = vb2_dvb_get_frontend(&core->dvbdev->frontends, i);
- 		if (fe == NULL) {
- 			printk(KERN_ERR "%s() failed to get frontend(%d)\n",
- 					__func__, i);
- 			goto fail_probe;
- 		}
--		videobuf_queue_sg_init(&fe->dvb.dvbq, &dvb_qops,
--				    &dev->pci->dev, &dev->slock,
--				    V4L2_BUF_TYPE_VIDEO_CAPTURE,
--				    V4L2_FIELD_TOP,
--				    sizeof(struct cx88_buffer),
--				    dev, NULL);
--		/* init struct videobuf_dvb */
-+		q = &fe->dvb.dvbq;
-+		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->gfp_flags = GFP_DMA32;
-+		q->min_buffers_needed = 2;
-+		q->drv_priv = dev;
-+		q->buf_struct_size = sizeof(struct cx88_buffer);
-+		q->ops = &dvb_qops;
-+		q->mem_ops = &vb2_dma_sg_memops;
-+		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+		q->lock = &core->lock;
-+
-+		err = vb2_queue_init(q);
-+		if (err < 0)
-+			goto fail_probe;
-+
-+		/* init struct vb2_dvb */
- 		fe->dvb.name = dev->core->name;
- 	}
- 
-@@ -1749,7 +1804,7 @@ static int cx8802_dvb_probe(struct cx8802_driver *drv)
- 		       core->name, err);
- 	return err;
- fail_probe:
--	videobuf_dvb_dealloc_frontends(&core->dvbdev->frontends);
-+	vb2_dvb_dealloc_frontends(&core->dvbdev->frontends);
- fail_core:
- 	return err;
- }
-@@ -1761,7 +1816,7 @@ static int cx8802_dvb_remove(struct cx8802_driver *drv)
- 
- 	dprintk( 1, "%s\n", __func__);
- 
--	videobuf_dvb_unregister_bus(&dev->frontends);
-+	vb2_dvb_unregister_bus(&dev->frontends);
- 
- 	vp3054_i2c_remove(dev);
- 
-diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-index 5f59901..7986ee0 100644
---- a/drivers/media/pci/cx88/cx88-mpeg.c
-+++ b/drivers/media/pci/cx88/cx88-mpeg.c
-@@ -86,21 +86,21 @@ static LIST_HEAD(cx8802_devlist);
- static DEFINE_MUTEX(cx8802_mutex);
- /* ------------------------------------------------------------------ */
- 
--static int cx8802_start_dma(struct cx8802_dev    *dev,
-+int cx8802_start_dma(struct cx8802_dev    *dev,
- 			    struct cx88_dmaqueue *q,
- 			    struct cx88_buffer   *buf)
- {
- 	struct cx88_core *core = dev->core;
- 
- 	dprintk(1, "cx8802_start_dma w: %d, h: %d, f: %d\n",
--		buf->vb.width, buf->vb.height, buf->vb.field);
-+		dev->width, dev->height, dev->field);
- 
- 	/* setup fifo + format */
- 	cx88_sram_channel_setup(core, &cx88_sram_channels[SRAM_CH28],
- 				dev->ts_packet_size, buf->risc.dma);
- 
- 	/* write TS length to chip */
--	cx_write(MO_TS_LNGTH, buf->vb.width);
-+	cx_write(MO_TS_LNGTH, dev->ts_packet_size);
- 
- 	/* FIXME: this needs a review.
- 	 * also: move to cx88-blackbird + cx88-dvb source files? */
-@@ -212,47 +212,35 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
- 	if (list_empty(&q->active))
- 		return 0;
- 
--	buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
-+	buf = list_entry(q->active.next, struct cx88_buffer, list);
- 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
--		buf, buf->vb.i);
-+		buf, buf->vb.v4l2_buf.index);
- 	cx8802_start_dma(dev, q, buf);
--	list_for_each_entry(buf, &q->active, vb.queue)
-+	list_for_each_entry(buf, &q->active, list)
- 		buf->count = q->count++;
--	mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
- 	return 0;
- }
- 
- /* ------------------------------------------------------------------ */
- 
--int cx8802_buf_prepare(struct videobuf_queue *q, struct cx8802_dev *dev,
-+int cx8802_buf_prepare(struct vb2_queue *q, struct cx8802_dev *dev,
- 			struct cx88_buffer *buf, enum v4l2_field field)
- {
- 	int size = dev->ts_packet_size * dev->ts_packet_count;
--	struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(&buf->vb, 0);
- 	int rc;
- 
--	dprintk(1, "%s: %p\n", __func__, buf);
--	if (0 != buf->vb.baddr  &&  buf->vb.bsize < size)
-+	if (vb2_plane_size(&buf->vb, 0) < size)
- 		return -EINVAL;
-+	vb2_set_plane_payload(&buf->vb, 0, size);
- 
--	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
--		buf->vb.width  = dev->ts_packet_size;
--		buf->vb.height = dev->ts_packet_count;
--		buf->vb.size   = size;
--		buf->vb.field  = field /*V4L2_FIELD_TOP*/;
--
--		if (0 != (rc = videobuf_iolock(q,&buf->vb,NULL)))
--			goto fail;
--		cx88_risc_databuffer(dev->pci, &buf->risc,
--				     dma->sglist,
--				     buf->vb.width, buf->vb.height, 0);
--	}
--	buf->vb.state = VIDEOBUF_PREPARED;
--	return 0;
-+	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
-+	if (!rc)
-+		return -EIO;
- 
-- fail:
--	cx88_free_buffer(q,buf);
--	return rc;
-+	cx88_risc_databuffer(dev->pci, &buf->risc, sgt->sgl,
-+			     dev->ts_packet_size, dev->ts_packet_count, 0);
-+	return 0;
- }
- 
- void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf)
-@@ -261,35 +249,33 @@ void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf)
- 	struct cx88_dmaqueue  *cx88q = &dev->mpegq;
- 
- 	dprintk( 1, "cx8802_buf_queue\n" );
--	/* add jump to stopper */
--	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
--	buf->risc.jmp[1] = cpu_to_le32(cx88q->stopper.dma);
-+	/* add jump to start */
-+	buf->risc.cpu[1] = cpu_to_le32(buf->risc.dma + 8);
-+	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_CNT_INC);
-+	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma + 8);
- 
- 	if (list_empty(&cx88q->active)) {
- 		dprintk( 1, "queue is empty - first active\n" );
--		list_add_tail(&buf->vb.queue,&cx88q->active);
--		cx8802_start_dma(dev, cx88q, buf);
--		buf->vb.state = VIDEOBUF_ACTIVE;
-+		list_add_tail(&buf->list, &cx88q->active);
- 		buf->count    = cx88q->count++;
--		mod_timer(&cx88q->timeout, jiffies+BUFFER_TIMEOUT);
- 		dprintk(1,"[%p/%d] %s - first active\n",
--			buf, buf->vb.i, __func__);
-+			buf, buf->vb.v4l2_buf.index, __func__);
- 
- 	} else {
-+		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
- 		dprintk( 1, "queue is not empty - append to active\n" );
--		prev = list_entry(cx88q->active.prev, struct cx88_buffer, vb.queue);
--		list_add_tail(&buf->vb.queue,&cx88q->active);
--		buf->vb.state = VIDEOBUF_ACTIVE;
-+		prev = list_entry(cx88q->active.prev, struct cx88_buffer, list);
-+		list_add_tail(&buf->list, &cx88q->active);
- 		buf->count    = cx88q->count++;
- 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
- 		dprintk( 1, "[%p/%d] %s - append to active\n",
--			buf, buf->vb.i, __func__);
-+			buf, buf->vb.v4l2_buf.index, __func__);
- 	}
- }
- 
- /* ----------------------------------------------------------- */
- 
--static void do_cancel_buffers(struct cx8802_dev *dev, const char *reason, int restart)
-+static void do_cancel_buffers(struct cx8802_dev *dev)
- {
- 	struct cx88_dmaqueue *q = &dev->mpegq;
- 	struct cx88_buffer *buf;
-@@ -297,41 +283,18 @@ static void do_cancel_buffers(struct cx8802_dev *dev, const char *reason, int re
- 
- 	spin_lock_irqsave(&dev->slock,flags);
- 	while (!list_empty(&q->active)) {
--		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
--		list_del(&buf->vb.queue);
--		buf->vb.state = VIDEOBUF_ERROR;
--		wake_up(&buf->vb.done);
--		dprintk(1,"[%p/%d] %s - dma=0x%08lx\n",
--			buf, buf->vb.i, reason, (unsigned long)buf->risc.dma);
--	}
--	if (restart)
--	{
--		dprintk(1, "restarting queue\n" );
--		cx8802_restart_queue(dev,q);
-+		buf = list_entry(q->active.next, struct cx88_buffer, list);
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irqrestore(&dev->slock,flags);
- }
- 
- void cx8802_cancel_buffers(struct cx8802_dev *dev)
- {
--	struct cx88_dmaqueue *q = &dev->mpegq;
--
- 	dprintk( 1, "cx8802_cancel_buffers" );
--	del_timer_sync(&q->timeout);
--	cx8802_stop_dma(dev);
--	do_cancel_buffers(dev,"cancel",0);
--}
--
--static void cx8802_timeout(unsigned long data)
--{
--	struct cx8802_dev *dev = (struct cx8802_dev*)data;
--
--	dprintk(1, "%s\n",__func__);
--
--	if (debug)
--		cx88_sram_channel_dump(dev->core, &cx88_sram_channels[SRAM_CH28]);
- 	cx8802_stop_dma(dev);
--	do_cancel_buffers(dev,"timeout",1);
-+	do_cancel_buffers(dev);
- }
- 
- static const char * cx88_mpeg_irqs[32] = {
-@@ -377,19 +340,11 @@ static void cx8802_mpeg_irq(struct cx8802_dev *dev)
- 		spin_unlock(&dev->slock);
- 	}
- 
--	/* risc2 y */
--	if (status & 0x10) {
--		spin_lock(&dev->slock);
--		cx8802_restart_queue(dev,&dev->mpegq);
--		spin_unlock(&dev->slock);
--	}
--
- 	/* other general errors */
- 	if (status & 0x1f0100) {
- 		dprintk( 0, "general errors: 0x%08x\n", status & 0x1f0100 );
- 		spin_lock(&dev->slock);
- 		cx8802_stop_dma(dev);
--		cx8802_restart_queue(dev,&dev->mpegq);
- 		spin_unlock(&dev->slock);
- 	}
- }
-@@ -456,11 +411,6 @@ static int cx8802_init_common(struct cx8802_dev *dev)
- 
- 	/* init dma queue */
- 	INIT_LIST_HEAD(&dev->mpegq.active);
--	dev->mpegq.timeout.function = cx8802_timeout;
--	dev->mpegq.timeout.data     = (unsigned long)dev;
--	init_timer(&dev->mpegq.timeout);
--	cx88_risc_stopper(dev->pci,&dev->mpegq.stopper,
--			  MO_TS_DMACNTRL,0x11,0x00);
- 
- 	/* get irq */
- 	err = request_irq(dev->pci->irq, cx8802_irq,
-@@ -485,9 +435,6 @@ static void cx8802_fini_common(struct cx8802_dev *dev)
- 
- 	/* unregister stuff */
- 	free_irq(dev->pci->irq, dev);
--
--	/* free memory */
--	btcx_riscmem_free(dev->pci,&dev->mpegq.stopper);
- }
- 
- /* ----------------------------------------------------------- */
-@@ -504,7 +451,6 @@ static int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
- 		dprintk( 2, "suspend\n" );
- 		printk("%s: suspend mpeg\n", core->name);
- 		cx8802_stop_dma(dev);
--		del_timer(&dev->mpegq.timeout);
- 	}
- 	spin_unlock_irqrestore(&dev->slock, flags);
- 
-@@ -872,6 +818,7 @@ module_pci_driver(cx8802_pci_driver);
- EXPORT_SYMBOL(cx8802_buf_prepare);
- EXPORT_SYMBOL(cx8802_buf_queue);
- EXPORT_SYMBOL(cx8802_cancel_buffers);
-+EXPORT_SYMBOL(cx8802_start_dma);
- 
- EXPORT_SYMBOL(cx8802_register_driver);
- EXPORT_SYMBOL(cx8802_unregister_driver);
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index f8f8389..26a1533 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -6,10 +6,6 @@
- 
- #include "cx88.h"
- 
--static unsigned int vbibufs = 4;
--module_param(vbibufs,int,0644);
--MODULE_PARM_DESC(vbibufs,"number of vbi buffers, range 2-32");
--
- static unsigned int vbi_debug;
- module_param(vbi_debug,int,0644);
- MODULE_PARM_DESC(vbi_debug,"enable debug messages [vbi]");
-@@ -22,8 +18,7 @@ MODULE_PARM_DESC(vbi_debug,"enable debug messages [vbi]");
- int cx8800_vbi_fmt (struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
--	struct cx8800_fh  *fh   = priv;
--	struct cx8800_dev *dev  = fh->dev;
-+	struct cx8800_dev *dev = video_drvdata(file);
- 
- 	f->fmt.vbi.samples_per_line = VBI_LINE_LENGTH;
- 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
-@@ -54,7 +49,7 @@ static int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
- 
- 	/* setup fifo + format */
- 	cx88_sram_channel_setup(dev->core, &cx88_sram_channels[SRAM_CH24],
--				buf->vb.width, buf->risc.dma);
-+				VBI_LINE_LENGTH, buf->risc.dma);
- 
- 	cx_write(MO_VBOS_CONTROL, ( (1 << 18) |  // comb filter delay fixup
- 				    (1 << 15) |  // enable vbi capture
-@@ -78,7 +73,7 @@ static int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
- 	return 0;
- }
- 
--int cx8800_stop_vbi_dma(struct cx8800_dev *dev)
-+void cx8800_stop_vbi_dma(struct cx8800_dev *dev)
- {
- 	struct cx88_core *core = dev->core;
- 
-@@ -91,7 +86,6 @@ int cx8800_stop_vbi_dma(struct cx8800_dev *dev)
- 	/* disable irqs */
- 	cx_clear(MO_PCI_INTMSK, PCI_INT_VIDINT);
- 	cx_clear(MO_VID_INTMSK, 0x0f0088);
--	return 0;
- }
- 
- int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
-@@ -102,144 +96,133 @@ int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
- 	if (list_empty(&q->active))
- 		return 0;
- 
--	buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
-+	buf = list_entry(q->active.next, struct cx88_buffer, list);
- 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
--		buf, buf->vb.i);
-+		buf, buf->vb.v4l2_buf.index);
- 	cx8800_start_vbi_dma(dev, q, buf);
--	list_for_each_entry(buf, &q->active, vb.queue)
-+	list_for_each_entry(buf, &q->active, list)
- 		buf->count = q->count++;
--	mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
- 	return 0;
- }
- 
--void cx8800_vbi_timeout(unsigned long data)
--{
--	struct cx8800_dev *dev = (struct cx8800_dev*)data;
--	struct cx88_core *core = dev->core;
--	struct cx88_dmaqueue *q = &dev->vbiq;
--	struct cx88_buffer *buf;
--	unsigned long flags;
--
--	cx88_sram_channel_dump(dev->core, &cx88_sram_channels[SRAM_CH24]);
--
--	cx_clear(MO_VID_DMACNTRL, 0x88);
--	cx_clear(VID_CAPTURE_CONTROL, 0x18);
--
--	spin_lock_irqsave(&dev->slock,flags);
--	while (!list_empty(&q->active)) {
--		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
--		list_del(&buf->vb.queue);
--		buf->vb.state = VIDEOBUF_ERROR;
--		wake_up(&buf->vb.done);
--		printk("%s/0: [%p/%d] timeout - dma=0x%08lx\n", dev->core->name,
--		       buf, buf->vb.i, (unsigned long)buf->risc.dma);
--	}
--	cx8800_restart_vbi_queue(dev,q);
--	spin_unlock_irqrestore(&dev->slock,flags);
--}
--
- /* ------------------------------------------------------------------ */
- 
--static int
--vbi_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
-+static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
-+			   unsigned int *num_buffers, unsigned int *num_planes,
-+			   unsigned int sizes[], void *alloc_ctxs[])
- {
--	*size = VBI_LINE_COUNT * VBI_LINE_LENGTH * 2;
--	if (0 == *count)
--		*count = vbibufs;
--	if (*count < 2)
--		*count = 2;
--	if (*count > 32)
--		*count = 32;
-+	*num_planes = 1;
-+	sizes[0] = VBI_LINE_COUNT * VBI_LINE_LENGTH * 2;
- 	return 0;
- }
- 
--static int
--vbi_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
--	    enum v4l2_field field)
-+
-+static int buffer_prepare(struct vb2_buffer *vb)
- {
--	struct cx8800_fh   *fh  = q->priv_data;
--	struct cx8800_dev  *dev = fh->dev;
--	struct cx88_buffer *buf = container_of(vb,struct cx88_buffer,vb);
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	unsigned int size;
- 	int rc;
- 
- 	size = VBI_LINE_COUNT * VBI_LINE_LENGTH * 2;
--	if (0 != buf->vb.baddr  &&  buf->vb.bsize < size)
-+	if (vb2_plane_size(vb, 0) < size)
- 		return -EINVAL;
-+	vb2_set_plane_payload(vb, 0, size);
- 
--	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
--		struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
--		buf->vb.width  = VBI_LINE_LENGTH;
--		buf->vb.height = VBI_LINE_COUNT;
--		buf->vb.size   = size;
--		buf->vb.field  = V4L2_FIELD_SEQ_TB;
--
--		if (0 != (rc = videobuf_iolock(q,&buf->vb,NULL)))
--			goto fail;
--		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist,
--				 0, buf->vb.width * buf->vb.height,
--				 buf->vb.width, 0,
--				 buf->vb.height);
--	}
--	buf->vb.state = VIDEOBUF_PREPARED;
-+	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
-+	if (!rc)
-+		return -EIO;
-+
-+	cx88_risc_buffer(dev->pci, &buf->risc, sgt->sgl,
-+			 0, VBI_LINE_LENGTH * VBI_LINE_COUNT,
-+			 VBI_LINE_LENGTH, 0,
-+			 VBI_LINE_COUNT);
- 	return 0;
-+}
- 
-- fail:
--	cx88_free_buffer(q,buf);
--	return rc;
-+static void buffer_finish(struct vb2_buffer *vb)
-+{
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+
-+	cx88_free_buffer(vb->vb2_queue, buf);
-+
-+	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
--static void
--vbi_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
-+static void buffer_queue(struct vb2_buffer *vb)
- {
--	struct cx88_buffer    *buf = container_of(vb,struct cx88_buffer,vb);
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer    *buf = container_of(vb, struct cx88_buffer, vb);
- 	struct cx88_buffer    *prev;
--	struct cx8800_fh      *fh   = vq->priv_data;
--	struct cx8800_dev     *dev  = fh->dev;
- 	struct cx88_dmaqueue  *q    = &dev->vbiq;
- 
--	/* add jump to stopper */
--	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
--	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
-+	/* add jump to start */
-+	buf->risc.cpu[1] = cpu_to_le32(buf->risc.dma + 8);
-+	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_CNT_INC);
-+	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma + 8);
- 
- 	if (list_empty(&q->active)) {
--		list_add_tail(&buf->vb.queue,&q->active);
-+		list_add_tail(&buf->list, &q->active);
- 		cx8800_start_vbi_dma(dev, q, buf);
--		buf->vb.state = VIDEOBUF_ACTIVE;
- 		buf->count    = q->count++;
--		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
- 		dprintk(2,"[%p/%d] vbi_queue - first active\n",
--			buf, buf->vb.i);
-+			buf, buf->vb.v4l2_buf.index);
- 
- 	} else {
--		prev = list_entry(q->active.prev, struct cx88_buffer, vb.queue);
--		list_add_tail(&buf->vb.queue,&q->active);
--		buf->vb.state = VIDEOBUF_ACTIVE;
-+		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
-+		prev = list_entry(q->active.prev, struct cx88_buffer, list);
-+		list_add_tail(&buf->list, &q->active);
- 		buf->count    = q->count++;
- 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
- 		dprintk(2,"[%p/%d] buffer_queue - append to active\n",
--			buf, buf->vb.i);
-+			buf, buf->vb.v4l2_buf.index);
- 	}
- }
- 
--static void vbi_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static int start_streaming(struct vb2_queue *q, unsigned int count)
- {
--	struct cx88_buffer *buf = container_of(vb,struct cx88_buffer,vb);
-+	struct cx8800_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->vbiq;
-+	struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
- 
--	cx88_free_buffer(q,buf);
-+	cx8800_start_vbi_dma(dev, dmaq, buf);
-+	return 0;
- }
- 
--const struct videobuf_queue_ops cx8800_vbi_qops = {
--	.buf_setup    = vbi_setup,
--	.buf_prepare  = vbi_prepare,
--	.buf_queue    = vbi_queue,
--	.buf_release  = vbi_release,
--};
-+static void stop_streaming(struct vb2_queue *q)
-+{
-+	struct cx8800_dev *dev = q->drv_priv;
-+	struct cx88_core *core = dev->core;
-+	struct cx88_dmaqueue *dmaq = &dev->vbiq;
-+	unsigned long flags;
- 
--/* ------------------------------------------------------------------ */
--/*
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- */
-+	cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
-+
-+	cx_clear(MO_VID_DMACNTRL, 0x11);
-+	cx_clear(VID_CAPTURE_CONTROL, 0x06);
-+	cx8800_stop_vbi_dma(dev);
-+	spin_lock_irqsave(&dev->slock, flags);
-+	while (!list_empty(&dmaq->active)) {
-+		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
-+
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	spin_unlock_irqrestore(&dev->slock, flags);
-+}
-+
-+const struct vb2_ops cx8800_vbi_qops = {
-+	.queue_setup    = queue_setup,
-+	.buf_prepare  = buffer_prepare,
-+	.buf_finish = buffer_finish,
-+	.buf_queue    = buffer_queue,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
-+	.start_streaming = start_streaming,
-+	.stop_streaming = stop_streaming,
-+};
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index 10fea4d..9887da5 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -70,10 +70,6 @@ static unsigned int irq_debug;
- module_param(irq_debug,int,0644);
- MODULE_PARM_DESC(irq_debug,"enable debug messages [IRQ handler]");
- 
--static unsigned int vid_limit = 16;
--module_param(vid_limit,int,0644);
--MODULE_PARM_DESC(vid_limit,"capture memory limit in megabytes");
--
- #define dprintk(level,fmt, arg...)	if (video_debug >= level) \
- 	printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
- 
-@@ -297,56 +293,6 @@ enum {
- 	CX8800_AUD_CTLS = ARRAY_SIZE(cx8800_aud_ctls),
- };
- 
--/* ------------------------------------------------------------------- */
--/* resource management                                                 */
--
--static int res_get(struct cx8800_dev *dev, struct cx8800_fh *fh, unsigned int bit)
--{
--	struct cx88_core *core = dev->core;
--	if (fh->resources & bit)
--		/* have it already allocated */
--		return 1;
--
--	/* is it free? */
--	mutex_lock(&core->lock);
--	if (dev->resources & bit) {
--		/* no, someone else uses it */
--		mutex_unlock(&core->lock);
--		return 0;
--	}
--	/* it's free, grab it */
--	fh->resources  |= bit;
--	dev->resources |= bit;
--	dprintk(1,"res: get %d\n",bit);
--	mutex_unlock(&core->lock);
--	return 1;
--}
--
--static
--int res_check(struct cx8800_fh *fh, unsigned int bit)
--{
--	return (fh->resources & bit);
--}
--
--static
--int res_locked(struct cx8800_dev *dev, unsigned int bit)
--{
--	return (dev->resources & bit);
--}
--
--static
--void res_free(struct cx8800_dev *dev, struct cx8800_fh *fh, unsigned int bits)
--{
--	struct cx88_core *core = dev->core;
--	BUG_ON((fh->resources & bits) != bits);
--
--	mutex_lock(&core->lock);
--	fh->resources  &= ~bits;
--	dev->resources &= ~bits;
--	dprintk(1,"res: put %d\n",bits);
--	mutex_unlock(&core->lock);
--}
--
- /* ------------------------------------------------------------------ */
- 
- int cx88_video_mux(struct cx88_core *core, unsigned int input)
-@@ -419,7 +365,7 @@ static int start_video_dma(struct cx8800_dev    *dev,
- 	/* setup fifo + format */
- 	cx88_sram_channel_setup(core, &cx88_sram_channels[SRAM_CH21],
- 				buf->bpl, buf->risc.dma);
--	cx88_set_scale(core, buf->vb.width, buf->vb.height, buf->vb.field);
-+	cx88_set_scale(core, dev->width, dev->height, dev->field);
- 	cx_write(MO_COLOR_CTRL, dev->fmt->cxformat | ColorFormatGamma);
- 
- 	/* reset counter */
-@@ -473,376 +419,206 @@ static int restart_video_queue(struct cx8800_dev    *dev,
- 	struct cx88_buffer *buf;
- 
- 	if (!list_empty(&q->active)) {
--		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
-+		buf = list_entry(q->active.next, struct cx88_buffer, list);
- 		dprintk(2,"restart_queue [%p/%d]: restart dma\n",
--			buf, buf->vb.i);
-+			buf, buf->vb.v4l2_buf.index);
- 		start_video_dma(dev, q, buf);
--		list_for_each_entry(buf, &q->active, vb.queue)
-+		list_for_each_entry(buf, &q->active, list)
- 			buf->count = q->count++;
--		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
- 	}
- 	return 0;
- }
- 
- /* ------------------------------------------------------------------ */
- 
--static int
--buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
-+static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
-+			   unsigned int *num_buffers, unsigned int *num_planes,
-+			   unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct cx8800_fh *fh = q->priv_data;
--	struct cx8800_dev  *dev = fh->dev;
--
--	*size = dev->fmt->depth * dev->width * dev->height >> 3;
--	if (0 == *count)
--		*count = 32;
--	if (*size * *count > vid_limit * 1024 * 1024)
--		*count = (vid_limit * 1024 * 1024) / *size;
-+	struct cx8800_dev *dev = q->drv_priv;
-+
-+	*num_planes = 1;
-+	sizes[0] = (dev->fmt->depth * dev->width * dev->height) >> 3;
- 	return 0;
- }
- 
--static int
--buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
--	       enum v4l2_field field)
-+static int buffer_prepare(struct vb2_buffer *vb)
- {
--	struct cx8800_fh   *fh  = q->priv_data;
--	struct cx8800_dev  *dev = fh->dev;
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx88_core *core = dev->core;
--	struct cx88_buffer *buf = container_of(vb,struct cx88_buffer,vb);
--	struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	int rc;
- 
--	BUG_ON(NULL == dev->fmt);
--	if (dev->width  < 48 || dev->width  > norm_maxw(core->tvnorm) ||
--	    dev->height < 32 || dev->height > norm_maxh(core->tvnorm))
--		return -EINVAL;
--	buf->vb.size = (dev->width * dev->height * dev->fmt->depth) >> 3;
--	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
-+	buf->bpl = dev->width * dev->fmt->depth >> 3;
-+
-+	if (vb2_plane_size(vb, 0) < dev->height * buf->bpl)
- 		return -EINVAL;
-+	vb2_set_plane_payload(vb, 0, dev->height * buf->bpl);
- 
--	buf->vb.width  = dev->width;
--	buf->vb.height = dev->height;
--	buf->vb.field  = field;
--	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
--		if (0 != (rc = videobuf_iolock(q,&buf->vb,NULL)))
--			goto fail;
--	}
-+	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
-+	if (!rc)
-+		return -EIO;
- 
--	buf->bpl = buf->vb.width * dev->fmt->depth >> 3;
--	switch (buf->vb.field) {
-+	switch (dev->field) {
- 	case V4L2_FIELD_TOP:
- 		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist, 0, UNSET,
--				 buf->bpl, 0, buf->vb.height);
-+				 sgt->sgl, 0, UNSET,
-+				 buf->bpl, 0, dev->height);
- 		break;
- 	case V4L2_FIELD_BOTTOM:
- 		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist, UNSET, 0,
--				 buf->bpl, 0, buf->vb.height);
-+				 sgt->sgl, UNSET, 0,
-+				 buf->bpl, 0, dev->height);
- 		break;
- 	case V4L2_FIELD_SEQ_TB:
- 		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist,
--				 0, buf->bpl * (buf->vb.height >> 1),
-+				 sgt->sgl,
-+				 0, buf->bpl * (dev->height >> 1),
- 				 buf->bpl, 0,
--				 buf->vb.height >> 1);
-+				 dev->height >> 1);
- 		break;
- 	case V4L2_FIELD_SEQ_BT:
- 		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist,
--				 buf->bpl * (buf->vb.height >> 1), 0,
-+				 sgt->sgl,
-+				 buf->bpl * (dev->height >> 1), 0,
- 				 buf->bpl, 0,
--				 buf->vb.height >> 1);
-+				 dev->height >> 1);
- 		break;
- 	case V4L2_FIELD_INTERLACED:
- 	default:
- 		cx88_risc_buffer(dev->pci, &buf->risc,
--				 dma->sglist, 0, buf->bpl,
-+				 sgt->sgl, 0, buf->bpl,
- 				 buf->bpl, buf->bpl,
--				 buf->vb.height >> 1);
-+				 dev->height >> 1);
- 		break;
- 	}
- 	dprintk(2,"[%p/%d] buffer_prepare - %dx%d %dbpp \"%s\" - dma=0x%08lx\n",
--		buf, buf->vb.i,
-+		buf, buf->vb.v4l2_buf.index,
- 		dev->width, dev->height, dev->fmt->depth, dev->fmt->name,
- 		(unsigned long)buf->risc.dma);
--
--	buf->vb.state = VIDEOBUF_PREPARED;
- 	return 0;
-+}
-+
-+static void buffer_finish(struct vb2_buffer *vb)
-+{
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer *buf = container_of(vb, struct cx88_buffer, vb);
-+	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
-+
-+	cx88_free_buffer(vb->vb2_queue, buf);
- 
-- fail:
--	cx88_free_buffer(q,buf);
--	return rc;
-+	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
--static void
--buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
-+static void buffer_queue(struct vb2_buffer *vb)
- {
--	struct cx88_buffer    *buf = container_of(vb,struct cx88_buffer,vb);
-+	struct cx8800_dev *dev = vb->vb2_queue->drv_priv;
-+	struct cx88_buffer    *buf = container_of(vb, struct cx88_buffer, vb);
- 	struct cx88_buffer    *prev;
--	struct cx8800_fh      *fh   = vq->priv_data;
--	struct cx8800_dev     *dev  = fh->dev;
- 	struct cx88_core      *core = dev->core;
- 	struct cx88_dmaqueue  *q    = &dev->vidq;
- 
--	/* add jump to stopper */
--	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
--	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
-+	/* add jump to start */
-+	buf->risc.cpu[1] = cpu_to_le32(buf->risc.dma + 8);
-+	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_CNT_INC);
-+	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma + 8);
- 
- 	if (list_empty(&q->active)) {
--		list_add_tail(&buf->vb.queue,&q->active);
-+		list_add_tail(&buf->list, &q->active);
- 		start_video_dma(dev, q, buf);
--		buf->vb.state = VIDEOBUF_ACTIVE;
- 		buf->count    = q->count++;
--		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
- 		dprintk(2,"[%p/%d] buffer_queue - first active\n",
--			buf, buf->vb.i);
-+			buf, buf->vb.v4l2_buf.index);
- 
- 	} else {
--		prev = list_entry(q->active.prev, struct cx88_buffer, vb.queue);
--		list_add_tail(&buf->vb.queue, &q->active);
--		buf->vb.state = VIDEOBUF_ACTIVE;
-+		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
-+		prev = list_entry(q->active.prev, struct cx88_buffer, list);
-+		list_add_tail(&buf->list, &q->active);
- 		buf->count    = q->count++;
- 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
- 		dprintk(2, "[%p/%d] buffer_queue - append to active\n",
--			buf, buf->vb.i);
-+			buf, buf->vb.v4l2_buf.index);
- 	}
- }
- 
--static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static int start_streaming(struct vb2_queue *q, unsigned int count)
- {
--	struct cx88_buffer *buf = container_of(vb,struct cx88_buffer,vb);
-+	struct cx8800_dev *dev = q->drv_priv;
-+	struct cx88_dmaqueue *dmaq = &dev->vidq;
-+	struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
- 
--	cx88_free_buffer(q,buf);
-+	start_video_dma(dev, dmaq, buf);
-+	return 0;
- }
- 
--static const struct videobuf_queue_ops cx8800_video_qops = {
--	.buf_setup    = buffer_setup,
--	.buf_prepare  = buffer_prepare,
--	.buf_queue    = buffer_queue,
--	.buf_release  = buffer_release,
--};
--
--/* ------------------------------------------------------------------ */
--
-+static void stop_streaming(struct vb2_queue *q)
-+{
-+	struct cx8800_dev *dev = q->drv_priv;
-+	struct cx88_core *core = dev->core;
-+	struct cx88_dmaqueue *dmaq = &dev->vidq;
-+	unsigned long flags;
- 
--/* ------------------------------------------------------------------ */
-+	cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
- 
--static struct videobuf_queue *get_queue(struct file *file)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct cx8800_fh *fh = file->private_data;
-+	cx_clear(MO_VID_DMACNTRL, 0x11);
-+	cx_clear(VID_CAPTURE_CONTROL, 0x06);
-+	spin_lock_irqsave(&dev->slock, flags);
-+	while (!list_empty(&dmaq->active)) {
-+		struct cx88_buffer *buf = list_entry(dmaq->active.next,
-+			struct cx88_buffer, list);
- 
--	switch (vdev->vfl_type) {
--	case VFL_TYPE_GRABBER:
--		return &fh->vidq;
--	case VFL_TYPE_VBI:
--		return &fh->vbiq;
--	default:
--		BUG();
--		return NULL;
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
-+	spin_unlock_irqrestore(&dev->slock, flags);
- }
- 
--static int get_resource(struct file *file)
--{
--	struct video_device *vdev = video_devdata(file);
-+static struct vb2_ops cx8800_video_qops = {
-+	.queue_setup    = queue_setup,
-+	.buf_prepare  = buffer_prepare,
-+	.buf_finish = buffer_finish,
-+	.buf_queue    = buffer_queue,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
-+	.start_streaming = start_streaming,
-+	.stop_streaming = stop_streaming,
-+};
- 
--	switch (vdev->vfl_type) {
--	case VFL_TYPE_GRABBER:
--		return RESOURCE_VIDEO;
--	case VFL_TYPE_VBI:
--		return RESOURCE_VBI;
--	default:
--		BUG();
--		return 0;
--	}
--}
-+/* ------------------------------------------------------------------ */
- 
--static int video_open(struct file *file)
-+static int radio_open(struct file *file)
- {
--	struct video_device *vdev = video_devdata(file);
- 	struct cx8800_dev *dev = video_drvdata(file);
- 	struct cx88_core *core = dev->core;
--	struct cx8800_fh *fh;
--	enum v4l2_buf_type type = 0;
--	int radio = 0;
--
--	switch (vdev->vfl_type) {
--	case VFL_TYPE_GRABBER:
--		type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		break;
--	case VFL_TYPE_VBI:
--		type = V4L2_BUF_TYPE_VBI_CAPTURE;
--		break;
--	case VFL_TYPE_RADIO:
--		radio = 1;
--		break;
--	}
--
--	dprintk(1, "open dev=%s radio=%d type=%s\n",
--		video_device_node_name(vdev), radio, v4l2_type_names[type]);
-+	int ret = v4l2_fh_open(file);
- 
--	/* allocate + initialize per filehandle data */
--	fh = kzalloc(sizeof(*fh),GFP_KERNEL);
--	if (unlikely(!fh))
--		return -ENOMEM;
--
--	v4l2_fh_init(&fh->fh, vdev);
--	file->private_data = fh;
--	fh->dev      = dev;
--
--	mutex_lock(&core->lock);
-+	if (ret)
-+		return ret;
- 
--	videobuf_queue_sg_init(&fh->vidq, &cx8800_video_qops,
--			    &dev->pci->dev, &dev->slock,
--			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
--			    V4L2_FIELD_INTERLACED,
--			    sizeof(struct cx88_buffer),
--			    fh, NULL);
--	videobuf_queue_sg_init(&fh->vbiq, &cx8800_vbi_qops,
--			    &dev->pci->dev, &dev->slock,
--			    V4L2_BUF_TYPE_VBI_CAPTURE,
--			    V4L2_FIELD_SEQ_TB,
--			    sizeof(struct cx88_buffer),
--			    fh, NULL);
--
--	if (vdev->vfl_type == VFL_TYPE_RADIO) {
--		dprintk(1,"video_open: setting radio device\n");
--		cx_write(MO_GP3_IO, core->board.radio.gpio3);
--		cx_write(MO_GP0_IO, core->board.radio.gpio0);
--		cx_write(MO_GP1_IO, core->board.radio.gpio1);
--		cx_write(MO_GP2_IO, core->board.radio.gpio2);
--		if (core->board.radio.audioroute) {
--			if (core->sd_wm8775) {
--				call_all(core, audio, s_routing,
-+	cx_write(MO_GP3_IO, core->board.radio.gpio3);
-+	cx_write(MO_GP0_IO, core->board.radio.gpio0);
-+	cx_write(MO_GP1_IO, core->board.radio.gpio1);
-+	cx_write(MO_GP2_IO, core->board.radio.gpio2);
-+	if (core->board.radio.audioroute) {
-+		if (core->sd_wm8775) {
-+			call_all(core, audio, s_routing,
- 					core->board.radio.audioroute, 0, 0);
--			}
--			/* "I2S ADC mode" */
--			core->tvaudio = WW_I2SADC;
--			cx88_set_tvaudio(core);
--		} else {
--			/* FM Mode */
--			core->tvaudio = WW_FM;
--			cx88_set_tvaudio(core);
--			cx88_set_stereo(core,V4L2_TUNER_MODE_STEREO,1);
- 		}
--		call_all(core, tuner, s_radio);
--	}
--
--	core->users++;
--	mutex_unlock(&core->lock);
--	v4l2_fh_add(&fh->fh);
--
--	return 0;
--}
--
--static ssize_t
--video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct cx8800_fh *fh = file->private_data;
--
--	switch (vdev->vfl_type) {
--	case VFL_TYPE_GRABBER:
--		if (res_locked(fh->dev,RESOURCE_VIDEO))
--			return -EBUSY;
--		return videobuf_read_one(&fh->vidq, data, count, ppos,
--					 file->f_flags & O_NONBLOCK);
--	case VFL_TYPE_VBI:
--		if (!res_get(fh->dev,fh,RESOURCE_VBI))
--			return -EBUSY;
--		return videobuf_read_stream(&fh->vbiq, data, count, ppos, 1,
--					    file->f_flags & O_NONBLOCK);
--	default:
--		BUG();
--		return 0;
--	}
--}
--
--static unsigned int
--video_poll(struct file *file, struct poll_table_struct *wait)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct cx8800_fh *fh = file->private_data;
--	struct cx88_buffer *buf;
--	unsigned int rc = v4l2_ctrl_poll(file, wait);
--
--	if (vdev->vfl_type == VFL_TYPE_VBI) {
--		if (!res_get(fh->dev,fh,RESOURCE_VBI))
--			return rc | POLLERR;
--		return rc | videobuf_poll_stream(file, &fh->vbiq, wait);
--	}
--	mutex_lock(&fh->vidq.vb_lock);
--	if (res_check(fh,RESOURCE_VIDEO)) {
--		/* streaming capture */
--		if (list_empty(&fh->vidq.stream))
--			goto done;
--		buf = list_entry(fh->vidq.stream.next,struct cx88_buffer,vb.stream);
-+		/* "I2S ADC mode" */
-+		core->tvaudio = WW_I2SADC;
-+		cx88_set_tvaudio(core);
- 	} else {
--		/* read() capture */
--		buf = (struct cx88_buffer*)fh->vidq.read_buf;
--		if (NULL == buf)
--			goto done;
-+		/* FM Mode */
-+		core->tvaudio = WW_FM;
-+		cx88_set_tvaudio(core);
-+		cx88_set_stereo(core, V4L2_TUNER_MODE_STEREO, 1);
- 	}
--	poll_wait(file, &buf->vb.done, wait);
--	if (buf->vb.state == VIDEOBUF_DONE ||
--	    buf->vb.state == VIDEOBUF_ERROR)
--		rc |= POLLIN|POLLRDNORM;
--done:
--	mutex_unlock(&fh->vidq.vb_lock);
--	return rc;
--}
--
--static int video_release(struct file *file)
--{
--	struct cx8800_fh  *fh  = file->private_data;
--	struct cx8800_dev *dev = fh->dev;
--
--	/* turn off overlay */
--	if (res_check(fh, RESOURCE_OVERLAY)) {
--		/* FIXME */
--		res_free(dev,fh,RESOURCE_OVERLAY);
--	}
--
--	/* stop video capture */
--	if (res_check(fh, RESOURCE_VIDEO)) {
--		videobuf_queue_cancel(&fh->vidq);
--		res_free(dev,fh,RESOURCE_VIDEO);
--	}
--	if (fh->vidq.read_buf) {
--		buffer_release(&fh->vidq,fh->vidq.read_buf);
--		kfree(fh->vidq.read_buf);
--	}
--
--	/* stop vbi capture */
--	if (res_check(fh, RESOURCE_VBI)) {
--		videobuf_stop(&fh->vbiq);
--		res_free(dev,fh,RESOURCE_VBI);
--	}
--
--	videobuf_mmap_free(&fh->vidq);
--	videobuf_mmap_free(&fh->vbiq);
--
--	mutex_lock(&dev->core->lock);
--	v4l2_fh_del(&fh->fh);
--	v4l2_fh_exit(&fh->fh);
--	file->private_data = NULL;
--	kfree(fh);
--
--	dev->core->users--;
--	if (!dev->core->users)
--		call_all(dev->core, core, s_power, 0);
--	mutex_unlock(&dev->core->lock);
--
-+	call_all(core, tuner, s_radio);
- 	return 0;
- }
- 
--static int
--video_mmap(struct file *file, struct vm_area_struct * vma)
--{
--	return videobuf_mmap_mapper(get_queue(file), vma);
--}
--
- /* ------------------------------------------------------------------ */
- /* VIDEO CTRL IOCTLS                                                  */
- 
-@@ -945,12 +721,11 @@ static int cx8800_s_aud_ctrl(struct v4l2_ctrl *ctrl)
- static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
--	struct cx8800_fh  *fh   = priv;
--	struct cx8800_dev *dev = fh->dev;
-+	struct cx8800_dev *dev = video_drvdata(file);
- 
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
--	f->fmt.pix.field        = fh->vidq.field;
-+	f->fmt.pix.field        = dev->field;
- 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
-@@ -963,7 +738,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 			struct v4l2_format *f)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	const struct cx8800_fmt *fmt;
- 	enum v4l2_field   field;
- 	unsigned int      maxw, maxh;
-@@ -1007,8 +783,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
--	struct cx8800_fh  *fh   = priv;
--	struct cx8800_dev *dev = fh->dev;
-+	struct cx8800_dev *dev = video_drvdata(file);
- 	int err = vidioc_try_fmt_vid_cap (file,priv,f);
- 
- 	if (0 != err)
-@@ -1016,7 +791,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->fmt        = format_by_fourcc(f->fmt.pix.pixelformat);
- 	dev->width      = f->fmt.pix.width;
- 	dev->height     = f->fmt.pix.height;
--	fh->vidq.field = f->fmt.pix.field;
-+	dev->field = f->fmt.pix.field;
- 	return 0;
- }
- 
-@@ -1050,8 +825,8 @@ EXPORT_SYMBOL(cx88_querycap);
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
--	struct cx8800_dev *dev  = ((struct cx8800_fh *)priv)->dev;
--	struct cx88_core  *core = dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	strcpy(cap->driver, "cx8800");
- 	sprintf(cap->bus_info, "PCI:%s", pci_name(dev->pci));
-@@ -1071,64 +846,10 @@ static int vidioc_enum_fmt_vid_cap (struct file *file, void  *priv,
- 	return 0;
- }
- 
--static int vidioc_reqbufs (struct file *file, void *priv, struct v4l2_requestbuffers *p)
--{
--	return videobuf_reqbufs(get_queue(file), p);
--}
--
--static int vidioc_querybuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	return videobuf_querybuf(get_queue(file), p);
--}
--
--static int vidioc_qbuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	return videobuf_qbuf(get_queue(file), p);
--}
--
--static int vidioc_dqbuf (struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	return videobuf_dqbuf(get_queue(file), p,
--				file->f_flags & O_NONBLOCK);
--}
--
--static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct cx8800_fh  *fh   = priv;
--	struct cx8800_dev *dev  = fh->dev;
--
--	if ((vdev->vfl_type == VFL_TYPE_GRABBER && i != V4L2_BUF_TYPE_VIDEO_CAPTURE) ||
--	    (vdev->vfl_type == VFL_TYPE_VBI && i != V4L2_BUF_TYPE_VBI_CAPTURE))
--		return -EINVAL;
--
--	if (unlikely(!res_get(dev, fh, get_resource(file))))
--		return -EBUSY;
--	return videobuf_streamon(get_queue(file));
--}
--
--static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct cx8800_fh  *fh   = priv;
--	struct cx8800_dev *dev  = fh->dev;
--	int               err, res;
--
--	if ((vdev->vfl_type == VFL_TYPE_GRABBER && i != V4L2_BUF_TYPE_VIDEO_CAPTURE) ||
--	    (vdev->vfl_type == VFL_TYPE_VBI && i != V4L2_BUF_TYPE_VBI_CAPTURE))
--		return -EINVAL;
--
--	res = get_resource(file);
--	err = videobuf_streamoff(get_queue(file));
--	if (err < 0)
--		return err;
--	res_free(dev,fh,res);
--	return 0;
--}
--
- static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
- {
--	struct cx88_core *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	*tvnorm = core->tvnorm;
- 	return 0;
-@@ -1136,11 +857,10 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
- 
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
--	mutex_lock(&core->lock);
- 	cx88_set_tvnorm(core, tvnorms);
--	mutex_unlock(&core->lock);
- 
- 	return 0;
- }
-@@ -1179,13 +899,15 @@ EXPORT_SYMBOL(cx88_enum_input);
- static int vidioc_enum_input (struct file *file, void *priv,
- 				struct v4l2_input *i)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	return cx88_enum_input (core,i);
- }
- 
- static int vidioc_g_input (struct file *file, void *priv, unsigned int *i)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	*i = core->input;
- 	return 0;
-@@ -1193,24 +915,24 @@ static int vidioc_g_input (struct file *file, void *priv, unsigned int *i)
- 
- static int vidioc_s_input (struct file *file, void *priv, unsigned int i)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (i >= 4)
- 		return -EINVAL;
- 	if (0 == INPUT(i).type)
- 		return -EINVAL;
- 
--	mutex_lock(&core->lock);
- 	cx88_newstation(core);
- 	cx88_video_mux(core,i);
--	mutex_unlock(&core->lock);
- 	return 0;
- }
- 
- static int vidioc_g_tuner (struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 	u32 reg;
- 
- 	if (unlikely(UNSET == core->board.tuner_type))
-@@ -1232,7 +954,8 @@ static int vidioc_g_tuner (struct file *file, void *priv,
- static int vidioc_s_tuner (struct file *file, void *priv,
- 				const struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (UNSET == core->board.tuner_type)
- 		return -EINVAL;
-@@ -1246,8 +969,8 @@ static int vidioc_s_tuner (struct file *file, void *priv,
- static int vidioc_g_frequency (struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct cx8800_fh  *fh   = priv;
--	struct cx88_core  *core = fh->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (unlikely(UNSET == core->board.tuner_type))
- 		return -EINVAL;
-@@ -1271,7 +994,6 @@ int cx88_set_freq (struct cx88_core  *core,
- 	if (unlikely(f->tuner != 0))
- 		return -EINVAL;
- 
--	mutex_lock(&core->lock);
- 	cx88_newstation(core);
- 	call_all(core, tuner, s_frequency, f);
- 	call_all(core, tuner, g_frequency, &new_freq);
-@@ -1281,8 +1003,6 @@ int cx88_set_freq (struct cx88_core  *core,
- 	msleep (10);
- 	cx88_set_tvaudio(core);
- 
--	mutex_unlock(&core->lock);
--
- 	return 0;
- }
- EXPORT_SYMBOL(cx88_set_freq);
-@@ -1290,8 +1010,8 @@ EXPORT_SYMBOL(cx88_set_freq);
- static int vidioc_s_frequency (struct file *file, void *priv,
- 				const struct v4l2_frequency *f)
- {
--	struct cx8800_fh  *fh   = priv;
--	struct cx88_core  *core = fh->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	return cx88_set_freq(core, f);
- }
-@@ -1300,7 +1020,8 @@ static int vidioc_s_frequency (struct file *file, void *priv,
- static int vidioc_g_register (struct file *file, void *fh,
- 				struct v4l2_dbg_register *reg)
- {
--	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	/* cx2388x has a 24-bit register space */
- 	reg->val = cx_read(reg->reg & 0xfffffc);
-@@ -1311,7 +1032,8 @@ static int vidioc_g_register (struct file *file, void *fh,
- static int vidioc_s_register (struct file *file, void *fh,
- 				const struct v4l2_dbg_register *reg)
- {
--	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	cx_write(reg->reg & 0xfffffc, reg->val);
- 	return 0;
-@@ -1325,7 +1047,8 @@ static int vidioc_s_register (struct file *file, void *fh,
- static int radio_g_tuner (struct file *file, void *priv,
- 				struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (unlikely(t->index > 0))
- 		return -EINVAL;
-@@ -1339,7 +1062,8 @@ static int radio_g_tuner (struct file *file, void *priv,
- static int radio_s_tuner (struct file *file, void *priv,
- 				const struct v4l2_tuner *t)
- {
--	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
-+	struct cx8800_dev *dev = video_drvdata(file);
-+	struct cx88_core *core = dev->core;
- 
- 	if (0 != t->index)
- 		return -EINVAL;
-@@ -1350,32 +1074,6 @@ static int radio_s_tuner (struct file *file, void *priv,
- 
- /* ----------------------------------------------------------- */
- 
--static void cx8800_vid_timeout(unsigned long data)
--{
--	struct cx8800_dev *dev = (struct cx8800_dev*)data;
--	struct cx88_core *core = dev->core;
--	struct cx88_dmaqueue *q = &dev->vidq;
--	struct cx88_buffer *buf;
--	unsigned long flags;
--
--	cx88_sram_channel_dump(core, &cx88_sram_channels[SRAM_CH21]);
--
--	cx_clear(MO_VID_DMACNTRL, 0x11);
--	cx_clear(VID_CAPTURE_CONTROL, 0x06);
--
--	spin_lock_irqsave(&dev->slock,flags);
--	while (!list_empty(&q->active)) {
--		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
--		list_del(&buf->vb.queue);
--		buf->vb.state = VIDEOBUF_ERROR;
--		wake_up(&buf->vb.done);
--		printk("%s/0: [%p/%d] timeout - dma=0x%08lx\n", core->name,
--		       buf, buf->vb.i, (unsigned long)buf->risc.dma);
--	}
--	restart_video_queue(dev,q);
--	spin_unlock_irqrestore(&dev->slock,flags);
--}
--
- static const char *cx88_vid_irqs[32] = {
- 	"y_risci1", "u_risci1", "v_risci1", "vbi_risc1",
- 	"y_risci2", "u_risci2", "v_risci2", "vbi_risc2",
-@@ -1422,22 +1120,6 @@ static void cx8800_vid_irq(struct cx8800_dev *dev)
- 		cx88_wakeup(core, &dev->vbiq, count);
- 		spin_unlock(&dev->slock);
- 	}
--
--	/* risc2 y */
--	if (status & 0x10) {
--		dprintk(2,"stopper video\n");
--		spin_lock(&dev->slock);
--		restart_video_queue(dev,&dev->vidq);
--		spin_unlock(&dev->slock);
--	}
--
--	/* risc2 vbi */
--	if (status & 0x80) {
--		dprintk(2,"stopper vbi\n");
--		spin_lock(&dev->slock);
--		cx8800_restart_vbi_queue(dev,&dev->vbiq);
--		spin_unlock(&dev->slock);
--	}
- }
- 
- static irqreturn_t cx8800_irq(int irq, void *dev_id)
-@@ -1476,11 +1158,11 @@ static irqreturn_t cx8800_irq(int irq, void *dev_id)
- static const struct v4l2_file_operations video_fops =
- {
- 	.owner	       = THIS_MODULE,
--	.open	       = video_open,
--	.release       = video_release,
--	.read	       = video_read,
--	.poll          = video_poll,
--	.mmap	       = video_mmap,
-+	.open	       = v4l2_fh_open,
-+	.release       = vb2_fop_release,
-+	.read	       = vb2_fop_read,
-+	.poll          = vb2_fop_poll,
-+	.mmap	       = vb2_fop_mmap,
- 	.unlocked_ioctl = video_ioctl2,
- };
- 
-@@ -1490,17 +1172,17 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_fmt_vid_cap     = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
--	.vidioc_reqbufs       = vidioc_reqbufs,
--	.vidioc_querybuf      = vidioc_querybuf,
--	.vidioc_qbuf          = vidioc_qbuf,
--	.vidioc_dqbuf         = vidioc_dqbuf,
-+	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_querybuf      = vb2_ioctl_querybuf,
-+	.vidioc_qbuf          = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
- 	.vidioc_g_std         = vidioc_g_std,
- 	.vidioc_s_std         = vidioc_s_std,
- 	.vidioc_enum_input    = vidioc_enum_input,
- 	.vidioc_g_input       = vidioc_g_input,
- 	.vidioc_s_input       = vidioc_s_input,
--	.vidioc_streamon      = vidioc_streamon,
--	.vidioc_streamoff     = vidioc_streamoff,
-+	.vidioc_streamon      = vb2_ioctl_streamon,
-+	.vidioc_streamoff     = vb2_ioctl_streamoff,
- 	.vidioc_g_tuner       = vidioc_g_tuner,
- 	.vidioc_s_tuner       = vidioc_s_tuner,
- 	.vidioc_g_frequency   = vidioc_g_frequency,
-@@ -1525,17 +1207,17 @@ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
- 	.vidioc_g_fmt_vbi_cap     = cx8800_vbi_fmt,
- 	.vidioc_try_fmt_vbi_cap   = cx8800_vbi_fmt,
- 	.vidioc_s_fmt_vbi_cap     = cx8800_vbi_fmt,
--	.vidioc_reqbufs       = vidioc_reqbufs,
--	.vidioc_querybuf      = vidioc_querybuf,
--	.vidioc_qbuf          = vidioc_qbuf,
--	.vidioc_dqbuf         = vidioc_dqbuf,
-+	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_querybuf      = vb2_ioctl_querybuf,
-+	.vidioc_qbuf          = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
- 	.vidioc_g_std         = vidioc_g_std,
- 	.vidioc_s_std         = vidioc_s_std,
- 	.vidioc_enum_input    = vidioc_enum_input,
- 	.vidioc_g_input       = vidioc_g_input,
- 	.vidioc_s_input       = vidioc_s_input,
--	.vidioc_streamon      = vidioc_streamon,
--	.vidioc_streamoff     = vidioc_streamoff,
-+	.vidioc_streamon      = vb2_ioctl_streamon,
-+	.vidioc_streamoff     = vb2_ioctl_streamoff,
- 	.vidioc_g_tuner       = vidioc_g_tuner,
- 	.vidioc_s_tuner       = vidioc_s_tuner,
- 	.vidioc_g_frequency   = vidioc_g_frequency,
-@@ -1556,9 +1238,9 @@ static const struct video_device cx8800_vbi_template = {
- static const struct v4l2_file_operations radio_fops =
- {
- 	.owner         = THIS_MODULE,
--	.open          = video_open,
-+	.open          = radio_open,
- 	.poll          = v4l2_ctrl_poll,
--	.release       = video_release,
-+	.release       = v4l2_fh_release,
- 	.unlocked_ioctl = video_ioctl2,
- };
- 
-@@ -1622,6 +1304,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- {
- 	struct cx8800_dev *dev;
- 	struct cx88_core *core;
-+	struct vb2_queue *q;
- 	int err;
- 	int i;
- 
-@@ -1663,19 +1346,9 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	/* init video dma queues */
- 	INIT_LIST_HEAD(&dev->vidq.active);
--	dev->vidq.timeout.function = cx8800_vid_timeout;
--	dev->vidq.timeout.data     = (unsigned long)dev;
--	init_timer(&dev->vidq.timeout);
--	cx88_risc_stopper(dev->pci,&dev->vidq.stopper,
--			  MO_VID_DMACNTRL,0x11,0x00);
- 
- 	/* init vbi dma queues */
- 	INIT_LIST_HEAD(&dev->vbiq.active);
--	dev->vbiq.timeout.function = cx8800_vbi_timeout;
--	dev->vbiq.timeout.data     = (unsigned long)dev;
--	init_timer(&dev->vbiq.timeout);
--	cx88_risc_stopper(dev->pci,&dev->vbiq.stopper,
--			  MO_VID_DMACNTRL,0x88,0x00);
- 
- 	/* get irq */
- 	err = request_irq(pci_dev->irq, cx8800_irq,
-@@ -1766,6 +1439,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	dev->width   = 320;
- 	dev->height  = 240;
-+	dev->field   = V4L2_FIELD_INTERLACED;
- 	dev->fmt     = format_by_fourcc(V4L2_PIX_FMT_BGR24);
- 
- 	/* initial device configuration */
-@@ -1775,11 +1449,44 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 	v4l2_ctrl_handler_setup(&core->audio_hdl);
- 	cx88_video_mux(core, 0);
- 
-+	q = &dev->vb2_vidq;
-+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	q->gfp_flags = GFP_DMA32;
-+	q->min_buffers_needed = 2;
-+	q->drv_priv = dev;
-+	q->buf_struct_size = sizeof(struct cx88_buffer);
-+	q->ops = &cx8800_video_qops;
-+	q->mem_ops = &vb2_dma_sg_memops;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &core->lock;
-+
-+	err = vb2_queue_init(q);
-+	if (err < 0)
-+		goto fail_unreg;
-+
-+	q = &dev->vb2_vbiq;
-+	q->type = V4L2_BUF_TYPE_VBI_CAPTURE;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	q->gfp_flags = GFP_DMA32;
-+	q->min_buffers_needed = 2;
-+	q->drv_priv = dev;
-+	q->buf_struct_size = sizeof(struct cx88_buffer);
-+	q->ops = &cx8800_vbi_qops;
-+	q->mem_ops = &vb2_dma_sg_memops;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &core->lock;
-+
-+	err = vb2_queue_init(q);
-+	if (err < 0)
-+		goto fail_unreg;
-+
- 	/* register v4l devices */
- 	dev->video_dev = cx88_vdev_init(core,dev->pci,
- 					&cx8800_video_template,"video");
- 	video_set_drvdata(dev->video_dev, dev);
- 	dev->video_dev->ctrl_handler = &core->video_hdl;
-+	dev->video_dev->queue = &dev->vb2_vidq;
- 	err = video_register_device(dev->video_dev,VFL_TYPE_GRABBER,
- 				    video_nr[core->nr]);
- 	if (err < 0) {
-@@ -1792,6 +1499,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 
- 	dev->vbi_dev = cx88_vdev_init(core,dev->pci,&cx8800_vbi_template,"vbi");
- 	video_set_drvdata(dev->vbi_dev, dev);
-+	dev->vbi_dev->queue = &dev->vb2_vbiq;
- 	err = video_register_device(dev->vbi_dev,VFL_TYPE_VBI,
- 				    vbi_nr[core->nr]);
- 	if (err < 0) {
-@@ -1865,7 +1573,6 @@ static void cx8800_finidev(struct pci_dev *pci_dev)
- 	cx8800_unregister_video(dev);
- 
- 	/* free memory */
--	btcx_riscmem_free(dev->pci,&dev->vidq.stopper);
- 	cx88_core_put(core,dev->pci);
- 	kfree(dev);
- }
-@@ -1882,12 +1589,10 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
- 	if (!list_empty(&dev->vidq.active)) {
- 		printk("%s/0: suspend video\n", core->name);
- 		stop_video_dma(dev);
--		del_timer(&dev->vidq.timeout);
- 	}
- 	if (!list_empty(&dev->vbiq.active)) {
- 		printk("%s/0: suspend vbi\n", core->name);
- 		cx8800_stop_vbi_dma(dev);
--		del_timer(&dev->vbiq.timeout);
- 	}
- 	spin_unlock_irqrestore(&dev->slock, flags);
- 
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index 77ec542..2dadaa6 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -29,9 +29,9 @@
- #include <media/v4l2-fh.h>
- #include <media/tuner.h>
- #include <media/tveeprom.h>
--#include <media/videobuf-dma-sg.h>
-+#include <media/videobuf2-dma-sg.h>
- #include <media/cx2341x.h>
--#include <media/videobuf-dvb.h>
-+#include <media/videobuf2-dvb.h>
- #include <media/ir-kbd-i2c.h>
- #include <media/wm8775.h>
- 
-@@ -41,7 +41,7 @@
- 
- #include <linux/mutex.h>
- 
--#define CX88_VERSION "0.0.9"
-+#define CX88_VERSION "1.0.0"
- 
- #define UNSET (-1U)
- 
-@@ -95,13 +95,13 @@ enum cx8802_board_access {
- 
- static inline unsigned int norm_maxw(v4l2_std_id norm)
- {
--	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
-+	return 720;
- }
- 
- 
- static inline unsigned int norm_maxh(v4l2_std_id norm)
- {
--	return (norm & V4L2_STD_625_50) ? 576 : 480;
-+	return (norm & V4L2_STD_525_60) ? 480 : 576;
- }
- 
- /* ----------------------------------------------------------- */
-@@ -314,7 +314,8 @@ enum cx88_tvaudio {
- /* buffer for one video frame */
- struct cx88_buffer {
- 	/* common v4l buffer stuff -- must be first */
--	struct videobuf_buffer vb;
-+	struct vb2_buffer vb;
-+	struct list_head       list;
- 
- 	/* cx88 specific */
- 	unsigned int           bpl;
-@@ -324,8 +325,6 @@ struct cx88_buffer {
- 
- struct cx88_dmaqueue {
- 	struct list_head       active;
--	struct timer_list      timeout;
--	struct btcx_riscmem    stopper;
- 	u32                    count;
- };
- 
-@@ -393,8 +392,6 @@ struct cx88_core {
- 	struct mutex               lock;
- 	/* various v4l controls */
- 	u32                        freq;
--	int                        users;
--	int                        mpeg_users;
- 
- 	/* cx88-video needs to access cx8802 for hybrid tuner pll access. */
- 	struct cx8802_dev          *dvbdev;
-@@ -457,18 +454,6 @@ struct cx8802_dev;
- /* ----------------------------------------------------------- */
- /* function 0: video stuff                                     */
- 
--struct cx8800_fh {
--	struct v4l2_fh		   fh;
--	struct cx8800_dev          *dev;
--	unsigned int               resources;
--
--	/* video capture */
--	struct videobuf_queue      vidq;
--
--	/* vbi capture */
--	struct videobuf_queue      vbiq;
--};
--
- struct cx8800_suspend_state {
- 	int                        disabled;
- };
-@@ -489,10 +474,13 @@ struct cx8800_dev {
- 
- 	const struct cx8800_fmt    *fmt;
- 	unsigned int               width, height;
-+	unsigned		   field;
- 
- 	/* capture queues */
- 	struct cx88_dmaqueue       vidq;
-+	struct vb2_queue           vb2_vidq;
- 	struct cx88_dmaqueue       vbiq;
-+	struct vb2_queue           vb2_vbiq;
- 
- 	/* various v4l controls */
- 
-@@ -508,12 +496,6 @@ struct cx8800_dev {
- /* ----------------------------------------------------------- */
- /* function 2: mpeg stuff                                      */
- 
--struct cx8802_fh {
--	struct v4l2_fh		   fh;
--	struct cx8802_dev          *dev;
--	struct videobuf_queue      mpegq;
--};
--
- struct cx8802_suspend_state {
- 	int                        disabled;
- };
-@@ -557,6 +539,7 @@ struct cx8802_dev {
- 
- 	/* dma queues */
- 	struct cx88_dmaqueue       mpegq;
-+	struct vb2_queue           vb2_mpegq;
- 	u32                        ts_packet_size;
- 	u32                        ts_packet_count;
- 
-@@ -570,6 +553,7 @@ struct cx8802_dev {
- 	u32                        mailbox;
- 	int                        width;
- 	int                        height;
-+	unsigned                   field;
- 	unsigned char              mpeg_active; /* nonzero if mpeg encoder is active */
- 
- 	/* mpeg params */
-@@ -578,7 +562,7 @@ struct cx8802_dev {
- 
- #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
- 	/* for dvb only */
--	struct videobuf_dvb_frontends frontends;
-+	struct vb2_dvb_frontends frontends;
- #endif
- 
- #if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
-@@ -640,11 +624,8 @@ extern int
- cx88_risc_databuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
- 		     struct scatterlist *sglist, unsigned int bpl,
- 		     unsigned int lines, unsigned int lpi);
--extern int
--cx88_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
--		  u32 reg, u32 mask, u32 value);
- extern void
--cx88_free_buffer(struct videobuf_queue *q, struct cx88_buffer *buf);
-+cx88_free_buffer(struct vb2_queue *q, struct cx88_buffer *buf);
- 
- extern void cx88_risc_disasm(struct cx88_core *core,
- 			     struct btcx_riscmem *risc);
-@@ -662,7 +643,7 @@ extern struct video_device *cx88_vdev_init(struct cx88_core *core,
- 					   struct pci_dev *pci,
- 					   const struct video_device *template_,
- 					   const char *type);
--extern struct cx88_core* cx88_core_get(struct pci_dev *pci);
-+extern struct cx88_core *cx88_core_get(struct pci_dev *pci);
- extern void cx88_core_put(struct cx88_core *core,
- 			  struct pci_dev *pci);
- 
-@@ -682,12 +663,10 @@ int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
- 			 struct cx88_dmaqueue *q,
- 			 struct cx88_buffer   *buf);
- */
--int cx8800_stop_vbi_dma(struct cx8800_dev *dev);
--int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
--			     struct cx88_dmaqueue *q);
--void cx8800_vbi_timeout(unsigned long data);
-+void cx8800_stop_vbi_dma(struct cx8800_dev *dev);
-+int cx8800_restart_vbi_queue(struct cx8800_dev *dev, struct cx88_dmaqueue *q);
- 
--extern const struct videobuf_queue_ops cx8800_vbi_qops;
-+extern const struct vb2_ops cx8800_vbi_qops;
- 
- /* ----------------------------------------------------------- */
- /* cx88-i2c.c                                                  */
-@@ -737,14 +716,17 @@ extern void cx88_i2c_init_ir(struct cx88_core *core);
- /* ----------------------------------------------------------- */
- /* cx88-mpeg.c                                                 */
- 
--int cx8802_buf_prepare(struct videobuf_queue *q,struct cx8802_dev *dev,
-+int cx8802_buf_prepare(struct vb2_queue *q, struct cx8802_dev *dev,
- 			struct cx88_buffer *buf, enum v4l2_field field);
- void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
- void cx8802_cancel_buffers(struct cx8802_dev *dev);
-+int cx8802_start_dma(struct cx8802_dev    *dev,
-+			    struct cx88_dmaqueue *q,
-+			    struct cx88_buffer   *buf);
- 
- /* ----------------------------------------------------------- */
- /* cx88-video.c*/
--int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i);
-+int cx88_enum_input(struct cx88_core *core, struct v4l2_input *i);
- int cx88_set_freq(struct cx88_core  *core, const struct v4l2_frequency *f);
- int cx88_video_mux(struct cx88_core *core, unsigned int input);
- void cx88_querycap(struct file *file, struct cx88_core *core,
--- 
-2.1.0
+--=_541d5bcf.D/LoKwg9o6krD0eyM04+MvUAC7U+RnfyvWedlCpSHkkX0k5D
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=".config"
 
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/x86_64 3.8.0-rc3 Kernel Configuration
+#
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_X86=y
+CONFIG_INSTRUCTION_DECODER=y
+CONFIG_OUTPUT_FORMAT="elf64-x86-64"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/x86_64_defconfig"
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+CONFIG_MMU=y
+CONFIG_NEED_DMA_MAP_STATE=y
+CONFIG_NEED_SG_DMA_LENGTH=y
+CONFIG_GENERIC_BUG=y
+CONFIG_GENERIC_BUG_RELATIVE_POINTERS=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_HAS_CPU_RELAX=y
+CONFIG_ARCH_HAS_DEFAULT_IDLE=y
+CONFIG_ARCH_HAS_CACHE_LINE_SIZE=y
+CONFIG_ARCH_HAS_CPU_AUTOPROBE=y
+CONFIG_HAVE_SETUP_PER_CPU_AREA=y
+CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK=y
+CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK=y
+CONFIG_ARCH_HIBERNATION_POSSIBLE=y
+CONFIG_ARCH_SUSPEND_POSSIBLE=y
+CONFIG_ZONE_DMA32=y
+CONFIG_AUDIT_ARCH=y
+CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=y
+CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
+CONFIG_X86_64_SMP=y
+CONFIG_X86_HT=y
+CONFIG_ARCH_HWEIGHT_CFLAGS="-fcall-saved-rdi -fcall-saved-rsi -fcall-saved-rdx -fcall-saved-rcx -fcall-saved-r8 -fcall-saved-r9 -fcall-saved-r10 -fcall-saved-r11"
+CONFIG_ARCH_CPU_PROBE_RELEASE=y
+CONFIG_ARCH_SUPPORTS_UPROBES=y
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_HAVE_IRQ_WORK=y
+CONFIG_IRQ_WORK=y
+CONFIG_BUILDTIME_EXTABLE_SORT=y
+
+#
+# General setup
+#
+# CONFIG_EXPERIMENTAL is not set
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_CROSS_COMPILE=""
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_HAVE_KERNEL_GZIP=y
+CONFIG_HAVE_KERNEL_BZIP2=y
+CONFIG_HAVE_KERNEL_LZMA=y
+CONFIG_HAVE_KERNEL_XZ=y
+CONFIG_HAVE_KERNEL_LZO=y
+CONFIG_KERNEL_GZIP=y
+# CONFIG_KERNEL_BZIP2 is not set
+# CONFIG_KERNEL_LZMA is not set
+# CONFIG_KERNEL_XZ is not set
+# CONFIG_KERNEL_LZO is not set
+CONFIG_DEFAULT_HOSTNAME="(none)"
+# CONFIG_SWAP is not set
+CONFIG_SYSVIPC=y
+# CONFIG_FHANDLE is not set
+# CONFIG_AUDIT is not set
+CONFIG_HAVE_GENERIC_HARDIRQS=y
+
+#
+# IRQ subsystem
+#
+CONFIG_GENERIC_HARDIRQS=y
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_GENERIC_IRQ_SHOW=y
+CONFIG_GENERIC_PENDING_IRQ=y
+CONFIG_IRQ_DOMAIN=y
+CONFIG_IRQ_DOMAIN_DEBUG=y
+CONFIG_IRQ_FORCED_THREADING=y
+CONFIG_SPARSE_IRQ=y
+CONFIG_CLOCKSOURCE_WATCHDOG=y
+CONFIG_ARCH_CLOCKSOURCE_DATA=y
+CONFIG_GENERIC_TIME_VSYSCALL=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
+CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+
+#
+# Timers subsystem
+#
+# CONFIG_NO_HZ is not set
+# CONFIG_HIGH_RES_TIMERS is not set
+
+#
+# CPU/Task time and stats accounting
+#
+CONFIG_TICK_CPU_ACCOUNTING=y
+# CONFIG_IRQ_TIME_ACCOUNTING is not set
+# CONFIG_BSD_PROCESS_ACCT is not set
+# CONFIG_TASKSTATS is not set
+
+#
+# RCU Subsystem
+#
+CONFIG_TREE_PREEMPT_RCU=y
+CONFIG_PREEMPT_RCU=y
+# CONFIG_RCU_USER_QS is not set
+CONFIG_RCU_FANOUT=64
+CONFIG_RCU_FANOUT_LEAF=16
+# CONFIG_RCU_FANOUT_EXACT is not set
+CONFIG_TREE_RCU_TRACE=y
+CONFIG_RCU_BOOST=y
+CONFIG_RCU_BOOST_PRIO=1
+CONFIG_RCU_BOOST_DELAY=500
+CONFIG_RCU_NOCB_CPU=y
+CONFIG_IKCONFIG=y
+CONFIG_LOG_BUF_SHIFT=17
+CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
+CONFIG_ARCH_SUPPORTS_NUMA_BALANCING=y
+CONFIG_ARCH_WANTS_PROT_NUMA_PROT_NONE=y
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_DEBUG=y
+# CONFIG_CGROUP_FREEZER is not set
+CONFIG_CGROUP_DEVICE=y
+CONFIG_CPUSETS=y
+# CONFIG_PROC_PID_CPUSET is not set
+# CONFIG_CGROUP_CPUACCT is not set
+# CONFIG_RESOURCE_COUNTERS is not set
+# CONFIG_CGROUP_PERF is not set
+CONFIG_CGROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+# CONFIG_BLK_CGROUP is not set
+CONFIG_CHECKPOINT_RESTORE=y
+CONFIG_NAMESPACES=y
+# CONFIG_UTS_NS is not set
+CONFIG_IPC_NS=y
+# CONFIG_PID_NS is not set
+# CONFIG_NET_NS is not set
+CONFIG_SCHED_AUTOGROUP=y
+# CONFIG_SYSFS_DEPRECATED is not set
+CONFIG_RELAY=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_RD_GZIP=y
+# CONFIG_RD_BZIP2 is not set
+# CONFIG_RD_LZMA is not set
+# CONFIG_RD_XZ is not set
+# CONFIG_RD_LZO is not set
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_ANON_INODES=y
+CONFIG_EXPERT=y
+CONFIG_HAVE_UID16=y
+CONFIG_UID16=y
+CONFIG_SYSCTL_EXCEPTION_TRACE=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+CONFIG_HOTPLUG=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_PCSPKR_PLATFORM=y
+CONFIG_HAVE_PCSPKR_PLATFORM=y
+# CONFIG_BASE_FULL is not set
+CONFIG_FUTEX=y
+# CONFIG_EPOLL is not set
+# CONFIG_SIGNALFD is not set
+# CONFIG_TIMERFD is not set
+CONFIG_EVENTFD=y
+# CONFIG_SHMEM is not set
+CONFIG_AIO=y
+CONFIG_EMBEDDED=y
+CONFIG_HAVE_PERF_EVENTS=y
+
+#
+# Kernel Performance Events And Counters
+#
+CONFIG_PERF_EVENTS=y
+# CONFIG_DEBUG_PERF_USE_VMALLOC is not set
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_PCI_QUIRKS=y
+CONFIG_COMPAT_BRK=y
+CONFIG_SLAB=y
+# CONFIG_SLUB is not set
+# CONFIG_SLOB is not set
+CONFIG_PROFILING=y
+CONFIG_TRACEPOINTS=y
+CONFIG_OPROFILE=y
+CONFIG_OPROFILE_EVENT_MULTIPLEX=y
+CONFIG_HAVE_OPROFILE=y
+CONFIG_OPROFILE_NMI_TIMER=y
+# CONFIG_KPROBES is not set
+CONFIG_JUMP_LABEL=y
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y
+CONFIG_HAVE_IOREMAP_PROT=y
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+CONFIG_HAVE_OPTPROBES=y
+CONFIG_HAVE_ARCH_TRACEHOOK=y
+CONFIG_HAVE_DMA_ATTRS=y
+CONFIG_USE_GENERIC_SMP_HELPERS=y
+CONFIG_GENERIC_SMP_IDLE_THREAD=y
+CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
+CONFIG_HAVE_DMA_API_DEBUG=y
+CONFIG_HAVE_HW_BREAKPOINT=y
+CONFIG_HAVE_MIXED_BREAKPOINTS_REGS=y
+CONFIG_HAVE_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_PERF_EVENTS_NMI=y
+CONFIG_HAVE_PERF_REGS=y
+CONFIG_HAVE_PERF_USER_STACK_DUMP=y
+CONFIG_HAVE_ARCH_JUMP_LABEL=y
+CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
+CONFIG_HAVE_CMPXCHG_LOCAL=y
+CONFIG_HAVE_CMPXCHG_DOUBLE=y
+CONFIG_ARCH_WANT_COMPAT_IPC_PARSE_VERSION=y
+CONFIG_ARCH_WANT_OLD_COMPAT_IPC=y
+CONFIG_HAVE_ARCH_SECCOMP_FILTER=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_HAVE_CONTEXT_TRACKING=y
+CONFIG_HAVE_IRQ_TIME_ACCOUNTING=y
+CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE=y
+CONFIG_MODULES_USE_ELF_RELA=y
+CONFIG_GENERIC_SIGALTSTACK=y
+
+#
+# GCOV-based kernel profiling
+#
+# CONFIG_GCOV_KERNEL is not set
+# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+CONFIG_RT_MUTEXES=y
+CONFIG_BASE_SMALL=1
+CONFIG_MODULES=y
+# CONFIG_MODULE_FORCE_LOAD is not set
+CONFIG_MODULE_UNLOAD=y
+# CONFIG_MODVERSIONS is not set
+CONFIG_MODULE_SRCVERSION_ALL=y
+CONFIG_MODULE_SIG=y
+# CONFIG_MODULE_SIG_FORCE is not set
+CONFIG_MODULE_SIG_SHA1=y
+# CONFIG_MODULE_SIG_SHA224 is not set
+# CONFIG_MODULE_SIG_SHA256 is not set
+# CONFIG_MODULE_SIG_SHA384 is not set
+# CONFIG_MODULE_SIG_SHA512 is not set
+CONFIG_STOP_MACHINE=y
+CONFIG_BLOCK=y
+CONFIG_BLK_DEV_BSG=y
+CONFIG_BLK_DEV_BSGLIB=y
+CONFIG_BLK_DEV_INTEGRITY=y
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_EFI_PARTITION=y
+CONFIG_BLOCK_COMPAT=y
+
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+# CONFIG_IOSCHED_DEADLINE is not set
+CONFIG_IOSCHED_CFQ=m
+CONFIG_DEFAULT_NOOP=y
+CONFIG_DEFAULT_IOSCHED="noop"
+CONFIG_ASN1=y
+CONFIG_UNINLINE_SPIN_UNLOCK=y
+CONFIG_FREEZER=y
+
+#
+# Processor type and features
+#
+# CONFIG_ZONE_DMA is not set
+CONFIG_SMP=y
+# CONFIG_X86_MPPARSE is not set
+# CONFIG_X86_EXTENDED_PLATFORM is not set
+CONFIG_X86_SUPPORTS_MEMORY_FAILURE=y
+# CONFIG_SCHED_OMIT_FRAME_POINTER is not set
+CONFIG_PARAVIRT_GUEST=y
+# CONFIG_PARAVIRT_TIME_ACCOUNTING is not set
+CONFIG_XEN=y
+CONFIG_XEN_DOM0=y
+CONFIG_XEN_PRIVILEGED_GUEST=y
+CONFIG_XEN_PVHVM=y
+CONFIG_XEN_MAX_DOMAIN_MEMORY=500
+CONFIG_XEN_SAVE_RESTORE=y
+# CONFIG_XEN_DEBUG_FS is not set
+CONFIG_KVM_GUEST=y
+CONFIG_PARAVIRT=y
+CONFIG_PARAVIRT_CLOCK=y
+CONFIG_PARAVIRT_DEBUG=y
+CONFIG_NO_BOOTMEM=y
+# CONFIG_MEMTEST is not set
+# CONFIG_MK8 is not set
+# CONFIG_MPSC is not set
+# CONFIG_MCORE2 is not set
+# CONFIG_MATOM is not set
+CONFIG_GENERIC_CPU=y
+CONFIG_X86_INTERNODE_CACHE_SHIFT=6
+CONFIG_X86_L1_CACHE_SHIFT=6
+CONFIG_X86_TSC=y
+CONFIG_X86_CMPXCHG64=y
+CONFIG_X86_CMOV=y
+CONFIG_X86_MINIMUM_CPU_FAMILY=64
+CONFIG_X86_DEBUGCTLMSR=y
+# CONFIG_PROCESSOR_SELECT is not set
+CONFIG_CPU_SUP_INTEL=y
+CONFIG_CPU_SUP_AMD=y
+CONFIG_CPU_SUP_CENTAUR=y
+CONFIG_HPET_TIMER=y
+CONFIG_HPET_EMULATE_RTC=y
+# CONFIG_DMI is not set
+# CONFIG_GART_IOMMU is not set
+CONFIG_SWIOTLB=y
+CONFIG_IOMMU_HELPER=y
+CONFIG_NR_CPUS=8
+CONFIG_SCHED_SMT=y
+# CONFIG_SCHED_MC is not set
+# CONFIG_PREEMPT_NONE is not set
+# CONFIG_PREEMPT_VOLUNTARY is not set
+CONFIG_PREEMPT=y
+CONFIG_PREEMPT_COUNT=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS=y
+CONFIG_X86_MCE=y
+# CONFIG_X86_MCE_INTEL is not set
+# CONFIG_X86_MCE_AMD is not set
+# CONFIG_X86_MCE_INJECT is not set
+CONFIG_I8K=y
+CONFIG_MICROCODE=m
+CONFIG_MICROCODE_INTEL=y
+CONFIG_MICROCODE_AMD=y
+CONFIG_MICROCODE_OLD_INTERFACE=y
+CONFIG_X86_MSR=y
+CONFIG_X86_CPUID=m
+CONFIG_ARCH_PHYS_ADDR_T_64BIT=y
+CONFIG_ARCH_DMA_ADDR_T_64BIT=y
+# CONFIG_DIRECT_GBPAGES is not set
+# CONFIG_NUMA is not set
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_ARCH_SPARSEMEM_DEFAULT=y
+CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+CONFIG_ARCH_MEMORY_PROBE=y
+CONFIG_ILLEGAL_POINTER_VALUE=0xdead000000000000
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_SPARSEMEM_MANUAL=y
+CONFIG_SPARSEMEM=y
+CONFIG_HAVE_MEMORY_PRESENT=y
+CONFIG_SPARSEMEM_EXTREME=y
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
+CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER=y
+CONFIG_SPARSEMEM_VMEMMAP=y
+CONFIG_HAVE_MEMBLOCK=y
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y
+CONFIG_ARCH_DISCARD_MEMBLOCK=y
+CONFIG_MEMORY_ISOLATION=y
+CONFIG_MEMORY_HOTPLUG=y
+CONFIG_MEMORY_HOTPLUG_SPARSE=y
+CONFIG_MEMORY_HOTREMOVE=y
+CONFIG_PAGEFLAGS_EXTENDED=y
+CONFIG_SPLIT_PTLOCK_CPUS=999999
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+CONFIG_PHYS_ADDR_T_64BIT=y
+CONFIG_ZONE_DMA_FLAG=0
+CONFIG_VIRT_TO_BUS=y
+CONFIG_MMU_NOTIFIER=y
+# CONFIG_KSM is not set
+CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
+CONFIG_ARCH_SUPPORTS_MEMORY_FAILURE=y
+CONFIG_MEMORY_FAILURE=y
+CONFIG_TRANSPARENT_HUGEPAGE=y
+# CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is not set
+CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
+CONFIG_CROSS_MEMORY_ATTACH=y
+# CONFIG_CLEANCACHE is not set
+CONFIG_X86_CHECK_BIOS_CORRUPTION=y
+# CONFIG_X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK is not set
+CONFIG_X86_RESERVE_LOW=64
+# CONFIG_MTRR is not set
+CONFIG_ARCH_RANDOM=y
+# CONFIG_X86_SMAP is not set
+# CONFIG_EFI is not set
+CONFIG_SECCOMP=y
+CONFIG_CC_STACKPROTECTOR=y
+CONFIG_HZ_100=y
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+# CONFIG_HZ_1000 is not set
+CONFIG_HZ=100
+# CONFIG_SCHED_HRTICK is not set
+# CONFIG_KEXEC is not set
+CONFIG_CRASH_DUMP=y
+CONFIG_PHYSICAL_START=0x1000000
+# CONFIG_RELOCATABLE is not set
+CONFIG_PHYSICAL_ALIGN=0x1000000
+CONFIG_HOTPLUG_CPU=y
+CONFIG_COMPAT_VDSO=y
+# CONFIG_CMDLINE_BOOL is not set
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+CONFIG_ARCH_ENABLE_MEMORY_HOTREMOVE=y
+
+#
+# Power management and ACPI options
+#
+# CONFIG_SUSPEND is not set
+CONFIG_HIBERNATE_CALLBACKS=y
+CONFIG_PM_SLEEP=y
+CONFIG_PM_SLEEP_SMP=y
+CONFIG_PM_AUTOSLEEP=y
+# CONFIG_PM_WAKELOCKS is not set
+CONFIG_PM_RUNTIME=y
+CONFIG_PM=y
+# CONFIG_PM_DEBUG is not set
+CONFIG_ACPI=y
+# CONFIG_ACPI_EC_DEBUGFS is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_I2C=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_CUSTOM_DSDT is not set
+# CONFIG_ACPI_INITRD_TABLE_OVERRIDE is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+# CONFIG_ACPI_PCI_SLOT is not set
+CONFIG_X86_PM_TIMER=y
+# CONFIG_ACPI_HOTPLUG_MEMORY is not set
+# CONFIG_ACPI_SBS is not set
+# CONFIG_ACPI_HED is not set
+# CONFIG_ACPI_CUSTOM_METHOD is not set
+# CONFIG_ACPI_APEI is not set
+CONFIG_SFI=y
+
+#
+# CPU Frequency scaling
+#
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_TABLE=y
+CONFIG_CPU_FREQ_GOV_COMMON=y
+CONFIG_CPU_FREQ_STAT=y
+# CONFIG_CPU_FREQ_STAT_DETAILS is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE is not set
+CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=m
+CONFIG_CPU_FREQ_GOV_POWERSAVE=m
+CONFIG_CPU_FREQ_GOV_USERSPACE=y
+# CONFIG_CPU_FREQ_GOV_ONDEMAND is not set
+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=m
+
+#
+# x86 CPU frequency scaling drivers
+#
+# CONFIG_X86_PCC_CPUFREQ is not set
+# CONFIG_X86_ACPI_CPUFREQ is not set
+# CONFIG_X86_POWERNOW_K8 is not set
+# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
+CONFIG_X86_P4_CLOCKMOD=m
+
+#
+# shared options
+#
+CONFIG_X86_SPEEDSTEP_LIB=m
+CONFIG_CPU_IDLE=y
+# CONFIG_CPU_IDLE_MULTIPLE_DRIVERS is not set
+CONFIG_CPU_IDLE_GOV_LADDER=y
+# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
+# CONFIG_INTEL_IDLE is not set
+
+#
+# Memory power savings
+#
+
+#
+# Bus options (PCI etc.)
+#
+CONFIG_PCI=y
+CONFIG_PCI_DIRECT=y
+# CONFIG_PCI_MMCONFIG is not set
+CONFIG_PCI_XEN=y
+CONFIG_PCI_DOMAINS=y
+# CONFIG_PCIEPORTBUS is not set
+CONFIG_ARCH_SUPPORTS_MSI=y
+# CONFIG_PCI_MSI is not set
+# CONFIG_PCI_DEBUG is not set
+# CONFIG_PCI_REALLOC_ENABLE_AUTO is not set
+# CONFIG_PCI_STUB is not set
+CONFIG_XEN_PCIDEV_FRONTEND=y
+CONFIG_HT_IRQ=y
+# CONFIG_PCI_IOV is not set
+# CONFIG_PCI_PRI is not set
+# CONFIG_PCI_PASID is not set
+# CONFIG_PCI_IOAPIC is not set
+CONFIG_PCI_LABEL=y
+# CONFIG_ISA_DMA_API is not set
+CONFIG_AMD_NB=y
+CONFIG_PCCARD=y
+# CONFIG_PCMCIA is not set
+CONFIG_CARDBUS=y
+
+#
+# PC-card bridges
+#
+# CONFIG_YENTA is not set
+# CONFIG_HOTPLUG_PCI is not set
+# CONFIG_RAPIDIO is not set
+
+#
+# Executable file formats / Emulations
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_COMPAT_BINFMT_ELF=y
+CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE=y
+# CONFIG_HAVE_AOUT is not set
+# CONFIG_BINFMT_MISC is not set
+# CONFIG_COREDUMP is not set
+CONFIG_IA32_EMULATION=y
+# CONFIG_IA32_AOUT is not set
+CONFIG_COMPAT=y
+CONFIG_COMPAT_FOR_U64_ALIGNMENT=y
+CONFIG_SYSVIPC_COMPAT=y
+CONFIG_KEYS_COMPAT=y
+CONFIG_HAVE_TEXT_POKE_SMP=y
+CONFIG_X86_DEV_DMA_OPS=y
+CONFIG_NET=y
+
+#
+# Networking options
+#
+CONFIG_PACKET=m
+# CONFIG_PACKET_DIAG is not set
+CONFIG_UNIX=y
+CONFIG_UNIX_DIAG=y
+CONFIG_XFRM=y
+CONFIG_XFRM_ALGO=y
+CONFIG_XFRM_USER=m
+CONFIG_XFRM_IPCOMP=y
+CONFIG_NET_KEY=m
+CONFIG_INET=y
+# CONFIG_IP_MULTICAST is not set
+CONFIG_IP_ADVANCED_ROUTER=y
+CONFIG_IP_FIB_TRIE_STATS=y
+# CONFIG_IP_MULTIPLE_TABLES is not set
+CONFIG_IP_ROUTE_MULTIPATH=y
+CONFIG_IP_ROUTE_VERBOSE=y
+CONFIG_IP_ROUTE_CLASSID=y
+CONFIG_IP_PNP=y
+# CONFIG_IP_PNP_DHCP is not set
+CONFIG_IP_PNP_BOOTP=y
+CONFIG_IP_PNP_RARP=y
+CONFIG_NET_IPIP=m
+CONFIG_NET_IPGRE_DEMUX=m
+CONFIG_NET_IPGRE=m
+# CONFIG_ARPD is not set
+CONFIG_SYN_COOKIES=y
+CONFIG_NET_IPVTI=m
+CONFIG_INET_AH=m
+# CONFIG_INET_ESP is not set
+CONFIG_INET_IPCOMP=m
+CONFIG_INET_XFRM_TUNNEL=m
+CONFIG_INET_TUNNEL=y
+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+CONFIG_INET_XFRM_MODE_TUNNEL=m
+CONFIG_INET_XFRM_MODE_BEET=m
+# CONFIG_INET_LRO is not set
+CONFIG_INET_DIAG=m
+CONFIG_INET_TCP_DIAG=m
+# CONFIG_INET_UDP_DIAG is not set
+CONFIG_TCP_CONG_ADVANCED=y
+# CONFIG_TCP_CONG_BIC is not set
+# CONFIG_TCP_CONG_CUBIC is not set
+CONFIG_TCP_CONG_WESTWOOD=y
+CONFIG_TCP_CONG_HTCP=m
+CONFIG_DEFAULT_WESTWOOD=y
+# CONFIG_DEFAULT_RENO is not set
+CONFIG_DEFAULT_TCP_CONG="westwood"
+CONFIG_IPV6=y
+# CONFIG_IPV6_PRIVACY is not set
+CONFIG_IPV6_ROUTER_PREF=y
+# CONFIG_INET6_AH is not set
+CONFIG_INET6_ESP=m
+CONFIG_INET6_IPCOMP=y
+CONFIG_INET6_XFRM_TUNNEL=y
+CONFIG_INET6_TUNNEL=y
+# CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
+CONFIG_INET6_XFRM_MODE_TUNNEL=y
+# CONFIG_INET6_XFRM_MODE_BEET is not set
+CONFIG_IPV6_SIT=y
+CONFIG_IPV6_NDISC_NODETYPE=y
+CONFIG_IPV6_TUNNEL=m
+CONFIG_IPV6_GRE=m
+CONFIG_NETLABEL=y
+# CONFIG_NETWORK_SECMARK is not set
+CONFIG_NETFILTER=y
+CONFIG_NETFILTER_DEBUG=y
+# CONFIG_NETFILTER_ADVANCED is not set
+
+#
+# Core Netfilter Configuration
+#
+CONFIG_NETFILTER_NETLINK=m
+# CONFIG_NETFILTER_NETLINK_LOG is not set
+CONFIG_NF_CONNTRACK=y
+CONFIG_NF_CONNTRACK_FTP=m
+CONFIG_NF_CONNTRACK_IRC=m
+CONFIG_NF_CONNTRACK_BROADCAST=m
+CONFIG_NF_CONNTRACK_NETBIOS_NS=m
+CONFIG_NF_CONNTRACK_SIP=m
+CONFIG_NF_CT_NETLINK=m
+CONFIG_NETFILTER_XTABLES=y
+
+#
+# Xtables combined modules
+#
+# CONFIG_NETFILTER_XT_MARK is not set
+
+#
+# Xtables targets
+#
+CONFIG_NETFILTER_XT_TARGET_LOG=y
+# CONFIG_NETFILTER_XT_TARGET_NFLOG is not set
+CONFIG_NETFILTER_XT_TARGET_TCPMSS=m
+
+#
+# Xtables matches
+#
+CONFIG_NETFILTER_XT_MATCH_CONNTRACK=m
+CONFIG_NETFILTER_XT_MATCH_POLICY=m
+CONFIG_NETFILTER_XT_MATCH_STATE=m
+# CONFIG_IP_SET is not set
+# CONFIG_IP_VS is not set
+
+#
+# IP: Netfilter Configuration
+#
+CONFIG_NF_DEFRAG_IPV4=y
+CONFIG_NF_CONNTRACK_IPV4=y
+# CONFIG_IP_NF_IPTABLES is not set
+
+#
+# IPv6: Netfilter Configuration
+#
+CONFIG_NF_DEFRAG_IPV6=m
+CONFIG_NF_CONNTRACK_IPV6=m
+# CONFIG_IP6_NF_IPTABLES is not set
+CONFIG_IP_SCTP=m
+# CONFIG_SCTP_DBG_MSG is not set
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_MD5 is not set
+CONFIG_SCTP_DEFAULT_COOKIE_HMAC_SHA1=y
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_NONE is not set
+CONFIG_SCTP_COOKIE_HMAC_MD5=y
+CONFIG_SCTP_COOKIE_HMAC_SHA1=y
+CONFIG_ATM=m
+CONFIG_ATM_CLIP=m
+# CONFIG_ATM_CLIP_NO_ICMP is not set
+# CONFIG_ATM_LANE is not set
+CONFIG_ATM_BR2684=m
+# CONFIG_ATM_BR2684_IPFILTER is not set
+# CONFIG_L2TP is not set
+# CONFIG_BRIDGE is not set
+CONFIG_HAVE_NET_DSA=y
+CONFIG_NET_DSA=y
+CONFIG_NET_DSA_TAG_DSA=y
+CONFIG_NET_DSA_TAG_EDSA=y
+CONFIG_NET_DSA_TAG_TRAILER=y
+# CONFIG_VLAN_8021Q is not set
+CONFIG_DECNET=y
+CONFIG_LLC=y
+CONFIG_LLC2=m
+# CONFIG_IPX is not set
+CONFIG_ATALK=y
+CONFIG_DEV_APPLETALK=y
+# CONFIG_IPDDP is not set
+CONFIG_PHONET=y
+CONFIG_NET_SCHED=y
+
+#
+# Queueing/Scheduling
+#
+# CONFIG_NET_SCH_CBQ is not set
+# CONFIG_NET_SCH_HTB is not set
+CONFIG_NET_SCH_HFSC=m
+CONFIG_NET_SCH_ATM=m
+# CONFIG_NET_SCH_PRIO is not set
+CONFIG_NET_SCH_MULTIQ=m
+CONFIG_NET_SCH_RED=y
+CONFIG_NET_SCH_SFB=m
+# CONFIG_NET_SCH_SFQ is not set
+CONFIG_NET_SCH_TEQL=m
+CONFIG_NET_SCH_TBF=m
+CONFIG_NET_SCH_GRED=y
+CONFIG_NET_SCH_DSMARK=y
+CONFIG_NET_SCH_NETEM=y
+CONFIG_NET_SCH_DRR=y
+CONFIG_NET_SCH_MQPRIO=m
+CONFIG_NET_SCH_CHOKE=y
+CONFIG_NET_SCH_QFQ=y
+CONFIG_NET_SCH_CODEL=y
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_NET_SCH_PLUG=m
+
+#
+# Classification
+#
+CONFIG_NET_CLS=y
+CONFIG_NET_CLS_BASIC=m
+CONFIG_NET_CLS_TCINDEX=m
+CONFIG_NET_CLS_ROUTE4=y
+CONFIG_NET_CLS_FW=y
+# CONFIG_NET_CLS_U32 is not set
+CONFIG_NET_CLS_RSVP=y
+CONFIG_NET_CLS_RSVP6=m
+CONFIG_NET_CLS_FLOW=y
+CONFIG_NET_CLS_CGROUP=y
+CONFIG_NET_EMATCH=y
+CONFIG_NET_EMATCH_STACK=32
+# CONFIG_NET_EMATCH_CMP is not set
+CONFIG_NET_EMATCH_NBYTE=y
+# CONFIG_NET_EMATCH_U32 is not set
+CONFIG_NET_EMATCH_META=m
+CONFIG_NET_EMATCH_TEXT=m
+CONFIG_NET_EMATCH_CANID=y
+# CONFIG_NET_CLS_ACT is not set
+# CONFIG_NET_CLS_IND is not set
+CONFIG_NET_SCH_FIFO=y
+CONFIG_DCB=y
+CONFIG_DNS_RESOLVER=y
+CONFIG_BATMAN_ADV=y
+# CONFIG_BATMAN_ADV_BLA is not set
+# CONFIG_BATMAN_ADV_DAT is not set
+# CONFIG_BATMAN_ADV_DEBUG is not set
+CONFIG_OPENVSWITCH=y
+CONFIG_RPS=y
+CONFIG_RFS_ACCEL=y
+CONFIG_XPS=y
+# CONFIG_NETPRIO_CGROUP is not set
+CONFIG_BQL=y
+# CONFIG_BPF_JIT is not set
+
+#
+# Network testing
+#
+# CONFIG_HAMRADIO is not set
+CONFIG_CAN=m
+CONFIG_CAN_RAW=m
+CONFIG_CAN_BCM=m
+CONFIG_CAN_GW=m
+
+#
+# CAN Device Drivers
+#
+CONFIG_CAN_VCAN=m
+CONFIG_CAN_SLCAN=m
+CONFIG_CAN_DEV=m
+CONFIG_CAN_CALC_BITTIMING=y
+# CONFIG_PCH_CAN is not set
+# CONFIG_CAN_SJA1000 is not set
+CONFIG_CAN_C_CAN=m
+CONFIG_CAN_C_CAN_PLATFORM=m
+# CONFIG_CAN_C_CAN_PCI is not set
+CONFIG_CAN_CC770=m
+CONFIG_CAN_CC770_ISA=m
+CONFIG_CAN_CC770_PLATFORM=m
+
+#
+# CAN USB interfaces
+#
+CONFIG_CAN_EMS_USB=m
+CONFIG_CAN_ESD_USB2=m
+CONFIG_CAN_KVASER_USB=m
+# CONFIG_CAN_PEAK_USB is not set
+# CONFIG_CAN_SOFTING is not set
+# CONFIG_CAN_DEBUG_DEVICES is not set
+CONFIG_IRDA=m
+
+#
+# IrDA protocols
+#
+# CONFIG_IRLAN is not set
+CONFIG_IRNET=m
+CONFIG_IRCOMM=m
+# CONFIG_IRDA_ULTRA is not set
+
+#
+# IrDA options
+#
+CONFIG_IRDA_CACHE_LAST_LSAP=y
+# CONFIG_IRDA_FAST_RR is not set
+# CONFIG_IRDA_DEBUG is not set
+
+#
+# Infrared-port device drivers
+#
+
+#
+# SIR device drivers
+#
+# CONFIG_IRTTY_SIR is not set
+
+#
+# Dongle support
+#
+
+#
+# FIR device drivers
+#
+CONFIG_USB_IRDA=m
+# CONFIG_BT is not set
+CONFIG_WIRELESS=y
+CONFIG_CFG80211=m
+# CONFIG_NL80211_TESTMODE is not set
+CONFIG_CFG80211_DEVELOPER_WARNINGS=y
+CONFIG_CFG80211_REG_DEBUG=y
+CONFIG_CFG80211_CERTIFICATION_ONUS=y
+# CONFIG_CFG80211_DEFAULT_PS is not set
+# CONFIG_CFG80211_DEBUGFS is not set
+# CONFIG_CFG80211_INTERNAL_REGDB is not set
+# CONFIG_CFG80211_WEXT is not set
+# CONFIG_LIB80211 is not set
+# CONFIG_MAC80211 is not set
+CONFIG_WIMAX=m
+CONFIG_WIMAX_DEBUG_LEVEL=8
+CONFIG_RFKILL=y
+CONFIG_RFKILL_LEDS=y
+# CONFIG_RFKILL_INPUT is not set
+CONFIG_RFKILL_REGULATOR=y
+CONFIG_NET_9P=y
+CONFIG_NET_9P_DEBUG=y
+CONFIG_CAIF=y
+CONFIG_CAIF_DEBUG=y
+# CONFIG_CAIF_NETDEV is not set
+CONFIG_CAIF_USB=m
+CONFIG_CEPH_LIB=m
+# CONFIG_CEPH_LIB_PRETTYDEBUG is not set
+CONFIG_CEPH_LIB_USE_DNS_RESOLVER=y
+CONFIG_NFC=y
+CONFIG_NFC_NCI=m
+# CONFIG_NFC_HCI is not set
+# CONFIG_NFC_LLCP is not set
+
+#
+# Near Field Communication (NFC) devices
+#
+# CONFIG_NFC_PN533 is not set
+CONFIG_HAVE_BPF_JIT=y
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_UEVENT_HELPER_PATH=""
+# CONFIG_DEVTMPFS is not set
+CONFIG_STANDALONE=y
+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
+CONFIG_FW_LOADER=y
+# CONFIG_FIRMWARE_IN_KERNEL is not set
+CONFIG_EXTRA_FIRMWARE=""
+# CONFIG_DEBUG_DRIVER is not set
+# CONFIG_DEBUG_DEVRES is not set
+CONFIG_SYS_HYPERVISOR=y
+# CONFIG_GENERIC_CPU_DEVICES is not set
+CONFIG_REGMAP=y
+CONFIG_REGMAP_I2C=y
+CONFIG_REGMAP_MMIO=y
+CONFIG_REGMAP_IRQ=y
+CONFIG_DMA_SHARED_BUFFER=y
+
+#
+# Bus devices
+#
+CONFIG_CONNECTOR=y
+# CONFIG_PROC_EVENTS is not set
+# CONFIG_MTD is not set
+CONFIG_PARPORT=y
+CONFIG_PARPORT_PC=m
+# CONFIG_PARPORT_SERIAL is not set
+# CONFIG_PARPORT_PC_FIFO is not set
+CONFIG_PARPORT_PC_SUPERIO=y
+# CONFIG_PARPORT_GSC is not set
+CONFIG_PARPORT_AX88796=m
+# CONFIG_PARPORT_1284 is not set
+CONFIG_PARPORT_NOT_PC=y
+CONFIG_PNP=y
+CONFIG_PNP_DEBUG_MESSAGES=y
+
+#
+# Protocols
+#
+CONFIG_PNPACPI=y
+CONFIG_BLK_DEV=y
+# CONFIG_PARIDE is not set
+# CONFIG_BLK_DEV_PCIESSD_MTIP32XX is not set
+# CONFIG_BLK_CPQ_DA is not set
+# CONFIG_BLK_CPQ_CISS_DA is not set
+# CONFIG_BLK_DEV_DAC960 is not set
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_COW_COMMON is not set
+# CONFIG_BLK_DEV_LOOP is not set
+
+#
+# DRBD disabled because PROC_FS or INET not selected
+#
+# CONFIG_BLK_DEV_NBD is not set
+# CONFIG_BLK_DEV_NVME is not set
+# CONFIG_BLK_DEV_SX8 is not set
+# CONFIG_BLK_DEV_RAM is not set
+CONFIG_CDROM_PKTCDVD=m
+CONFIG_CDROM_PKTCDVD_BUFFERS=8
+# CONFIG_CDROM_PKTCDVD_WCACHE is not set
+CONFIG_ATA_OVER_ETH=y
+# CONFIG_XEN_BLKDEV_FRONTEND is not set
+# CONFIG_XEN_BLKDEV_BACKEND is not set
+# CONFIG_BLK_DEV_HD is not set
+CONFIG_BLK_DEV_RBD=m
+
+#
+# Misc devices
+#
+CONFIG_SENSORS_LIS3LV02D=y
+# CONFIG_AD525X_DPOT is not set
+# CONFIG_IBM_ASM is not set
+# CONFIG_PHANTOM is not set
+# CONFIG_INTEL_MID_PTI is not set
+# CONFIG_SGI_IOC4 is not set
+# CONFIG_TIFM_CORE is not set
+CONFIG_ICS932S401=y
+CONFIG_ENCLOSURE_SERVICES=m
+# CONFIG_HP_ILO is not set
+CONFIG_APDS9802ALS=m
+# CONFIG_ISL29003 is not set
+CONFIG_ISL29020=m
+CONFIG_SENSORS_TSL2550=y
+# CONFIG_SENSORS_BH1780 is not set
+CONFIG_SENSORS_BH1770=y
+CONFIG_SENSORS_APDS990X=y
+CONFIG_HMC6352=m
+CONFIG_DS1682=m
+CONFIG_VMWARE_BALLOON=y
+CONFIG_BMP085=y
+CONFIG_BMP085_I2C=m
+# CONFIG_PCH_PHUB is not set
+# CONFIG_USB_SWITCH_FSA9480 is not set
+CONFIG_C2PORT=y
+# CONFIG_C2PORT_DURAMAR_2150 is not set
+
+#
+# EEPROM support
+#
+CONFIG_EEPROM_AT24=y
+CONFIG_EEPROM_LEGACY=m
+# CONFIG_EEPROM_MAX6875 is not set
+# CONFIG_EEPROM_93CX6 is not set
+# CONFIG_CB710_CORE is not set
+
+#
+# Texas Instruments shared transport line discipline
+#
+CONFIG_SENSORS_LIS3_I2C=y
+
+#
+# Altera FPGA firmware download module
+#
+CONFIG_ALTERA_STAPL=m
+CONFIG_HAVE_IDE=y
+# CONFIG_IDE is not set
+
+#
+# SCSI device support
+#
+CONFIG_SCSI_MOD=y
+CONFIG_RAID_ATTRS=m
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+CONFIG_SCSI_NETLINK=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=m
+# CONFIG_CHR_DEV_ST is not set
+CONFIG_CHR_DEV_OSST=y
+CONFIG_BLK_DEV_SR=m
+CONFIG_BLK_DEV_SR_VENDOR=y
+CONFIG_CHR_DEV_SG=m
+CONFIG_CHR_DEV_SCH=y
+CONFIG_SCSI_ENCLOSURE=m
+# CONFIG_SCSI_MULTI_LUN is not set
+CONFIG_SCSI_CONSTANTS=y
+CONFIG_SCSI_LOGGING=y
+CONFIG_SCSI_SCAN_ASYNC=y
+
+#
+# SCSI Transports
+#
+CONFIG_SCSI_SPI_ATTRS=m
+CONFIG_SCSI_FC_ATTRS=m
+CONFIG_SCSI_ISCSI_ATTRS=y
+CONFIG_SCSI_SAS_ATTRS=y
+# CONFIG_SCSI_SAS_LIBSAS is not set
+CONFIG_SCSI_SRP_ATTRS=y
+# CONFIG_SCSI_LOWLEVEL is not set
+CONFIG_SCSI_DH=y
+CONFIG_SCSI_DH_RDAC=m
+CONFIG_SCSI_DH_HP_SW=m
+CONFIG_SCSI_DH_EMC=y
+CONFIG_SCSI_OSD_INITIATOR=y
+# CONFIG_SCSI_OSD_ULD is not set
+CONFIG_SCSI_OSD_DPRINT_SENSE=1
+# CONFIG_SCSI_OSD_DEBUG is not set
+CONFIG_ATA=y
+# CONFIG_ATA_NONSTANDARD is not set
+CONFIG_ATA_VERBOSE_ERROR=y
+CONFIG_ATA_ACPI=y
+# CONFIG_SATA_PMP is not set
+
+#
+# Controllers with non-SFF native interface
+#
+# CONFIG_SATA_AHCI is not set
+CONFIG_SATA_AHCI_PLATFORM=m
+# CONFIG_SATA_INIC162X is not set
+# CONFIG_SATA_ACARD_AHCI is not set
+# CONFIG_SATA_SIL24 is not set
+CONFIG_ATA_SFF=y
+
+#
+# SFF controllers with custom DMA interface
+#
+# CONFIG_PDC_ADMA is not set
+# CONFIG_SATA_QSTOR is not set
+# CONFIG_ATA_BMDMA is not set
+
+#
+# PIO-only SFF controllers
+#
+# CONFIG_PATA_MPIIX is not set
+# CONFIG_PATA_NS87410 is not set
+CONFIG_PATA_PLATFORM=y
+# CONFIG_PATA_RZ1000 is not set
+
+#
+# Generic fallback / legacy drivers
+#
+CONFIG_MD=y
+CONFIG_BLK_DEV_MD=y
+CONFIG_MD_AUTODETECT=y
+# CONFIG_MD_LINEAR is not set
+CONFIG_MD_RAID0=y
+CONFIG_MD_RAID1=y
+CONFIG_MD_RAID10=m
+CONFIG_MD_RAID456=m
+CONFIG_MD_MULTIPATH=m
+CONFIG_MD_FAULTY=y
+CONFIG_BLK_DEV_DM=m
+CONFIG_DM_DEBUG=y
+# CONFIG_DM_CRYPT is not set
+CONFIG_DM_SNAPSHOT=m
+CONFIG_DM_MIRROR=m
+CONFIG_DM_RAID=m
+# CONFIG_DM_ZERO is not set
+CONFIG_DM_MULTIPATH=m
+CONFIG_DM_MULTIPATH_QL=m
+# CONFIG_DM_MULTIPATH_ST is not set
+# CONFIG_DM_UEVENT is not set
+CONFIG_TARGET_CORE=m
+CONFIG_TCM_IBLOCK=m
+CONFIG_TCM_FILEIO=m
+CONFIG_TCM_PSCSI=m
+CONFIG_LOOPBACK_TARGET=m
+CONFIG_ISCSI_TARGET=m
+# CONFIG_FUSION is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+# CONFIG_FIREWIRE is not set
+# CONFIG_FIREWIRE_NOSY is not set
+# CONFIG_I2O is not set
+# CONFIG_MACINTOSH_DRIVERS is not set
+CONFIG_NETDEVICES=y
+CONFIG_NET_CORE=y
+CONFIG_BONDING=y
+CONFIG_DUMMY=y
+# CONFIG_EQUALIZER is not set
+# CONFIG_NET_FC is not set
+CONFIG_MII=m
+CONFIG_NETCONSOLE=y
+CONFIG_NETPOLL=y
+# CONFIG_NETPOLL_TRAP is not set
+CONFIG_NET_POLL_CONTROLLER=y
+CONFIG_TUN=m
+# CONFIG_VETH is not set
+# CONFIG_ARCNET is not set
+CONFIG_ATM_DRIVERS=y
+CONFIG_ATM_DUMMY=m
+# CONFIG_ATM_TCP is not set
+# CONFIG_ATM_LANAI is not set
+# CONFIG_ATM_ENI is not set
+# CONFIG_ATM_FIRESTREAM is not set
+# CONFIG_ATM_ZATM is not set
+# CONFIG_ATM_NICSTAR is not set
+# CONFIG_ATM_IDT77252 is not set
+# CONFIG_ATM_AMBASSADOR is not set
+# CONFIG_ATM_HORIZON is not set
+# CONFIG_ATM_IA is not set
+# CONFIG_ATM_FORE200E is not set
+# CONFIG_ATM_HE is not set
+# CONFIG_ATM_SOLOS is not set
+
+#
+# CAIF transport drivers
+#
+CONFIG_CAIF_TTY=y
+# CONFIG_CAIF_SPI_SLAVE is not set
+CONFIG_CAIF_HSI=y
+
+#
+# Distributed Switch Architecture drivers
+#
+CONFIG_NET_DSA_MV88E6XXX=y
+CONFIG_NET_DSA_MV88E6060=m
+CONFIG_NET_DSA_MV88E6XXX_NEED_PPU=y
+CONFIG_NET_DSA_MV88E6131=y
+CONFIG_NET_DSA_MV88E6123_61_65=m
+# CONFIG_ETHERNET is not set
+# CONFIG_FDDI is not set
+# CONFIG_NET_SB1000 is not set
+CONFIG_PHYLIB=y
+
+#
+# MII PHY device drivers
+#
+CONFIG_AT803X_PHY=y
+# CONFIG_AMD_PHY is not set
+CONFIG_MARVELL_PHY=y
+CONFIG_DAVICOM_PHY=y
+CONFIG_QSEMI_PHY=y
+CONFIG_LXT_PHY=m
+CONFIG_CICADA_PHY=y
+CONFIG_VITESSE_PHY=y
+CONFIG_SMSC_PHY=m
+# CONFIG_BROADCOM_PHY is not set
+# CONFIG_BCM87XX_PHY is not set
+CONFIG_ICPLUS_PHY=y
+# CONFIG_REALTEK_PHY is not set
+CONFIG_NATIONAL_PHY=y
+CONFIG_STE10XP=m
+CONFIG_LSI_ET1011C_PHY=m
+CONFIG_MICREL_PHY=m
+CONFIG_FIXED_PHY=y
+# CONFIG_MDIO_BITBANG is not set
+# CONFIG_PLIP is not set
+CONFIG_PPP=y
+CONFIG_PPP_BSDCOMP=y
+# CONFIG_PPP_DEFLATE is not set
+# CONFIG_PPP_FILTER is not set
+CONFIG_PPPOATM=m
+# CONFIG_PPP_ASYNC is not set
+CONFIG_PPP_SYNC_TTY=m
+# CONFIG_SLIP is not set
+CONFIG_SLHC=y
+
+#
+# USB Network Adapters
+#
+CONFIG_USB_KAWETH=m
+CONFIG_USB_PEGASUS=m
+CONFIG_USB_USBNET=m
+CONFIG_USB_NET_AX8817X=m
+CONFIG_USB_NET_CDCETHER=m
+CONFIG_USB_NET_CDC_NCM=m
+CONFIG_USB_NET_CDC_MBIM=m
+CONFIG_USB_NET_DM9601=m
+CONFIG_USB_NET_SMSC75XX=m
+# CONFIG_USB_NET_SMSC95XX is not set
+# CONFIG_USB_NET_GL620A is not set
+CONFIG_USB_NET_NET1080=m
+CONFIG_USB_NET_MCS7830=m
+CONFIG_USB_NET_CDC_SUBSET=m
+CONFIG_USB_ALI_M5632=y
+# CONFIG_USB_AN2720 is not set
+# CONFIG_USB_BELKIN is not set
+# CONFIG_USB_ARMLINUX is not set
+CONFIG_USB_EPSON2888=y
+CONFIG_USB_NET_ZAURUS=m
+CONFIG_USB_NET_CX82310_ETH=m
+# CONFIG_USB_NET_KALMIA is not set
+# CONFIG_USB_NET_QMI_WWAN is not set
+# CONFIG_USB_HSO is not set
+CONFIG_USB_NET_INT51X1=m
+# CONFIG_USB_CDC_PHONET is not set
+CONFIG_USB_IPHETH=m
+CONFIG_USB_SIERRA_NET=m
+# CONFIG_USB_VL600 is not set
+# CONFIG_WLAN is not set
+
+#
+# WiMAX Wireless Broadband devices
+#
+# CONFIG_WIMAX_I2400M_USB is not set
+# CONFIG_WAN is not set
+CONFIG_XEN_NETDEV_FRONTEND=y
+# CONFIG_XEN_NETDEV_BACKEND is not set
+# CONFIG_VMXNET3 is not set
+CONFIG_ISDN=y
+# CONFIG_ISDN_I4L is not set
+CONFIG_ISDN_CAPI=y
+CONFIG_ISDN_DRV_AVMB1_VERBOSE_REASON=y
+# CONFIG_CAPI_TRACE is not set
+# CONFIG_ISDN_CAPI_MIDDLEWARE is not set
+CONFIG_ISDN_CAPI_CAPI20=m
+
+#
+# CAPI hardware drivers
+#
+# CONFIG_CAPI_AVM is not set
+# CONFIG_CAPI_EICON is not set
+CONFIG_ISDN_DRV_GIGASET=m
+# CONFIG_GIGASET_CAPI is not set
+CONFIG_GIGASET_DUMMYLL=y
+# CONFIG_GIGASET_BASE is not set
+# CONFIG_GIGASET_M105 is not set
+CONFIG_GIGASET_M101=m
+CONFIG_GIGASET_DEBUG=y
+CONFIG_MISDN=y
+CONFIG_MISDN_DSP=m
+# CONFIG_MISDN_L1OIP is not set
+
+#
+# mISDN hardware drivers
+#
+# CONFIG_MISDN_HFCPCI is not set
+# CONFIG_MISDN_HFCMULTI is not set
+CONFIG_MISDN_HFCUSB=y
+# CONFIG_MISDN_AVMFRITZ is not set
+# CONFIG_MISDN_SPEEDFAX is not set
+# CONFIG_MISDN_INFINEON is not set
+# CONFIG_MISDN_W6692 is not set
+# CONFIG_MISDN_NETJET is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+CONFIG_INPUT_FF_MEMLESS=y
+CONFIG_INPUT_POLLDEV=y
+# CONFIG_INPUT_SPARSEKMAP is not set
+CONFIG_INPUT_MATRIXKMAP=y
+
+#
+# Userland interfaces
+#
+CONFIG_INPUT_MOUSEDEV=y
+CONFIG_INPUT_MOUSEDEV_PSAUX=y
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+CONFIG_INPUT_JOYDEV=m
+# CONFIG_INPUT_EVDEV is not set
+CONFIG_INPUT_EVBUG=m
+
+#
+# Input Device Drivers
+#
+CONFIG_INPUT_KEYBOARD=y
+# CONFIG_KEYBOARD_ADP5588 is not set
+# CONFIG_KEYBOARD_ADP5589 is not set
+CONFIG_KEYBOARD_ATKBD=y
+# CONFIG_KEYBOARD_QT1070 is not set
+# CONFIG_KEYBOARD_QT2160 is not set
+# CONFIG_KEYBOARD_LKKBD is not set
+# CONFIG_KEYBOARD_TCA6416 is not set
+# CONFIG_KEYBOARD_TCA8418 is not set
+# CONFIG_KEYBOARD_LM8323 is not set
+# CONFIG_KEYBOARD_LM8333 is not set
+# CONFIG_KEYBOARD_MAX7359 is not set
+# CONFIG_KEYBOARD_MCS is not set
+# CONFIG_KEYBOARD_MPR121 is not set
+# CONFIG_KEYBOARD_NEWTON is not set
+# CONFIG_KEYBOARD_OPENCORES is not set
+# CONFIG_KEYBOARD_STOWAWAY is not set
+# CONFIG_KEYBOARD_SUNKBD is not set
+# CONFIG_KEYBOARD_XTKBD is not set
+# CONFIG_INPUT_MOUSE is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+CONFIG_INPUT_TOUCHSCREEN=y
+CONFIG_TOUCHSCREEN_AD7879=y
+# CONFIG_TOUCHSCREEN_AD7879_I2C is not set
+CONFIG_TOUCHSCREEN_ATMEL_MXT=y
+CONFIG_TOUCHSCREEN_BU21013=m
+# CONFIG_TOUCHSCREEN_CYTTSP_CORE is not set
+# CONFIG_TOUCHSCREEN_DA9034 is not set
+CONFIG_TOUCHSCREEN_DYNAPRO=y
+CONFIG_TOUCHSCREEN_HAMPSHIRE=m
+CONFIG_TOUCHSCREEN_EETI=m
+CONFIG_TOUCHSCREEN_FUJITSU=y
+CONFIG_TOUCHSCREEN_ILI210X=y
+CONFIG_TOUCHSCREEN_GUNZE=y
+# CONFIG_TOUCHSCREEN_ELO is not set
+CONFIG_TOUCHSCREEN_WACOM_W8001=m
+CONFIG_TOUCHSCREEN_WACOM_I2C=m
+CONFIG_TOUCHSCREEN_MAX11801=m
+CONFIG_TOUCHSCREEN_MCS5000=y
+CONFIG_TOUCHSCREEN_MMS114=y
+# CONFIG_TOUCHSCREEN_MTOUCH is not set
+CONFIG_TOUCHSCREEN_INEXIO=m
+CONFIG_TOUCHSCREEN_MK712=y
+CONFIG_TOUCHSCREEN_PENMOUNT=y
+CONFIG_TOUCHSCREEN_EDT_FT5X06=y
+CONFIG_TOUCHSCREEN_TOUCHRIGHT=y
+CONFIG_TOUCHSCREEN_TOUCHWIN=y
+# CONFIG_TOUCHSCREEN_TI_AM335X_TSC is not set
+# CONFIG_TOUCHSCREEN_PIXCIR is not set
+CONFIG_TOUCHSCREEN_USB_COMPOSITE=m
+# CONFIG_TOUCHSCREEN_USB_EGALAX is not set
+# CONFIG_TOUCHSCREEN_USB_PANJIT is not set
+CONFIG_TOUCHSCREEN_USB_3M=y
+CONFIG_TOUCHSCREEN_USB_ITM=y
+# CONFIG_TOUCHSCREEN_USB_ETURBO is not set
+CONFIG_TOUCHSCREEN_USB_GUNZE=y
+CONFIG_TOUCHSCREEN_USB_DMC_TSC10=y
+# CONFIG_TOUCHSCREEN_USB_IRTOUCH is not set
+# CONFIG_TOUCHSCREEN_USB_IDEALTEK is not set
+CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
+CONFIG_TOUCHSCREEN_USB_GOTOP=y
+# CONFIG_TOUCHSCREEN_USB_JASTEC is not set
+# CONFIG_TOUCHSCREEN_USB_ELO is not set
+# CONFIG_TOUCHSCREEN_USB_E2I is not set
+CONFIG_TOUCHSCREEN_USB_ZYTRONIC=y
+CONFIG_TOUCHSCREEN_USB_ETT_TC45USB=y
+CONFIG_TOUCHSCREEN_USB_NEXIO=y
+# CONFIG_TOUCHSCREEN_USB_EASYTOUCH is not set
+# CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
+# CONFIG_TOUCHSCREEN_TSC_SERIO is not set
+CONFIG_TOUCHSCREEN_TSC2007=y
+CONFIG_TOUCHSCREEN_ST1232=y
+CONFIG_TOUCHSCREEN_TPS6507X=y
+CONFIG_INPUT_MISC=y
+CONFIG_INPUT_AD714X=y
+CONFIG_INPUT_AD714X_I2C=m
+CONFIG_INPUT_ARIZONA_HAPTICS=y
+# CONFIG_INPUT_BMA150 is not set
+CONFIG_INPUT_PCSPKR=y
+# CONFIG_INPUT_MMA8450 is not set
+CONFIG_INPUT_MPU3050=y
+CONFIG_INPUT_APANEL=y
+# CONFIG_INPUT_ATLAS_BTNS is not set
+CONFIG_INPUT_ATI_REMOTE2=y
+CONFIG_INPUT_KEYSPAN_REMOTE=y
+CONFIG_INPUT_KXTJ9=m
+# CONFIG_INPUT_KXTJ9_POLLED_MODE is not set
+# CONFIG_INPUT_POWERMATE is not set
+# CONFIG_INPUT_YEALINK is not set
+# CONFIG_INPUT_CM109 is not set
+CONFIG_INPUT_TWL6040_VIBRA=y
+CONFIG_INPUT_UINPUT=m
+CONFIG_INPUT_PCF50633_PMU=m
+# CONFIG_INPUT_PCF8574 is not set
+CONFIG_INPUT_ADXL34X=y
+CONFIG_INPUT_ADXL34X_I2C=m
+CONFIG_INPUT_CMA3000=y
+# CONFIG_INPUT_CMA3000_I2C is not set
+CONFIG_INPUT_XEN_KBDDEV_FRONTEND=y
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+CONFIG_SERIO_SERPORT=y
+# CONFIG_SERIO_CT82C710 is not set
+CONFIG_SERIO_PARKBD=m
+# CONFIG_SERIO_PCIPS2 is not set
+CONFIG_SERIO_LIBPS2=y
+# CONFIG_SERIO_RAW is not set
+CONFIG_SERIO_ALTERA_PS2=y
+CONFIG_SERIO_PS2MULT=y
+# CONFIG_SERIO_ARC_PS2 is not set
+CONFIG_GAMEPORT=y
+CONFIG_GAMEPORT_NS558=m
+CONFIG_GAMEPORT_L4=m
+# CONFIG_GAMEPORT_EMU10K1 is not set
+# CONFIG_GAMEPORT_FM801 is not set
+
+#
+# Character devices
+#
+# CONFIG_VT is not set
+CONFIG_UNIX98_PTYS=y
+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
+CONFIG_LEGACY_PTYS=y
+CONFIG_LEGACY_PTY_COUNT=256
+CONFIG_SERIAL_NONSTANDARD=y
+# CONFIG_ROCKETPORT is not set
+# CONFIG_CYCLADES is not set
+# CONFIG_MOXA_INTELLIO is not set
+# CONFIG_MOXA_SMARTIO is not set
+# CONFIG_SYNCLINKMP is not set
+# CONFIG_SYNCLINK_GT is not set
+# CONFIG_NOZOMI is not set
+# CONFIG_ISI is not set
+CONFIG_N_HDLC=m
+CONFIG_N_GSM=y
+CONFIG_TRACE_ROUTER=m
+CONFIG_TRACE_SINK=m
+CONFIG_DEVKMEM=y
+# CONFIG_STALDRV is not set
+
+#
+# Serial drivers
+#
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_PNP=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_FIX_EARLYCON_MEM=y
+CONFIG_SERIAL_8250_PCI=y
+CONFIG_SERIAL_8250_NR_UARTS=4
+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+# CONFIG_SERIAL_8250_EXTENDED is not set
+
+#
+# Non-8250 serial port support
+#
+# CONFIG_SERIAL_MFD_HSU is not set
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+# CONFIG_SERIAL_JSM is not set
+CONFIG_SERIAL_SCCNXP=y
+CONFIG_SERIAL_SCCNXP_CONSOLE=y
+# CONFIG_SERIAL_TIMBERDALE is not set
+CONFIG_SERIAL_ALTERA_JTAGUART=m
+# CONFIG_SERIAL_ALTERA_UART is not set
+# CONFIG_SERIAL_PCH_UART is not set
+CONFIG_SERIAL_ARC=y
+CONFIG_SERIAL_ARC_CONSOLE=y
+CONFIG_SERIAL_ARC_NR_PORTS=1
+# CONFIG_TTY_PRINTK is not set
+CONFIG_PRINTER=y
+# CONFIG_LP_CONSOLE is not set
+# CONFIG_PPDEV is not set
+CONFIG_HVC_DRIVER=y
+CONFIG_HVC_IRQ=y
+CONFIG_HVC_XEN=y
+# CONFIG_HVC_XEN_FRONTEND is not set
+CONFIG_IPMI_HANDLER=m
+CONFIG_IPMI_PANIC_EVENT=y
+# CONFIG_IPMI_PANIC_STRING is not set
+CONFIG_IPMI_DEVICE_INTERFACE=m
+CONFIG_IPMI_SI=m
+CONFIG_IPMI_WATCHDOG=m
+CONFIG_IPMI_POWEROFF=m
+CONFIG_HW_RANDOM=y
+CONFIG_HW_RANDOM_TIMERIOMEM=m
+CONFIG_HW_RANDOM_INTEL=y
+CONFIG_HW_RANDOM_AMD=y
+CONFIG_HW_RANDOM_VIA=y
+CONFIG_NVRAM=m
+CONFIG_R3964=y
+# CONFIG_APPLICOM is not set
+CONFIG_MWAVE=y
+CONFIG_RAW_DRIVER=m
+CONFIG_MAX_RAW_DEVS=256
+# CONFIG_HPET is not set
+CONFIG_HANGCHECK_TIMER=y
+# CONFIG_TCG_TPM is not set
+# CONFIG_TELCLOCK is not set
+CONFIG_DEVPORT=y
+CONFIG_I2C=y
+CONFIG_I2C_BOARDINFO=y
+# CONFIG_I2C_COMPAT is not set
+CONFIG_I2C_CHARDEV=m
+# CONFIG_I2C_MUX is not set
+CONFIG_I2C_HELPER_AUTO=y
+CONFIG_I2C_SMBUS=y
+CONFIG_I2C_ALGOBIT=y
+CONFIG_I2C_ALGOPCA=m
+
+#
+# I2C Hardware Bus support
+#
+
+#
+# PC SMBus host controller drivers
+#
+# CONFIG_I2C_ALI1535 is not set
+# CONFIG_I2C_ALI15X3 is not set
+# CONFIG_I2C_AMD756 is not set
+# CONFIG_I2C_AMD8111 is not set
+# CONFIG_I2C_I801 is not set
+# CONFIG_I2C_ISCH is not set
+# CONFIG_I2C_PIIX4 is not set
+# CONFIG_I2C_NFORCE2 is not set
+# CONFIG_I2C_SIS5595 is not set
+# CONFIG_I2C_SIS630 is not set
+# CONFIG_I2C_SIS96X is not set
+# CONFIG_I2C_VIAPRO is not set
+
+#
+# ACPI drivers
+#
+# CONFIG_I2C_SCMI is not set
+
+#
+# I2C system bus drivers (mostly embedded / system-on-chip)
+#
+# CONFIG_I2C_DESIGNWARE_PCI is not set
+# CONFIG_I2C_EG20T is not set
+# CONFIG_I2C_INTEL_MID is not set
+CONFIG_I2C_PCA_PLATFORM=m
+# CONFIG_I2C_PXA_PCI is not set
+CONFIG_I2C_SIMTEC=y
+
+#
+# External I2C/SMBus adapter drivers
+#
+CONFIG_I2C_DIOLAN_U2C=y
+CONFIG_I2C_PARPORT=y
+CONFIG_I2C_PARPORT_LIGHT=m
+CONFIG_I2C_TINY_USB=m
+CONFIG_I2C_VIPERBOARD=m
+
+#
+# Other I2C/SMBus bus drivers
+#
+# CONFIG_I2C_DEBUG_CORE is not set
+# CONFIG_I2C_DEBUG_ALGO is not set
+# CONFIG_I2C_DEBUG_BUS is not set
+# CONFIG_SPI is not set
+# CONFIG_HSI is not set
+
+#
+# PPS support
+#
+# CONFIG_PPS is not set
+
+#
+# PPS generators support
+#
+
+#
+# PTP clock support
+#
+# CONFIG_PTP_1588_CLOCK is not set
+
+#
+# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
+#
+# CONFIG_PTP_1588_CLOCK_PCH is not set
+CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=y
+# CONFIG_GPIOLIB is not set
+CONFIG_W1=y
+CONFIG_W1_CON=y
+
+#
+# 1-wire Bus Masters
+#
+# CONFIG_W1_MASTER_MATROX is not set
+# CONFIG_W1_MASTER_DS2490 is not set
+CONFIG_W1_MASTER_DS2482=y
+CONFIG_W1_MASTER_DS1WM=m
+
+#
+# 1-wire Slaves
+#
+# CONFIG_W1_SLAVE_THERM is not set
+# CONFIG_W1_SLAVE_SMEM is not set
+# CONFIG_W1_SLAVE_DS2408 is not set
+# CONFIG_W1_SLAVE_DS2423 is not set
+CONFIG_W1_SLAVE_DS2431=m
+# CONFIG_W1_SLAVE_DS2433 is not set
+# CONFIG_W1_SLAVE_DS2760 is not set
+CONFIG_W1_SLAVE_DS2780=y
+CONFIG_W1_SLAVE_DS2781=y
+CONFIG_W1_SLAVE_DS28E04=y
+CONFIG_W1_SLAVE_BQ27000=y
+CONFIG_POWER_SUPPLY=y
+CONFIG_POWER_SUPPLY_DEBUG=y
+# CONFIG_PDA_POWER is not set
+CONFIG_GENERIC_ADC_BATTERY=m
+CONFIG_TEST_POWER=y
+CONFIG_BATTERY_DS2780=y
+CONFIG_BATTERY_DS2781=y
+CONFIG_BATTERY_DS2782=y
+CONFIG_BATTERY_SBS=y
+# CONFIG_BATTERY_BQ27x00 is not set
+# CONFIG_BATTERY_DA9030 is not set
+CONFIG_BATTERY_MAX17040=m
+CONFIG_BATTERY_MAX17042=y
+CONFIG_CHARGER_PCF50633=m
+CONFIG_CHARGER_ISP1704=m
+# CONFIG_CHARGER_MAX8903 is not set
+# CONFIG_CHARGER_LP8727 is not set
+CONFIG_CHARGER_MANAGER=y
+CONFIG_CHARGER_BQ2415X=m
+CONFIG_CHARGER_SMB347=m
+CONFIG_POWER_RESET=y
+# CONFIG_POWER_AVS is not set
+CONFIG_HWMON=y
+CONFIG_HWMON_VID=y
+# CONFIG_HWMON_DEBUG_CHIP is not set
+
+#
+# Native drivers
+#
+CONFIG_SENSORS_AD7414=y
+CONFIG_SENSORS_AD7418=y
+CONFIG_SENSORS_ADM1021=m
+CONFIG_SENSORS_ADM1025=y
+CONFIG_SENSORS_ADM1026=y
+CONFIG_SENSORS_ADM1029=y
+CONFIG_SENSORS_ADM1031=y
+CONFIG_SENSORS_ADM9240=m
+CONFIG_SENSORS_ADT7410=y
+CONFIG_SENSORS_ADT7411=y
+# CONFIG_SENSORS_ADT7462 is not set
+CONFIG_SENSORS_ADT7470=m
+CONFIG_SENSORS_ADT7475=y
+CONFIG_SENSORS_ASC7621=y
+# CONFIG_SENSORS_K8TEMP is not set
+# CONFIG_SENSORS_K10TEMP is not set
+# CONFIG_SENSORS_FAM15H_POWER is not set
+# CONFIG_SENSORS_ASB100 is not set
+# CONFIG_SENSORS_ATXP1 is not set
+CONFIG_SENSORS_DS620=m
+CONFIG_SENSORS_DS1621=y
+# CONFIG_SENSORS_I5K_AMB is not set
+CONFIG_SENSORS_F71805F=y
+# CONFIG_SENSORS_F71882FG is not set
+CONFIG_SENSORS_F75375S=y
+CONFIG_SENSORS_FSCHMD=y
+CONFIG_SENSORS_G760A=y
+# CONFIG_SENSORS_GL518SM is not set
+CONFIG_SENSORS_GL520SM=y
+CONFIG_SENSORS_HIH6130=y
+CONFIG_SENSORS_CORETEMP=y
+CONFIG_SENSORS_IBMAEM=m
+CONFIG_SENSORS_IBMPEX=m
+CONFIG_SENSORS_IT87=y
+CONFIG_SENSORS_JC42=y
+CONFIG_SENSORS_LINEAGE=m
+CONFIG_SENSORS_LM63=y
+# CONFIG_SENSORS_LM73 is not set
+# CONFIG_SENSORS_LM75 is not set
+CONFIG_SENSORS_LM77=m
+# CONFIG_SENSORS_LM78 is not set
+CONFIG_SENSORS_LM80=m
+CONFIG_SENSORS_LM83=y
+CONFIG_SENSORS_LM85=y
+# CONFIG_SENSORS_LM87 is not set
+# CONFIG_SENSORS_LM90 is not set
+CONFIG_SENSORS_LM92=y
+# CONFIG_SENSORS_LM93 is not set
+CONFIG_SENSORS_LTC4151=m
+CONFIG_SENSORS_LTC4215=y
+# CONFIG_SENSORS_LTC4245 is not set
+CONFIG_SENSORS_LTC4261=m
+# CONFIG_SENSORS_LM95241 is not set
+CONFIG_SENSORS_LM95245=m
+# CONFIG_SENSORS_MAX16065 is not set
+CONFIG_SENSORS_MAX1619=m
+CONFIG_SENSORS_MAX1668=m
+CONFIG_SENSORS_MAX197=m
+# CONFIG_SENSORS_MAX6639 is not set
+CONFIG_SENSORS_MAX6642=y
+# CONFIG_SENSORS_MAX6650 is not set
+CONFIG_SENSORS_MCP3021=y
+# CONFIG_SENSORS_NTC_THERMISTOR is not set
+# CONFIG_SENSORS_PC87360 is not set
+CONFIG_SENSORS_PC87427=m
+CONFIG_SENSORS_PCF8591=y
+CONFIG_PMBUS=y
+CONFIG_SENSORS_PMBUS=y
+# CONFIG_SENSORS_ADM1275 is not set
+CONFIG_SENSORS_LM25066=m
+CONFIG_SENSORS_LTC2978=m
+CONFIG_SENSORS_MAX16064=m
+# CONFIG_SENSORS_MAX34440 is not set
+# CONFIG_SENSORS_MAX8688 is not set
+CONFIG_SENSORS_UCD9000=m
+CONFIG_SENSORS_UCD9200=m
+CONFIG_SENSORS_ZL6100=m
+CONFIG_SENSORS_SHT21=m
+# CONFIG_SENSORS_SIS5595 is not set
+CONFIG_SENSORS_SMM665=y
+# CONFIG_SENSORS_DME1737 is not set
+CONFIG_SENSORS_EMC1403=y
+CONFIG_SENSORS_EMC2103=m
+CONFIG_SENSORS_EMC6W201=m
+# CONFIG_SENSORS_SMSC47M1 is not set
+# CONFIG_SENSORS_SMSC47M192 is not set
+CONFIG_SENSORS_SMSC47B397=y
+# CONFIG_SENSORS_SCH56XX_COMMON is not set
+CONFIG_SENSORS_ADS1015=y
+CONFIG_SENSORS_ADS7828=y
+# CONFIG_SENSORS_AMC6821 is not set
+CONFIG_SENSORS_INA2XX=m
+CONFIG_SENSORS_THMC50=m
+CONFIG_SENSORS_TMP102=m
+CONFIG_SENSORS_TMP401=y
+# CONFIG_SENSORS_TMP421 is not set
+# CONFIG_SENSORS_VIA_CPUTEMP is not set
+# CONFIG_SENSORS_VIA686A is not set
+CONFIG_SENSORS_VT1211=m
+# CONFIG_SENSORS_VT8231 is not set
+CONFIG_SENSORS_W83781D=m
+CONFIG_SENSORS_W83791D=y
+CONFIG_SENSORS_W83792D=m
+CONFIG_SENSORS_W83793=m
+# CONFIG_SENSORS_W83795 is not set
+CONFIG_SENSORS_W83L785TS=y
+CONFIG_SENSORS_W83L786NG=m
+CONFIG_SENSORS_W83627HF=y
+CONFIG_SENSORS_W83627EHF=m
+CONFIG_SENSORS_APPLESMC=m
+
+#
+# ACPI drivers
+#
+# CONFIG_SENSORS_ACPI_POWER is not set
+# CONFIG_SENSORS_ATK0110 is not set
+CONFIG_THERMAL=y
+CONFIG_THERMAL_HWMON=y
+CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
+# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
+# CONFIG_THERMAL_DEFAULT_GOV_USER_SPACE is not set
+# CONFIG_FAIR_SHARE is not set
+CONFIG_STEP_WISE=y
+# CONFIG_USER_SPACE is not set
+# CONFIG_CPU_THERMAL is not set
+# CONFIG_WATCHDOG is not set
+CONFIG_SSB_POSSIBLE=y
+
+#
+# Sonics Silicon Backplane
+#
+# CONFIG_SSB is not set
+CONFIG_BCMA_POSSIBLE=y
+
+#
+# Broadcom specific AMBA
+#
+CONFIG_BCMA=y
+CONFIG_BCMA_HOST_PCI_POSSIBLE=y
+CONFIG_BCMA_HOST_PCI=y
+# CONFIG_BCMA_DRIVER_GMAC_CMN is not set
+# CONFIG_BCMA_DEBUG is not set
+
+#
+# Multifunction device drivers
+#
+CONFIG_MFD_CORE=y
+# CONFIG_MFD_88PM860X is not set
+# CONFIG_MFD_88PM800 is not set
+CONFIG_MFD_88PM805=y
+CONFIG_MFD_SM501=m
+# CONFIG_MFD_RTSX_PCI is not set
+CONFIG_MFD_TI_AM335X_TSCADC=y
+CONFIG_HTC_PASIC3=y
+CONFIG_MFD_LM3533=m
+CONFIG_TPS6105X=m
+CONFIG_TPS6507X=y
+# CONFIG_MFD_TPS65217 is not set
+# CONFIG_MFD_TPS6586X is not set
+# CONFIG_MFD_TPS80031 is not set
+# CONFIG_TWL4030_CORE is not set
+CONFIG_TWL6040_CORE=y
+# CONFIG_MFD_STMPE is not set
+# CONFIG_MFD_TC3589X is not set
+# CONFIG_MFD_TMIO is not set
+# CONFIG_MFD_SMSC is not set
+CONFIG_PMIC_DA903X=y
+# CONFIG_MFD_DA9052_I2C is not set
+# CONFIG_MFD_DA9055 is not set
+# CONFIG_PMIC_ADP5520 is not set
+CONFIG_MFD_LP8788=y
+# CONFIG_MFD_MAX77686 is not set
+# CONFIG_MFD_MAX77693 is not set
+CONFIG_MFD_MAX8907=y
+# CONFIG_MFD_MAX8925 is not set
+# CONFIG_MFD_MAX8997 is not set
+# CONFIG_MFD_MAX8998 is not set
+CONFIG_MFD_SEC_CORE=y
+CONFIG_MFD_ARIZONA=y
+CONFIG_MFD_ARIZONA_I2C=y
+# CONFIG_MFD_WM5102 is not set
+CONFIG_MFD_WM5110=y
+CONFIG_MFD_WM8400=y
+# CONFIG_MFD_WM831X_I2C is not set
+# CONFIG_MFD_WM8350_I2C is not set
+# CONFIG_MFD_WM8994 is not set
+CONFIG_MFD_PCF50633=m
+CONFIG_PCF50633_ADC=m
+# CONFIG_PCF50633_GPIO is not set
+# CONFIG_MFD_MC13XXX_I2C is not set
+# CONFIG_ABX500_CORE is not set
+# CONFIG_MFD_CS5535 is not set
+# CONFIG_LPC_SCH is not set
+# CONFIG_LPC_ICH is not set
+# CONFIG_MFD_RDC321X is not set
+# CONFIG_MFD_JANZ_CMODIO is not set
+# CONFIG_MFD_VX855 is not set
+# CONFIG_MFD_WL1273_CORE is not set
+# CONFIG_MFD_TPS65090 is not set
+# CONFIG_MFD_RC5T583 is not set
+CONFIG_MFD_PALMAS=y
+CONFIG_MFD_VIPERBOARD=m
+# CONFIG_MFD_RETU is not set
+CONFIG_MFD_AS3711=y
+CONFIG_REGULATOR=y
+# CONFIG_REGULATOR_DEBUG is not set
+# CONFIG_REGULATOR_DUMMY is not set
+CONFIG_REGULATOR_FIXED_VOLTAGE=m
+CONFIG_REGULATOR_VIRTUAL_CONSUMER=y
+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
+CONFIG_REGULATOR_AD5398=y
+CONFIG_REGULATOR_ARIZONA=y
+# CONFIG_REGULATOR_DA903X is not set
+CONFIG_REGULATOR_FAN53555=m
+# CONFIG_REGULATOR_ISL6271A is not set
+CONFIG_REGULATOR_MAX1586=y
+# CONFIG_REGULATOR_MAX8649 is not set
+CONFIG_REGULATOR_MAX8660=m
+CONFIG_REGULATOR_MAX8907=y
+CONFIG_REGULATOR_MAX8952=m
+CONFIG_REGULATOR_MAX8973=y
+# CONFIG_REGULATOR_LP3971 is not set
+CONFIG_REGULATOR_LP3972=m
+CONFIG_REGULATOR_LP872X=y
+# CONFIG_REGULATOR_LP8788 is not set
+# CONFIG_REGULATOR_PCF50633 is not set
+# CONFIG_REGULATOR_S2MPS11 is not set
+CONFIG_REGULATOR_S5M8767=y
+CONFIG_REGULATOR_PALMAS=m
+# CONFIG_REGULATOR_TPS51632 is not set
+CONFIG_REGULATOR_TPS6105X=m
+CONFIG_REGULATOR_TPS62360=m
+CONFIG_REGULATOR_TPS65023=m
+# CONFIG_REGULATOR_TPS6507X is not set
+CONFIG_REGULATOR_WM8400=y
+CONFIG_REGULATOR_AS3711=y
+CONFIG_MEDIA_SUPPORT=y
+
+#
+# Multimedia core support
+#
+CONFIG_MEDIA_CAMERA_SUPPORT=y
+# CONFIG_MEDIA_ANALOG_TV_SUPPORT is not set
+CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
+# CONFIG_MEDIA_RADIO_SUPPORT is not set
+CONFIG_MEDIA_RC_SUPPORT=y
+CONFIG_VIDEO_DEV=y
+CONFIG_VIDEO_V4L2=y
+# CONFIG_VIDEO_ADV_DEBUG is not set
+CONFIG_VIDEO_FIXED_MINOR_RANGES=y
+CONFIG_VIDEO_TUNER=y
+CONFIG_V4L2_MEM2MEM_DEV=m
+CONFIG_VIDEOBUF_GEN=y
+CONFIG_VIDEOBUF_VMALLOC=y
+CONFIG_VIDEOBUF2_CORE=y
+CONFIG_VIDEOBUF2_MEMOPS=y
+CONFIG_VIDEOBUF2_DMA_CONTIG=m
+CONFIG_VIDEOBUF2_VMALLOC=y
+# CONFIG_VIDEO_V4L2_INT_DEVICE is not set
+CONFIG_DVB_CORE=y
+# CONFIG_DVB_NET is not set
+CONFIG_TTPCI_EEPROM=m
+CONFIG_DVB_MAX_ADAPTERS=8
+CONFIG_DVB_DYNAMIC_MINORS=y
+
+#
+# Media drivers
+#
+CONFIG_RC_CORE=y
+CONFIG_RC_MAP=y
+# CONFIG_RC_DECODERS is not set
+CONFIG_RC_DEVICES=y
+CONFIG_RC_ATI_REMOTE=m
+# CONFIG_IR_ENE is not set
+CONFIG_IR_IMON=m
+CONFIG_IR_MCEUSB=y
+# CONFIG_IR_ITE_CIR is not set
+# CONFIG_IR_FINTEK is not set
+# CONFIG_IR_NUVOTON is not set
+# CONFIG_IR_REDRAT3 is not set
+CONFIG_IR_STREAMZAP=y
+# CONFIG_IR_WINBOND_CIR is not set
+CONFIG_IR_IGUANA=y
+CONFIG_IR_TTUSBIR=y
+# CONFIG_RC_LOOPBACK is not set
+CONFIG_IR_GPIO_CIR=y
+CONFIG_MEDIA_USB_SUPPORT=y
+
+#
+# Webcam devices
+#
+CONFIG_USB_VIDEO_CLASS=m
+CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
+CONFIG_USB_GSPCA=m
+# CONFIG_USB_M5602 is not set
+CONFIG_USB_STV06XX=m
+# CONFIG_USB_GL860 is not set
+# CONFIG_USB_GSPCA_BENQ is not set
+CONFIG_USB_GSPCA_CONEX=m
+CONFIG_USB_GSPCA_CPIA1=m
+CONFIG_USB_GSPCA_ETOMS=m
+# CONFIG_USB_GSPCA_FINEPIX is not set
+# CONFIG_USB_GSPCA_JEILINJ is not set
+CONFIG_USB_GSPCA_JL2005BCD=m
+CONFIG_USB_GSPCA_KINECT=m
+# CONFIG_USB_GSPCA_KONICA is not set
+CONFIG_USB_GSPCA_MARS=m
+CONFIG_USB_GSPCA_MR97310A=m
+# CONFIG_USB_GSPCA_NW80X is not set
+CONFIG_USB_GSPCA_OV519=m
+CONFIG_USB_GSPCA_OV534=m
+# CONFIG_USB_GSPCA_OV534_9 is not set
+# CONFIG_USB_GSPCA_PAC207 is not set
+CONFIG_USB_GSPCA_PAC7302=m
+CONFIG_USB_GSPCA_PAC7311=m
+CONFIG_USB_GSPCA_SE401=m
+# CONFIG_USB_GSPCA_SN9C2028 is not set
+CONFIG_USB_GSPCA_SN9C20X=m
+# CONFIG_USB_GSPCA_SONIXB is not set
+CONFIG_USB_GSPCA_SONIXJ=m
+# CONFIG_USB_GSPCA_SPCA500 is not set
+CONFIG_USB_GSPCA_SPCA501=m
+CONFIG_USB_GSPCA_SPCA505=m
+# CONFIG_USB_GSPCA_SPCA506 is not set
+CONFIG_USB_GSPCA_SPCA508=m
+CONFIG_USB_GSPCA_SPCA561=m
+CONFIG_USB_GSPCA_SPCA1528=m
+CONFIG_USB_GSPCA_SQ905=m
+CONFIG_USB_GSPCA_SQ905C=m
+CONFIG_USB_GSPCA_SQ930X=m
+# CONFIG_USB_GSPCA_STK014 is not set
+CONFIG_USB_GSPCA_STV0680=m
+# CONFIG_USB_GSPCA_SUNPLUS is not set
+# CONFIG_USB_GSPCA_T613 is not set
+CONFIG_USB_GSPCA_TOPRO=m
+CONFIG_USB_GSPCA_TV8532=m
+CONFIG_USB_GSPCA_VC032X=m
+CONFIG_USB_GSPCA_VICAM=m
+# CONFIG_USB_GSPCA_XIRLINK_CIT is not set
+CONFIG_USB_GSPCA_ZC3XX=m
+# CONFIG_USB_PWC is not set
+CONFIG_VIDEO_CPIA2=y
+# CONFIG_USB_ZR364XX is not set
+CONFIG_USB_STKWEBCAM=y
+CONFIG_USB_S2255=y
+# CONFIG_USB_SN9C102 is not set
+
+#
+# Analog/digital TV USB devices
+#
+CONFIG_VIDEO_AU0828=m
+CONFIG_VIDEO_AU0828_V4L2=y
+CONFIG_VIDEO_CX231XX=y
+CONFIG_VIDEO_CX231XX_RC=y
+CONFIG_VIDEO_CX231XX_ALSA=y
+# CONFIG_VIDEO_CX231XX_DVB is not set
+CONFIG_VIDEO_TM6000=y
+# CONFIG_VIDEO_TM6000_ALSA is not set
+CONFIG_VIDEO_TM6000_DVB=y
+
+#
+# Digital TV USB devices
+#
+CONFIG_DVB_USB=y
+# CONFIG_DVB_USB_DEBUG is not set
+# CONFIG_DVB_USB_A800 is not set
+CONFIG_DVB_USB_DIBUSB_MB=m
+CONFIG_DVB_USB_DIBUSB_MB_FAULTY=y
+# CONFIG_DVB_USB_DIBUSB_MC is not set
+CONFIG_DVB_USB_DIB0700=y
+# CONFIG_DVB_USB_UMT_010 is not set
+# CONFIG_DVB_USB_CXUSB is not set
+CONFIG_DVB_USB_M920X=y
+CONFIG_DVB_USB_DIGITV=m
+CONFIG_DVB_USB_VP7045=y
+# CONFIG_DVB_USB_VP702X is not set
+CONFIG_DVB_USB_GP8PSK=y
+# CONFIG_DVB_USB_NOVA_T_USB2 is not set
+CONFIG_DVB_USB_TTUSB2=y
+CONFIG_DVB_USB_DTT200U=y
+# CONFIG_DVB_USB_OPERA1 is not set
+CONFIG_DVB_USB_AF9005=y
+CONFIG_DVB_USB_AF9005_REMOTE=m
+CONFIG_DVB_USB_PCTV452E=m
+CONFIG_DVB_USB_DW2102=y
+# CONFIG_DVB_USB_CINERGY_T2 is not set
+# CONFIG_DVB_USB_DTV5100 is not set
+CONFIG_DVB_USB_FRIIO=y
+# CONFIG_DVB_USB_AZ6027 is not set
+# CONFIG_DVB_USB_TECHNISAT_USB2 is not set
+# CONFIG_DVB_USB_V2 is not set
+# CONFIG_DVB_TTUSB_BUDGET is not set
+# CONFIG_DVB_TTUSB_DEC is not set
+CONFIG_SMS_USB_DRV=y
+CONFIG_DVB_B2C2_FLEXCOP_USB=m
+CONFIG_DVB_B2C2_FLEXCOP_USB_DEBUG=y
+
+#
+# Webcam, TV (analog/digital) USB devices
+#
+CONFIG_VIDEO_EM28XX=y
+CONFIG_VIDEO_EM28XX_ALSA=m
+# CONFIG_VIDEO_EM28XX_DVB is not set
+# CONFIG_VIDEO_EM28XX_RC is not set
+# CONFIG_MEDIA_PCI_SUPPORT is not set
+CONFIG_V4L_PLATFORM_DRIVERS=y
+# CONFIG_VIDEO_CAFE_CCIC is not set
+# CONFIG_VIDEO_TIMBERDALE is not set
+CONFIG_SOC_CAMERA=y
+CONFIG_SOC_CAMERA_PLATFORM=m
+CONFIG_V4L_MEM2MEM_DRIVERS=y
+CONFIG_VIDEO_SH_VEU=m
+# CONFIG_V4L_TEST_DRIVERS is not set
+
+#
+# Supported MMC/SDIO adapters
+#
+CONFIG_SMS_SDIO_DRV=m
+CONFIG_MEDIA_PARPORT_SUPPORT=y
+CONFIG_VIDEO_BWQCAM=m
+# CONFIG_VIDEO_CQCAM is not set
+CONFIG_MEDIA_COMMON_OPTIONS=y
+
+#
+# common driver options
+#
+CONFIG_DVB_B2C2_FLEXCOP=m
+CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
+CONFIG_SMS_SIANO_MDTV=y
+# CONFIG_SMS_SIANO_RC is not set
+
+#
+# Media ancillary drivers (tuners, sensors, i2c, frontends)
+#
+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+CONFIG_VIDEO_TVEEPROM=y
+CONFIG_VIDEO_IR_I2C=m
+
+#
+# Encoders, decoders, sensors and other helper chips
+#
+
+#
+# Audio decoders, processors and mixers
+#
+CONFIG_VIDEO_TVAUDIO=m
+# CONFIG_VIDEO_TDA7432 is not set
+CONFIG_VIDEO_TDA9840=y
+CONFIG_VIDEO_TEA6415C=y
+# CONFIG_VIDEO_TEA6420 is not set
+CONFIG_VIDEO_MSP3400=y
+CONFIG_VIDEO_CS5345=m
+CONFIG_VIDEO_CS53L32A=m
+CONFIG_VIDEO_TLV320AIC23B=y
+CONFIG_VIDEO_WM8775=y
+# CONFIG_VIDEO_WM8739 is not set
+# CONFIG_VIDEO_VP27SMPX is not set
+
+#
+# RDS decoders
+#
+CONFIG_VIDEO_SAA6588=y
+
+#
+# Video decoders
+#
+CONFIG_VIDEO_ADV7180=y
+# CONFIG_VIDEO_ADV7183 is not set
+# CONFIG_VIDEO_BT819 is not set
+CONFIG_VIDEO_BT856=m
+CONFIG_VIDEO_BT866=y
+CONFIG_VIDEO_KS0127=y
+# CONFIG_VIDEO_SAA7110 is not set
+CONFIG_VIDEO_SAA711X=m
+CONFIG_VIDEO_SAA7191=m
+# CONFIG_VIDEO_TVP514X is not set
+CONFIG_VIDEO_TVP5150=y
+# CONFIG_VIDEO_TVP7002 is not set
+CONFIG_VIDEO_VPX3220=m
+
+#
+# Video and audio decoders
+#
+CONFIG_VIDEO_SAA717X=y
+CONFIG_VIDEO_CX25840=y
+
+#
+# MPEG video encoders
+#
+CONFIG_VIDEO_CX2341X=y
+
+#
+# Video encoders
+#
+CONFIG_VIDEO_SAA7127=y
+CONFIG_VIDEO_SAA7185=m
+CONFIG_VIDEO_ADV7170=m
+CONFIG_VIDEO_ADV7175=y
+CONFIG_VIDEO_ADV7343=y
+CONFIG_VIDEO_ADV7393=m
+CONFIG_VIDEO_AK881X=y
+
+#
+# Camera sensor devices
+#
+CONFIG_VIDEO_OV7670=m
+CONFIG_VIDEO_VS6624=m
+CONFIG_VIDEO_MT9V011=y
+CONFIG_VIDEO_SR030PC30=y
+
+#
+# Flash devices
+#
+
+#
+# Video improvement chips
+#
+# CONFIG_VIDEO_UPD64031A is not set
+CONFIG_VIDEO_UPD64083=y
+
+#
+# Miscelaneous helper chips
+#
+CONFIG_VIDEO_THS7303=m
+CONFIG_VIDEO_M52790=y
+
+#
+# Sensors used on soc_camera driver
+#
+
+#
+# soc_camera sensor drivers
+#
+CONFIG_SOC_CAMERA_IMX074=m
+CONFIG_SOC_CAMERA_MT9M001=m
+CONFIG_SOC_CAMERA_MT9M111=m
+CONFIG_SOC_CAMERA_MT9T031=y
+# CONFIG_SOC_CAMERA_MT9T112 is not set
+CONFIG_SOC_CAMERA_MT9V022=m
+CONFIG_SOC_CAMERA_OV2640=m
+CONFIG_SOC_CAMERA_OV5642=m
+CONFIG_SOC_CAMERA_OV6650=y
+# CONFIG_SOC_CAMERA_OV772X is not set
+CONFIG_SOC_CAMERA_OV9640=m
+CONFIG_SOC_CAMERA_OV9740=m
+CONFIG_SOC_CAMERA_RJ54N1=m
+# CONFIG_SOC_CAMERA_TW9910 is not set
+CONFIG_MEDIA_ATTACH=y
+
+#
+# Customize TV tuners
+#
+CONFIG_MEDIA_TUNER_SIMPLE=y
+CONFIG_MEDIA_TUNER_TDA8290=m
+CONFIG_MEDIA_TUNER_TDA827X=m
+CONFIG_MEDIA_TUNER_TDA18271=m
+CONFIG_MEDIA_TUNER_TDA9887=y
+CONFIG_MEDIA_TUNER_TEA5761=m
+CONFIG_MEDIA_TUNER_TEA5767=y
+# CONFIG_MEDIA_TUNER_MT20XX is not set
+# CONFIG_MEDIA_TUNER_MT2060 is not set
+CONFIG_MEDIA_TUNER_MT2063=y
+CONFIG_MEDIA_TUNER_MT2266=y
+# CONFIG_MEDIA_TUNER_MT2131 is not set
+# CONFIG_MEDIA_TUNER_QT1010 is not set
+CONFIG_MEDIA_TUNER_XC2028=y
+CONFIG_MEDIA_TUNER_XC5000=y
+CONFIG_MEDIA_TUNER_XC4000=y
+CONFIG_MEDIA_TUNER_MXL5005S=y
+# CONFIG_MEDIA_TUNER_MXL5007T is not set
+CONFIG_MEDIA_TUNER_MC44S803=m
+CONFIG_MEDIA_TUNER_MAX2165=m
+CONFIG_MEDIA_TUNER_TDA18218=m
+# CONFIG_MEDIA_TUNER_FC0011 is not set
+CONFIG_MEDIA_TUNER_FC0012=m
+CONFIG_MEDIA_TUNER_FC0013=m
+CONFIG_MEDIA_TUNER_TDA18212=m
+# CONFIG_MEDIA_TUNER_E4000 is not set
+CONFIG_MEDIA_TUNER_FC2580=y
+CONFIG_MEDIA_TUNER_TUA9001=m
+
+#
+# Customise DVB Frontends
+#
+
+#
+# Multistandard (satellite) frontends
+#
+# CONFIG_DVB_STB0899 is not set
+CONFIG_DVB_STB6100=y
+# CONFIG_DVB_STV090x is not set
+CONFIG_DVB_STV6110x=m
+
+#
+# Multistandard (cable + terrestrial) frontends
+#
+# CONFIG_DVB_DRXK is not set
+# CONFIG_DVB_TDA18271C2DD is not set
+
+#
+# DVB-S (satellite) frontends
+#
+CONFIG_DVB_CX24110=m
+CONFIG_DVB_CX24123=m
+# CONFIG_DVB_MT312 is not set
+CONFIG_DVB_ZL10036=m
+CONFIG_DVB_ZL10039=m
+# CONFIG_DVB_S5H1420 is not set
+CONFIG_DVB_STV0288=y
+CONFIG_DVB_STB6000=y
+CONFIG_DVB_STV0299=m
+CONFIG_DVB_STV6110=y
+# CONFIG_DVB_STV0900 is not set
+# CONFIG_DVB_TDA8083 is not set
+CONFIG_DVB_TDA10086=m
+# CONFIG_DVB_TDA8261 is not set
+CONFIG_DVB_VES1X93=y
+CONFIG_DVB_TUNER_ITD1000=m
+CONFIG_DVB_TUNER_CX24113=y
+# CONFIG_DVB_TDA826X is not set
+# CONFIG_DVB_TUA6100 is not set
+CONFIG_DVB_CX24116=m
+CONFIG_DVB_SI21XX=m
+CONFIG_DVB_TS2020=m
+CONFIG_DVB_DS3000=y
+# CONFIG_DVB_MB86A16 is not set
+CONFIG_DVB_TDA10071=m
+
+#
+# DVB-T (terrestrial) frontends
+#
+CONFIG_DVB_SP8870=y
+# CONFIG_DVB_SP887X is not set
+CONFIG_DVB_CX22700=y
+# CONFIG_DVB_CX22702 is not set
+# CONFIG_DVB_S5H1432 is not set
+CONFIG_DVB_DRXD=y
+# CONFIG_DVB_L64781 is not set
+CONFIG_DVB_TDA1004X=m
+CONFIG_DVB_NXT6000=m
+CONFIG_DVB_MT352=m
+CONFIG_DVB_ZL10353=y
+CONFIG_DVB_DIB3000MB=y
+CONFIG_DVB_DIB3000MC=m
+CONFIG_DVB_DIB7000M=y
+CONFIG_DVB_DIB7000P=m
+CONFIG_DVB_DIB9000=m
+CONFIG_DVB_TDA10048=y
+CONFIG_DVB_AF9013=y
+CONFIG_DVB_EC100=m
+CONFIG_DVB_HD29L2=y
+# CONFIG_DVB_STV0367 is not set
+CONFIG_DVB_CXD2820R=y
+CONFIG_DVB_RTL2830=y
+CONFIG_DVB_RTL2832=m
+
+#
+# DVB-C (cable) frontends
+#
+CONFIG_DVB_VES1820=y
+# CONFIG_DVB_TDA10021 is not set
+CONFIG_DVB_TDA10023=y
+CONFIG_DVB_STV0297=m
+
+#
+# ATSC (North American/Korean Terrestrial/Cable DTV) frontends
+#
+CONFIG_DVB_NXT200X=m
+CONFIG_DVB_OR51211=y
+CONFIG_DVB_OR51132=y
+CONFIG_DVB_BCM3510=y
+CONFIG_DVB_LGDT330X=y
+# CONFIG_DVB_LGDT3305 is not set
+CONFIG_DVB_LG2160=m
+CONFIG_DVB_S5H1409=y
+CONFIG_DVB_AU8522=m
+CONFIG_DVB_AU8522_DTV=m
+CONFIG_DVB_AU8522_V4L=m
+# CONFIG_DVB_S5H1411 is not set
+
+#
+# ISDB-T (terrestrial) frontends
+#
+CONFIG_DVB_S921=m
+CONFIG_DVB_DIB8000=y
+CONFIG_DVB_MB86A20S=y
+
+#
+# Digital terrestrial only tuners/PLL
+#
+CONFIG_DVB_PLL=m
+CONFIG_DVB_TUNER_DIB0070=y
+CONFIG_DVB_TUNER_DIB0090=m
+
+#
+# SEC control devices for DVB-S
+#
+CONFIG_DVB_LNBP21=y
+# CONFIG_DVB_LNBP22 is not set
+# CONFIG_DVB_ISL6405 is not set
+CONFIG_DVB_ISL6421=m
+CONFIG_DVB_ISL6423=m
+# CONFIG_DVB_A8293 is not set
+CONFIG_DVB_LGS8GL5=m
+# CONFIG_DVB_LGS8GXX is not set
+# CONFIG_DVB_ATBM8830 is not set
+# CONFIG_DVB_TDA665x is not set
+CONFIG_DVB_IX2505V=m
+CONFIG_DVB_IT913X_FE=m
+CONFIG_DVB_M88RS2000=m
+# CONFIG_DVB_AF9033 is not set
+
+#
+# Tools to develop new frontends
+#
+CONFIG_DVB_DUMMY_FE=y
+
+#
+# Graphics support
+#
+# CONFIG_AGP is not set
+CONFIG_VGA_ARB=y
+CONFIG_VGA_ARB_MAX_GPUS=16
+# CONFIG_VGA_SWITCHEROO is not set
+CONFIG_DRM=y
+# CONFIG_DRM_TDFX is not set
+# CONFIG_DRM_R128 is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_NOUVEAU is not set
+# CONFIG_DRM_MGA is not set
+# CONFIG_DRM_VIA is not set
+# CONFIG_DRM_SAVAGE is not set
+# CONFIG_DRM_VMWGFX is not set
+# CONFIG_STUB_POULSBO is not set
+# CONFIG_VGASTATE is not set
+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
+CONFIG_FB=y
+# CONFIG_FIRMWARE_EDID is not set
+# CONFIG_FB_DDC is not set
+CONFIG_FB_BOOT_VESA_SUPPORT=y
+CONFIG_FB_CFB_FILLRECT=y
+CONFIG_FB_CFB_COPYAREA=y
+CONFIG_FB_CFB_IMAGEBLIT=y
+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+CONFIG_FB_SYS_FILLRECT=y
+CONFIG_FB_SYS_COPYAREA=y
+CONFIG_FB_SYS_IMAGEBLIT=y
+# CONFIG_FB_FOREIGN_ENDIAN is not set
+CONFIG_FB_SYS_FOPS=y
+# CONFIG_FB_WMT_GE_ROPS is not set
+CONFIG_FB_DEFERRED_IO=y
+# CONFIG_FB_SVGALIB is not set
+# CONFIG_FB_MACMODES is not set
+# CONFIG_FB_BACKLIGHT is not set
+CONFIG_FB_MODE_HELPERS=y
+# CONFIG_FB_TILEBLITTING is not set
+
+#
+# Frame buffer hardware drivers
+#
+# CONFIG_FB_CIRRUS is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_CYBER2000 is not set
+CONFIG_FB_ARC=m
+# CONFIG_FB_ASILIANT is not set
+# CONFIG_FB_IMSTT is not set
+# CONFIG_FB_VGA16 is not set
+CONFIG_FB_UVESA=y
+CONFIG_FB_VESA=y
+# CONFIG_FB_N411 is not set
+CONFIG_FB_HGA=m
+CONFIG_FB_S1D13XXX=y
+# CONFIG_FB_NVIDIA is not set
+# CONFIG_FB_RIVA is not set
+# CONFIG_FB_LE80578 is not set
+# CONFIG_FB_MATROX is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_ATY is not set
+# CONFIG_FB_S3 is not set
+# CONFIG_FB_SIS is not set
+# CONFIG_FB_VIA is not set
+# CONFIG_FB_NEOMAGIC is not set
+# CONFIG_FB_KYRO is not set
+# CONFIG_FB_3DFX is not set
+# CONFIG_FB_VOODOO1 is not set
+# CONFIG_FB_VT8623 is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_CARMINE is not set
+# CONFIG_FB_TMIO is not set
+# CONFIG_FB_SM501 is not set
+CONFIG_FB_SMSCUFX=y
+# CONFIG_FB_UDL is not set
+CONFIG_FB_VIRTUAL=y
+CONFIG_XEN_FBDEV_FRONTEND=m
+CONFIG_FB_METRONOME=m
+# CONFIG_FB_MB862XX is not set
+CONFIG_FB_BROADSHEET=y
+CONFIG_FB_AUO_K190X=y
+# CONFIG_FB_AUO_K1900 is not set
+CONFIG_FB_AUO_K1901=m
+# CONFIG_EXYNOS_VIDEO is not set
+CONFIG_BACKLIGHT_LCD_SUPPORT=y
+CONFIG_LCD_CLASS_DEVICE=m
+CONFIG_LCD_PLATFORM=m
+CONFIG_BACKLIGHT_CLASS_DEVICE=m
+CONFIG_BACKLIGHT_GENERIC=m
+# CONFIG_BACKLIGHT_LM3533 is not set
+# CONFIG_BACKLIGHT_DA903X is not set
+# CONFIG_BACKLIGHT_APPLE is not set
+CONFIG_BACKLIGHT_SAHARA=m
+CONFIG_BACKLIGHT_ADP8860=m
+CONFIG_BACKLIGHT_ADP8870=m
+CONFIG_BACKLIGHT_PCF50633=m
+# CONFIG_BACKLIGHT_LM3630 is not set
+CONFIG_BACKLIGHT_LM3639=m
+# CONFIG_BACKLIGHT_LP855X is not set
+CONFIG_LOGO=y
+# CONFIG_LOGO_LINUX_MONO is not set
+CONFIG_LOGO_LINUX_VGA16=y
+CONFIG_LOGO_LINUX_CLUT224=y
+CONFIG_SOUND=y
+CONFIG_SOUND_OSS_CORE=y
+CONFIG_SOUND_OSS_CORE_PRECLAIM=y
+CONFIG_SND=y
+CONFIG_SND_TIMER=y
+CONFIG_SND_PCM=y
+CONFIG_SND_RAWMIDI=y
+CONFIG_SND_COMPRESS_OFFLOAD=y
+CONFIG_SND_JACK=y
+CONFIG_SND_SEQUENCER=m
+CONFIG_SND_SEQ_DUMMY=m
+CONFIG_SND_OSSEMUL=y
+CONFIG_SND_MIXER_OSS=m
+CONFIG_SND_PCM_OSS=y
+# CONFIG_SND_PCM_OSS_PLUGINS is not set
+CONFIG_SND_SEQUENCER_OSS=y
+# CONFIG_SND_DYNAMIC_MINORS is not set
+CONFIG_SND_SUPPORT_OLD_API=y
+# CONFIG_SND_VERBOSE_PRINTK is not set
+# CONFIG_SND_DEBUG is not set
+CONFIG_SND_DMA_SGBUF=y
+CONFIG_SND_RAWMIDI_SEQ=m
+# CONFIG_SND_OPL3_LIB_SEQ is not set
+# CONFIG_SND_OPL4_LIB_SEQ is not set
+# CONFIG_SND_SBAWE_SEQ is not set
+# CONFIG_SND_EMU10K1_SEQ is not set
+CONFIG_SND_MPU401_UART=m
+CONFIG_SND_DRIVERS=y
+CONFIG_SND_DUMMY=m
+CONFIG_SND_ALOOP=m
+CONFIG_SND_VIRMIDI=m
+# CONFIG_SND_MTPAV is not set
+CONFIG_SND_MTS64=y
+# CONFIG_SND_SERIAL_U16550 is not set
+CONFIG_SND_MPU401=m
+# CONFIG_SND_PORTMAN2X4 is not set
+CONFIG_SND_PCI=y
+# CONFIG_SND_AD1889 is not set
+# CONFIG_SND_ALS300 is not set
+# CONFIG_SND_ALI5451 is not set
+# CONFIG_SND_ASIHPI is not set
+# CONFIG_SND_ATIIXP is not set
+# CONFIG_SND_ATIIXP_MODEM is not set
+# CONFIG_SND_AU8810 is not set
+# CONFIG_SND_AU8820 is not set
+# CONFIG_SND_AU8830 is not set
+# CONFIG_SND_AW2 is not set
+# CONFIG_SND_AZT3328 is not set
+# CONFIG_SND_BT87X is not set
+# CONFIG_SND_CA0106 is not set
+# CONFIG_SND_CMIPCI is not set
+# CONFIG_SND_OXYGEN is not set
+# CONFIG_SND_CS4281 is not set
+# CONFIG_SND_CS46XX is not set
+# CONFIG_SND_CS5535AUDIO is not set
+# CONFIG_SND_CTXFI is not set
+# CONFIG_SND_DARLA20 is not set
+# CONFIG_SND_GINA20 is not set
+# CONFIG_SND_LAYLA20 is not set
+# CONFIG_SND_DARLA24 is not set
+# CONFIG_SND_GINA24 is not set
+# CONFIG_SND_LAYLA24 is not set
+# CONFIG_SND_MONA is not set
+# CONFIG_SND_MIA is not set
+# CONFIG_SND_ECHO3G is not set
+# CONFIG_SND_INDIGO is not set
+# CONFIG_SND_INDIGOIO is not set
+# CONFIG_SND_INDIGODJ is not set
+# CONFIG_SND_INDIGOIOX is not set
+# CONFIG_SND_INDIGODJX is not set
+# CONFIG_SND_EMU10K1 is not set
+# CONFIG_SND_EMU10K1X is not set
+# CONFIG_SND_ENS1370 is not set
+# CONFIG_SND_ENS1371 is not set
+# CONFIG_SND_ES1938 is not set
+# CONFIG_SND_ES1968 is not set
+# CONFIG_SND_FM801 is not set
+# CONFIG_SND_HDA_INTEL is not set
+# CONFIG_SND_HDSP is not set
+# CONFIG_SND_HDSPM is not set
+# CONFIG_SND_ICE1712 is not set
+# CONFIG_SND_ICE1724 is not set
+# CONFIG_SND_INTEL8X0 is not set
+# CONFIG_SND_INTEL8X0M is not set
+# CONFIG_SND_KORG1212 is not set
+# CONFIG_SND_LOLA is not set
+# CONFIG_SND_LX6464ES is not set
+# CONFIG_SND_MAESTRO3 is not set
+# CONFIG_SND_MIXART is not set
+# CONFIG_SND_NM256 is not set
+# CONFIG_SND_PCXHR is not set
+# CONFIG_SND_RIPTIDE is not set
+# CONFIG_SND_RME32 is not set
+# CONFIG_SND_RME96 is not set
+# CONFIG_SND_RME9652 is not set
+# CONFIG_SND_SONICVIBES is not set
+# CONFIG_SND_TRIDENT is not set
+# CONFIG_SND_VIA82XX is not set
+# CONFIG_SND_VIA82XX_MODEM is not set
+# CONFIG_SND_VIRTUOSO is not set
+# CONFIG_SND_VX222 is not set
+# CONFIG_SND_YMFPCI is not set
+# CONFIG_SND_USB is not set
+CONFIG_SND_SOC=y
+CONFIG_SND_SOC_I2C_AND_SPI=y
+# CONFIG_SND_SOC_ALL_CODECS is not set
+CONFIG_SND_SIMPLE_CARD=m
+CONFIG_SOUND_PRIME=m
+
+#
+# HID support
+#
+CONFIG_HID=y
+CONFIG_HID_BATTERY_STRENGTH=y
+# CONFIG_HIDRAW is not set
+CONFIG_UHID=y
+CONFIG_HID_GENERIC=y
+
+#
+# Special HID drivers
+#
+CONFIG_HID_A4TECH=m
+CONFIG_HID_ACRUX=m
+# CONFIG_HID_ACRUX_FF is not set
+CONFIG_HID_APPLE=y
+CONFIG_HID_AUREAL=y
+CONFIG_HID_BELKIN=y
+CONFIG_HID_CHERRY=m
+# CONFIG_HID_CHICONY is not set
+# CONFIG_HID_PRODIKEYS is not set
+CONFIG_HID_CYPRESS=m
+CONFIG_HID_DRAGONRISE=y
+CONFIG_DRAGONRISE_FF=y
+CONFIG_HID_EMS_FF=m
+CONFIG_HID_EZKEY=y
+# CONFIG_HID_HOLTEK is not set
+CONFIG_HID_KEYTOUCH=y
+CONFIG_HID_KYE=y
+# CONFIG_HID_UCLOGIC is not set
+CONFIG_HID_WALTOP=m
+CONFIG_HID_GYRATION=m
+CONFIG_HID_TWINHAN=y
+# CONFIG_HID_KENSINGTON is not set
+CONFIG_HID_LCPOWER=m
+# CONFIG_HID_LENOVO_TPKBD is not set
+CONFIG_HID_LOGITECH=m
+# CONFIG_HID_LOGITECH_DJ is not set
+CONFIG_LOGITECH_FF=y
+# CONFIG_LOGIRUMBLEPAD2_FF is not set
+# CONFIG_LOGIG940_FF is not set
+# CONFIG_LOGIWHEELS_FF is not set
+CONFIG_HID_MICROSOFT=m
+CONFIG_HID_MONTEREY=m
+CONFIG_HID_MULTITOUCH=y
+# CONFIG_HID_NTRIG is not set
+CONFIG_HID_ORTEK=y
+CONFIG_HID_PANTHERLORD=m
+CONFIG_PANTHERLORD_FF=y
+CONFIG_HID_PETALYNX=y
+CONFIG_HID_PICOLCD=y
+# CONFIG_HID_PICOLCD_FB is not set
+# CONFIG_HID_PICOLCD_LEDS is not set
+CONFIG_HID_PICOLCD_CIR=y
+CONFIG_HID_PRIMAX=y
+CONFIG_HID_ROCCAT=m
+CONFIG_HID_SAITEK=y
+CONFIG_HID_SAMSUNG=m
+# CONFIG_HID_SONY is not set
+CONFIG_HID_SPEEDLINK=y
+CONFIG_HID_SUNPLUS=y
+CONFIG_HID_GREENASIA=y
+CONFIG_GREENASIA_FF=y
+CONFIG_HID_SMARTJOYPLUS=m
+# CONFIG_SMARTJOYPLUS_FF is not set
+CONFIG_HID_TIVO=m
+# CONFIG_HID_TOPSEED is not set
+CONFIG_HID_THRUSTMASTER=m
+# CONFIG_THRUSTMASTER_FF is not set
+# CONFIG_HID_ZEROPLUS is not set
+# CONFIG_HID_ZYDACRON is not set
+CONFIG_HID_SENSOR_HUB=y
+
+#
+# USB HID support
+#
+CONFIG_USB_HID=y
+# CONFIG_HID_PID is not set
+# CONFIG_USB_HIDDEV is not set
+
+#
+# I2C HID support
+#
+CONFIG_I2C_HID=y
+CONFIG_USB_ARCH_HAS_OHCI=y
+CONFIG_USB_ARCH_HAS_EHCI=y
+CONFIG_USB_ARCH_HAS_XHCI=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_COMMON=y
+CONFIG_USB_ARCH_HAS_HCD=y
+CONFIG_USB=y
+# CONFIG_USB_DEBUG is not set
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+
+#
+# Miscellaneous USB options
+#
+# CONFIG_USB_DYNAMIC_MINORS is not set
+# CONFIG_USB_SUSPEND is not set
+# CONFIG_USB_OTG_WHITELIST is not set
+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
+CONFIG_USB_DWC3=y
+CONFIG_USB_DWC3_DEBUG=y
+# CONFIG_USB_DWC3_VERBOSE is not set
+# CONFIG_USB_MON is not set
+# CONFIG_USB_WUSB_CBAF is not set
+
+#
+# USB Host Controller Drivers
+#
+# CONFIG_USB_C67X00_HCD is not set
+# CONFIG_USB_XHCI_HCD is not set
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_EHCI_ROOT_HUB_TT=y
+CONFIG_USB_EHCI_TT_NEWSCHED=y
+CONFIG_USB_EHCI_PCI=y
+CONFIG_USB_OXU210HP_HCD=m
+# CONFIG_USB_ISP116X_HCD is not set
+CONFIG_USB_ISP1760_HCD=y
+CONFIG_USB_ISP1362_HCD=m
+CONFIG_USB_OHCI_HCD=y
+CONFIG_USB_OHCI_HCD_PLATFORM=y
+CONFIG_USB_EHCI_HCD_PLATFORM=y
+# CONFIG_USB_OHCI_BIG_ENDIAN_DESC is not set
+# CONFIG_USB_OHCI_BIG_ENDIAN_MMIO is not set
+CONFIG_USB_OHCI_LITTLE_ENDIAN=y
+# CONFIG_USB_UHCI_HCD is not set
+CONFIG_USB_U132_HCD=y
+CONFIG_USB_SL811_HCD=m
+CONFIG_USB_SL811_HCD_ISO=y
+CONFIG_USB_R8A66597_HCD=y
+CONFIG_USB_RENESAS_USBHS_HCD=m
+CONFIG_USB_HCD_BCMA=m
+CONFIG_USB_MUSB_HDRC=m
+CONFIG_USB_MUSB_TUSB6010=m
+CONFIG_MUSB_PIO_ONLY=y
+CONFIG_USB_CHIPIDEA=y
+# CONFIG_USB_CHIPIDEA_UDC is not set
+CONFIG_USB_CHIPIDEA_HOST=y
+# CONFIG_USB_CHIPIDEA_DEBUG is not set
+CONFIG_USB_RENESAS_USBHS=m
+
+#
+# USB Device Class drivers
+#
+CONFIG_USB_ACM=y
+# CONFIG_USB_PRINTER is not set
+CONFIG_USB_WDM=m
+CONFIG_USB_TMC=m
+
+#
+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
+#
+
+#
+# also be needed; see USB_STORAGE Help for more info
+#
+CONFIG_USB_STORAGE=y
+CONFIG_USB_STORAGE_DEBUG=y
+# CONFIG_USB_STORAGE_REALTEK is not set
+CONFIG_USB_STORAGE_DATAFAB=m
+# CONFIG_USB_STORAGE_FREECOM is not set
+# CONFIG_USB_STORAGE_ISD200 is not set
+CONFIG_USB_STORAGE_USBAT=m
+CONFIG_USB_STORAGE_SDDR09=m
+# CONFIG_USB_STORAGE_SDDR55 is not set
+# CONFIG_USB_STORAGE_JUMPSHOT is not set
+CONFIG_USB_STORAGE_ALAUDA=m
+CONFIG_USB_STORAGE_ONETOUCH=m
+CONFIG_USB_STORAGE_KARMA=m
+CONFIG_USB_STORAGE_CYPRESS_ATACB=y
+# CONFIG_USB_STORAGE_ENE_UB6250 is not set
+
+#
+# USB Imaging devices
+#
+CONFIG_USB_MDC800=y
+# CONFIG_USB_MICROTEK is not set
+
+#
+# USB port drivers
+#
+CONFIG_USB_USS720=m
+CONFIG_USB_SERIAL=m
+# CONFIG_USB_SERIAL_GENERIC is not set
+# CONFIG_USB_SERIAL_AIRCABLE is not set
+CONFIG_USB_SERIAL_ARK3116=m
+# CONFIG_USB_SERIAL_BELKIN is not set
+# CONFIG_USB_SERIAL_CH341 is not set
+CONFIG_USB_SERIAL_WHITEHEAT=m
+# CONFIG_USB_SERIAL_DIGI_ACCELEPORT is not set
+# CONFIG_USB_SERIAL_CP210X is not set
+# CONFIG_USB_SERIAL_CYPRESS_M8 is not set
+CONFIG_USB_SERIAL_EMPEG=m
+CONFIG_USB_SERIAL_FTDI_SIO=m
+# CONFIG_USB_SERIAL_FUNSOFT is not set
+# CONFIG_USB_SERIAL_VISOR is not set
+CONFIG_USB_SERIAL_IPAQ=m
+# CONFIG_USB_SERIAL_IR is not set
+# CONFIG_USB_SERIAL_EDGEPORT is not set
+# CONFIG_USB_SERIAL_EDGEPORT_TI is not set
+CONFIG_USB_SERIAL_F81232=m
+CONFIG_USB_SERIAL_GARMIN=m
+CONFIG_USB_SERIAL_IPW=m
+# CONFIG_USB_SERIAL_IUU is not set
+CONFIG_USB_SERIAL_KEYSPAN_PDA=m
+# CONFIG_USB_SERIAL_KEYSPAN is not set
+CONFIG_USB_SERIAL_KLSI=m
+CONFIG_USB_SERIAL_KOBIL_SCT=m
+CONFIG_USB_SERIAL_MCT_U232=m
+CONFIG_USB_SERIAL_METRO=m
+CONFIG_USB_SERIAL_MOS7720=m
+CONFIG_USB_SERIAL_MOS7715_PARPORT=y
+CONFIG_USB_SERIAL_MOS7840=m
+# CONFIG_USB_SERIAL_MOTOROLA is not set
+# CONFIG_USB_SERIAL_NAVMAN is not set
+CONFIG_USB_SERIAL_PL2303=m
+# CONFIG_USB_SERIAL_OTI6858 is not set
+CONFIG_USB_SERIAL_QCAUX=m
+CONFIG_USB_SERIAL_QUALCOMM=m
+CONFIG_USB_SERIAL_SPCP8X5=m
+# CONFIG_USB_SERIAL_HP4X is not set
+# CONFIG_USB_SERIAL_SAFE is not set
+# CONFIG_USB_SERIAL_SIEMENS_MPI is not set
+CONFIG_USB_SERIAL_SIERRAWIRELESS=m
+# CONFIG_USB_SERIAL_SYMBOL is not set
+CONFIG_USB_SERIAL_TI=m
+# CONFIG_USB_SERIAL_CYBERJACK is not set
+# CONFIG_USB_SERIAL_XIRCOM is not set
+CONFIG_USB_SERIAL_WWAN=m
+# CONFIG_USB_SERIAL_OPTION is not set
+# CONFIG_USB_SERIAL_OMNINET is not set
+CONFIG_USB_SERIAL_OPTICON=m
+# CONFIG_USB_SERIAL_VIVOPAY_SERIAL is not set
+# CONFIG_USB_SERIAL_ZIO is not set
+CONFIG_USB_SERIAL_ZTE=m
+CONFIG_USB_SERIAL_SSU100=m
+CONFIG_USB_SERIAL_QT2=m
+# CONFIG_USB_SERIAL_DEBUG is not set
+
+#
+# USB Miscellaneous drivers
+#
+CONFIG_USB_EMI62=m
+CONFIG_USB_EMI26=y
+CONFIG_USB_ADUTUX=m
+# CONFIG_USB_SEVSEG is not set
+# CONFIG_USB_RIO500 is not set
+# CONFIG_USB_LEGOTOWER is not set
+# CONFIG_USB_LCD is not set
+# CONFIG_USB_LED is not set
+CONFIG_USB_CYPRESS_CY7C63=m
+# CONFIG_USB_CYTHERM is not set
+CONFIG_USB_IDMOUSE=y
+CONFIG_USB_FTDI_ELAN=y
+CONFIG_USB_APPLEDISPLAY=m
+# CONFIG_USB_SISUSBVGA is not set
+CONFIG_USB_LD=m
+CONFIG_USB_TRANCEVIBRATOR=m
+CONFIG_USB_IOWARRIOR=m
+# CONFIG_USB_TEST is not set
+CONFIG_USB_ISIGHTFW=y
+# CONFIG_USB_YUREX is not set
+CONFIG_USB_EZUSB_FX2=m
+
+#
+# USB Physical Layer drivers
+#
+CONFIG_USB_ISP1301=m
+# CONFIG_USB_RCAR_PHY is not set
+# CONFIG_USB_ATM is not set
+CONFIG_USB_GADGET=y
+CONFIG_USB_GADGET_DEBUG=y
+# CONFIG_USB_GADGET_DEBUG_FS is not set
+CONFIG_USB_GADGET_VBUS_DRAW=2
+CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+
+#
+# USB Peripheral Controller
+#
+CONFIG_USB_R8A66597=m
+# CONFIG_USB_RENESAS_USBHS_UDC is not set
+CONFIG_USB_MV_UDC=m
+# CONFIG_USB_GADGET_MUSB_HDRC is not set
+CONFIG_USB_M66592=y
+# CONFIG_USB_AMD5536UDC is not set
+CONFIG_USB_NET2272=y
+# CONFIG_USB_NET2272_DMA is not set
+# CONFIG_USB_NET2280 is not set
+# CONFIG_USB_GOKU is not set
+# CONFIG_USB_EG20T is not set
+# CONFIG_USB_DUMMY_HCD is not set
+CONFIG_USB_LIBCOMPOSITE=m
+CONFIG_USB_ZERO=m
+CONFIG_USB_AUDIO=m
+# CONFIG_GADGET_UAC1 is not set
+CONFIG_USB_ETH=m
+CONFIG_USB_ETH_RNDIS=y
+# CONFIG_USB_ETH_EEM is not set
+# CONFIG_USB_G_NCM is not set
+# CONFIG_USB_GADGETFS is not set
+# CONFIG_USB_FUNCTIONFS is not set
+CONFIG_USB_MASS_STORAGE=m
+CONFIG_USB_GADGET_TARGET=m
+# CONFIG_USB_G_SERIAL is not set
+CONFIG_USB_MIDI_GADGET=m
+CONFIG_USB_G_PRINTER=m
+# CONFIG_USB_CDC_COMPOSITE is not set
+CONFIG_USB_G_NOKIA=m
+CONFIG_USB_G_ACM_MS=m
+CONFIG_USB_G_MULTI=m
+# CONFIG_USB_G_MULTI_RNDIS is not set
+CONFIG_USB_G_MULTI_CDC=y
+CONFIG_USB_G_HID=m
+# CONFIG_USB_G_DBGP is not set
+# CONFIG_USB_G_WEBCAM is not set
+
+#
+# OTG and related infrastructure
+#
+CONFIG_USB_OTG_UTILS=y
+CONFIG_NOP_USB_XCEIV=m
+# CONFIG_UWB is not set
+CONFIG_MMC=y
+# CONFIG_MMC_DEBUG is not set
+# CONFIG_MMC_UNSAFE_RESUME is not set
+
+#
+# MMC/SD/SDIO Card Drivers
+#
+CONFIG_MMC_BLOCK=y
+CONFIG_MMC_BLOCK_MINORS=8
+# CONFIG_MMC_BLOCK_BOUNCE is not set
+# CONFIG_SDIO_UART is not set
+# CONFIG_MMC_TEST is not set
+
+#
+# MMC/SD/SDIO Host Controller Drivers
+#
+CONFIG_MMC_SDHCI=y
+# CONFIG_MMC_SDHCI_PCI is not set
+# CONFIG_MMC_SDHCI_ACPI is not set
+CONFIG_MMC_SDHCI_PLTFM=m
+# CONFIG_MMC_CB710 is not set
+# CONFIG_MMC_VIA_SDMMC is not set
+CONFIG_MMC_VUB300=m
+# CONFIG_MMC_USHC is not set
+# CONFIG_MEMSTICK is not set
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=y
+
+#
+# LED drivers
+#
+CONFIG_LEDS_LM3530=m
+CONFIG_LEDS_LM3533=m
+CONFIG_LEDS_LM3642=y
+# CONFIG_LEDS_LP3944 is not set
+CONFIG_LEDS_LP5521=m
+# CONFIG_LEDS_LP5523 is not set
+# CONFIG_LEDS_LP8788 is not set
+CONFIG_LEDS_PCA955X=m
+# CONFIG_LEDS_PCA9633 is not set
+# CONFIG_LEDS_DA903X is not set
+CONFIG_LEDS_REGULATOR=y
+CONFIG_LEDS_BD2802=m
+# CONFIG_LEDS_TCA6507 is not set
+CONFIG_LEDS_LM355x=m
+# CONFIG_LEDS_OT200 is not set
+CONFIG_LEDS_BLINKM=m
+CONFIG_LEDS_TRIGGERS=y
+
+#
+# LED Triggers
+#
+CONFIG_LEDS_TRIGGER_TIMER=y
+CONFIG_LEDS_TRIGGER_ONESHOT=y
+CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+# CONFIG_LEDS_TRIGGER_BACKLIGHT is not set
+# CONFIG_LEDS_TRIGGER_CPU is not set
+CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
+
+#
+# iptables trigger is under Netfilter config (LED target)
+#
+CONFIG_LEDS_TRIGGER_TRANSIENT=m
+# CONFIG_ACCESSIBILITY is not set
+# CONFIG_INFINIBAND is not set
+CONFIG_EDAC=y
+# CONFIG_EDAC_LEGACY_SYSFS is not set
+CONFIG_EDAC_DEBUG=y
+# CONFIG_EDAC_MM_EDAC is not set
+CONFIG_RTC_LIB=y
+CONFIG_RTC_CLASS=y
+# CONFIG_RTC_HCTOSYS is not set
+# CONFIG_RTC_DEBUG is not set
+
+#
+# RTC interfaces
+#
+# CONFIG_RTC_INTF_SYSFS is not set
+# CONFIG_RTC_INTF_DEV is not set
+CONFIG_RTC_DRV_TEST=y
+
+#
+# I2C RTC drivers
+#
+CONFIG_RTC_DRV_DS1307=m
+CONFIG_RTC_DRV_DS1374=y
+CONFIG_RTC_DRV_DS1672=m
+CONFIG_RTC_DRV_DS3232=y
+CONFIG_RTC_DRV_MAX6900=m
+# CONFIG_RTC_DRV_MAX8907 is not set
+CONFIG_RTC_DRV_RS5C372=y
+CONFIG_RTC_DRV_ISL1208=m
+CONFIG_RTC_DRV_ISL12022=y
+CONFIG_RTC_DRV_X1205=m
+CONFIG_RTC_DRV_PCF8523=m
+CONFIG_RTC_DRV_PCF8563=m
+# CONFIG_RTC_DRV_PCF8583 is not set
+CONFIG_RTC_DRV_M41T80=y
+# CONFIG_RTC_DRV_M41T80_WDT is not set
+CONFIG_RTC_DRV_BQ32K=y
+# CONFIG_RTC_DRV_S35390A is not set
+CONFIG_RTC_DRV_FM3130=y
+# CONFIG_RTC_DRV_RX8581 is not set
+# CONFIG_RTC_DRV_RX8025 is not set
+CONFIG_RTC_DRV_EM3027=m
+CONFIG_RTC_DRV_RV3029C2=m
+
+#
+# SPI RTC drivers
+#
+
+#
+# Platform RTC drivers
+#
+CONFIG_RTC_DRV_CMOS=y
+CONFIG_RTC_DRV_DS1286=y
+CONFIG_RTC_DRV_DS1511=y
+CONFIG_RTC_DRV_DS1553=m
+# CONFIG_RTC_DRV_DS1742 is not set
+CONFIG_RTC_DRV_STK17TA8=m
+# CONFIG_RTC_DRV_M48T86 is not set
+# CONFIG_RTC_DRV_M48T35 is not set
+# CONFIG_RTC_DRV_M48T59 is not set
+# CONFIG_RTC_DRV_MSM6242 is not set
+# CONFIG_RTC_DRV_BQ4802 is not set
+CONFIG_RTC_DRV_RP5C01=m
+CONFIG_RTC_DRV_V3020=m
+# CONFIG_RTC_DRV_DS2404 is not set
+# CONFIG_RTC_DRV_PCF50633 is not set
+
+#
+# on-CPU RTC drivers
+#
+CONFIG_DMADEVICES=y
+# CONFIG_DMADEVICES_DEBUG is not set
+
+#
+# DMA Devices
+#
+# CONFIG_INTEL_MID_DMAC is not set
+# CONFIG_INTEL_IOATDMA is not set
+# CONFIG_TIMB_DMA is not set
+# CONFIG_PCH_DMA is not set
+# CONFIG_AUXDISPLAY is not set
+CONFIG_UIO=y
+# CONFIG_UIO_CIF is not set
+# CONFIG_UIO_PDRV is not set
+CONFIG_UIO_PDRV_GENIRQ=y
+# CONFIG_UIO_DMEM_GENIRQ is not set
+# CONFIG_UIO_AEC is not set
+# CONFIG_UIO_SERCOS3 is not set
+# CONFIG_UIO_PCI_GENERIC is not set
+# CONFIG_UIO_NETX is not set
+
+#
+# Virtio drivers
+#
+
+#
+# Microsoft Hyper-V guest support
+#
+# CONFIG_HYPERV is not set
+
+#
+# Xen driver support
+#
+CONFIG_XEN_BALLOON=y
+CONFIG_XEN_BALLOON_MEMORY_HOTPLUG=y
+CONFIG_XEN_SCRUB_PAGES=y
+# CONFIG_XEN_DEV_EVTCHN is not set
+CONFIG_XEN_BACKEND=y
+CONFIG_XENFS=y
+# CONFIG_XEN_COMPAT_XENFS is not set
+CONFIG_XEN_SYS_HYPERVISOR=y
+CONFIG_XEN_XENBUS_FRONTEND=y
+CONFIG_XEN_GNTDEV=m
+CONFIG_XEN_GRANT_DEV_ALLOC=y
+CONFIG_SWIOTLB_XEN=y
+CONFIG_XEN_PCIDEV_BACKEND=m
+CONFIG_XEN_PRIVCMD=y
+CONFIG_XEN_ACPI_PROCESSOR=m
+# CONFIG_XEN_MCE_LOG is not set
+CONFIG_XEN_HAVE_PVMMU=y
+# CONFIG_STAGING is not set
+CONFIG_X86_PLATFORM_DEVICES=y
+# CONFIG_ACERHDF is not set
+# CONFIG_ASUS_LAPTOP is not set
+# CONFIG_FUJITSU_LAPTOP is not set
+# CONFIG_FUJITSU_TABLET is not set
+# CONFIG_AMILO_RFKILL is not set
+# CONFIG_HP_ACCEL is not set
+# CONFIG_MSI_LAPTOP is not set
+# CONFIG_PANASONIC_LAPTOP is not set
+# CONFIG_COMPAL_LAPTOP is not set
+# CONFIG_SONY_LAPTOP is not set
+# CONFIG_IDEAPAD_LAPTOP is not set
+# CONFIG_THINKPAD_ACPI is not set
+CONFIG_SENSORS_HDAPS=y
+# CONFIG_INTEL_MENLOW is not set
+# CONFIG_ACPI_WMI is not set
+# CONFIG_TOPSTAR_LAPTOP is not set
+# CONFIG_TOSHIBA_BT_RFKILL is not set
+# CONFIG_ACPI_CMPC is not set
+# CONFIG_INTEL_IPS is not set
+# CONFIG_IBM_RTL is not set
+# CONFIG_XO15_EBOOK is not set
+CONFIG_SAMSUNG_LAPTOP=m
+# CONFIG_INTEL_OAKTRAIL is not set
+# CONFIG_SAMSUNG_Q10 is not set
+# CONFIG_APPLE_GMUX is not set
+
+#
+# Hardware Spinlock drivers
+#
+CONFIG_CLKEVT_I8253=y
+CONFIG_I8253_LOCK=y
+CONFIG_CLKBLD_I8253=y
+# CONFIG_IOMMU_SUPPORT is not set
+
+#
+# Remoteproc drivers (EXPERIMENTAL)
+#
+
+#
+# Rpmsg drivers (EXPERIMENTAL)
+#
+# CONFIG_VIRT_DRIVERS is not set
+# CONFIG_PM_DEVFREQ is not set
+CONFIG_EXTCON=y
+
+#
+# Extcon Device Drivers
+#
+CONFIG_EXTCON_ADC_JACK=m
+CONFIG_EXTCON_ARIZONA=y
+# CONFIG_MEMORY is not set
+CONFIG_IIO=y
+CONFIG_IIO_BUFFER=y
+CONFIG_IIO_BUFFER_CB=y
+CONFIG_IIO_KFIFO_BUF=y
+CONFIG_IIO_TRIGGERED_BUFFER=y
+CONFIG_IIO_TRIGGER=y
+CONFIG_IIO_CONSUMERS_PER_TRIGGER=2
+
+#
+# Accelerometers
+#
+CONFIG_HID_SENSOR_ACCEL_3D=y
+
+#
+# Analog to digital converters
+#
+# CONFIG_LP8788_ADC is not set
+CONFIG_MAX1363=y
+CONFIG_TI_ADC081C=m
+# CONFIG_TI_AM335X_ADC is not set
+# CONFIG_VIPERBOARD_ADC is not set
+
+#
+# Amplifiers
+#
+
+#
+# Hid Sensor IIO Common
+#
+CONFIG_HID_SENSOR_IIO_COMMON=y
+# CONFIG_HID_SENSOR_ENUM_BASE_QUIRKS is not set
+
+#
+# Digital to analog converters
+#
+# CONFIG_AD5064 is not set
+CONFIG_AD5380=y
+CONFIG_AD5446=m
+CONFIG_MAX517=m
+CONFIG_MCP4725=m
+
+#
+# Frequency Synthesizers DDS/PLL
+#
+
+#
+# Clock Generator/Distribution
+#
+
+#
+# Phase-Locked Loop (PLL) frequency synthesizers
+#
+
+#
+# Digital gyroscope sensors
+#
+CONFIG_HID_SENSOR_GYRO_3D=y
+
+#
+# Inertial measurement units
+#
+
+#
+# Light sensors
+#
+CONFIG_ADJD_S311=y
+CONFIG_SENSORS_LM3533=m
+CONFIG_VCNL4000=y
+CONFIG_HID_SENSOR_ALS=y
+
+#
+# Magnetometer sensors
+#
+CONFIG_HID_SENSOR_MAGNETOMETER_3D=y
+# CONFIG_VME_BUS is not set
+# CONFIG_PWM is not set
+CONFIG_IPACK_BUS=y
+# CONFIG_BOARD_TPCI200 is not set
+CONFIG_SERIAL_IPOCTAL=m
+
+#
+# Firmware Drivers
+#
+CONFIG_EDD=y
+CONFIG_EDD_OFF=y
+CONFIG_FIRMWARE_MEMMAP=y
+CONFIG_DELL_RBU=y
+# CONFIG_DCDBAS is not set
+# CONFIG_ISCSI_IBFT_FIND is not set
+CONFIG_GOOGLE_FIRMWARE=y
+
+#
+# Google Firmware Drivers
+#
+
+#
+# File systems
+#
+CONFIG_DCACHE_WORD_ACCESS=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT2_FS_XATTR=y
+CONFIG_EXT2_FS_POSIX_ACL=y
+# CONFIG_EXT2_FS_SECURITY is not set
+CONFIG_EXT2_FS_XIP=y
+# CONFIG_EXT3_FS is not set
+# CONFIG_EXT4_FS is not set
+CONFIG_FS_XIP=y
+CONFIG_JBD2=m
+# CONFIG_JBD2_DEBUG is not set
+CONFIG_FS_MBCACHE=y
+CONFIG_REISERFS_FS=m
+CONFIG_REISERFS_CHECK=y
+CONFIG_REISERFS_FS_XATTR=y
+CONFIG_REISERFS_FS_POSIX_ACL=y
+CONFIG_REISERFS_FS_SECURITY=y
+CONFIG_JFS_FS=m
+CONFIG_JFS_POSIX_ACL=y
+# CONFIG_JFS_SECURITY is not set
+CONFIG_JFS_DEBUG=y
+CONFIG_JFS_STATISTICS=y
+CONFIG_XFS_FS=m
+CONFIG_XFS_QUOTA=y
+# CONFIG_XFS_POSIX_ACL is not set
+CONFIG_XFS_RT=y
+CONFIG_GFS2_FS=m
+# CONFIG_GFS2_FS_LOCKING_DLM is not set
+CONFIG_OCFS2_FS=m
+CONFIG_OCFS2_FS_O2CB=m
+CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
+CONFIG_OCFS2_FS_STATS=y
+CONFIG_OCFS2_DEBUG_MASKLOG=y
+# CONFIG_OCFS2_DEBUG_FS is not set
+CONFIG_FS_POSIX_ACL=y
+CONFIG_EXPORTFS=m
+# CONFIG_FILE_LOCKING is not set
+CONFIG_FSNOTIFY=y
+# CONFIG_DNOTIFY is not set
+CONFIG_INOTIFY_USER=y
+# CONFIG_FANOTIFY is not set
+CONFIG_QUOTA=y
+CONFIG_QUOTA_NETLINK_INTERFACE=y
+# CONFIG_PRINT_QUOTA_WARNING is not set
+# CONFIG_QUOTA_DEBUG is not set
+CONFIG_QUOTA_TREE=m
+CONFIG_QFMT_V1=y
+CONFIG_QFMT_V2=m
+CONFIG_QUOTACTL=y
+CONFIG_QUOTACTL_COMPAT=y
+# CONFIG_AUTOFS4_FS is not set
+CONFIG_FUSE_FS=y
+CONFIG_CUSE=y
+
+#
+# Caches
+#
+# CONFIG_FSCACHE is not set
+
+#
+# CD-ROM/DVD Filesystems
+#
+CONFIG_ISO9660_FS=m
+# CONFIG_JOLIET is not set
+# CONFIG_ZISOFS is not set
+CONFIG_UDF_FS=y
+CONFIG_UDF_NLS=y
+
+#
+# DOS/FAT/NT Filesystems
+#
+# CONFIG_MSDOS_FS is not set
+# CONFIG_VFAT_FS is not set
+CONFIG_NTFS_FS=m
+CONFIG_NTFS_DEBUG=y
+# CONFIG_NTFS_RW is not set
+
+#
+# Pseudo filesystems
+#
+# CONFIG_PROC_FS is not set
+CONFIG_SYSFS=y
+CONFIG_HUGETLBFS=y
+CONFIG_HUGETLB_PAGE=y
+CONFIG_CONFIGFS_FS=m
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_HFSPLUS_FS=m
+CONFIG_CRAMFS=y
+CONFIG_SQUASHFS=y
+CONFIG_SQUASHFS_XATTR=y
+CONFIG_SQUASHFS_ZLIB=y
+CONFIG_SQUASHFS_LZO=y
+CONFIG_SQUASHFS_XZ=y
+# CONFIG_SQUASHFS_4K_DEVBLK_SIZE is not set
+# CONFIG_SQUASHFS_EMBEDDED is not set
+CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3
+CONFIG_VXFS_FS=m
+CONFIG_MINIX_FS=m
+# CONFIG_OMFS_FS is not set
+CONFIG_HPFS_FS=y
+CONFIG_QNX4FS_FS=m
+# CONFIG_QNX6FS_FS is not set
+CONFIG_ROMFS_FS=y
+CONFIG_ROMFS_BACKED_BY_BLOCK=y
+CONFIG_ROMFS_ON_BLOCK=y
+# CONFIG_PSTORE is not set
+CONFIG_SYSV_FS=y
+# CONFIG_UFS_FS is not set
+CONFIG_F2FS_FS=m
+CONFIG_F2FS_STAT_FS=y
+# CONFIG_F2FS_FS_XATTR is not set
+# CONFIG_NETWORK_FILESYSTEMS is not set
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
+CONFIG_NLS_CODEPAGE_437=m
+CONFIG_NLS_CODEPAGE_737=m
+CONFIG_NLS_CODEPAGE_775=y
+CONFIG_NLS_CODEPAGE_850=y
+CONFIG_NLS_CODEPAGE_852=m
+CONFIG_NLS_CODEPAGE_855=y
+CONFIG_NLS_CODEPAGE_857=y
+CONFIG_NLS_CODEPAGE_860=y
+# CONFIG_NLS_CODEPAGE_861 is not set
+CONFIG_NLS_CODEPAGE_862=m
+CONFIG_NLS_CODEPAGE_863=m
+CONFIG_NLS_CODEPAGE_864=m
+CONFIG_NLS_CODEPAGE_865=y
+CONFIG_NLS_CODEPAGE_866=m
+CONFIG_NLS_CODEPAGE_869=m
+CONFIG_NLS_CODEPAGE_936=m
+CONFIG_NLS_CODEPAGE_950=m
+CONFIG_NLS_CODEPAGE_932=y
+CONFIG_NLS_CODEPAGE_949=y
+# CONFIG_NLS_CODEPAGE_874 is not set
+CONFIG_NLS_ISO8859_8=y
+# CONFIG_NLS_CODEPAGE_1250 is not set
+CONFIG_NLS_CODEPAGE_1251=m
+CONFIG_NLS_ASCII=y
+CONFIG_NLS_ISO8859_1=y
+CONFIG_NLS_ISO8859_2=y
+# CONFIG_NLS_ISO8859_3 is not set
+CONFIG_NLS_ISO8859_4=y
+CONFIG_NLS_ISO8859_5=m
+# CONFIG_NLS_ISO8859_6 is not set
+CONFIG_NLS_ISO8859_7=y
+CONFIG_NLS_ISO8859_9=m
+CONFIG_NLS_ISO8859_13=y
+CONFIG_NLS_ISO8859_14=m
+CONFIG_NLS_ISO8859_15=y
+CONFIG_NLS_KOI8_R=m
+# CONFIG_NLS_KOI8_U is not set
+# CONFIG_NLS_MAC_ROMAN is not set
+# CONFIG_NLS_MAC_CELTIC is not set
+CONFIG_NLS_MAC_CENTEURO=m
+CONFIG_NLS_MAC_CROATIAN=y
+# CONFIG_NLS_MAC_CYRILLIC is not set
+# CONFIG_NLS_MAC_GAELIC is not set
+CONFIG_NLS_MAC_GREEK=m
+CONFIG_NLS_MAC_ICELAND=m
+CONFIG_NLS_MAC_INUIT=y
+CONFIG_NLS_MAC_ROMANIAN=y
+# CONFIG_NLS_MAC_TURKISH is not set
+CONFIG_NLS_UTF8=y
+CONFIG_DLM=m
+CONFIG_DLM_DEBUG=y
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+CONFIG_PRINTK_TIME=y
+CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
+# CONFIG_ENABLE_WARN_DEPRECATED is not set
+CONFIG_ENABLE_MUST_CHECK=y
+CONFIG_FRAME_WARN=2048
+# CONFIG_MAGIC_SYSRQ is not set
+CONFIG_STRIP_ASM_SYMS=y
+CONFIG_READABLE_ASM=y
+# CONFIG_UNUSED_SYMBOLS is not set
+CONFIG_DEBUG_FS=y
+CONFIG_HEADERS_CHECK=y
+# CONFIG_DEBUG_SECTION_MISMATCH is not set
+CONFIG_DEBUG_KERNEL=y
+CONFIG_DEBUG_SHIRQ=y
+# CONFIG_LOCKUP_DETECTOR is not set
+# CONFIG_PANIC_ON_OOPS is not set
+CONFIG_PANIC_ON_OOPS_VALUE=0
+CONFIG_DETECT_HUNG_TASK=y
+CONFIG_DEFAULT_HUNG_TASK_TIMEOUT=120
+CONFIG_BOOTPARAM_HUNG_TASK_PANIC=y
+CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=1
+# CONFIG_DEBUG_OBJECTS is not set
+CONFIG_DEBUG_SLAB=y
+# CONFIG_DEBUG_SLAB_LEAK is not set
+CONFIG_HAVE_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_PREEMPT=y
+# CONFIG_DEBUG_RT_MUTEXES is not set
+# CONFIG_RT_MUTEX_TESTER is not set
+CONFIG_DEBUG_SPINLOCK=y
+CONFIG_DEBUG_MUTEXES=y
+CONFIG_DEBUG_LOCK_ALLOC=y
+CONFIG_PROVE_LOCKING=y
+# CONFIG_PROVE_RCU is not set
+# CONFIG_PROVE_RCU_DELAY is not set
+CONFIG_SPARSE_RCU_POINTER=y
+CONFIG_LOCKDEP=y
+CONFIG_LOCK_STAT=y
+# CONFIG_DEBUG_LOCKDEP is not set
+CONFIG_TRACE_IRQFLAGS=y
+CONFIG_DEBUG_ATOMIC_SLEEP=y
+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+CONFIG_STACKTRACE=y
+CONFIG_DEBUG_STACK_USAGE=y
+# CONFIG_DEBUG_KOBJECT is not set
+CONFIG_DEBUG_BUGVERBOSE=y
+# CONFIG_DEBUG_INFO is not set
+# CONFIG_DEBUG_VM is not set
+# CONFIG_DEBUG_VIRTUAL is not set
+# CONFIG_DEBUG_WRITECOUNT is not set
+# CONFIG_DEBUG_MEMORY_INIT is not set
+CONFIG_DEBUG_LIST=y
+# CONFIG_TEST_LIST_SORT is not set
+CONFIG_DEBUG_SG=y
+# CONFIG_DEBUG_NOTIFIERS is not set
+# CONFIG_DEBUG_CREDENTIALS is not set
+CONFIG_ARCH_WANT_FRAME_POINTERS=y
+CONFIG_FRAME_POINTER=y
+# CONFIG_BOOT_PRINTK_DELAY is not set
+# CONFIG_RCU_TORTURE_TEST is not set
+CONFIG_RCU_CPU_STALL_TIMEOUT=21
+# CONFIG_RCU_CPU_STALL_VERBOSE is not set
+CONFIG_RCU_CPU_STALL_INFO=y
+CONFIG_RCU_TRACE=y
+# CONFIG_BACKTRACE_SELF_TEST is not set
+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
+# CONFIG_DEBUG_FORCE_WEAK_PER_CPU is not set
+CONFIG_DEBUG_PER_CPU_MAPS=y
+CONFIG_LKDTM=m
+CONFIG_NOTIFIER_ERROR_INJECTION=y
+CONFIG_CPU_NOTIFIER_ERROR_INJECT=m
+# CONFIG_PM_NOTIFIER_ERROR_INJECT is not set
+CONFIG_MEMORY_NOTIFIER_ERROR_INJECT=y
+# CONFIG_FAULT_INJECTION is not set
+# CONFIG_DEBUG_PAGEALLOC is not set
+CONFIG_USER_STACKTRACE_SUPPORT=y
+CONFIG_NOP_TRACER=y
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
+CONFIG_HAVE_FUNCTION_TRACE_MCOUNT_TEST=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_HAVE_FTRACE_MCOUNT_RECORD=y
+CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+CONFIG_HAVE_FENTRY=y
+CONFIG_HAVE_C_RECORDMCOUNT=y
+CONFIG_TRACER_MAX_TRACE=y
+CONFIG_TRACE_CLOCK=y
+CONFIG_RING_BUFFER=y
+CONFIG_EVENT_TRACING=y
+CONFIG_EVENT_POWER_TRACING_DEPRECATED=y
+CONFIG_CONTEXT_SWITCH_TRACER=y
+CONFIG_RING_BUFFER_ALLOW_SWAP=y
+CONFIG_TRACING=y
+CONFIG_GENERIC_TRACER=y
+CONFIG_TRACING_SUPPORT=y
+CONFIG_FTRACE=y
+CONFIG_FUNCTION_TRACER=y
+# CONFIG_FUNCTION_GRAPH_TRACER is not set
+CONFIG_IRQSOFF_TRACER=y
+CONFIG_PREEMPT_TRACER=y
+# CONFIG_SCHED_TRACER is not set
+CONFIG_FTRACE_SYSCALLS=y
+CONFIG_TRACE_BRANCH_PROFILING=y
+# CONFIG_BRANCH_PROFILE_NONE is not set
+# CONFIG_PROFILE_ANNOTATED_BRANCHES is not set
+CONFIG_PROFILE_ALL_BRANCHES=y
+CONFIG_TRACING_BRANCHES=y
+CONFIG_BRANCH_TRACER=y
+CONFIG_STACK_TRACER=y
+CONFIG_BLK_DEV_IO_TRACE=y
+# CONFIG_UPROBE_EVENT is not set
+# CONFIG_PROBE_EVENTS is not set
+CONFIG_DYNAMIC_FTRACE=y
+# CONFIG_FUNCTION_PROFILER is not set
+CONFIG_FTRACE_MCOUNT_RECORD=y
+CONFIG_FTRACE_SELFTEST=y
+CONFIG_FTRACE_STARTUP_TEST=y
+CONFIG_EVENT_TRACE_TEST_SYSCALLS=y
+# CONFIG_MMIOTRACE is not set
+CONFIG_RING_BUFFER_BENCHMARK=m
+# CONFIG_RBTREE_TEST is not set
+# CONFIG_INTERVAL_TREE_TEST is not set
+# CONFIG_PROVIDE_OHCI1394_DMA_INIT is not set
+# CONFIG_BUILD_DOCSRC is not set
+# CONFIG_DYNAMIC_DEBUG is not set
+# CONFIG_DMA_API_DEBUG is not set
+# CONFIG_ATOMIC64_SELFTEST is not set
+CONFIG_ASYNC_RAID6_TEST=m
+# CONFIG_SAMPLES is not set
+CONFIG_HAVE_ARCH_KGDB=y
+CONFIG_HAVE_ARCH_KMEMCHECK=y
+CONFIG_TEST_KSTRTOX=y
+CONFIG_STRICT_DEVMEM=y
+CONFIG_X86_VERBOSE_BOOTUP=y
+CONFIG_EARLY_PRINTK=y
+# CONFIG_EARLY_PRINTK_DBGP is not set
+CONFIG_DEBUG_STACKOVERFLOW=y
+# CONFIG_X86_PTDUMP is not set
+# CONFIG_DEBUG_RODATA is not set
+CONFIG_DEBUG_SET_MODULE_RONX=y
+# CONFIG_DEBUG_NX_TEST is not set
+CONFIG_DEBUG_TLBFLUSH=y
+# CONFIG_IOMMU_STRESS is not set
+CONFIG_HAVE_MMIOTRACE_SUPPORT=y
+CONFIG_IO_DELAY_TYPE_0X80=0
+CONFIG_IO_DELAY_TYPE_0XED=1
+CONFIG_IO_DELAY_TYPE_UDELAY=2
+CONFIG_IO_DELAY_TYPE_NONE=3
+# CONFIG_IO_DELAY_0X80 is not set
+# CONFIG_IO_DELAY_0XED is not set
+CONFIG_IO_DELAY_UDELAY=y
+# CONFIG_IO_DELAY_NONE is not set
+CONFIG_DEFAULT_IO_DELAY_TYPE=2
+CONFIG_DEBUG_BOOT_PARAMS=y
+# CONFIG_CPA_DEBUG is not set
+CONFIG_OPTIMIZE_INLINING=y
+CONFIG_DEBUG_NMI_SELFTEST=y
+
+#
+# Security options
+#
+CONFIG_KEYS=y
+CONFIG_ENCRYPTED_KEYS=m
+CONFIG_KEYS_DEBUG_PROC_KEYS=y
+CONFIG_SECURITY_DMESG_RESTRICT=y
+CONFIG_SECURITY=y
+CONFIG_SECURITYFS=y
+CONFIG_SECURITY_NETWORK=y
+# CONFIG_SECURITY_NETWORK_XFRM is not set
+CONFIG_SECURITY_PATH=y
+# CONFIG_SECURITY_SMACK is not set
+# CONFIG_SECURITY_TOMOYO is not set
+# CONFIG_SECURITY_APPARMOR is not set
+# CONFIG_SECURITY_YAMA is not set
+# CONFIG_IMA is not set
+# CONFIG_EVM is not set
+CONFIG_DEFAULT_SECURITY_DAC=y
+CONFIG_DEFAULT_SECURITY=""
+CONFIG_XOR_BLOCKS=m
+CONFIG_ASYNC_CORE=m
+CONFIG_ASYNC_MEMCPY=m
+CONFIG_ASYNC_XOR=m
+CONFIG_ASYNC_PQ=m
+CONFIG_ASYNC_RAID6_RECOV=m
+CONFIG_CRYPTO=y
+
+#
+# Crypto core or helper
+#
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_ALGAPI2=y
+CONFIG_CRYPTO_AEAD=y
+CONFIG_CRYPTO_AEAD2=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_BLKCIPHER2=y
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_HASH2=y
+CONFIG_CRYPTO_RNG=y
+CONFIG_CRYPTO_RNG2=y
+CONFIG_CRYPTO_PCOMP=m
+CONFIG_CRYPTO_PCOMP2=y
+CONFIG_CRYPTO_MANAGER=y
+CONFIG_CRYPTO_MANAGER2=y
+CONFIG_CRYPTO_USER=y
+CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
+CONFIG_CRYPTO_GF128MUL=y
+CONFIG_CRYPTO_NULL=y
+CONFIG_CRYPTO_WORKQUEUE=y
+CONFIG_CRYPTO_CRYPTD=y
+CONFIG_CRYPTO_AUTHENC=y
+# CONFIG_CRYPTO_TEST is not set
+CONFIG_CRYPTO_ABLK_HELPER_X86=y
+CONFIG_CRYPTO_GLUE_HELPER_X86=y
+
+#
+# Authenticated Encryption with Associated Data
+#
+CONFIG_CRYPTO_CCM=y
+CONFIG_CRYPTO_GCM=y
+CONFIG_CRYPTO_SEQIV=y
+
+#
+# Block modes
+#
+CONFIG_CRYPTO_CBC=m
+CONFIG_CRYPTO_CTR=y
+CONFIG_CRYPTO_CTS=y
+CONFIG_CRYPTO_ECB=m
+CONFIG_CRYPTO_LRW=y
+CONFIG_CRYPTO_PCBC=y
+CONFIG_CRYPTO_XTS=y
+
+#
+# Hash modes
+#
+CONFIG_CRYPTO_HMAC=y
+
+#
+# Digest
+#
+CONFIG_CRYPTO_CRC32C=y
+CONFIG_CRYPTO_CRC32C_X86_64=y
+CONFIG_CRYPTO_CRC32C_INTEL=m
+CONFIG_CRYPTO_GHASH=y
+CONFIG_CRYPTO_MD4=y
+CONFIG_CRYPTO_MD5=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+# CONFIG_CRYPTO_RMD128 is not set
+CONFIG_CRYPTO_RMD160=m
+CONFIG_CRYPTO_RMD256=m
+CONFIG_CRYPTO_RMD320=y
+CONFIG_CRYPTO_SHA1=y
+CONFIG_CRYPTO_SHA1_SSSE3=m
+CONFIG_CRYPTO_SHA256=m
+# CONFIG_CRYPTO_SHA512 is not set
+CONFIG_CRYPTO_TGR192=m
+# CONFIG_CRYPTO_WP512 is not set
+# CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL is not set
+
+#
+# Ciphers
+#
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_X86_64=y
+CONFIG_CRYPTO_AES_NI_INTEL=y
+CONFIG_CRYPTO_ANUBIS=y
+CONFIG_CRYPTO_ARC4=y
+# CONFIG_CRYPTO_BLOWFISH is not set
+# CONFIG_CRYPTO_BLOWFISH_X86_64 is not set
+# CONFIG_CRYPTO_CAMELLIA is not set
+CONFIG_CRYPTO_CAMELLIA_X86_64=y
+CONFIG_CRYPTO_CAMELLIA_AESNI_AVX_X86_64=y
+CONFIG_CRYPTO_CAST_COMMON=y
+CONFIG_CRYPTO_CAST5=y
+CONFIG_CRYPTO_CAST5_AVX_X86_64=m
+CONFIG_CRYPTO_CAST6=m
+CONFIG_CRYPTO_CAST6_AVX_X86_64=m
+CONFIG_CRYPTO_DES=m
+# CONFIG_CRYPTO_FCRYPT is not set
+# CONFIG_CRYPTO_KHAZAD is not set
+# CONFIG_CRYPTO_SEED is not set
+CONFIG_CRYPTO_SERPENT=y
+# CONFIG_CRYPTO_SERPENT_SSE2_X86_64 is not set
+CONFIG_CRYPTO_SERPENT_AVX_X86_64=y
+CONFIG_CRYPTO_TEA=m
+# CONFIG_CRYPTO_TWOFISH is not set
+CONFIG_CRYPTO_TWOFISH_COMMON=m
+CONFIG_CRYPTO_TWOFISH_X86_64=m
+# CONFIG_CRYPTO_TWOFISH_X86_64_3WAY is not set
+# CONFIG_CRYPTO_TWOFISH_AVX_X86_64 is not set
+
+#
+# Compression
+#
+CONFIG_CRYPTO_DEFLATE=y
+CONFIG_CRYPTO_ZLIB=m
+CONFIG_CRYPTO_LZO=m
+
+#
+# Random Number Generation
+#
+CONFIG_CRYPTO_ANSI_CPRNG=y
+CONFIG_CRYPTO_USER_API=y
+CONFIG_CRYPTO_USER_API_HASH=y
+# CONFIG_CRYPTO_USER_API_SKCIPHER is not set
+# CONFIG_CRYPTO_HW is not set
+CONFIG_ASYMMETRIC_KEY_TYPE=y
+CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
+CONFIG_PUBLIC_KEY_ALGO_RSA=y
+CONFIG_X509_CERTIFICATE_PARSER=y
+CONFIG_HAVE_KVM=y
+CONFIG_VIRTUALIZATION=y
+CONFIG_BINARY_PRINTF=y
+
+#
+# Library routines
+#
+CONFIG_RAID6_PQ=m
+CONFIG_BITREVERSE=y
+CONFIG_GENERIC_STRNCPY_FROM_USER=y
+CONFIG_GENERIC_STRNLEN_USER=y
+CONFIG_GENERIC_FIND_FIRST_BIT=y
+CONFIG_GENERIC_PCI_IOMAP=y
+CONFIG_GENERIC_IOMAP=y
+CONFIG_GENERIC_IO=y
+CONFIG_PERCPU_RWSEM=y
+CONFIG_CRC_CCITT=y
+CONFIG_CRC16=y
+CONFIG_CRC_T10DIF=m
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC32=y
+CONFIG_CRC32_SELFTEST=y
+# CONFIG_CRC32_SLICEBY8 is not set
+# CONFIG_CRC32_SLICEBY4 is not set
+# CONFIG_CRC32_SARWATE is not set
+CONFIG_CRC32_BIT=y
+CONFIG_CRC7=m
+CONFIG_LIBCRC32C=y
+CONFIG_CRC8=y
+CONFIG_ZLIB_INFLATE=y
+CONFIG_ZLIB_DEFLATE=y
+CONFIG_LZO_COMPRESS=y
+CONFIG_LZO_DECOMPRESS=y
+CONFIG_XZ_DEC=y
+CONFIG_XZ_DEC_X86=y
+# CONFIG_XZ_DEC_POWERPC is not set
+CONFIG_XZ_DEC_IA64=y
+CONFIG_XZ_DEC_ARM=y
+CONFIG_XZ_DEC_ARMTHUMB=y
+# CONFIG_XZ_DEC_SPARC is not set
+CONFIG_XZ_DEC_BCJ=y
+CONFIG_XZ_DEC_TEST=m
+CONFIG_DECOMPRESS_GZIP=y
+CONFIG_TEXTSEARCH=y
+CONFIG_TEXTSEARCH_KMP=m
+CONFIG_TEXTSEARCH_BM=m
+CONFIG_TEXTSEARCH_FSM=m
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+CONFIG_CHECK_SIGNATURE=y
+CONFIG_CPUMASK_OFFSTACK=y
+CONFIG_CPU_RMAP=y
+CONFIG_DQL=y
+CONFIG_NLATTR=y
+CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE=y
+CONFIG_AVERAGE=y
+CONFIG_CLZ_TAB=y
+CONFIG_CORDIC=m
+CONFIG_DDR=y
+CONFIG_MPILIB=y
+CONFIG_OID_REGISTRY=y
+
+--=_541d5bcf.D/LoKwg9o6krD0eyM04+MvUAC7U+RnfyvWedlCpSHkkX0k5D--
