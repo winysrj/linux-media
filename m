@@ -1,59 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sg1bn0103.outbound.protection.outlook.com ([134.170.132.103]:42297
-	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751735AbaITJ03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 05:26:29 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>, James Harper <james@maxsum.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: buffer delivery stops with cx23885
-Date: Sat, 20 Sep 2014 09:26:23 +0000
-Message-ID: <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
- <541D469B.4000306@xs4all.nl>
-In-Reply-To: <541D469B.4000306@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2625 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753183AbaITLPr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 07:15:47 -0400
+Message-ID: <541D61D7.3080202@xs4all.nl>
+Date: Sat, 20 Sep 2014 13:15:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
+To: James Harper <james@ejbdigital.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: buffer delivery stops with cx23885
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com> <541D469B.4000306@xs4all.nl> <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5220.4050107@xs4all.nl> <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5CD0.1000207@xs4all.nl> <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+In-Reply-To: <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiANCj4gT24gMDkvMjAvMjAxNCAwNTozMiBBTSwgSmFtZXMgSGFycGVyIHdyb3RlOg0KPiA+DQo+
-ID4gTXkgY3gyMzg4NSBiYXNlZCBEVmlDTyBGdXNpb25IRFRWIERWQi1UIER1YWwgRXhwcmVzczIg
-KEkgc3VibWl0dGVkIGENCj4gPiBwYXRjaCBmb3IgdGhpcyBhIGxpdHRsZSB3aGlsZSBhZ28pIGhh
-cyBiZWVuIHdvcmtpbmcgZ3JlYXQgYnV0IG92ZXINCj4gPiB0aGUgbGFzdCBmZXcgbW9udGhzIGl0
-IGhhcyBzdGFydGVkIHBsYXlpbmcgdXAuIE5vdGhpbmcgaGFzIHJlYWxseQ0KPiA+IGNoYW5nZWQg
-dGhhdCBJIGNhbiBwdXQgbXkgZmluZ2VyIG9uLiBCYXNpY2FsbHkgbXl0aHR2IHN0b3BzIHJlY29y
-ZGluZw0KPiA+IGFmdGVyIGEgZmV3IG1pbnV0ZXMgc29tZXRpbWVzLiBSYXJlbHkgd2hlbiB0aGlz
-IGhhcHBlbnMgSSBzZWUgc29tZQ0KPiA+IGkyYyBlcnJvcnMgYnV0IG1vc3RseSBub3QuDQo+ID4N
-Cj4gPiBXaXRoIGN4MjM4ODUgZGVidWcgb3B0aW9ucyB0dXJuZWQgb24gKGRlYnVnPTkgdmJpX2Rl
-YnVnPTkNCj4gdjRsX2RlYnVnPTkNCj4gPiB2aWRlb19kZWJ1Zz05IGlycV9kZWJ1Zz05IGNpX2Ri
-Zz05KSBpdCBzZWVtcyBsaWtlIHRoZSBjYXJkIGp1c3Qgc3RvcHMNCj4gPiBkZWxpdmVyaW5nIGJ1
-ZmZlcnMgKHNlZSBkbWVzZyBvdXRwdXQgZm9sbG93aW5nKS4gSWYgSSBzdG9wIG15dGh0diwNCj4g
-PiBhbGwgdGhlIGJ1ZmZlcnMgYXJlIGNhbmNlbGxlZCAoY3gyMzg4NV9zdG9wX2RtYSgpKSBldGMs
-IGFuZCB0aGVuDQo+ID4gcmVzdGFydGluZyBteXRodHYgd2lsbCBnZXQgdGhlIHJlY29yZGluZyBn
-b2luZyBhZ2FpbiwgZm9yIGEgc2hvcnQNCj4gPiB0aW1lIChtaW51dGVzKS4NCj4gPg0KPiA+IEFu
-eSBzdWdnZXN0aW9ucyB0byB3aGVyZSBJIGNvdWxkIHN0YXJ0IGxvb2tpbmc/IElzIGl0IHBvc3Np
-YmxlIHRoYXQNCj4gPiBteSBjYXJkIGl0c2VsZiBpcyBicm9rZW4/IChhcGFydCBmcm9tIHRoaXMg
-aXQncyBmbGF3bGVzcykuDQo+IA0KPiBJIHNlZSBub3RoaW5nIHdyb25nIGluIHRoZSBsb2csIGJ1
-dCB5b3UgY2FuIHRyeSB0byB1c2UgdGhlIGN1cnJlbnQgbWVkaWFfdHJlZQ0KPiBjb2RlLiBUaGUg
-Y3gyMzg4NSdzIERNQSBlbmdpbmUgaGFzIGVmZmVjdGl2ZWx5IGJlZW4gcmV3cml0dGVuIHRoZXJl
-LA0KPiBzaW1wbGlmeWluZw0KPiB0aGUgY29udHJvbCBmbG93Lg0KPiANCg0KT29wcyBJIHNob3Vs
-ZCBoYXZlIG1lbnRpb25lZCB0aGF0LiBJJ20gdXNpbmcgRGViaWFuICJKZXNzaWUiIHdpdGggMy4x
-NiBrZXJuZWwgYW5kIGFscmVhZHkgdXNpbmcgdGhlIGxhdGVzdCB2NGwgYXMgcGVyIGxpbmsgeW91
-IHNlbnQgKG15ICBEVmlDTyBGdXNpb25IRFRWIERWQi1UIER1YWwgRXhwcmVzczIgcGF0Y2ggaXMg
-aW4gMy4xNyBJIHRoaW5rLCBidXQgdGhhdCdzIG5vdCBpbiBEZWJpYW4geWV0KS4NCg0KSSB0aGlu
-ayBpdCBvbmx5IGJyb2tlIHNpbmNlIHRoZSByZXdyaXRlLiBCZWZvcmUgdGhhdCBpdCBzZWVtZWQg
-dG8gYmUgYnVsbGV0cHJvb2YuIFRoYXQgd2FzIHdoeSBJIGFza2VkIGFib3V0IHRoZSBwYXRjaCBq
-dXN0IGJlZm9yZSAtIEkgY2FuJ3QgdGVsbCB5ZXQgaWYgdGhlIGRyaXZlciBzdG9wcyBzdXBwbHlp
-bmcgZGF0YSBvciBpZiBteXRodHYgc3RvcHMgYXNraW5nIGZvciBkYXRhLiBJZiB0aGVyZSB3YXMg
-c29tZXRoaW5nIGZ1bm55IGFib3V0IHRoZSBwb2xsIGxvb3AgdGhlbiB0aGF0IGNvdWxkIGNhdXNl
-IGl0LiBJIHN1cHBvc2UgSSBjYW4gdHJ5IGFuZCBnbyBiYWNrIHRvIGFuIG9sZGVyIHZlcnNpb24g
-b2YgdGhlIGNvZGUgYW5kIHNlZSB3aGF0IGhhcHBlbnM/DQoNCldvdWxkIHRoZSBidWcgZml4ZWQg
-YnkgeW91ciAiZml4IFZCSS9wb2xsIHJlZ3Jlc3Npb24iIHBhdGNoIGNhdXNlIGludGVybWl0dGVu
-dCBzdGFsbHMsIG9yIHdvdWxkIHRoZSBhcHBsaWNhdGlvbiB0aGF0IHJlbGllZCBvbiB0aGUgbWlz
-c2luZyBiZWhhdmlvdXIgc2ltcGx5IG5vdCB3b3JrIGF0IGFsbD8NCg0KSW4gYW55IGNhc2UgSSd2
-ZSBqdXN0IGFwcGxpZWQgdGhlIHBhdGNoIGFuZCBhYm91dCB0byByZWJvb3QuDQoNClRoYW5rcw0K
-DQpKYW1lcw0KDQo=
+On 09/20/2014 01:05 PM, James Harper wrote:
+>>> I was looking through the patches and saw a date of August 14 on the
+>>> cx23885 to vb2 patch and thought that could have been around when it
+>>> started breaking, but then the
+>>> 73d8102298719863d54264f62521362487f84256 is dated September 3 and I'm
+>>> pretty sure it had started playing up before then. About what date
+>>> would I have seen the 453afdd9ce33293f640e84dc17e5f366701516e8
+>>> "cx23885: convert to vb2" patch?
+>>
+>> That patch was merged in the master branch September 8.
+>>
+>> If you've seen it earlier, then it may not be related to vb2 after all.
+>>
+> 
+> I'd say not.
+> 
+>> If it is polling related, then it might be commit
+>> 9241650d62f79a3da01f1d5e8ebd195083330b75
+>> (Don't return POLLERR during transient buffer underruns) which was added
+>> to
+>> the master branch on July 17th and was merged for 3.17. Or it could be
+>> something entirely different.
+>>
+>> You could try reverting that commit and see if that helps.
+> 
+> That sounds plausible wrt timeframe, but if cx23885 only started using vb2 after Sept 8 then it couldn't have affected me before then right?
+
+You are right about that. You are using DVB right? Not analog video? (Just to
+be 100% certain).
+
+> 
+>>> In any case it should be easy enough to revert and build so I'll do
+>>> that tomorrow once I can prove it still fails with the current
+>>> regression patch applied.
+>>
+>> Which patch are you using? There have been several versions posted. This
+>> is the one you should use:
+>>
+>> https://patchwork.linuxtv.org/patch/25992/
+>>
+> 
+> That's the one I applied - you can even see my questions below in that link :) Based on what you have said I think that's not going to solve anything for me though.
+
+If you are streaming DVB, then that patch has no effect since the vb2_poll call will
+never be called for DVB anyway, so that can be ruled out.
+
+> 
+> So I guess my plan is:
+> . Revert to 73d8102298719863d54264f62521362487f84256 and test (not likely to fix but easy to test)
+
+And important for me, because if it IS related to the vb2 conversion then I need to know asap.
+
+My own streaming test is still running strong (not using MythTV BTW).
+
+> . Revert to sometime around June when I submitted my patch for Fusion Dual Express 2 driver when I know it was reliable and test
+> 
+> Other possibilities are:
+> . MythTV bug
+> . Defective card
+> 
+> Time to google a command line dvb stream to rule out mythtv I guess...
+
+Regards,
+
+	Hans
+
