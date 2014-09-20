@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64877 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990AbaIZFA1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 01:00:27 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCH0064OSKKQ0E0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Sep 2014 14:00:20 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com, kiran@chromium.org
-Subject: [PATCH v2 12/14] [media] s5p-mfc: fix V4L2_CID_MIN_BUFFERS_FOR_CAPTURE
- on resolution change.
-Date: Fri, 26 Sep 2014 10:22:20 +0530
-Message-id: <1411707142-4881-13-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34611 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750903AbaITLSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 07:18:17 -0400
+Message-ID: <541D626F.9090107@iki.fi>
+Date: Sat, 20 Sep 2014 14:18:07 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Luca Olivetti <luca@ventoso.org>,
+	=?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Fengguang Wu <fengguang.wu@intel.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
+	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
+	LKP <lkp@01.org>, linux-kernel@vger.kernel.org
+Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
+ (WAS: [media/em28xx] BUG: unable to handle kernel)
+References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com> <541C8A26.6050207@ventoso.org>
+In-Reply-To: <541C8A26.6050207@ventoso.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Moikka!
 
-G_CTRL on V4L2_CID_MIN_BUFFERS_FOR_CAPTURE will fail if userspace happens to
-query it after getting a resolution change event and before the codec has
-a chance to parse the header and switch to an initialized state.
+On 09/19/2014 10:55 PM, Luca Olivetti wrote:
+> El 19/09/14 21:22, Frank Schäfer ha escrit:
+>
+>>>
+>>> So symbol_request() returns pointers.!= NULL
+>>>
+>>> A closer look at the definition of symbol_request() shows, that it does
+>>> nothing if CONFIG_MODULES is disabled (it just returns its argument).
+>>>
+>>>
+>>> One possibility to fix this bug would be to embrace these three lines with
+>>>
+>>> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
+>>> ...
+>>> #endif
+>> Luca, what do you think ?
+>>
+>> This seems to be an ancient bug, which is known at least since 5 1/2 years:
+>> https://lkml.org/lkml/2009/2/4/350
+>
+> Well, it's been a while so I don't remember the details, but I think the
+> same now as then ;-)
+> The idea behind CONFIG_DVB_USB_AF9005_REMOTE was to provide an
+> alternative implementation (based on lirc, at the time it wasn't in the
+> kernel), since this adapter doesn't decode the IR pulses by itself.
+> In theory you could leave it undefined but still provide an
+> implementation in a different module. Just adding
+>
+> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
+>
+> would nuke the (futile?) effort.
+>
+> Now, since the problem seems to be with CONFIG_MODULES disabled, maybe
+> you could combine both conditions
+>
+> #if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Proper fix is to remove whole home made IR decider and use common IR 
+decoders in kernel nowadays... And yes, that is very old driver and at 
+the time Luca made it there was no IR decoders nor whole remote 
+controller framework.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index fe4d21c..301d74f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -756,7 +756,8 @@ static int s5p_mfc_dec_g_v_ctrl(struct v4l2_ctrl *ctrl)
- 		    ctx->state < MFCINST_ABORT) {
- 			ctrl->val = ctx->pb_count;
- 			break;
--		} else if (ctx->state != MFCINST_INIT) {
-+		} else if (ctx->state != MFCINST_INIT &&
-+				ctx->state != MFCINST_RES_CHANGE_END) {
- 			v4l2_err(&dev->v4l2_dev, "Decoding not initialised\n");
- 			return -EINVAL;
- 		}
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
