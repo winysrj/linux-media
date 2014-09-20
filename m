@@ -1,103 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43059 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198AbaIYO61 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 10:58:27 -0400
-Message-ID: <54242D8D.8080401@iki.fi>
-Date: Thu, 25 Sep 2014 17:58:21 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 02/12] cx231xx: use own i2c_client for eeprom access
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-2-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-2-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1370 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126AbaITKgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:36:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: matrandg@cisco.com, marbugge@cisco.com
+Subject: [PATCHv2 0/2] adv7604/7842 timing fixes
+Date: Sat, 20 Sep 2014 12:36:37 +0200
+Message-Id: <1411209399-24478-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+This patch series supercedes https://patchwork.linuxtv.org/patch/25954/.
+After working on it a bit more I realized that that patch didn't really
+address the core issues.
 
-Please add commit description (why and how).
+Besides the il_vbackporch typo there was a too strict check in
+v4l2_valid_dv_timings() where it checked for compatible standards. But
+that only works if both sides have filled in that field, otherwise it
+should just accept it. When detecting timings you often do not know which
+standard it is so the driver will just set it to 0.
 
-Some notes for further development:
-It sends single messages, so you could (or even should) use 
-i2c_master_send/i2c_master_recv (i2c_transfer is aimed for sending 
-multiple messages using REPEATED START condition).
+The other issue was that adv7842 never zeroed the timings struct, leaving
+several fields undefined, again breaking v4l2_valid_dv_timings().
 
-I am not sure though if these eeprom chips uses REPEATED START condition 
-for reads (means it could be broken even now).
+Regards,
 
-regards
-Antti
+	Hans
 
-On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
->   1 file changed, 13 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 791f00c..092fb85 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
->
->   }
->
-> -static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
-> +static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
-> +		       u8 *eedata, int len)
->   {
->   	int ret = 0;
-> -	u8 addr = 0xa0 >> 1;
->   	u8 start_offset = 0;
->   	int len_todo = len;
->   	u8 *eedata_cur = eedata;
->   	int i;
-> -	struct i2c_msg msg_write = { .addr = addr, .flags = 0,
-> +	struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
->   		.buf = &start_offset, .len = 1 };
-> -	struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
-> -
-> -	/* mutex_lock(&dev->i2c_lock); */
-> -	cx231xx_enable_i2c_port_3(dev, false);
-> +	struct i2c_msg msg_read = { .addr = client->addr, .flags = I2C_M_RD };
->
->   	/* start reading at offset 0 */
-> -	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
-> +	ret = i2c_transfer(client->adapter, &msg_write, 1);
->   	if (ret < 0) {
->   		cx231xx_err("Can't read eeprom\n");
->   		return ret;
-> @@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
->   		msg_read.len = (len_todo > 64) ? 64 : len_todo;
->   		msg_read.buf = eedata_cur;
->
-> -		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
-> +		ret = i2c_transfer(client->adapter, &msg_read, 1);
->   		if (ret < 0) {
->   			cx231xx_err("Can't read eeprom\n");
->   			return ret;
-> @@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
->   		{
->   			struct tveeprom tvee;
->   			static u8 eeprom[256];
-> +			struct i2c_client client;
-> +
-> +			memset(&client, 0, sizeof(client));
-> +			client.adapter = &dev->i2c_bus[1].i2c_adap;
-> +			client.addr = 0xa0 >> 1;
->
-> -			read_eeprom(dev, eeprom, sizeof(eeprom));
-> -			tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
-> +			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-> +			tveeprom_hauppauge_analog(&client,
->   						&tvee, eeprom + 0xc0);
->   			break;
->   		}
->
-
--- 
-http://palosaari.fi/
