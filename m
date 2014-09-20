@@ -1,69 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:45333 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301AbaIFQcI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 12:32:08 -0400
-Received: by mail-wg0-f49.google.com with SMTP id y10so13170535wgg.32
-        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 09:32:06 -0700 (PDT)
-Message-ID: <540B36FA.9010305@gmail.com>
-Date: Sat, 06 Sep 2014 17:31:54 +0100
-From: Malcolm Priestley <tvboxspy@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:36903 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751326AbaITKEQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:04:16 -0400
+Date: Sat, 20 Sep 2014 07:04:12 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: James Harper <james@ejbdigital.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
+Message-ID: <20140920070412.6486a728@recife.lan>
+In-Reply-To: <541D4568.2020605@xs4all.nl>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+	<1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+	<fc1bd2008429476abaf3e3fab719fe52@SIXPR04MB304.apcprd04.prod.outlook.com>
+	<541D4568.2020605@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-CC: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
- for APIv5
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
-In-Reply-To: <540B3551.9060003@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/09/14 17:24, Malcolm Priestley wrote:
-> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
->> Em Sat, 06 Sep 2014 05:09:55 +0300
->> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>> Moro!
->>>
->>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
->>>> moikka,
->>>>
->>>>> Start polling thread, which polls once per 2 sec or so, which reads
->>>>> RSSI
->>>>> and writes value to struct dtv_frontend_properties. That it is, in my
->>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
->>>>> as he
->>>>> designed that functionality.
->>>>
->>>> I understand that RSSI property should be set directly in the tuner
->>>> driver,
->>>> but I'm afraid that creating a kthread just for updating RSSI would be
->>>> overkill and complicate matters.
->>>>
->>>> Would you give me an advice? >> Mauro
->>>
->>> Now I know that as I implement it. I added kthread and it works
->>> correctly, just I though it is aimed to work. In my case signal strength
->>> is reported by demod, not tuner, because there is some logic in firmware
->>> to calculate it.
->>>
->>> Here is patches you would like to look as a example:
->>>
->>> af9033: implement DVBv5 statistic for signal strength
->>> https://patchwork.linuxtv.org/patch/25748/
->>
->> Actually, you don't need to add a separate kthread to collect the stats.
->> The DVB frontend core already has a thread that calls the frontend status
->> on every 3 seconds (the time can actually be different, depending on
->> the value for fepriv->delay. So, if the device doesn't have any issues
->> on getting stats on this period, it could just hook the DVBv5 stats logic
->> at ops.read_status().
->>
->
-> Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
->
-> It would be good to hook stats on to this thread.
-optional that is.
+Em Sat, 20 Sep 2014 11:14:16 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 09/20/2014 11:08 AM, James Harper wrote:
+> >>
+> >> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
+> >> broke the teletext applications alevt and mtt. These applications
+> >> expect that calling poll() without having called VIDIOC_STREAMON will
+> >> cause poll() to return POLLERR. That did not happen in vb2.
+> >>
+> >> This patch fixes that behavior. It also fixes what should happen when
+> >> poll() is called when STREAMON is called but no buffers have been
+> >> queued. In that case poll() will also return POLLERR, but only for
+> >> capture queues since output queues will always return POLLOUT
+> >> anyway in that situation.
+> >>
+> >> This brings the vb2 behavior in line with the old videobuf behavior.
+> >>
+> > 
+> > What (mis)behaviour would this cause in userspace application?
+> 
+> If an app would rely on poll to return POLLERR to do the initial STREAMON
+> (seen in e.g. alevt) or to do the initial QBUF (I'm not aware of any apps
+> that do that, but they may exist), then that will currently fail with vb2
+> because poll() will just wait indefinitely in those cases.
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
