@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:57194 "EHLO
-	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755687AbaIWR7a (ORCPT
+Received: from mail-sg1on0148.outbound.protection.outlook.com ([134.170.132.148]:62705
+	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751122AbaITJIL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 13:59:30 -0400
-Message-ID: <1411495166.24045.7.camel@x220>
-Subject: Re: randconfig build error with next-20140923, in
- drivers/media/mmc/siano/smssdio.c
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Jim Davis <jim.epost@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	"m.chehab" <m.chehab@samsung.com>
-Date: Tue, 23 Sep 2014 19:59:26 +0200
-In-Reply-To: <CA+r1ZhhmizMMUkAABL9xT=XstAwhP1O-bs=7YBLBvi_=8TZ9Ng@mail.gmail.com>
-References: <CA+r1ZhhmizMMUkAABL9xT=XstAwhP1O-bs=7YBLBvi_=8TZ9Ng@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 20 Sep 2014 05:08:11 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 1/3] vb2: fix VBI/poll regression
+Date: Sat, 20 Sep 2014 09:08:05 +0000
+Message-ID: <fc1bd2008429476abaf3e3fab719fe52@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+ <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2014-09-23 at 09:38 -0700, Jim Davis wrote:
-> Building with the attached random configuration file,
 > 
-> drivers/built-in.o: In function `smssdio_remove':
-> smssdio.c:(.text+0x14751c): undefined reference to `smscore_putbuffer'
-> smssdio.c:(.text+0x147526): undefined reference to `smscore_unregister_device'
-> drivers/built-in.o: In function `smssdio_interrupt':
-> smssdio.c:(.text+0x1475aa): undefined reference to `smscore_getbuffer'
-> smssdio.c:(.text+0x147695): undefined reference to `smscore_putbuffer'
-> smssdio.c:(.text+0x1476f3): undefined reference to `smscore_putbuffer'
-> smssdio.c:(.text+0x14772a): undefined reference to `smsendian_handle_rx_message'
-> smssdio.c:(.text+0x147737): undefined reference to `smscore_onresponse'
-> drivers/built-in.o: In function `smssdio_sendrequest':
-> smssdio.c:(.text+0x14776c): undefined reference to `smsendian_handle_tx_message'
-> drivers/built-in.o: In function `smssdio_probe':
-> smssdio.c:(.text+0x14786c): undefined reference to `sms_get_board'
-> smssdio.c:(.text+0x14788a): undefined reference to `smscore_register_device'
-> smssdio.c:(.text+0x1478a1): undefined reference to `smscore_set_board_id'
-> smssdio.c:(.text+0x1478fa): undefined reference to `smscore_start_device'
-> smssdio.c:(.text+0x14792d): undefined reference to `smscore_unregister_device'
-> make: *** [vmlinux] Error 1
+> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
+> broke the teletext applications alevt and mtt. These applications
+> expect that calling poll() without having called VIDIOC_STREAMON will
+> cause poll() to return POLLERR. That did not happen in vb2.
+> 
+> This patch fixes that behavior. It also fixes what should happen when
+> poll() is called when STREAMON is called but no buffers have been
+> queued. In that case poll() will also return POLLERR, but only for
+> capture queues since output queues will always return POLLOUT
+> anyway in that situation.
+> 
+> This brings the vb2 behavior in line with the old videobuf behavior.
+> 
 
-#
-# Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.17.0-rc6 Kernel Configuration
-#
-[...]
-CONFIG_SMS_SDIO_DRV=y
-[...]
-CONFIG_SMS_SIANO_MDTV=m
-[...]
+What (mis)behaviour would this cause in userspace application?
 
-Should SMS_SDIO_DRV depend on SMS_SIANO_MDTV?
+Thanks
 
-
-Paul Bolle
-
+James
