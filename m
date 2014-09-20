@@ -1,87 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2on0133.outbound.protection.outlook.com ([65.55.169.133]:41435
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751038AbaIJHqe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 03:46:34 -0400
-From: "chen.fang@freescale.com" <chen.fang@freescale.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
-CC: Shawn Guo <Shawn.Guo@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-Date: Wed, 10 Sep 2014 07:14:24 +0000
-Message-ID: <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
- <540FF70E.9050203@xs4all.nl>
-In-Reply-To: <540FF70E.9050203@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from lists.s-osg.org ([54.187.51.154]:36911 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753168AbaITKOj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 06:14:39 -0400
+Date: Sat, 20 Sep 2014 07:14:34 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: James Harper <james@ejbdigital.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
+Message-ID: <20140920071434.33736eee@recife.lan>
+In-Reply-To: <20140920070808.7409440e@recife.lan>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+	<1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+	<fc1bd2008429476abaf3e3fab719fe52@SIXPR04MB304.apcprd04.prod.outlook.com>
+	<541D4568.2020605@xs4all.nl>
+	<20140920070808.7409440e@recife.lan>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
-So I need your confirmation on it.
+Em Sat, 20 Sep 2014 07:08:08 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Thanks.
+> Em Sat, 20 Sep 2014 11:14:16 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On 09/20/2014 11:08 AM, James Harper wrote:
+> > >>
+> > >> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
+> > >> broke the teletext applications alevt and mtt. These applications
+> > >> expect that calling poll() without having called VIDIOC_STREAMON will
+> > >> cause poll() to return POLLERR. That did not happen in vb2.
+> > >>
+> > >> This patch fixes that behavior. It also fixes what should happen when
+> > >> poll() is called when STREAMON is called but no buffers have been
+> > >> queued. In that case poll() will also return POLLERR, but only for
+> > >> capture queues since output queues will always return POLLOUT
+> > >> anyway in that situation.
+> > >>
+> > >> This brings the vb2 behavior in line with the old videobuf behavior.
+> > >>
+> > > 
+> > > What (mis)behaviour would this cause in userspace application?
+> > 
+> > If an app would rely on poll to return POLLERR to do the initial STREAMON
+> > (seen in e.g. alevt) or to do the initial QBUF (I'm not aware of any apps
+> > that do that, but they may exist), then that will currently fail with vb2
+> > because poll() will just wait indefinitely in those cases.
+> 
+> You forgot to mention (also at the patch series) that the removal of
+> list_empty() check solves the buffer underrun condition.
 
-Best regards,
-Fancy Fang
+Actually, no need to comment it there, as I'll be removing the revert
+patch from topic/devel.
 
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Wednesday, September 10, 2014 3:01 PM
-To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
-Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
-Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-
-On 09/10/14 07:28, Fancy Fang wrote:
-> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
-> will assign the corresponding offset to the 'boff' field of the 
-> videobuf_buffer for each requested buffer sequentially. Later, user 
-> may call mmap() to map one or all of the buffers with the 'offset'
-> parameter which is equal to its 'boff' value. Obviously, the 'offset'
-> value is only used to find the matched buffer instead of to be the 
-> real offset from the buffer's physical start address as used by 
-> vm_iomap_memory(). So, in some case that if the offset is not zero,
-> vm_iomap_memory() will fail.
-
-Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
-
-I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
-
-Regards,
-
-	Hans
+If James is using master (likely the case), then the list_empty issue is not
+affecting him, as the revert is just at topic/devel.
 
 > 
-> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
-> ---
->  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> With this fix, if a multi-threaded application goes into an underrun
+> condition (e. g. if it de-queues faster than queues), a POLLERR would be
+> received. The poll fixup patch series also fixes it.
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c 
-> b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> index bf80f0f..8bd9889 100644
-> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  	/* Try to remap memory */
->  	size = vma->vm_end - vma->vm_start;
->  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
-> +	retval = remap_pfn_range(vma, vma->vm_start,
-> +				 mem->dma_handle >> PAGE_SHIFT,
-> +				 size, vma->vm_page_prot);
->  	if (retval) {
->  		dev_err(q->dev, "mmap: remap failed with error %d. ",
->  			retval);
-> 
-
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
