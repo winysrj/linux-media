@@ -1,82 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37441 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753611AbaIXPau (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 11:30:50 -0400
-Message-ID: <5422E3A7.7060607@osg.samsung.com>
-Date: Wed, 24 Sep 2014 09:30:47 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from mail-hk1on0146.outbound.protection.outlook.com ([134.170.140.146]:38902
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754897AbaITLVN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 07:21:13 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: buffer delivery stops with cx23885
+Date: Sat, 20 Sep 2014 11:05:17 +0000
+Message-ID: <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+ <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5220.4050107@xs4all.nl>
+ <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5CD0.1000207@xs4all.nl>
+In-Reply-To: <541D5CD0.1000207@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
-	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 2/5] media: v4l2-core changes to use media tuner token
- api
-References: <cover.1411397045.git.shuahkh@osg.samsung.com> <b83cf780636a80aec53e3b7e8f101645049e94f3.1411397045.git.shuahkh@osg.samsung.com> <5422B1B8.1080401@xs4all.nl>
-In-Reply-To: <5422B1B8.1080401@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2014 05:57 AM, Hans Verkuil wrote:
-> Hi Shuah,
-> 
-> Here is my review...
-> 
-> On 09/22/2014 05:00 PM, Shuah Khan wrote:
->> Changes to v4l2-core to hold tuner token in v4l2 ioctl that change
->> the tuner modes, and reset the token from fh exit. The changes are
->> limited to vb2 calls that disrupt digital stream. vb1 changes are
->> made in the driver. The following ioctls are changed:
->>
->> S_INPUT, S_OUTPUT, S_FMT, S_TUNER, S_MODULATOR, S_FREQUENCY,
-> 
-> S_MODULATOR doesn't need to take a token. Certainly not a tuner token,
-> since it is a modulator, not a tuner. There aren't many modulator drivers,
-> and none of them have different modes.
-> 
-> The same is true for S_OUTPUT: it deals with outputs, so it has nothing
-> to do with tuners since those are for input.
-> 
->> S_STD, S_HW_FREQ_SEEK:
->>
->> - hold tuner in shared analog mode before calling appropriate
->>    ops->vidioc_s_*
->> - return leaving tuner in shared mode.
->> - Note that S_MODULATOR is now implemented in the core
->>    previously FCN.
->>
->> QUERYSTD:
->> - hold tuner in shared analog mode before calling
->>    ops->vidioc_querystd
->> - return after calling put tuner - this simply decrements the
->>    owners. Leaves tuner in shared analog mode if owners > 0
-> 
-> I would handle QUERYSTD the same as the ones in the first group.
-> It's a fair assumption that once you call QUERYSTD you expect to
-> switch the tuner to analog mode and keep it there.
-> 
-> I'm missing STREAMON in this list as well.
-> 
-> With regards to G_TUNER and ENUM_INPUT, I will reply to the post that
-> discusses that topic.
-
-Hans,
-
-Didn't see you address G_TUNER and ENUM_INPUT in your other response.
-Hope I didn't miss it.
-
-thanks,
--- Shuah
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+PiA+IEkgd2FzIGxvb2tpbmcgdGhyb3VnaCB0aGUgcGF0Y2hlcyBhbmQgc2F3IGEgZGF0ZSBvZiBB
+dWd1c3QgMTQgb24gdGhlDQo+ID4gY3gyMzg4NSB0byB2YjIgcGF0Y2ggYW5kIHRob3VnaHQgdGhh
+dCBjb3VsZCBoYXZlIGJlZW4gYXJvdW5kIHdoZW4gaXQNCj4gPiBzdGFydGVkIGJyZWFraW5nLCBi
+dXQgdGhlbiB0aGUNCj4gPiA3M2Q4MTAyMjk4NzE5ODYzZDU0MjY0ZjYyNTIxMzYyNDg3Zjg0MjU2
+IGlzIGRhdGVkIFNlcHRlbWJlciAzIGFuZCBJJ20NCj4gPiBwcmV0dHkgc3VyZSBpdCBoYWQgc3Rh
+cnRlZCBwbGF5aW5nIHVwIGJlZm9yZSB0aGVuLiBBYm91dCB3aGF0IGRhdGUNCj4gPiB3b3VsZCBJ
+IGhhdmUgc2VlbiB0aGUgNDUzYWZkZDljZTMzMjkzZjY0MGU4NGRjMTdlNWYzNjY3MDE1MTZlOA0K
+PiA+ICJjeDIzODg1OiBjb252ZXJ0IHRvIHZiMiIgcGF0Y2g/DQo+IA0KPiBUaGF0IHBhdGNoIHdh
+cyBtZXJnZWQgaW4gdGhlIG1hc3RlciBicmFuY2ggU2VwdGVtYmVyIDguDQo+IA0KPiBJZiB5b3Un
+dmUgc2VlbiBpdCBlYXJsaWVyLCB0aGVuIGl0IG1heSBub3QgYmUgcmVsYXRlZCB0byB2YjIgYWZ0
+ZXIgYWxsLg0KPiANCg0KSSdkIHNheSBub3QuDQoNCj4gSWYgaXQgaXMgcG9sbGluZyByZWxhdGVk
+LCB0aGVuIGl0IG1pZ2h0IGJlIGNvbW1pdA0KPiA5MjQxNjUwZDYyZjc5YTNkYTAxZjFkNWU4ZWJk
+MTk1MDgzMzMwYjc1DQo+IChEb24ndCByZXR1cm4gUE9MTEVSUiBkdXJpbmcgdHJhbnNpZW50IGJ1
+ZmZlciB1bmRlcnJ1bnMpIHdoaWNoIHdhcyBhZGRlZA0KPiB0bw0KPiB0aGUgbWFzdGVyIGJyYW5j
+aCBvbiBKdWx5IDE3dGggYW5kIHdhcyBtZXJnZWQgZm9yIDMuMTcuIE9yIGl0IGNvdWxkIGJlDQo+
+IHNvbWV0aGluZyBlbnRpcmVseSBkaWZmZXJlbnQuDQo+IA0KPiBZb3UgY291bGQgdHJ5IHJldmVy
+dGluZyB0aGF0IGNvbW1pdCBhbmQgc2VlIGlmIHRoYXQgaGVscHMuDQoNClRoYXQgc291bmRzIHBs
+YXVzaWJsZSB3cnQgdGltZWZyYW1lLCBidXQgaWYgY3gyMzg4NSBvbmx5IHN0YXJ0ZWQgdXNpbmcg
+dmIyIGFmdGVyIFNlcHQgOCB0aGVuIGl0IGNvdWxkbid0IGhhdmUgYWZmZWN0ZWQgbWUgYmVmb3Jl
+IHRoZW4gcmlnaHQ/DQoNCj4gPiBJbiBhbnkgY2FzZSBpdCBzaG91bGQgYmUgZWFzeSBlbm91Z2gg
+dG8gcmV2ZXJ0IGFuZCBidWlsZCBzbyBJJ2xsIGRvDQo+ID4gdGhhdCB0b21vcnJvdyBvbmNlIEkg
+Y2FuIHByb3ZlIGl0IHN0aWxsIGZhaWxzIHdpdGggdGhlIGN1cnJlbnQNCj4gPiByZWdyZXNzaW9u
+IHBhdGNoIGFwcGxpZWQuDQo+IA0KPiBXaGljaCBwYXRjaCBhcmUgeW91IHVzaW5nPyBUaGVyZSBo
+YXZlIGJlZW4gc2V2ZXJhbCB2ZXJzaW9ucyBwb3N0ZWQuIFRoaXMNCj4gaXMgdGhlIG9uZSB5b3Ug
+c2hvdWxkIHVzZToNCj4gDQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmxpbnV4dHYub3JnL3BhdGNoLzI1
+OTkyLw0KPiANCg0KVGhhdCdzIHRoZSBvbmUgSSBhcHBsaWVkIC0geW91IGNhbiBldmVuIHNlZSBt
+eSBxdWVzdGlvbnMgYmVsb3cgaW4gdGhhdCBsaW5rIDopIEJhc2VkIG9uIHdoYXQgeW91IGhhdmUg
+c2FpZCBJIHRoaW5rIHRoYXQncyBub3QgZ29pbmcgdG8gc29sdmUgYW55dGhpbmcgZm9yIG1lIHRo
+b3VnaC4NCg0KU28gSSBndWVzcyBteSBwbGFuIGlzOg0KLiBSZXZlcnQgdG8gNzNkODEwMjI5ODcx
+OTg2M2Q1NDI2NGY2MjUyMTM2MjQ4N2Y4NDI1NiBhbmQgdGVzdCAobm90IGxpa2VseSB0byBmaXgg
+YnV0IGVhc3kgdG8gdGVzdCkNCi4gUmV2ZXJ0IHRvIHNvbWV0aW1lIGFyb3VuZCBKdW5lIHdoZW4g
+SSBzdWJtaXR0ZWQgbXkgcGF0Y2ggZm9yIEZ1c2lvbiBEdWFsIEV4cHJlc3MgMiBkcml2ZXIgd2hl
+biBJIGtub3cgaXQgd2FzIHJlbGlhYmxlIGFuZCB0ZXN0DQoNCk90aGVyIHBvc3NpYmlsaXRpZXMg
+YXJlOg0KLiBNeXRoVFYgYnVnDQouIERlZmVjdGl2ZSBjYXJkDQoNClRpbWUgdG8gZ29vZ2xlIGEg
+Y29tbWFuZCBsaW5lIGR2YiBzdHJlYW0gdG8gcnVsZSBvdXQgbXl0aHR2IEkgZ3Vlc3MuLi4NCg0K
+VGhhbmtzDQoNCkphbWVzDQoNCg==
