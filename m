@@ -1,90 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3040 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967AbaILNAb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42202 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757254AbaITSfK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
+	Sat, 20 Sep 2014 14:35:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 04/14] vb2: memop prepare: return errors
-Date: Fri, 12 Sep 2014 14:59:53 +0200
-Message-Id: <1410526803-25887-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/3] DocBook media: fix the poll() 'no QBUF' documentation
+Date: Sat, 20 Sep 2014 21:35:16 +0300
+Message-ID: <3467173.gE0lEHfa57@avalon>
+In-Reply-To: <1411203375-15310-3-git-send-email-hverkuil@xs4all.nl>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-For vb2-dma-sg the dma_map_sg function can return an error. This means that
-the prepare memop also needs to change so an error can be returned.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++--
- include/media/videobuf2-core.h                 | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+On Saturday 20 September 2014 10:56:14 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Clarify what poll() returns if STREAMON was called but not QBUF.
+> Make explicit the different behavior for this scenario for
+> capture and output devices.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/DocBook/media/v4l/func-poll.xml | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/func-poll.xml
+> b/Documentation/DocBook/media/v4l/func-poll.xml index 85cad8b..b7ed9e8
+> 100644
+> --- a/Documentation/DocBook/media/v4l/func-poll.xml
+> +++ b/Documentation/DocBook/media/v4l/func-poll.xml
+> @@ -44,10 +44,18 @@ Capture devices set the <constant>POLLIN</constant> and
+>  flags. When the function timed out it returns a value of zero, on
+>  failure it returns <returnvalue>-1</returnvalue> and the
+>  <varname>errno</varname> variable is set appropriately. When the
+> -application did not call &VIDIOC-QBUF; or &VIDIOC-STREAMON; yet the
+> +application did not call &VIDIOC-STREAMON; the
+>  <function>poll()</function> function succeeds, but sets the
+>  <constant>POLLERR</constant> flag in the
+> -<structfield>revents</structfield> field.</para>
+> +<structfield>revents</structfield> field. When the
+> +application calls &VIDIOC-STREAMON; for a capture device without a
+> +preceeding &VIDIOC-QBUF; the <function>poll()</function> function
+> +succeeds, but sets the <constant>POLLERR</constant> flag in the
+> +<structfield>revents</structfield> field.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 6675f12..ca870aa 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -111,16 +111,17 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
- 	return atomic_read(&buf->refcount);
- }
- 
--static void vb2_dc_prepare(void *buf_priv)
-+static int vb2_dc_prepare(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
- 	if (!sgt || buf->db_attach)
--		return;
-+		return 0;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return 0;
- }
- 
- static void vb2_dc_finish(void *buf_priv)
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index f3bc01b..abd5252 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -170,12 +170,12 @@ static void vb2_dma_sg_put(void *buf_priv)
- 	}
- }
- 
--static void vb2_dma_sg_prepare(void *buf_priv)
-+static int vb2_dma_sg_prepare(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 	struct sg_table *sgt = &buf->sg_table;
- 
--	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
- }
- 
- static void vb2_dma_sg_finish(void *buf_priv)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 02b96ef..0ac65a6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -91,7 +91,7 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
--	void		(*prepare)(void *buf_priv);
-+	int		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
+Nitpicking here, I would word it as
+
+When the application has called &VIDIOC-STREAMON; for a capture device but 
+hasn't called &VIDIOC-QBUF; yet the <function>poll()</function> function
+succeeds and sets the <constant>POLLERR</constant> flag in the
+<structfield>revents</structfield> field.
+
+> For output devices this
+> +same situation will cause <function>poll()</function> to succeed
+> +as well, but it sets the <constant>POLLOUT</constant> and
+> +<constant>POLLWRNORM</constant> flags in the
+> <structfield>revents</structfield>
+> +field.</para>
+> 
+>      <para>When use of the <function>read()</function> function has
+>  been negotiated and the driver does not capture yet, the
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
