@@ -1,48 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44424 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179AbaICUdb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:31 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Archit Taneja <archit@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 19/46] [media] ti-vpe: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:51 -0300
-Message-Id: <6b444344a55146d71be1e62ae7ca4e67442d3950.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mout.gmx.net ([212.227.15.19]:50172 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753125AbaITHuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 03:50:20 -0400
+Date: Sat, 20 Sep 2014 09:50:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kazunori Kobayashi <kkobayas@igel.co.jp>
+cc: m.chehab@samsung.com, dhobsong@igel.co.jp,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] soc_camera: Support VIDIOC_EXPBUF ioctl
+In-Reply-To: <1410415778-15415-1-git-send-email-kkobayas@igel.co.jp>
+Message-ID: <Pine.LNX.4.64.1409200938260.21175@axis700.grange>
+References: <1410415778-15415-1-git-send-email-kkobayas@igel.co.jp>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using 0 or 1 for boolean, use the true/false
-defines.
+Hi Kobayashi-san,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Thanks for the patch. In principle it looks good, just one question below:
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 773b1fbf3269..febeca70211b 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -835,10 +835,10 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
- 					VPDMA_STRIDE_ALIGN);
- 		mv_buf_size = bytes_per_line * s_q_data->height;
- 
--		ctx->deinterlacing = 1;
-+		ctx->deinterlacing = true;
- 		src_h <<= 1;
- 	} else {
--		ctx->deinterlacing = 0;
-+		ctx->deinterlacing = false;
- 		mv_buf_size = 0;
- 	}
- 
--- 
-1.9.3
+On Thu, 11 Sep 2014, Kazunori Kobayashi wrote:
 
+> This patch allows for exporting a dmabuf descriptor from soc_camera drivers.
+> 
+> Signed-off-by: Kazunori Kobayashi <kkobayas@igel.co.jp>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index f4308fe..9d7b8ea 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -437,6 +437,19 @@ static int soc_camera_prepare_buf(struct file *file, void *priv,
+>  		return vb2_prepare_buf(&icd->vb2_vidq, b);
+>  }
+>  
+> +static int soc_camera_expbuf(struct file *file, void *priv,
+> +			     struct v4l2_exportbuffer *p)
+> +{
+> +	struct soc_camera_device *icd = file->private_data;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> +
+> +	/* videobuf2 only */
+> +	if (ici->ops->init_videobuf)
+> +		return -EINVAL;
+> +	else
+> +		return vb2_expbuf(&icd->vb2_vidq, p);
+
+Many soc-camera queue management functions, like queuing, dequeuing a 
+buffer check, that the caller is indeed the process, that is controlling 
+the device. This is done for the case, when two (or more) processes open a 
+video device node, some of them only want to monitor it, or control 
+parameters like exposure etc. Whereas only one process is allowed to 
+perform critical operations, like setting a video format, starting and 
+stopping streaming, queuing and dequeuing buffers. Should this function 
+too use such a check
+
+	if (icd->streamer != file)
+		return -EBUSY;
+
+If you agree, I can just add it myself, no need to resubmit.
+
+Thanks
+Guennadi
+
+> +}
+> +
+>  /* Always entered with .host_lock held */
+>  static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+>  {
+> @@ -2085,6 +2098,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+>  	.vidioc_dqbuf		 = soc_camera_dqbuf,
+>  	.vidioc_create_bufs	 = soc_camera_create_bufs,
+>  	.vidioc_prepare_buf	 = soc_camera_prepare_buf,
+> +	.vidioc_expbuf		 = soc_camera_expbuf,
+>  	.vidioc_streamon	 = soc_camera_streamon,
+>  	.vidioc_streamoff	 = soc_camera_streamoff,
+>  	.vidioc_cropcap		 = soc_camera_cropcap,
+> -- 
+> 1.8.1.2
+> 
