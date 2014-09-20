@@ -1,35 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:42915 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbaI0MF4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Sep 2014 08:05:56 -0400
-Received: by mail-ob0-f172.google.com with SMTP id wp18so1937280obc.17
-        for <linux-media@vger.kernel.org>; Sat, 27 Sep 2014 05:05:55 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:36895 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753647AbaITJvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 05:51:50 -0400
+Date: Sat, 20 Sep 2014 06:51:44 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 0/3] vb2: fix VBI/poll regression
+Message-ID: <20140920065144.0c69e575@recife.lan>
+In-Reply-To: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
-References: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
-Date: Sat, 27 Sep 2014 14:05:55 +0200
-Message-ID: <CAL9G6WUWCjKMt0+_svowHtQkLh8rpLqvPk_JKMFAg0Y3hJC8qg@mail.gmail.com>
-Subject: Re: TeVii S480 in Debian Wheezy
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks and sorry, I have a S482 device, not the S480 (confused in the topic).
+Em Sat, 20 Sep 2014 10:56:12 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I get it working with s2-liplianin-v39 tree:
+> OK, this is the final (?) patch series to resolve the vb2 VBI poll regression
+> where alevt and mtt fail on drivers using vb2.
+> 
+> These applications call REQBUFS, queue the buffers and then poll() without
+> calling STREAMON first. They rely on poll() to return POLLERR in that case
+> and they do the STREAMON at that time. This is correct according to the spec,
+> but this was never implemented in vb2.
+> 
+> This is fixed together with an other vb2 regression: calling REQBUFS, then
+> STREAMON, then poll() without doing a QBUF first should return POLLERR as
+> well according to the spec. This has been fixed as well and the spec has
+> been clarified that this is only done for capture queues. Output queues in
+> the same situation will return as well, but with POLLOUT|POLLWRNORM set
+> instead of POLLERR.
+> 
+> The final patch adds missing documentation to poll() regarding event handling
+> and improves the documentation regarding stream I/O and output queues.
 
-# ls -l /dev/dvb/
-total 0
-drwxr-xr-x 2 root root 120 sep 27 13:52 adapter0
-drwxr-xr-x 2 root root 120 sep 27 13:52 adapter1
+Didn't test yet, but the patch series look ok on my eyes.
 
-Will this code merge in the Linux kernel?
+I'll do some tests today.
 
-Best regards.
-
--- 
-Josu Lazkano
+Regards,
+Mauro
