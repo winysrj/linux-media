@@ -1,81 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52914 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754470AbaIDVnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 17:43:51 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/3] dvb-usb-v2: add frontend_detach callback
-Date: Fri,  5 Sep 2014 00:43:41 +0300
-Message-Id: <1409867023-8362-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1210 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbaIUMKH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 08:10:07 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8LCA4Nu011120
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 14:10:06 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 861B52A002F
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 14:09:58 +0200 (CEST)
+Message-ID: <541EC016.8090708@xs4all.nl>
+Date: Sun, 21 Sep 2014 14:09:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l2-ioctl.c: fix inverted condition
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add frontend_detach callback in order to allow custom detach. It is
-needed when demod driver is implemented I2C client or some other
-kernel bus, but not proprietary dvb_attach / dvb_detach.
+v4l_print_ext_controls() would print the 'size' if it was 0 and
+'value' if size was non-zero, but it should have been the other
+way around.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  2 ++
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 16 +++++++++++++---
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index 124b4ba..7e36ee0 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -214,6 +214,7 @@ struct dvb_usb_adapter_properties {
-  * @read_config: called to resolve device configuration
-  * @read_mac_address: called to resolve adapter mac-address
-  * @frontend_attach: called to attach the possible frontends
-+ * @frontend_detach: called to detach the possible frontends
-  * @tuner_attach: called to attach the possible tuners
-  * @frontend_ctrl: called to power on/off active frontend
-  * @streaming_ctrl: called to start/stop the usb streaming of adapter
-@@ -254,6 +255,7 @@ struct dvb_usb_device_properties {
- 	int (*read_config) (struct dvb_usb_device *d);
- 	int (*read_mac_address) (struct dvb_usb_adapter *, u8 []);
- 	int (*frontend_attach) (struct dvb_usb_adapter *);
-+	int (*frontend_detach)(struct dvb_usb_adapter *);
- 	int (*tuner_attach) (struct dvb_usb_adapter *);
- 	int (*frontend_ctrl) (struct dvb_frontend *, int);
- 	int (*streaming_ctrl) (struct dvb_frontend *, int);
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 6c33d85..92bb297 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -664,9 +664,10 @@ err:
- 
- static int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
- {
--	int i;
--	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
--			adap->id);
-+	int ret, i;
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+
-+	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
- 
- 	for (i = MAX_NO_OF_FE_PER_ADAP - 1; i >= 0; i--) {
- 		if (adap->fe[i]) {
-@@ -675,6 +676,15 @@ static int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
- 		}
- 	}
- 
-+	if (d->props->frontend_detach) {
-+		ret = d->props->frontend_detach(adap);
-+		if (ret < 0) {
-+			dev_dbg(&d->udev->dev,
-+					"%s: frontend_detach() failed=%d\n",
-+					__func__, ret);
-+		}
-+	}
-+
- 	return 0;
- }
- 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 46f4c04..9ccb19a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -562,7 +562,7 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	pr_cont("class=0x%x, count=%d, error_idx=%d",
+ 			p->ctrl_class, p->count, p->error_idx);
+ 	for (i = 0; i < p->count; i++) {
+-		if (p->controls[i].size)
++		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+ 				p->controls[i].id, p->controls[i].value);
+ 		else
 -- 
-http://palosaari.fi/
+2.1.0
 
