@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:42284 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952AbaIAXiV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 19:38:21 -0400
-Date: Tue, 2 Sep 2014 08:38:14 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] v4l: vsp1: fix driver dependencies
-Message-ID: <20140901233814.GA15867@verge.net.au>
-References: <25174054.f3JtKIKjvH@amdc1032>
- <CAMuHMdX3UX-XL8g1qQ-aJeRy_iT1uUvcGHyWF2gci+rnPZx4BA@mail.gmail.com>
+Received: from mout.gmx.net ([212.227.17.21]:50706 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310AbaIUR2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 13:28:44 -0400
+Received: from [192.168.1.21] ([79.215.138.24]) by mail.gmx.com (mrgmx101)
+ with ESMTPSA (Nemesis) id 0MOBOi-1XQHIV0zo4-005bJX for
+ <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 19:28:43 +0200
+Message-ID: <541F0AC7.4010004@gmx.net>
+Date: Sun, 21 Sep 2014 19:28:39 +0200
+From: JPT <j-p-t@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdX3UX-XL8g1qQ-aJeRy_iT1uUvcGHyWF2gci+rnPZx4BA@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Running Technisat DVB-S2 on ARM-NAS
+References: <541EE016.9030504@gmx.net> <541EE2EB.4000802@iki.fi> <541EEA74.2000909@gmx.net> <541EEEAB.10106@iki.fi>
+In-Reply-To: <541EEEAB.10106@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 01, 2014 at 06:32:56PM +0200, Geert Uytterhoeven wrote:
-> On Mon, Sep 1, 2014 at 3:18 PM, Bartlomiej Zolnierkiewicz
-> <b.zolnierkie@samsung.com> wrote:
-> > Renesas VSP1 Video Processing Engine support should be available
-> > only on Renesas ARM SoCs.
-> 
-> Thanks!
-> 
-> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > Cc: Simon Horman <horms@verge.net.au>
-> > Cc: Magnus Damm <magnus.damm@gmail.com>
-> 
-> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> If I didn't remember wrong, that means allocated buffers are 8 * 32 *
+> 2048 = 524288 bytes. It sounds rather big for my taste. Probably even
+> wrong. IIRC USB2.0 frames are 1024 and there could be 1-3 frames. You
+> could use lsusb with all verbosity levels to see if it is
+> 1024/2048/3072. And set value according to that info.
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+lsusb tells:
+    Interface Descriptor:
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0200  1x 512 bytes
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0200  1x 512 bytes
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0200  1x 512 bytes
+    Interface Descriptor:
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0c00  2x 1024 bytes
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0200  1x 512 bytes
+      Endpoint Descriptor:
+        wMaxPacketSize     0x0200  1x 512 bytes
+
+
+But I haven't got any clue about the meaning.
+Ask me a question about any bit in the tcp/ip packages, but don't ask me
+about USB ;)
+Where can I get technical details that are, well... readable without
+studing for weeks?
+
+btw, it's attached to a FT1009 USB3.0 SuperSpeed chip.
+
+> So I would recommend
+> .count = 6,
+> .framesperurb = 8,
+> .framesize = 1024,
+> 
+> Use some testing with error and trial to find out smallest working
+> buffers, then add some 20% extra for that.
+
+I set to 8x8x2048 (because max package size is 2x1024)
+but w_scan doesn't find any transponder.
+
+What should happen if buffers are too small?
+
+Tommorrow I'll swap the sat cable just to make sure this isn't the cause.
+
+thanks,
+
+Jan
