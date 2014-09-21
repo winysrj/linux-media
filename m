@@ -1,145 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:21077 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752976AbaIZE7j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 00:59:39 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCH000NZSJECG10@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:59:38 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com, kiran@chromium.org
-Subject: [PATCH v2 08/14] [media] s5p-mfc: modify mfc wakeup sequence for V8
-Date: Fri, 26 Sep 2014 10:22:16 +0530
-Message-id: <1411707142-4881-9-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53702 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751114AbaIUOii (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 10:38:38 -0400
+Message-ID: <541EE2EB.4000802@iki.fi>
+Date: Sun, 21 Sep 2014 17:38:35 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: JPT <j-p-t@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: Running Technisat DVB-S2 on ARM-NAS
+References: <541EE016.9030504@gmx.net>
+In-Reply-To: <541EE016.9030504@gmx.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arun Mankuzhi <arun.m@samsung.com>
 
->From MFC V8, the MFC wakeup sequence has changed.
-MFC wakeup command has to be sent after the host receives
-firmware load complete status from risc.
 
-Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   78 +++++++++++++++++++------
- 1 file changed, 61 insertions(+), 17 deletions(-)
+On 09/21/2014 05:26 PM, JPT wrote:
+> Hi,
+>
+> I want to turn my Netgear ReadyNAS RN104 into a VDR.
+> I already run a self made kernel 3.16.3) and plain debian on it.
+> For hardware and software details see http://natisbad.org/NAS3/
+>
+> I recently compiled those DVB modules into the kernel.
+> And after a lot of struggle to get a clean build, I succeeded in loading
+> the modules:
+> dvb_usb_technisat_usb2, dvb_usb, dvb_core, stv090x, rc_core
+>
+> but device recognition somehow does not fully work.
+>
+> usb 2-1: new high-speed USB device number 3 using xhci_hcd
+> usb 2-1: New USB device found, idVendor=14f7, idProduct=0500
+> usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> usb 2-1: Product: TechniSat USB device
+> usb 2-1: Manufacturer: TechniSat Digital
+> usb 2-1: SerialNumber: ************
+> technisat-usb2: set alternate setting
+> technisat-usb2: firmware version: 17.63
+> dvb-usb: found a 'Technisat SkyStar USB HD (DVB-S/S2)' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> dvb-usb: Technisat SkyStar USB HD (DVB-S/S2) error while loading driver
+> (-12)
+> usbcore: registered new interface driver dvb_usb_technisat_usb2
+>
+>
+> How my I find out more about the error -12? It's a lot of wrapped
+> "return ret" in the code...
+> Is there any way of enabling more logging?
+>
+> I believe it comes from the dvb-usb-technisat-usb2 module, but there is
+> no c file?
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 605f11e..565a6ed 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -353,6 +353,58 @@ int s5p_mfc_sleep(struct s5p_mfc_dev *dev)
- 	return ret;
- }
- 
-+static int s5p_mfc_v8_wait_wakeup(struct s5p_mfc_dev *dev)
-+{
-+	int ret;
-+
-+	/* Release reset signal to the RISC */
-+	dev->risc_on = 1;
-+	mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
-+
-+	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
-+		mfc_err("Failed to reset MFCV8\n");
-+		return -EIO;
-+	}
-+	mfc_debug(2, "Write command to wakeup MFCV8\n");
-+	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
-+	if (ret) {
-+		mfc_err("Failed to send command to MFCV8 - timeout\n");
-+		return ret;
-+	}
-+
-+	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
-+		mfc_err("Failed to wakeup MFC\n");
-+		return -EIO;
-+	}
-+	return ret;
-+}
-+
-+static int s5p_mfc_wait_wakeup(struct s5p_mfc_dev *dev)
-+{
-+	int ret;
-+
-+	/* Send MFC wakeup command */
-+	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
-+	if (ret) {
-+		mfc_err("Failed to send command to MFC - timeout\n");
-+		return ret;
-+	}
-+
-+	/* Release reset signal to the RISC */
-+	if (IS_MFCV6_PLUS(dev)) {
-+		dev->risc_on = 1;
-+		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
-+	} else {
-+		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-+	}
-+
-+	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
-+		mfc_err("Failed to wakeup MFC\n");
-+		return -EIO;
-+	}
-+	return ret;
-+}
-+
- int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- {
- 	int ret;
-@@ -365,6 +417,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	ret = s5p_mfc_reset(dev);
- 	if (ret) {
- 		mfc_err("Failed to reset MFC - timeout\n");
-+		s5p_mfc_clock_off();
- 		return ret;
- 	}
- 	mfc_debug(2, "Done MFC reset..\n");
-@@ -373,25 +426,16 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	/* 2. Initialize registers of channel I/F */
- 	s5p_mfc_clear_cmds(dev);
- 	s5p_mfc_clean_dev_int_flags(dev);
--	/* 3. Initialize firmware */
--	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
--	if (ret) {
--		mfc_err("Failed to send command to MFC - timeout\n");
--		return ret;
--	}
--	/* 4. Release reset signal to the RISC */
--	if (IS_MFCV6_PLUS(dev)) {
--		dev->risc_on = 1;
--		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
--	}
-+	/* 3. Send MFC wakeup command and wait for completion*/
-+	if (IS_MFCV8(dev))
-+		ret = s5p_mfc_v8_wait_wakeup(dev);
- 	else
--		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
--	mfc_debug(2, "Ok, now will write a command to wakeup the system\n");
--	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
--		mfc_err("Failed to load firmware\n");
--		return -EIO;
--	}
-+		ret = s5p_mfc_wait_wakeup(dev);
-+
- 	s5p_mfc_clock_off();
-+	if (ret)
-+		return ret;
-+
- 	dev->int_cond = 0;
- 	if (dev->int_err != 0 || dev->int_type !=
- 						S5P_MFC_R2H_CMD_WAKEUP_RET) {
+http://www.virtsync.com/c-error-codes-include-errno
+
+#define ENOMEM      12  /* Out of memory */
+
+Likely allocating USB stream buffers fails. You could try request 
+smaller buffers. Drop count to 1 and test. Drop framesperurb to 1 and 
+test. Drop framesize to 1 and test. Surely streaming will not work if 
+all buffers are totally wrong and too small, but you will see if it is 
+due to big usb buffers. Then you could try optimize buffers smaller.
+
+			.stream = {
+				.type = USB_ISOC,
+				.count = 8,
+				.endpoint = 0x2,
+				.u = {
+					.isoc = {
+						.framesperurb = 32,
+						.framesize = 2048,
+						.interval = 1,
+					}
+				}
+			},
+
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
