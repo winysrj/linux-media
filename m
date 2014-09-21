@@ -1,132 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49462 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754173AbaIZMcJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 08:32:09 -0400
-Message-ID: <54255CBF.9040303@iki.fi>
-Date: Fri, 26 Sep 2014 15:31:59 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 02/12] cx231xx: use own i2c_client for eeprom access
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-2-git-send-email-zzam@gentoo.org> <54242D8D.8080401@iki.fi> <5424EBD0.1020300@gentoo.org>
-In-Reply-To: <5424EBD0.1020300@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1566 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563AbaIUCmy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Sep 2014 22:42:54 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8L2goD0012208
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 04:42:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6DF332A002F
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 04:42:45 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140921024245.6DF332A002F@tschai.lan>
+Date: Sun, 21 Sep 2014 04:42:45 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-yes, of course :) If you has only one message, there is nothing to start 
-again. Sending one message using i2c_transfer() means same than using 
-i2c_master_send(), but the later one is just aimed to send single 
-message and it cannot be used to send multiple messages at once.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Code is correct, but it triggered my sensors when reading it and I have 
-to check it many times whats going there.
+Results of the daily build of media_tree:
 
-regards
-Antti
+date:		Sun Sep 21 04:00:24 CEST 2014
+git branch:	test
+git hash:	f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-2.slh.3-amd64
 
-On 09/26/2014 07:30 AM, Matthias Schwarzott wrote:
-> Hi Antti,
->
-> I think that i2c_transfer sens no repeated start when sending only one
-> message per call.
->
-> At least the received eeprom content looks correct.
->
-> Regards
-> Matthias
->
-> On 25.09.2014 16:58, Antti Palosaari wrote:
->> Reviewed-by: Antti Palosaari <crope@iki.fi>
->>
->> Please add commit description (why and how).
->>
->> Some notes for further development:
->> It sends single messages, so you could (or even should) use
->> i2c_master_send/i2c_master_recv (i2c_transfer is aimed for sending
->> multiple messages using REPEATED START condition).
->>
->> I am not sure though if these eeprom chips uses REPEATED START condition
->> for reads (means it could be broken even now).
->>
->> regards
->> Antti
->>
->> On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
->>> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
->>> ---
->>>    drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
->>>    1 file changed, 13 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> b/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> index 791f00c..092fb85 100644
->>> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> @@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx
->>> *dev)
->>>
->>>    }
->>>
->>> -static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
->>> +static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
->>> +               u8 *eedata, int len)
->>>    {
->>>        int ret = 0;
->>> -    u8 addr = 0xa0 >> 1;
->>>        u8 start_offset = 0;
->>>        int len_todo = len;
->>>        u8 *eedata_cur = eedata;
->>>        int i;
->>> -    struct i2c_msg msg_write = { .addr = addr, .flags = 0,
->>> +    struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
->>>            .buf = &start_offset, .len = 1 };
->>> -    struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
->>> -
->>> -    /* mutex_lock(&dev->i2c_lock); */
->>> -    cx231xx_enable_i2c_port_3(dev, false);
->>> +    struct i2c_msg msg_read = { .addr = client->addr, .flags =
->>> I2C_M_RD };
->>>
->>>        /* start reading at offset 0 */
->>> -    ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
->>> +    ret = i2c_transfer(client->adapter, &msg_write, 1);
->>>        if (ret < 0) {
->>>            cx231xx_err("Can't read eeprom\n");
->>>            return ret;
->>> @@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8
->>> *eedata, int len)
->>>            msg_read.len = (len_todo > 64) ? 64 : len_todo;
->>>            msg_read.buf = eedata_cur;
->>>
->>> -        ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
->>> +        ret = i2c_transfer(client->adapter, &msg_read, 1);
->>>            if (ret < 0) {
->>>                cx231xx_err("Can't read eeprom\n");
->>>                return ret;
->>> @@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
->>>            {
->>>                struct tveeprom tvee;
->>>                static u8 eeprom[256];
->>> +            struct i2c_client client;
->>> +
->>> +            memset(&client, 0, sizeof(client));
->>> +            client.adapter = &dev->i2c_bus[1].i2c_adap;
->>> +            client.addr = 0xa0 >> 1;
->>>
->>> -            read_eeprom(dev, eeprom, sizeof(eeprom));
->>> -            tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
->>> +            read_eeprom(dev, &client, eeprom, sizeof(eeprom));
->>> +            tveeprom_hauppauge_analog(&client,
->>>                            &tvee, eeprom + 0xc0);
->>>                break;
->>>            }
->>>
->>
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
--- 
-http://palosaari.fi/
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
