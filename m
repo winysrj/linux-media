@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33868 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756028AbaISNF4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 09:05:56 -0400
-Message-ID: <1411131948.3965.3.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH] [media] coda: coda-bit: Include "<linux/slab.h>"
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: m.chehab@samsung.com, k.debski@samsung.com,
-	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Date: Fri, 19 Sep 2014 15:05:48 +0200
-In-Reply-To: <1411126350-5936-1-git-send-email-festevam@gmail.com>
-References: <1411126350-5936-1-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-hk1on0132.outbound.protection.outlook.com ([134.170.140.132]:53973
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751937AbaIUIPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 04:15:11 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: buffer delivery stops with cx23885
+Date: Sun, 21 Sep 2014 08:15:05 +0000
+Message-ID: <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+ <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5220.4050107@xs4all.nl>
+ <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5CD0.1000207@xs4all.nl>
+ <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D61D7.3080202@xs4all.nl>
+ <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
+In-Reply-To: <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 19.09.2014, 08:32 -0300 schrieb Fabio Estevam:
-> From: Fabio Estevam <fabio.estevam@freescale.com>
-> 
-> coda-bit uses kmalloc/kfree functions, so the slab header needs to be included
-> in order to fix the following build errors:
-> 
-> drivers/media/platform/coda/coda-bit.c: In function 'coda_fill_bitstream':
-> drivers/media/platform/coda/coda-bit.c:231:4: error: implicit declaration of function 'kmalloc' [-Werror=implicit-function-declaration]
-> drivers/media/platform/coda/coda-bit.c: In function 'coda_alloc_framebuffers':
-> drivers/media/platform/coda/coda-bit.c:312:3: error: implicit declaration of function 'kfree' [-Werror=implicit-function-declaration]
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  drivers/media/platform/coda/coda-bit.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index 07fc91a..9b8ea8b 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -17,6 +17,7 @@
->  #include <linux/kernel.h>
->  #include <linux/platform_device.h>
->  #include <linux/reset.h>
-> +#include <linux/slab.h>
->  #include <linux/videodev2.h>
->  
->  #include <media/v4l2-common.h>
-
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-thanks
-Philipp
-
+PiA+DQo+ID4gQW5kIGltcG9ydGFudCBmb3IgbWUsIGJlY2F1c2UgaWYgaXQgSVMgcmVsYXRlZCB0
+byB0aGUgdmIyIGNvbnZlcnNpb24gdGhlbiBJDQo+ID4gbmVlZCB0byBrbm93IGFzYXAuDQo+ID4N
+Cj4gDQo+IE1pZ2h0IHRha2UgYSBmZXcgZGF5cyB0byBiZSBjb21wbGV0ZWx5IHN1cmUuIEkndmUg
+d29uZGVyZWQgaWYgaXQncyBzb21ldGhpbmcNCj4gdG8gZG8gd2l0aCB0aGUgc2lnbmFsIHRvbyAo
+bWF5YmUgc29tZSBidWcgd2hlbiBzaWduYWwgZXJyb3Igb2NjdXJzPykuIFNvDQo+IG1hbnkgdmFy
+aWFibGVzIDooDQo+IA0KDQpJIGNhbiByZWFzb25hYmx5IHJlbGlhYmx5IHJlcHJvZHVjZSB0aGUg
+cHJvYmxlbSB1c2luZyBkdmJzdHJlYW0uIHN0cmFjZSBvdXRwdXQgYmVsb3cuIEl0IGxvb2tzIHBy
+ZXR0eSBtdWNoIGFzIHlvdSdkIGV4cGVjdCAtIHBvbGwgcmV0dXJuaW5nIG5vcm1hbGx5IHVwIHVu
+dGlsIGl0IGRvZXNuJ3QgYW55bW9yZS4NCg0KSSdsbCB0ZXN0IG91dCB0aGUgZG93bmdyYWRlIHRv
+IDczZDgxMDIyOTg3MTk4NjNkNTQyNjRmNjI1MjEzNjI0ODdmODQyNTYganVzdCB0byBiZSBzdXJl
+LCB0aGVuIHNlZSBpZiBJIGNhbiB0YWtlIGl0IGZ1cnRoZXIgYmFjay4NCg0KSmFtZXMNCg0KcG9s
+bChbe2ZkPTcsIGV2ZW50cz1QT0xMSU58UE9MTFBSSX1dLCAxLCA1MDApID0gMSAoW3tmZD03LCBy
+ZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0pDQphY2NlcHQoMCwgMHg3MTJlMjAsIFswXSkgICAgICAg
+ICAgICAgICAgPSAtMSBFTk9UU09DSyAoU29ja2V0IG9wZXJhdGlvbiBvbiBub24tc29ja2V0KQ0K
+cmVhZCg3LCAiR1x2XDMwXDM3XDI1MlZcMzE3XDM3M1wyMVwzNzdcMzVcMjY1XDZcMjAwWlwyMDBc
+MzRcMjRcMzQyXDMzN2J3XDIzN1wyNjVcMzE0LDohYFxuXDM3MFw0Ii4uLiwgMTg4KSA9IDE4OA0K
+d3JpdGUoMywgIkdcdlwzMFwzN1wyNTJWXDMxN1wzNzNcMjFcMzc3XDM1XDI2NVw2XDIwMFpcMjAw
+XDM0XDI0XDM0MlwzMzdid1wyMzdcMjY1XDMxNCw6IWBcblwzNzBcNCIuLi4sIDE4OCkgPSAxODgN
+CnBvbGwoW3tmZD03LCBldmVudHM9UE9MTElOfFBPTExQUkl9XSwgMSwgNTAwKSA9IDEgKFt7ZmQ9
+NywgcmV2ZW50cz1QT0xMSU58UE9MTFBSSX1dKQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAg
+ICAgICAgICAgICAgID0gLTEgRU5PVFNPQ0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tl
+dCkNCnJlYWQoNywgIkdcdlwzMFwyMFxmMG4hXDIwMFwzMDFcMTApQCksXDI2MVwyNDFcMzMwXDI0
+MlwyMTNcMzc2XGZcMzQ1XDIyM1wyMVwyMDJATlwyYlwyMjRpIi4uLiwgMTg4KSA9IDE4OA0Kd3Jp
+dGUoMywgIkdcdlwzMFwyMFxmMG4hXDIwMFwzMDFcMTApQCksXDI2MVwyNDFcMzMwXDI0MlwyMTNc
+Mzc2XGZcMzQ1XDIyM1wyMVwyMDJATlwyYlwyMjRpIi4uLiwgMTg4KSA9IDE4OA0KcG9sbChbe2Zk
+PTcsIGV2ZW50cz1QT0xMSU58UE9MTFBSSX1dLCAxLCA1MDApID0gMSAoW3tmZD03LCByZXZlbnRz
+PVBPTExJTnxQT0xMUFJJfV0pDQphY2NlcHQoMCwgMHg3MTJlMjAsIFswXSkgICAgICAgICAgICAg
+ICAgPSAtMSBFTk9UU09DSyAoU29ja2V0IG9wZXJhdGlvbiBvbiBub24tc29ja2V0KQ0KcmVhZCg3
+LCAiR1x2XDMwXDIxJVwzNV1cMzU2XHJ2XDM3MitcMDIyMlwzNFwyMzNcMzEydixcMjMwXDM3MVwz
+NjNcMjA0c1wyMDVSUVwzMzRcMjQzXDIxXDMzN1wyMjMiLi4uLCAxODgpID0gMTg4DQp3cml0ZSgz
+LCAiR1x2XDMwXDIxJVwzNV1cMzU2XHJ2XDM3MitcMDIyMlwzNFwyMzNcMzEydixcMjMwXDM3MVwz
+NjNcMjA0c1wyMDVSUVwzMzRcMjQzXDIxXDMzN1wyMjMiLi4uLCAxODgpID0gMTg4DQpwb2xsKFt7
+ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkgPSAwIChUaW1lb3V0KQ0KYWNj
+ZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0gLTEgRU5PVFNPQ0sgKFNvY2tl
+dCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCnJlYWQoNywgMHg3ZmZmZjcxNDUxMjAsIDE4OCkg
+ICAgICAgICAgICA9IC0xIEVBR0FJTiAoUmVzb3VyY2UgdGVtcG9yYXJpbHkgdW5hdmFpbGFibGUp
+DQpwb2xsKFt7ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkgPSAwIChUaW1l
+b3V0KQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0gLTEgRU5PVFNP
+Q0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCnJlYWQoNywgMHg3ZmZmZjcxNDUx
+MjAsIDE4OCkgICAgICAgICAgICA9IC0xIEVBR0FJTiAoUmVzb3VyY2UgdGVtcG9yYXJpbHkgdW5h
+dmFpbGFibGUpDQpwb2xsKFt7ZmQ9NywgZXZlbnRzPVBPTExJTnxQT0xMUFJJfV0sIDEsIDUwMCkg
+PSAwIChUaW1lb3V0KQ0KYWNjZXB0KDAsIDB4NzEyZTIwLCBbMF0pICAgICAgICAgICAgICAgID0g
+LTEgRU5PVFNPQ0sgKFNvY2tldCBvcGVyYXRpb24gb24gbm9uLXNvY2tldCkNCg==
