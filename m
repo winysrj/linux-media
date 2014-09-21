@@ -1,83 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3987 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350AbaITI4h (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4389 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707AbaIUJf6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 04:56:37 -0400
+	Sun, 21 Sep 2014 05:35:58 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8L9Zsrp016064
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:35:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D94552A002F
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:35:48 +0200 (CEST)
+Message-ID: <541E9BF4.1060702@xs4all.nl>
+Date: Sun, 21 Sep 2014 11:35:48 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, m.chehab@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] DocBook media: improve the poll() documentation
-Date: Sat, 20 Sep 2014 10:56:15 +0200
-Message-Id: <1411203375-15310-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Fixes, add teletext to vivid
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Various 3.18 fixes and the teletext support for vivid.
 
-The poll documentation was incomplete: document how events (POLLPRI)
-are handled and fix the documentation of what poll does for display devices
-and streaming I/O.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/func-poll.xml | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+	Hans
 
-diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
-index b7ed9e8..1e45709 100644
---- a/Documentation/DocBook/media/v4l/func-poll.xml
-+++ b/Documentation/DocBook/media/v4l/func-poll.xml
-@@ -29,9 +29,12 @@ can suspend execution until the driver has captured data or is ready
- to accept data for output.</para>
- 
-     <para>When streaming I/O has been negotiated this function waits
--until a buffer has been filled or displayed and can be dequeued with
--the &VIDIOC-DQBUF; ioctl. When buffers are already in the outgoing
--queue of the driver the function returns immediately.</para>
-+until a buffer has been filled by the capture device and can be dequeued
-+with the &VIDIOC-DQBUF; ioctl. For output devices this function waits
-+until the device is ready to accept a new buffer to be queued up with
-+the &VIDIOC-QBUF; ioctl for display. When buffers are already in the outgoing
-+queue of the driver (capture) or the incoming queue isn't full (display)
-+the function returns immediately.</para>
- 
-     <para>On success <function>poll()</function> returns the number of
- file descriptors that have been selected (that is, file descriptors
-@@ -57,6 +60,10 @@ as well, but it sets the <constant>POLLOUT</constant> and
- <constant>POLLWRNORM</constant> flags in the <structfield>revents</structfield>
- field.</para>
- 
-+    <para>If an event occurred (see &VIDIOC-DQEVENT;) then
-+<constant>POLLPRI</constant> will be set in the <structfield>revents</structfield>
-+field and <function>poll()</function> will return.</para>
-+
-     <para>When use of the <function>read()</function> function has
- been negotiated and the driver does not capture yet, the
- <function>poll</function> function starts capturing. When that fails
-@@ -66,10 +73,18 @@ continuously (as opposed to, for example, still images) the function
- may return immediately.</para>
- 
-     <para>When use of the <function>write()</function> function has
--been negotiated the <function>poll</function> function just waits
-+been negotiated and the driver does not stream yet, the
-+<function>poll</function> function starts streaming. When that fails
-+it returns a <constant>POLLERR</constant> as above. Otherwise it waits
- until the driver is ready for a non-blocking
- <function>write()</function> call.</para>
- 
-+    <para>If the caller is only interested in events (just
-+<constant>POLLPRI</constant> is set in the <structfield>events</structfield>
-+field), then <function>poll()</function> will <emphasis>not</emphasis>
-+start streaming if the driver does not stream yet. This makes it
-+possible to just poll for events and not for buffers.</para>
-+
-     <para>All drivers implementing the <function>read()</function> or
- <function>write()</function> function or streaming I/O must also
- support the <function>poll()</function> function.</para>
--- 
-2.1.0
+The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
 
+  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.18c
+
+for you to fetch changes up to bff227b31543edd2d52d27ac5ff51da53032b3b4:
+
+  cx23885: fix size helper functions (2014-09-21 11:24:28 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      DocBook media: fix wrong prototype
+      vivid: add teletext support to VBI capture
+      v4l2-dv-timings: only check standards if non-zero
+      adv7604/adv7842: fix il_vbackporch typo and zero the struct
+      cx23885: fix VBI support.
+      cx23885: fix size helper functions
+
+ Documentation/DocBook/media/v4l/vidioc-g-edid.xml |  2 +-
+ Documentation/video4linux/vivid.txt               | 10 ++++++----
+ drivers/media/i2c/adv7604.c                       |  2 +-
+ drivers/media/i2c/adv7842.c                       |  4 +++-
+ drivers/media/pci/cx23885/cx23885-core.c          |  4 ++--
+ drivers/media/pci/cx23885/cx23885-vbi.c           |  8 ++++----
+ drivers/media/pci/cx23885/cx23885-video.c         |  2 +-
+ drivers/media/pci/cx23885/cx23885.h               |  9 ++-------
+ drivers/media/platform/vivid/vivid-vbi-cap.c      | 43 ++++++++++++++++++++++++++++--------------
+ drivers/media/platform/vivid/vivid-vbi-gen.c      | 76 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/media/platform/vivid/vivid-vbi-gen.h      |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c      |  7 ++++---
+ drivers/media/platform/vivid/vivid-vid-cap.c      |  2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c      |  2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c         |  3 ++-
+ 15 files changed, 133 insertions(+), 43 deletions(-)
