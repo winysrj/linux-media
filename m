@@ -1,129 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37496 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793AbaIDXZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 19:25:14 -0400
-Received: from dyn3-82-128-191-243.psoas.suomi.net ([82.128.191.243] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1XPgOv-0000Zw-L6
-	for linux-media@vger.kernel.org; Fri, 05 Sep 2014 02:25:13 +0300
-Message-ID: <5408F4D9.4090703@iki.fi>
-Date: Fri, 05 Sep 2014 02:25:13 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:47138 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412AbaIUSxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 14:53:38 -0400
+Received: by mail-we0-f172.google.com with SMTP id p10so1468189wes.17
+        for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:53:36 -0700 (PDT)
+Message-ID: <541F1144.3050808@cogentembedded.com>
+Date: Sun, 21 Sep 2014 21:56:20 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] af9035/it9135 changes
-References: <5408DF3D.7070604@iki.fi>
-In-Reply-To: <5408DF3D.7070604@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org
+CC: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
+References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <53FB2E95.7040505@xs4all.nl> <53FB30E3.2050304@xs4all.nl>
+In-Reply-To: <53FB30E3.2050304@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated:
+Hello.
 
-for you to fetch changes up to ccf62c1bfc897f1d9eb22fa685362638c715e9db:
+On 08/25/2014 04:49 PM, Hans Verkuil wrote:
 
-   af9035: remove I2C client differently (2014-09-05 02:13:03 +0300)
+>>> This patch contains driver for Renesas R-Car JPEG codec.
 
+>>> Cnanges since v1:
+>>>      - s/g_fmt function simplified
+>>>      - default format for queues added
+>>>      - dumb vidioc functions added to be in compliance with standard api:
+>>>          jpu_s_priority, jpu_g_priority
 
-On 09/05/2014 12:53 AM, Antti Palosaari wrote:
-> The following changes since commit
-> 89fffac802c18caebdf4e91c0785b522c9f6399a:
->
->    [media] drxk_hard: fix bad alignments (2014-09-03 19:19:18 -0300)
->
-> are available in the git repository at:
->
->    git://linuxtv.org/anttip/media_tree.git af9035
->
-> for you to fetch changes up to 9507ed6ce19644d0078e0d68af8e4ee73c7eba4b:
->
->    af9035: remove I2C client differently (2014-09-05 00:45:49 +0300)
->
-> ----------------------------------------------------------------
-> Antti Palosaari (41):
->        af9033: feed clock to RF tuner
->        af9033: provide dyn0_clk clock source
->        af9035: enable AF9033 demod clock source for IT9135
->        it913x: fix tuner sleep power leak
->        it913x: avoid division by zero on error case
->        it913x: fix IT9135 AX sleep
->        af9035: remove AVerMedia eeprom override
->        af9035: make checkpatch.pl happy
->        af9033: make checkpatch.pl happy
->        it913x: make checkpatch.pl happy
->        it913x: rename tuner_it913x => it913x
->        af9035: do not attach IT9135 tuner
->        it913x: convert to I2C driver
->        af9035: use I2C it913x tuner driver
->        it913x: change reg read/write routines more common
->        it913x: rename 'state' to 'dev'
->        it913x: convert to RegMap API
->        it913x: re-implement sleep
->        it913x: remove dead code
->        it913x: get rid of script loader and and private header file
->        it913x: refactor code largely
->        it913x: replace udelay polling with jiffies
->        af9033: fix firmware version logging
->        af9033: rename 'state' to 'dev'
->        af9033: convert to I2C client
->        af9033: clean up logging
->        af9035: few small I2C master xfer changes
->        af9033: remove I2C addr from config
->        af9035: replace PCTV device model numbers with name
->        MAINTAINERS: IT913X driver filenames
->        af9033: implement DVBv5 statistic for signal strength
->        af9033: implement DVBv5 statistic for CNR
->        af9033: wrap DVBv3 read SNR to DVBv5 CNR
->        af9033: implement DVBv5 stat block counters
->        af9033: implement DVBv5 post-Viterbi BER
->        af9033: wrap DVBv3 UCB to DVBv5 UCB stats
->        af9033: wrap DVBv3 BER to DVBv5 BER
->        af9033: remove all DVBv3 stat calculation logic
->        dvb-usb-v2: add frontend_detach callback
->        dvb-usb-v2: add tuner_detach callback
->        af9035: remove I2C client differently
->
-> Bimow Chen (3):
->        af9033: update IT9135 tuner inittabs
->        it913x: init tuner on attach
->        get_dvb_firmware: Update firmware of ITEtech IT9135
->
-> Malcolm Priestley (1):
->        af9035: new IDs: add support for PCTV 78e and PCTV 79e
->
->   Documentation/dvb/get_dvb_firmware                |  24 +++--
->   MAINTAINERS                                       |   2 +-
->   drivers/media/dvb-core/dvb-usb-ids.h              |   2 +
->   drivers/media/dvb-frontends/af9033.c              | 738
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------------
->
->   drivers/media/dvb-frontends/af9033.h              |  58 ++++------
->   drivers/media/dvb-frontends/af9033_priv.h         |  21 ++--
->   drivers/media/tuners/Kconfig                      |   1 +
->   drivers/media/tuners/Makefile                     |   2 +-
->   drivers/media/tuners/it913x.c                     | 478
-> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->
->   drivers/media/tuners/{tuner_it913x.h => it913x.h} |  41 +++++---
->   drivers/media/tuners/tuner_it913x.c               | 447
-> -----------------------------------------------------------------------------
->
->   drivers/media/tuners/tuner_it913x_priv.h          |  78 --------------
->   drivers/media/usb/dvb-usb-v2/af9035.c             | 322
-> ++++++++++++++++++++++++++++++++++++++++++++-----------
->   drivers/media/usb/dvb-usb-v2/af9035.h             |   6 +-
->   drivers/media/usb/dvb-usb-v2/dvb_usb.h            |   3 +
->   drivers/media/usb/dvb-usb-v2/dvb_usb_core.c       |  24 ++++-
->   16 files changed, 1252 insertions(+), 995 deletions(-)
->   create mode 100644 drivers/media/tuners/it913x.c
->   rename drivers/media/tuners/{tuner_it913x.h => it913x.h} (67%)
->   delete mode 100644 drivers/media/tuners/tuner_it913x.c
->   delete mode 100644 drivers/media/tuners/tuner_it913x_priv.h
->
+>> Oops, that's a bug elsewhere. Don't add these empty prio ops, this needs to be
+>> solved in the v4l2 core.
 
--- 
-http://palosaari.fi/
+>> I'll post a patch for this.
+
+> After some thought I've decided to allow prio handling for m2m devices. It is
+> actually useful if some application wants exclusive access to the m2m hardware.
+
+> So I will change v4l2-compliance instead.
+
+    I take it we don't need to change the driver? Asking because the driver 
+seems stuck for nearly a months now.
+    I'm myself still seeing a place for improvement (register macro naming of 
+the top of my head). Perhaps it's time to take this driver into my own hands...
+
+> Regards,
+> 	Hans
+
+WBR, Sergei
+
