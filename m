@@ -1,102 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1285 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125AbaISIOO (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3601 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbaIUOsu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 04:14:14 -0400
-Message-ID: <541BE5C5.5040205@xs4all.nl>
-Date: Fri, 19 Sep 2014 10:13:57 +0200
+	Sun, 21 Sep 2014 10:48:50 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/3] vb2: Buffers returned to videobuf2 from start_streaming
- in QUEUED state
-References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi> <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1411077469-29178-2-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 07/11] v4l2-ctrls: implement 'ignore after use' support.
+Date: Sun, 21 Sep 2014 16:48:25 +0200
+Message-Id: <1411310909-32825-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/18/2014 11:57 PM, Sakari Ailus wrote:
-> Patch "[media] v4l: vb2: Fix stream start and buffer completion race" has a
-> sets q->start_streaming_called before calling queue op start_streaming() in
-> order to fix a bug. This has the side effect that buffers returned to
-> videobuf2 in VB2_BUF_STATE_QUEUED will cause a WARN_ON() to be called.
-> 
-> Add a new field called done_buffers_queued_state to struct vb2_queue, which
-> must be set if the new state of buffers returned to videobuf2 must be
-> VB2_BUF_STATE_QUEUED, i.e. buffers returned in start_streaming op.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I posted a fix for this over a month ago:
+Sometimes you want to apply a value every time v4l2_ctrl_apply_store
+is called, and sometimes you want to apply that value only once.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg77871.html
+This adds support for that feature.
 
-Unfortunately, the pull request with that patch (https://patchwork.linuxtv.org/patch/25162/)
-fell through the cracks as I discovered yesterday. Hopefully Mauro will pick
-up that pull request quickly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 75 ++++++++++++++++++++++++++++--------
+ drivers/media/v4l2-core/v4l2-ioctl.c | 14 +++----
+ include/media/v4l2-ctrls.h           | 12 ++++++
+ 3 files changed, 79 insertions(+), 22 deletions(-)
 
-I prefer my patch since that avoids introducing yet another state variable.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |    5 +++--
->  include/media/videobuf2-core.h           |    4 ++++
->  2 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7e6aff6..202e2a5 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1174,7 +1174,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
->  		return;
->  
-> -	if (!q->start_streaming_called) {
-> +	if (q->done_buffers_queued_state) {
->  		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
->  			state = VB2_BUF_STATE_QUEUED;
->  	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
-> @@ -1742,9 +1742,10 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  		__enqueue_in_driver(vb);
->  
->  	/* Tell the driver to start streaming */
-> -	q->start_streaming_called = 1;
-> +	q->done_buffers_queued_state = q->start_streaming_called = 1;
->  	ret = call_qop(q, start_streaming, q,
->  		       atomic_read(&q->owned_by_drv_count));
-> +	q->done_buffers_queued_state = 0;
->  	if (!ret)
->  		return 0;
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 5a10d8d..7c0dac6 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -380,6 +380,9 @@ struct v4l2_fh;
->   * @streaming:	current streaming state
->   * @start_streaming_called: start_streaming() was called successfully and we
->   *		started streaming.
-> + * @done_buffers_queued_state: buffers returned to videobuf2 must go
-> + *		to VB2_BUF_STATE_QUEUED state. This is the case whilst
-> + *		the driver's start_streaming op is called.
->   * @error:	a fatal error occurred on the queue
->   * @fileio:	file io emulator internal data, used only if emulator is active
->   * @threadio:	thread io internal data, used only if thread is active
-> @@ -418,6 +421,7 @@ struct vb2_queue {
->  
->  	unsigned int			streaming:1;
->  	unsigned int			start_streaming_called:1;
-> +	unsigned int			done_buffers_queued_state:1;
->  	unsigned int			error:1;
->  
->  	struct vb2_fileio_data		*fileio;
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e5dccf2..21560b0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1475,6 +1475,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	c->flags = 0;
+ 	return ptr_to_user(c, ctrl, ctrl->p_cur);
+ }
+ 
+@@ -1482,8 +1483,13 @@ static int cur_to_user(struct v4l2_ext_control *c,
+ static int store_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl, unsigned store)
+ {
++	c->flags = 0;
+ 	if (store == 0)
+ 		return ptr_to_user(c, ctrl, ctrl->p_new);
++	if (test_bit(store - 1, ctrl->cluster[0]->ignore_store_after_use))
++		c->flags |= V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE;
++	if (test_bit(store - 1, ctrl->cluster[0]->ignore_store))
++		c->flags |= V4L2_EXT_CTRL_FL_IGN_STORE;
+ 	return ptr_to_user(c, ctrl, ctrl->p_stores[store - 1]);
+ }
+ 
+@@ -1491,6 +1497,7 @@ static int store_to_user(struct v4l2_ext_control *c,
+ static int new_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	c->flags = 0;
+ 	return ptr_to_user(c, ctrl, ctrl->p_new);
+ }
+ 
+@@ -1546,6 +1553,8 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ static int user_to_new(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	ctrl->cluster[0]->new_ignore_store_after_use =
++		c->flags & V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE;
+ 	return user_to_ptr(c, ctrl, ctrl->p_new);
+ }
+ 
+@@ -1597,8 +1606,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ /* Helper function: copy the new control value to the store */
+ static void new_to_store(struct v4l2_ctrl *ctrl)
+ {
++	if (ctrl == NULL)
++		return;
++
+ 	/* has_changed is set by cluster_changed */
+-	if (ctrl && ctrl->has_changed)
++	if (ctrl->has_changed)
+ 		ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_stores[ctrl->store - 1]);
+ }
+ 
+@@ -2328,6 +2340,12 @@ void v4l2_ctrl_cluster(unsigned ncontrols, struct v4l2_ctrl **controls)
+ 
+ 	for (i = 0; i < ncontrols; i++) {
+ 		if (controls[i]) {
++			/*
++			 * All controls in a cluster must have the same
++			 * V4L2_CTRL_FLAG_CAN_STORE flag value.
++			 */
++			WARN_ON((controls[0]->flags & controls[i]->flags) &
++					V4L2_CTRL_FLAG_CAN_STORE);
+ 			controls[i]->cluster = controls;
+ 			controls[i]->ncontrols = ncontrols;
+ 			if (controls[i]->flags & V4L2_CTRL_FLAG_VOLATILE)
+@@ -2850,6 +2868,10 @@ static int extend_store(struct v4l2_ctrl *ctrl, unsigned stores)
+ 	unsigned s, idx;
+ 	union v4l2_ctrl_ptr *p;
+ 
++	/* round up to the next multiple of 4 */
++	stores = (stores + 3) & ~3;
++	if (stores > V4L2_CTRLS_MAX_STORES)
++		return -EINVAL;
+ 	p = kcalloc(stores, sizeof(union v4l2_ctrl_ptr), GFP_KERNEL);
+ 	if (p == NULL)
+ 		return -ENOMEM;
+@@ -2868,6 +2890,7 @@ static int extend_store(struct v4l2_ctrl *ctrl, unsigned stores)
+ 		memcpy(p, ctrl->p_stores, ctrl->nr_of_stores * sizeof(union v4l2_ctrl_ptr));
+ 	kfree(ctrl->p_stores);
+ 	ctrl->p_stores = p;
++	bitmap_set(ctrl->ignore_store, ctrl->nr_of_stores, stores - ctrl->nr_of_stores);
+ 	ctrl->nr_of_stores = stores;
+ 	return 0;
+ }
+@@ -3081,21 +3104,33 @@ static int try_or_set_cluster(struct v4l2_fh *fh, struct v4l2_ctrl *master,
+ 
+ 	ret = call_op(master, try_ctrl);
+ 
+-	/* Don't set if there is no change */
+-	if (ret || !set || !cluster_changed(master))
+-		return ret;
+-	ret = call_op(master, s_ctrl);
+-	if (ret)
++	if (ret || !set)
+ 		return ret;
+ 
+-	/* If OK, then make the new values permanent. */
+-	update_flag = is_cur_manual(master) != is_new_manual(master);
+-	for (i = 0; i < master->ncontrols; i++) {
+-		if (store)
+-			new_to_store(master->cluster[i]);
++	/* Don't set if there is no change */
++	if (cluster_changed(master)) {
++		ret = call_op(master, s_ctrl);
++		if (ret)
++			return ret;
++
++		/* If OK, then make the new values permanent. */
++		update_flag = is_cur_manual(master) != is_new_manual(master);
++		for (i = 0; i < master->ncontrols; i++) {
++			if (store)
++				new_to_store(master->cluster[i]);
++			else
++				new_to_cur(fh, master->cluster[i], ch_flags |
++						((update_flag && i > 0) ?
++						 V4L2_EVENT_CTRL_CH_FLAGS : 0));
++		}
++	}
++
++	if (store) {
++		if (master->new_ignore_store_after_use)
++			set_bit(store - 1, master->ignore_store_after_use);
+ 		else
+-			new_to_cur(fh, master->cluster[i], ch_flags |
+-				((update_flag && i > 0) ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
++			clear_bit(store - 1, master->ignore_store_after_use);
++		clear_bit(store - 1, master->ignore_store);
+ 	}
+ 	return 0;
+ }
+@@ -3401,8 +3436,18 @@ int v4l2_ctrl_apply_store(struct v4l2_ctrl_handler *hdl, unsigned store)
+ 			continue;
+ 		if (master->handler != hdl)
+ 			v4l2_ctrl_lock(master);
+-		for (i = 0; i < master->ncontrols; i++)
+-			store_to_new(master->cluster[i], store);
++		for (i = 0; i < master->ncontrols; i++) {
++			struct v4l2_ctrl *ctrl = master->cluster[i];
++
++			if (!ctrl || (store && test_bit(store - 1, master->ignore_store)))
++				continue;
++			store_to_new(ctrl, store);
++		}
++
++		if (store && !test_bit(store - 1, master->ignore_store)) {
++			if (test_bit(store - 1, master->ignore_store_after_use))
++				set_bit(store - 1, master->ignore_store);
++		}
+ 
+ 		/* For volatile autoclusters that are currently in auto mode
+ 		   we need to discover if it will be set to manual mode.
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 628852c..9d3b4f2 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -562,12 +562,14 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	pr_cont("class=0x%x, count=%d, error_idx=%d",
+ 			p->ctrl_class, p->count, p->error_idx);
+ 	for (i = 0; i < p->count; i++) {
+-		if (p->controls[i].size)
+-			pr_cont(", id/val=0x%x/0x%x",
+-				p->controls[i].id, p->controls[i].value);
++		if (!p->controls[i].size)
++			pr_cont(", id/flags/val=0x%x/0x%x/0x%x",
++				p->controls[i].id, p->controls[i].flags,
++				p->controls[i].value);
+ 		else
+-			pr_cont(", id/size=0x%x/%u",
+-				p->controls[i].id, p->controls[i].size);
++			pr_cont(", id/flags/size=0x%x/0x%x/%u",
++				p->controls[i].id, p->controls[i].flags,
++				p->controls[i].size);
+ 	}
+ 	pr_cont("\n");
+ }
+@@ -888,8 +890,6 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 
+ 	/* zero the reserved fields */
+ 	c->reserved[0] = c->reserved[1] = 0;
+-	for (i = 0; i < c->count; i++)
+-		c->controls[i].reserved2[0] = 0;
+ 
+ 	/* V4L2_CID_PRIVATE_BASE cannot be used as control class
+ 	   when using extended controls.
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 713980a..3005d88 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -36,6 +36,9 @@ struct v4l2_subscribed_event;
+ struct v4l2_fh;
+ struct poll_table_struct;
+ 
++/* Must be a multiple of 4 */
++#define V4L2_CTRLS_MAX_STORES VIDEO_MAX_FRAME
++
+ /** union v4l2_ctrl_ptr - A pointer to a control value.
+  * @p_s32:	Pointer to a 32-bit signed value.
+  * @p_s64:	Pointer to a 64-bit signed value.
+@@ -123,6 +126,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @call_notify: If set, then call the handler's notify function whenever the
+   *		control's value changes.
+   * @can_store: If set, then this control supports configuration stores.
++  * @new_ignore_store_after_use: If set, then the new control had the
++  *		V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE flag set.
+   * @manual_mode_value: If the is_auto flag is set, then this is the value
+   *		of the auto control that determines if that control is in
+   *		manual mode. So if the value of the auto control equals this
+@@ -143,6 +148,10 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @nr_of_dims:The number of dimensions in @dims.
+   * @nr_of_stores: The number of allocated configuration stores of this control.
+   * @store:	The configuration store that the control op operates on.
++  * @ignore_store: If the bit for the corresponding store is 1, then don't apply that
++  *		store's value.
++  * @ignore_store_after_use: If the bit for the corresponding store is 1, then set the
++  *		bit in @ignore_store after the store's value has been applied.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+   *		easy to skip menu items that are not valid. If bit X is set,
+   *		then menu item X is skipped. Of course, this only works for
+@@ -183,6 +192,7 @@ struct v4l2_ctrl {
+ 	unsigned int has_volatiles:1;
+ 	unsigned int call_notify:1;
+ 	unsigned int can_store:1;
++	unsigned int new_ignore_store_after_use:1;
+ 	unsigned int manual_mode_value:8;
+ 
+ 	const struct v4l2_ctrl_ops *ops;
+@@ -197,6 +207,8 @@ struct v4l2_ctrl {
+ 	u32 nr_of_dims;
+ 	u16 nr_of_stores;
+ 	u16 store;
++	DECLARE_BITMAP(ignore_store, V4L2_CTRLS_MAX_STORES);
++	DECLARE_BITMAP(ignore_store_after_use, V4L2_CTRLS_MAX_STORES);
+ 	union {
+ 		u64 step;
+ 		u64 menu_skip_mask;
+-- 
+2.1.0
 
