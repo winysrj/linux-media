@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:39552 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbaIXM2C (ORCPT
+Received: from mail-la0-f53.google.com ([209.85.215.53]:50924 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750751AbaIUKxf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 08:28:02 -0400
-Received: by mail-pa0-f50.google.com with SMTP id lj1so170301pab.9
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 05:28:01 -0700 (PDT)
-Message-ID: <5422B8CD.8050302@gmail.com>
-Date: Wed, 24 Sep 2014 21:27:57 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
-References: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>
-In-Reply-To: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
+	Sun, 21 Sep 2014 06:53:35 -0400
+Received: by mail-la0-f53.google.com with SMTP id ge10so5332845lab.12
+        for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 03:53:33 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, crope@iki.fi
+Subject: [PATCH 0/3] IT930x USB DVB-T2/C tuner
+Date: Sun, 21 Sep 2014 13:53:16 +0300
+Message-Id: <1411296799-3525-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
-> +	b = (s32)div64_s64(((s64) freq) << 20,
-> +			   state->cfg.xtal_freq - (((s64) a) << 20));
-> +
+This patch set adds support for IT930x reference design. It contains IT9303 USB bridge, Si2168-B40 demodulator and Si2147-A30 tuner.
 
-I'm afraid it should be like the following.
-> +	b = (s32)(div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
-> +			- (((s64) a) << 20));
+The patches should be applied on top of Antti's af9035 branch.
+http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=af9035
 
-regads,
-akihiro
+Cc: crope@iki.fi
+
+Olli Salonen (3):
+  si2157: Add support for Si2147-A30
+  af9035: Add possibility to define which I2C adapter to use
+  af9035: Add support for IT930x USB bridge
+
+ drivers/media/dvb-core/dvb-usb-ids.h  |   1 +
+ drivers/media/tuners/si2157.c         |  13 +-
+ drivers/media/tuners/si2157.h         |   2 +-
+ drivers/media/tuners/si2157_priv.h    |   2 +-
+ drivers/media/usb/dvb-usb-v2/af9035.c | 333 +++++++++++++++++++++++++++++++---
+ drivers/media/usb/dvb-usb-v2/af9035.h |   6 +
+ 6 files changed, 331 insertions(+), 26 deletions(-)
+
+-- 
+1.9.1
 
