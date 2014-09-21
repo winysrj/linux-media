@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58571 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393AbaIWLAA (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4578 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706AbaIUJRE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 07:00:00 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	Sun, 21 Sep 2014 05:17:04 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8L9H0UP094333
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:17:02 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0D0F52A002F
+	for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:16:55 +0200 (CEST)
+Message-ID: <541E9786.8050701@xs4all.nl>
+Date: Sun, 21 Sep 2014 11:16:54 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/2] [media] saa7134: Remove some casting warnings
-Date: Tue, 23 Sep 2014 07:59:43 -0300
-Message-Id: <37b38486a1497804b63482af58a945f0eee8893f.1411469967.git.mchehab@osg.samsung.com>
+Subject: [GIT PULL FOR v3.17] Various bug/regression fixes for 3.17
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/pci/saa7134/saa7134-go7007.c:247:17: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    expected unsigned int [unsigned] val
-drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    got restricted __le32 [usertype] <noident>
-drivers/media/pci/saa7134/saa7134-go7007.c:252:17: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    expected unsigned int [unsigned] val
-drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    got restricted __le32 [usertype] <noident>
-drivers/media/pci/saa7134/saa7134-go7007.c:299:9: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    expected unsigned int [unsigned] val
-drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    got restricted __le32 [usertype] <noident>
-drivers/media/pci/saa7134/saa7134-go7007.c:300:9: warning: incorrect type in argument 1 (different base types)
-drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    expected unsigned int [unsigned] val
-drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    got restricted __le32 [usertype] <noident>
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This collects my set of 3.17 patches, including the vb2 poll regression fix.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-go7007.c b/drivers/media/pci/saa7134/saa7134-go7007.c
-index 3e9ca4821b8c..d9af6f3dc8af 100644
---- a/drivers/media/pci/saa7134/saa7134-go7007.c
-+++ b/drivers/media/pci/saa7134/saa7134-go7007.c
-@@ -244,12 +244,12 @@ static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
- 		dma_sync_single_for_cpu(&dev->pci->dev,
- 					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
- 		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
--		saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
-+		saa_writel(SAA7134_RS_BA2(5), (__force u32)cpu_to_le32(saa->bottom_dma));
- 	} else {
- 		dma_sync_single_for_cpu(&dev->pci->dev,
- 					saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
- 		go7007_parse_video_stream(go, saa->top, PAGE_SIZE);
--		saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
-+		saa_writel(SAA7134_RS_BA1(5), (__force u32)cpu_to_le32(saa->top_dma));
- 	}
- }
- 
-@@ -296,8 +296,8 @@ static int saa7134_go7007_stream_start(struct go7007 *go)
- 	/* Enable video streaming mode */
- 	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_VIDEO);
- 
--	saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
--	saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
-+	saa_writel(SAA7134_RS_BA1(5), (__force u32)cpu_to_le32(saa->top_dma));
-+	saa_writel(SAA7134_RS_BA2(5), (__force u32)cpu_to_le32(saa->bottom_dma));
- 	saa_writel(SAA7134_RS_PITCH(5), 128);
- 	saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_MAX);
- 
--- 
-1.9.3
+I have also included the poll documentation fixes here, but if you prefer to
+add those to 3.18 instead, then that's fine by me.
 
+Besides this pull request for 3.17 I have two other pull requests for 3.17 as
+well that have not yet been merged:
+
+https://patchwork.linuxtv.org/patch/25162/
+https://patchwork.linuxtv.org/patch/25824/
+
+And this cx18 fix for 3.17 is currently in your fixes branch, but not yet
+upstream: https://patchwork.linuxtv.org/patch/25572/
+
+Regards,
+
+	Hans
+
+The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
+
+  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.17k
+
+for you to fetch changes up to cd36be2ddfd6ff0ff823546caa03fb9a05dae54a:
+
+  DocBook media: improve the poll() documentation (2014-09-21 11:00:12 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      adv7604: fix inverted condition
+      cx24123: fix kernel oops due to missing parent pointer
+      cx2341x: fix kernel oops
+      vb2: fix VBI/poll regression
+      DocBook media: fix the poll() 'no QBUF' documentation
+      DocBook media: improve the poll() documentation
+
+ Documentation/DocBook/media/v4l/func-poll.xml | 35 +++++++++++++++++++++++++++++------
+ drivers/media/common/cx2341x.c                |  1 +
+ drivers/media/dvb-frontends/cx24123.c         |  1 +
+ drivers/media/i2c/adv7604.c                   |  2 +-
+ drivers/media/v4l2-core/videobuf2-core.c      | 17 ++++++++++++++---
+ include/media/videobuf2-core.h                |  4 ++++
+ 6 files changed, 50 insertions(+), 10 deletions(-)
