@@ -1,69 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44339 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756067AbaICUd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH 41/46] [media] fintek-cir: just return 0 instead of using a var
-Date: Wed,  3 Sep 2014 17:33:13 -0300
-Message-Id: <0cd0a451ba8422015d1fbdf066bee9a0f4157d1b.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:46062 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455AbaIUSxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 14:53:48 -0400
+Received: by mail-wi0-f174.google.com with SMTP id fb4so1799185wid.13
+        for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 11:53:46 -0700 (PDT)
+Message-ID: <541F1152.5000200@cogentembedded.com>
+Date: Sun, 21 Sep 2014 21:56:34 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org
+CC: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
+References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com> <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <53FB2E95.7040505@xs4all.nl> <53FB30E3.2050304@xs4all.nl>
+In-Reply-To: <53FB30E3.2050304@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating a var to store 0 and just return it,
-change the code to return 0 directly.
+Hello.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+On 08/25/2014 04:49 PM, Hans Verkuil wrote:
 
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index f0a1f7d31ee6..b5167573240e 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -148,7 +148,6 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- 	u8 vendor_major, vendor_minor;
- 	u8 portsel, ir_class;
- 	u16 vendor, chip;
--	int ret = 0;
- 
- 	fintek_config_mode_enable(fintek);
- 
-@@ -208,7 +207,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- 
- 	spin_unlock_irqrestore(&fintek->fintek_lock, flags);
- 
--	return ret;
-+	return 0;
- }
- 
- static void fintek_cir_ldev_init(struct fintek_dev *fintek)
-@@ -644,7 +643,6 @@ static int fintek_suspend(struct pnp_dev *pdev, pm_message_t state)
- 
- static int fintek_resume(struct pnp_dev *pdev)
- {
--	int ret = 0;
- 	struct fintek_dev *fintek = pnp_get_drvdata(pdev);
- 
- 	fit_dbg("%s called", __func__);
-@@ -661,7 +659,7 @@ static int fintek_resume(struct pnp_dev *pdev)
- 
- 	fintek_cir_regs_init(fintek);
- 
--	return ret;
-+	return 0;
- }
- 
- static void fintek_shutdown(struct pnp_dev *pdev)
--- 
-1.9.3
+>>> This patch contains driver for Renesas R-Car JPEG codec.
+
+>>> Cnanges since v1:
+>>>      - s/g_fmt function simplified
+>>>      - default format for queues added
+>>>      - dumb vidioc functions added to be in compliance with standard api:
+>>>          jpu_s_priority, jpu_g_priority
+
+>> Oops, that's a bug elsewhere. Don't add these empty prio ops, this needs to be
+>> solved in the v4l2 core.
+
+>> I'll post a patch for this.
+
+> After some thought I've decided to allow prio handling for m2m devices. It is
+> actually useful if some application wants exclusive access to the m2m hardware.
+
+> So I will change v4l2-compliance instead.
+
+    I take it we don't need to change the driver? Asking because the driver 
+seems stuck for nearly a month now.
+    I'm myself still seeing a place for improvement (register macro naming of 
+the top of my head). Perhaps it's time to take this driver into my own hands...
+
+> Regards,
+> 	Hans
+
+WBR, Sergei
 
