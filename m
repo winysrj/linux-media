@@ -1,77 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:48040 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496AbaIFVha (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 17:37:30 -0400
-Received: by mail-we0-f177.google.com with SMTP id u57so318400wes.36
-        for <linux-media@vger.kernel.org>; Sat, 06 Sep 2014 14:37:29 -0700 (PDT)
-Message-ID: <540B7E91.5000700@gmail.com>
-Date: Sat, 06 Sep 2014 22:37:21 +0100
-From: Malcolm Priestley <tvboxspy@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dvb-core: add a new tuner ops to dvb_frontend
- for APIv5
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-2-git-send-email-tskd08@gmail.com> <53FE1EF5.5060007@iki.fi> <53FEF144.6060106@gmail.com> <53FFD1F0.9050306@iki.fi> <540059B5.8050100@gmail.com> <540A6CF3.4070401@iki.fi> <20140905235105.3ab6e7c4.m.chehab@samsung.com> <540B3551.9060003@gmail.com>
-In-Reply-To: <540B3551.9060003@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3865 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350AbaIUOsu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Sep 2014 10:48:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 08/11] vivid: add test config store for the contrast control
+Date: Sun, 21 Sep 2014 16:48:26 +0200
+Message-Id: <1411310909-32825-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/09/14 17:24, Malcolm Priestley wrote:
-> On 06/09/14 03:51, Mauro Carvalho Chehab wrote:
->> Em Sat, 06 Sep 2014 05:09:55 +0300
->> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>> Moro!
->>>
->>> On 08/29/2014 01:45 PM, Akihiro TSUKADA wrote:
->>>> moikka,
->>>>
->>>>> Start polling thread, which polls once per 2 sec or so, which reads
->>>>> RSSI
->>>>> and writes value to struct dtv_frontend_properties. That it is, in my
->>>>> understanding. Same for all those DVBv5 stats. Mauro knows better
->>>>> as he
->>>>> designed that functionality.
->>>>
->>>> I understand that RSSI property should be set directly in the tuner
->>>> driver,
->>>> but I'm afraid that creating a kthread just for updating RSSI would be
->>>> overkill and complicate matters.
->>>>
->>>> Would you give me an advice? >> Mauro
->>>
->>> Now I know that as I implement it. I added kthread and it works
->>> correctly, just I though it is aimed to work. In my case signal strength
->>> is reported by demod, not tuner, because there is some logic in firmware
->>> to calculate it.
->>>
->>> Here is patches you would like to look as a example:
->>>
->>> af9033: implement DVBv5 statistic for signal strength
->>> https://patchwork.linuxtv.org/patch/25748/
->>
->> Actually, you don't need to add a separate kthread to collect the stats.
->> The DVB frontend core already has a thread that calls the frontend status
->> on every 3 seconds (the time can actually be different, depending on
->> the value for fepriv->delay. So, if the device doesn't have any issues
->> on getting stats on this period, it could just hook the DVBv5 stats logic
->> at ops.read_status().
->>
->
-> Hmm, fepriv->delay missed that one, 3 seconds is far too long for lmedm04.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The only way change this is by using algo DVBFE_ALGO_HW using the 
-frontend ops tune.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-ctrls.c   | 4 ++++
+ drivers/media/platform/vivid/vivid-vid-cap.c | 1 +
+ 2 files changed, 5 insertions(+)
 
-As most frontends are using dvb_frontend_swzigzag it could be 
-implemented by patching the frontend ops tune code at the lock
-return in this function or in dvb_frontend_swzigzag_update_delay.
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index d5cbf00..42376a1 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -255,6 +255,9 @@ static int vivid_user_vid_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_user_vid);
+ 
++	if (ctrl->store)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+ 		dev->input_brightness[dev->input] = ctrl->val - dev->input * 128;
+@@ -1199,6 +1202,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 			dev->input_brightness[i] = 128;
+ 		dev->contrast = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
+ 			V4L2_CID_CONTRAST, 0, 255, 1, 128);
++		v4l2_ctrl_can_store(dev->contrast);
+ 		dev->saturation = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
+ 			V4L2_CID_SATURATION, 0, 255, 1, 128);
+ 		dev->hue = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index b016aed..95eda68 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -197,6 +197,7 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
+ 		vb2_set_plane_payload(vb, p, size);
+ 		vb->v4l2_planes[p].data_offset = dev->fmt_cap->data_offset[p];
+ 	}
++	v4l2_ctrl_apply_store(dev->vid_cap_dev.ctrl_handler, vb->v4l2_buf.config_store);
+ 
+ 	return 0;
+ }
+-- 
+2.1.0
 
-Regards
-
-Malcolm
