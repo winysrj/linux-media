@@ -1,69 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51207 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750734AbaIJMaA (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4709 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688AbaIVKff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 08:30:00 -0400
-Date: Wed, 10 Sep 2014 15:29:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Maciej Matraszek <m.matraszek@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	stable@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] [media] v4l2-common: fix overflow in
- v4l_bound_align_image()
-Message-ID: <20140910122953.GA2939@valkosipuli.retiisi.org.uk>
-References: <1410275801-17627-1-git-send-email-m.matraszek@samsung.com>
+	Mon, 22 Sep 2014 06:35:35 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8MAZW5B072604
+	for <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 12:35:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 69B452A0761
+	for <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 12:35:25 +0200 (CEST)
+Message-ID: <541FFB6D.7040602@xs4all.nl>
+Date: Mon, 22 Sep 2014 12:35:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1410275801-17627-1-git-send-email-m.matraszek@samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] v4l2-ioctl.c fix + saa7134 improvements
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maciej,
+The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
 
-Thanks for the patch!
+  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
 
-On Tue, Sep 09, 2014 at 05:16:41PM +0200, Maciej Matraszek wrote:
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index ccaa38f65cf1..506cf8b7763b 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -435,16 +435,13 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
->  	/* Bits that must be zero to be aligned */
->  	unsigned int mask = ~((1 << align) - 1);
->  
-> +	/* Clamp to aligned min and max */
-> +	x = clamp_t(unsigned int, x, (min + ~mask) & mask, max & mask);
+are available in the git repository at:
 
-I think you could use just clamp() since all the arguments are unsigned int.
-With that considered,
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.18d
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+for you to fetch changes up to 6b167cb4cc6a3b69928dfcc9dbef847a0d937500:
 
-> +
->  	/* Round to nearest aligned value */
->  	if (align)
->  		x = (x + (1 << (align - 1))) & mask;
-> 
-> -	/* Clamp to aligned value of min and max */
-> -	if (x < min)
-> -		x = (min + ~mask) & mask;
-> -	else if (x > max)
-> -		x = max & mask;
-> -
->  	return x;
->  }
->  
+  saa7134: add saa7134-go7007 (2014-09-22 12:10:17 +0200)
 
--- 
-Kind regards,
+----------------------------------------------------------------
+Hans Verkuil (3):
+      v4l2-ioctl.c: fix inverted condition
+      saa7134: also capture the WSS signal for 50 Hz VBI capture
+      saa7134: add saa7134-go7007
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+ drivers/media/pci/saa7134/Makefile         |   3 +-
+ drivers/media/pci/saa7134/saa7134-cards.c  |  29 +++++
+ drivers/media/pci/saa7134/saa7134-core.c   |  10 +-
+ drivers/media/pci/saa7134/saa7134-go7007.c | 532 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/saa7134/saa7134-vbi.c    |   2 +-
+ drivers/media/pci/saa7134/saa7134-video.c  |   2 +-
+ drivers/media/pci/saa7134/saa7134.h        |   5 +
+ drivers/media/v4l2-core/v4l2-ioctl.c       |   2 +-
+ 8 files changed, 579 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/media/pci/saa7134/saa7134-go7007.c
