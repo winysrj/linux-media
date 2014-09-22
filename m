@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:58036 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbaI2PhG (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:55975 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753462AbaIVPV7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 11:37:06 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] vivid: add CONFIG_FB dependency
-Date: Mon, 29 Sep 2014 17:36:58 +0200
-Message-ID: <6161514.UBprKDKKES@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 22 Sep 2014 11:21:59 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v6 0/2] LED / flash API integration - V4L2 Flash
+Date: Mon, 22 Sep 2014 17:21:47 +0200
+Message-id: <1411399309-16418-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 6699184d4b791e8a108888380d3b75be837607d3 Mon Sep 17 00:00:00 2001
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 29 Sep 2014 17:33:25 +0200
-Subject: [PATCH] [media] vivid: add CONFIG_FB dependency
+This patch set is the follow-up of the LED / flash API integration
+series [1]. For clarity reasons the patchset has been split into
+four subsets:
 
-The vivid test driver creates a framebuffer, which fails if the the framebuffer
-layer is not enabled:
+- LED Flash Class
+- V4L2 Flash
+- LED Flash Class drivers
+- Documentation
 
-drivers/built-in.o: In function `vivid_fb_release_buffers':
-:(.text+0x2acfe8): undefined reference to `fb_dealloc_cmap'
-drivers/built-in.o: In function `vivid_fb_init':
-:(.text+0x2ad344): undefined reference to `fb_alloc_cmap'
-:(.text+0x2ad34c): undefined reference to `register_framebuffer'
-drivers/built-in.o: In function `vivid_exit':
-:(.exit.text+0x4354): undefined reference to `unregister_framebuffer'
-drivers/built-in.o:(.data+0x55f88): undefined reference to `cfb_fillrect'
-drivers/built-in.o:(.data+0x55f8c): undefined reference to `cfb_copyarea'
-drivers/built-in.o:(.data+0x55f90): undefined reference to `cfb_imageblit'
+========================
+Changes since version 5:
+========================
 
-This adds the dependency in Kconfig.
+- removed flash manager framework - its implementation needs
+  further thorough discussion.
+- removed external strobe facilities from the LED Flash Class
+  and provided external_strobe_set op in v4l2-flash. LED subsystem
+  should be strobe provider agnostic.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Thanks,
+Jacek Anaszewski
 
-diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
-index d71139a2ae00..4c31421fd90d 100644
---- a/drivers/media/platform/vivid/Kconfig
-+++ b/drivers/media/platform/vivid/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_VIVID
- 	tristate "Virtual Video Test Driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-+	depends on VIDEO_DEV && VIDEO_V4L2 && FB && !SPARC32 && !SPARC64
- 	select FONT_SUPPORT
- 	select FONT_8x16
- 	select VIDEOBUF2_VMALLOC
+[1] https://lkml.org/lkml/2014/7/11/914
+
+Jacek Anaszewski (2):
+  media: Add registration helpers for V4L2 flash
+  exynos4-is: Add support for v4l2-flash subdevs
+
+ drivers/media/platform/exynos4-is/media-dev.c |   36 +-
+ drivers/media/platform/exynos4-is/media-dev.h |   13 +-
+ drivers/media/v4l2-core/Kconfig               |   11 +
+ drivers/media/v4l2-core/Makefile              |    2 +
+ drivers/media/v4l2-core/v4l2-flash.c          |  502 +++++++++++++++++++++++++
+ include/media/v4l2-flash.h                    |  135 +++++++
+ 6 files changed, 696 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/media/v4l2-flash.h
+
+-- 
+1.7.9.5
 
