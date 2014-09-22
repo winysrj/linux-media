@@ -1,86 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44048 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbaIXXiL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:38:11 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Satoshi Nagahama <sattnag@aim.com>
-Subject: [PATCH 3/3] [media] usb drivers: use %zu instead of %zd
-Date: Wed, 24 Sep 2014 20:37:44 -0300
-Message-Id: <efa13619097895bf5130bdc22d3b97d7a76cf912.1411601849.git.mchehab@osg.samsung.com>
-In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
-References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
-In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
-References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+Received: from mail-hk1hn0123.outbound.protection.outlook.com ([134.170.140.123]:38469
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753577AbaIVMB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 08:01:56 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: RE: buffer delivery stops with cx23885
+Date: Mon, 22 Sep 2014 12:01:52 +0000
+Message-ID: <8f2ac575542149edb64ae105bff091de@HKXPR04MB295.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+ <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5220.4050107@xs4all.nl>
+ <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5CD0.1000207@xs4all.nl>
+ <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D61D7.3080202@xs4all.nl>
+ <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <e0f1371641b2497f9d3e91c9605702ec@HKXPR04MB295.apcprd04.prod.outlook.com>
+ <541FDFB4.6070201@xs4all.nl>
+ <01776abac53640498b8fc87ac8d36fd1@HKXPR04MB295.apcprd04.prod.outlook.com>
+ <541FF16A.9060902@xs4all.nl>
+ <cf662cd20e9e40ad8750500fc590a833@HKXPR04MB295.apcprd04.prod.outlook.com>
+ <541FF3F5.8070506@xs4all.nl>
+In-Reply-To: <541FF3F5.8070506@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-size_t is unsigned.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index 51872b9f75a1..40a69879fc0a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -1595,7 +1595,7 @@ void cx231xx_set_DIF_bandpass(struct cx231xx *dev, u32 if_freq,
- 		if_freq = 16000000;
- 	}
- 
--	cx231xx_info("Enter IF=%zd\n",
-+	cx231xx_info("Enter IF=%zu\n",
- 			ARRAY_SIZE(Dif_set_array));
- 	for (i = 0; i < ARRAY_SIZE(Dif_set_array); i++) {
- 		if (Dif_set_array[i].if_freq == if_freq) {
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 3284de99fc99..0ce816352d51 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -481,7 +481,7 @@ static void em28xx_copy_video(struct em28xx *dev,
- 	lencopy = lencopy > remain ? remain : lencopy;
- 
- 	if ((char *)startwrite + lencopy > (char *)buf->vb_buf + buf->length) {
--		em28xx_isocdbg("Overflow of %zi bytes past buffer end (1)\n",
-+		em28xx_isocdbg("Overflow of %zu bytes past buffer end (1)\n",
- 			      ((char *)startwrite + lencopy) -
- 			      ((char *)buf->vb_buf + buf->length));
- 		remain = (char *)buf->vb_buf + buf->length -
-@@ -507,7 +507,7 @@ static void em28xx_copy_video(struct em28xx *dev,
- 
- 		if ((char *)startwrite + lencopy > (char *)buf->vb_buf +
- 		    buf->length) {
--			em28xx_isocdbg("Overflow of %zi bytes past buffer end"
-+			em28xx_isocdbg("Overflow of %zu bytes past buffer end"
- 				       "(2)\n",
- 				       ((char *)startwrite + lencopy) -
- 				       ((char *)buf->vb_buf + buf->length));
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index 89c86ee2b225..94e10b10b66e 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -277,14 +277,14 @@ static int smsusb1_load_firmware(struct usb_device *udev, int id, int board_id)
- 		rc = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 2),
- 				  fw_buffer, fw->size, &dummy, 1000);
- 
--		sms_info("sent %zd(%d) bytes, rc %d", fw->size, dummy, rc);
-+		sms_info("sent %zu(%d) bytes, rc %d", fw->size, dummy, rc);
- 
- 		kfree(fw_buffer);
- 	} else {
- 		sms_err("failed to allocate firmware buffer");
- 		rc = -ENOMEM;
- 	}
--	sms_info("read FW %s, size=%zd", fw_filename, fw->size);
-+	sms_info("read FW %s, size=%zu", fw_filename, fw->size);
- 
- 	release_firmware(fw);
- 
--- 
-1.9.3
-
+DQo+ID4+IElzIHRoYXQgdHdvIHR1bmVycyBpbiB0aGUgc2FtZSBkZXZpY2UsIG9yIHR3byB0dW5l
+cnMgaW4gZGlmZmVyZW50IGRldmljZXM/DQo+ID4NCj4gPiBEVmlDTyBGdXNpb25IRFRWIERWQi1U
+IER1YWwgRXhwcmVzczINCj4gPg0KPiA+IDIgdHVuZXJzIG9uIG9uZSBjYXJkDQo+IA0KPiBBbnkg
+aWRlYSBpZiB0aGVyZSB3ZXJlIGNoYW5nZXMgb3IgYXJlIGlzc3VlcyB3aXRoIGkyYyBhY2Nlc3Mg
+d2hlbiB0aGVyZSBhcmUNCj4gdHdvIHR1bmVycyBpbiB0aGUgc2FtZSBkZXZpY2U/DQo+IA0KPiBU
+aGF0J3Mgbm90IHJlYWxseSBteSBleHBlcnRpc2UgYnV0IHlvdSBtaWdodCBrbm93IHNvbWV0aGlu
+ZyBhYm91dCB0aGF0Lg0KPiANCg0KMDQxYWQ0NDk2ODNiYjJkNTRhN2YwODJkNzhlYzE1YmJjOTU4
+YTE3NSBpbnRyb2R1Y2VkIHN0YXRzIGdhdGhlcmluZyBpbnRvIHRoZSBkaWI3MDAwcCBjb2RlIHdo
+aWNoIHNlZW1zIHRvIGdlbmVyYXRlIGEgbG90IG1vcmUgaTJjIHRyYWZmaWMgd2hpY2ggd291bGQg
+ZXhhY2VyYmF0ZSB0aGUgcHJvYmxlbSwgaWYgb25lIGV4aXN0ZWQuIFRoZSB0aW1pbmcgKE1heS9K
+dW5lKSB2ZXJ5IHJvdWdobHkgbWF0Y2hlcyB3aGF0IEkgcmVtZW1iZXIgdG9vLiBXaGVuIG15IHJl
+Y29yZGluZyBzdG9wcywgc28gZG8gdGhlICJOZXh0IGFsbCBsYXllcnMgc3RhdHMgYXZhaWxhYmxl
+IGluLi4uIiBtZXNzYWdlcywgYWx0aG91Z2ggdGhhdCBjb3VsZCBiZSBmb3Igb3RoZXIgcmVhc29u
+cy4NCg0KQW55d2F5LCBJJ2xsIGNvbW1lbnQgb3V0IHRoZSBjYWxsIHRvIGRpYjcwMDBwX2dldF9z
+dGF0cyBhbmQgc2VlIGlmIGl0IG1ha2VzIGEgZGlmZmVyZW5jZS4NCg0KSmFtZXMNCg0K
