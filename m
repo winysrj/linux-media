@@ -1,27 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [45.64.113.118] ([45.64.113.118]:32915 "EHLO a.yundabuy.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674AbaIDQ31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 12:29:27 -0400
-Received: from fhiij (unknown [113.92.153.169])
-	by a.yundabuy.com (Postfix) with ESMTPA id 476654A6D
-	for <linux-media@vger.kernel.org>; Fri,  5 Sep 2014 00:29:20 +0800 (CST)
-Date: Fri, 5 Sep 2014 00:29:21 +0800
-From: "AMY" <amy20140828@hotmail.com>
-Reply-To: amy20140828@hotmail.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: sale cisco switches
-Message-ID: <201409050029216140112@a.yundabuy.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+Received: from mailout1.samsung.com ([203.254.224.24]:16300 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070AbaIVPWt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 11:22:49 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v6 0/2] LED / flash API integration - LED Flash Class
+ drivers
+Date: Mon, 22 Sep 2014 17:22:18 +0200
+Message-id: <1411399340-16458-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SEkNCldlIHNhbGUgY2lzY28gbmV3IGFuZCBvcmlnaW5hbCBzd2l0Y2hlcyBhbmQgcm91dGVycywg
-Zm9sbG93aW5nIGlzICAgdGhlIHByb2R1Y3QgYW5kIHByaWNlIGxpc3QuDQpJZiB5b3UgYXJlIGlu
-dGVyZXN0ZWQsIHBsZWFzZSBjb250YWN0IG1lIQ0KV1MtQzM3NTBYLTI0Uy1TICANCldTLUMzNzUw
-WC00OFAtUyAgDQpXUy1DMjk2MFMtMjRUUy1MICANCldTLUMyOTYwUy00OFRTLUwgIA0KV1MtQzI5
-NjBTLTQ4TFBTLUwgIA0KV1MtQzI5NjBTLTQ4RlBTLUwgIA0KV1MtQzI5NjBTLTQ4TFBELUwgIA0K
-V1MtQzI5NjBTLTQ4RlBELUwgDQpNWSBTS1lQRSBJRDpBTVkxMjIzODgNClJFR0FSRC4NCkFNWQ==
+This patch set is the follow-up of the LED / flash API integration
+series [1]. For clarity reasons the patchset has been split into
+four subsets:
+
+- LED Flash Class
+- V4L2 Flash
+- LED Flash Class drivers
+- Documentation
+
+========================
+Changes since version 5:
+========================
+
+- removed flash manager framework - its implementation needs
+  further thorough discussion.
+- removed external strobe facilities from the LED Flash Class
+  and provided external_strobe_set op in v4l2-flash. LED subsystem
+  should be strobe provider agnostic.
+
+Thanks,
+Jacek Anaszewski
+
+[1] https://lkml.org/lkml/2014/7/11/914
+
+Jacek Anaszewski (2):
+  leds: Add support for max77693 mfd flash cell
+  leds: Add driver for AAT1290 current regulator
+
+ drivers/leds/Kconfig         |   15 +
+ drivers/leds/Makefile        |    2 +
+ drivers/leds/leds-aat1290.c  |  460 ++++++++++++++++++
+ drivers/leds/leds-max77693.c | 1083 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1560 insertions(+)
+ create mode 100644 drivers/leds/leds-aat1290.c
+ create mode 100644 drivers/leds/leds-max77693.c
+
+-- 
+1.7.9.5
+
