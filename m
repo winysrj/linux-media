@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40077 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584AbaI2MyQ (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:25255 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753328AbaIVIAh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 08:54:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
+	Mon, 22 Sep 2014 04:00:37 -0400
+Date: Mon, 22 Sep 2014 11:00:08 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/6] [media] coda: clear aborting flag in stop_streaming
-Date: Mon, 29 Sep 2014 14:53:42 +0200
-Message-Id: <1411995227-3623-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
-References: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] davinci: remove an unneeded check
+Message-ID: <20140922080008.GB12362@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clearing the aborting flag in stop_streaming is necessary if we want to start
-streaming again without having to closing and reopening the device. Also,
-do not explicitly set it in default_params; the context is zeroed by
-kzalloc anyway.
+We don't need to check "ret", we know it's zero.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index ced4760..3f8a04f 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -880,7 +880,6 @@ static void set_default_params(struct coda_ctx *ctx)
- 	ctx->params.codec_mode = ctx->codec->mode;
- 	ctx->colorspace = V4L2_COLORSPACE_REC709;
- 	ctx->params.framerate = 30;
--	ctx->aborting = 0;
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index c557eb5..3eb6e4b 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -442,11 +442,10 @@ static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
+ 		return ret;
  
- 	/* Default formats for output and input queues */
- 	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->codec->src_fourcc;
-@@ -1144,6 +1143,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 		kfifo_init(&ctx->bitstream_fifo,
- 			ctx->bitstream.vaddr, ctx->bitstream.size);
- 		ctx->runcounter = 0;
-+		ctx->aborting = 0;
- 	}
+ 	/* Update the values of sizeimage and bytesperline */
+-	if (!ret) {
+-		pix->bytesperline = ccdc_dev->hw_ops.get_line_length();
+-		pix->sizeimage = pix->bytesperline * pix->height;
+-	}
+-	return ret;
++	pix->bytesperline = ccdc_dev->hw_ops.get_line_length();
++	pix->sizeimage = pix->bytesperline * pix->height;
++
++	return 0;
  }
  
--- 
-2.1.0
-
+ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
