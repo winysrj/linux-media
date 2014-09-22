@@ -1,119 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62532 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214AbaIOGsv (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:40628 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbaIVPXK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:51 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00BJFK9EPY50@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:50 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 09/17] [media] s5p-mfc: Don't crash the kernel if the watchdog
- kicks in.
-Date: Mon, 15 Sep 2014 12:13:04 +0530
-Message-id: <1410763393-12183-10-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+	Mon, 22 Sep 2014 11:23:10 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v6 1/6] Documentation: leds: Add description of LED Flash
+ Class extension
+Date: Mon, 22 Sep 2014 17:22:51 +0200
+Message-id: <1411399376-16497-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
+References: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes. There are also
+chapters devoted specifically to the Flash Manager feature.
 
-If the software watchdog kicks in, the watchdog worker is not synchronized
-with hardware interrupts and does not block other instances. It's possible
-for it to clear the hw_lock, making other instances trigger a BUG() on
-hw_lock checks. Since it's not fatal to clear the hw_lock to zero twice,
-just WARN in those cases for now. We should not explode, as firmware will
-return errors as needed for other instances after it's reloaded, or they
-will time out.
-
-A clean fix should involve killing other instances when watchdog kicks in,
-but requires a major redesign of locking in the driver.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   21 +++++++--------------
- 1 files changed, 7 insertions(+), 14 deletions(-)
+ Documentation/leds/leds-class-flash.txt |   51 +++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 4ab3b53..cc9fd0c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -344,8 +344,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 		ctx->state = MFCINST_RES_CHANGE_INIT;
- 		s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
- 		wake_up_ctx(ctx, reason, err);
--		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--			BUG();
-+		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 		return;
- 	}
-@@ -416,8 +415,7 @@ leave_handle_frame:
- 		clear_work_bit(ctx);
- 	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
- 	wake_up_ctx(ctx, reason, err);
--	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--		BUG();
-+	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 	/* if suspending, wake up device*/
- 	if (test_bit(0, &dev->enter_suspend))
- 		wake_up_dev(dev, reason, err);
-@@ -463,8 +461,7 @@ static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
- 			break;
- 		}
- 	}
--	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--		BUG();
-+	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
- 	if (test_and_clear_bit(0, &dev->clk_flag))
- 		s5p_mfc_clock_off();
-@@ -519,8 +516,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
- 	}
- 	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
- 	clear_work_bit(ctx);
--	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--		BUG();
-+	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 	wake_up_ctx(ctx, reason, err);
- }
-@@ -557,14 +553,12 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
- 		} else {
- 			ctx->dpb_flush_flag = 0;
- 		}
--		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--			BUG();
-+		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 
- 		wake_up(&ctx->queue);
- 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 	} else {
--		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--			BUG();
-+		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 
- 		if (test_and_clear_bit(0, &dev->clk_flag))
- 			s5p_mfc_clock_off();
-@@ -641,8 +635,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 				mfc_err("post_frame_start() failed\n");
- 			s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
- 			wake_up_ctx(ctx, reason, err);
--			if (test_and_clear_bit(0, &dev->hw_lock) == 0)
--				BUG();
-+			WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 		} else {
- 			s5p_mfc_handle_frame(ctx, reason, err);
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..0cf5449a
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,51 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. In order to enable
++support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
++in the kernel config. A flash LED driver must register in the LED subsystem
++with led_classdev_flash_register to gain flash capabilities.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- indicator_brightness - privacy LED brightness in microamperes (RW)
++	- max_indicator_brightness - maximum privacy LED brightness in
++				     microamperes (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- flash_fault - bitmask of flash faults that may have occurred,
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call v4l2_flash_init function
++to get registered in the V4L2 subsystem. On remove v4l2_flash_release function
++has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls. When the V4L2_CID_FLASH_LED_MODE control
++is set to V4L2_FLASH_LED_MODE_TORCH or V4L2_FLASH_LED_MODE_FLASH the
++LED subsystem sysfs interface becomes unavailable. The interface can be
++unlocked by setting the mode back to V4L2_FLASH_LED_MODE_NONE.
 -- 
-1.7.3.rc2
+1.7.9.5
 
