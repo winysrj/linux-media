@@ -1,122 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:63356 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416AbaICTis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:38:48 -0400
-Received: by mail-qa0-f73.google.com with SMTP id s7so1017976qap.2
-        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 12:38:46 -0700 (PDT)
-From: Vincent Palatin <vpalatin@chromium.org>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Vincent Palatin <vpalatin@chromium.org>
-Subject: [PATCH v3 1/2] [media] V4L: Add camera pan/tilt speed controls
-Date: Wed,  3 Sep 2014 12:38:39 -0700
-Message-Id: <1409773119-32023-1-git-send-email-vpalatin@chromium.org>
-In-Reply-To: <CAP_ceTznJfoE2CNzU+=Ysnx_pNbmUeggOPCEzysvUP9YnSiGgg@mail.gmail.com>
-References: <CAP_ceTznJfoE2CNzU+=Ysnx_pNbmUeggOPCEzysvUP9YnSiGgg@mail.gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37074 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753572AbaIVQkT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 12:40:19 -0400
+Message-ID: <542050F1.5020009@osg.samsung.com>
+Date: Mon, 22 Sep 2014 10:40:17 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: au0828_init_tuner() called without dev lock held
+References: <54204ECC.7070806@osg.samsung.com> <5420503E.7010608@xs4all.nl>
+In-Reply-To: <5420503E.7010608@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
-camera by setting its rotation speed around its axis.
+On 09/22/2014 10:37 AM, Hans Verkuil wrote:
+> On 09/22/2014 06:31 PM, Shuah Khan wrote:
+>> Hi Hans and Mauro,
+>>
+>> While I was making changes for media token work, I noticed there are
+>> several places au0828_init_tuner() gets called without holding dev lock.
+> 
+> au0828 sets the lock pointer in struct video_device to the dev lock.
+> That means that all v4l2 ioctl calls are serialized in v4l2_ioctl()
+> in v4l2-dev.c. So these calls *do* hold the device lock.
+> 
+> Not au0828_v4l2_resume() though, that's not an ioctl op.
+> 
 
-Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
----
-Changes from v1:
-- update the documentation wording according to Pawel suggestion.
-Changes from v2:
-- bump Linux kernel version for the API change.
+Good. I will go ahead and fix au0828_v4l2_resume() to do
+it right.
 
- Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
- Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/uapi/linux/v4l2-controls.h           |  2 ++
- 4 files changed, 35 insertions(+)
+thanks,
+-- Shuah
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index eee6f0f..7aa7c5d 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.18</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
-+ <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 9f5ffd8..124f287 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3965,6 +3965,27 @@ by exposure, white balance or focus controls.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control turns the
-+camera horizontally at the specific speed. The unit is undefined. A
-+positive value moves the camera to the right (clockwise when viewed
-+from above), a negative value to the left. A value of zero stops the motion
-+if one is in progress and has no effect otherwise.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control turns the
-+camera vertically at the specified speed. The unit is undefined. A
-+positive value moves the camera up, a negative value down. A value of zero
-+stops the motion if one is in progress and has no effect otherwise.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index f030d6a..4d050f9 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -796,6 +796,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STOP:		return "Auto Focus, Stop";
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
-+	case V4L2_CID_PAN_SPEED:		return "Pan, Speed";
-+	case V4L2_CID_TILT_SPEED:		return "Tilt, Speed";
- 
- 	/* FM Radio Modulator controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index e946e43..4de238b 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -746,6 +746,8 @@ enum v4l2_auto_focus_range {
- 	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
- };
- 
-+#define V4L2_CID_PAN_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+32)
-+#define V4L2_CID_TILT_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+33)
- 
- /* FM Modulator class control IDs */
- 
+
 -- 
-2.1.0.rc2.206.gedb03e5
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
