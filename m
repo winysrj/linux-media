@@ -1,278 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:35675 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbaIOGsL (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4596 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914AbaIVKDy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:11 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00A08K89MC90@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:09 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 05/17] [media] s5p-mfc: don't disable clock when next ctx is
- pending
-Date: Mon, 15 Sep 2014 12:13:00 +0530
-Message-id: <1410763393-12183-6-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+	Mon, 22 Sep 2014 06:03:54 -0400
+Message-ID: <541FF3F5.8070506@xs4all.nl>
+Date: Mon, 22 Sep 2014 12:03:33 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: James Harper <james@ejbdigital.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: buffer delivery stops with cx23885
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com> <541D469B.4000306@xs4all.nl> <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5220.4050107@xs4all.nl> <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com> <541D5CD0.1000207@xs4all.nl> <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com> <541D61D7.3080202@xs4all.nl> <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com> <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com> <e0f1371641b2497f9d3e91c9605702ec@HKXPR04MB295.apcprd04.prod.outlook.com> <541FDFB4.6070201@xs4all.nl> <01776abac53640498b8fc87ac8d36fd1@HKXPR04MB295.apcprd04.prod.outlook.com> <541FF16A.9060902@xs4all.nl> <cf662cd20e9e40ad8750500fc590a833@HKXPR04MB295.apcprd04.prod.outlook.com>
+In-Reply-To: <cf662cd20e9e40ad8750500fc590a833@HKXPR04MB295.apcprd04.prod.outlook.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arun Mankuzhi <arun.m@samsung.com>
+Mauro,
 
-In MFC's dynamic clock gating, we turn on the clock in try_run and
-turn off the clock upon receiving an interrupt. But this
-leads to excessive gating/ungating of the clocks in the case of
-multi-instance video playback. The clock gets disabled in ctx1's irq
-and then immediately turned on for ctx2's try_run.
+On 09/22/2014 11:58 AM, James Harper wrote:
+>>>>>
+>>>>> Any hints on what I can do to figure out what layer it's stalling at?
+>>>>
+>>>> I have no idea. I would do a git bisect to try and narrow it down.
+>>>>
+>>>
+>>> Problem with the bisect is that I can't be sure what version it actually
+>> worked on. It certainly predates when my patch for my card was committed.
+>>>
+>>> I have a hunch that it might be the two tuners stomping on each other,
+>> possibly in the i2c code. Sometimes recording just stops, other times I get i2c
+>> errors.
+>>
+>> Is that two tuners in the same device, or two tuners in different devices?
+>>
+> 
+> DViCO FusionHDTV DVB-T Dual Express2
+> 
+> 2 tuners on one card
 
-A better solution is to turn off the clocks only when there are no new
-frames to be processed in any context. This is done by conditionally
-clocking on/off calls in try-run. clock-off is done outside try-run
-only for suspend and error scenarios.
+Any idea if there were changes or are issues with i2c access when there are
+two tuners in the same device?
 
-Signed-off-by: Prathyush K <prathyush.k@samsung.com>
-Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |   26 ++++++++--------------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   11 ++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   16 ++++++++++++-
- 4 files changed, 35 insertions(+), 20 deletions(-)
+That's not really my expertise but you might know something about that.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e37fb99..9df130b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -150,7 +150,8 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 		mfc_err("Error: some instance may be closing/opening\n");
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 
--	s5p_mfc_clock_off();
-+	if (test_and_clear_bit(0, &dev->clk_flag))
-+		s5p_mfc_clock_off();
- 
- 	for (i = 0; i < MFC_NUM_CONTEXTS; i++) {
- 		ctx = dev->ctx[i];
-@@ -174,7 +175,6 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 			mfc_err("Failed to reload FW\n");
- 			goto unlock;
- 		}
--		s5p_mfc_clock_on();
- 		ret = s5p_mfc_init_hw(dev);
- 		if (ret)
- 			mfc_err("Failed to reinit FW\n");
-@@ -338,7 +338,6 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 		wake_up_ctx(ctx, reason, err);
- 		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 			BUG();
--		s5p_mfc_clock_off();
- 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 		return;
- 	}
-@@ -411,12 +410,11 @@ leave_handle_frame:
- 	wake_up_ctx(ctx, reason, err);
- 	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 		BUG();
--	s5p_mfc_clock_off();
--	/* if suspending, wake up device and do not try_run again*/
-+	/* if suspending, wake up device*/
- 	if (test_bit(0, &dev->enter_suspend))
- 		wake_up_dev(dev, reason, err);
--	else
--		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-+
-+	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- }
- 
- /* Error handling for interrupt */
-@@ -460,7 +458,8 @@ static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
- 	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 		BUG();
- 	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
--	s5p_mfc_clock_off();
-+	if (test_and_clear_bit(0, &dev->clk_flag))
-+		s5p_mfc_clock_off();
- 	wake_up_dev(dev, reason, err);
- 	return;
- }
-@@ -514,7 +513,6 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
- 	clear_work_bit(ctx);
- 	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 		BUG();
--	s5p_mfc_clock_off();
- 	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 	wake_up_ctx(ctx, reason, err);
- }
-@@ -554,15 +552,14 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
- 		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 			BUG();
- 
--		s5p_mfc_clock_off();
--
- 		wake_up(&ctx->queue);
- 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 	} else {
- 		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 			BUG();
- 
--		s5p_mfc_clock_off();
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 
- 		wake_up(&ctx->queue);
- 	}
-@@ -596,7 +593,6 @@ static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx,
- 
- 	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
- 
--	s5p_mfc_clock_off();
- 	wake_up(&ctx->queue);
- 	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- }
-@@ -639,7 +635,6 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 			wake_up_ctx(ctx, reason, err);
- 			if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 				BUG();
--			s5p_mfc_clock_off();
- 			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 		} else {
- 			s5p_mfc_handle_frame(ctx, reason, err);
-@@ -704,8 +699,6 @@ irq_cleanup_hw:
- 	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
- 		mfc_err("Failed to unlock hw\n");
- 
--	s5p_mfc_clock_off();
--
- 	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
- 	mfc_debug(2, "Exit via irq_cleanup_hw\n");
- 	return IRQ_HANDLED;
-@@ -1216,6 +1209,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, dev);
- 
- 	dev->hw_lock = 0;
-+	dev->clk_flag = 0;
- 	dev->watchdog_workqueue = create_singlethread_workqueue(S5P_MFC_NAME);
- 	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
- 	atomic_set(&dev->watchdog_cnt, 0);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 01816ff..92f596e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -289,6 +289,7 @@ struct s5p_mfc_priv_buf {
-  * @watchdog_workqueue:	workqueue for the watchdog
-  * @watchdog_work:	worker for the watchdog
-  * @alloc_ctx:		videobuf2 allocator contexts for two memory banks
-+ * @clk_flag:		flag used for dynamic control of mfc clock
-  * @enter_suspend:	flag set when entering suspend
-  * @ctx_buf:		common context memory (MFCv6)
-  * @warn_start:		hardware error code from which warnings start
-@@ -332,6 +333,7 @@ struct s5p_mfc_dev {
- 	struct workqueue_struct *watchdog_workqueue;
- 	struct work_struct watchdog_work;
- 	void *alloc_ctx[2];
-+	unsigned long clk_flag;
- 	unsigned long enter_suspend;
- 
- 	struct s5p_mfc_priv_buf ctx_buf;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 58ec7bb..e2b2f31 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -1371,6 +1371,8 @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
- 
- 	if (test_bit(0, &dev->enter_suspend)) {
- 		mfc_debug(1, "Entering suspend so do not schedule any jobs\n");
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 		return;
- 	}
- 	/* Check whether hardware is not running */
-@@ -1383,6 +1385,8 @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
- 	new_ctx = s5p_mfc_get_new_ctx(dev);
- 	if (new_ctx < 0) {
- 		/* No contexts to run */
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 		if (test_and_clear_bit(0, &dev->hw_lock) == 0) {
- 			mfc_err("Failed to unlock hardware\n");
- 			return;
-@@ -1396,7 +1400,9 @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
- 	 * Last frame has already been sent to MFC.
- 	 * Now obtaining frames from MFC buffer
- 	 */
--	s5p_mfc_clock_on();
-+	if (test_and_set_bit(0, &dev->clk_flag) == 0)
-+		s5p_mfc_clock_on();
-+
- 	if (ctx->type == MFCINST_DECODER) {
- 		s5p_mfc_set_dec_desc_buffer(ctx);
- 		switch (ctx->state) {
-@@ -1474,7 +1480,8 @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
- 		 * scheduled, reduce the clock count as no one will
- 		 * ever do this, because no interrupt related to this try_run
- 		 * will ever come from hardware. */
--		s5p_mfc_clock_off();
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 	}
- }
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 85600f2..8cf1c6f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1745,6 +1745,13 @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
- 
- 	mfc_debug(1, "Try run dev: %p\n", dev);
- 
-+	if (test_bit(0, &dev->enter_suspend)) {
-+		mfc_debug(1, "Entering suspend so do not schedule any jobs\n");
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
-+		return;
-+	}
-+
- 	/* Check whether hardware is not running */
- 	if (test_and_set_bit(0, &dev->hw_lock) != 0) {
- 		/* This is perfectly ok, the scheduled ctx should wait */
-@@ -1756,6 +1763,8 @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
- 	new_ctx = s5p_mfc_get_new_ctx(dev);
- 	if (new_ctx < 0) {
- 		/* No contexts to run */
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 		if (test_and_clear_bit(0, &dev->hw_lock) == 0) {
- 			mfc_err("Failed to unlock hardware.\n");
- 			return;
-@@ -1775,7 +1784,9 @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
- 	/* Last frame has already been sent to MFC
- 	 * Now obtaining frames from MFC buffer */
- 
--	s5p_mfc_clock_on();
-+	if (test_and_set_bit(0, &dev->clk_flag) == 0)
-+		s5p_mfc_clock_on();
-+
- 	if (ctx->type == MFCINST_DECODER) {
- 		switch (ctx->state) {
- 		case MFCINST_FINISHING:
-@@ -1855,7 +1866,8 @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
- 		 * scheduled, reduce the clock count as no one will
- 		 * ever do this, because no interrupt related to this try_run
- 		 * will ever come from hardware. */
--		s5p_mfc_clock_off();
-+		if (test_and_clear_bit(0, &dev->clk_flag))
-+			s5p_mfc_clock_off();
- 	}
- }
- 
--- 
-1.7.3.rc2
+Regards,
 
+	Hans
