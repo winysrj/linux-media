@@ -1,144 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:36378 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756747AbaIDAiZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 20:38:25 -0400
-Received: by mail-vc0-f175.google.com with SMTP id lf12so9656466vcb.6
-        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 17:38:24 -0700 (PDT)
-Received: from mail-vc0-f181.google.com (mail-vc0-f181.google.com [209.85.220.181])
-        by mx.google.com with ESMTPSA id 14sm5433405vdh.22.2014.09.03.17.38.22
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Wed, 03 Sep 2014 17:38:22 -0700 (PDT)
-Received: by mail-vc0-f181.google.com with SMTP id ij19so9659883vcb.26
-        for <linux-media@vger.kernel.org>; Wed, 03 Sep 2014 17:38:22 -0700 (PDT)
+Received: from kozue.soulik.info ([108.61.200.231]:39808 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754532AbaIVQuX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 12:50:23 -0400
+Message-ID: <5420534C.7070701@soulik.info>
+Date: Tue, 23 Sep 2014 00:50:20 +0800
+From: ayaka <ayaka@soulik.info>
 MIME-Version: 1.0
-In-Reply-To: <1409773238-32177-1-git-send-email-vpalatin@chromium.org>
-References: <CACHYQ-qST1gyyKCZp+tN9FbR3_=2q_+=PbVwfu3KgfTpkdDFCA@mail.gmail.com>
- <1409773238-32177-1-git-send-email-vpalatin@chromium.org>
-From: Pawel Osciak <posciak@chromium.org>
-Date: Thu, 4 Sep 2014 09:37:42 +0900
-Message-ID: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
-To: Vincent Palatin <vpalatin@chromium.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: linux-media@vger.kernel.org
+CC: kyungmin.park@samsung.com, jtp.park@samsung.com,
+	m.chehab@samsung.com
+Subject: Re: [PATCH] s5p-mfc: correct the formats info for encoder
+References: <1406132104-6430-1-git-send-email-ayaka@soulik.info> <1406132104-6430-2-git-send-email-ayaka@soulik.info> <072d01cfd682$4cf2b220$e6d81660$%debski@samsung.com>
+In-Reply-To: <072d01cfd682$4cf2b220$e6d81660$%debski@samsung.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 4, 2014 at 4:40 AM, Vincent Palatin <vpalatin@chromium.org> wrote:
-> Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
-> CT_PANTILT_RELATIVE_CONTROL terminal control request.
->
-> Tested by plugging a Logitech ConferenceCam C3000e USB camera
-> and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-> Verified that it can pan and tilt at the same time in both directions.
->
-> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
->
-> Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Sorry, forgot to mention this previously, please remove gerrit ids
-from the patches.
-Thanks,
-P.
 
-> ---
-> Changes from v1/v2:
-> - rebased
->
->  drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
->  1 file changed, 55 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-> index 0eb82106..d703cb0 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
->                 .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
->                 .index          = 12,
->                 .size           = 4,
-> -               .flags          = UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
-> -                               | UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
-> -                               | UVC_CTRL_FLAG_GET_DEF
-> +               .flags          = UVC_CTRL_FLAG_SET_CUR
-> +                               | UVC_CTRL_FLAG_GET_RANGE
->                                 | UVC_CTRL_FLAG_AUTO_UPDATE,
->         },
->         {
-> @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
->         data[2] = min((int)abs(value), 0xff);
->  }
->
-> +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
-> +       __u8 query, const __u8 *data)
-> +{
-> +       int first = mapping->offset / 8;
-> +       __s8 rel = (__s8)data[first];
-> +
-> +       switch (query) {
-> +       case UVC_GET_CUR:
-> +               return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
-> +                                                : -data[first+1]);
-> +       case UVC_GET_MIN:
-> +               return -data[first+1];
-> +       case UVC_GET_MAX:
-> +       case UVC_GET_RES:
-> +       case UVC_GET_DEF:
-> +       default:
-> +               return data[first+1];
-> +       }
-> +}
-> +
-> +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
-> +       __s32 value, __u8 *data)
-> +{
-> +       int first = mapping->offset / 8;
-> +
-> +       data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
-> +       data[first+1] = min_t(int, abs(value), 0xff);
-> +}
-> +
->  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
->         {
->                 .id             = V4L2_CID_BRIGHTNESS,
-> @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
->                 .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
->         },
->         {
-> +               .id             = V4L2_CID_PAN_SPEED,
-> +               .name           = "Pan (Speed)",
-> +               .entity         = UVC_GUID_UVC_CAMERA,
-> +               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +               .size           = 16,
-> +               .offset         = 0,
-> +               .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
-> +               .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
-> +               .get            = uvc_ctrl_get_rel_speed,
-> +               .set            = uvc_ctrl_set_rel_speed,
-> +       },
-> +       {
-> +               .id             = V4L2_CID_TILT_SPEED,
-> +               .name           = "Tilt (Speed)",
-> +               .entity         = UVC_GUID_UVC_CAMERA,
-> +               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +               .size           = 16,
-> +               .offset         = 16,
-> +               .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
-> +               .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
-> +               .get            = uvc_ctrl_get_rel_speed,
-> +               .set            = uvc_ctrl_set_rel_speed,
-> +       },
-> +       {
->                 .id             = V4L2_CID_PRIVACY,
->                 .name           = "Privacy",
->                 .entity         = UVC_GUID_UVC_CAMERA,
-> --
-> 2.1.0.rc2.206.gedb03e5
->
+
+ 2014/09/23 00:28, Kamil Debski wrote:
+> Hi Ayaka,
+> 
+> Sorry for such a late reply - I just noticed this patch.
+> 
+>> The NV12M is supported by all the version of MFC, so it is better
+>> to use it as default OUTPUT format. MFC v5 doesn't support NV21,
+>> I have tested it, for the SEC doc it is not supported either.
+> 
+
+> A proper Sign-off is missing here.
+> 
+Sorry  to miss it again.
+> According to the documentation of MFC v5 I have non-tiled format
+> is supported. Which documentation were you looking at?
+> 
+But the V4L2_PIX_FMT_NV12MT is only supported by MFC_V5_BIT from your
+code, V4L2_PIX_FMT_NV12M is supported by all the version.
+
+>> From my documentation:
+> ++++++++++++++ ENC_MAP_FOR_CUR	0xC51C Memory structure setting
+> register of the current frame.	R/W	0x00000000
+> 
+> Bits	Name	Description	Reset Value [31:2]	RESERVED	Reserved	0 [1:0]
+> ENC_MAP_FOR_CUR	Memory structure of the current frame 0 : Linear
+> mode 3 : 64x32 tiled mode	0 ++++++++++++++
+> 
+In the page 2277. The same result.
+I think the V4L2_PIX_FMT_NV12MT is 64x32 Tiles mode, but what I remove
+for MFC v5 is V4L2_PIX_FMT_NV21M.
+> Best wishes,
+> 
+
+- -- 
+ayaka
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUIFNLAAoJEPsGh4kgR4i5HcIP/2qwn7uIFq66qpSajXmtcLx3
+3/wt8n26u6GhTMUnIJKZS07FGtv7qizUVqeY3WmfWQw3jLaUjZeVviVH08y3DrE8
++7Vjq2rxz57ou4bBtc4qIgTWB7z2yuVSpBOYUB94laItQ7KDap4EgLf89m4KaKTt
+5nULR0byxXh+RuUOw80v0eP/TBz7SRfYZnulASV9QlGS6T3Xp6v4U6W8LbSbieR5
+63PwPxYP7aDVb5R6qzaLIVXNuI53vn5VhrQ6JJUfKee5YSbkV/Ff6XK+7/P162Pn
+5cVt06X+RUeZXHGqCroMNb9cdm+7JHOZL458NPn4NmTJnFcPNu6JzW9iLymHeHC8
+iFmNhpDuHJBulKsW44lqKe1fHT22a5C/oJAI1ZS9c3yrH+TqHkfEkUJjglSRByzj
+ptTFFZVTCdiL5VwnDlfowR4ZzrkZuoWzHIn5cGeHogvbLbxCbtV67+IFpWlXfyJu
+rKnCI+DKYb5cjEiHm7kzGbAO04AfNMT79sNwrD+sPuvnaFyRiy2rjKv3ubnPFRVp
+3agNRzAcCgmsW3K10P3ism4ceJUqeZtFvieCQrjiQdxj8EB7QAcgOhgn3K//zrQ1
+mQP7xuVQcwpaRIOx/3jSlVWYFrkFs2+tmgS9oEn+v40gXOQXk8rML21gHvpDuCnf
+qJXx0UVYQRV7Bhgv8EFW
+=SNTL
+-----END PGP SIGNATURE-----
