@@ -1,74 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:46281 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844AbaIIQM2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 12:12:28 -0400
-Received: by mail-lb0-f177.google.com with SMTP id l4so6365013lbv.22
-        for <linux-media@vger.kernel.org>; Tue, 09 Sep 2014 09:12:26 -0700 (PDT)
-Message-ID: <540F26E5.50609@gmail.com>
-Date: Tue, 09 Sep 2014 09:12:21 -0700
-From: Steve Longerbeam <slongerbeam@gmail.com>
-MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
-In-Reply-To: <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:40612 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbaIVPXH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 11:23:07 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v6 0/6] LED / flash API integration - Documentation
+Date: Mon, 22 Sep 2014 17:22:50 +0200
+Message-id: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+This patch set is the follow-up of the LED / flash API integration
+series [1]. For clarity reasons the patchset has been split into
+four subsets:
 
+- LED Flash Class
+- V4L2 Flash
+- LED Flash Class drivers
+- Documentation
 
-On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
-> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
->
->> Hi Jean-Michel, Phillip,
-> Hi Steve,
->
->> I've done some work on Philipp's June 12 patchset, converting
->> the CSI driver to a CSI subdev entity, and fixing some issues here
->> and there. This June 12 patchset doesn't appear to be a fully working
->> driver, Phillip correct me if I am wrong. I can post this work as it
->> exists, it is incomplete but compiles.
-> Dos it compile against a 3.17-rc3 kernel :) ?
+========================
+Changes since version 5:
+========================
 
-No, not anymore, the original posted driver was against 3.16 IIRC.
+- removed flash manager framework - its implementation needs
+  further thorough discussion.
+- removed external strobe facilities from the LED Flash Class
+  and provided external_strobe_set op in v4l2-flash. LED subsystem
+  should be strobe provider agnostic.
 
->
->> I've also worked out what I think is a workable video pipeline graph for i.MX,
->> suitable for defining the entities, pads, and links. Unfortunately I haven't
->> been able to spend as much time as I'd like on it.
-> This is very interesting, do you have written this somewhere ?
+Thanks,
+Jacek Anaszewski
 
-Yes, I'll try to find some time to create a pdf image.
->
->> The complete driver I posted to the list does have some minor issues
->> mostly suggested by Hans Verkuil (switch to new selection API instead
->> of cropping API for example). It is a full featured driver but it does not
->> implement the media device framework, i.e. user does not have direct
->> control of the video pipeline, rather the driver chooses the pipeline based
->> on the traditional inputs from user (video format and controls).
->>
->> If there is interest I can submit another version of the traditional driver
->> to resolve the issues. But media device is a major rework, so I don't
->> know whether it would make sense to start from the traditional driver
->> and then implement media device on top later, since media device
->> is almost a complete rewrite.
-> I, at least, am interested by this driver, even in its "traditionnal"
-> form :). If you don't want to submit it directly because this is not
-> using media controller, this is ok, you can provide me a git repo in
-> order to get it, or send a patchset.
+[1] https://lkml.org/lkml/2014/7/11/914
 
-I think I'll follow Hans' proposal and submit it again to media-tree as
-a staging driver.
+Jacek Anaszewski (6):
+  Documentation: leds: Add description of LED Flash Class extension
+  DT: leds: Add flash led devices related properties
+  DT: Add documentation for exynos4-is 'flashes' property
+  DT: Add documentation for the mfd Maxim max77693
+  of: Add Skyworks Solutions, Inc. vendor prefix
+  DT: Add documentation for the Skyworks AAT1290
 
-Steve
+ Documentation/devicetree/bindings/leds/common.txt  |   16 +++++
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   17 ++++++
+ .../devicetree/bindings/media/samsung-fimc.txt     |    5 ++
+ Documentation/devicetree/bindings/mfd/max77693.txt |   62 ++++++++++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ Documentation/leds/leds-class-flash.txt            |   51 ++++++++++++++++
+ 6 files changed, 152 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+ create mode 100644 Documentation/leds/leds-class-flash.txt
+
+-- 
+1.7.9.5
 
