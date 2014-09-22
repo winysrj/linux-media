@@ -1,55 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37568 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757093AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:05 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 36/37] af9033: wrap DVBv3 BER to DVBv5 BER
-Date: Thu,  4 Sep 2014 05:36:44 +0300
-Message-Id: <1409798205-25645-36-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:59081 "EHLO
+	resqmta-po-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754144AbaIVPHO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 11:07:14 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: m.chehab@samsung.com, akpm@linux-foundation.org,
+	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
+	dheitmueller@kernellabs.co, hverkuil@xs4all.nl, ramakrmu@cisco.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/5] media: au0828-video changes to use media tuner token api
+Date: Mon, 22 Sep 2014 09:00:47 -0600
+Message-Id: <e1ed3e8cd42001e7d1e2b61b90815170c9b49b67.1411397045.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
+References: <cover.1411397045.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
+References: <cover.1411397045.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBv5 BER is calculated anyway, so just return it for legacy
-read_ber() API too.
+au0828-video driver uses vb1 api and needs changes to vb1
+v4l2 interfaces that change the tuner status. In addition
+to that this driver initializes the tuner from a some ioctls
+that are query (read) tuner status. These ioctls are changed
+to hold the tuner token to avoid disrupting digital stream
+if active. Further more, release v4l2_file_operations powers
+down the tuner. The following changes are made:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+read, poll v4l2_file_operations:
+- hold tuner in shared analog mode
+- return leaving tuner in shared mode
+
+vb1 streamon:
+- hold tuner in shared analog mode
+- return leaving tuner in shared mode
+
+release v4l2_file_operations:
+- hold tuner in exclusive analog mode to power down.
+  Don't call s_power when tuner is busy.
+
+Initialize dev_parent field struct video_device to enable
+media tuner token lookup from v4l2-core.
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/dvb-frontends/af9033.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/usb/au0828/au0828-video.c |   43 ++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 673d60e..f5267fd 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -38,6 +38,7 @@ struct af9033_dev {
- 	fe_status_t fe_status;
- 	u32 ber;
- 	u32 ucb;
-+	u64 post_bit_error_prev; /* for old read_ber we return (curr - prev) */
- 	u64 post_bit_error;
- 	u64 post_bit_count;
- 	u64 error_block_count;
-@@ -918,13 +919,9 @@ err:
- static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 5f337b1..52a3644 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -34,6 +34,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/device.h>
++#include <linux/media_tknres.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+@@ -1085,10 +1086,21 @@ static int au0828_v4l2_close(struct file *filp)
+ 
+ 		au0828_uninit_isoc(dev);
+ 
++		ret = media_get_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
++		if (ret) {
++			dev_info(&dev->usbdev->dev,
++					"%s: Tuner is busy\n", __func__);
++			/* don't touch tuner and usb device interface */
++			goto skip_s_power;
++		}
++		dev_info(&dev->usbdev->dev, "%s: Putting tuner to sleep\n",
++					__func__);
+ 		/* Save some power by putting tuner to sleep */
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+-		dev->std_set_in_tuner_core = 0;
++		media_put_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
+ 
++skip_s_power:
++		dev->std_set_in_tuner_core = 0;
+ 		/* When close the device, set the usb intf0 into alt0 to free
+ 		   USB bandwidth */
+ 		ret = usb_set_interface(dev->usbdev, 0, 0);
+@@ -1136,6 +1148,12 @@ static ssize_t au0828_v4l2_read(struct file *filp, char __user *buf,
+ 	if (rc < 0)
+ 		return rc;
+ 
++	/* don't put the tuner token - this case is same as STREAMON */
++	rc = media_get_shared_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
++	if (rc) {
++		dev_info(&dev->usbdev->dev, "%s: Tuner is busy\n", __func__);
++		return -EBUSY;
++	}
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+ 	au0828_init_tuner(dev);
+@@ -1177,6 +1195,12 @@ static unsigned int au0828_v4l2_poll(struct file *filp, poll_table *wait)
+ 	if (check_dev(dev) < 0)
+ 		return POLLERR;
+ 
++	/* don't put the tuner token - this case is same as STREAMON */
++	res = media_get_shared_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
++	if (res) {
++		dev_info(&dev->usbdev->dev, "%s: Tuner is busy\n", __func__);
++		return -EBUSY;
++	}
+ 	res = v4l2_ctrl_poll(filp, wait);
+ 	if (!(req_events & (POLLIN | POLLRDNORM)))
+ 		return res;
+@@ -1548,16 +1572,24 @@ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
  {
- 	struct af9033_dev *dev = fe->demodulator_priv;
--	int ret;
--
--	ret = af9033_update_ch_stat(dev);
--	if (ret < 0)
--		return ret;
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
++	int ret;
  
--	*ber = dev->ber;
-+	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
-+	dev->post_bit_error_prev = dev->post_bit_error;
+ 	if (t->index != 0)
+ 		return -EINVAL;
  
++	ret = media_get_shared_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
++	if (ret) {
++		dev_info(&dev->usbdev->dev, "%s: Tuner is busy\n", __func__);
++		return -EBUSY;
++	}
++
+ 	strcpy(t->name, "Auvitek tuner");
+ 
+ 	au0828_init_tuner(dev);
+ 	i2c_gate_ctrl(dev, 1);
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+ 	i2c_gate_ctrl(dev, 0);
++	media_put_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
  	return 0;
  }
+ 
+@@ -1682,6 +1714,12 @@ static int vidioc_streamon(struct file *file, void *priv,
+ 	dprintk(1, "vidioc_streamon fh=%p t=%d fh->res=%d dev->res=%d\n",
+ 		fh, type, fh->resources, dev->resources);
+ 
++	rc = media_get_shared_tuner_tkn(&dev->usbdev->dev, MEDIA_MODE_ANALOG);
++	if (rc) {
++		dev_info(&dev->usbdev->dev, "%s: Tuner is busy\n", __func__);
++		return -EBUSY;
++	}
++
+ 	if (unlikely(!res_get(fh, get_ressource(fh))))
+ 		return -EBUSY;
+ 
+@@ -2083,12 +2121,15 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vdev->v4l2_dev = &dev->v4l2_dev;
+ 	dev->vdev->lock = &dev->lock;
+ 	strcpy(dev->vdev->name, "au0828a video");
++	/* there is no way to deduce parent from v4l2_dev */
++	dev->vdev->dev_parent = &dev->usbdev->dev;
+ 
+ 	/* Setup the VBI device */
+ 	*dev->vbi_dev = au0828_video_template;
+ 	dev->vbi_dev->v4l2_dev = &dev->v4l2_dev;
+ 	dev->vbi_dev->lock = &dev->lock;
+ 	strcpy(dev->vbi_dev->name, "au0828a vbi");
++	dev->vbi_dev->dev_parent = &dev->usbdev->dev;
+ 
+ 	/* Register the v4l2 device */
+ 	video_set_drvdata(dev->vdev, dev);
 -- 
-http://palosaari.fi/
+1.7.10.4
 
