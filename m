@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:53728 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750791AbaI3Jo2 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3846 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318AbaIVQhm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 05:44:28 -0400
-Date: Tue, 30 Sep 2014 11:44:23 +0200
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more
- standard place
-Message-ID: <20140930114423.3a171aa9@bbrezillon>
-In-Reply-To: <20140930083952.GA4059@ulmo>
-References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
-	<3849580.CgKEmcV7as@avalon>
-	<20140930093757.003741ac@bbrezillon>
-	<20140930083952.GA4059@ulmo>
+	Mon, 22 Sep 2014 12:37:42 -0400
+Message-ID: <5420503E.7010608@xs4all.nl>
+Date: Mon, 22 Sep 2014 18:37:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	"mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: au0828_init_tuner() called without dev lock held
+References: <54204ECC.7070806@osg.samsung.com>
+In-Reply-To: <54204ECC.7070806@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 Sep 2014 10:39:53 +0200
-Thierry Reding <thierry.reding@gmail.com> wrote:
-
-> On Tue, Sep 30, 2014 at 09:37:57AM +0200, Boris Brezillon wrote:
-> > On Mon, 29 Sep 2014 23:41:09 +0300
-> > Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> [...]
-> > > Incidentally, patch 2/5 in this series is missing a documentation update ;-)
-> > 
-> > Yep, regarding this patch, I wonder if it's really necessary to add
-> > new formats to the v4l2_mbus_pixelcode enum.
-> > If we want to move to this new common definition (across the video
-> > related subsytems), we should deprecate the old enum
-> > v4l2_mbus_pixelcode, and this start by not adding new formats, don't
-> > you think ?
+On 09/22/2014 06:31 PM, Shuah Khan wrote:
+> Hi Hans and Mauro,
 > 
-> I agree in general, but I think it could prove problematic in practice.
-> If somebody wants to use one of the new codes but is using the V4L2 enum
-> they have a problem.
+> While I was making changes for media token work, I noticed there are
+> several places au0828_init_tuner() gets called without holding dev lock.
+
+au0828 sets the lock pointer in struct video_device to the dev lock.
+That means that all v4l2 ioctl calls are serialized in v4l2_ioctl()
+in v4l2-dev.c. So these calls *do* hold the device lock.
+
+Not au0828_v4l2_resume() though, that's not an ioctl op.
+
+Regards,
+
+	Hans
+
 > 
-> That said, given that there is now a unified enum people will hopefully
-> start converting drivers to it instead.
+> vidioc_s_std(), vidioc_g_tuner(), vidioc_s_tuner(), vidioc_streamon()
+> au0828_v4l2_resume()
+> 
+> Some of these might be intended since au0828_init_tuner() invokes
+> s_std. All of these changes including the au0828_init_tuner() itself
+> were added in ea86968fb91471493ccac7d8f2a65bc65db6803b
+> 
+> au0828_v4l2_resume() also does this and this one for sure needs fixing
+> very likely. I am not sure about the others. Thoughts??
+> 
+> -- Shuah
+> 
 
-I'm more worried about user-space lib/programs as this header is part
-of the uapi...
-
-But let's be optimistic here and keep porting new formats to
-v4l2_mbus_pixelcode enum ;-).
-
-Anyway, I still don't know where to put the documentation. Dropping a
-new video format doc without any context (I mean subdev-formats.xml is
-included in media documentation, but there's no generic video doc yet)
-is a bit weird...
-
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
