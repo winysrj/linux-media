@@ -1,38 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3757 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250AbaIDNOX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 09:14:23 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s84DEJlN097673
-	for <linux-media@vger.kernel.org>; Thu, 4 Sep 2014 15:14:21 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 6757E2A075A
-	for <linux-media@vger.kernel.org>; Thu,  4 Sep 2014 15:14:13 +0200 (CEST)
-Message-ID: <54086581.8010809@xs4all.nl>
-Date: Thu, 04 Sep 2014 15:13:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANN] Created a patch to teach valgrind about V4L2 and the media
- API
-References: <53DF488A.4080307@xs4all.nl>
-In-Reply-To: <53DF488A.4080307@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:43100 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897AbaIVMwR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 08:52:17 -0400
+From: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Daniel Drake <drake@endlessm.com>,
+	Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Subject: [PATCH] [media] s5p-mfc: Use decode status instead of display status on MFCv5
+Date: Mon, 22 Sep 2014 14:52:02 +0200
+Message-Id: <1411390322-25212-1-git-send-email-sjoerd.simons@collabora.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/04/14 10:47, Hans Verkuil wrote:
-> See this bugreport for valgrind with the attached patch:
-> 
-> https://bugs.kde.org/show_bug.cgi?id=338023
+Commit 90c0ae50097 changed how the frame_type of a decoded frame
+gets determined, by switching from the get_dec_frame_type to
+get_disp_frame_type operation. Unfortunately it seems that on MFC v5 the
+result of get_disp_frame_type is always 0 (no display) when decoding
+(tested with H264), resulting in no frame ever being output from the
+decoder.
 
-A quick follow-up: this patch has been committed in the valgrind repo,
-so I assume it will appear in the next valgrind release.
+This patch reverts MFC v5 to the previous behaviour while keeping the
+new behaviour for v6 and up.
 
-Regards,
+Signed-off-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d35b041..27ca9d0 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -264,7 +264,12 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ 	unsigned int frame_type;
+ 
+ 	dspl_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
+-	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_disp_frame_type, ctx);
++	if (IS_MFCV6_PLUS(dev))
++		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
++			get_disp_frame_type, ctx);
++	else
++		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
++			get_dec_frame_type, dev);
+ 
+ 	/* If frame is same as previous then skip and do not dequeue */
+ 	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED) {
+-- 
+2.1.0
+
