@@ -1,51 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43851 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941AbaIYFI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 01:08:27 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 08/12] cx231xx: let is_tuner check the real i2c port and not the i2c master number
-Date: Thu, 25 Sep 2014 07:08:00 +0200
-Message-Id: <1411621684-8295-8-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Received: from smtprelay0157.hostedemail.com ([216.40.44.157]:53948 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753486AbaIVSAF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 14:00:05 -0400
+Received: from smtprelay.hostedemail.com (ff-bigip1 [10.5.19.254])
+	by smtpgrave07.hostedemail.com (Postfix) with ESMTP id C77F211A262
+	for <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 17:50:48 +0000 (UTC)
+Message-ID: <1411408235.2952.52.camel@joe-AO725>
+Subject: [PATCH] [media] tda18271-common: Convert _tda_printk to return void
+From: Joe Perches <joe@perches.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 22 Sep 2014 10:50:35 -0700
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-get used i2c port from bus_nr and status of port_3 switch
+No caller or macro uses the return value so make it void.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+This change is associated to a desire to eventually
+change printk to return void.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 86f90c0..a8c0f90 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -54,10 +54,19 @@ do {							\
-       } 						\
- } while (0)
+ drivers/media/tuners/tda18271-common.c | 19 ++++++++-----------
+ drivers/media/tuners/tda18271-priv.h   |  4 ++--
+ 2 files changed, 10 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+index 18c77af..86e5e31 100644
+--- a/drivers/media/tuners/tda18271-common.c
++++ b/drivers/media/tuners/tda18271-common.c
+@@ -714,12 +714,11 @@ fail:
+ 	return ret;
+ }
  
-+static inline int get_real_i2c_port(struct cx231xx *dev, int bus_nr)
-+{
-+	if (bus_nr == 1)
-+		return dev->port_3_switch_enabled ? I2C_3 : I2C_1;
-+	return bus_nr;
-+}
-+
- static inline bool is_tuner(struct cx231xx *dev, struct cx231xx_i2c *bus,
- 			const struct i2c_msg *msg, int tuner_type)
+-int _tda_printk(struct tda18271_priv *state, const char *level,
+-		const char *func, const char *fmt, ...)
++void _tda_printk(struct tda18271_priv *state, const char *level,
++		 const char *func, const char *fmt, ...)
  {
--	if (bus->nr != dev->board.tuner_i2c_master)
-+	int i2c_port = get_real_i2c_port(dev, bus->nr);
-+
-+	if (i2c_port != dev->board.tuner_i2c_master)
- 		return false;
+ 	struct va_format vaf;
+ 	va_list args;
+-	int rtn;
  
- 	if (msg->addr != dev->board.tuner_addr)
--- 
-2.1.1
+ 	va_start(args, fmt);
+ 
+@@ -727,15 +726,13 @@ int _tda_printk(struct tda18271_priv *state, const char *level,
+ 	vaf.va = &args;
+ 
+ 	if (state)
+-		rtn = printk("%s%s: [%d-%04x|%c] %pV",
+-			     level, func, i2c_adapter_id(state->i2c_props.adap),
+-			     state->i2c_props.addr,
+-			     (state->role == TDA18271_MASTER) ? 'M' : 'S',
+-			     &vaf);
++		printk("%s%s: [%d-%04x|%c] %pV",
++		       level, func, i2c_adapter_id(state->i2c_props.adap),
++		       state->i2c_props.addr,
++		       (state->role == TDA18271_MASTER) ? 'M' : 'S',
++		       &vaf);
+ 	else
+-		rtn = printk("%s%s: %pV", level, func, &vaf);
++		printk("%s%s: %pV", level, func, &vaf);
+ 
+ 	va_end(args);
+-
+-	return rtn;
+ }
+diff --git a/drivers/media/tuners/tda18271-priv.h b/drivers/media/tuners/tda18271-priv.h
+index 454c152..b36a7b7 100644
+--- a/drivers/media/tuners/tda18271-priv.h
++++ b/drivers/media/tuners/tda18271-priv.h
+@@ -139,8 +139,8 @@ extern int tda18271_debug;
+ #define DBG_CAL  16
+ 
+ __attribute__((format(printf, 4, 5)))
+-int _tda_printk(struct tda18271_priv *state, const char *level,
+-		const char *func, const char *fmt, ...);
++void _tda_printk(struct tda18271_priv *state, const char *level,
++		 const char *func, const char *fmt, ...);
+ 
+ #define tda_printk(st, lvl, fmt, arg...)			\
+ 	_tda_printk(st, lvl, __func__, fmt, ##arg)
+
 
