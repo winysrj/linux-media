@@ -1,63 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:40720 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650AbaIVDzz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 23:55:55 -0400
-Received: by mail-lb0-f178.google.com with SMTP id z12so3449152lbi.9
-        for <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 20:55:54 -0700 (PDT)
+Received: from mail-hk1bn0105.outbound.protection.outlook.com ([134.170.140.105]:37318
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751350AbaIVJ6I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 05:58:08 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: buffer delivery stops with cx23885
+Date: Mon, 22 Sep 2014 09:58:05 +0000
+Message-ID: <cf662cd20e9e40ad8750500fc590a833@HKXPR04MB295.apcprd04.prod.outlook.com>
+References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
+ <541D469B.4000306@xs4all.nl>
+ <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5220.4050107@xs4all.nl>
+ <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D5CD0.1000207@xs4all.nl>
+ <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <541D61D7.3080202@xs4all.nl>
+ <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <59dd9f7eb4414e3e8683e52c559a8c45@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <e0f1371641b2497f9d3e91c9605702ec@HKXPR04MB295.apcprd04.prod.outlook.com>
+ <541FDFB4.6070201@xs4all.nl>
+ <01776abac53640498b8fc87ac8d36fd1@HKXPR04MB295.apcprd04.prod.outlook.com>
+ <541FF16A.9060902@xs4all.nl>
+In-Reply-To: <541FF16A.9060902@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <541ECD1D.5020605@xs4all.nl>
-References: <541ECD1D.5020605@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 22 Sep 2014 12:47:32 +0900
-Message-ID: <CAMm-=zDBM=dPohTZd28yFQMctGHUSb_wFobbTPJVt93ggn8M1Q@mail.gmail.com>
-Subject: Re: RFC: vb2: replace alloc_ctx by struct device * in vb2_queue
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-I'm not very much against it, but I'm not sure how option 2 is
-significantly simpler than option 1. It's just one cast away from
-being the same, unless you have some more rework in mind, e.g. making
-vb2 aware of devices somehow and skip driver's involvement for
-example?
-Thanks,
-Pawel
-
-On Sun, Sep 21, 2014 at 10:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Marek, Pawel,
->
-> Currently for dma_config (and the dma_sg code that I posted before) drivers have
-> to allocate a alloc_ctx context, but in practice that just contains a device pointer.
->
-> Is there any reason why we can't just change in struct vb2_queue:
->
->         void                            *alloc_ctx[VIDEO_MAX_PLANES];
->
-> to:
->
->         struct device                   *alloc_ctx[VIDEO_MAX_PLANES];
->
-> or possibly even just:
->
->         struct device                   *alloc_ctx;
->
-> That simplifies the code quite a bit and I don't see and need for anything
-> else. The last option would make it impossible to have different allocation
-> contexts for different planes, but that might be something that Samsumg needs.
->
-> Regards,
->
->         Hans
-
-
-
--- 
-Best regards,
-Pawel Osciak
+PiA+Pj4NCj4gPj4+IEFueSBoaW50cyBvbiB3aGF0IEkgY2FuIGRvIHRvIGZpZ3VyZSBvdXQgd2hh
+dCBsYXllciBpdCdzIHN0YWxsaW5nIGF0Pw0KPiA+Pg0KPiA+PiBJIGhhdmUgbm8gaWRlYS4gSSB3
+b3VsZCBkbyBhIGdpdCBiaXNlY3QgdG8gdHJ5IGFuZCBuYXJyb3cgaXQgZG93bi4NCj4gPj4NCj4g
+Pg0KPiA+IFByb2JsZW0gd2l0aCB0aGUgYmlzZWN0IGlzIHRoYXQgSSBjYW4ndCBiZSBzdXJlIHdo
+YXQgdmVyc2lvbiBpdCBhY3R1YWxseQ0KPiB3b3JrZWQgb24uIEl0IGNlcnRhaW5seSBwcmVkYXRl
+cyB3aGVuIG15IHBhdGNoIGZvciBteSBjYXJkIHdhcyBjb21taXR0ZWQuDQo+ID4NCj4gPiBJIGhh
+dmUgYSBodW5jaCB0aGF0IGl0IG1pZ2h0IGJlIHRoZSB0d28gdHVuZXJzIHN0b21waW5nIG9uIGVh
+Y2ggb3RoZXIsDQo+IHBvc3NpYmx5IGluIHRoZSBpMmMgY29kZS4gU29tZXRpbWVzIHJlY29yZGlu
+ZyBqdXN0IHN0b3BzLCBvdGhlciB0aW1lcyBJIGdldCBpMmMNCj4gZXJyb3JzLg0KPiANCj4gSXMg
+dGhhdCB0d28gdHVuZXJzIGluIHRoZSBzYW1lIGRldmljZSwgb3IgdHdvIHR1bmVycyBpbiBkaWZm
+ZXJlbnQgZGV2aWNlcz8NCj4gDQoNCkRWaUNPIEZ1c2lvbkhEVFYgRFZCLVQgRHVhbCBFeHByZXNz
+Mg0KDQoyIHR1bmVycyBvbiBvbmUgY2FyZA0KDQpKYW1lcw0K
