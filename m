@@ -1,58 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1032 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753573AbaILNA1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:55368 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753440AbaIVI00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 04:26:26 -0400
+Received: from [192.168.1.21] ([79.215.163.37]) by mail.gmx.com (mrgmx001)
+ with ESMTPSA (Nemesis) id 0MD9q8-1XX5P22E8a-00GXXp for
+ <linux-media@vger.kernel.org>; Mon, 22 Sep 2014 10:26:24 +0200
+Message-ID: <541FDD2C.9060108@gmx.de>
+Date: Mon, 22 Sep 2014 10:26:20 +0200
+From: Jan Tisje <jan.tisje@gmx.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [RFCv2 PATCH 00/14] vb2: improve dma-sg, expbuf
-Date: Fri, 12 Sep 2014 14:59:49 +0200
-Message-Id: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: Running Technisat DVB-S2 on ARM-NAS
+References: <541EE016.9030504@gmx.net> <541EE2EB.4000802@iki.fi> <541EEA74.2000909@gmx.net> <541EEEAB.10106@iki.fi> <541F0AC7.4010004@gmx.net> <541F38F0.2010904@kripserver.net>
+In-Reply-To: <541F38F0.2010904@kripserver.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v1:
 
-- Updated commit logs of patches 1 and 3.
-- Added patches for tw68 and cx23885.
 
-The patch series adds an allocation context to dma-sg and uses that to move
-dma_(un)map_sg into the vb2 framework, which is where it belongs.
+Am 21.09.2014 um 22:45 schrieb Jannis:
+> Am 21.09.2014 um 19:28 schrieb JPT:
+>> Tommorrow I'll swap the sat cable just to make sure this isn't the cause.
+> 
+> Hi Jan,
+> 
+> Are we talking about this device:
+> http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
 
-Related to that is the addition of buf_prepare/finish _for_cpu variants,
-where the _for_cpu ops are called when the buffer is synced for the cpu, and
-the others are called when it is synced to the device.
+Yes, exactly.
 
-DMABUF export support is added to dma-sg and vmalloc, so now all memory
-models support DMABUF importing and exporting.
+> (You never mentioned the actual model AFAIK)?
 
-A new flag was added so drivers know when the DMA engine should be
-(re)programmed. This is primarily needed for the dma-sg memory model.
+No, I didn't. I'm sorry.
 
-Reviews are very welcome.
+> If so, it has two LEDs. A red one for "power" and a green one for
+> "tuned"/"locked". So if the green one lights up, the sat cable should be
+> okay.
 
-There is one thing I am not happy about: the addition of the 'new_cookies'
-flag. The idea is that if it is set, then the driver has to setup the
-DMA engine descriptors in buf_prepare(). This avoids creating the DMA
-descriptors in every buf_prepare and deleting them again for every buf_finish.
-The problem is that when using the new flag the cleanup of those descriptors
-can't be done in buf_finish anymore since when that op is called you do not
-yet know if the descriptors need to be updated. Instead the cleanup has to
-happen in buf_cleanup(). The tw68 patch is a good example of that.
+Swapped cables: now it works. :)
+I have to check why this cable is bad :(
 
-Unfortunately, this sequence is asymmetrical.
+Recording works fine, too.
 
-I cannot think of a good alternative. The only slight improvement that might
-be worth doing is that the vb2 core also sets new_cookies when buf_cleanup()
-needs to cleanup the descriptors. There is a corner case where buf_cleanup
-doesn't need to do that (e.g. if buf_prepare returned an error), and right
-now drivers need to detect that. It's probably better to move that logic
-to the vb2 core.
+> I remember having tested my one with the RaspberryPi and it worked. So
+> it is not a general problem of the DVB-S2 device and ARM but rather the
+> specific board you are working with.
+> Just found the link where I reported success:
+> https://github.com/raspberrypi/linux/issues/82#issuecomment-27253775
 
-Regards,
+That's great to hear. Thanks!
+I didn't expect anyone tried DVB on ARM yet. The Linux community is
+great. I'm so glad I don't need Win any more (in general).
 
-	Hans
 
+Thank you very much to both of you, and to all that people who wrote the
+code!
+
+Jan
