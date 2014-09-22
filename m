@@ -1,70 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44336 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756053AbaICUd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:29 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	James Hogan <james.hogan@imgtec.com>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 43/46] [media] nuvoton-cir: just return 0 instead of using a var
-Date: Wed,  3 Sep 2014 17:33:15 -0300
-Message-Id: <5af5d0e7a81b051d748df8fa90eb80ecb76b60af.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from er-systems.de ([46.4.18.139]:43546 "EHLO er-systems.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754240AbaIVVol (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 17:44:41 -0400
+Date: Mon, 22 Sep 2014 23:44:35 +0200 (CEST)
+From: Thomas Voegtle <tv@lio96.de>
+To: =?ISO-8859-15?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
+cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] saa7146: generate device name early
+In-Reply-To: <1411421261-9076-1-git-send-email-daniel-gl@gmx.net>
+Message-ID: <alpine.LNX.2.00.1409222342590.8517@er-systems.de>
+References: <alpine.LNX.2.00.1409222115570.2699@er-systems.de> <1411421261-9076-1-git-send-email-daniel-gl@gmx.net>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="70159122-726014229-1411422276=:8517"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating a var to store 0 and just return it,
-change the code to return 0 directly.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+--70159122-726014229-1411422276=:8517
+Content-Type: TEXT/PLAIN; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 7f4fd859bba5..9c2c8635ff33 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -229,7 +229,6 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
- {
- 	unsigned long flags;
- 	u8 chip_major, chip_minor;
--	int ret = 0;
- 	char chip_id[12];
- 	bool chip_unknown = false;
- 
-@@ -285,7 +284,7 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
- 	nvt->chip_minor = chip_minor;
- 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
--	return ret;
-+	return 0;
- }
- 
- static void nvt_cir_ldev_init(struct nvt_dev *nvt)
-@@ -1177,7 +1176,6 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
- 
- static int nvt_resume(struct pnp_dev *pdev)
- {
--	int ret = 0;
- 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
- 
- 	nvt_dbg("%s called", __func__);
-@@ -1195,7 +1193,7 @@ static int nvt_resume(struct pnp_dev *pdev)
- 	nvt_cir_regs_init(nvt);
- 	nvt_cir_wake_regs_init(nvt);
- 
--	return ret;
-+	return 0;
- }
- 
- static void nvt_shutdown(struct pnp_dev *pdev)
--- 
-1.9.3
+On Mon, 22 Sep 2014, Daniel Glöckner wrote:
+
+> It is needed when requesting the irq.
+>
+> Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+> ---
+> drivers/media/common/saa7146/saa7146_core.c | 6 +++---
+> 1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
+> index 97afee6..4418119 100644
+> --- a/drivers/media/common/saa7146/saa7146_core.c
+> +++ b/drivers/media/common/saa7146/saa7146_core.c
+> @@ -364,6 +364,9 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+> 		goto out;
+> 	}
+>
+> +	/* create a nice device name */
+> +	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
+> +
+> 	DEB_EE("pci:%p\n", pci);
+>
+> 	err = pci_enable_device(pci);
+> @@ -438,9 +441,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+>
+> 	/* the rest + print status message */
+>
+> -	/* create a nice device name */
+> -	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
+> -
+> 	pr_info("found saa7146 @ mem %p (revision %d, irq %d) (0x%04x,0x%04x)\n",
+> 		dev->mem, dev->revision, pci->irq,
+> 		pci->subsystem_vendor, pci->subsystem_device);
+>
+
+
+No warning anymore, this fixes it for me.
+
+Thank you,
+
+Thomas
+
+--70159122-726014229-1411422276=:8517--
 
