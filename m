@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1594 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757330AbaITTQ7 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:40702 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbaIVPXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 15:16:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/3] DocBook media: fix the poll() 'no QBUF' documentation
-Date: Sat, 20 Sep 2014 21:16:36 +0200
-Message-Id: <1411240597-2105-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411240597-2105-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 22 Sep 2014 11:23:32 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v6 6/6] DT: Add documentation for the Skyworks AAT1290
+Date: Mon, 22 Sep 2014 17:22:56 +0200
+Message-id: <1411399376-16497-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
+References: <1411399376-16497-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-Clarify what poll() returns if STREAMON was called but not QBUF.
-Make explicit the different behavior for this scenario for
-capture and output devices.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
 ---
- Documentation/DocBook/media/v4l/func-poll.xml | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-diff --git a/Documentation/DocBook/media/v4l/func-poll.xml b/Documentation/DocBook/media/v4l/func-poll.xml
-index 85cad8b..bd07104 100644
---- a/Documentation/DocBook/media/v4l/func-poll.xml
-+++ b/Documentation/DocBook/media/v4l/func-poll.xml
-@@ -44,10 +44,18 @@ Capture devices set the <constant>POLLIN</constant> and
- flags. When the function timed out it returns a value of zero, on
- failure it returns <returnvalue>-1</returnvalue> and the
- <varname>errno</varname> variable is set appropriately. When the
--application did not call &VIDIOC-QBUF; or &VIDIOC-STREAMON; yet the
-+application did not call &VIDIOC-STREAMON; the
- <function>poll()</function> function succeeds, but sets the
- <constant>POLLERR</constant> flag in the
--<structfield>revents</structfield> field.</para>
-+<structfield>revents</structfield> field. When the
-+application has called &VIDIOC-STREAMON; for a capture device but hasn't
-+yet called &VIDIOC-QBUF;, the <function>poll()</function> function
-+succeeds and sets the <constant>POLLERR</constant> flag in the
-+<structfield>revents</structfield> field. For output devices this
-+same situation will cause <function>poll()</function> to succeed
-+as well, but it sets the <constant>POLLOUT</constant> and
-+<constant>POLLWRNORM</constant> flags in the <structfield>revents</structfield>
-+field.</para>
- 
-     <para>When use of the <function>read()</function> function has
- been negotiated and the driver does not capture yet, the
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..9a9ad15
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,17 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++Required properties:
++
++- compatible : should be "skyworks,aat1290"
++- gpios : two gpio pins in order FLEN, EN/SET
++- skyworks,flash-timeout : maximum flash timeout in microseconds -
++			   it can be calculated using following formula:
++			   T = 8.82 * 10^9 * Ct
++
++Example:
++
++flash_led: flash-led {
++	compatible = "skyworks,aat1290";
++	gpios = <&gpj1 1 0>, <&gpj1 2 0>;
++	flash-timeout = <1940000>;
++}
 -- 
-2.1.0
+1.7.9.5
 
