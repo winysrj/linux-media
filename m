@@ -1,164 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:39913 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbaILPT4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 11:19:56 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBS00KKNNX7HO30@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 12 Sep 2014 11:19:55 -0400 (EDT)
-Date: Fri, 12 Sep 2014 12:19:50 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Shuah Khan <shuahkh@osg.samsung.com>
+Received: from venus.vo.lu ([80.90.45.96]:51506 "EHLO venus.vo.lu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751559AbaIWImx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 04:42:53 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Tue, 23 Sep 2014 10:42:29 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: Antti Palosaari <crope@iki.fi>
 Cc: linux-media@vger.kernel.org
-Subject: Re: v4l2 ioctls
-Message-id: <20140912121950.7edfee4e.m.chehab@samsung.com>
-In-reply-to: <5412A9DB.8080701@xs4all.nl>
-References: <54124BDC.3000306@osg.samsung.com> <5412A9DB.8080701@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Subject: Re: [PATCH 0/5] Digital Devices PCIe bridge update to 0.9.15a
+In-Reply-To: <1406951335-24026-1-git-send-email-crope@iki.fi>
+References: <1406951335-24026-1-git-send-email-crope@iki.fi>
+Message-ID: <90566e3465ba22d729c5d4d023208d8a@tuxicoman.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
 
-See my comments below.
+On 2014-08-02 05:48, Antti Palosaari wrote:
+
+> 
+> Tree for testing is here:
+> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=digitaldevices
+> 
+
+
+Hi Antti,
+
+I tried your digitaldevices branch but it does not work for me.
+
+Using w_scan, I'm not able to find any DVB-C transponder.
+The very same command works fine with the official drivers.
+
+There is no indication of what is wrong. Everything seems fine, I just 
+don't get a lock.
+
+See the relevant output below.
 
 Regards,
-Mauro
+   Guy
 
-Em Fri, 12 Sep 2014 10:07:55 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+02:00.0 Multimedia controller: Digital Devices GmbH Device 0005
+         Subsystem: Digital Devices GmbH Device 0004
+         Flags: bus master, fast devsel, latency 0, IRQ 17
+         Memory at d0500000 (64-bit, non-prefetchable) [size=64K]
+         Capabilities: [50] Power Management version 3
+         Capabilities: [70] MSI: Enable- Count=1/2 Maskable- 64bit+
+         Capabilities: [90] Express Endpoint, MSI 00
+         Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0 
+Len=00c <?>
+         Kernel driver in use: ddbridge
+         Kernel modules: ddbridge
 
-> On 09/12/2014 03:26 AM, Shuah Khan wrote:
-> > Hi Mauro/Hans,
-> > 
-> > I am working on adding sharing construct to dvb-core and v4l2-core.
-> > In the case of dvb I have clean start and stop points to acquire the
-> > tuner and release it. Tuner is acquired from dvb_frontend_start() and
-> > released from dvb_frontend_thread() when thread exits. This works very
-> > well.
-> > 
-> > The problem with analog case is there are no clear entry and exit
-> > points. Instead of changing ioctls, it will be cleaner to change
-> > the main ioctl entry routine __video_do_ioctl(). Is there an easy
-> > way to tell which ioctls are query only and which are set?
-> > 
-> > So far I changed the following to check check for tuner token
-> > before they invoke v4l2_ioctl_ops:
-> > 
-> > v4l_g_tuner()
-> 
-> G_TUNER should work, even if the tuner is in a different mode. See my
-> slides on that topic:
-> 
-> http://hverkuil.home.xs4all.nl/presentations/ambiguities2.odp
-> 
-> > v4l_s_tuner()
-> > v4l_s_modulator()
-> > v4l_s_frequency()
-> > v4l_s_hw_freq_seek()
-> 
-> Other ioctls that should claim the tuner are:
-> 
-> S_STD
-> S_INPUT
-> STREAMON
 
-> QUERYSTD (depends on the hardware)
+[40396.241811] Digital Devices PCIE bridge driver 0.9.15, Copyright (C) 
+2010-14 Digital Devices GmbH
+[40396.242318] DDBridge driver detected: Digital Devices Octopus V3 DVB 
+adapter
+[40396.242358] HW 00010000 REGMAP 00010004
+[40396.352992] Port 0 (TAB 1): DUAL DVB-C/T/T2
+[40396.354460] Port 1 (TAB 2): NO MODULE
+[40396.355691] Port 2 (TAB 3): NO MODULE
+[40396.464656] Port 3 (TAB 4): DUAL DVB-C/T/T2
+[40396.467376] 0 netstream channels
+[40396.467388] DVB: registering new adapter (DDBridge)
+[40396.467392] DVB: registering new adapter (DDBridge)
+[40396.467396] DVB: registering new adapter (DDBridge)
+[40396.467399] DVB: registering new adapter (DDBridge)
+[40396.505488] tda18212 0-0060: NXP TDA18212HN/M successfully identified
+[40396.505546] ddbridge 0000:02:00.0: DVB: registering adapter 0 
+frontend 0 (CXD2837 DVB-C DVB-T/T2)...
+[40396.552506] tda18212 0-0063: NXP TDA18212HN/S successfully identified
+[40396.552545] ddbridge 0000:02:00.0: DVB: registering adapter 1 
+frontend 0 (CXD2837 DVB-C DVB-T/T2)...
+[40396.599404] tda18212 3-0060: NXP TDA18212HN/M successfully identified
+[40396.599440] ddbridge 0000:02:00.0: DVB: registering adapter 2 
+frontend 0 (CXD2837 DVB-C DVB-T/T2)...
+[40396.647594] tda18212 3-0063: NXP TDA18212HN/S successfully identified
+[40396.647632] ddbridge 0000:02:00.0: DVB: registering adapter 3 
+frontend 0 (CXD2837 DVB-C DVB-T/T2)...
 
-I have doubts about this one. I don't think that just doing a
-QUERYSTD is enough to keep the tuner owned. perhaps the logic
-here should be, instead:
 
-	- take ownership (returning error if DVB mode is active)
-	- Run the query
-	- release ownership
 
-> 
-> Strictly speaking these ioctls only need to claim the tuner if
-> they capture from the tuner input, but I think in most cases you aren't
-> able to use a radio tuner at the same time as capturing from an S-Video
-> or Composite input. Usually due to the audio muxing part that switches
-> to a line-in jack when you start capturing video.
-> 
-> Once an application takes ownership of a tuner (and multiple apps can
-> own a tuner as long as they all want the same tuner mode), then that
-> application stays owner for as long as the filehandle remains open.
-> 
-> A tuner owner can switch tuner mode as long as there are no other owners.
-> 
-> And opening a radio device should take tuner ownership immediately.
-
-I don't agree here. While S_TUNER is not called at a radio device,
-there's no problem. So, if one just opens the radio device, calls G_TUNER
-and does nothing else, there's no need to take tuner ownership.
-
-> Although, as I mentioned before, I think we should try to fix radio
-> applications so that this is no longer necessary. It's very ugly
-> behavior even though it is part of the V4L2 spec.
-
-Yeah, the behavior of open radio, call S_TUNER and close, keeping
-using the radio is a ugly behavior, but before we touch Kernel,
-applications need to be fixed.
-
-> > 
-> > This isn't enough looks like, since I see tuner_s_std() getting
-> > invoked and cutting off the dvb stream.
-> 
-> You are right, I forgot about those ioctls. Calling S_STD, S_INPUT or
-> STREAMON clearly indicates that you want to switch to TV mode.
-> 
-> > I am currently releasing
-> > the tuner from v4l2_fh_exit(), but I don't think that is a good
-> > idea since all these ioctls are independent control paths. Each
-> > ioctl might have to acquire and release it at the end. More on
-> > this below.
-> > 
-> > For example, xawtv makes several ioctls before it even touches the
-> > tuner to set frequency and starting the stream. What I am looking
-> > for is an ioctl that would signal the intent to hold the tuner.
-> > Is that possible?
-> > 
-> > The question is can we identify a clean start and stop points
-> > for analog case for tuner ownership??
-> 
-> The clean start points are the ioctls listed above. The stop point is
-> when the filehandle is closed.
-> 
-> > 
-> > Would it make sense to treat all these ioctls as independent and
-> > make them acquire and release lock or hold the tuner in shared
-> > mode?
-
-For some, it might make sense to not keep the lock holded, like 
-on QUERYSTD, but for things like S_STD, S_INPUT, etc, I think that
-the best is to hold the tuner lock.
-
-> I don't follow what you mean.
-> 
-> > Shared doesn't really make sense to me since two user-space
-> > analog apps can interfere with each other.
-> 
-> This is allowed by the API. If you want to prevent other apps from
-> making changes, then an application should raise its priority using
-> S_PRIORITY. It's quite often very handy to have one application to
-> do the streaming and another application to switch channels/inputs.
-> 
-> > 
-> > I am trying avoid changing tuner-core and if at all possible.
-> > 
-> > I can send the code I have now for review if you like. I have the
-> > locking construct in a good state at the moment. dvb is in good
-> > shape.
-> 
-> I'm happy to look at it.
-> 
-> Regards,
-> 
-> 	Hans
-> 
