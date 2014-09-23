@@ -1,101 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34112 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbaIJNsg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 09:48:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Krzysztof Borowczyk <k.borowczyk@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37261 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751572AbaIWUHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 16:07:35 -0400
+Date: Tue, 23 Sep 2014 17:07:30 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: tskd08@gmail.com
 Cc: linux-media@vger.kernel.org
-Subject: Re: Webcam problem
-Date: Wed, 10 Sep 2014 16:48:39 +0300
-Message-ID: <1634489.4ADxKSlpeA@avalon>
-In-Reply-To: <009701cfc83b$0dd0b100$29721300$%borowczyk@samsung.com>
-References: <009701cfc83b$0dd0b100$29721300$%borowczyk@samsung.com>
+Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad
+ demodulator
+Message-ID: <20140923170730.4d5d167e@recife.lan>
+In-Reply-To: <1410196843-26168-4-git-send-email-tskd08@gmail.com>
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
+	<1410196843-26168-4-git-send-email-tskd08@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Krzysztof,
+Em Tue,  9 Sep 2014 02:20:42 +0900
+tskd08@gmail.com escreveu:
 
-On Thursday 04 September 2014 14:23:36 Krzysztof Borowczyk wrote:
-> Hello,
+> From: Akihiro Tsukada <tskd08@gmail.com>
 > 
-> I’ve recently noticed a problem with Modecom Venus and A4Tech PK-333E
-> webcams. Both can be put into a “bad state” in which they refuse to do
-> anything until they’re reconnected to the usb port. The test case is
-> simple:
+> This patch adds driver for tc90522 demodulator chips.
+> The chip contains 4 demod modules that run in parallel and are independently
+> controllable via separate I2C addresses.
+> Two of the modules are for ISDB-T and the rest for ISDB-S.
+> It is used in earthsoft pt3 cards.
 > 
-> gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
-> Setting pipeline to PAUSED ...
-> Pipeline is live and does not need PREROLL ...
-> Setting pipeline to PLAYING ...
-> New clock: GstSystemClock
-> eKilled
-> 
-> gst-launch-1.0 v4l2src ! videoconvert ! autovideosink
-> Setting pipeline to PAUSED ...
-> Pipeline is live and does not need PREROLL ...
-> Setting pipeline to PLAYING ...
-> New clock: GstSystemClock
-> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not
-> read from resource. Additional debug info:
-> gstv4l2bufferpool.c(994): gst_v4l2_buffer_pool_poll ():
-> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: poll error 1: Invalid argument
-> (22)
-> Execution ended after 0:00:00.046823946
-> Setting pipeline to PAUSED ...
-> Setting pipeline to READY ...
-> Setting pipeline to NULL ...
-> Freeing pipeline ...
-> 
-> The GStreamer process has to be killed with the -9:
-> kill -9 `pidof gst-launch-1.0`
-> 
-> The dmesg log shows this:
-> [88000.804362] usb 3-3: new high-speed USB device number 4 using xhci_hcd
-> [88000.864107] usb 3-3: New USB device found, idVendor=0ac8, idProduct=3460
-> [88000.864113] usb 3-3: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=0
-> [88000.864116] usb 3-3: Product: Venus USB2.0 Camera
-> [88000.864118] usb 3-3: Manufacturer: Vimicro Corp.
-> [88000.865088] uvcvideo: Found UVC 1.00 device Venus USB2.0 Camera
-> (0ac8:3460)
-> [88000.866783] input: Venus USB2.0 Camera as
-> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3:1.0/input/input16
-> [88024.007404] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2:
-> -110 (exp. 2).
-> [88024.307041] uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2:
-> -110 (exp. 2).
-> [88025.837884] uvcvideo: Failed to set UVC probe control : -32 (exp. 26).
-> [88030.830854] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
-> [88035.824615] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
-> [88040.818399] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
-> [88045.812171] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
-> [88050.805941] uvcvideo: Failed to set UVC probe control : -110 (exp. 26).
-> [88088.249967] xhci_hcd 0000:00:14.0: Signal while waiting for configure
-> endpoint command
-> [88088.250000] usb 3-3: Not enough bandwidth for altsetting 0
-> [88090.907927] xhci_hcd 0000:00:14.0: ERROR Transfer event for disabled
-> endpoint or incorrect stream ring
-> [88090.907940] xhci_hcd 0000:00:14.0: @0000000115c5f460 00000000 00000000
-> 0c000000 03058000
-> [88091.021791] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with
-> disabled ep ffff88006b0fa540
-> [88091.021797] xhci_hcd 0000:00:14.0: Trying to add endpoint 0x82 without
-> dropping it.
-> [88091.021802] usb 3-3: Not enough bandwidth for altsetting 7
-> [88091.021805] xhci_hcd 0000:00:14.0: xHCI xhci_drop_endpoint called with
-> disabled ep ffff88006b0fa540
+> Note that this driver does not init the chip,
+> because the initilization sequence / register setting is not disclosed.
+> Thus, the driver assumes that the chips are initilized externally
+> by its parent board driver before fe->ops->init() are called.
+> Earthsoft PT3 PCIe card, for example, contains the init sequence
+> in its private memory and provides a command to trigger the sequence.
 
-This looks like a low-level problem. Either the webcam firmware crashed, or 
-the XCHI USB controller get in a bad state. What kernel version are you 
-running ?
+I applied this series, as we're discussing it already for a long time,
+and it seems in a good shape...
 
--- 
+Yet, I got some minor issues with FE status. See below.
+
+PS.: could you also test (and send us patches as needed) for ISDB-S
+support at libdvbv5 and dvbv5-utils[1]?
+
+[1] http://linuxtv.org/wiki/index.php/DVBv5_Tools
+
+Thanks!
+Mauro
+
+
+> +static int tc90522s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> +{
+> +	struct tc90522_state *state;
+> +	int ret;
+> +	u8 reg;
+> +
+> +	state = fe->demodulator_priv;
+> +	ret = reg_read(state, 0xc3, &reg, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	*status = 0;
+> +	if (reg & 0x80) /* input level under min ? */
+> +		return 0;
+> +	*status |= FE_HAS_SIGNAL;
+> +
+> +	if (reg & 0x60) /* carrier? */
+> +		return 0;
+
+Sure about that? Wouldn't it be, instead, reg & 0x60 == 0x60?
+
+> +	*status |= FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC;
+> +
+> +	if (reg & 0x10)
+> +		return 0;
+> +	if (reg_read(state, 0xc5, &reg, 1) < 0 || !(reg & 0x03))
+> +		return 0;
+> +	*status |= FE_HAS_LOCK;
+> +	return 0;
+> +}
+> +
+> +static int tc90522t_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> +{
+> +	struct tc90522_state *state;
+> +	int ret;
+> +	u8 reg;
+> +
+> +	state = fe->demodulator_priv;
+> +	ret = reg_read(state, 0x96, &reg, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	*status = 0;
+> +	if (reg & 0xe0) {
+> +		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI
+> +				| FE_HAS_SYNC | FE_HAS_LOCK;
+> +		return 0;
+> +	}
+> +
+> +	ret = reg_read(state, 0x80, &reg, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (reg & 0xf0)
+> +		return 0;
+> +	*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
+> +
+> +	if (reg & 0x0c)
+> +		return 0;
+> +	*status |= FE_HAS_SYNC | FE_HAS_VITERBI;
+
+The entire series of checks above seems wrong on my eyes too.
+
+For example, if reg = 0x20 or 0x40 or 0x80 or ..., it will return
+FE_HAS_LOCK.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
