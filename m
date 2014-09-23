@@ -1,40 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2372 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbaI2Guy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 02:50:54 -0400
-Message-ID: <5429012A.3000406@xs4all.nl>
-Date: Mon, 29 Sep 2014 08:50:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:34336 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753736AbaIWMAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 08:00:54 -0400
+Message-ID: <542160F0.1000407@iki.fi>
+Date: Tue, 23 Sep 2014 15:00:48 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: rdunlap@infradead.org
-Subject: [PATCH for v3.18] vivid: fix Kconfig FB dependency
-Content-Type: text/plain; charset=utf-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org, Bimow Chen <Bimow.Chen@ite.com.tw>
+Subject: Re: Fw: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
+References: <20140923085039.51765665@recife.lan>
+In-Reply-To: <20140923085039.51765665@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vivid driver depends on FB, update the Kconfig accordingly.
+I am not sure as I cannot reproduce it. Also 30ms wait here is long as 
+hell, whilst it is not critical.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Jim Davis <jim.epost@gmail.com>
+When I look that firmware downloading from the 1-2 month old Hauppauge 
+driver sniffs, it is not there:
 
-diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
-index d71139a..c309093 100644
---- a/drivers/media/platform/vivid/Kconfig
-+++ b/drivers/media/platform/vivid/Kconfig
-@@ -1,8 +1,11 @@
- config VIDEO_VIVID
- 	tristate "Virtual Video Test Driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-+	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64 && FB
- 	select FONT_SUPPORT
- 	select FONT_8x16
-+	select FB_CFB_FILLRECT
-+	select FB_CFB_COPYAREA
-+	select FB_CFB_IMAGEBLIT
- 	select VIDEOBUF2_VMALLOC
- 	default n
- 	---help---
+That line is CMD_FW_BOOT, command 0x23 it is 3rd number:
+#define CMD_FW_BOOT                 0x23
+000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
+
+Here is whole sequence:
+000311:  OUT: 000000 ms 001489 ms BULK[00002] >>> 15 00 29 99 03 01 00 
+01 57 f7 09 02 6d 6c 02 4f 9f 02 4f a2 0b 16
+000312:  OUT: 000001 ms 001489 ms BULK[00081] <<< 04 99 00 66 ff
+000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
+000314:  OUT: 000011 ms 001490 ms BULK[00081] <<< 04 9a 00 65 ff
+000315:  OUT: 000000 ms 001501 ms BULK[00002] >>> 0b 00 00 9b 01 02 00 
+00 12 22 40 ec
+000316:  OUT: 000000 ms 001501 ms BULK[00081] <<< 05 9b 00 02 62 ff
+
+
+So windows driver waits 10ms after boot, not before.
+
+Due to these reasons, I would like to skip that patch until I see error 
+or get good explanation why it is needed and so.
+
+
+regards
+Antti
+
+
+On 09/23/2014 02:50 PM, Mauro Carvalho Chehab wrote:
+> Antti,
+>
+> After the firmware load changes, is this patch still applicable?
+>
+> Regards,
+> Mauro
+>
+> Forwarded message:
+>
+> Date: Tue, 05 Aug 2014 13:48:03 +0800
+> From: Bimow Chen <Bimow.Chen@ite.com.tw>
+> To: linux-media@vger.kernel.org
+> Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
+>
+>
+>  From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00 2001
+> From: Bimow Chen <Bimow.Chen@ite.com.tw>
+> Date: Tue, 5 Aug 2014 11:20:53 +0800
+> Subject: [PATCH 4/4] Add sleep for firmware ready.
+>
+>
+> Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+> ---
+>   drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
+>   1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index 7b9b75f..a450cdb 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+>   	if (ret < 0)
+>   		goto err;
+>
+> +	msleep(30);
+> +
+>   	/* firmware loaded, request boot */
+>   	req.cmd = CMD_FW_BOOT;
+>   	ret = af9035_ctrl_msg(d, &req);
+>
+
+-- 
+http://palosaari.fi/
