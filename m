@@ -1,47 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sg1bn0104.outbound.protection.outlook.com ([134.170.132.104]:13084
-	"EHLO APAC01-SG1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752483AbaITLgT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 07:36:19 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: buffer delivery stops with cx23885
-Date: Sat, 20 Sep 2014 11:36:11 +0000
-Message-ID: <d1c6567fa03c4e27ba5534514a762631@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <778B08D5C7F58E4D9D9BE1DE278048B5C0B208@maxex1.maxsum.com>
- <541D469B.4000306@xs4all.nl>
- <609d00f585384d999c8e3522fe1352ee@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5220.4050107@xs4all.nl>
- <a349a970f1d445538b52eb4d0e98ee2c@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D5CD0.1000207@xs4all.nl>
- <9cc65ceabd05475d89a92c5df04cc492@SIXPR04MB304.apcprd04.prod.outlook.com>
- <541D61D7.3080202@xs4all.nl>
-In-Reply-To: <541D61D7.3080202@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:55731 "EHLO
+	resqmta-po-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752723AbaIWAbH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Sep 2014 20:31:07 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: m.chehab@samsung.com, fabf@skynet.be
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] media: tuner xc5000 - release firmwware from xc5000_release()
+Date: Mon, 22 Sep 2014 18:30:46 -0600
+Message-Id: <1411432246-9085-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiA+IFRoYXQgc291bmRzIHBsYXVzaWJsZSB3cnQgdGltZWZyYW1lLCBidXQgaWYgY3gyMzg4NSBv
-bmx5IHN0YXJ0ZWQgdXNpbmcgdmIyDQo+ID4gYWZ0ZXIgU2VwdCA4IHRoZW4gaXQgY291bGRuJ3Qg
-aGF2ZSBhZmZlY3RlZCBtZSBiZWZvcmUgdGhlbiByaWdodD8NCj4gDQo+IFlvdSBhcmUgcmlnaHQg
-YWJvdXQgdGhhdC4gWW91IGFyZSB1c2luZyBEVkIgcmlnaHQ/IE5vdCBhbmFsb2cgdmlkZW8/IChK
-dXN0IHRvDQo+IGJlIDEwMCUgY2VydGFpbikuDQo+IA0KDQpZZXMuIEF1c3RyYWxpYSBtb3N0bHkg
-aGFzIG5vIGFuYWxvZyBhbnltb3JlLg0KDQo+ID4gVGhhdCdzIHRoZSBvbmUgSSBhcHBsaWVkIC0g
-eW91IGNhbiBldmVuIHNlZSBteSBxdWVzdGlvbnMgYmVsb3cgaW4gdGhhdCBsaW5rDQo+ID4gOikg
-QmFzZWQgb24gd2hhdCB5b3UgaGF2ZSBzYWlkIEkgdGhpbmsgdGhhdCdzIG5vdCBnb2luZyB0byBz
-b2x2ZSBhbnl0aGluZyBmb3INCj4gPiBtZSB0aG91Z2guDQo+IA0KPiBJZiB5b3UgYXJlIHN0cmVh
-bWluZyBEVkIsIHRoZW4gdGhhdCBwYXRjaCBoYXMgbm8gZWZmZWN0IHNpbmNlIHRoZSB2YjJfcG9s
-bCBjYWxsDQo+IHdpbGwgbmV2ZXIgYmUgY2FsbGVkIGZvciBEVkIgYW55d2F5LCBzbyB0aGF0IGNh
-biBiZSBydWxlZCBvdXQuDQoNCk9rDQoNCj4gPiBTbyBJIGd1ZXNzIG15IHBsYW4gaXM6DQo+ID4g
-LiBSZXZlcnQgdG8gNzNkODEwMjI5ODcxOTg2M2Q1NDI2NGY2MjUyMTM2MjQ4N2Y4NDI1NiBhbmQg
-dGVzdCAobm90DQo+IGxpa2VseSB0byBmaXggYnV0IGVhc3kgdG8gdGVzdCkNCj4gDQo+IEFuZCBp
-bXBvcnRhbnQgZm9yIG1lLCBiZWNhdXNlIGlmIGl0IElTIHJlbGF0ZWQgdG8gdGhlIHZiMiBjb252
-ZXJzaW9uIHRoZW4gSQ0KPiBuZWVkIHRvIGtub3cgYXNhcC4NCj4gDQoNCk1pZ2h0IHRha2UgYSBm
-ZXcgZGF5cyB0byBiZSBjb21wbGV0ZWx5IHN1cmUuIEkndmUgd29uZGVyZWQgaWYgaXQncyBzb21l
-dGhpbmcgdG8gZG8gd2l0aCB0aGUgc2lnbmFsIHRvbyAobWF5YmUgc29tZSBidWcgd2hlbiBzaWdu
-YWwgZXJyb3Igb2NjdXJzPykuIFNvIG1hbnkgdmFyaWFibGVzIDooDQoNCkphbWVzDQoNCg==
+xc5000 releases firmware right after loading it. Change it to
+save the firmware and release it from xc5000_release(). This
+helps avoid fecthing firmware when forced firmware load requests
+come in to change analog tv frequence and when firmware needs to
+be reloaded after suspend and resume.
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+
+patch v2: fixes issues found in patch v1 review
+
+ drivers/media/tuners/xc5000.c |   34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index 512fe50..b72ec64 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -70,6 +70,8 @@ struct xc5000_priv {
+ 
+ 	struct dvb_frontend *fe;
+ 	struct delayed_work timer_sleep;
++
++	const struct firmware   *firmware;
+ };
+ 
+ /* Misc Defines */
+@@ -1136,20 +1138,23 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+ 	if (!force && xc5000_is_firmware_loaded(fe) == 0)
+ 		return 0;
+ 
+-	ret = request_firmware(&fw, desired_fw->name,
+-			       priv->i2c_props.adap->dev.parent);
+-	if (ret) {
+-		printk(KERN_ERR "xc5000: Upload failed. (file not found?)\n");
+-		return ret;
+-	}
+-
+-	dprintk(1, "firmware read %Zu bytes.\n", fw->size);
++	if (!priv->firmware) {
++		ret = request_firmware(&fw, desired_fw->name,
++					priv->i2c_props.adap->dev.parent);
++		if (ret) {
++			pr_err("xc5000: Upload failed. rc %d\n", ret);
++			return ret;
++		}
++		dprintk(1, "firmware read %Zu bytes.\n", fw->size);
+ 
+-	if (fw->size != desired_fw->size) {
+-		printk(KERN_ERR "xc5000: Firmware file with incorrect size\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
++		if (fw->size != desired_fw->size) {
++			pr_err("xc5000: Firmware file with incorrect size\n");
++			release_firmware(fw);
++			return -EINVAL;
++		}
++		priv->firmware = fw;
++	} else
++		fw = priv->firmware;
+ 
+ 	/* Try up to 5 times to load firmware */
+ 	for (i = 0; i < 5; i++) {
+@@ -1232,7 +1237,6 @@ err:
+ 	else
+ 		printk(KERN_CONT " - too many retries. Giving up\n");
+ 
+-	release_firmware(fw);
+ 	return ret;
+ }
+ 
+@@ -1316,6 +1320,8 @@ static int xc5000_release(struct dvb_frontend *fe)
+ 	if (priv) {
+ 		cancel_delayed_work(&priv->timer_sleep);
+ 		hybrid_tuner_release_state(priv);
++		if (priv->firmware)
++			release_firmware(priv->firmware);
+ 	}
+ 
+ 	mutex_unlock(&xc5000_list_mutex);
+-- 
+1.7.10.4
+
