@@ -1,101 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54286 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757095AbaIDChF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:05 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 37/37] af9033: remove all DVBv3 stat calculation logic
-Date: Thu,  4 Sep 2014 05:36:45 +0300
-Message-Id: <1409798205-25645-37-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:46456 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755259AbaIWOCQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 10:02:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1408452653-14067-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	<1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Date: Tue, 23 Sep 2014 16:02:14 +0200
+Message-ID: <CAMuHMdWnMz3P8tk_f_EQoZjgYS7SzH_2jYv_32aPnfM_hQgr1A@mail.gmail.com>
+Subject: Re: [PATCH 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Statistics are now calculated for DVBv5 and those DVBv5 values are
-returned for legacy DVBv3 calls also. So we could remove all old
-statistics calculation logic.
+On Tue, Aug 19, 2014 at 2:50 PM, Mikhail Ulyanov
+<mikhail.ulyanov@cogentembedded.com> wrote:
+> +static void put_short_be(unsigned long *p, u16 v)
+> +{
+> +       u16 *addr = (u16 *)*p;
+> +
+> +       *addr = cpu_to_be16(v);
+> +       *p += 2;
+> +}
+> +
+> +static void put_word_be(unsigned long *p, u32 v)
+> +{
+> +       u32 *addr = (u32 *)*p;
+> +
+> +       *addr = cpu_to_be32(v);
+> +       *p += 4;
+> +}
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 49 ------------------------------------
- 1 file changed, 49 deletions(-)
+Is the address in *p guaranteed to be aligned to 2 resp. 4  bytes?
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index f5267fd..be5002a 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -36,15 +36,12 @@ struct af9033_dev {
- 	bool ts_mode_serial;
- 
- 	fe_status_t fe_status;
--	u32 ber;
--	u32 ucb;
- 	u64 post_bit_error_prev; /* for old read_ber we return (curr - prev) */
- 	u64 post_bit_error;
- 	u64 post_bit_count;
- 	u64 error_block_count;
- 	u64 total_block_count;
- 	struct delayed_work stat_work;
--	unsigned long last_stat_check;
- };
- 
- /* write multiple registers */
-@@ -870,52 +867,6 @@ err:
- 	return ret;
- }
- 
--static int af9033_update_ch_stat(struct af9033_dev *dev)
--{
--	int ret = 0;
--	u32 err_cnt, bit_cnt;
--	u16 abort_cnt;
--	u8 buf[7];
--
--	/* only update data every half second */
--	if (time_after(jiffies, dev->last_stat_check + msecs_to_jiffies(500))) {
--		ret = af9033_rd_regs(dev, 0x800032, buf, sizeof(buf));
--		if (ret < 0)
--			goto err;
--		/* in 8 byte packets? */
--		abort_cnt = (buf[1] << 8) + buf[0];
--		/* in bits */
--		err_cnt = (buf[4] << 16) + (buf[3] << 8) + buf[2];
--		/* in 8 byte packets? always(?) 0x2710 = 10000 */
--		bit_cnt = (buf[6] << 8) + buf[5];
--
--		if (bit_cnt < abort_cnt) {
--			abort_cnt = 1000;
--			dev->ber = 0xffffffff;
--		} else {
--			/*
--			 * 8 byte packets, that have not been rejected already
--			 */
--			bit_cnt -= (u32)abort_cnt;
--			if (bit_cnt == 0) {
--				dev->ber = 0xffffffff;
--			} else {
--				err_cnt -= (u32)abort_cnt * 8 * 8;
--				bit_cnt *= 8 * 8;
--				dev->ber = err_cnt * (0xffffffff / bit_cnt);
--			}
--		}
--		dev->ucb += abort_cnt;
--		dev->last_stat_check = jiffies;
--	}
--
--	return 0;
--err:
--	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
--
--	return ret;
--}
--
- static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
- 	struct af9033_dev *dev = fe->demodulator_priv;
--- 
-http://palosaari.fi/
+If not, you can use put_unaligned*().
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
