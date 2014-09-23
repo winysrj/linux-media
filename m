@@ -1,180 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:53870 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714AbaI2HpP (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:11377 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882AbaIWNbM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 03:45:15 -0400
-Received: by mail-lb0-f171.google.com with SMTP id l4so17352475lbv.16
-        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 00:45:13 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 5/5] cx23855: add CI support for DVBSky T980C
-Date: Mon, 29 Sep 2014 10:44:20 +0300
-Message-Id: <1411976660-19329-5-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
-References: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
+	Tue, 23 Sep 2014 09:31:12 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Mikhail Ulyanov' <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com, m.chehab@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org
+Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+References: <1408452653-14067-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-reply-to: <1408969787-23132-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Subject: RE: [PATCH v2 1/6] V4L2: Add Renesas R-Car JPEG codec driver.
+Date: Tue, 23 Sep 2014 15:31:07 +0200
+Message-id: <085201cfd732$a2849bd0$e78dd370$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add CI support for DVBSky T980C.
+Hi Mikhail,
 
-I used the new host device independent CIMaX SP2 I2C driver to implement it.
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Mikhail Ulyanov
+> Sent: Monday, August 25, 2014 2:30 PM
+> 
+> This patch contains driver for Renesas R-Car JPEG codec.
+> 
+> Cnanges since v1:
+>     - s/g_fmt function simplified
+>     - default format for queues added
+>     - dumb vidioc functions added to be in compliance with standard
+> api:
+>         jpu_s_priority, jpu_g_priority
+>     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
+>       now in use by the same reason
 
-cx23885_sp2_ci_ctrl function is borrowed entirely from cimax2.c.
+The patch looks good to me. However, I would suggest using the BIT macro
+and making some short functions inline.
+ 
+> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> ---
+>  drivers/media/platform/Kconfig  |   11 +
+>  drivers/media/platform/Makefile |    2 +
+>  drivers/media/platform/jpu.c | 1628
+> ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 1641 insertions(+)
+>  create mode 100644 drivers/media/platform/jpu.c
+> 
+> diff --git a/drivers/media/platform/Kconfig
+> b/drivers/media/platform/Kconfig index 6d86646..1b8c846 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -220,6 +220,17 @@ config VIDEO_RENESAS_VSP1
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called vsp1.
+> 
+> +config VIDEO_RENESAS_JPU
+> +	tristate "Renesas JPEG Processing Unit"
+> +	depends on VIDEO_DEV && VIDEO_V4L2
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	select V4L2_MEM2MEM_DEV
+> +	---help---
+> +	  This is a V4L2 driver for the Renesas JPEG Processing Unit.
+> +
+> +	  To compile this driver as a module, choose M here: the module
+> +	  will be called jpu.
+> +
+>  config VIDEO_TI_VPE
+>  	tristate "TI VPE (Video Processing Engine) driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_DRA7XX diff --git
+> a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index e5269da..e438534 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -47,6 +47,8 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+> 
+>  obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+> 
+> +obj-$(CONFIG_VIDEO_RENESAS_JPU)	+= jpu.o
+> +
+>  obj-y	+= davinci/
+> 
+>  obj-$(CONFIG_ARCH_OMAP)	+= omap/
+> diff --git a/drivers/media/platform/jpu.c
+> b/drivers/media/platform/jpu.c new file mode 100644 index
+> 0000000..da70491
+> --- /dev/null
+> +++ b/drivers/media/platform/jpu.c
+> @@ -0,0 +1,1628 @@
+> +/*
+> + * Author: Mikhail Ulyanov  <source@cogentembedded.com>
+> + * Copyright (C) 2014 Cogent Embedded, Inc.
+> + * Copyright (C) 2014 Renesas Electronics Corporation
+> + *
+> + * This is based on the drivers/media/platform/s5p-jpu driver by
+> + * Andrzej Pietrasiewicz and Jacek Anaszewski.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/err.h>
+> +#include <linux/gfp.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/string.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-core.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +
+> +
+> +#define JPU_M2M_NAME "jpu"
+> +
+> +#define JPU_WIDTH_MIN		16
+> +#define JPU_HEIGHT_MIN		16
+> +#define JPU_WIDTH_MAX		4096
+> +#define JPU_HEIGHT_MAX		4096
+> +#define JPU_DEFAULT_WIDTH	640
+> +#define JPU_DEFAULT_HEIGHT	480
+> +
+> +#define JPU_ENCODE		0
+> +#define JPU_DECODE		1
+> +
+> +/* Flags that indicate a format can be used for capture/output */
+> +#define JPU_FMT_TYPE_OUTPUT	0
+> +#define JPU_FMT_TYPE_CAPTURE	1
+> +#define JPU_ENC_CAPTURE		(1 << 0)
+> +#define JPU_ENC_OUTPUT		(1 << 1)
+> +#define JPU_DEC_CAPTURE		(1 << 2)
+> +#define JPU_DEC_OUTPUT		(1 << 3)
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/cx23885/cx23885-dvb.c | 105 +++++++++++++++++++++++++++++++-
- 1 file changed, 103 insertions(+), 2 deletions(-)
+The BIT macro could be used here.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index cc88997..70dbcd6 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -71,6 +71,7 @@
- #include "si2165.h"
- #include "si2168.h"
- #include "si2157.h"
-+#include "sp2.h"
- #include "m88ds3103.h"
- #include "m88ts2022.h"
- 
-@@ -616,6 +617,76 @@ static int dvbsky_t9580_set_voltage(struct dvb_frontend *fe,
- 	return 0;
- }
- 
-+static int cx23885_sp2_ci_ctrl(void *priv, u8 read, int addr,
-+				u8 data, int *mem)
-+{
-+
-+	/* MC417 */
-+	#define SP2_DATA              0x000000ff
-+	#define SP2_WR                0x00008000
-+	#define SP2_RD                0x00004000
-+	#define SP2_ACK               0x00001000
-+	#define SP2_ADHI              0x00000800
-+	#define SP2_ADLO              0x00000400
-+	#define SP2_CS1               0x00000200
-+	#define SP2_CS0               0x00000100
-+	#define SP2_EN_ALL            0x00001000
-+	#define SP2_CTRL_OFF          (SP2_CS1 | SP2_CS0 | SP2_WR | SP2_RD)
-+
-+	struct cx23885_tsport *port = priv;
-+	struct cx23885_dev *dev = port->dev;
-+	int ret;
-+	int tmp;
-+	unsigned long timeout;
-+
-+	mutex_lock(&dev->gpio_lock);
-+
-+	/* write addr */
-+	cx_write(MC417_OEN, SP2_EN_ALL);
-+	cx_write(MC417_RWD, SP2_CTRL_OFF |
-+				SP2_ADLO | (0xff & addr));
-+	cx_clear(MC417_RWD, SP2_ADLO);
-+	cx_write(MC417_RWD, SP2_CTRL_OFF |
-+				SP2_ADHI | (0xff & (addr >> 8)));
-+	cx_clear(MC417_RWD, SP2_ADHI);
-+
-+	if (read) { /* data in */
-+		cx_write(MC417_OEN, SP2_EN_ALL | SP2_DATA);
-+	} else /* data out */
-+		cx_write(MC417_RWD, SP2_CTRL_OFF | data);
-+
-+	/* chip select 0 */
-+	cx_clear(MC417_RWD, SP2_CS0);
-+
-+	/* read/write */
-+	cx_clear(MC417_RWD, (read) ? SP2_RD : SP2_WR);
-+
-+	timeout = jiffies + msecs_to_jiffies(1);
-+	for (;;) {
-+		tmp = cx_read(MC417_RWD);
-+		if ((tmp & SP2_ACK) == 0)
-+			break;
-+		if (time_after(jiffies, timeout))
-+			break;
-+		udelay(1);
-+	}
-+
-+	cx_set(MC417_RWD, SP2_CTRL_OFF);
-+	*mem = tmp & 0xff;
-+
-+	mutex_unlock(&dev->gpio_lock);
-+
-+	if (!read)
-+		if (*mem < 0) {
-+			ret = -EREMOTEIO;
-+			goto err;
-+		}
-+
-+	return 0;
-+err:
-+	return ret;
-+}
-+
- static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-@@ -944,11 +1015,11 @@ static int dvb_register(struct cx23885_tsport *port)
- 	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
- 	struct si2168_config si2168_config;
- 	struct si2157_config si2157_config;
-+	struct sp2_config sp2_config;
- 	struct m88ts2022_config m88ts2022_config;
- 	struct i2c_board_info info;
- 	struct i2c_adapter *adapter;
--	struct i2c_client *client_demod;
--	struct i2c_client *client_tuner;
-+	struct i2c_client *client_demod, *client_tuner, *client_ci;
- 	int mfe_shared = 0; /* bus not shared by default */
- 	int ret;
- 
-@@ -1683,6 +1754,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 	case CX23885_BOARD_DVBSKY_T980C:
- 		i2c_bus = &dev->i2c_bus[1];
-+		i2c_bus2 = &dev->i2c_bus[0];
- 
- 		/* attach frontend */
- 		memset(&si2168_config, 0, sizeof(si2168_config));
-@@ -1820,6 +1892,35 @@ static int dvb_register(struct cx23885_tsport *port)
- 	case CX23885_BOARD_DVBSKY_T980C: {
- 		u8 eeprom[256]; /* 24C02 i2c eeprom */
- 
-+		/* attach CI */
-+		memset(&sp2_config, 0, sizeof(sp2_config));
-+		sp2_config.dvb_adap = &port->frontends.adapter;
-+		sp2_config.priv = port;
-+		sp2_config.ci_control = cx23885_sp2_ci_ctrl;
-+		memset(&info, 0, sizeof(struct i2c_board_info));
-+		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
-+		info.addr = 0x40;
-+		info.platform_data = &sp2_config;
-+		request_module(info.type);
-+		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
-+		if (client_ci == NULL ||
-+				client_ci->dev.driver == NULL) {
-+			module_put(client_tuner->dev.driver->owner);
-+			i2c_unregister_device(client_tuner);
-+			module_put(client_demod->dev.driver->owner);
-+			i2c_unregister_device(client_demod);
-+			goto frontend_detach;
-+		}
-+		if (!try_module_get(client_ci->dev.driver->owner)) {
-+			i2c_unregister_device(client_ci);
-+			module_put(client_tuner->dev.driver->owner);
-+			i2c_unregister_device(client_tuner);
-+			module_put(client_demod->dev.driver->owner);
-+			i2c_unregister_device(client_demod);
-+			goto frontend_detach;
-+		}
-+		port->i2c_client_ci = client_ci;
-+
- 		if (port->nr != 1)
- 			break;
- 
+> +
+> +/*
+> + * JPEG registers and bits
+> + */
+> +
+> +/* JPEG code mode register */
+> +#define JCMOD	0x00
+> +#define JCMOD_SOI_DISABLE	(1 << 8)
+> +#define JCMOD_SOI_ENABLE	(0 << 8)
+> +#define JCMOD_PCTR		(1 << 7)
+> +#define JCMOD_MSKIP_DISABLE	(0 << 5)
+> +#define JCMOD_MSKIP_ENABLE	(1 << 5)
+> +#define JCMOD_DSP_ENC		(0 << 3)
+> +#define JCMOD_DSP_DEC		(1 << 3)
+> +#define JCMOD_REDU		(7 << 0)
+> +#define JCMOD_REDU_422		(1 << 0)
+> +#define JCMOD_REDU_420		(2 << 0)
+> +
+> +/* JPEG code command register */
+> +#define JCCMD	0x04
+> +#define JCCMD_SRST	(1 << 12)
+> +#define JCCMD_BRST	(1 << 7)
+> +#define JCCMD_JEND	(1 << 2)
+> +#define JCCMD_JSRT	(1 << 0)
+> +
+> +/* JPEG code quantanization table number register */
+> +#define JCQTN	0x0C
+> +#define JCQTN_SHIFT(t)		(((t) - 1) << 1)
+> +
+> +/* JPEG code Huffman table number register */
+> +#define JCHTN	0x10
+> +#define JCHTN_AC_SHIFT(t)	(((t) << 1) - 1)
+> +#define JCHTN_DC_SHIFT(t)	(((t) - 1) << 1)
+> +
+
+[snip]
+
+> =
+> +=====
+> + * video ioctl operations
+> + *
+> +======================================================================
+> =
+> +=====
+> + */
+> +static void put_byte(unsigned long *p, u8 v) {
+> +	u8 *addr = (u8 *)*p;
+> +
+> +	*addr = v;
+> +	(*p)++;
+> +}
+> +
+> +static void put_short_be(unsigned long *p, u16 v) {
+> +	u16 *addr = (u16 *)*p;
+> +
+> +	*addr = cpu_to_be16(v);
+> +	*p += 2;
+> +}
+> +
+> +static void put_word_be(unsigned long *p, u32 v) {
+> +	u32 *addr = (u32 *)*p;
+> +
+> +	*addr = cpu_to_be32(v);
+> +	*p += 4;
+> +}
+
+The 3 above function could be inline.
+
+> +
+> +static void put_blob_byte(unsigned long *p, const unsigned char *blob,
+> +			  unsigned int len)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < len; i++)
+> +		put_byte(p, blob[i]);
+> +}
+
+I think this function could also be inline.
+
+> +
+> +static void put_qtbl(unsigned long *p, unsigned char id,
+> +		     const unsigned int *qtbl)
+> +{
+> +	int i;
+> +
+> +	put_byte(p, id);
+> +	for (i = 0; i < ARRAY_SIZE(zigzag); i++)
+> +		put_byte(p, *((u8 *)qtbl + zigzag[i])); }
+> +
+> +static void put_htbl(unsigned long *p, unsigned char tc,
+> +		     const unsigned int *htbl, unsigned int len) {
+> +	int i;
+> +
+> +	put_byte(p, tc);
+> +	for (i = 0; i < len; i++)
+> +		put_word_be(p, htbl[i]);
+> +}
+> +
+
+[snip]
+
+Best wishes,
 -- 
-1.9.1
+Kamil Debski
+Samsung R&D Institute Poland
+
 
