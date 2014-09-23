@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:51332 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbaIDOzQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:55:16 -0400
-Message-ID: <54087D2E.806@cisco.com>
-Date: Thu, 04 Sep 2014 16:54:38 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:48091 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752876AbaIWEyP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 00:54:15 -0400
+Message-ID: <5420FCED.7010400@gentoo.org>
+Date: Tue, 23 Sep 2014 06:54:05 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] [media] tw68: Remove a sparse warning
-References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com> <fafeea3682cc2da98f05138ec4b1c8ebc6798b5d.1409841955.git.m.chehab@samsung.com>
-In-Reply-To: <fafeea3682cc2da98f05138ec4b1c8ebc6798b5d.1409841955.git.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org, crope@iki.fi
+Subject: Re: [PATCH 7/7] si2165: do load firmware without extra header
+References: <1409484912-19300-1-git-send-email-zzam@gentoo.org>	<1409484912-19300-8-git-send-email-zzam@gentoo.org> <20140922195813.4cec3704@recife.lan>
+In-Reply-To: <20140922195813.4cec3704@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'll need to review this as well. Perhaps tw_writel should expect a __le32?
+On 23.09.2014 00:58, Mauro Carvalho Chehab wrote:
+> Em Sun, 31 Aug 2014 13:35:12 +0200
+> Matthias Schwarzott <zzam@gentoo.org> escreveu:
+> 
+>> The new file has a different name: dvb-demod-si2165-D.fw
+>>
+>> Count blocks instead of reading count from extra header.
+>> Calculate CRC during upload and compare result to what chip calcuated.
+>> Use 0x01 instead of real patch version, because this is only used to
+>> check if something was uploaded but not to check the version of it.
+>>
+>> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+>> ---
+> 
+> ...
+> 
+>> diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
+>> index 2b70cf1..fd778dc 100644
+>> --- a/drivers/media/dvb-frontends/si2165_priv.h
+>> +++ b/drivers/media/dvb-frontends/si2165_priv.h
+>> @@ -18,6 +18,6 @@
+>>  #ifndef _DVB_SI2165_PRIV
+>>  #define _DVB_SI2165_PRIV
+>>  
+>> -#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
+>> +#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-D.fw"
+> 
+> Please, don't do that. Changing the name of the firmware and breaking
+> the format is a bad idea, specially since you're not supporting anymore
+> the legacy one.
+> 
+> I would be ok if you were not breaking support for the old firmware
+> file.
+> 
+Hmm, there is no kernel yet that contains this driver.
+And the firmware is identical, just the header is missing.
+Do I really have to support both then?
 
-	Hans
+> Also, better to use lowercase for the firmware name.
 
-On 09/04/14 16:46, Mauro Carvalho Chehab wrote:
-> drivers/media/pci/tw68/tw68-video.c:351:9: warning: incorrect type in argument 1 (different base types)
-> drivers/media/pci/tw68/tw68-video.c:351:9:    expected unsigned int [unsigned] val
-> drivers/media/pci/tw68/tw68-video.c:351:9:    got restricted __le32 [usertype] <noident>
+Ok, I will change the "D" to lower-case.
+
 > 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-> index 66fae2345fdd..4dd38578cf1b 100644
-> --- a/drivers/media/pci/tw68/tw68-video.c
-> +++ b/drivers/media/pci/tw68/tw68-video.c
-> @@ -348,7 +348,7 @@ int tw68_video_start_dma(struct tw68_dev *dev, struct tw68_buf *buf)
->  	 *  a new address can be set.
->  	 */
->  	tw_clearl(TW68_DMAC, TW68_DMAP_EN);
-> -	tw_writel(TW68_DMAP_SA, cpu_to_le32(buf->dma));
-> +	tw_writel(TW68_DMAP_SA, (__force u32)cpu_to_le32(buf->dma));
->  	/* Clear any pending interrupts */
->  	tw_writel(TW68_INTSTAT, dev->board_virqmask);
->  	/* Enable the risc engine and the fifo */
-> 
+> PS.: I'm not applying patch 6/7 as this got rejected.
+
+Ok, I will resend patch 6 and eventually 7.
+
+Regards
+Matthias
