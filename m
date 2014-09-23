@@ -1,74 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:43518 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbaIZNAP (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:59570 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756380AbaIWQJ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 09:00:15 -0400
-Received: by mail-pa0-f41.google.com with SMTP id fa1so4753860pad.0
-        for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 06:00:14 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: m.chehab@samsung.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH] [media] rc: fix hix5hd2 compile-test issue
-Date: Fri, 26 Sep 2014 20:57:30 +0800
-Message-Id: <1411736250-29252-1-git-send-email-zhangfei.gao@linaro.org>
-In-Reply-To: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
-References: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
+	Tue, 23 Sep 2014 12:09:27 -0400
+Date: Tue, 23 Sep 2014 18:09:23 +0200
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] video: move mediabus format definition to a more
+ standard place
+Message-ID: <20140923180923.287758a7@bbrezillon>
+In-Reply-To: <Pine.LNX.4.64.1409231426220.17074@axis700.grange>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1406031827-12432-2-git-send-email-boris.brezillon@free-electrons.com>
+	<Pine.LNX.4.64.1409231426220.17074@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add dependence to solve build error in arch like ia64
-error: implicit declaration of function 'readl_relaxed' & 'writel_relaxed'
+Hi Guennadi,
 
-Change CONFIG_PM to CONFIG_PM_SLEEP to solve
-warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
+On Tue, 23 Sep 2014 14:33:20 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- drivers/media/rc/Kconfig      |    2 +-
- drivers/media/rc/ir-hix5hd2.c |    7 +------
- 2 files changed, 2 insertions(+), 7 deletions(-)
+> Hi Boris,
+> 
+> On Tue, 22 Jul 2014, Boris BREZILLON wrote:
+> 
+> > Rename mediabus formats and move the enum into a separate header file so
+> > that it can be used by DRM/KMS subsystem without any reference to the V4L2
+> > subsystem.
+> > 
+> > Old V4L2_MBUS_FMT_ definitions are now macros that points to VIDEO_BUS_FMT_
+> > definitions.
+> > 
+> > Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> 
+> In principle I find this a good idea, certainly it's good to reuse code. 
+> Just wondering, wouldn't it be better instead of adding those defines to 
+> define a macro like
+> 
+> #define VIDEO_BUS_TO_MBUS(x)	V4L2_MBUS_ ## x = VIDEO_BUS_ ## x
+> 
+> and then do
+> 
+> enum v4l2_mbus_pixelcode {
+> 	VIDEO_BUS_TO_MBUS(FIXED),
+> 	VIDEO_BUS_TO_MBUS(RGB444_2X8_PADHI_BE),
+> 	...
+> };
+> 
+> ? I'm not very strong on this, I just think an enum is nicer than a bunch 
+> of defines and this way copy-paste errors are less likely, but if you or 
+> others strongly disagree - I won't insist :)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 8ce08107a69d..28fb2cb34e8d 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -166,7 +166,7 @@ config IR_ENE
- 
- config IR_HIX5HD2
- 	tristate "Hisilicon hix5hd2 IR remote control"
--	depends on RC_CORE
-+	depends on RC_CORE && ARM
- 	help
- 	 Say Y here if you want to use hisilicon hix5hd2 remote control.
- 	 To compile this driver as a module, choose M here: the module will be
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index 94967d0e0478..c1d8527ace92 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -16,11 +16,6 @@
- #include <linux/regmap.h>
- #include <media/rc-core.h>
- 
--/* Allow the driver to compile on all architectures */
--#ifndef writel_relaxed
--# define writel_relaxed writel
--#endif
--
- #define IR_ENABLE		0x00
- #define IR_CONFIG		0x04
- #define CNT_LEADS		0x08
-@@ -294,7 +289,7 @@ static int hix5hd2_ir_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int hix5hd2_ir_suspend(struct device *dev)
- {
- 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
+I'd say it might be a good solution if we enforce new users (including
+user space users) to use video_bus_format enum values instead of
+v4l2_mbus_pixelcode ones. But if we keep adding new values to this enum
+I'd say this approach is less readable than having the full names
+(V4L2_MBUS_XXX) expressed, because users will still have to use those
+full names.
+
+Anyway, I can still replace this macro list by an enum:
+
+enum v4l2_mbus_pixelcode {
+	V4L2_MBUS_FIXED = VIDEO_BUS_FIXED,
+	V4L2_MBUS_RGB444_2X8_PADHI_BE = VIDEO_BUS_RGB444_2X8_PADHI_BE,
+	...
+};
+
+Best Regards,
+
+Boris
+
 -- 
-1.7.9.5
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
