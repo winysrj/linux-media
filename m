@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55914 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756393AbaIKPdS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58571 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393AbaIWLAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Sep 2014 11:33:18 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 6/8] drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
-Date: Thu, 11 Sep 2014 17:33:05 +0200
-Message-Id: <1410449587-1677-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
-References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 23 Sep 2014 07:00:00 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] [media] saa7134: Remove some casting warnings
+Date: Tue, 23 Sep 2014 07:59:43 -0300
+Message-Id: <37b38486a1497804b63482af58a945f0eee8893f.1411469967.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the for_each_... macro should make the code a bit shorter and
-easier to read.
+drivers/media/pci/saa7134/saa7134-go7007.c:247:17: warning: incorrect type in argument 1 (different base types)
+drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    expected unsigned int [unsigned] val
+drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    got restricted __le32 [usertype] <noident>
+drivers/media/pci/saa7134/saa7134-go7007.c:252:17: warning: incorrect type in argument 1 (different base types)
+drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    expected unsigned int [unsigned] val
+drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    got restricted __le32 [usertype] <noident>
+drivers/media/pci/saa7134/saa7134-go7007.c:299:9: warning: incorrect type in argument 1 (different base types)
+drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    expected unsigned int [unsigned] val
+drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    got restricted __le32 [usertype] <noident>
+drivers/media/pci/saa7134/saa7134-go7007.c:300:9: warning: incorrect type in argument 1 (different base types)
+drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    expected unsigned int [unsigned] val
+drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    got restricted __le32 [usertype] <noident>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/gpu/drm/drm_of.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/gpu/drm/drm_of.c b/drivers/gpu/drm/drm_of.c
-index 16150a0..024fa77 100644
---- a/drivers/gpu/drm/drm_of.c
-+++ b/drivers/gpu/drm/drm_of.c
-@@ -46,11 +46,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 	struct device_node *remote_port, *ep = NULL;
- 	uint32_t possible_crtcs = 0;
- 
--	do {
--		ep = of_graph_get_next_endpoint(port, ep);
--		if (!ep)
--			break;
--
-+	for_each_endpoint_of_node(port, ep) {
- 		remote_port = of_graph_get_remote_port(ep);
- 		if (!remote_port) {
- 			of_node_put(ep);
-@@ -60,7 +56,7 @@ uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
- 		possible_crtcs |= drm_crtc_port_mask(dev, remote_port);
- 
- 		of_node_put(remote_port);
--	} while (1);
-+	}
- 
- 	return possible_crtcs;
+diff --git a/drivers/media/pci/saa7134/saa7134-go7007.c b/drivers/media/pci/saa7134/saa7134-go7007.c
+index 3e9ca4821b8c..d9af6f3dc8af 100644
+--- a/drivers/media/pci/saa7134/saa7134-go7007.c
++++ b/drivers/media/pci/saa7134/saa7134-go7007.c
+@@ -244,12 +244,12 @@ static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
+ 		dma_sync_single_for_cpu(&dev->pci->dev,
+ 					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+ 		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
+-		saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
++		saa_writel(SAA7134_RS_BA2(5), (__force u32)cpu_to_le32(saa->bottom_dma));
+ 	} else {
+ 		dma_sync_single_for_cpu(&dev->pci->dev,
+ 					saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+ 		go7007_parse_video_stream(go, saa->top, PAGE_SIZE);
+-		saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
++		saa_writel(SAA7134_RS_BA1(5), (__force u32)cpu_to_le32(saa->top_dma));
+ 	}
  }
+ 
+@@ -296,8 +296,8 @@ static int saa7134_go7007_stream_start(struct go7007 *go)
+ 	/* Enable video streaming mode */
+ 	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_VIDEO);
+ 
+-	saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
+-	saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
++	saa_writel(SAA7134_RS_BA1(5), (__force u32)cpu_to_le32(saa->top_dma));
++	saa_writel(SAA7134_RS_BA2(5), (__force u32)cpu_to_le32(saa->bottom_dma));
+ 	saa_writel(SAA7134_RS_PITCH(5), 128);
+ 	saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_MAX);
+ 
 -- 
-2.1.0
+1.9.3
 
