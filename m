@@ -1,70 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:9867 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753121AbaIOGrv (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:49879 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755039AbaIWOGS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:47:51 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00FI2K7QW590@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:47:50 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 02/17] [media] s5p-mfc: Fix REQBUFS(0) for encoder.
-Date: Mon, 15 Sep 2014 12:12:57 +0530
-Message-id: <1410763393-12183-3-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+	Tue, 23 Sep 2014 10:06:18 -0400
+Date: Tue, 23 Sep 2014 16:06:13 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] drm: panel: simple-panel: add bus format information
+ for foxlink panel
+Message-ID: <20140923140612.GB5982@ulmo>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1406031827-12432-6-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Pd0ReVV5GZGQvF3a"
+Content-Disposition: inline
+In-Reply-To: <1406031827-12432-6-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
 
-Handle REQBUFS(0) for CAPTURE queue as well. Also use the proper queue to call
-it on for OUTPUT.
+--Pd0ReVV5GZGQvF3a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+On Tue, Jul 22, 2014 at 02:23:47PM +0200, Boris BREZILLON wrote:
+> Foxlink's fl500wvr00-a0t supports RGB888 format.
+>=20
+> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> ---
+>  drivers/gpu/drm/panel/panel-simple.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel=
+/panel-simple.c
+> index 42fd6d1..f1e49fd 100644
+> --- a/drivers/gpu/drm/panel/panel-simple.c
+> +++ b/drivers/gpu/drm/panel/panel-simple.c
+> @@ -428,6 +428,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t=
+ =3D {
+>  		.width =3D 108,
+>  		.height =3D 65,
+>  	},
+> +	.bus_format =3D VIDEO_BUS_FMT_RGB888_1X24,
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index ecd2bd1..cd1b2a2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1166,6 +1166,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 		(reqbufs->memory != V4L2_MEMORY_USERPTR))
- 		return -EINVAL;
- 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		if (reqbufs->count == 0) {
-+			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-+			ctx->capture_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		if (ctx->capture_state != QUEUE_FREE) {
- 			mfc_err("invalid capture state: %d\n",
- 							ctx->capture_state);
-@@ -1187,6 +1192,14 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -ENOMEM;
- 		}
- 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (reqbufs->count == 0) {
-+			mfc_debug(2, "Freeing buffers\n");
-+			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-+			s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers,
-+					ctx);
-+			ctx->output_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		if (ctx->output_state != QUEUE_FREE) {
- 			mfc_err("invalid output state: %d\n",
- 							ctx->output_state);
--- 
-1.7.3.rc2
+This is really equivalent to .bpc =3D 8. Didn't you say you had other
+use-cases where .bpc wasn't sufficient?
 
+Thierry
+
+--Pd0ReVV5GZGQvF3a
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUIX5UAAoJEN0jrNd/PrOh978P/AwkG0E2cje1IL7DuT0+mMzH
+jve3XfrooQ5hvChRzJNawNb/r6qoBrxFsfW5mz4Cd0vduLuvUBhRUfNXefvHTMZO
+ERCMz2OjDFwvS91ShBB/DyGlX1puDQgea7KiICjoPTX/Gh9eXzmpqerwQv9K6bRN
+82ypV2KEGg49bonJSipHYZNqnQbaRjTR/YfMuN2XRoXTFKLcDnUk0NE7H3N04jsz
+eDTBCVQ2Os9E71MEyHFbY+O39HKnA98Hqr/25I+/kV1cV/mRWKMjeZJVXFD7KEgN
+QoM4ec0C9uydDIaYuJRuqUUUlc6plXoc40Gx6xNJ5LtisEuBLteQyBZIsOgpy0de
+mTzTqA8q3KJtWEZ7Cwjeqo0WYkRHTB5wDs+SOlBDPESMx4a9F2BkQZWoWMdCkZRv
+HWE/zecn84NSq92v6W8yHENkjgSfVXl0Wnucd9eui9O3Zd8fadNruo76zh6Q6KIZ
+7yMNnNEpCgdz9cix6NNnSwrtKFan9QV42hTtGrGHHXxZBOMU37l7JHPOZ+0F4ydX
+OddmQAOAVmuyzjLGMkLFt/YCqOejMCABcviTW6hjAEv4eBMCkxu70caagsYEY5Cu
+Cdp3mbuvp+bR7xfU6tGQHqarsauwfAYEmdeZA4COL3A4rATgLvHs+sO+zP6j/oQJ
+vvb7FnmpKBg6gCkATnU3
+=t+tM
+-----END PGP SIGNATURE-----
+
+--Pd0ReVV5GZGQvF3a--
