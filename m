@@ -1,81 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:14604 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755936AbaICLqa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 07:46:30 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NBB00K7AQ1HKE10@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Sep 2014 07:46:29 -0400 (EDT)
-Date: Wed, 03 Sep 2014 08:46:24 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, stoth@kernellabs.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 17/20] cx23885: fix weird sizes.
-Message-id: <20140903084624.2cc523b8.m.chehab@samsung.com>
-In-reply-to: <1408010045-24016-18-git-send-email-hverkuil@xs4all.nl>
-References: <1408010045-24016-1-git-send-email-hverkuil@xs4all.nl>
- <1408010045-24016-18-git-send-email-hverkuil@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:9199 "EHLO
+	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134AbaIWJwR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 05:52:17 -0400
+Subject: [2/2] af9033: fix snr value not correct issue
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi
+Content-Type: multipart/mixed; boundary="=-oWOBiJkBKgURVmN3WWC8"
+Date: Tue, 23 Sep 2014 17:55:04 +0800
+Message-ID: <1411466104.2258.1.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 14 Aug 2014 11:54:02 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> These values make no sense. All SDTV standards have the same width.
-> This seems to be copied from the cx88 driver. Just drop these weird
-> values.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/pci/cx23885/cx23885.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-> index 99a5fe0..f542ced 100644
-> --- a/drivers/media/pci/cx23885/cx23885.h
-> +++ b/drivers/media/pci/cx23885/cx23885.h
-> @@ -610,15 +610,15 @@ extern int cx23885_risc_databuffer(struct pci_dev *pci,
->  
->  static inline unsigned int norm_maxw(v4l2_std_id norm)
->  {
-> -	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
-> +	return 720;
+--=-oWOBiJkBKgURVmN3WWC8
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Not sure if you checked cx23885 datasheet. I didn't, but I don't doubt
-that it uses about the same A/D logic as cx88.
+Snr returns value not correct. Fix it.
 
-In the case of cx88, the sampling rate for a few standards is different,
-as recommended at the datasheet. This is done to provide the highest
-image quality, as there are some customized filters for some standards,
-but they require some specific sampling rates. That's why PAL-Nc and
-NTSC/PAL-M are handled on a different way.
+--=-oWOBiJkBKgURVmN3WWC8
+Content-Disposition: attachment; filename="0002-af9033-fix-snr-value-not-correct-issue.patch"
+Content-Type: text/x-patch; name="0002-af9033-fix-snr-value-not-correct-issue.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
->  }
->  
->  static inline unsigned int norm_maxh(v4l2_std_id norm)
->  {
-> -	return (norm & V4L2_STD_625_50) ? 576 : 480;
-> +	return (norm & V4L2_STD_525_60) ? 480 : 576;
+>From f3d5c9e2b01e666eca7aa66cd15b67609a0589ea Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Tue, 23 Sep 2014 17:23:31 +0800
+Subject: [PATCH 2/2] af9033: fix snr value not correct issue
 
-This is obviously wrong.
+Snr returns value not correct. Fix it.
 
->  }
->  
->  static inline unsigned int norm_swidth(v4l2_std_id norm)
->  {
-> -	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
-> +	return 754;
->  }
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/dvb-frontends/af9033.c      |   46 +++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
+ 2 files changed, 47 insertions(+), 4 deletions(-)
 
-Same as above commented.
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 0a0aeaf..37bd624 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -840,7 +840,7 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	int ret, i, len;
+-	u8 buf[3], tmp;
++	u8 buf[3], tmp, tmp2;
+ 	u32 snr_val;
+ 	const struct val_snr *uninitialized_var(snr_lut);
+ 
+@@ -851,6 +851,33 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	snr_val = (buf[2] << 16) | (buf[1] << 8) | buf[0];
+ 
++	/* read superframe number */
++	ret = af9033_rd_reg(state, 0x80f78b, &tmp);
++	if (ret < 0)
++		goto err;
++
++	if (tmp)
++		snr_val /= tmp;
++
++	/* read current transmission mode */
++	ret = af9033_rd_reg(state, 0x80f900, &tmp);
++	if (ret < 0)
++		goto err;
++
++	switch ((tmp >> 0) & 3) {
++	case 0:
++		snr_val *= 4;
++		break;
++	case 1:
++		snr_val *= 1;
++		break;
++	case 2:
++		snr_val *= 2;
++		break;
++	default:
++		goto err;
++	}
++
+ 	/* read current modulation */
+ 	ret = af9033_rd_reg(state, 0x80f903, &tmp);
+ 	if (ret < 0)
+@@ -874,13 +901,26 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	}
+ 
+ 	for (i = 0; i < len; i++) {
+-		tmp = snr_lut[i].snr;
++		tmp2 = snr_lut[i].snr;
+ 
+ 		if (snr_val < snr_lut[i].val)
+ 			break;
+ 	}
+ 
+-	*snr = tmp * 10; /* dB/10 */
++	/* scale value to 0x0000-0xffff */
++	switch ((tmp >> 0) & 3) {
++	case 0:
++		*snr = tmp2 * 0xFFFF / 23;
++		break;
++	case 1:
++		*snr = tmp2 * 0xFFFF / 26;
++		break;
++	case 2:
++		*snr = tmp2 * 0xFFFF / 32;
++		break;
++	default:
++		goto err;
++	}
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index 58315e0..6351626 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -180,7 +180,10 @@ static const struct val_snr qam64_snr_lut[] = {
+ 	{ 0x05570d, 26 },
+ 	{ 0x059feb, 27 },
+ 	{ 0x05bf38, 28 },
+-	{ 0xffffff, 29 },
++	{ 0x05f78f, 29 },
++	{ 0x0612c3, 30 },
++	{ 0x0626be, 31 },
++	{ 0xffffff, 32 },
+ };
+ 
+ static const struct reg_val ofsm_init[] = {
+-- 
+1.7.0.4
 
-Regards,
-Mauro
+
+--=-oWOBiJkBKgURVmN3WWC8--
+
