@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:43100 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753897AbaIVMwR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 08:52:17 -0400
-From: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Daniel Drake <drake@endlessm.com>,
-	Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-Subject: [PATCH] [media] s5p-mfc: Use decode status instead of display status on MFCv5
-Date: Mon, 22 Sep 2014 14:52:02 +0200
-Message-Id: <1411390322-25212-1-git-send-email-sjoerd.simons@collabora.co.uk>
+Received: from mga03.intel.com ([134.134.136.65]:7238 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757186AbaIWXKM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 19:10:12 -0400
+Date: Wed, 24 Sep 2014 06:59:24 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Guoxiong Yan <yanguoxiong@huawei.com>
+Cc: Zhangfei Gao <zhangfei.gao@linaro.org>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:devel-3.17-rc6 489/499]
+ drivers/media/rc/ir-hix5hd2.c:100:2: error: implicit declaration of
+ function 'readl_relaxed'
+Message-ID: <5421fb4c.SFjCtT1qIBEQWCDI%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 90c0ae50097 changed how the frame_type of a decoded frame
-gets determined, by switching from the get_dec_frame_type to
-get_disp_frame_type operation. Unfortunately it seems that on MFC v5 the
-result of get_disp_frame_type is always 0 (no display) when decoding
-(tested with H264), resulting in no frame ever being output from the
-decoder.
+tree:   git://linuxtv.org/media_tree.git devel-3.17-rc6
+head:   49310ed0ab8da344dece4a543bfcdd14490ccfa0
+commit: a84fcdaa905862b09482544d190c94a8436e4334 [489/499] [media] rc: Introduce hix5hd2 IR transmitter driver
+config: m68k-allmodconfig
+reproduce:
+  wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+  chmod +x ~/bin/make.cross
+  git checkout a84fcdaa905862b09482544d190c94a8436e4334
+  make.cross ARCH=m68k  allmodconfig
+  make.cross ARCH=m68k 
 
-This patch reverts MFC v5 to the previous behaviour while keeping the
-new behaviour for v6 and up.
+All error/warnings:
 
-Signed-off-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+   drivers/media/rc/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
+>> drivers/media/rc/ir-hix5hd2.c:100:2: error: implicit declaration of function 'readl_relaxed' [-Werror=implicit-function-declaration]
+     while (readl_relaxed(priv->base + IR_BUSY)) {
+     ^
+   cc1: some warnings being treated as errors
+
+vim +/readl_relaxed +100 drivers/media/rc/ir-hix5hd2.c
+
+    94	static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
+    95	{
+    96		int timeout = 10000;
+    97		u32 val, rate;
+    98	
+    99		writel_relaxed(0x01, priv->base + IR_ENABLE);
+ > 100		while (readl_relaxed(priv->base + IR_BUSY)) {
+   101			if (timeout--) {
+   102				udelay(1);
+   103			} else {
+
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d35b041..27ca9d0 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -264,7 +264,12 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
- 	unsigned int frame_type;
- 
- 	dspl_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_y_adr, dev);
--	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_disp_frame_type, ctx);
-+	if (IS_MFCV6_PLUS(dev))
-+		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
-+			get_disp_frame_type, ctx);
-+	else
-+		frame_type = s5p_mfc_hw_call(dev->mfc_ops,
-+			get_dec_frame_type, dev);
- 
- 	/* If frame is same as previous then skip and do not dequeue */
- 	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED) {
--- 
-2.1.0
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
