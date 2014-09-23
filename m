@@ -1,99 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:14370 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467AbaI3OeM (ORCPT
+Received: from mail-we0-f172.google.com ([74.125.82.172]:54275 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbaIWOEq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 10:34:12 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NCP00B7HXXS5Q40@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 30 Sep 2014 15:37:04 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Philipp Zabel' <p.zabel@pengutronix.de>
-Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
- <542AB39B.9010006@xs4all.nl> <1412086849.3692.3.camel@pengutronix.de>
- <542ABD1F.9000701@xs4all.nl>
-In-reply-to: <542ABD1F.9000701@xs4all.nl>
-Subject: RE: [PATCH 00/10] CODA7 JPEG support
-Date: Tue, 30 Sep 2014 16:34:08 +0200
-Message-id: <0d2c01cfdcbb$98df2670$ca9d7350$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 23 Sep 2014 10:04:46 -0400
+Date: Tue, 23 Sep 2014 16:04:40 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/5] drm: add bus_formats and nbus_formats fields to
+ drm_display_info
+Message-ID: <20140923140439.GA5982@ulmo>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1406031827-12432-4-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+Content-Disposition: inline
+In-Reply-To: <1406031827-12432-4-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, September 30, 2014 4:25 PM
-> To: Philipp Zabel
-> Cc: Kamil Debski; Mauro Carvalho Chehab; Hans Verkuil; linux-
-> media@vger.kernel.org; kernel@pengutronix.de
-> Subject: Re: [PATCH 00/10] CODA7 JPEG support
-> 
-> On 09/30/14 16:20, Philipp Zabel wrote:
-> > Hi Hans,
-> >
-> > Am Dienstag, den 30.09.2014, 15:43 +0200 schrieb Hans Verkuil:
-> >> On 09/30/14 11:57, Philipp Zabel wrote:
-> >>> Hi,
-> >>>
-> >>> These patches add JPEG encoding and decoding support for CODA7541
-> (i.MX5).
-> >>> The encoder video device is split into one video device per codec,
-> >>> so that each video device can register only the relevant controls.
-> >>> The H.264/MPEG4 decoder is kept as one video device, but the JPEG
-> >>> decoder video device is separate because it supports more
-> >>> uncompressed formats (currently YUV422P, in the future grayscale or
-> YUV 4:4:4 support could be added).
-> >>
-> >> Normally device nodes are linked to DMA engines, so the only reason
-> >> why you would have e.g. two video nodes is if you can capture from
-> >> both at the same time. Is that the case here as well? If not, then
-> it
-> >> really should be a single video node. That not all controls are
-> >> relevant for the currently chosen codec is not important.
-> >>
-> >> Are there other reasons than the controls to split it up into
-> >> multiple video devices?
-> >
-> > I had already split the encoder and decoder parts of this mem2mem
-> > device into two video devices because of the issue of changing
-> > available capture formats depending on the selected output format.
-> > The motivation for splitting the JPEG codecs from the H264/MPEG4
-> > codecs is the same: to avoid the appearing and disappearing of the
-> > YUV422P format on the uncompressed side whenever the compressed
-> format
-> > changes between JPEG and H264/MPEG4. I could keep the H264 and MPEG4
-> > encoders combined without running into this issue.
-> >
-> > Furthermore, I want to change the output queue for the currently
-> > available decoders to use vb2-vmalloc eventually (because the CPU has
-> > to copy incoming frames into the bitstream buffer), but have to keep
-> > using vb2-dma-contig for the CODA960 JPEG decoder, which will have
-> the
-> > hardware read from the incoming buffers directly.
-> 
-> Based on this description I think it makes sense to split off the JPEG
-> encoder, but I would keep H264/MPEG4 together. Kamil, what's your
-> opinion on this?
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I agree with you Hans. MFC has a single encoder node that supports multiple
-codecs and I think this design works well.
+On Tue, Jul 22, 2014 at 02:23:45PM +0200, Boris BREZILLON wrote:
+> Add bus_formats and nbus_formats fields and
+> drm_display_info_set_bus_formats helper function to specify the bus
+> formats supported by a given display.
+>=20
+> This information can be used by display controller drivers to configure
+> the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
+> RGB or LVDS busses).
+>=20
+> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> ---
+>  drivers/gpu/drm/drm_crtc.c | 28 ++++++++++++++++++++++++++++
+>  include/drm/drm_crtc.h     |  8 ++++++++
+>  2 files changed, 36 insertions(+)
+>=20
+> diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+> index c808a09..50c8395 100644
+> --- a/drivers/gpu/drm/drm_crtc.c
+> +++ b/drivers/gpu/drm/drm_crtc.c
+> @@ -825,6 +825,34 @@ static void drm_mode_remove(struct drm_connector *co=
+nnector,
+>  	drm_mode_destroy(connector->dev, mode);
+>  }
+> =20
+> +/*
+> + * drm_display_info_set_bus_formats - set the supported bus formats
+> + * @info: display info to store bus formats in
+> + * @fmts: array containing the supported bus formats
+> + * @nfmts: the number of entries in the fmts array
+> + *
+> + * Store the suppported bus formats in display info structure.
+> + */
+> +int drm_display_info_set_bus_formats(struct drm_display_info *info,
+> +				     const enum video_bus_format *fmts,
+> +				     int nfmts)
 
-JPEG should be separated into separate device.
+Can you make nfmts unsigned please?
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+> +{
+> +	enum video_bus_format *formats =3D NULL;
+> +
+> +	if (fmts && nfmts) {
+> +		formats =3D kmemdup(fmts, sizeof(*fmts) * nfmts, GFP_KERNEL);
+> +		if (!formats)
+> +			return -ENOMEM;
+> +	}
+> +
+> +	kfree(info->bus_formats);
+> +	info->bus_formats =3D formats;
+> +	info->nbus_formats =3D formats ? nfmts : 0;
 
+And perhaps check for formats =3D=3D NULL && nfmts !=3D 0 since that's not a
+valid pair of values. Then you can simply assign this directly without
+relying on the value of formats.
 
+Also other variable names use "num_" as a prefix instead of "n", so if
+you're going to respin anyway might as well make the names more
+consistent.
 
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(drm_display_info_set_bus_formats);
+> +
+>  /**
+>   * drm_connector_init - Init a preallocated connector
+>   * @dev: DRM device
+> diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> index e529b68..957729b 100644
+> --- a/include/drm/drm_crtc.h
+> +++ b/include/drm/drm_crtc.h
+> @@ -31,6 +31,7 @@
+>  #include <linux/idr.h>
+>  #include <linux/fb.h>
+>  #include <linux/hdmi.h>
+> +#include <linux/video-bus-format.h>
+>  #include <drm/drm_mode.h>
+>  #include <drm/drm_fourcc.h>
+>  #include <drm/drm_modeset_lock.h>
+> @@ -121,6 +122,9 @@ struct drm_display_info {
+>  	enum subpixel_order subpixel_order;
+>  	u32 color_formats;
+> =20
+> +	const enum video_bus_format *bus_formats;
+> +	int nbus_formats;
+
+unsigned int here too, please.
+
+Thierry
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUIX33AAoJEN0jrNd/PrOhp0EP/i4QLBT0OdxOEFBG0fiIlmJ8
+Jc17bgilP41zsiFppJ3EYalrk54kwz8OAsNlX1hIkYw45WW32ZZ22gOMXIZvZBWB
+/9bHmS5+MRM3uoOWfI4iZci2k1y5rrZsySLTz4llgMoImVYuO+I064UWgyU68QTO
+/VJDCcUsSQ4YNE0a8aJ4w8GFztzD2xV3Q9hofdPsEgb4D//4oy0n/xc3h20tUT3V
+jkEmHPmD5dJ/E6GJ4PO8iVoQ87L0PeJ5Pkb6chNxXBXg4jnouQyo9KWGHfTx2ABe
+B83ONBrbatqa3wUzjTsmMbg6iNsIGp4C1GDBuio5CAdTODe5eF+q9xwxejDcfRfo
+RZSOQdDJwtKPpEm7gMVfQsaJGOo9ECh223JqYvib6EAPSlbrGkCsdT5fnGWr9kq2
+SkVHI2soPpxNLVI9FeRCmnd2ac82gwPonqvjBG7i+7T6hdBMDrCnoU8g2PaAqVfM
+P/6kVKqxUoVthEXKTlGjspxp6ZE6XUytW7xqtGRA4exL/eGapBuIWQa5X9Al2dt7
+IaNLiSlojF9HbERpqmj6YfOidJoOx25H49lJzBFS/j8oNeSOaK0bPvMFdHNighKQ
+4J2TeRqRq5McCc1lE2FoPCM5NDXxtEDa98cp4abvcwVv0coqZIx+wwuM0BwHEiGU
+zry7PlQb417kMZ4kIKZv
+=VfKp
+-----END PGP SIGNATURE-----
+
+--6c2NcOVqGQ03X4Wi--
