@@ -1,63 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36195 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbaIOOP1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 10:15:27 -0400
-Message-ID: <5416F475.7090001@osg.samsung.com>
-Date: Mon, 15 Sep 2014 08:15:17 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: v4l2_fops - poll and open
-References: <5413911F.8070302@osg.samsung.com> <5414021A.3000401@xs4all.nl>
-In-Reply-To: <5414021A.3000401@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from HC210-202-87-179.vdslpro.static.apol.com.tw ([210.202.87.179]:38932
+	"EHLO ironport.ite.com.tw" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755368AbaIWJlO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 05:41:14 -0400
+Subject: [1/2] af9033: fix it9135 strength value not correct issue
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi
+Content-Type: multipart/mixed; boundary="=-pemMrNFEWBloMOQ0v5mt"
+Date: Tue, 23 Sep 2014 17:44:02 +0800
+Message-ID: <1411465442.1919.6.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2014 02:36 AM, Hans Verkuil wrote:
-> On 09/13/2014 02:34 AM, Shuah Khan wrote:
->> Mauro/Hans,
->>
->> It turns out au0828 driver does init tuner from its
->> v4l2_fops read and poll. If an analog app comes in
->> and does a read or poll, digital could get disrupted.
->> Do you recommend adding token access to these??
-> 
-> Yes. read() and poll() are effectively the same as STREAMON.
-> 
-> But rather than doing this for read, poll, streamon, streamoff
-> and when the filehandle is closed you should think of integrating
-> this in vb2 and do it in start_streaming and stop_streaming.
-> Those are really the only two streaming-related places where you
-> need to take and release the tuner token.
-> 
-> As I mentioned before, I think it is a good idea to convert
-> au0828 to vb2. Since vb2 makes resource management so much easier
-> than vb1 I think it will only help you.
-> 
-> Also, requiring vb2 support for tuner ownership to work correctly
-> is a good incentive to keep on converting drivers to vb2.
-> 
 
-Right we discussed it a few weeks at LinuxCon.  My thinking is
-getting the tuner ownership work done is higher priority as it benefits
-several drivers. Even if au0828 gets converted to vb2, the tuner
-work still have to deal with other drivers that aren't converted to
-vb2. i.e I might still end up adding acquiring tuner at open, poll
-etc.
+--=-pemMrNFEWBloMOQ0v5mt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Mauro! What are your thoughts on this idea?? I would like to get
-the media sharing work done since it will benefit PM scenarios.
+Register 0x800048 does not work in it9135. Fix it and conform to NorDig specifications.
 
--- Shuah
+--=-pemMrNFEWBloMOQ0v5mt
+Content-Disposition: attachment; filename="0001-af9033-fix-it9135-strength-value-not-correct-issue.patch"
+Content-Type: text/x-patch; name="0001-af9033-fix-it9135-strength-value-not-correct-issue.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
+>From 5d2f434dd4737a97a954dc775c26295e785a20c6 Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Tue, 23 Sep 2014 15:31:44 +0800
+Subject: [PATCH 1/2] af9033: fix it9135 strength value not correct issue
 
+Register 0x800048 does not work in it9135. Fix it and conform to NorDig specifications.
+
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/dvb-frontends/af9033.c      |   50 ++++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/af9033_priv.h |    6 +++
+ 2 files changed, 48 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 5c90ea6..0a0aeaf 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -28,6 +28,7 @@ struct af9033_state {
+ 	struct i2c_adapter *i2c;
+ 	struct dvb_frontend fe;
+ 	struct af9033_config cfg;
++	bool is_af9035;
+ 
+ 	u32 bandwidth_hz;
+ 	bool ts_mode_parallel;
+@@ -892,16 +893,46 @@ err:
+ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+-	int ret;
+-	u8 strength2;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret, power_real;
++	u8 strength2, gain_offset, buf[8];
+ 
+-	/* read signal strength of 0-100 scale */
+-	ret = af9033_rd_reg(state, 0x800048, &strength2);
+-	if (ret < 0)
+-		goto err;
++	if (state->is_af9035) {
++		/* read signal strength of 0-100 scale */
++		ret = af9033_rd_reg(state, 0x800048, &strength2);
++		if (ret < 0)
++			goto err;
+ 
+-	/* scale value to 0x0000-0xffff */
+-	*strength = strength2 * 0xffff / 100;
++		/* scale value to 0x0000-0xffff */
++		*strength = strength2 * 0xffff / 100;
++	} else {
++		ret = af9033_rd_reg(state, 0x8000f7, &strength2);
++		ret |= af9033_rd_regs(state, 0x80f900, buf, sizeof(buf));
++		if (ret < 0)
++			goto err;
++
++		if (c->frequency <= 300000000)
++			gain_offset = 7; /* VHF */
++		else
++			gain_offset = 4; /* UHF */
++
++		power_real = (strength2 - 100 - gain_offset) -
++			power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
++
++		if (power_real < -15)
++			*strength = 0;
++		else if ((power_real >= -15) && (power_real < 0))
++			*strength = (u8)((2 * (power_real + 15)) / 3);
++		else if ((power_real >= 0) && (power_real < 20))
++			*strength = (u8)(4 * power_real + 10);
++		else if ((power_real >= 20) && (power_real < 35))
++			*strength = (u8)((2 * (power_real - 20)) / 3 + 90);
++		else
++			*strength = 100;
++
++		/* scale value to 0x0000-0xffff */
++		*strength = *strength * 0xffff / 100;
++	}
+ 
+ 	return 0;
+ 
+@@ -1103,6 +1134,7 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	case AF9033_TUNER_IT9135_61:
+ 	case AF9033_TUNER_IT9135_62:
+ 		/* IT9135 did not like to sleep at that early */
++		state->is_af9035 = false;
+ 		break;
+ 	default:
+ 		ret = af9033_wr_reg(state, 0x80004c, 1);
+@@ -1112,6 +1144,8 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 		ret = af9033_wr_reg(state, 0x800000, 0);
+ 		if (ret < 0)
+ 			goto err;
++
++		state->is_af9035 = true;
+ 	}
+ 
+ 	/* configure internal TS mode */
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index ded7b67..58315e0 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -2050,4 +2050,10 @@ static const struct reg_val tuner_init_it9135_62[] = {
+ 	{ 0x80fd8b, 0x00 },
+ };
+ 
++/* NorDig power reference table */
++static const int power_reference[][5] = {
++	{-93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
++	{-87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
++	{-82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
++};
+ #endif /* AF9033_PRIV_H */
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.7.0.4
+
+
+--=-pemMrNFEWBloMOQ0v5mt--
+
