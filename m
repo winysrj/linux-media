@@ -1,70 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:64919 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325AbaIXIMH (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4608 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754681AbaIWLKu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 04:12:07 -0400
-Received: by mail-we0-f177.google.com with SMTP id t60so5744750wes.22
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 01:12:05 -0700 (PDT)
-Message-ID: <54227CD2.5020705@linaro.org>
-Date: Wed, 24 Sep 2014 09:12:02 +0100
-From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+	Tue, 23 Sep 2014 07:10:50 -0400
+Message-ID: <5421550D.4070809@xs4all.nl>
+Date: Tue, 23 Sep 2014 13:10:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Peter Griffin <peter.griffin@linaro.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>, kernel@stlinux.com,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [STLinux Kernel] [PATCH 1/3] media: st-rc: move to using reset_control_get_optional
-References: <1411424501-12673-1-git-send-email-srinivas.kandagatla@linaro.org> <1411424546-12718-1-git-send-email-srinivas.kandagatla@linaro.org> <20140923180255.GA3430@griffinp-ThinkPad-X1-Carbon-2nd>
-In-Reply-To: <20140923180255.GA3430@griffinp-ThinkPad-X1-Carbon-2nd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2] [media] saa7134: Remove unused status var
+References: <37b38486a1497804b63482af58a945f0eee8893f.1411469967.git.mchehab@osg.samsung.com> <fa1d4addf88f8d419bc946f9f7debe3e8603d302.1411469967.git.mchehab@osg.samsung.com>
+In-Reply-To: <fa1d4addf88f8d419bc946f9f7debe3e8603d302.1411469967.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pete,
+On 09/23/14 12:59, Mauro Carvalho Chehab wrote:
+> drivers/media/pci/saa7134/saa7134-go7007.c: In function ‘saa7134_go7007_interface_reset’:
+> drivers/media/pci/saa7134/saa7134-go7007.c:147:6: warning: variable ‘status’ set but not used [-Wunused-but-set-variable]
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On 23/09/14 19:02, Peter Griffin wrote:
-> Hi Srini,
->
-> On Mon, 22 Sep 2014, Srinivas Kandagatla wrote:
->
->> This patch fixes a compilation error while building with the
->> random kernel configuration.
->>
->> drivers/media/rc/st_rc.c: In function 'st_rc_probe':
->> drivers/media/rc/st_rc.c:281:2: error: implicit declaration of
->> function 'reset_control_get' [-Werror=implicit-function-declaration]
->>    rc_dev->rstc = reset_control_get(dev, NULL);
->>
->> drivers/media/rc/st_rc.c:281:15: warning: assignment makes pointer
->> from integer without a cast [enabled by default]
->>    rc_dev->rstc = reset_control_get(dev, NULL);
->
-> Is managing the reset line actually optional though? I can't test atm as I don't have
-> access to my board, but quite often if the IP's aren't taken out of reset reads / writes
-> to the perhpiheral will hang the SoC.
->
-Yes and No.
-AFAIK reset line is optional on SOCs like 7108, 7141.
-I think having the driver function without reset might is a value add in 
-case we plan to reuse the mainline driver for these SOCs.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On latest ARM SOCs with SBC the IRB IP is moved to SBC and held in reset.
-Am not sure, if the reset line is optional in next generation SOCs?
+	Hans
 
-> If managing the reset line isn't optional then I think the correct fix is to add
-> depends on RESET_CONTROLLER in the kconfig.
-I agree.
-This would make the COMPILE_TEST less useful though.
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-go7007.c b/drivers/media/pci/saa7134/saa7134-go7007.c
+> index d9af6f3dc8af..4f63e1ddbb68 100644
+> --- a/drivers/media/pci/saa7134/saa7134-go7007.c
+> +++ b/drivers/media/pci/saa7134/saa7134-go7007.c
+> @@ -144,7 +144,6 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
+>  {
+>  	struct saa7134_go7007 *saa = go->hpi_context;
+>  	struct saa7134_dev *dev = saa->dev;
+> -	u32 status;
+>  	u16 intr_val, intr_data;
+>  	int count = 20;
+>  
+> @@ -162,8 +161,8 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
+>  	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+>  	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+>  
+> -	status = saa_readb(SAA7134_GPIO_GPSTATUS2);
+> -	/*pr_debug("status is %s\n", status & 0x40 ? "OK" : "not OK"); */
+> +	saa_readb(SAA7134_GPIO_GPSTATUS2);
+> +	/*pr_debug("status is %s\n", saa_readb(SAA7134_GPIO_GPSTATUS2) & 0x40 ? "OK" : "not OK"); */
+>  
+>  	/* enter command mode...(?) */
+>  	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_REQ1);
+> @@ -172,7 +171,7 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
+>  	do {
+>  		saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+>  		saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+> -		status = saa_readb(SAA7134_GPIO_GPSTATUS2);
+> +		saa_readb(SAA7134_GPIO_GPSTATUS2);
+>  		/*pr_info("gpio is %08x\n", saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2)); */
+>  	} while (--count > 0);
+>  
+> 
 
-
-thanks,
-srini
->
-> This will then do the right thing for randconfig builds as well.
->
-> regards,
->
-> Peter.
->
