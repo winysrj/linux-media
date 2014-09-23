@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55055 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756231AbaIQUpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:32 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id ADDF86009F
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:29 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 01/17] smiapp-pll: Correct clock debug prints
-Date: Wed, 17 Sep 2014 23:45:25 +0300
-Message-Id: <1410986741-6801-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mga11.intel.com ([192.55.52.93]:20305 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751746AbaIWXZN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 19:25:13 -0400
+Date: Wed, 24 Sep 2014 07:24:50 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Akihiro Tsukada <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:devel-3.17-rc6 497/499] qm1d1c0042.c:undefined
+ reference to `__divdi3'
+Message-ID: <54220142.tA7qDiv8B+WKhZGx%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+tree:   git://linuxtv.org/media_tree.git devel-3.17-rc6
+head:   49310ed0ab8da344dece4a543bfcdd14490ccfa0
+commit: f5a98f37a535a43b3a27c6a63b07f23d248e4b31 [497/499] [media] pt3: add support for Earthsoft PT3 ISDB-S/T receiver card
+config: i386-allyesconfig
+reproduce:
+  git checkout f5a98f37a535a43b3a27c6a63b07f23d248e4b31
+  make ARCH=i386  allyesconfig
+  make ARCH=i386 
 
-The PLL flags were not used correctly.
+All error/warnings:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+   drivers/built-in.o: In function `qm1d1c0042_set_params':
+>> qm1d1c0042.c:(.text+0x2519730): undefined reference to `__divdi3'
+   drivers/built-in.o: In function `tc90522t_get_frontend':
+>> tc90522.c:(.text+0x260b64c): undefined reference to `__divdi3'
+>> tc90522.c:(.text+0x260b685): undefined reference to `__divdi3'
+>> tc90522.c:(.text+0x260b6bb): undefined reference to `__divdi3'
+>> tc90522.c:(.text+0x260b713): undefined reference to `__divdi3'
+   drivers/built-in.o:tc90522.c:(.text+0x260bb64): more undefined references to `__divdi3' follow
+
 ---
- drivers/media/i2c/smiapp-pll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index 2335529..ab5d9a3 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -67,7 +67,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- {
- 	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
- 	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
--	if (pll->flags != SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
- 		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
- 	}
-@@ -77,7 +77,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
- 	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
- 	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
--	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
- 			pll->op_sys_clk_freq_hz);
- 		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
--- 
-1.7.10.4
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
