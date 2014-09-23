@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49199 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788AbaIJODs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 10:03:48 -0400
-Message-ID: <54105A40.5060701@redhat.com>
-Date: Wed, 10 Sep 2014 16:03:44 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from top.free-electrons.com ([176.31.233.9]:58147 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751485AbaIWONF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 10:13:05 -0400
+Date: Tue, 23 Sep 2014 16:13:01 +0200
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] drm: panel: simple-panel: add bus format
+ information for foxlink panel
+Message-ID: <20140923161301.54dda63c@bbrezillon>
+In-Reply-To: <20140923140612.GB5982@ulmo>
+References: <1406031827-12432-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1406031827-12432-6-git-send-email-boris.brezillon@free-electrons.com>
+	<20140923140612.GB5982@ulmo>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Morgan Phillips <winter2718@gmail.com>
-Subject: [PULL patches for 3.18]: 2 more gspca cleanup patches
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Thierry,
 
-Please pull from my tree for 2 minor gspca cleanup patches:
+On Tue, 23 Sep 2014 16:06:13 +0200
+Thierry Reding <thierry.reding@gmail.com> wrote:
 
-The following changes since commit f5281fc81e9a0a3e80b78720c5ae2ed06da3bfae:
+> On Tue, Jul 22, 2014 at 02:23:47PM +0200, Boris BREZILLON wrote:
+> > Foxlink's fl500wvr00-a0t supports RGB888 format.
+> > 
+> > Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> > ---
+> >  drivers/gpu/drm/panel/panel-simple.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+> > index 42fd6d1..f1e49fd 100644
+> > --- a/drivers/gpu/drm/panel/panel-simple.c
+> > +++ b/drivers/gpu/drm/panel/panel-simple.c
+> > @@ -428,6 +428,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t = {
+> >  		.width = 108,
+> >  		.height = 65,
+> >  	},
+> > +	.bus_format = VIDEO_BUS_FMT_RGB888_1X24,
+> 
+> This is really equivalent to .bpc = 8. Didn't you say you had other
+> use-cases where .bpc wasn't sufficient?
 
-  [media] vpif: Fix compilation with allmodconfig (2014-09-09 18:08:08 -0300)
+Yes, the HLCDC support RGB565 where you don't have the same number of
+bits for each color (Red and Blue = 5 bits, Green = 6 bits), and thus
+can't be encoded in the bpc field.
 
-are available in the git repository at:
+> 
+> Thierry
 
-  git://linuxtv.org/hgoede/gspca.git media-for_v3.18
 
-for you to fetch changes up to 5c0643f980be87fde6b98436776cd682bad3c069:
 
-  sn9c20x: fix checkpatch warning: sizeof cmatrix should be sizeof(cmatrix) (2014-09-10 15:51:50 +0200)
-
-----------------------------------------------------------------
-Morgan Phillips (2):
-      sn9c20x.c: fix checkpatch error: that open brace { should be on the previous line
-      sn9c20x: fix checkpatch warning: sizeof cmatrix should be sizeof(cmatrix)
-
- drivers/media/usb/gspca/sn9c20x.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
-
-Thanks & Regards,
-
-Hans
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
