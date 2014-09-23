@@ -1,67 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42538 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbaIFCCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Sep 2014 22:02:20 -0400
-Message-ID: <540A6B27.2010704@iki.fi>
-Date: Sat, 06 Sep 2014 05:02:15 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:49089 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815AbaIWTad (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 15:30:33 -0400
+Received: by mail-lb0-f171.google.com with SMTP id l4so9420583lbv.30
+        for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 12:30:31 -0700 (PDT)
+Message-ID: <5421CAB2.3030804@googlemail.com>
+Date: Tue, 23 Sep 2014 21:32:02 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-CC: Matthias Schwarzott <zzam@gentoo.org>, m.chehab@samsung.com
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com>
-In-Reply-To: <5404423A.3020307@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2] em28xx: fix VBI handling logic
+References: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com> <8444ab3f16a454ab8d2eaefb8990193313c2ac33.1411142521.git.mchehab@osg.samsung.com>
+In-Reply-To: <8444ab3f16a454ab8d2eaefb8990193313c2ac33.1411142521.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2014 12:54 PM, Akihiro TSUKADA wrote:
-> Hi,
+
+Am 19.09.2014 um 18:02 schrieb Mauro Carvalho Chehab:
+> When both VBI and video are streaming, and video stream is stopped,
+> a subsequent trial to restart it will fail, because S_FMT will
+> return -EBUSY.
 >
->> Also, I would like to see all new drivers (demod and tuner) implemented
->> as a standard kernel I2C drivers (or any other bus). I have converted
->> already quite many drivers, si2168, si2157, m88ds3103, m88ts2022,
->> it913x, tda18212, ...
+> That prevents applications like zvbi to work properly.
 >
-> I wrote the code in the old style using dvb_attach()
-> because (I felt) it is simpler than using i2c_new_device() by
-> introducing new i2c-related data structures,
-> registering to both dvb and i2c, without any new practical
-> features that i2c client provides.
+> Please notice that, while this fix it fully for zvbi, the
+> best is to get rid of streaming_users and res_get logic as a hole.
+>
+> However, this single-line patch is better to be merged at -stable.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 08569cbccd95..d75e7f82dfb9 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1351,7 +1351,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+>  	struct em28xx *dev = video_drvdata(file);
+>  	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+>  
+> -	if (v4l2->streaming_users > 0)
+> +	if (vb2_is_busy(&v4l2->vb_vidq))
+Looks dangerous.
+Are you 100% sure that VIDIOC_S_FMT can have no effect on VBI capturing ?
+It seems to trigger writes to multiple registers...
 
-Of course it is simpler to do old style as you could copy & paste older 
-drivers and so. However, for a long term we must get rid of all DVB 
-specific hacks and use common kernel solutions. The gap between common 
-kernel solutions and DVB proprietary is already too big, without any 
-good reason - just a laziness of developers to find out proper solutions 
-as adding hacks is easier.
+Regards,
+Frank
 
-I mentioned quite many reasons earlier and If you look that driver you 
-will see you use dev_foo() logging, that does not even work properly 
-unless you convert driver to some kernel binding model (I2C on that 
-case) (as I explained earlier).
+>  		return -EBUSY;
+>  
+>  	vidioc_try_fmt_vid_cap(file, priv, f);
 
-There is also review issues. For more people do own tricks and hacks the 
-harder code is review and also maintain as you don't never know what 
-breaks when you do small change, which due to some trick used causes 
-some other error.
-
-Here is one example I fixed recently:
-https://patchwork.linuxtv.org/patch/25776/
-
-Lets mention that I am not even now fully happy to solution, even it 
-somehow now works. Proper solution is implement clock source and clock 
-client. Then register client to that source. And when client needs a 
-clock (or power) it makes call to enable clock.
-
-> But if the use of dvb_attach() is (almost) deprecated and
-> i2c client driver is the standard/prefered way,
-> I'll convert my code.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
