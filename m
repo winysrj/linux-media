@@ -1,91 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37362 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37234 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641AbaIXJ2S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 05:28:18 -0400
-Date: Wed, 24 Sep 2014 06:28:12 -0300
+	id S1751568AbaIWStF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 14:49:05 -0400
+Date: Tue, 23 Sep 2014 15:48:59 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad
- demodulator
-Message-ID: <20140924062812.6308f584@recife.lan>
-In-Reply-To: <542233E5.5070201@gmail.com>
-References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
-	<1410196843-26168-4-git-send-email-tskd08@gmail.com>
-	<20140923170730.4d5d167e@recife.lan>
-	<542233E5.5070201@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] [media] saa7134: Remove some casting warnings
+Message-ID: <20140923154859.6dc959f3@recife.lan>
+In-Reply-To: <542154C7.1090802@xs4all.nl>
+References: <37b38486a1497804b63482af58a945f0eee8893f.1411469967.git.mchehab@osg.samsung.com>
+	<542154C7.1090802@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 24 Sep 2014 12:00:53 +0900
-Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+Em Tue, 23 Sep 2014 13:08:55 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> 
-> Hi,
-> 
-> On 2014年09月24日 05:07, Mauro Carvalho Chehab wrote:
-> > I applied this series, as we're discussing it already for a long time,
-> > and it seems in a good shape...
-> 
-> thanks for your reviews and advices.
-> 
-> >> +static int tc90522s_read_status(struct dvb_frontend *fe, fe_status_t *status)
-> ...........
-> >> +	if (reg & 0x60) /* carrier? */
-> >> +		return 0;
+> On 09/23/14 12:59, Mauro Carvalho Chehab wrote:
+> > drivers/media/pci/saa7134/saa7134-go7007.c:247:17: warning: incorrect type in argument 1 (different base types)
+> > drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    expected unsigned int [unsigned] val
+> > drivers/media/pci/saa7134/saa7134-go7007.c:247:17:    got restricted __le32 [usertype] <noident>
+> > drivers/media/pci/saa7134/saa7134-go7007.c:252:17: warning: incorrect type in argument 1 (different base types)
+> > drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    expected unsigned int [unsigned] val
+> > drivers/media/pci/saa7134/saa7134-go7007.c:252:17:    got restricted __le32 [usertype] <noident>
+> > drivers/media/pci/saa7134/saa7134-go7007.c:299:9: warning: incorrect type in argument 1 (different base types)
+> > drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    expected unsigned int [unsigned] val
+> > drivers/media/pci/saa7134/saa7134-go7007.c:299:9:    got restricted __le32 [usertype] <noident>
+> > drivers/media/pci/saa7134/saa7134-go7007.c:300:9: warning: incorrect type in argument 1 (different base types)
+> > drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    expected unsigned int [unsigned] val
+> > drivers/media/pci/saa7134/saa7134-go7007.c:300:9:    got restricted __le32 [usertype] <noident>
 > > 
-> > Sure about that? Wouldn't it be, instead, reg & 0x60 == 0x60?
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Yes, I'm pretty sure about that.
-> The register indicates errors in the various demod stages,
-> and if all go well, the reg should be 0.
+> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> >> +static int tc90522t_read_status(struct dvb_frontend *fe, fe_status_t *status)
-> ..............
-> > The entire series of checks above seems wrong on my eyes too.
 > > 
-> > For example, if reg = 0x20 or 0x40 or 0x80 or ..., it will return
-> > FE_HAS_LOCK.
+> > diff --git a/drivers/media/pci/saa7134/saa7134-go7007.c b/drivers/media/pci/saa7134/saa7134-go7007.c
+> > index 3e9ca4821b8c..d9af6f3dc8af 100644
+> > --- a/drivers/media/pci/saa7134/saa7134-go7007.c
+> > +++ b/drivers/media/pci/saa7134/saa7134-go7007.c
+> > @@ -244,12 +244,12 @@ static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
+> >  		dma_sync_single_for_cpu(&dev->pci->dev,
+> >  					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+> >  		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
+> > -		saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
+> > +		saa_writel(SAA7134_RS_BA2(5), (__force u32)cpu_to_le32(saa->bottom_dma));
 > 
-> This register 0x96 should indicates "lock" status for each layers,
-> and since layer config can vary in ISDB-T, the driver checks that
-> any of the three bits is set, for faster lock detection.
-> and the register 0x80 is the same kind of the one in the above ISDB-S case.
-
-Ah, ok. It could be useful to document it, and eventually to add some
-debug printk's that would print the locks for each layer. Such printk
-were very useful for me to discover why dib8000 driver were not locking
-to a layer encoded using interleave equal to 4:
-
-commit 34ba2e65bab3693cdd7c2ee0b8ba6477bd8c366b
-Author: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Date:   Fri Jul 4 14:15:27 2014 -0300
-
-    [media] dib8000: Fix handling of interleave bigger than 2
-    
-    If interleave is bigger than 2, the code will set it to 0, as
-    dib8000 registers use a log2(). So, change the code to handle
-    it accordingly.
-    
-    Acked-By: Patrick Boettcher <pboettcher@kernellabs.com>
-    Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-
-Btw, please check if your driver is handling it well, as the valid
-values for interleave are 0, 1, 2, 4 (actually, dib8000 also
-supports interleaving equal to 8, if sound_broadcast).
-
+> saa_writel is a define for writel, which already does cpu_to_le32. So the correct
+> solution is to drop the cpu_to_le32 entirely.
 > 
-> > PS.: could you also test (and send us patches as needed) for ISDB-S
-> > support at libdvbv5 and dvbv5-utils[1]?
-> I'll have a try.
+> I should have seen that.
+> 
+> Will you update your patch or shall I repost my patch with this fix included?
 
-Ok, thanks!
+I'll update it.
 
-Regards,
+Thanks,
 Mauro
