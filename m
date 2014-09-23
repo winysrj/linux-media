@@ -1,144 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42828 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbaIVQGD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 12:06:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2] [media] coda: Improve runtime PM support
-Date: Mon, 22 Sep 2014 18:05:56 +0200
-Message-Id: <1411401956-29330-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:59983 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755355AbaIWKyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 06:54:20 -0400
+Message-ID: <54215158.6000607@iki.fi>
+Date: Tue, 23 Sep 2014 13:54:16 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
+Subject: Re: [1/2] af9033: fix it9135 strength value not correct issue
+References: <1411465442.1919.6.camel@ite-desktop>
+In-Reply-To: <1411465442.1919.6.camel@ite-desktop>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ulf Hansson <ulf.hansson@linaro.org>
+Moikka Bimow!
+Thank you for improving these statistics.
 
-For several reasons it's good practice to leave devices in runtime PM
-active state while those have been probed.
+I did a quite much changes, basically re-implemented all the 
+af9033/it9133 demod statistics, already. I am not sure if you saw those, 
+but please look that tree first:
+http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
 
-In this cases we also want to prevent the device from going inactive,
-until the firmware has been completely installed, especially when using
-a PM domain.
+If you want to some more statistics changes, please to top of that tree. 
+We currently have 2 APIs for statistics. Old DVBv3 which uses frontend 
+callbacks: read_snr, read_signal_strength, read_ber and read_ucblocks. 
+New DVBv5 API uses different commands, which reads values from frontend 
+cache.
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Driver implements now DVBv5 statistics. Old DVBv3 statistics are there 
+still, but those are just wrappers to return DVBv5 statistics.
 
----
-Changes since v1:
- - Deactivate PM domain on error
- - Added a comment to runtime PM setup
----
- drivers/media/platform/coda/coda-common.c | 55 ++++++++++++-------------------
- 1 file changed, 21 insertions(+), 34 deletions(-)
+You would like to examine these patches first:
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 0997b5c..ced4760 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1688,7 +1688,7 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 
- 	if (!fw) {
- 		v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
--		return;
-+		goto put_pm;
- 	}
- 
- 	/* allocate auxiliary per-device code buffer for the BIT processor */
-@@ -1696,50 +1696,27 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 				 dev->debugfs_root);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "failed to allocate code buffer\n");
--		return;
-+		goto put_pm;
- 	}
- 
- 	/* Copy the whole firmware image to the code buffer */
- 	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
- 	release_firmware(fw);
- 
--	if (pm_runtime_enabled(&pdev->dev) && pdev->dev.pm_domain) {
--		/*
--		 * Enabling power temporarily will cause coda_hw_init to be
--		 * called via coda_runtime_resume by the pm domain.
--		 */
--		ret = pm_runtime_get_sync(&dev->plat_dev->dev);
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "failed to power on: %d\n",
--				 ret);
--			return;
--		}
--
--		ret = coda_check_firmware(dev);
--		if (ret < 0)
--			return;
--
--		pm_runtime_put_sync(&dev->plat_dev->dev);
--	} else {
--		/*
--		 * If runtime pm is disabled or pm_domain is not set,
--		 * initialize once manually.
--		 */
--		ret = coda_hw_init(dev);
--		if (ret < 0) {
--			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
--			return;
--		}
--
--		ret = coda_check_firmware(dev);
--		if (ret < 0)
--			return;
-+	ret = coda_hw_init(dev);
-+	if (ret < 0) {
-+		v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
-+		goto put_pm;
- 	}
- 
-+	ret = coda_check_firmware(dev);
-+	if (ret < 0)
-+		goto put_pm;
-+
- 	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
- 	if (IS_ERR(dev->alloc_ctx)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
--		return;
-+		goto put_pm;
- 	}
- 
- 	dev->m2m_dev = v4l2_m2m_init(&coda_m2m_ops);
-@@ -1771,12 +1748,15 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	v4l2_info(&dev->v4l2_dev, "codec registered as /dev/video[%d-%d]\n",
- 		  dev->vfd[0].num, dev->vfd[1].num);
- 
-+	pm_runtime_put_sync(&pdev->dev);
- 	return;
- 
- rel_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
- rel_ctx:
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-+put_pm:
-+	pm_runtime_put_sync(&pdev->dev);
- }
- 
- static int coda_firmware_request(struct coda_dev *dev)
-@@ -1998,6 +1978,13 @@ static int coda_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, dev);
- 
-+	/*
-+	 * Start activated so we can directly call coda_hw_init in
-+	 * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
-+	 * enabled or whether the device is associated with a PM domain.
-+	 */
-+	pm_runtime_get_noresume(&pdev->dev);
-+	pm_runtime_set_active(&pdev->dev);
- 	pm_runtime_enable(&pdev->dev);
- 
- 	return coda_firmware_request(dev);
+$ git log media/devel-3.17-rc6 --oneline|grep af9033
+2db4d17 [media] af9033: init DVBv5 statistics
+ef2fb46 [media] af9033: remove all DVBv3 stat calculation logic
+e53c474 [media] af9033: wrap DVBv3 BER to DVBv5 BER
+1d0ceae [media] af9033: wrap DVBv3 UCB to DVBv5 UCB stats
+6bb096c [media] af9033: implement DVBv5 post-Viterbi BER
+204f431 [media] af9033: implement DVBv5 stat block counters
+6b45778 [media] af9033: wrap DVBv3 read SNR to DVBv5 CNR
+3e41313 [media] af9033: implement DVBv5 statistics for CNR
+83f1161 [media] af9033: implement DVBv5 statistics for signal strength
+
+
+I am happy to took improvements which are done top of these.
+
+regards
+Antti
+
 -- 
-2.1.0
-
+http://palosaari.fi/
