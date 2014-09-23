@@ -1,181 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43857 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941AbaIYFIb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 01:08:31 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 11/12] cx231xx: drop unconditional port3 switching
-Date: Thu, 25 Sep 2014 07:08:03 +0200
-Message-Id: <1411621684-8295-11-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:47870 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978AbaIWORF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 10:17:05 -0400
+Received: by mail-qc0-f182.google.com with SMTP id m20so1791969qcx.27
+        for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 07:17:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <54208A03.2010101@osg.samsung.com>
+References: <cover.1411397045.git.shuahkh@osg.samsung.com>
+	<b83cf780636a80aec53e3b7e8f101645049e94f3.1411397045.git.shuahkh@osg.samsung.com>
+	<CAGoCfizUWx-RrRbtuv7ctTqZskmDPK-w9bRTnEwjwn6oJ=V48g@mail.gmail.com>
+	<54208A03.2010101@osg.samsung.com>
+Date: Tue, 23 Sep 2014 10:17:04 -0400
+Message-ID: <CAGoCfix8BH0coq2q-ndvBvDHGJ6f28mVE0CzAnMZYgCaPg+yrw@mail.gmail.com>
+Subject: Re: [PATCH 2/5] media: v4l2-core changes to use media tuner token api
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	sakari.ailus@linux.intel.com, ramakrmu@cisco.com,
+	Devin Heitmueller <dheitmueller@kernellabs.co>,
+	olebowle@gmx.com, Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All switching should be done by i2c mux adapters.
-Drop explicit dont_use_port_3 flag.
-Drop info message about switch.
+Hello Shuah,
 
-Only the removed code in start_streaming is questionable:
-It did switch the port_3 flag without accessing i2c in between.
+>> What about G_INPUT and G_TUNER?  Consider the following use case, which is
+>> entirely legal in the V4L2 API:
+>
+> Did you mean G_INPUT and G_STD here? I didn't see G_TUNER mentioned
+> below in the use-case.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-avcore.c | 17 -----------------
- drivers/media/usb/cx231xx/cx231xx-cards.c  |  8 --------
- drivers/media/usb/cx231xx/cx231xx-core.c   |  4 +---
- drivers/media/usb/cx231xx/cx231xx-dvb.c    |  4 ----
- drivers/media/usb/cx231xx/cx231xx.h        |  1 -
- 5 files changed, 1 insertion(+), 33 deletions(-)
+It can be either ENUM_INPUT or G_TUNER.  Both return status
+information that requires communication with the video decoder chip
+and/or tuner.  It's probably worth mentioning that ENUMINPUT isn't
+like the other ENUM_ calls in that it doesn't return a static list
+without  talking to the driver - it contains a field (called .status)
+which actually needs to talk to the hardware in order to populate it.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index d31ea57..138ee5e 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -1270,8 +1270,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
- 	int status = 0;
- 	bool current_is_port_3;
- 
--	if (dev->board.dont_use_port_3)
--		is_port_3 = false;
- 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
- 				       PWR_CTL_EN, value, 4);
- 	if (status < 0)
-@@ -1288,9 +1286,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
- 	else
- 		value[0] &= ~I2C_DEMOD_EN;
- 
--	cx231xx_info("Changing the i2c master port to %d\n",
--		     is_port_3 ?  3 : 1);
--
- 	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
- 					PWR_CTL_EN, value, 4);
- 
-@@ -2320,9 +2315,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
- 		}
- 
- 		if (dev->board.tuner_type != TUNER_ABSENT) {
--			/* Enable tuner */
--			cx231xx_enable_i2c_port_3(dev, true);
--
- 			/* reset the Tuner */
- 			if (dev->board.tuner_gpio)
- 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
-@@ -2387,15 +2379,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
- 		}
- 
- 		if (dev->board.tuner_type != TUNER_ABSENT) {
--			/*
--			 * Enable tuner
--			 *	Hauppauge Exeter seems to need to do something different!
--			 */
--			if (dev->model == CX231XX_BOARD_HAUPPAUGE_EXETER)
--				cx231xx_enable_i2c_port_3(dev, false);
--			else
--				cx231xx_enable_i2c_port_3(dev, true);
--
- 			/* reset the Tuner */
- 			if (dev->board.tuner_gpio)
- 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index a6fdb6f..0a0a4e9 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -262,7 +262,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_PAL,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		/* Actually, it has a 417, but it isn't working correctly.
- 		 * So set to 0 for now until someone can manage to get this
- 		 * to work reliably. */
-@@ -390,7 +389,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		.input = {{
- 			.type = CX231XX_VMUX_COMPOSITE1,
- 			.vmux = CX231XX_VIN_2_1,
-@@ -532,7 +530,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 
- 		.input = {{
- 				.type = CX231XX_VMUX_COMPOSITE1,
-@@ -656,7 +653,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		.input = {{
- 			.type = CX231XX_VMUX_COMPOSITE1,
- 			.vmux = CX231XX_VIN_2_1,
-@@ -683,7 +679,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		/*.has_417 = 1, */
- 		/* This board is believed to have a hardware encoding chip
- 		 * supporting mpeg1/2/4, but as the 417 is apparently not
-@@ -1012,9 +1007,6 @@ static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
- 		len_todo -= msg_read.len;
- 	}
- 
--	cx231xx_enable_i2c_port_3(dev, true);
--	/* mutex_unlock(&dev->i2c_lock); */
--
- 	for (i = 0; i + 15 < len; i += 16)
- 		cx231xx_info("i2c eeprom %02x: %*ph\n", i, 16, &eedata[i]);
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index c8a6d20..c49022f 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1407,9 +1407,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	if (dev->board.has_dvb)
- 		cx231xx_set_alt_setting(dev, INDEX_TS1, 0);
- 
--	/* set the I2C master port to 3 on channel 1 */
--	errCode = cx231xx_enable_i2c_port_3(dev, true);
--
-+	errCode = 0;
- 	return errCode;
- }
- EXPORT_SYMBOL_GPL(cx231xx_dev_init);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 869c433..2ea6946 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -266,11 +266,7 @@ static int start_streaming(struct cx231xx_dvb *dvb)
- 
- 	if (dev->USE_ISO) {
- 		cx231xx_info("DVB transfer mode is ISO.\n");
--		mutex_lock(&dev->i2c_lock);
--		cx231xx_enable_i2c_port_3(dev, false);
- 		cx231xx_set_alt_setting(dev, INDEX_TS1, 4);
--		cx231xx_enable_i2c_port_3(dev, true);
--		mutex_unlock(&dev->i2c_lock);
- 		rc = cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
- 		if (rc < 0)
- 			return rc;
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 9234cd7..b8daff6 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -367,7 +367,6 @@ struct cx231xx_board {
- 	unsigned int valid:1;
- 	unsigned int no_alt_vanc:1;
- 	unsigned int external_av:1;
--	unsigned int dont_use_port_3:1;
- 
- 	unsigned char xclk, i2c_speed;
- 
+>> 1.  Program opens /dev/video0
+>> 2.  Program calls G_INPUT/G_STD and sees that the appropriate input and
+>> standard are already set, since all devices have a default input at
+>> initialization
+>> 3.  Program never calls S_INPUT, S_STD, or S_TUNER
+>> 4.  Program goes into a loop calling ENUM_INPUT, waiting until it returns
+>> the input as having signal lock
+>> 5.  When signal lock is seen, program calls STREAMON.
+>
+> I am missing vb2 streamon change to hold the tuner in this patch set.
+> Without that change vb2 work isn't complete. Unfortunately I don't
+> have hybrid hardware that uses a vb2 driver.
+
+I don't think you quite understood my concern.  The concern is that in
+the use case above I'm actively using the tuner *before*
+VIDIOC_STREAMON is called.  Hence from a locking standpoint you
+probably don't want to allow the DVB device to take control of the
+tuner.
+
+>>
+>> In the above case, you would be actively using the au8522 video decoder but
+>> not holding the lock, so thr DVB device can be opened and screw everything
+>> up.  Likewise if the DVB device were in use and such a program were run, it
+>> wouls break.
+>>
+>
+> I think this use-case will be covered with changes to vb2 streamon
+> to check and hold tuner. I am thinking it might not be necessary to
+> change g_tuner, g_std, g_input and enum_input at v4l2-core level.
+> Does that sounds right??
+
+The more I think about it, the less confident I am that you actually
+can take a fine-grained locking approach without adding additional
+ioctls to make it explicit.  When is the tuner unlocked?  Is it when
+the filehandle is closed?  If so, then the the following script would
+behave in an unexpected manner:
+
+#!/bin/sh
+
+while [ 1 ]; do
+  v4l2-ctl -n
+  # Some code to parse the output and see if the "status" field for
+current input shows no signal
+  # If status shows as locked break
+done
+v4l2-ctl --stream-mmap=500 --stream-to=/tmp/foo.bin
+
+In the above case I'm actively using the tuner but not holding the
+lock most of the time, so a separate process can grab the DVB device
+between calls to "v4l2-ctl -n".
+
+However if you're keeping the device locked until STREAMOFF, then
+you'll break all sorts of applications which might just close the
+filehandle without calling STREAMOFF, and hence you'll have cases
+where the tuner is left locked in analog mode *forever*, preventing
+apps from using it in digital mode.
+
+Without adding a new ioctl to lock/unlock the analog side of the
+device, there is no real way to deal with this perfectly legal use
+case.  The downside of that of course is that applications would have
+to be modified in order for the locking to be used, and the default
+would have to be to not do locking in order to preserve backward
+compatibility with existing applications.
+
+What other ioctls have we not thought of?  I think there is an
+argument to be made that we're being too aggressive in trying to
+control the locking based on the ioctls called.  It might make sense
+to simplify the approach to lock on when the device is opened, and
+unlock when closed.  This avoids the complexity of trying to figure
+out *which* ioctls we need to set the lock on (which likely varies on
+a per device basis anyway), at the cost of not allowing the device to
+be used when something has the filehandle opened for the other side of
+the device (the behavior of which is currently undefined in the spec).
+I know there are concerns that some apps might leave the FD open even
+when done using it, but that seems like a less likely case than
+properly handling fine-grained locking (causing unexpected behavior
+for the applications that don't expect -EBUSY to be returned after the
+device has been successfully opened).
+
+We can always start with coarse locking on open/close, and do finer
+grained locking down the road if needed - or simply change the
+currently undefined behavior in the spec to say that you have to close
+the device handle before attempting to open the other side of the
+device.
+
+On a related note, you should be testing with MythTV - none of the
+applications you are currently testing with support both analog *and*
+digital, so you are not seeing all the race conditions that can occur
+when you close one side of the device and then *immediately* open the
+other side.  In particular, there is a known race that occurs when
+closing the DVB device and then opening the V4L device, because the
+DVB frontend shuts down the tuner asynchronously after the close()
+call returns to userland.  Exiting one application and starting
+another provides plenty of time for the close() logic to be run, so
+you're missing all the race conditions.
+
+Devin
+
+
 -- 
-2.1.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
