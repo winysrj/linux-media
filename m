@@ -1,70 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:44946 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243AbaIXMD5 (ORCPT
+Received: from mail-bn1bon0140.outbound.protection.outlook.com ([157.56.111.140]:18493
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752333AbaIWDL6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 08:03:57 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NCE00IO8MZAY880@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Sep 2014 13:06:47 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-References: <094e01cfd7d6$83e54e50$8bafeaf0$%debski@samsung.com>
- <20140924083458.0943f80e@recife.lan>
-In-reply-to: <20140924083458.0943f80e@recife.lan>
-Subject: RE: [GIT PULL for 3.18] mem2mem changes
-Date: Wed, 24 Sep 2014 14:03:54 +0200
-Message-id: <096701cfd7ef$9d46c450$d7d44cf0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Mon, 22 Sep 2014 23:11:58 -0400
+From: "chen.fang@freescale.com" <chen.fang@freescale.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"m.chehab@samsung.com" <m.chehab@samsung.com>,
+	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+CC: Shengchao Guo <Shawn.Guo@freescale.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+Date: Tue, 23 Sep 2014 03:11:52 +0000
+Message-ID: <ba228f83093b46d9a6e594a037236198@BY2PR03MB556.namprd03.prod.outlook.com>
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+ <540FF70E.9050203@xs4all.nl>
+ <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
+ <540FFBF1.6060702@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans,
+Do you have any more comment on this patch?
 
+Best regards,
+Fancy Fang
+
+-----Original Message-----
+From: Fang Chen-B47543 
+Sent: Wednesday, September 10, 2014 3:29 PM
+To: 'Hans Verkuil'; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
+Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+
+On the Freescale imx6 platform which belongs to ARM architecture. The driver is our local v4l2 output driver which is not upstream yet unfortunately.
+
+Best regards,
+Fancy Fang
+
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+Sent: Wednesday, September 10, 2014 3:21 PM
+To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
+
+On 09/10/14 09:14, chen.fang@freescale.com wrote:
+> It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
+> So I need your confirmation on it.
+
+With which driver does this happen? On which architecture?
+
+Regards,
+
+	Hans
+
+> 
+> Thanks.
+> 
+> Best regards,
+> Fancy Fang
+> 
 > -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
-> Sent: Wednesday, September 24, 2014 1:35 PM
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: [GIT PULL for 3.18] mem2mem changes
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Wednesday, September 10, 2014 3:01 PM
+> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
+> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; 
+> linux-kernel@vger.kernel.org; Marek Szyprowski
+> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
 > 
-> Em Wed, 24 Sep 2014 11:04:14 +0200
-> Kamil Debski <k.debski@samsung.com> escreveu:
+> On 09/10/14 07:28, Fancy Fang wrote:
+>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
+>> will assign the corresponding offset to the 'boff' field of the 
+>> videobuf_buffer for each requested buffer sequentially. Later, user 
+>> may call mmap() to map one or all of the buffers with the 'offset'
+>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+>> value is only used to find the matched buffer instead of to be the 
+>> real offset from the buffer's physical start address as used by 
+>> vm_iomap_memory(). So, in some case that if the offset is not zero,
+>> vm_iomap_memory() will fail.
 > 
-> > The following changes since commit
-> c0aaf696d45e2a72048a56441e81dad78659c698:
-> >
-> >   [media] coda: coda-bit: Include "<linux/slab.h>" (2014-09-21
-> 16:43:28
-> > -0300)
-> >
-> > are available in the git repository at:
-> >
-> >   ssh://linuxtv/git/kdebski/media_tree_2.git for-v3.18-2
+> Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
 > 
-> Huh!
-
-Ups, sorry.
-
-> 
-> This URL doesn't exist!
->
-> Are you meaning linuxtv.org?
-
-Yes, it should be git://linuxtv.org/kdebski/media_tree_2.git for-v3.18-2
-
+> I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
 > 
 > Regards,
-> Mauro
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+> 
+> 	Hans
+> 
+>>
+>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> index bf80f0f..8bd9889 100644
+>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>>  	/* Try to remap memory */
+>>  	size = vma->vm_end - vma->vm_start;
+>>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+>> +	retval = remap_pfn_range(vma, vma->vm_start,
+>> +				 mem->dma_handle >> PAGE_SHIFT,
+>> +				 size, vma->vm_page_prot);
+>>  	if (retval) {
+>>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
+>>  			retval);
+>>
+> 
 
