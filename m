@@ -1,148 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57796 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbaIYBYa (ORCPT
+Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:11817 "EHLO
+	ironport.ite.com.tw" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755232AbaIWJwv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 21:24:30 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: [PATCH] [media] exynos4-is: fix some warnings when compiling on arm64
-Date: Wed, 24 Sep 2014 22:24:04 -0300
-Message-Id: <416b6af26812eb995333c5bd5a9263775b8c4699.1411607687.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 23 Sep 2014 05:52:51 -0400
+Subject: [2/2] af9033: fix snr value not correct issue
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi
+Content-Type: multipart/mixed; boundary="=-UqWojKWp5PglcTj+a/+k"
+Date: Tue, 23 Sep 2014 17:45:36 +0800
+Message-ID: <1411465536.1919.7.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Got those warnings when compiling with gcc 4.9.1 for arm64:
 
-drivers/media/platform/exynos4-is/fimc-isp-video.c: In function ‘isp_video_capture_buffer_queue’:
-drivers/media/platform/exynos4-is/fimc-isp-video.c:221:4: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 7 has type ‘dma_addr_t’ [-Wformat=]
-    isp_dbg(2, &video->ve.vdev,
-    ^
-drivers/media/platform/exynos4-is/fimc-is.c: In function ‘fimc_is_load_firmware’:
-drivers/media/platform/exynos4-is/fimc-is.c:391:3: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘size_t’ [-Wformat=]
-   dev_err(dev, "wrong firmware size: %d\n", fw->size);
-   ^
-In file included from include/linux/printk.h:260:0,
-                 from include/linux/kernel.h:13,
-                 from include/linux/kernfs.h:10,
-                 from include/linux/sysfs.h:15,
-                 from include/linux/kobject.h:21,
-                 from include/linux/device.h:17,
-                 from drivers/media/platform/exynos4-is/fimc-is.c:15:
-include/linux/dynamic_debug.h:64:16: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
-  static struct _ddebug  __aligned(8)   \
-                ^
-include/linux/dynamic_debug.h:84:2: note: in expansion of macro ‘DEFINE_DYNAMIC_DEBUG_METADATA’
-  DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
-  ^
-include/linux/device.h:1106:2: note: in expansion of macro ‘dynamic_dev_dbg’
-  dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-  ^
-drivers/media/platform/exynos4-is/fimc-is.c:419:2: note: in expansion of macro ‘dev_dbg’
-  dev_dbg(dev, "FW size: %d, paddr: %#x\n", fw->size, is->memory.paddr);
-  ^
-include/linux/dynamic_debug.h:64:16: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘dma_addr_t’ [-Wformat=]
-  static struct _ddebug  __aligned(8)   \
-                ^
-include/linux/dynamic_debug.h:84:2: note: in expansion of macro ‘DEFINE_DYNAMIC_DEBUG_METADATA’
-  DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
-  ^
-include/linux/device.h:1106:2: note: in expansion of macro ‘dynamic_dev_dbg’
-  dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
-  ^
-drivers/media/platform/exynos4-is/fimc-is.c:419:2: note: in expansion of macro ‘dev_dbg’
-  dev_dbg(dev, "FW size: %d, paddr: %#x\n", fw->size, is->memory.paddr);
-  ^
-drivers/media/platform/exynos4-is/fimc-is.c: In function ‘fimc_is_hw_initialize’:
-include/linux/dynamic_debug.h:64:16: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘dma_addr_t’ [-Wformat=]
-  static struct _ddebug  __aligned(8)   \
-                ^
-include/linux/dynamic_debug.h:76:2: note: in expansion of macro ‘DEFINE_DYNAMIC_DEBUG_METADATA’
-  DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
-  ^
-include/linux/printk.h:266:2: note: in expansion of macro ‘dynamic_pr_debug’
-  dynamic_pr_debug(fmt, ##__VA_ARGS__)
-  ^
-drivers/media/platform/exynos4-is/fimc-is.c:696:2: note: in expansion of macro ‘pr_debug’
-  pr_debug("shared region: %#x, parameter region: %#x\n",
-  ^
-include/linux/dynamic_debug.h:64:16: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 6 has type ‘dma_addr_t’ [-Wformat=]
-  static struct _ddebug  __aligned(8)   \
-                ^
-include/linux/dynamic_debug.h:76:2: note: in expansion of macro ‘DEFINE_DYNAMIC_DEBUG_METADATA’
-  DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);  \
-  ^
-include/linux/printk.h:266:2: note: in expansion of macro ‘dynamic_pr_debug’
-  dynamic_pr_debug(fmt, ##__VA_ARGS__)
-  ^
-drivers/media/platform/exynos4-is/fimc-is.c:696:2: note: in expansion of macro ‘pr_debug’
-  pr_debug("shared region: %#x, parameter region: %#x\n",
-  ^
+--=-UqWojKWp5PglcTj+a/+k
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Snr returns value not correct. Fix it.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 5476dce3ad29..22162b2567da 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -388,7 +388,7 @@ static void fimc_is_load_firmware(const struct firmware *fw, void *context)
- 	mutex_lock(&is->lock);
+--=-UqWojKWp5PglcTj+a/+k
+Content-Disposition: attachment; filename="0002-af9033-fix-snr-value-not-correct-issue.patch"
+Content-Type: text/x-patch; name="0002-af9033-fix-snr-value-not-correct-issue.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From f3d5c9e2b01e666eca7aa66cd15b67609a0589ea Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Tue, 23 Sep 2014 17:23:31 +0800
+Subject: [PATCH 2/2] af9033: fix snr value not correct issue
+
+Snr returns value not correct. Fix it.
+
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/dvb-frontends/af9033.c      |   46 +++++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
+ 2 files changed, 47 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 0a0aeaf..37bd624 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -840,7 +840,7 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	int ret, i, len;
+-	u8 buf[3], tmp;
++	u8 buf[3], tmp, tmp2;
+ 	u32 snr_val;
+ 	const struct val_snr *uninitialized_var(snr_lut);
  
- 	if (fw->size < FIMC_IS_FW_SIZE_MIN || fw->size > FIMC_IS_FW_SIZE_MAX) {
--		dev_err(dev, "wrong firmware size: %d\n", fw->size);
-+		dev_err(dev, "wrong firmware size: %zu\n", fw->size);
- 		goto done;
+@@ -851,6 +851,33 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	snr_val = (buf[2] << 16) | (buf[1] << 8) | buf[0];
+ 
++	/* read superframe number */
++	ret = af9033_rd_reg(state, 0x80f78b, &tmp);
++	if (ret < 0)
++		goto err;
++
++	if (tmp)
++		snr_val /= tmp;
++
++	/* read current transmission mode */
++	ret = af9033_rd_reg(state, 0x80f900, &tmp);
++	if (ret < 0)
++		goto err;
++
++	switch ((tmp >> 0) & 3) {
++	case 0:
++		snr_val *= 4;
++		break;
++	case 1:
++		snr_val *= 1;
++		break;
++	case 2:
++		snr_val *= 2;
++		break;
++	default:
++		goto err;
++	}
++
+ 	/* read current modulation */
+ 	ret = af9033_rd_reg(state, 0x80f903, &tmp);
+ 	if (ret < 0)
+@@ -874,13 +901,26 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
  	}
  
-@@ -416,7 +416,7 @@ static void fimc_is_load_firmware(const struct firmware *fw, void *context)
+ 	for (i = 0; i < len; i++) {
+-		tmp = snr_lut[i].snr;
++		tmp2 = snr_lut[i].snr;
  
- 	dev_info(dev, "loaded firmware: %s, rev. %s\n",
- 		 is->fw.info, is->fw.version);
--	dev_dbg(dev, "FW size: %d, paddr: %#x\n", fw->size, is->memory.paddr);
-+	dev_dbg(dev, "FW size: %zu, paddr: %pad\n", fw->size, &is->memory.paddr);
- 
- 	is->is_shared_region->chip_id = 0xe4412;
- 	is->is_shared_region->chip_rev_no = 1;
-@@ -693,9 +693,9 @@ int fimc_is_hw_initialize(struct fimc_is *is)
- 		return -EIO;
+ 		if (snr_val < snr_lut[i].val)
+ 			break;
  	}
  
--	pr_debug("shared region: %#x, parameter region: %#x\n",
--		 is->memory.paddr + FIMC_IS_SHARED_REGION_OFFSET,
--		 is->is_dma_p_region);
-+	pr_debug("shared region: %pad, parameter region: %pad\n",
-+		 &is->memory.paddr + FIMC_IS_SHARED_REGION_OFFSET,
-+		 &is->is_dma_p_region);
+-	*snr = tmp * 10; /* dB/10 */
++	/* scale value to 0x0000-0xffff */
++	switch ((tmp >> 0) & 3) {
++	case 0:
++		*snr = tmp2 * 0xFFFF / 23;
++		break;
++	case 1:
++		*snr = tmp2 * 0xFFFF / 26;
++		break;
++	case 2:
++		*snr = tmp2 * 0xFFFF / 32;
++		break;
++	default:
++		goto err;
++	}
  
- 	is->setfile.sub_index = 0;
+ 	return 0;
  
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index 9d8d885558e5..76b6b4d14616 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -219,9 +219,9 @@ static void isp_video_capture_buffer_queue(struct vb2_buffer *vb)
- 							ivb->dma_addr[i];
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index 58315e0..6351626 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -180,7 +180,10 @@ static const struct val_snr qam64_snr_lut[] = {
+ 	{ 0x05570d, 26 },
+ 	{ 0x059feb, 27 },
+ 	{ 0x05bf38, 28 },
+-	{ 0xffffff, 29 },
++	{ 0x05f78f, 29 },
++	{ 0x0612c3, 30 },
++	{ 0x0626be, 31 },
++	{ 0xffffff, 32 },
+ };
  
- 			isp_dbg(2, &video->ve.vdev,
--				"dma_buf %d (%d/%d/%d) addr: %#x\n",
--				buf_index, ivb->index, i, vb->v4l2_buf.index,
--				ivb->dma_addr[i]);
-+				"dma_buf %pad (%d/%d/%d) addr: %pad\n",
-+				&buf_index, ivb->index, i, vb->v4l2_buf.index,
-+				&ivb->dma_addr[i]);
- 		}
- 
- 		if (++video->buf_count < video->reqbufs_count)
+ static const struct reg_val ofsm_init[] = {
 -- 
-1.9.3
+1.7.0.4
+
+
+--=-UqWojKWp5PglcTj+a/+k--
 
