@@ -1,74 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34611 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903AbaITLSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 07:18:17 -0400
-Message-ID: <541D626F.9090107@iki.fi>
-Date: Sat, 20 Sep 2014 14:18:07 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:33653 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbaIXMGs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 08:06:48 -0400
+Received: by mail-pa0-f54.google.com with SMTP id fb1so8578787pad.41
+        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 05:06:48 -0700 (PDT)
+Message-ID: <5422B3D3.80209@gmail.com>
+Date: Wed, 24 Sep 2014 21:06:43 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
 MIME-Version: 1.0
-To: Luca Olivetti <luca@ventoso.org>,
-	=?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Fengguang Wu <fengguang.wu@intel.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
-	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
-	LKP <lkp@01.org>, linux-kernel@vger.kernel.org
-Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
- (WAS: [media/em28xx] BUG: unable to handle kernel)
-References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com> <541C8A26.6050207@ventoso.org>
-In-Reply-To: <541C8A26.6050207@ventoso.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>	<1410196843-26168-4-git-send-email-tskd08@gmail.com>	<20140923170730.4d5d167e@recife.lan>	<542233E5.5070201@gmail.com>	<20140924062812.6308f584@recife.lan>	<5422A779.8030901@gmail.com> <20140924083030.3fdcfe3e@recife.lan>
+In-Reply-To: <20140924083030.3fdcfe3e@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+> And TMCC returns it as 0, 1, 2, 3, 4, instead of 0, 1, 2, 4, 8.
 
-On 09/19/2014 10:55 PM, Luca Olivetti wrote:
-> El 19/09/14 21:22, Frank Schäfer ha escrit:
->
->>>
->>> So symbol_request() returns pointers.!= NULL
->>>
->>> A closer look at the definition of symbol_request() shows, that it does
->>> nothing if CONFIG_MODULES is disabled (it just returns its argument).
->>>
->>>
->>> One possibility to fix this bug would be to embrace these three lines with
->>>
->>> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
->>> ...
->>> #endif
->> Luca, what do you think ?
->>
->> This seems to be an ancient bug, which is known at least since 5 1/2 years:
->> https://lkml.org/lkml/2009/2/4/350
->
-> Well, it's been a while so I don't remember the details, but I think the
-> same now as then ;-)
-> The idea behind CONFIG_DVB_USB_AF9005_REMOTE was to provide an
-> alternative implementation (based on lirc, at the time it wasn't in the
-> kernel), since this adapter doesn't decode the IR pulses by itself.
-> In theory you could leave it undefined but still provide an
-> implementation in a different module. Just adding
->
-> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
->
-> would nuke the (futile?) effort.
->
-> Now, since the problem seems to be with CONFIG_MODULES disabled, maybe
-> you could combine both conditions
->
-> #if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
+According to ARIB STD B31 3.15.6.7 (table 3.30),
+The value is encoded and depends on the "mode".
+so demods have to encode/decode anyway.
 
-Proper fix is to remove whole home made IR decider and use common IR 
-decoders in kernel nowadays... And yes, that is very old driver and at 
-the time Luca made it there was no IR decoders nor whole remote 
-controller framework.
+> AFAIKT, that doesn't work in Sound Broadcast mode, as the demod won't
+> be able to read the TMCC (at least on most demods - don't have any
+> details about tc90522).
 
-regards
-Antti
+I forgat ISDB-Tsb;P, as in Japan terrestrial digital sound broadcast
+was cancelled in 2011 and it was unpopular.
 
--- 
-http://palosaari.fi/
+--
+akihiro
