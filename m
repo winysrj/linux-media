@@ -1,42 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55577 "EHLO mx1.redhat.com"
+Received: from lists.s-osg.org ([54.187.51.154]:37362 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbaI3OEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 10:04:54 -0400
-Message-ID: <542AB87C.1070306@redhat.com>
-Date: Tue, 30 Sep 2014 16:04:44 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751641AbaIXJ2S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 05:28:18 -0400
+Date: Wed, 24 Sep 2014 06:28:12 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad
+ demodulator
+Message-ID: <20140924062812.6308f584@recife.lan>
+In-Reply-To: <542233E5.5070201@gmail.com>
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
+	<1410196843-26168-4-git-send-email-tskd08@gmail.com>
+	<20140923170730.4d5d167e@recife.lan>
+	<542233E5.5070201@gmail.com>
 MIME-Version: 1.0
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Regression: in v4l2 converter does not set the buffer.length
- anymore
-References: <5429CDD6.9050809@collabora.com>
-In-Reply-To: <5429CDD6.9050809@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Wed, 24 Sep 2014 12:00:53 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-On 09/29/2014 11:23 PM, Nicolas Dufresne wrote:
-> This was initially reported to GStreamer project:
-> https://bugzilla.gnome.org/show_bug.cgi?id=737521
 > 
-> We track this down to be a regression introduced in v4l2-utils from version 1.4.0. In recent GStreamer we make sure the buffer.length field (retreived with QUERYBUF) is bigger or equal to the expected sizeimage (as obtained in S_FMT). This is to fail cleanly and avoid buffer overflow if a driver (or libv4l2) endup doing a short allocation. Since 1.4.0, this field is always 0 if an emulated format is selected.
+> Hi,
 > 
-> Reverting patch 10213c brings back normal behaviour:
-> http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=10213c975afdfcc90aa7de39e66c40cd7e8a57f7
+> On 2014年09月24日 05:07, Mauro Carvalho Chehab wrote:
+> > I applied this series, as we're discussing it already for a long time,
+> > and it seems in a good shape...
 > 
-> This currently makes use of any emulated format impossible in GStreamer. v4l2-utils 1.4.0 is being shipped at least in debian/unstable at the moment.
+> thanks for your reviews and advices.
+> 
+> >> +static int tc90522s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> ...........
+> >> +	if (reg & 0x60) /* carrier? */
+> >> +		return 0;
+> > 
+> > Sure about that? Wouldn't it be, instead, reg & 0x60 == 0x60?
+> 
+> Yes, I'm pretty sure about that.
+> The register indicates errors in the various demod stages,
+> and if all go well, the reg should be 0.
+> 
+> >> +static int tc90522t_read_status(struct dvb_frontend *fe, fe_status_t *status)
+> ..............
+> > The entire series of checks above seems wrong on my eyes too.
+> > 
+> > For example, if reg = 0x20 or 0x40 or 0x80 or ..., it will return
+> > FE_HAS_LOCK.
+> 
+> This register 0x96 should indicates "lock" status for each layers,
+> and since layer config can vary in ISDB-T, the driver checks that
+> any of the three bits is set, for faster lock detection.
+> and the register 0x80 is the same kind of the one in the above ISDB-S case.
 
-Oops, thanks for the bug report.
+Ah, ok. It could be useful to document it, and eventually to add some
+debug printk's that would print the locks for each layer. Such printk
+were very useful for me to discover why dib8000 driver were not locking
+to a layer encoded using interleave equal to 4:
 
-I've created a 3 patch patch-set fixing this, which I'll send right after
-this mail. The actual fix is in the 2nd patch, the first patch and third
-patches fix 2 unrelated bugs which I noticed while working on this.
+commit 34ba2e65bab3693cdd7c2ee0b8ba6477bd8c366b
+Author: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Date:   Fri Jul 4 14:15:27 2014 -0300
+
+    [media] dib8000: Fix handling of interleave bigger than 2
+    
+    If interleave is bigger than 2, the code will set it to 0, as
+    dib8000 registers use a log2(). So, change the code to handle
+    it accordingly.
+    
+    Acked-By: Patrick Boettcher <pboettcher@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+
+Btw, please check if your driver is handling it well, as the valid
+values for interleave are 0, 1, 2, 4 (actually, dib8000 also
+supports interleaving equal to 8, if sound_broadcast).
+
+> 
+> > PS.: could you also test (and send us patches as needed) for ISDB-S
+> > support at libdvbv5 and dvbv5-utils[1]?
+> I'll have a try.
+
+Ok, thanks!
 
 Regards,
-
-Hans
+Mauro
