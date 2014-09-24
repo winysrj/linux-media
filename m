@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58833 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633AbaIJK6m (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33896 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990AbaIXJER (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 06:58:42 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 0/8] Add of-graph helpers to loop over endpoints and find ports by id
-Date: Wed, 10 Sep 2014 12:58:20 +0200
-Message-Id: <1410346708-5125-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 24 Sep 2014 05:04:17 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NCE00IIRENU3A40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Sep 2014 10:07:06 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0NCE00432EJ26640@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Sep 2014 10:04:15 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 3.18] mem2mem changes
+Date: Wed, 24 Sep 2014 11:04:14 +0200
+Message-id: <094e01cfd7d6$83e54e50$8bafeaf0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The following changes since commit c0aaf696d45e2a72048a56441e81dad78659c698:
 
-this series converts all existing users of of_graph_get_next_endpoint that pass
-a non-NULL prev argument to the function and decrement its refcount themselves
-to stop doing that. The of_node_put is moved into of_graph_get_next_endpoint
-instead.
-This allows to add a for_each_endpoint_of_node helper macro to loop over all
-endpoints in a device tree node.
-The third of patch adds a of_graph_get_port_by_id function to retrieve a port
-by its known port id from the device tree.
-Finally, the last three patches convert functions in drm_of.c and imx-drm-core.c
-to use the for_each_endpoint_of_node macro instead of of_graph_get_next_endpoint.
+  [media] coda: coda-bit: Include "<linux/slab.h>" (2014-09-21 16:43:28
+-0300)
 
-Changes since v1:
- - Added a comment about the child node reference count when breaking out
-   of the loop of for_each_endpoint_of_node.
- - Changed id parameter to of_graph_get_port_by_id to u32
- - Simplified of_graph_get_port_by_id as suggested by Laurent,
-   making use of port id defaulting to 0 if no "reg" property is given.
- - Added Laurent's ack to drm_of_find_possible_crtcs patch
+are available in the git repository at:
 
-The previous version can be found here: https://lkml.org/lkml/2014/8/19/280
+  ssh://linuxtv/git/kdebski/media_tree_2.git for-v3.18-2
 
-regards
-Philipp
+for you to fetch changes up to 242b5f7029ab613008a3c2bcc6a4ca181a64d0c9:
 
-Philipp Zabel (8):
-  [media] soc_camera: Do not decrement endpoint node refcount in the
-    loop
-  imx-drm: Do not decrement endpoint node refcount in the loop
-  of: Decrement refcount of previous endpoint in
-    of_graph_get_next_endpoint
-  of: Add for_each_endpoint_of_node helper macro
-  of: Add of_graph_get_port_by_id function
-  drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
-  imx-drm: use for_each_endpoint_of_node macro in
-    imx_drm_encoder_get_mux_id
-  imx-drm: use for_each_endpoint_of_node macro in
-    imx_drm_encoder_parse_of
+  coda: Improve runtime PM support (2014-09-23 16:08:08 +0200)
 
- drivers/gpu/drm/drm_of.c                       |  8 ++----
- drivers/media/platform/soc_camera/soc_camera.c |  2 +-
- drivers/of/base.c                              | 35 ++++++++++++++++++++------
- drivers/staging/imx-drm/imx-drm-core.c         | 34 ++++++++-----------------
- include/linux/of_graph.h                       | 18 +++++++++++++
- 5 files changed, 58 insertions(+), 39 deletions(-)
+----------------------------------------------------------------
+Kamil Debski (1):
+      s5p-mfc: Fix sparse errors in the MFC driver
 
--- 
-2.1.0
+Sjoerd Simons (1):
+      s5p-mfc: Use decode status instead of display status on MFCv5
+
+Ulf Hansson (1):
+      coda: Improve runtime PM support
+
+Zhaowei Yuan (2):
+      s5p_mfc: correct the loop condition
+      s5p_mfc: unify variable naming style
+
+ayaka (1):
+      s5p-mfc: fix enum_fmt for s5p-mfc
+
+ drivers/media/platform/coda/coda-common.c       |   55 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   53 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    6 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   16 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   46 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   50 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    8 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  471
++++++++++++------------
+ 8 files changed, 331 insertions(+), 374 deletions(-)
 
