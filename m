@@ -1,130 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37850 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755614AbaIDChD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:03 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 26/37] af9035: few small I2C master xfer changes
-Date: Thu,  4 Sep 2014 05:36:34 +0300
-Message-Id: <1409798205-25645-26-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:37161 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352AbaIXODH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 10:03:07 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuah.kh@samsung.com>, Ole Ernst <olebowle@gmx.com>
+Subject: [PATCH 2/4] [media] dvb_frontend: Fix __user namespace
+Date: Wed, 24 Sep 2014 11:02:27 -0300
+Message-Id: <a987ff50f94ecd9e5264b7685e11b29bd81d6f35.1411567328.git.mchehab@osg.samsung.com>
+In-Reply-To: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
+References: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
+In-Reply-To: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
+References: <e64ef973881ac3f5d98ee52f275a0fb9c3d07a56.1411567328.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Biggest problem of that function is complexity. Try reduce complexity:
+As reported by smatch:
 
-* define macros to detect all 3 supported xfers
-* remove duplicate message maximum size checks
+drivers/media/dvb-core/dvb_frontend.c:1960:45: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/dvb-core/dvb_frontend.c:1960:45:    expected void const [noderef] <asn:1>*from
+drivers/media/dvb-core/dvb_frontend.c:1960:45:    got struct dtv_property *[noderef] <asn:1>props
+drivers/media/dvb-core/dvb_frontend.c:1992:45: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/dvb-core/dvb_frontend.c:1992:45:    expected void const [noderef] <asn:1>*from
+drivers/media/dvb-core/dvb_frontend.c:1992:45:    got struct dtv_property *[noderef] <asn:1>props
+drivers/media/dvb-core/dvb_frontend.c:2014:38: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/dvb-core/dvb_frontend.c:2014:38:    expected void [noderef] <asn:1>*to
+drivers/media/dvb-core/dvb_frontend.c:2014:38:    got struct dtv_property *[noderef] <asn:1>props
+drivers/media/dvb-core/dvb_frontend.c:1946:17: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1947:17: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1951:22: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1951:42: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1954:31: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1960:41: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1960:54: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1965:33: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1978:17: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1979:17: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1983:22: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1983:42: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1986:31: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1992:41: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:1992:54: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:2007:33: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:2014:34: warning: dereference of noderef expression
+drivers/media/dvb-core/dvb_frontend.c:2014:52: warning: dereference of noderef expression
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 37 +++++++++++++----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 6534e44..ec62133 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -319,8 +319,14 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 	 * bus, having same slave address. Due to that we reuse demod address,
- 	 * shifted by one bit, on that case.
- 	 */
--	if (num == 2 && !(msg[0].flags & I2C_M_RD) &&
--			(msg[1].flags & I2C_M_RD)) {
-+#define AF9035_IS_I2C_XFER_WRITE_READ(_msg, _num) \
-+	(_num == 2 && !(_msg[0].flags & I2C_M_RD) && (_msg[1].flags & I2C_M_RD))
-+#define AF9035_IS_I2C_XFER_WRITE(_msg, _num) \
-+	(_num == 1 && !(_msg[0].flags & I2C_M_RD))
-+#define AF9035_IS_I2C_XFER_READ(_msg, _num) \
-+	(_num == 1 && (_msg[0].flags & I2C_M_RD))
-+
-+	if (AF9035_IS_I2C_XFER_WRITE_READ(msg, num)) {
- 		if (msg[0].len > 40 || msg[1].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
-@@ -338,18 +344,11 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
- 					msg[1].len);
- 		} else {
--			/* I2C */
-+			/* I2C write + read */
- 			u8 buf[MAX_XFER_SIZE];
- 			struct usb_req req = { CMD_I2C_RD, 0, 5 + msg[0].len,
- 					buf, msg[1].len, msg[1].buf };
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index c862ad732d9e..b8579ee68bd6 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1934,15 +1934,13 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int err = 0;
  
--			if (5 + msg[0].len > sizeof(buf)) {
--				dev_warn(&d->udev->dev,
--					 "%s: i2c xfer: len=%d is too big!\n",
--					 KBUILD_MODNAME, msg[0].len);
--				ret = -EOPNOTSUPP;
--				goto unlock;
--			}
- 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[1].len;
- 			buf[1] = msg[0].addr << 1;
-@@ -359,7 +358,7 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			memcpy(&buf[5], msg[0].buf, msg[0].len);
- 			ret = af9035_ctrl_msg(d, &req);
+-	struct dtv_properties *tvps = NULL;
++	struct dtv_properties *tvps = parg;
+ 	struct dtv_property *tvp = NULL;
+ 	int i;
+ 
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+ 
+-	if(cmd == FE_SET_PROPERTY) {
+-		tvps = (struct dtv_properties __user *)parg;
+-
++	if (cmd == FE_SET_PROPERTY) {
+ 		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+ 		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
+ 
+@@ -1957,7 +1955,8 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			goto out;
  		}
--	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
-+	} else if (AF9035_IS_I2C_XFER_WRITE(msg, num)) {
- 		if (msg[0].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
-@@ -377,18 +376,11 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
- 					msg[0].len - 3);
- 		} else {
--			/* I2C */
-+			/* I2C write */
- 			u8 buf[MAX_XFER_SIZE];
- 			struct usb_req req = { CMD_I2C_WR, 0, 5 + msg[0].len,
- 					buf, 0, NULL };
  
--			if (5 + msg[0].len > sizeof(buf)) {
--				dev_warn(&d->udev->dev,
--					 "%s: i2c xfer: len=%d is too big!\n",
--					 KBUILD_MODNAME, msg[0].len);
--				ret = -EOPNOTSUPP;
--				goto unlock;
--			}
- 			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
- 			buf[0] = msg[0].len;
- 			buf[1] = msg[0].addr << 1;
-@@ -398,12 +390,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			memcpy(&buf[5], msg[0].buf, msg[0].len);
- 			ret = af9035_ctrl_msg(d, &req);
+-		if (copy_from_user(tvp, tvps->props, tvps->num * sizeof(struct dtv_property))) {
++		if (copy_from_user(tvp, (void __user *)tvps->props,
++				   tvps->num * sizeof(struct dtv_property))) {
+ 			err = -EFAULT;
+ 			goto out;
  		}
--	} else if (num == 1 && (msg[0].flags & I2C_M_RD)) {
-+	} else if (AF9035_IS_I2C_XFER_READ(msg, num)) {
- 		if (msg[0].len > 40) {
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
- 		} else {
--			/* I2C */
-+			/* I2C read */
- 			u8 buf[5];
- 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
- 					buf, msg[0].len, msg[0].buf };
-@@ -418,14 +410,13 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 	} else {
- 		/*
- 		 * We support only three kind of I2C transactions:
--		 * 1) 1 x read + 1 x write (repeated start)
-+		 * 1) 1 x write + 1 x read (repeated start)
- 		 * 2) 1 x write
- 		 * 3) 1 x read
- 		 */
- 		ret = -EOPNOTSUPP;
- 	}
+@@ -1972,10 +1971,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		if (c->state == DTV_TUNE)
+ 			dev_dbg(fe->dvb->device, "%s: Property cache is full, tuning\n", __func__);
  
--unlock:
- 	mutex_unlock(&d->i2c_mutex);
+-	} else
+-	if(cmd == FE_GET_PROPERTY) {
+-		tvps = (struct dtv_properties __user *)parg;
+-
++	} else if (cmd == FE_GET_PROPERTY) {
+ 		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n", __func__, tvps->num);
+ 		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n", __func__, tvps->props);
  
- 	if (ret < 0)
+@@ -1990,7 +1986,8 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			goto out;
+ 		}
+ 
+-		if (copy_from_user(tvp, tvps->props, tvps->num * sizeof(struct dtv_property))) {
++		if (copy_from_user(tvp, (void __user *)tvps->props,
++				   tvps->num * sizeof(struct dtv_property))) {
+ 			err = -EFAULT;
+ 			goto out;
+ 		}
+@@ -2012,7 +2009,8 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			(tvp + i)->result = err;
+ 		}
+ 
+-		if (copy_to_user(tvps->props, tvp, tvps->num * sizeof(struct dtv_property))) {
++		if (copy_to_user((void __user *)tvps->props, tvp,
++				 tvps->num * sizeof(struct dtv_property))) {
+ 			err = -EFAULT;
+ 			goto out;
+ 		}
 -- 
-http://palosaari.fi/
+1.9.3
 
