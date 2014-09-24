@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55066 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756839AbaIQUpe (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:61798 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbaIXLOG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Sep 2014 16:45:34 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id EB918600AA
-	for <linux-media@vger.kernel.org>; Wed, 17 Sep 2014 23:45:31 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 12/17] smiapp: Take mutex during PLL update in sensor initialisation
-Date: Wed, 17 Sep 2014 23:45:36 +0300
-Message-Id: <1410986741-6801-13-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 24 Sep 2014 07:14:06 -0400
+Received: by mail-pd0-f175.google.com with SMTP id v10so7285543pde.6
+        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 04:14:05 -0700 (PDT)
+Message-ID: <5422A779.8030901@gmail.com>
+Date: Wed, 24 Sep 2014 20:14:01 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad demodulator
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>	<1410196843-26168-4-git-send-email-tskd08@gmail.com>	<20140923170730.4d5d167e@recife.lan>	<542233E5.5070201@gmail.com> <20140924062812.6308f584@recife.lan>
+In-Reply-To: <20140924062812.6308f584@recife.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Btw, please check if your driver is handling it well, as the valid
+> values for interleave are 0, 1, 2, 4 (actually, dib8000 also
+> supports interleaving equal to 8, if sound_broadcast).
 
-The mutex does not serialise anything in this case but avoids a lockdep
-warning from the control framework.
+I have no info on how to set time interleaving parameters,
+although I can read them as a part of TMCC info.
+I guess I can also set them in the same registers, but I'm not sure.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |    2 ++
- 1 file changed, 2 insertions(+)
+Since the demod is intelligent and automatically reads TMCC and
+sets the related parameters accordingly,
+I think it is safe to ignore user settings and let the demod set it.
+If someone would get more info in the future,
+[s]he could set those parameters in advance and make a lock faster.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 6db0e8d..346ff5b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2667,7 +2667,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
- 	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
- 
-+	mutex_lock(&sensor->mutex);
- 	rval = smiapp_update_mode(sensor);
-+	mutex_unlock(&sensor->mutex);
- 	if (rval) {
- 		dev_err(&client->dev, "update mode failed\n");
- 		goto out_nvm_release;
--- 
-1.7.10.4
-
+regards,
+akihiro
