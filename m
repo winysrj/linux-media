@@ -1,46 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36895 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753647AbaITJvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 05:51:50 -0400
-Date: Sat, 20 Sep 2014 06:51:44 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 0/3] vb2: fix VBI/poll regression
-Message-ID: <20140920065144.0c69e575@recife.lan>
-In-Reply-To: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:44946 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753243AbaIXMD5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 08:03:57 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NCE00IO8MZAY880@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Sep 2014 13:06:47 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+References: <094e01cfd7d6$83e54e50$8bafeaf0$%debski@samsung.com>
+ <20140924083458.0943f80e@recife.lan>
+In-reply-to: <20140924083458.0943f80e@recife.lan>
+Subject: RE: [GIT PULL for 3.18] mem2mem changes
+Date: Wed, 24 Sep 2014 14:03:54 +0200
+Message-id: <096701cfd7ef$9d46c450$d7d44cf0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 20 Sep 2014 10:56:12 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi,
 
-> OK, this is the final (?) patch series to resolve the vb2 VBI poll regression
-> where alevt and mtt fail on drivers using vb2.
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+> Sent: Wednesday, September 24, 2014 1:35 PM
+> To: Kamil Debski
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [GIT PULL for 3.18] mem2mem changes
 > 
-> These applications call REQBUFS, queue the buffers and then poll() without
-> calling STREAMON first. They rely on poll() to return POLLERR in that case
-> and they do the STREAMON at that time. This is correct according to the spec,
-> but this was never implemented in vb2.
+> Em Wed, 24 Sep 2014 11:04:14 +0200
+> Kamil Debski <k.debski@samsung.com> escreveu:
 > 
-> This is fixed together with an other vb2 regression: calling REQBUFS, then
-> STREAMON, then poll() without doing a QBUF first should return POLLERR as
-> well according to the spec. This has been fixed as well and the spec has
-> been clarified that this is only done for capture queues. Output queues in
-> the same situation will return as well, but with POLLOUT|POLLWRNORM set
-> instead of POLLERR.
+> > The following changes since commit
+> c0aaf696d45e2a72048a56441e81dad78659c698:
+> >
+> >   [media] coda: coda-bit: Include "<linux/slab.h>" (2014-09-21
+> 16:43:28
+> > -0300)
+> >
+> > are available in the git repository at:
+> >
+> >   ssh://linuxtv/git/kdebski/media_tree_2.git for-v3.18-2
 > 
-> The final patch adds missing documentation to poll() regarding event handling
-> and improves the documentation regarding stream I/O and output queues.
+> Huh!
 
-Didn't test yet, but the patch series look ok on my eyes.
+Ups, sorry.
 
-I'll do some tests today.
+> 
+> This URL doesn't exist!
+>
+> Are you meaning linuxtv.org?
 
-Regards,
-Mauro
+Yes, it should be git://linuxtv.org/kdebski/media_tree_2.git for-v3.18-2
+
+> 
+> Regards,
+> Mauro
+
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
