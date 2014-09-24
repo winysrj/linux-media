@@ -1,120 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48688 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753611AbaI2CXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Sep 2014 22:23:50 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Johannes Stezenbach <js@linuxtv.org>
-Subject: [PATCH 5/6] [media] em28xx: move board-specific init code
-Date: Sun, 28 Sep 2014 23:23:22 -0300
-Message-Id: <84057c3007157e6353817d166935ca600b6510a8.1411956856.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1411956856.git.mchehab@osg.samsung.com>
-References: <cover.1411956856.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1411956856.git.mchehab@osg.samsung.com>
-References: <cover.1411956856.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58969 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750793AbaIXWcS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:32:18 -0400
+Message-ID: <54234664.3030500@iki.fi>
+Date: Thu, 25 Sep 2014 01:32:04 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: Re: [PATCH 09/18] [media] cx88: remove return after BUG()
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com> <9558d5ca24c16761b267ac700661aeaa501f1b1e.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <9558d5ca24c16761b267ac700661aeaa501f1b1e.1411597610.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some drivers are doing some board-specific init.
+Are these even cases you should use BUG()? How about WARN()...
 
-The same init is also needed during restore, so, let's
-move this code to a separate function.
+Antti
 
-No functional changes should be noticed so far
+On 09/25/2014 01:27 AM, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+>
+> drivers/media/pci/cx88/cx88-video.c:699 get_queue() info: ignoring unreachable code.
+> drivers/media/pci/cx88/cx88-video.c:714 get_resource() info: ignoring unreachable code.
+> drivers/media/pci/cx88/cx88-video.c:815 video_read() info: ignoring unreachable code.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+> index ed8cb9037b6f..ce27e6d4f16e 100644
+> --- a/drivers/media/pci/cx88/cx88-video.c
+> +++ b/drivers/media/pci/cx88/cx88-video.c
+> @@ -696,7 +696,6 @@ static struct videobuf_queue *get_queue(struct file *file)
+>   		return &fh->vbiq;
+>   	default:
+>   		BUG();
+> -		return NULL;
+>   	}
+>   }
+>
+> @@ -711,7 +710,6 @@ static int get_resource(struct file *file)
+>   		return RESOURCE_VBI;
+>   	default:
+>   		BUG();
+> -		return 0;
+>   	}
+>   }
+>
+> @@ -812,7 +810,6 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+>   					    file->f_flags & O_NONBLOCK);
+>   	default:
+>   		BUG();
+> -		return 0;
+>   	}
+>   }
+>
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 3d19607bd8f0..ff46ba46a34d 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1045,6 +1045,29 @@ static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
- 	dvb_unregister_adapter(&dvb->adapter);
- }
- 
-+static void em28xx_dvb_board_init(struct em28xx *dev, struct em28xx_dvb *dvb)
-+{
-+	/* init frontend */
-+	switch (dev->model) {
-+	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
-+		hauppauge_hvr930c_init(dev);
-+		break;
-+	case EM2884_BOARD_TERRATEC_H5:
-+		terratec_h5_init(dev);
-+		break;
-+	case EM2884_BOARD_PCTV_510E:
-+	case EM2884_BOARD_PCTV_520E:
-+		pctv_520e_init(dev);
-+		break;
-+	case EM2884_BOARD_CINERGY_HTC_STICK:
-+		terratec_htc_stick_init(dev);
-+		break;
-+	case EM2884_BOARD_TERRATEC_HTC_USB_XS:
-+		terratec_htc_usb_xs_init(dev);
-+		break;
-+	}
-+}
-+
- static int em28xx_dvb_init(struct em28xx *dev)
- {
- 	int result = 0;
-@@ -1093,6 +1116,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 
- 	mutex_lock(&dev->lock);
- 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
-+	em28xx_dvb_board_init(dev, dvb);
-+
- 	/* init frontend */
- 	switch (dev->model) {
- 	case EM2874_BOARD_LEADERSHIP_ISDBT:
-@@ -1266,7 +1291,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
- 	{
- 		struct xc5000_config cfg;
--		hauppauge_hvr930c_init(dev);
- 
- 		dvb->fe[0] = dvb_attach(drxk_attach,
- 					&hauppauge_930c_drxk, &dev->i2c_adap[dev->def_i2c_bus]);
-@@ -1298,8 +1322,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		break;
- 	}
- 	case EM2884_BOARD_TERRATEC_H5:
--		terratec_h5_init(dev);
--
- 		dvb->fe[0] = dvb_attach(drxk_attach, &terratec_h5_drxk, &dev->i2c_adap[dev->def_i2c_bus]);
- 		if (!dvb->fe[0]) {
- 			result = -EINVAL;
-@@ -1363,8 +1385,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		break;
- 	case EM2884_BOARD_PCTV_510E:
- 	case EM2884_BOARD_PCTV_520E:
--		pctv_520e_init(dev);
--
- 		/* attach demodulator */
- 		dvb->fe[0] = dvb_attach(drxk_attach, &pctv_520e_drxk,
- 				&dev->i2c_adap[dev->def_i2c_bus]);
-@@ -1381,8 +1401,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		}
- 		break;
- 	case EM2884_BOARD_CINERGY_HTC_STICK:
--		terratec_htc_stick_init(dev);
--
- 		/* attach demodulator */
- 		dvb->fe[0] = dvb_attach(drxk_attach, &terratec_htc_stick_drxk,
- 					&dev->i2c_adap[dev->def_i2c_bus]);
-@@ -1400,8 +1418,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		}
- 		break;
- 	case EM2884_BOARD_TERRATEC_HTC_USB_XS:
--		terratec_htc_usb_xs_init(dev);
--
- 		/* attach demodulator */
- 		dvb->fe[0] = dvb_attach(drxk_attach, &terratec_htc_stick_drxk,
- 					&dev->i2c_adap[dev->def_i2c_bus]);
 -- 
-1.9.3
-
+http://palosaari.fi/
