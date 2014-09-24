@@ -1,111 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bbn0105.outbound.protection.outlook.com ([157.56.111.105]:2016
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750854AbaIJHaj convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44048 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbaIXXiL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 03:30:39 -0400
-From: "chen.fang@freescale.com" <chen.fang@freescale.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
-CC: Shawn Guo <Shawn.Guo@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-Date: Wed, 10 Sep 2014 07:30:36 +0000
-Message-ID: <3763195dd9ba4d0793e5ed3b6b3dc1ee@BY2PR03MB556.namprd03.prod.outlook.com>
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
- <540FF70E.9050203@xs4all.nl>
- <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com>
- <540FFBF1.6060702@xs4all.nl>
-In-Reply-To: <540FFBF1.6060702@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 24 Sep 2014 19:38:11 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Satoshi Nagahama <sattnag@aim.com>
+Subject: [PATCH 3/3] [media] usb drivers: use %zu instead of %zd
+Date: Wed, 24 Sep 2014 20:37:44 -0300
+Message-Id: <efa13619097895bf5130bdc22d3b97d7a76cf912.1411601849.git.mchehab@osg.samsung.com>
+In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On the Freescale imx6 platform which belongs to ARM architecture. The driver is our local v4l2 output driver which is not upstream yet unfortunately.
+size_t is unsigned.
 
-Best regards,
-Fancy Fang
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Wednesday, September 10, 2014 3:21 PM
-To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
-Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
-Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-
-On 09/10/14 09:14, chen.fang@freescale.com wrote:
-> It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
-> So I need your confirmation on it.
-
-With which driver does this happen? On which architecture?
-
-Regards,
-
-	Hans
-
-> 
-> Thanks.
-> 
-> Best regards,
-> Fancy Fang
-> 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Wednesday, September 10, 2014 3:01 PM
-> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
-> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; 
-> linux-kernel@vger.kernel.org; Marek Szyprowski
-> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-> 
-> On 09/10/14 07:28, Fancy Fang wrote:
->> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
->> will assign the corresponding offset to the 'boff' field of the 
->> videobuf_buffer for each requested buffer sequentially. Later, user 
->> may call mmap() to map one or all of the buffers with the 'offset'
->> parameter which is equal to its 'boff' value. Obviously, the 'offset'
->> value is only used to find the matched buffer instead of to be the 
->> real offset from the buffer's physical start address as used by 
->> vm_iomap_memory(). So, in some case that if the offset is not zero,
->> vm_iomap_memory() will fail.
-> 
-> Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
-> 
-> I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
->> ---
->>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
->>  1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c
->> b/drivers/media/v4l2-core/videobuf-dma-contig.c
->> index bf80f0f..8bd9889 100644
->> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
->> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->>  	/* Try to remap memory */
->>  	size = vma->vm_end - vma->vm_start;
->>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
->> +	retval = remap_pfn_range(vma, vma->vm_start,
->> +				 mem->dma_handle >> PAGE_SHIFT,
->> +				 size, vma->vm_page_prot);
->>  	if (retval) {
->>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
->>  			retval);
->>
-> 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 51872b9f75a1..40a69879fc0a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -1595,7 +1595,7 @@ void cx231xx_set_DIF_bandpass(struct cx231xx *dev, u32 if_freq,
+ 		if_freq = 16000000;
+ 	}
+ 
+-	cx231xx_info("Enter IF=%zd\n",
++	cx231xx_info("Enter IF=%zu\n",
+ 			ARRAY_SIZE(Dif_set_array));
+ 	for (i = 0; i < ARRAY_SIZE(Dif_set_array); i++) {
+ 		if (Dif_set_array[i].if_freq == if_freq) {
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 3284de99fc99..0ce816352d51 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -481,7 +481,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 	lencopy = lencopy > remain ? remain : lencopy;
+ 
+ 	if ((char *)startwrite + lencopy > (char *)buf->vb_buf + buf->length) {
+-		em28xx_isocdbg("Overflow of %zi bytes past buffer end (1)\n",
++		em28xx_isocdbg("Overflow of %zu bytes past buffer end (1)\n",
+ 			      ((char *)startwrite + lencopy) -
+ 			      ((char *)buf->vb_buf + buf->length));
+ 		remain = (char *)buf->vb_buf + buf->length -
+@@ -507,7 +507,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 
+ 		if ((char *)startwrite + lencopy > (char *)buf->vb_buf +
+ 		    buf->length) {
+-			em28xx_isocdbg("Overflow of %zi bytes past buffer end"
++			em28xx_isocdbg("Overflow of %zu bytes past buffer end"
+ 				       "(2)\n",
+ 				       ((char *)startwrite + lencopy) -
+ 				       ((char *)buf->vb_buf + buf->length));
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index 89c86ee2b225..94e10b10b66e 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -277,14 +277,14 @@ static int smsusb1_load_firmware(struct usb_device *udev, int id, int board_id)
+ 		rc = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 2),
+ 				  fw_buffer, fw->size, &dummy, 1000);
+ 
+-		sms_info("sent %zd(%d) bytes, rc %d", fw->size, dummy, rc);
++		sms_info("sent %zu(%d) bytes, rc %d", fw->size, dummy, rc);
+ 
+ 		kfree(fw_buffer);
+ 	} else {
+ 		sms_err("failed to allocate firmware buffer");
+ 		rc = -ENOMEM;
+ 	}
+-	sms_info("read FW %s, size=%zd", fw_filename, fw->size);
++	sms_info("read FW %s, size=%zu", fw_filename, fw->size);
+ 
+ 	release_firmware(fw);
+ 
+-- 
+1.9.3
 
