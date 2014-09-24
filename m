@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37401 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181AbaIXOFF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 10:05:05 -0400
-Date: Wed, 24 Sep 2014 11:05:00 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:34171 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751828AbaIXW14 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:27:56 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>, Akihiro TSUKADA <tskd08@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
-Message-ID: <20140924110500.260d4994@recife.lan>
-In-Reply-To: <5422C93A.2050203@iki.fi>
-References: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>
-	<5422B8CD.8050302@gmail.com>
-	<20140924103445.31aeca91@recife.lan>
-	<5422C93A.2050203@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH 09/18] [media] cx88: remove return after BUG()
+Date: Wed, 24 Sep 2014 19:27:09 -0300
+Message-Id: <9558d5ca24c16761b267ac700661aeaa501f1b1e.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 24 Sep 2014 16:38:02 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+As reported by smatch:
 
-> 
-> 
-> On 09/24/2014 04:34 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 24 Sep 2014 21:27:57 +0900
-> > Akihiro TSUKADA <tskd08@gmail.com> escreveu:
-> >
-> >>> -	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
-> >>> +	b = (s32)div64_s64(((s64) freq) << 20,
-> >>> +			   state->cfg.xtal_freq - (((s64) a) << 20));
-> >>> +
-> >>
-> >> I'm afraid it should be like the following.
-> >>> +	b = (s32)(div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
-> >>> +			- (((s64) a) << 20));
-> >
-> > Are you talking about coding style?
-> 
-> It is calculation order of operators. '/' vs. '-'
+drivers/media/pci/cx88/cx88-video.c:699 get_queue() info: ignoring unreachable code.
+drivers/media/pci/cx88/cx88-video.c:714 get_resource() info: ignoring unreachable code.
+drivers/media/pci/cx88/cx88-video.c:815 video_read() info: ignoring unreachable code.
 
-Dah...
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
--ETOOMUCHPARENTHESIS :)
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index ed8cb9037b6f..ce27e6d4f16e 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -696,7 +696,6 @@ static struct videobuf_queue *get_queue(struct file *file)
+ 		return &fh->vbiq;
+ 	default:
+ 		BUG();
+-		return NULL;
+ 	}
+ }
+ 
+@@ -711,7 +710,6 @@ static int get_resource(struct file *file)
+ 		return RESOURCE_VBI;
+ 	default:
+ 		BUG();
+-		return 0;
+ 	}
+ }
+ 
+@@ -812,7 +810,6 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ 					    file->f_flags & O_NONBLOCK);
+ 	default:
+ 		BUG();
+-		return 0;
+ 	}
+ }
+ 
+-- 
+1.9.3
 
-Fix sent. I'll likely merge it with the original patch when submitting
-upstream.
-
-Thanks,
-Mauro
