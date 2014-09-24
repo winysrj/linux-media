@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:64072 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755756AbaICUoJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 16:44:09 -0400
-Date: Wed, 3 Sep 2014 22:44:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 03/46] [media] soc_camera: use kmemdup()
-In-Reply-To: <b7688fe7abdac43a645e7a69748a561cf9960009.1409775488.git.m.chehab@samsung.com>
-Message-ID: <Pine.LNX.4.64.1409032240390.10547@axis700.grange>
-References: <cover.1409775488.git.m.chehab@samsung.com>
- <b7688fe7abdac43a645e7a69748a561cf9960009.1409775488.git.m.chehab@samsung.com>
+Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:57814 "EHLO
+	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710AbaIXDrS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 23:47:18 -0400
+From: <Bimow.Chen@ite.com.tw>
+To: <mchehab@osg.samsung.com>, <crope@iki.fi>
+CC: <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
+Date: Wed, 24 Sep 2014 03:47:11 +0000
+Message-ID: <FA28ACF9E7378C4E836BE776152E0E253AF5D5FF@TPEMAIL2.internal.ite.com.tw>
+References: <20140923085039.51765665@recife.lan>	<542160F0.1000407@iki.fi>
+ <20140923101103.224370bb@recife.lan>
+In-Reply-To: <20140923101103.224370bb@recife.lan>
+Content-Language: zh-TW
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Wed, 3 Sep 2014, Mauro Carvalho Chehab wrote:
-
-> Instead of calling kzalloc and then copying, use kmemdup(). That
-> avoids zeroing the data structure before copying.
-> 
-> Found by coccinelle.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index f4308fed5431..ee8cdc95a9f9 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1347,13 +1347,11 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
->  		return -ENODEV;
->  	}
->  
-> -	ssdd = kzalloc(sizeof(*ssdd), GFP_KERNEL);
-> +	ssdd = kmemdup(&sdesc->subdev_desc, sizeof(*ssdd), GFP_KERNEL);
->  	if (!ssdd) {
->  		ret = -ENOMEM;
->  		goto ealloc;
->  	}
-> -
-> -	memcpy(ssdd, &sdesc->subdev_desc, sizeof(*ssdd));
-
-Hm, wow... that seems  to be a particularly silly one... Even if not 
-memdup, why did I use kZalloc() to immediately overwrite it completely?.. 
-Thanks for catching! This and the other two (so far) patches - would you 
-like me to pull-push them or just use my
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-for all 3 of them?
-
-Thanks
-Guennadi
-
->  	/*
->  	 * In synchronous case we request regulators ourselves in
->  	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
-> -- 
-> 1.9.3
-> 
+SGkgYWxsLA0KDQpJdCdzIG15IG1pc3Rha2UuIFNsZWVwIGFmdGVyIGJvb3QgZm9yIGZpcm13YXJl
+IHJlYWR5LCBub3QgYmVmb3JlLg0KUGxlYXNlIHJlamVjdCB0aGlzIHBhdGNoLg0KVGhhbmsgeW91
+Lg0KDQpCZXN0IHJlZ2FyZHMsDQpCaW1vdw0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
+b206IE1hdXJvIENhcnZhbGhvIENoZWhhYiBbbWFpbHRvOm1jaGVoYWJAb3NnLnNhbXN1bmcuY29t
+XSANClNlbnQ6IFR1ZXNkYXksIFNlcHRlbWJlciAyMywgMjAxNCA5OjExIFBNDQpUbzogQW50dGkg
+UGFsb3NhYXJpDQpDYzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBCaW1vdyBDaGVuICiz
+r6TfwLcpDQpTdWJqZWN0OiBSZTogW1BBVENIIDQvNF0gVjRML0RWQjogQWRkIHNsZWVwIGZvciBm
+aXJtd2FyZSByZWFkeQ0KDQpFbSBUdWUsIDIzIFNlcCAyMDE0IDE1OjAwOjQ4ICswMzAwDQpBbnR0
+aSBQYWxvc2FhcmkgPGNyb3BlQGlraS5maT4gZXNjcmV2ZXU6DQoNCj4gSSBhbSBub3Qgc3VyZSBh
+cyBJIGNhbm5vdCByZXByb2R1Y2UgaXQuIEFsc28gMzBtcyB3YWl0IGhlcmUgaXMgbG9uZyBhcyAN
+Cj4gaGVsbCwgd2hpbHN0IGl0IGlzIG5vdCBjcml0aWNhbC4NCj4gDQo+IFdoZW4gSSBsb29rIHRo
+YXQgZmlybXdhcmUgZG93bmxvYWRpbmcgZnJvbSB0aGUgMS0yIG1vbnRoIG9sZCBIYXVwcGF1Z2Ug
+DQo+IGRyaXZlciBzbmlmZnMsIGl0IGlzIG5vdCB0aGVyZToNCj4gDQo+IFRoYXQgbGluZSBpcyBD
+TURfRldfQk9PVCwgY29tbWFuZCAweDIzIGl0IGlzIDNyZCBudW1iZXI6DQo+ICNkZWZpbmUgQ01E
+X0ZXX0JPT1QgICAgICAgICAgICAgICAgIDB4MjMNCj4gMDAwMzEzOiAgT1VUOiAwMDAwMDAgbXMg
+MDAxNDkwIG1zIEJVTEtbMDAwMDJdID4+PiAwNSAwMCAyMyA5YSA2NSBkYw0KPiANCj4gSGVyZSBp
+cyB3aG9sZSBzZXF1ZW5jZToNCj4gMDAwMzExOiAgT1VUOiAwMDAwMDAgbXMgMDAxNDg5IG1zIEJV
+TEtbMDAwMDJdID4+PiAxNSAwMCAyOSA5OSAwMyAwMSAwMA0KPiAwMSA1NyBmNyAwOSAwMiA2ZCA2
+YyAwMiA0ZiA5ZiAwMiA0ZiBhMiAwYiAxNg0KPiAwMDAzMTI6ICBPVVQ6IDAwMDAwMSBtcyAwMDE0
+ODkgbXMgQlVMS1swMDA4MV0gPDw8IDA0IDk5IDAwIDY2IGZmDQo+IDAwMDMxMzogIE9VVDogMDAw
+MDAwIG1zIDAwMTQ5MCBtcyBCVUxLWzAwMDAyXSA+Pj4gMDUgMDAgMjMgOWEgNjUgZGMNCj4gMDAw
+MzE0OiAgT1VUOiAwMDAwMTEgbXMgMDAxNDkwIG1zIEJVTEtbMDAwODFdIDw8PCAwNCA5YSAwMCA2
+NSBmZg0KPiAwMDAzMTU6ICBPVVQ6IDAwMDAwMCBtcyAwMDE1MDEgbXMgQlVMS1swMDAwMl0gPj4+
+IDBiIDAwIDAwIDliIDAxIDAyIDAwDQo+IDAwIDEyIDIyIDQwIGVjDQo+IDAwMDMxNjogIE9VVDog
+MDAwMDAwIG1zIDAwMTUwMSBtcyBCVUxLWzAwMDgxXSA8PDwgMDUgOWIgMDAgMDIgNjIgZmYNCj4g
+DQo+IA0KPiBTbyB3aW5kb3dzIGRyaXZlciB3YWl0cyAxMG1zIGFmdGVyIGJvb3QsIG5vdCBiZWZv
+cmUuDQo+IA0KPiBEdWUgdG8gdGhlc2UgcmVhc29ucywgSSB3b3VsZCBsaWtlIHRvIHNraXAgdGhh
+dCBwYXRjaCB1bnRpbCBJIHNlZSANCj4gZXJyb3Igb3IgZ2V0IGdvb2QgZXhwbGFuYXRpb24gd2h5
+IGl0IGlzIG5lZWRlZCBhbmQgc28uDQoNCk9rLiBJJ2xsIHRhZyBpdCBhcyBSRkMgdGhlbi4NCg0K
+PiANCj4gDQo+IHJlZ2FyZHMNCj4gQW50dGkNCj4gDQo+IA0KPiBPbiAwOS8yMy8yMDE0IDAyOjUw
+IFBNLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+ID4gQW50dGksDQo+ID4NCj4gPiBB
+ZnRlciB0aGUgZmlybXdhcmUgbG9hZCBjaGFuZ2VzLCBpcyB0aGlzIHBhdGNoIHN0aWxsIGFwcGxp
+Y2FibGU/DQo+ID4NCj4gPiBSZWdhcmRzLA0KPiA+IE1hdXJvDQo+ID4NCj4gPiBGb3J3YXJkZWQg
+bWVzc2FnZToNCj4gPg0KPiA+IERhdGU6IFR1ZSwgMDUgQXVnIDIwMTQgMTM6NDg6MDMgKzA4MDAN
+Cj4gPiBGcm9tOiBCaW1vdyBDaGVuIDxCaW1vdy5DaGVuQGl0ZS5jb20udHc+DQo+ID4gVG86IGxp
+bnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KPiA+IFN1YmplY3Q6IFtQQVRDSCA0LzRdIFY0TC9E
+VkI6IEFkZCBzbGVlcCBmb3IgZmlybXdhcmUgcmVhZHkNCj4gPg0KPiA+DQo+ID4gIEZyb20gYjE5
+ZmE4NjhjZTkzN2E2ZWYxMGYxNTkxYTQ5YjJhN2FkMTQ5NjRhOSBNb24gU2VwIDE3IDAwOjAwOjAw
+IA0KPiA+IDIwMDENCj4gPiBGcm9tOiBCaW1vdyBDaGVuIDxCaW1vdy5DaGVuQGl0ZS5jb20udHc+
+DQo+ID4gRGF0ZTogVHVlLCA1IEF1ZyAyMDE0IDExOjIwOjUzICswODAwDQo+ID4gU3ViamVjdDog
+W1BBVENIIDQvNF0gQWRkIHNsZWVwIGZvciBmaXJtd2FyZSByZWFkeS4NCj4gPg0KPiA+DQo+ID4g
+U2lnbmVkLW9mZi1ieTogQmltb3cgQ2hlbiA8Qmltb3cuQ2hlbkBpdGUuY29tLnR3Pg0KPiA+IC0t
+LQ0KPiA+ICAgZHJpdmVycy9tZWRpYS91c2IvZHZiLXVzYi12Mi9hZjkwMzUuYyB8ICAgIDIgKysN
+Cj4gPiAgIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQ0K
+PiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdXNiL2R2Yi11c2ItdjIvYWY5MDM1
+LmMgDQo+ID4gYi9kcml2ZXJzL21lZGlhL3VzYi9kdmItdXNiLXYyL2FmOTAzNS5jDQo+ID4gaW5k
+ZXggN2I5Yjc1Zi4uYTQ1MGNkYiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL21lZGlhL3VzYi9k
+dmItdXNiLXYyL2FmOTAzNS5jDQo+ID4gKysrIGIvZHJpdmVycy9tZWRpYS91c2IvZHZiLXVzYi12
+Mi9hZjkwMzUuYw0KPiA+IEBAIC02MDIsNiArNjAyLDggQEAgc3RhdGljIGludCBhZjkwMzVfZG93
+bmxvYWRfZmlybXdhcmUoc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkLA0KPiA+ICAgCWlmIChyZXQg
+PCAwKQ0KPiA+ICAgCQlnb3RvIGVycjsNCj4gPg0KPiA+ICsJbXNsZWVwKDMwKTsNCj4gPiArDQo+
+ID4gICAJLyogZmlybXdhcmUgbG9hZGVkLCByZXF1ZXN0IGJvb3QgKi8NCj4gPiAgIAlyZXEuY21k
+ID0gQ01EX0ZXX0JPT1Q7DQo+ID4gICAJcmV0ID0gYWY5MDM1X2N0cmxfbXNnKGQsICZyZXEpOw0K
+PiA+DQo+IA0K
