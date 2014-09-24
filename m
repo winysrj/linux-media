@@ -1,47 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49613 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbaI2U2C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 16:28:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH 01/11] media: entity: Document the media_entity_ops structure
-Date: Mon, 29 Sep 2014 23:27:47 +0300
-Message-Id: <1412022477-28749-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga09.intel.com ([134.134.136.24]:62636 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750725AbaIXBA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 21:00:26 -0400
+Date: Wed, 24 Sep 2014 08:59:57 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Akihiro Tsukada <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:devel-3.17-rc6 492/499] ERROR: "__aeabi_ldivmod"
+ [drivers/media/tuners/qm1d1c0042.ko] undefined!
+Message-ID: <5422178d.oJU4Z5V14CMUtNSt%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+tree:   git://linuxtv.org/media_tree.git devel-3.17-rc6
+head:   5b5560842a7ee002d208a20866f88fafd63198eb
+commit: f5a98f37a535a43b3a27c6a63b07f23d248e4b31 [492/499] [media] pt3: add support for Earthsoft PT3 ISDB-S/T receiver card
+config: arm-allmodconfig
+reproduce:
+  wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+  chmod +x ~/bin/make.cross
+  git checkout f5a98f37a535a43b3a27c6a63b07f23d248e4b31
+  make.cross ARCH=arm  allmodconfig
+  make.cross ARCH=arm 
+
+All error/warnings:
+
+>> ERROR: "__aeabi_ldivmod" [drivers/media/tuners/qm1d1c0042.ko] undefined!
+>> ERROR: "__aeabi_ldivmod" [drivers/media/dvb-frontends/tc90522.ko] undefined!
+
 ---
- include/media/media-entity.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e004591..786906b 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -44,6 +44,15 @@ struct media_pad {
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
- };
- 
-+/**
-+ * struct media_entity_operations - Media entity operations
-+ * @link_setup:		Notify the entity of link changes. The operation can
-+ *			return an error, in which case link setup will be
-+ *			cancelled. Optional.
-+ * @link_validate:	Return whether a link is valid from the entity point of
-+ *			view. The media_entity_pipeline_start() function
-+ *			validates all links by calling this operation. Optional.
-+ */
- struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
--- 
-1.8.5.5
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
