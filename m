@@ -1,97 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4213 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712AbaICNVW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 09:21:22 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s83DLIRT051309
-	for <linux-media@vger.kernel.org>; Wed, 3 Sep 2014 15:21:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 6939E2A075A
-	for <linux-media@vger.kernel.org>; Wed,  3 Sep 2014 15:21:13 +0200 (CEST)
-Message-ID: <540715AA.3070208@xs4all.nl>
-Date: Wed, 03 Sep 2014 15:20:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.18] vivid: two small fixes
-References: <54071077.2050500@xs4all.nl>
-In-Reply-To: <54071077.2050500@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:34127 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751271AbaIXW1y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:27:54 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guoxiong Yan <yanguoxiong@huawei.com>,
+	Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH 01/18] [media] ir-hix5hd2: fix address space casting
+Date: Wed, 24 Sep 2014 19:27:01 -0300
+Message-Id: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/14 14:58, Hans Verkuil wrote:
-> Speaks for itself...
+drivers/media/rc/ir-hix5hd2.c:99:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:99:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:99:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:100:16: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:100:16:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:100:16:    got void *
+drivers/media/rc/ir-hix5hd2.c:117:40: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:117:40:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:117:40:    got void *
+drivers/media/rc/ir-hix5hd2.c:119:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:119:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:119:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:121:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:121:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:121:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:147:18: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:147:18:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:147:18:    got void *
+drivers/media/rc/ir-hix5hd2.c:155:28: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:155:28:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:155:28:    got void *
+drivers/media/rc/ir-hix5hd2.c:157:25: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:157:25:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:157:25:    got void *
+drivers/media/rc/ir-hix5hd2.c:159:61: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:159:61:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:159:61:    got void *
+drivers/media/rc/ir-hix5hd2.c:167:28: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:167:28:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:167:28:    got void *
+drivers/media/rc/ir-hix5hd2.c:169:36: warning: incorrect type in argument 1 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:169:36:    expected void const volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:169:36:    got void *
+drivers/media/rc/ir-hix5hd2.c:188:64: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:188:64:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:188:64:    got void *
+drivers/media/rc/ir-hix5hd2.c:190:68: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:190:68:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:190:68:    got void *
+drivers/media/rc/ir-hix5hd2.c:220:20: warning: incorrect type in assignment (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:220:20:    expected void *base
+drivers/media/rc/ir-hix5hd2.c:220:20:    got void [noderef] <asn:2>*
+drivers/media/rc/ir-hix5hd2.c:315:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:315:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:315:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:316:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:316:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:316:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:317:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:317:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:317:41:    got void *
+drivers/media/rc/ir-hix5hd2.c:318:41: warning: incorrect type in argument 2 (different address spaces)
+drivers/media/rc/ir-hix5hd2.c:318:41:    expected void volatile [noderef] <asn:2>*addr
+drivers/media/rc/ir-hix5hd2.c:318:41:    got void *
 
-Added a third patch:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-      vivid: tpg_reset_source prototype mismatch
-
-The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
-
-  [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git vivid-fixes
-
-for you to fetch changes up to 0b8dda9ffd2378d2a4106061dc624b3af4688885:
-
-  vivid: tpg_reset_source prototype mismatch (2014-09-03 15:19:55 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      vivid: remove duplicate and unused g/s_edid functions
-      vivid: add missing includes
-      vivid: tpg_reset_source prototype mismatch
-
- drivers/media/platform/vivid/vivid-core.c    |  1 +
- drivers/media/platform/vivid/vivid-rds-gen.c |  1 +
- drivers/media/platform/vivid/vivid-tpg.c     |  2 +-
- drivers/media/platform/vivid/vivid-tpg.h     |  1 +
- drivers/media/platform/vivid/vivid-vbi-gen.c |  1 +
- drivers/media/platform/vivid/vivid-vid-cap.c |  1 +
- drivers/media/platform/vivid/vivid-vid-out.c | 57 -----------------------------------------------
- drivers/media/platform/vivid/vivid-vid-out.h |  1 -
- 8 files changed, 6 insertions(+), 59 deletions(-)
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 4bf167a373bbbd31efddd9c00adc97ecc69fdb67:
-> 
->   [media] v4l: vsp1: fix driver dependencies (2014-09-03 09:10:24 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git vivid-fixes
-> 
-> for you to fetch changes up to 73d0df6f49eda8f6b1042c1f9729c347e1f0ee32:
-> 
->   vivid: add missing includes (2014-09-03 14:57:11 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (2):
->       vivid: remove duplicate and unused g/s_edid functions
->       vivid: add missing includes
-> 
->  drivers/media/platform/vivid/vivid-core.c    |  1 +
->  drivers/media/platform/vivid/vivid-rds-gen.c |  1 +
->  drivers/media/platform/vivid/vivid-tpg.h     |  1 +
->  drivers/media/platform/vivid/vivid-vbi-gen.c |  1 +
->  drivers/media/platform/vivid/vivid-vid-cap.c |  1 +
->  drivers/media/platform/vivid/vivid-vid-out.c | 57 -----------------------------------------------
->  drivers/media/platform/vivid/vivid-vid-out.h |  1 -
->  7 files changed, 5 insertions(+), 58 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index 94967d0e0478..c555ca2aed0e 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -68,7 +68,7 @@
+ 
+ struct hix5hd2_ir_priv {
+ 	int			irq;
+-	void			*base;
++	void volatile __iomem	*base;
+ 	struct device		*dev;
+ 	struct rc_dev		*rdev;
+ 	struct regmap		*regmap;
+@@ -218,8 +218,8 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	priv->base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(priv->base))
+-		return PTR_ERR(priv->base);
++	if (IS_ERR((__force void *)priv->base))
++		return PTR_ERR((__force void *)priv->base);
+ 
+ 	priv->irq = platform_get_irq(pdev, 0);
+ 	if (priv->irq < 0) {
+-- 
+1.9.3
 
