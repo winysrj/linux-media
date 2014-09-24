@@ -1,90 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37635 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751020AbaIZLMF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 07:12:05 -0400
-Date: Fri, 26 Sep 2014 14:01:56 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 17/17] smiapp: Decrease link frequency if media bus pixel
- format BPP requires
-Message-ID: <20140926110156.GO2939@valkosipuli.retiisi.org.uk>
-References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
- <1410986741-6801-18-git-send-email-sakari.ailus@iki.fi>
- <24769200.DuP3evaK0j@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:59320 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751272AbaIXNiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 09:38:07 -0400
+Message-ID: <5422C93A.2050203@iki.fi>
+Date: Wed, 24 Sep 2014 16:38:02 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <24769200.DuP3evaK0j@avalon>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Akihiro TSUKADA <tskd08@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
+References: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>	<5422B8CD.8050302@gmail.com> <20140924103445.31aeca91@recife.lan>
+In-Reply-To: <20140924103445.31aeca91@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thank you for your comments.
 
-On Fri, Sep 26, 2014 at 01:44:03PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 17 September 2014 23:45:41 Sakari Ailus wrote:
-> > Decrease the link frequency to the next lower if the user chooses a media
-> > bus code (BPP) cannot be achieved using the selected link frequency.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/i2c/smiapp/smiapp-core.c |   20 ++++++++++++++++++--
-> >  1 file changed, 18 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> > b/drivers/media/i2c/smiapp/smiapp-core.c index 537ca92..ce2c34d 100644
-> > --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> > +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> > @@ -286,11 +286,27 @@ static int smiapp_pll_update(struct smiapp_sensor
-> > *sensor)
-> > 
-> >  	pll->binning_horizontal = sensor->binning_horizontal;
-> >  	pll->binning_vertical = sensor->binning_vertical;
-> > -	pll->link_freq =
-> > -		sensor->link_freq->qmenu_int[sensor->link_freq->val];
-> >  	pll->scale_m = sensor->scale_m;
-> >  	pll->bits_per_pixel = sensor->csi_format->compressed;
-> > 
-> > +	if (!test_bit(sensor->link_freq->val,
-> > +		      &sensor->valid_link_freqs[
-> > +			      sensor->csi_format->compressed
-> > +			      - SMIAPP_COMPRESSED_BASE])) {
-> > +		/*
-> > +		 * Setting the link frequency will perform PLL
-> > +		 * re-calculation already, so skip that.
-> > +		 */
-> > +		return __v4l2_ctrl_s_ctrl(
-> > +			sensor->link_freq,
-> > +			__ffs(sensor->valid_link_freqs[
-> > +				      sensor->csi_format->compressed
-> > +				      - SMIAPP_COMPRESSED_BASE]));
-> 
-> I have an uneasy feeling about this, as smiapp_pll_update is called from the 
-> link freq s_ctrl handler. Have you double-checked the recursion bounds ?
+On 09/24/2014 04:34 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 24 Sep 2014 21:27:57 +0900
+> Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+>
+>>> -	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
+>>> +	b = (s32)div64_s64(((s64) freq) << 20,
+>>> +			   state->cfg.xtal_freq - (((s64) a) << 20));
+>>> +
+>>
+>> I'm afraid it should be like the following.
+>>> +	b = (s32)(div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
+>>> +			- (((s64) a) << 20));
+>
+> Are you talking about coding style?
 
-We haven't actually done any PLL tree calculation yet here. The condition
-will evaluate true in a case when the user chooses a format which isn't
-available on a given link frequency, or chooses a link frequency which isn't
-available for a given format.
+It is calculation order of operators. '/' vs. '-'
 
-The condition will be false the next time the function is called since we've
-just chosen a valid combination of the two.
-
-But now that you brought the topic up, I think the link frequency selection
-should just probably return -EBUSY if the selected link frquency cannot be
-used. Also __ffs() should be __fls() instead in order to still come up with
-the highest link freqency.
+>
+> Instead of using something like:
+>
+> 	var = foo_func(a, c
+> 		- b);
+>
+> We generally use:
+> 	var = foo_func(a,
+> 		       c - b);
+>
+> As it is quicker for reviewers to read.
+>
+>>
+>> regads,
+>> akihiro
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
