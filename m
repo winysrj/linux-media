@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0119.outbound.protection.outlook.com ([157.56.111.119]:16205
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750789AbaIJGs0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 02:48:26 -0400
-From: Fancy Fang <chen.fang@freescale.com>
-To: <m.chehab@samsung.com>, <hverkuil@xs4all.nl>,
-	<viro@ZenIV.linux.org.uk>
-CC: <shawn.guo@freescale.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	Fancy Fang <chen.fang@freescale.com>
-Subject: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-Date: Wed, 10 Sep 2014 13:28:57 +0800
-Message-ID: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:38206 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbaIXNiR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 09:38:17 -0400
+Received: by mail-lb0-f170.google.com with SMTP id z11so5367254lbi.29
+        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 06:38:16 -0700 (PDT)
+Date: Wed, 24 Sep 2014 17:38:14 +0400
+From: Mikhail Ulianov <mikhail.ulyanov@cogentembedded.com>
+To: Simon Horman <horms@verge.net.au>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 6/6] devicetree: bindings: Document Renesas JPEG
+ Processing Unit.
+Message-ID: <20140924173814.7e9b7be2@bones>
+In-Reply-To: <20140826024257.GB17906@verge.net.au>
+References: <1408452653-14067-7-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	<CAMuHMdXQAFVJ8Ezd30JNkT6hWoFYKUWk5e0cq88jYUSBTPOzRA@mail.gmail.com>
+	<20140825235720.GB7217@verge.net.au>
+	<2193337.axohMI28rU@avalon>
+	<20140826024257.GB17906@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
-will assign the corresponding offset to the 'boff' field of the
-videobuf_buffer for each requested buffer sequentially. Later, user
-may call mmap() to map one or all of the buffers with the 'offset'
-parameter which is equal to its 'boff' value. Obviously, the 'offset'
-value is only used to find the matched buffer instead of to be the
-real offset from the buffer's physical start address as used by
-vm_iomap_memory(). So, in some case that if the offset is not zero,
-vm_iomap_memory() will fail.
+On Tue, 26 Aug 2014 11:42:57 +0900
+Simon Horman <horms@verge.net.au> wrote:
 
-Signed-off-by: Fancy Fang <chen.fang@freescale.com>
----
- drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+> On Tue, Aug 26, 2014 at 02:02:00AM +0200, Laurent Pinchart wrote:
+> > Hi Simon,
+> > 
+> > On Tuesday 26 August 2014 08:57:20 Simon Horman wrote:
+> > > On Mon, Aug 25, 2014 at 02:59:46PM +0200, Geert Uytterhoeven
+> > > wrote:
+> > > > On Mon, Aug 25, 2014 at 2:35 PM, Mikhail Ulyanov wrote:
+> > > > >
+> > > > > +  - compatible: should containg one of the following:
+> > > > > +                       - "renesas,jpu-r8a7790" for R-Car H2
+> > > > > +                       - "renesas,jpu-r8a7791" for R-Car M2
+> > > > > +                       - "renesas,jpu-gen2" for R-Car second
+> > > > > generation
+> > > > 
+> > > > Isn't "renesas,jpu-gen2" meant as a fallback?
+> > > > 
+> > > > I.e. the DTS should have one of '7790 and '7791, AND the gen2
+> > > > fallback, so we can make the driver match against '7790 and
+> > > > '7791 is we find out about an incompatibility.
+> > > 
+> > > Is there a document that clearly states that there is such a thing
+> > > as jpu-gen2 in hardware? If not I would prefer not to add a
+> > > binding for it.
+> > 
+> > How about going the other way around and requesting that document ?
+> 
+> Good idea, I will make a request.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index bf80f0f..8bd9889 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	/* Try to remap memory */
- 	size = vma->vm_end - vma->vm_start;
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	retval = vm_iomap_memory(vma, mem->dma_handle, size);
-+	retval = remap_pfn_range(vma, vma->vm_start,
-+				 mem->dma_handle >> PAGE_SHIFT,
-+				 size, vma->vm_page_prot);
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ",
- 			retval);
--- 
-1.9.1
+Hi Simon,
 
+Is there any update on this topic from HW team? 
+If no, should i left it as is?
