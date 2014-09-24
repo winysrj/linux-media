@@ -1,55 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36323 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753359AbaIIOif (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 10:38:35 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:18017 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbaIXKhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 06:37:08 -0400
+Date: Wed, 24 Sep 2014 13:36:39 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
-Date: Tue,  9 Sep 2014 11:38:18 -0300
-Message-Id: <b7343e6296b5d1d68b7229b8307442fd4141bcb3.1410273306.git.m.chehab@samsung.com>
-In-Reply-To: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-References: <20140909124306.2d5a0d76@canb.auug.org.au>
- <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-In-Reply-To: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-References: <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] hackrf: harmless off by one in debug code
+Message-ID: <20140924103639.GB15107@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ERROR: "__bad_ndelay" [drivers/media/platform/s5p-jpeg/s5p-jpeg.ko] undefined!
+My static checker complains that "i" could be one element beyond the end
+of the array.
 
-Yet, it sounds a bad idea to use ndelay to wait for 100 us
-for the device to reset.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-index e51c078360f5..01eeacf28843 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-@@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
- 	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
- 	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 328b5ba..fd1fa41 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -932,7 +932,7 @@ static int hackrf_set_bandwidth(struct hackrf_dev *dev)
+ 	dev->bandwidth->val = bandwidth;
+ 	dev->bandwidth->cur.val = bandwidth;
  
-+#ifndef CONFIG_COMPILE_TEST
- 	ndelay(100000);
-+#endif
+-	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth_lut[i].freq);
++	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth);
  
- 	writel(reg | EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
- }
--- 
-1.9.3
-
+ 	u16tmp = 0;
+ 	u16tmp |= ((bandwidth >> 0) & 0xff) << 0;
