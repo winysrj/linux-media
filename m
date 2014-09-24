@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44414 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756165AbaICUdb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:31 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 23/46] [media] au0828-dvb: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:55 -0300
-Message-Id: <93ece0fa7c5d5fa11c35a5508dfef38a1a78d3e2.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lists.s-osg.org ([54.187.51.154]:37379 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753476AbaIXNeu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 09:34:50 -0400
+Date: Wed, 24 Sep 2014 10:34:45 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
+Message-ID: <20140924103445.31aeca91@recife.lan>
+In-Reply-To: <5422B8CD.8050302@gmail.com>
+References: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>
+	<5422B8CD.8050302@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using 0 or 1 for boolean, use the true/false
-defines.
+Em Wed, 24 Sep 2014 21:27:57 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > -	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
+> > +	b = (s32)div64_s64(((s64) freq) << 20,
+> > +			   state->cfg.xtal_freq - (((s64) a) << 20));
+> > +
+> 
+> I'm afraid it should be like the following.
+> > +	b = (s32)(div64_s64(((s64) freq) << 20, state->cfg.xtal_freq)
+> > +			- (((s64) a) << 20));
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index 4bd9d687d2d6..00ab1563d142 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -630,7 +630,7 @@ void au0828_dvb_suspend(struct au0828_dev *dev)
- 			stop_urb_transfer(dev);
- 			au0828_stop_transport(dev, 1);
- 			mutex_unlock(&dvb->lock);
--			dev->need_urb_start = 1;
-+			dev->need_urb_start = true;
- 		}
- 		/* suspend frontend - does tuner and fe to sleep */
- 		rc = dvb_frontend_suspend(dvb->frontend);
--- 
-1.9.3
+Are you talking about coding style?
 
+Instead of using something like:
+
+	var = foo_func(a, c 
+		- b);
+
+We generally use:
+	var = foo_func(a,
+		       c - b);
+
+As it is quicker for reviewers to read.
+
+> 
+> regads,
+> akihiro
+> 
