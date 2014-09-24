@@ -1,70 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1327 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbaIUOsl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com
-Subject: [RFC PATCH 00/11] Add configuration store support
-Date: Sun, 21 Sep 2014 16:48:18 +0200
-Message-Id: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:37363 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751620AbaIXKsf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 06:48:35 -0400
+Date: Wed, 24 Sep 2014 07:48:28 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.17] media fixes
+Message-ID: <20140924074828.3ddf50c1@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for configuration stores to the control framework.
-This allows you to store control values for a particular configuration (up to
-VIDEO_MAX_FRAME configuration stores are currently supported). When you queue
-a new buffer you can supply the store ID and the driver will apply all controls
-for that configuration store.
+Hi Linus,
 
-When you set a new value for a configuration store then you can choose whether
-this is 'fire and forget', i.e. after the driver applies the control value for that
-store it won't be applied again until a new value is set. Or you can set the
-value every time that configuration store is applied.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v3.17-rc7
 
-The first 7 patches add support for this in the API and in v4l2-ctrls.c. Patch
-8 adds configure store support for the contrast control in the vivid driver.
+For some last time fixes:
+	- a regression detected on Kernel 3.16 related to VBI Teletext
+	  application breakage on drivers using videobuf2
+	 (https://bugzilla.kernel.org/show_bug.cgi?id=84401).
+	 The bug was noticed on saa7134 (migrated to VB2 on 3.16), but
+	 also affects em28xx (migrated on 3.9 to VB2);
+	- two additional sanity checks at videobuf2;
+	- two fixups to restore proper VBI support at the em28xx driver;
+	- two Kernel oops fixups (at cx24123 and cx2341x drivers);
+	- a bug at adv7604 where an if was doing just the opposite as
+	  it would be expected;
+	- some documentation fixups to match the behavior defined at
+	  the Kernel.
 
-Patches 9-11 add support for crop/compose controls to v4l2-ctrls and vivid
-as a proof-of-concept. This allows you to play around with things like
-digital zoom by manipulating crop and compose rectangles for specific buffers.
-It's basically a hack just to allow me to test this so don't bother reviewing
-these last three patches.
+The following changes since commit a04646c045cab08a9e62b9be8f01ecbb0632d24e:
 
-This patch series is available here:
+  [media] af9035: new IDs: add support for PCTV 78e and PCTV 79e (2014-09-04 12:24:19 -0300)
 
-http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=confstore
+are available in the git repository at:
 
-A patched version of qv4l2 and v4l2-ctl that add config store support
-is available here:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v3.17-rc7
 
-http://git.linuxtv.org/cgit.cgi/hverkuil/v4l-utils.git/log/?h=confstore
+for you to fetch changes up to 8e2c8717c1812628b5538c05250057b37c66fdbe:
 
-The easiest way to test this is with vivid. Load vivid, then run the patched
-qv4l2. This will associate every queued buffer with a corresponding config
-store. There are 4 buffers, so stores 1-4 are available for use.
+  [media] em28xx-v4l: get rid of field "users" in struct em28xx_v4l2" (2014-09-21 21:27:57 -0300)
 
-You can change the contrast value for a buffer as follows:
+----------------------------------------------------------------
+media fixes for v3.17-rc7
 
-v4l2-ctl --store=1 -c contrast=90
+----------------------------------------------------------------
+Frank Schaefer (1):
+      [media] em28xx-v4l: get rid of field "users" in struct em28xx_v4l2"
 
-For a fire-and-forget you add the --ignore-after-use option:
+Hans Verkuil (12):
+      [media] videobuf2-dma-sg: fix for wrong GFP mask to sg_alloc_table_from_pages
+      [media] videobuf2-core: add comments before the WARN_ON
+      [media] videobuf2-core.h: fix comment
+      [media] vb2: fix vb2 state check when start_streaming fails
+      [media] DocBook media: fix fieldname in struct v4l2_subdev_selection
+      [media] DocBook media: update version number and V4L2 changes
+      [media] adv7604: fix inverted condition
+      [media] cx24123: fix kernel oops due to missing parent pointer
+      [media] cx2341x: fix kernel oops
+      [media] vb2: fix VBI/poll regression
+      [media] DocBook media: fix the poll() 'no QBUF' documentation
+      [media] DocBook media: improve the poll() documentation
 
-v4l2-ctl --store=1 -c contrast=90 --ignore-after-use
+Mauro Carvalho Chehab (1):
+      [media] em28xx: fix VBI handling logic
 
-So you can cycle between different contrast values as follows:
+Randy Dunlap (1):
+      [media] media/radio: fix radio-miropcm20.c build with io.h header file
 
-v4l2-ctl --store=1 -c contrast=90
-v4l2-ctl --store=2 -c contrast=100
-v4l2-ctl --store=3 -c contrast=110
-v4l2-ctl --store=4 -c contrast=120
+Zhaowei Yuan (1):
+      [media] vb2: fix plane index sanity check in vb2_plane_cookie()
 
-This patch series and the API enhancements will be discussed during the
-upcoming media workshop.
-
-Regards,
-
-	Hans
+ Documentation/DocBook/media/v4l/compat.xml         | 24 +++++++++++
+ Documentation/DocBook/media/v4l/func-poll.xml      | 35 +++++++++++++---
+ Documentation/DocBook/media/v4l/v4l2.xml           | 11 ++---
+ .../media/v4l/vidioc-subdev-g-selection.xml        |  2 +-
+ drivers/media/common/cx2341x.c                     |  1 +
+ drivers/media/dvb-frontends/cx24123.c              |  1 +
+ drivers/media/i2c/adv7604.c                        |  2 +-
+ drivers/media/radio/radio-miropcm20.c              |  1 +
+ drivers/media/usb/em28xx/em28xx-video.c            | 25 +++++------
+ drivers/media/usb/em28xx/em28xx.h                  |  1 +
+ drivers/media/v4l2-core/videobuf2-core.c           | 48 +++++++++++++++++-----
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         |  2 +-
+ include/media/videobuf2-core.h                     |  6 ++-
+ 13 files changed, 119 insertions(+), 40 deletions(-)
 
