@@ -1,56 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59983 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755355AbaIWKyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 06:54:20 -0400
-Message-ID: <54215158.6000607@iki.fi>
-Date: Tue, 23 Sep 2014 13:54:16 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:34135 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742AbaIXW1y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:27:54 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 15/18] [media] s5p_mfc_opr: Fix warnings
+Date: Wed, 24 Sep 2014 19:27:15 -0300
+Message-Id: <ed21f64844bd63573466c2667fd035f9e650a5f9.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
-Subject: Re: [1/2] af9033: fix it9135 strength value not correct issue
-References: <1411465442.1919.6.camel@ite-desktop>
-In-Reply-To: <1411465442.1919.6.camel@ite-desktop>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Bimow!
-Thank you for improving these statistics.
+  CC      drivers/media//platform/s5p-mfc/s5p_mfc_opr.o
+drivers/media//platform/s5p-mfc/s5p_mfc_opr.c: In function ‘s5p_mfc_alloc_priv_buf’:
+drivers/media//platform/s5p-mfc/s5p_mfc_opr.c:44:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
+  mfc_debug(3, "Allocating priv: %d\n", b->size);
+  ^
+drivers/media//platform/s5p-mfc/s5p_mfc_opr.c:53:2: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘dma_addr_t’ [-Wformat=]
+  mfc_debug(3, "Allocated addr %p %08x\n", b->virt, b->dma);
+  ^
 
-I did a quite much changes, basically re-implemented all the 
-af9033/it9133 demod statistics, already. I am not sure if you saw those, 
-but please look that tree first:
-http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-If you want to some more statistics changes, please to top of that tree. 
-We currently have 2 APIs for statistics. Old DVBv3 which uses frontend 
-callbacks: read_snr, read_signal_strength, read_ber and read_ucblocks. 
-New DVBv5 API uses different commands, which reads values from frontend 
-cache.
-
-Driver implements now DVBv5 statistics. Old DVBv3 statistics are there 
-still, but those are just wrappers to return DVBv5 statistics.
-
-You would like to examine these patches first:
-
-$ git log media/devel-3.17-rc6 --oneline|grep af9033
-2db4d17 [media] af9033: init DVBv5 statistics
-ef2fb46 [media] af9033: remove all DVBv3 stat calculation logic
-e53c474 [media] af9033: wrap DVBv3 BER to DVBv5 BER
-1d0ceae [media] af9033: wrap DVBv3 UCB to DVBv5 UCB stats
-6bb096c [media] af9033: implement DVBv5 post-Viterbi BER
-204f431 [media] af9033: implement DVBv5 stat block counters
-6b45778 [media] af9033: wrap DVBv3 read SNR to DVBv5 CNR
-3e41313 [media] af9033: implement DVBv5 statistics for CNR
-83f1161 [media] af9033: implement DVBv5 statistics for signal strength
-
-
-I am happy to took improvements which are done top of these.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index c9a227428e6a..5d311d6ba8f7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -41,7 +41,7 @@ int s5p_mfc_alloc_priv_buf(struct device *dev,
+ 					struct s5p_mfc_priv_buf *b)
+ {
+ 
+-	mfc_debug(3, "Allocating priv: %d\n", b->size);
++	mfc_debug(3, "Allocating priv: %zd\n", b->size);
+ 
+ 	b->virt = dma_alloc_coherent(dev, b->size, &b->dma, GFP_KERNEL);
+ 
+@@ -50,7 +50,7 @@ int s5p_mfc_alloc_priv_buf(struct device *dev,
+ 		return -ENOMEM;
+ 	}
+ 
+-	mfc_debug(3, "Allocated addr %p %08x\n", b->virt, b->dma);
++	mfc_debug(3, "Allocated addr %p %pad\n", b->virt, &b->dma);
+ 	return 0;
+ }
+ 
 -- 
-http://palosaari.fi/
+1.9.3
+
