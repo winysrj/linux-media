@@ -1,72 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp206.alice.it ([82.57.200.102]:1407 "EHLO smtp206.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbaIAHXz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Sep 2014 03:23:55 -0400
-Date: Mon, 1 Sep 2014 09:23:39 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Antonio Ospite <ao2@ao2.it>, Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/12] trivial: drivers/media/usb/gspca/gspca.c: fix the
- indentation of a comment
-Message-Id: <20140901092339.cc472cc46d480a1976ceeb72@ao2.it>
-In-Reply-To: <1401883430-19492-2-git-send-email-ao2@ao2.it>
-References: <1401883430-19492-1-git-send-email-ao2@ao2.it>
-	<1401883430-19492-2-git-send-email-ao2@ao2.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:42028 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753840AbaIXBbi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Sep 2014 21:31:38 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH] [media] qm1d1c0042: fix compilation on 32 bits
+Date: Tue, 23 Sep 2014 22:31:11 -0300
+Message-Id: <aee9cf18e96ed8384a04bd3eda69c7b9e888ee5b.1411522264.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  4 Jun 2014 14:03:39 +0200
-Antonio Ospite <ao2@ao2.it> wrote:
+   drivers/built-in.o: In function `qm1d1c0042_set_params':
+>> qm1d1c0042.c:(.text+0x2519730): undefined reference to `__divdi3'
 
-> Fix indentation of a comment, put it on the same level of the code it
-> refers to.
->
-> Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: linux-media@vger.kernel.org
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Ping, I cannot see this in any upstream repository.
-Here is the linux-media patchwork link:
-https://patchwork.linuxtv.org/patch/24155/
-
-Thanks,
-   Antonio
-
-> ---
->  drivers/media/usb/gspca/gspca.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> index f3a7ace..f4bae98 100644
-> --- a/drivers/media/usb/gspca/gspca.c
-> +++ b/drivers/media/usb/gspca/gspca.c
-> @@ -870,9 +870,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
->  		ep_tb[0].alt = gspca_dev->alt;
->  		alt_idx = 1;
->  	} else {
-> -
-> -	/* else, compute the minimum bandwidth
-> -	 * and build the endpoint table */
-> +		/* else, compute the minimum bandwidth
-> +		 * and build the endpoint table */
->  		alt_idx = build_isoc_ep_tb(gspca_dev, intf, ep_tb);
->  		if (alt_idx <= 0) {
->  			pr_err("no transfer endpoint found\n");
-> -- 
-> 2.0.0
-> 
-> 
-
-
+diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
+index 585594b9c4f8..2a990f406cf5 100644
+--- a/drivers/media/tuners/qm1d1c0042.c
++++ b/drivers/media/tuners/qm1d1c0042.c
+@@ -28,6 +28,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/math64.h>
+ #include "qm1d1c0042.h"
+ 
+ #define QM1D1C0042_NUM_REGS 0x20
+@@ -234,7 +235,9 @@ static int qm1d1c0042_set_params(struct dvb_frontend *fe)
+ 	 * sd = b          (b >= 0)
+ 	 *      1<<22 + b  (b < 0)
+ 	 */
+-	b = (((s64) freq) << 20) / state->cfg.xtal_freq - (((s64) a) << 20);
++	b = (s32)div64_s64(((s64) freq) << 20,
++			   state->cfg.xtal_freq - (((s64) a) << 20));
++
+ 	if (b >= 0)
+ 		sd = b;
+ 	else
 -- 
-Antonio Ospite
-http://ao2.it
+1.9.3
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
