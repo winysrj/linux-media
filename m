@@ -1,91 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37896 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37367 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522AbaIZPWz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 11:22:55 -0400
-Message-ID: <542584CD.6060507@osg.samsung.com>
-Date: Fri, 26 Sep 2014 09:22:53 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1750885AbaIXLaf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 07:30:35 -0400
+Date: Wed, 24 Sep 2014 08:30:30 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad
+ demodulator
+Message-ID: <20140924083030.3fdcfe3e@recife.lan>
+In-Reply-To: <5422A779.8030901@gmail.com>
+References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>
+	<1410196843-26168-4-git-send-email-tskd08@gmail.com>
+	<20140923170730.4d5d167e@recife.lan>
+	<542233E5.5070201@gmail.com>
+	<20140924062812.6308f584@recife.lan>
+	<5422A779.8030901@gmail.com>
 MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: em28xx breaks after hibernate
-References: <20140926080824.GA8382@linuxtv.org> <20140926071411.61a011bd@recife.lan> <20140926110727.GA880@linuxtv.org> <20140926084215.772adce9@recife.lan> <20140926090316.5ae56d93@recife.lan> <20140926122721.GA11597@linuxtv.org> <20140926101222.778ebcaf@recife.lan> <20140926132513.GA30084@linuxtv.org> <20140926142543.GA3806@linuxtv.org> <54257888.90802@osg.samsung.com> <20140926150602.GA15766@linuxtv.org>
-In-Reply-To: <20140926150602.GA15766@linuxtv.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/26/2014 09:06 AM, Johannes Stezenbach wrote:
-> On Fri, Sep 26, 2014 at 08:30:32AM -0600, Shuah Khan wrote:
->> On 09/26/2014 08:25 AM, Johannes Stezenbach wrote:
->>>
->>> So, what is happening is that the em28xx driver still async initializes
->>> while the initramfs already has started resume.  Thus the rootfs in not
->>> mounted and the firmware is not loadable.  Maybe this is only an issue
->>> of my qemu test because I compiled a non-modular kernel but don't have
->>> the firmware in the initramfs for testing simplicity?
->>>
->>>
->>
->> Right. We have an issue when media drivers are compiled static
->> (non-modular). I have been debugging that problem for a while.
->> We have to separate the two cases - if you are compiling em28xx
->> as static then you will run into the issue.
+Em Wed, 24 Sep 2014 20:14:01 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+
+> > Btw, please check if your driver is handling it well, as the valid
+> > values for interleave are 0, 1, 2, 4 (actually, dib8000 also
+> > supports interleaving equal to 8, if sound_broadcast).
 > 
-> So I compiled em28xx as modules and installed them in my qemu image.
-> One issue solved, but it still breaks after resume:
+> I have no info on how to set time interleaving parameters,
+> although I can read them as a part of TMCC info.
+
+And TMCC returns it as 0, 1, 2, 3, 4, instead of 0, 1, 2, 4, 8.
+
+> I guess I can also set them in the same registers, but I'm not sure.
 > 
-> [   20.212162] usb 1-1: reset high-speed USB device number 2 using ehci-pci
-> [   20.503868] em2884 #0: Resuming extensions
-> [   20.505275] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
-> [   20.533513] drxk: status = 0x439130d9
-> [   20.534282] drxk: detected a drx-3913k, spin A2, xtal 20.250 MHz
-> [   23.008852] em2884 #0: writing to i2c device at 0x52 failed (error=-5)
-> [   23.011408] drxk: i2c write error at addr 0x29
-> [   23.013187] drxk: write_block: i2c write error at addr 0x8303b4
-> [   23.015440] drxk: Error -5 while loading firmware
-> [   23.017291] drxk: Error -5 on init_drxk
-> [   23.018835] em2884 #0: fe0 resume 0
+> Since the demod is intelligent and automatically reads TMCC and
+> sets the related parameters accordingly,
+> I think it is safe to ignore user settings and let the demod set it.
+
+AFAIKT, that doesn't work in Sound Broadcast mode, as the demod won't
+be able to read the TMCC (at least on most demods - don't have any
+details about tc90522).
+
+> If someone would get more info in the future,
+> [s]he could set those parameters in advance and make a lock faster.
 > 
-> Any idea on this?
-> 
-
-Looks like this is what's happening:
-during suspend:
-
-drxk_sleep() gets called and marks state->m_drxk_state == DRXK_UNINITIALIZED
-
-init_drxk() does download_microcode() and this step fails
-because the conditions in which init_drxk() gets called
-from drxk_attach() are different.
-
-i2c isn't ready.
-
-Is it possible for you to test this without power loss
-on usb assuming this test run usb bus looses power?
-
-If you could do the following tests and see if there is
-a difference:
-
-echo mem > /sys/power/state
-vs
-echo disk > /sys/power/state
-
-If it is possible, with and without reset_resume hook.
-Sorry, I wish I have the hardware :(
-
-I am looking to order it now and see if I get it early
-next week at the latest.
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+> regards,
+> akihiro
