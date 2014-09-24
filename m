@@ -1,219 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2872 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754640AbaILNAh (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:34257 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751828AbaIXW17 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [RFCv2 PATCH 07/14] vb2-dma-sg: add get_dmabuf
-Date: Fri, 12 Sep 2014 14:59:56 +0200
-Message-Id: <1410526803-25887-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 24 Sep 2014 18:27:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Christoph Jaeger <christophjaeger@linux.com>,
+	Dave Jones <davej@redhat.com>
+Subject: [PATCH 11/18] [media] drxd: remove a dead code
+Date: Wed, 24 Sep 2014 19:27:11 -0300
+Message-Id: <72d5c25b8175ac7655c165339ad2d2880419dec7.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+drivers/media/dvb-frontends/drxd_hard.c:2839 drxd_init() info: ignoring unreachable code.
 
-Add DMABUF export support to vb2-dma-sg.
+Firmware request/release is not at drxd_init. So, we can remove
+that dead code.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 6d922c0..b494b49 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -385,6 +385,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+index 961641b67728..687e893d29fe 100644
+--- a/drivers/media/dvb-frontends/drxd_hard.c
++++ b/drivers/media/dvb-frontends/drxd_hard.c
+@@ -2831,14 +2831,8 @@ static int drxd_read_status(struct dvb_frontend *fe, fe_status_t * status)
+ static int drxd_init(struct dvb_frontend *fe)
+ {
+ 	struct drxd_state *state = fe->demodulator_priv;
+-	int err = 0;
+ 
+-/*	if (request_firmware(&state->fw, "drxd.fw", state->dev)<0) */
+ 	return DRXD_init(state, NULL, 0);
+-
+-	err = DRXD_init(state, state->fw->data, state->fw->size);
+-	release_firmware(state->fw);
+-	return err;
  }
  
- /*********************************************/
-+/*         DMABUF ops for exporters          */
-+/*********************************************/
-+
-+struct vb2_dma_sg_attachment {
-+	struct sg_table sgt;
-+	enum dma_data_direction dir;
-+};
-+
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-+	struct dma_buf_attachment *dbuf_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
-+	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+	int ret;
-+
-+	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-+	if (!attach)
-+		return -ENOMEM;
-+
-+	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(attach);
-+		return -ENOMEM;
-+	}
-+
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
-+	}
-+
-+	attach->dir = DMA_NONE;
-+	dbuf_attach->priv = attach;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-+	struct dma_buf_attachment *db_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	struct sg_table *sgt;
-+
-+	if (!attach)
-+		return;
-+
-+	sgt = &attach->sgt;
-+
-+	/* release the scatterlist cache */
-+	if (attach->dir != DMA_NONE)
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+	sg_free_table(sgt);
-+	kfree(attach);
-+	db_attach->priv = NULL;
-+}
-+
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	/* stealing dmabuf mutex to serialize map/unmap operations */
-+	struct mutex *lock = &db_attach->dmabuf->lock;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	mutex_lock(lock);
-+
-+	sgt = &attach->sgt;
-+	/* return previously mapped sg table */
-+	if (attach->dir == dir) {
-+		mutex_unlock(lock);
-+		return sgt;
-+	}
-+
-+	/* release any previous cache */
-+	if (attach->dir != DMA_NONE) {
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+		attach->dir = DMA_NONE;
-+	}
-+
-+	/* mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	if (ret <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		mutex_unlock(lock);
-+		return ERR_PTR(-EIO);
-+	}
-+
-+	attach->dir = dir;
-+
-+	mutex_unlock(lock);
-+
-+	return sgt;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-+	struct sg_table *sgt, enum dma_data_direction dir)
-+{
-+	/* nothing to be done here */
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-+{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr + pgnum * PAGE_SIZE;
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return vb2_dma_sg_vaddr(buf);
-+}
-+
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
-+	struct vm_area_struct *vma)
-+{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
-+}
-+
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
-+};
-+
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct dma_buf *dbuf;
-+
-+	if (WARN_ON(!buf->dma_sgt))
-+		return NULL;
-+
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
-+	if (IS_ERR(dbuf))
-+		return NULL;
-+
-+	/* dmabuf keeps reference to vb2 buffer */
-+	atomic_inc(&buf->refcount);
-+
-+	return dbuf;
-+}
-+
-+/*********************************************/
- /*       callbacks for DMABUF buffers        */
- /*********************************************/
- 
-@@ -494,6 +663,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+ static int drxd_config_i2c(struct dvb_frontend *fe, int onoff)
 -- 
-2.1.0
+1.9.3
 
