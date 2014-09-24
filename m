@@ -1,159 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:59640 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756028AbaIDIBh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 04:01:37 -0400
-From: ayaka <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, m.chehab@samsung.com, hverkuil@xs4all.nl,
-	ayaka <ayaka@soulik.info>
-Subject: [PATCH] media: fix enum_fmt for s5p-mfc
-Date: Thu,  4 Sep 2014 15:52:39 +0800
-Message-Id: <1409817159-6237-2-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1409817159-6237-1-git-send-email-ayaka@soulik.info>
-References: <1409817159-6237-1-git-send-email-ayaka@soulik.info>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:35399 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872AbaIXENW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 00:13:22 -0400
+Received: by mail-pd0-f180.google.com with SMTP id r10so7641415pdi.25
+        for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 21:13:22 -0700 (PDT)
+Message-ID: <542244DA.1010508@gmail.com>
+Date: Wed, 24 Sep 2014 13:13:14 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] tc90522: declare tc90522_functionality as static
+References: <5b2f265c143c9e8ee35b035de7d35bb69871fd84.1411502537.git.mchehab@osg.samsung.com>
+In-Reply-To: <5b2f265c143c9e8ee35b035de7d35bb69871fd84.1411502537.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the s5p-mfc is a driver which use  multiplanar api, so the
-vidioc_enum_fmt_vid serial of ioctl should only for
-multiplanar, non-multiplanar shouldn't be implemented at all.
-
-Signed-off-by: ayaka <ayaka@soulik.info>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 24 +++---------------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 24 +++---------------------
- 2 files changed, 6 insertions(+), 42 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 4d93835..6611a7a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -283,17 +283,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- 
- /* Enumerate format */
- static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
--							bool mplane, bool out)
-+							bool out)
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_fmt *fmt;
- 	int i, j = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
--		if (mplane && formats[i].num_planes == 1)
--			continue;
--		else if (!mplane && formats[i].num_planes > 1)
--			continue;
- 		if (out && formats[i].type != MFC_FMT_DEC)
- 			continue;
- 		else if (!out && formats[i].type != MFC_FMT_RAW)
-@@ -313,28 +309,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
- 	return 0;
- }
- 
--static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
--							struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, false);
--}
--
- static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
- 							struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, false);
--}
--
--static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
--							struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, true);
-+	return vidioc_enum_fmt(file, f, false);
- }
- 
- static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *priv,
- 							struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, true);
-+	return vidioc_enum_fmt(file, f, true);
- }
- 
- /* Get format */
-@@ -878,9 +862,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- /* v4l2_ioctl_ops */
- static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- 	.vidioc_querycap = vidioc_querycap,
--	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
--	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
- 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
- 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
- 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 3abe468..4725a6f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -953,17 +953,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- }
- 
- static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
--							bool mplane, bool out)
-+							bool out)
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_fmt *fmt;
- 	int i, j = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
--		if (mplane && formats[i].num_planes == 1)
--			continue;
--		else if (!mplane && formats[i].num_planes > 1)
--			continue;
- 		if (out && formats[i].type != MFC_FMT_RAW)
- 			continue;
- 		else if (!out && formats[i].type != MFC_FMT_ENC)
-@@ -983,28 +979,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
- 	return -EINVAL;
- }
- 
--static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
--				   struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, false);
--}
--
- static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
- 					  struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, false);
--}
--
--static int vidioc_enum_fmt_vid_out(struct file *file, void *prov,
--				   struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, true);
-+	return vidioc_enum_fmt(file, f, false);
- }
- 
- static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *prov,
- 					  struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, true);
-+	return vidioc_enum_fmt(file, f, true);
- }
- 
- static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
-@@ -1751,9 +1735,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- 
- static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
- 	.vidioc_querycap = vidioc_querycap,
--	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
--	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
- 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
- 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
- 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
--- 
-1.9.3
+Sorry to bother you with those build warnings.
+Somehow I didn't see them when I built the modules myself on 64bit box.
+maybe since I forgot to test all-y config (and 32bit build),
+the gcc cmd did not include [-Wmissing-prototypes].
 
