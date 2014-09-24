@@ -1,116 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45491 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbaI3J50 (ORCPT
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:63523 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752501AbaIXPKw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Sep 2014 05:57:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/10] [media] coda: allow userspace to set compressed buffer size in a certain range
-Date: Tue, 30 Sep 2014 11:57:11 +0200
-Message-Id: <1412071031-32016-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 24 Sep 2014 11:10:52 -0400
+Received: by mail-pd0-f180.google.com with SMTP id r10so8625416pdi.25
+        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 08:10:51 -0700 (PDT)
+From: Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Fengguang Wu <fengguang.wu@intel.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH] rc: fix hix5hd2 build issue in 0-DAY kernel build
+Date: Wed, 24 Sep 2014 23:10:01 +0800
+Message-Id: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For small frame sizes, allocating 1 MiB per compressed buffer is a waste of
-space. On the other hand, incompressible 1080p data can produce JPEGs larger
-than 1 MiB at higher quality settings. Allow userspace to set the compressed
-buffer size and clamp the value to a sensible range.
-Also set the initial sizeimage to a value inside the range allowed by try_fmt.
-While at it, reduce the default image size to a maximum of 1920*1088 (otherwise
-JPEG will default to 8k*8k and 96 MiB buffers).
+Add dependence of ARCH_HIX5HD2 to solve build error in arch like ia64
+error: implicit declaration of function 'readl_relaxed' & 'writel_relaxed'
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Change CONFIG_PM to CONFIG_PM_SLEEP to solve
+warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
 ---
- drivers/media/platform/coda/coda-bit.c    |  4 ++--
- drivers/media/platform/coda/coda-common.c | 25 +++++++++++++++++--------
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ drivers/media/rc/Kconfig      |    2 +-
+ drivers/media/rc/ir-hix5hd2.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 2a6810e..0c67cfd 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1129,7 +1129,7 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 			ctx->vpu_header_size[0] +
- 			ctx->vpu_header_size[1] +
- 			ctx->vpu_header_size[2];
--		pic_stream_buffer_size = CODA_MAX_FRAME_SIZE -
-+		pic_stream_buffer_size = q_data_dst->sizeimage -
- 			ctx->vpu_header_size[0] -
- 			ctx->vpu_header_size[1] -
- 			ctx->vpu_header_size[2];
-@@ -1143,7 +1143,7 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	} else {
- 		pic_stream_buffer_addr =
- 			vb2_dma_contig_plane_dma_addr(dst_buf, 0);
--		pic_stream_buffer_size = CODA_MAX_FRAME_SIZE;
-+		pic_stream_buffer_size = q_data_dst->sizeimage;
- 	}
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 01e5f7a..ff5a625 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -166,7 +166,7 @@ config IR_ENE
  
- 	if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 53791d4..5429e85 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -529,7 +529,15 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
- 	case V4L2_PIX_FMT_H264:
- 	case V4L2_PIX_FMT_MPEG4:
- 		f->fmt.pix.bytesperline = 0;
--		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
-+		/*
-+		 * This is a rough estimate for sensible compressed buffer
-+		 * sizes (between 1 and 16 bits per pixel). This could be
-+		 * improved by better format specific worst case estimates.
-+		 */
-+		f->fmt.pix.sizeimage = round_up(clamp(f->fmt.pix.sizeimage,
-+				f->fmt.pix.width * f->fmt.pix.height / 8,
-+				f->fmt.pix.width * f->fmt.pix.height * 2),
-+				PAGE_SIZE);
- 		break;
- 	default:
- 		BUG();
-@@ -1031,12 +1039,13 @@ static void coda_set_tiled_map_type(struct coda_ctx *ctx, int tiled_map_type)
+ config IR_HIX5HD2
+ 	tristate "Hisilicon hix5hd2 IR remote control"
+-	depends on RC_CORE
++	depends on RC_CORE && ARCH_HIX5HD2
+ 	help
+ 	 Say Y here if you want to use hisilicon hix5hd2 remote control.
+ 	 To compile this driver as a module, choose M here: the module will be
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index 64f8257..c1d8527 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -289,7 +289,7 @@ static int hix5hd2_ir_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- static void set_default_params(struct coda_ctx *ctx)
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int hix5hd2_ir_suspend(struct device *dev)
  {
--	int max_w, max_h;
-+	unsigned int max_w, max_h, size;
- 
- 	ctx->codec = coda_find_codec(ctx->dev, ctx->cvd->src_formats[0],
- 				     ctx->cvd->dst_formats[0]);
--	max_w = ctx->codec->max_w;
--	max_h = ctx->codec->max_h;
-+	max_w = min(ctx->codec->max_w, 1920U);
-+	max_h = min(ctx->codec->max_h, 1088U);
-+	size = max_w * max_h * 3 / 2;
- 
- 	ctx->params.codec_mode = ctx->codec->mode;
- 	ctx->colorspace = V4L2_COLORSPACE_REC709;
-@@ -1051,14 +1060,14 @@ static void set_default_params(struct coda_ctx *ctx)
- 	ctx->q_data[V4L2_M2M_DST].height = max_h;
- 	if (ctx->codec->src_fourcc == V4L2_PIX_FMT_YUV420) {
- 		ctx->q_data[V4L2_M2M_SRC].bytesperline = max_w;
--		ctx->q_data[V4L2_M2M_SRC].sizeimage = (max_w * max_h * 3) / 2;
-+		ctx->q_data[V4L2_M2M_SRC].sizeimage = size;
- 		ctx->q_data[V4L2_M2M_DST].bytesperline = 0;
--		ctx->q_data[V4L2_M2M_DST].sizeimage = CODA_MAX_FRAME_SIZE;
-+		ctx->q_data[V4L2_M2M_DST].sizeimage = round_up(size, PAGE_SIZE);
- 	} else {
- 		ctx->q_data[V4L2_M2M_SRC].bytesperline = 0;
--		ctx->q_data[V4L2_M2M_SRC].sizeimage = CODA_MAX_FRAME_SIZE;
-+		ctx->q_data[V4L2_M2M_SRC].sizeimage = round_up(size, PAGE_SIZE);
- 		ctx->q_data[V4L2_M2M_DST].bytesperline = max_w;
--		ctx->q_data[V4L2_M2M_DST].sizeimage = (max_w * max_h * 3) / 2;
-+		ctx->q_data[V4L2_M2M_DST].sizeimage = size;
- 	}
- 	ctx->q_data[V4L2_M2M_SRC].rect.width = max_w;
- 	ctx->q_data[V4L2_M2M_SRC].rect.height = max_h;
+ 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
 -- 
-2.1.0
+1.7.9.5
 
