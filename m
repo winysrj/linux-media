@@ -1,91 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51148 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753727AbaIEJXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Sep 2014 05:23:44 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] si2157: sleep hack
-Date: Fri,  5 Sep 2014 12:23:23 +0300
-Message-Id: <1409909003-29730-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:34121 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbaIXW1y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:27:54 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
+Subject: [PATCH 05/18] [media] pms: Fix a bad usage of the stack
+Date: Wed, 24 Sep 2014 19:27:05 -0300
+Message-Id: <7c1bc498f8e43841b8673756e016f62420611c05.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Olli could you test that?
+As warned by smatch:
+	drivers/media/parport/pms.c:632:21: warning: Variable length array is used.
 
-Cc: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c |  4 ++--
- drivers/media/tuners/si2157.c        | 14 ++++++++++++--
- 2 files changed, 14 insertions(+), 4 deletions(-)
+The pms driver is doing something really bad: it is using the
+stack to read data into a buffer whose size is given by the
+user by the read() syscall. Replace it by a dynamically allocated
+buffer.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index a0797fd..6c00052 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -379,14 +379,14 @@ static int si2168_init(struct dvb_frontend *fe)
- 		ret = si2168_cmd_execute(s, &cmd);
- 		if (ret)
- 			goto err;
--
-+#if 1
- 		memcpy(cmd.args, "\x85", 1);
- 		cmd.wlen = 1;
- 		cmd.rlen = 1;
- 		ret = si2168_cmd_execute(s, &cmd);
- 		if (ret)
- 			goto err;
--
-+#endif
- 		goto warm;
- 	}
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/parport/pms.c b/drivers/media/parport/pms.c
+index 9bc105b3db1b..e6b497528cea 100644
+--- a/drivers/media/parport/pms.c
++++ b/drivers/media/parport/pms.c
+@@ -629,11 +629,15 @@ static int pms_capture(struct pms *dev, char __user *buf, int rgb555, int count)
+ {
+ 	int y;
+ 	int dw = 2 * dev->width;
+-	char tmp[dw + 32]; /* using a temp buffer is faster than direct  */
++	char *tmp; /* using a temp buffer is faster than direct  */
+ 	int cnt = 0;
+ 	int len = 0;
+ 	unsigned char r8 = 0x5;  /* value for reg8  */
  
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 5901484..1bbcb51 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -89,17 +89,22 @@ static int si2157_init(struct dvb_frontend *fe)
- 
- 	dev_dbg(&s->client->dev, "\n");
- 
--	if (s->fw_loaded)
--		goto warm;
-+//	if (s->fw_loaded)
-+//		goto warm;
- 
- 	/* power up */
- 	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
-+	if (s->fw_loaded)
-+		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x01\x01", 15);
- 	cmd.wlen = 15;
- 	cmd.rlen = 1;
- 	ret = si2157_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
- 
-+	if (s->fw_loaded)
-+		goto warm;
++	tmp = kmalloc(dw + 32, GFP_KERNEL);
++	if (!tmp)
++		return 0;
 +
- 	/* query chip revision */
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
-@@ -203,10 +208,15 @@ static int si2157_sleep(struct dvb_frontend *fe)
+ 	if (rgb555)
+ 		r8 |= 0x20; /* else use untranslated rgb = 565 */
+ 	mvv_write(dev, 0x08, r8); /* capture rgb555/565, init DRAM, PC enable */
+@@ -664,6 +668,7 @@ static int pms_capture(struct pms *dev, char __user *buf, int rgb555, int count)
+ 			len += dt;
+ 		}
+ 	}
++	kfree(tmp);
+ 	return len;
+ }
  
- 	s->active = false;
- 
-+	memcpy(cmd.args, "\x13", 1);
-+	cmd.wlen = 1;
-+	cmd.rlen = 0;
-+#if 0
- 	/* standby */
- 	memcpy(cmd.args, "\x16\x00", 2);
- 	cmd.wlen = 2;
- 	cmd.rlen = 1;
-+#endif
- 	ret = si2157_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
 -- 
-http://palosaari.fi/
+1.9.3
 
