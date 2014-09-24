@@ -1,61 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:63523 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752501AbaIXPKw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 11:10:52 -0400
-Received: by mail-pd0-f180.google.com with SMTP id r10so8625416pdi.25
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 08:10:51 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Fengguang Wu <fengguang.wu@intel.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH] rc: fix hix5hd2 build issue in 0-DAY kernel build
-Date: Wed, 24 Sep 2014 23:10:01 +0800
-Message-Id: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35632 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751352AbaIXLPc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 07:15:32 -0400
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
+Subject: [PATCH] saa7146: Create a device name before it's used
+Date: Wed, 24 Sep 2014 13:15:17 +0200
+Message-Id: <1411557317-16379-1-git-send-email-lkundrak@v3.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add dependence of ARCH_HIX5HD2 to solve build error in arch like ia64
-error: implicit declaration of function 'readl_relaxed' & 'writel_relaxed'
+request_irq() uses it, tries to create a procfs file with an empty name
+otherwise.
 
-Change CONFIG_PM to CONFIG_PM_SLEEP to solve
-warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=83771
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 ---
- drivers/media/rc/Kconfig      |    2 +-
- drivers/media/rc/ir-hix5hd2.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/saa7146/saa7146_core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 01e5f7a..ff5a625 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -166,7 +166,7 @@ config IR_ENE
+diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
+index 97afee6..4418119 100644
+--- a/drivers/media/common/saa7146/saa7146_core.c
++++ b/drivers/media/common/saa7146/saa7146_core.c
+@@ -364,6 +364,9 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 		goto out;
+ 	}
  
- config IR_HIX5HD2
- 	tristate "Hisilicon hix5hd2 IR remote control"
--	depends on RC_CORE
-+	depends on RC_CORE && ARCH_HIX5HD2
- 	help
- 	 Say Y here if you want to use hisilicon hix5hd2 remote control.
- 	 To compile this driver as a module, choose M here: the module will be
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index 64f8257..c1d8527 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -289,7 +289,7 @@ static int hix5hd2_ir_remove(struct platform_device *pdev)
- 	return 0;
- }
++	/* create a nice device name */
++	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
++
+ 	DEB_EE("pci:%p\n", pci);
  
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int hix5hd2_ir_suspend(struct device *dev)
- {
- 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
+ 	err = pci_enable_device(pci);
+@@ -438,9 +441,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 
+ 	/* the rest + print status message */
+ 
+-	/* create a nice device name */
+-	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
+-
+ 	pr_info("found saa7146 @ mem %p (revision %d, irq %d) (0x%04x,0x%04x)\n",
+ 		dev->mem, dev->revision, pci->irq,
+ 		pci->subsystem_vendor, pci->subsystem_device);
 -- 
-1.7.9.5
+1.9.3
 
