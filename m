@@ -1,107 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3518 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbaIBHmh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 03:42:37 -0400
-Message-ID: <540574B6.6040602@xs4all.nl>
-Date: Tue, 02 Sep 2014 09:41:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] videobuf: Allow reqbufs(0) to free current buffers
-References: <1409480361-12821-1-git-send-email-hdegoede@redhat.com> <540474AE.4070706@xs4all.nl> <54049268.3060004@redhat.com>
-In-Reply-To: <54049268.3060004@redhat.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:34283 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbaIXW2A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 18:28:00 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: [PATCH 04/18] [media] saa7164-core: declare symbols as static
+Date: Wed, 24 Sep 2014 19:27:04 -0300
+Message-Id: <c2514892ac4ce7d8d645abd90916480d884a49eb.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/14 17:36, Hans de Goede wrote:
-> Hi,
-> 
-> On 09/01/2014 03:29 PM, Hans Verkuil wrote:
->> Hi Hans,
->>
->> At first glance this looks fine. But making changes in videobuf is always scary :-)
->> so I hope Marek can look at this as well.
->>
->> How well was this tested?
-> 
-> I ran some tests on bttv which all ran well.
-> 
-> Note that the code already allowed for going from say 4 buffers to 1,
-> and the old code path for reqbufs was already calling __videobuf_free()
-> before re-allocating the buffers again. So in essence this just changes
-> things to allow the 4 buffers to 1 case to also be 4 buffers to 0.
+Those symbols are used only at saa7164-core.
 
-The code looks good and I've tested it with cx88 which worked (well, except
-for the zillion other bugs in cx88, but that's another story). I do want to
-do a few more tests on Friday, though. This time with a more stable driver.
+drivers/media/pci/saa7164/saa7164-core.c:55:14: warning: symbol 'fw_debug' was not declared. Should it be static?
+drivers/media/pci/saa7164/saa7164-core.c:75:14: warning: symbol 'print_histogram' was not declared. Should it be static?
+drivers/media/pci/saa7164/saa7164-core.c:83:14: warning: symbol 'guard_checking' was not declared. Should it be static?
 
-I think we should consider adding this to the stable tree as well.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
->>
->> I'll try do test this as well.
->>
->> Regards,
->>
->> 	Hans
->>
->> On 08/31/2014 12:19 PM, Hans de Goede wrote:
->>> All the infrastructure for this is already there, and despite our desires for
->>> the old videobuf code to go away, it is currently still in use in 18 drivers.
->>>
->>> Allowing reqbufs(0) makes these drivers behave consistent with modern drivers,
->>> making live easier for userspace, see e.g. :
->>> https://bugzilla.gnome.org/show_bug.cgi?id=735660
->>>
->>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>> ---
->>>  drivers/media/v4l2-core/videobuf-core.c | 11 ++++++-----
->>>  1 file changed, 6 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
->>> index fb5ee5d..b91a266 100644
->>> --- a/drivers/media/v4l2-core/videobuf-core.c
->>> +++ b/drivers/media/v4l2-core/videobuf-core.c
->>> @@ -441,11 +441,6 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->>>  	unsigned int size, count;
->>>  	int retval;
->>>  
->>> -	if (req->count < 1) {
->>> -		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
->>> -		return -EINVAL;
->>> -	}
->>> -
->>>  	if (req->memory != V4L2_MEMORY_MMAP     &&
->>>  	    req->memory != V4L2_MEMORY_USERPTR  &&
->>>  	    req->memory != V4L2_MEMORY_OVERLAY) {
->>> @@ -471,6 +466,12 @@ int videobuf_reqbufs(struct videobuf_queue *q,
->>>  		goto done;
->>>  	}
->>>  
->>> +	if (req->count == 0) {
->>> +		dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
->>> +		retval = __videobuf_free(q);
->>> +		goto done;
->>> +	}
->>> +
->>>  	count = req->count;
->>>  	if (count > VIDEO_MAX_FRAME)
->>>  		count = VIDEO_MAX_FRAME;
->>>
->>
+diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
+index 1bf06970ca3e..cc1be8a7a451 100644
+--- a/drivers/media/pci/saa7164/saa7164-core.c
++++ b/drivers/media/pci/saa7164/saa7164-core.c
+@@ -52,7 +52,7 @@ unsigned int saa_debug;
+ module_param_named(debug, saa_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable debug messages");
+ 
+-unsigned int fw_debug;
++static unsigned int fw_debug;
+ module_param(fw_debug, int, 0644);
+ MODULE_PARM_DESC(fw_debug, "Firmware debug level def:2");
+ 
+@@ -72,7 +72,7 @@ static unsigned int card[]  = {[0 ... (SAA7164_MAXBOARDS - 1)] = UNSET };
+ module_param_array(card,  int, NULL, 0444);
+ MODULE_PARM_DESC(card, "card type");
+ 
+-unsigned int print_histogram = 64;
++static unsigned int print_histogram = 64;
+ module_param(print_histogram, int, 0644);
+ MODULE_PARM_DESC(print_histogram, "print histogram values once");
+ 
+@@ -80,7 +80,7 @@ unsigned int crc_checking = 1;
+ module_param(crc_checking, int, 0644);
+ MODULE_PARM_DESC(crc_checking, "enable crc sanity checking on buffers");
+ 
+-unsigned int guard_checking = 1;
++static unsigned int guard_checking = 1;
+ module_param(guard_checking, int, 0644);
+ MODULE_PARM_DESC(guard_checking,
+ 	"enable dma sanity checking for buffer overruns");
+-- 
+1.9.3
 
