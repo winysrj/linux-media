@@ -1,86 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0110.outbound.protection.outlook.com ([157.56.111.110]:56976
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752344AbaIYCRp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 22:17:45 -0400
-From: "chen.fang@freescale.com" <chen.fang@freescale.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
-CC: Shengchao Guo <Shawn.Guo@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-Date: Thu, 25 Sep 2014 02:17:42 +0000
-Message-ID: <113c7da497f64f5caa7f2dab341cad60@BY2PR03MB556.namprd03.prod.outlook.com>
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
- <540FF70E.9050203@xs4all.nl> <5422BBDB.7050904@samsung.com>
- <5422BC49.3050000@xs4all.nl>
-In-Reply-To: <5422BC49.3050000@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lists.s-osg.org ([54.187.51.154]:37590 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751134AbaIXXZY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 19:25:24 -0400
+Date: Wed, 24 Sep 2014 20:25:14 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 15/18] [media] s5p_mfc_opr: Fix warnings
+Message-ID: <20140924202514.0b1c6a3c@recife.lan>
+In-Reply-To: <CAOMZO5CoaX05r50p+Ug++napxZEoL_+CR8-T7tN6wtiSRfT1pw@mail.gmail.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+	<ed21f64844bd63573466c2667fd035f9e650a5f9.1411597610.git.mchehab@osg.samsung.com>
+	<CAOMZO5CoaX05r50p+Ug++napxZEoL_+CR8-T7tN6wtiSRfT1pw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhhbmtzIGZvciB5b3VyIGlkZWEsIE1hcmVrIGFuZCBIYW5zLiBUaGlzIGNoYW5nZSBtYWtlcyBz
-ZW5zZS4gQW5kIEkndmUgYWxyZWFkeQ0KdmVyaWZpZWQgaXQuIEknbGwgcmVzdWJtaXQgbXkgY2hh
-bmdlIHNvb24uDQoNCkJlc3QgcmVnYXJkcywNCkZhbmN5IEZhbmcNCg0KLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCkZyb206IEhhbnMgVmVya3VpbCBbbWFpbHRvOmh2ZXJrdWlsQHhzNGFsbC5u
-bF0gDQpTZW50OiBXZWRuZXNkYXksIFNlcHRlbWJlciAyNCwgMjAxNCA4OjQzIFBNDQpUbzogTWFy
-ZWsgU3p5cHJvd3NraTsgRmFuZyBDaGVuLUI0NzU0MzsgbS5jaGVoYWJAc2Ftc3VuZy5jb207IHZp
-cm9AWmVuSVYubGludXgub3JnLnVrDQpDYzogR3VvIFNoYXduLVI2NTA3MzsgbGludXgtbWVkaWFA
-dmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBS
-ZTogW1BBVENIXSBbbWVkaWFdIHZpZGVvYnVmLWRtYS1jb250aWc6IHJlcGxhY2Ugdm1faW9tYXBf
-bWVtb3J5KCkgd2l0aCByZW1hcF9wZm5fcmFuZ2UoKS4NCg0KDQoNCk9uIDA5LzI0LzIwMTQgMDI6
-NDAgUE0sIE1hcmVrIFN6eXByb3dza2kgd3JvdGU6DQo+IEhlbGxvLA0KPg0KPiBPbiAyMDE0LTA5
-LTEwIDA5OjAwLCBIYW5zIFZlcmt1aWwgd3JvdGU6DQo+PiBPbiAwOS8xMC8xNCAwNzoyOCwgRmFu
-Y3kgRmFuZyB3cm90ZToNCj4+PiBXaGVuIHVzZXIgcmVxdWVzdHMgVjRMMl9NRU1PUllfTU1BUCB0
-eXBlIGJ1ZmZlcnMsIHRoZSB2aWRlb2J1Zi1jb3JlIA0KPj4+IHdpbGwgYXNzaWduIHRoZSBjb3Jy
-ZXNwb25kaW5nIG9mZnNldCB0byB0aGUgJ2JvZmYnIGZpZWxkIG9mIHRoZSANCj4+PiB2aWRlb2J1
-Zl9idWZmZXIgZm9yIGVhY2ggcmVxdWVzdGVkIGJ1ZmZlciBzZXF1ZW50aWFsbHkuIExhdGVyLCB1
-c2VyIA0KPj4+IG1heSBjYWxsIG1tYXAoKSB0byBtYXAgb25lIG9yIGFsbCBvZiB0aGUgYnVmZmVy
-cyB3aXRoIHRoZSAnb2Zmc2V0Jw0KPj4+IHBhcmFtZXRlciB3aGljaCBpcyBlcXVhbCB0byBpdHMg
-J2JvZmYnIHZhbHVlLiBPYnZpb3VzbHksIHRoZSAnb2Zmc2V0Jw0KPj4+IHZhbHVlIGlzIG9ubHkg
-dXNlZCB0byBmaW5kIHRoZSBtYXRjaGVkIGJ1ZmZlciBpbnN0ZWFkIG9mIHRvIGJlIHRoZSANCj4+
-PiByZWFsIG9mZnNldCBmcm9tIHRoZSBidWZmZXIncyBwaHlzaWNhbCBzdGFydCBhZGRyZXNzIGFz
-IHVzZWQgYnkgDQo+Pj4gdm1faW9tYXBfbWVtb3J5KCkuIFNvLCBpbiBzb21lIGNhc2UgdGhhdCBp
-ZiB0aGUgb2Zmc2V0IGlzIG5vdCB6ZXJvLA0KPj4+IHZtX2lvbWFwX21lbW9yeSgpIHdpbGwgZmFp
-bC4NCj4+IElzIHRoaXMganVzdCBhIGZpeCBmb3Igc29tZXRoaW5nIHRoYXQgY2FuIGZhaWwgdGhl
-b3JldGljYWxseSwgb3IgZG8gDQo+PiB5b3UgYWN0dWFsbHkgaGF2ZSBhIGNhc2Ugd2hlcmUgdGhp
-cyBoYXBwZW5zPyBJIGFtIHZlcnkgcmVsdWN0YW50IHRvIA0KPj4gbWFrZSBhbnkgY2hhbmdlcyB0
-byB2aWRlb2J1Zi4gRHJpdmVycyBzaG91bGQgYWxsIG1pZ3JhdGUgdG8gdmIyLg0KPj4NCj4+IEkg
-aGF2ZSBDQy1lZCBNYXJlayBhcyB3ZWxsIHNpbmNlIGhlIGtub3dzIGEgbG90IG1vcmUgYWJvdXQg
-dGhpcyBzdHVmZiANCj4+IHRoYW4gSSBkby4NCj4NCj4gSSdtIHNvcnJ5IGZvciBhIGRlbGF5LCBJ
-IHdhcyByZWFsbHkgYnVzeSB3aXRoIG90aGVyIHRoaW5ncy4NCj4NCj4+PiBTaWduZWQtb2ZmLWJ5
-OiBGYW5jeSBGYW5nIDxjaGVuLmZhbmdAZnJlZXNjYWxlLmNvbT4NCj4+PiAtLS0NCj4+PiAgIGRy
-aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYyB8IDQgKysrLQ0KPj4+
-ICAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPj4+DQo+
-Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250
-aWcuYyANCj4+PiBiL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcu
-Yw0KPj4+IGluZGV4IGJmODBmMGYuLjhiZDk4ODkgMTAwNjQ0DQo+Pj4gLS0tIGEvZHJpdmVycy9t
-ZWRpYS92NGwyLWNvcmUvdmlkZW9idWYtZG1hLWNvbnRpZy5jDQo+Pj4gKysrIGIvZHJpdmVycy9t
-ZWRpYS92NGwyLWNvcmUvdmlkZW9idWYtZG1hLWNvbnRpZy5jDQo+Pj4gQEAgLTMwNSw3ICszMDUs
-OSBAQCBzdGF0aWMgaW50IF9fdmlkZW9idWZfbW1hcF9tYXBwZXIoc3RydWN0IHZpZGVvYnVmX3F1
-ZXVlICpxLA0KPj4+ICAgICAgIC8qIFRyeSB0byByZW1hcCBtZW1vcnkgKi8NCj4+PiAgICAgICBz
-aXplID0gdm1hLT52bV9lbmQgLSB2bWEtPnZtX3N0YXJ0Ow0KPj4+ICAgICAgIHZtYS0+dm1fcGFn
-ZV9wcm90ID0gcGdwcm90X25vbmNhY2hlZCh2bWEtPnZtX3BhZ2VfcHJvdCk7DQo+Pj4gLSAgICBy
-ZXR2YWwgPSB2bV9pb21hcF9tZW1vcnkodm1hLCBtZW0tPmRtYV9oYW5kbGUsIHNpemUpOw0KPj4+
-ICsgICAgcmV0dmFsID0gcmVtYXBfcGZuX3JhbmdlKHZtYSwgdm1hLT52bV9zdGFydCwNCj4+PiAr
-ICAgICAgICAgICAgICAgICBtZW0tPmRtYV9oYW5kbGUgPj4gUEFHRV9TSElGVCwNCj4+PiArICAg
-ICAgICAgICAgICAgICBzaXplLCB2bWEtPnZtX3BhZ2VfcHJvdCk7DQo+Pj4gICAgICAgaWYgKHJl
-dHZhbCkgew0KPj4+ICAgICAgICAgICBkZXZfZXJyKHEtPmRldiwgIm1tYXA6IHJlbWFwIGZhaWxl
-ZCB3aXRoIGVycm9yICVkLiAiLA0KPj4+ICAgICAgICAgICAgICAgcmV0dmFsKTsNCj4NCj4gSSB0
-aGluayB3ZSBkb24ndCBuZWVkIHRvIHJldmVydCB0aGUgY29kZSB0byB1c2UgcmVtYXBfcGZuX3Jh
-bmdlKCkgDQo+IGFnYWluIChsaWtlIGl0IHdhcyBpbiBwcmUgdjMuMTAgdGltZXMpLiBUaGUgc2lt
-cGxlc3Qgd2F5IHdpbGwgYmUgdG8gDQo+IGNvcnJlY3RseSBmaXgNCj4gdm1hLT52bV9wZ29mZiBh
-bmQgc2V0IGl0IHRvIHplcm8gYmVmb3JlIGNhbGxpbmcgdm1faW9tYXBfbWVtb3J5KCkuIEl0IA0K
-PiB2bWEtPmlzDQo+IGRvbmUgdGhlIHNhbWUgd2F5IGluIHZiMl9kbWFfY29udGlnLmM6dmIyX2Rj
-X21tYXAoKS4NCj4NCj4gVG8gc3VtIHVwIC0gcGxlYXNlIGNoYW5nZSB5b3VyIHBhdGNoOiBrZWVw
-IHZtX2lvbWFwX21lbW9yeSgpIGNhbGwgYW5kIA0KPiBhZGQgInZtYS0+dm1fcGdvZmYgPSAwOyIg
-bGluZSBiZWZvcmUgaXQgd2l0aCBzdWl0YWJsZSBjb21tZW50Lg0KDQpNdWNoIGJldHRlciwgSSBh
-Z3JlZSBjb21wbGV0ZWx5Lg0KDQpSZWdhcmRzLA0KDQoJSGFucw0K
+Em Wed, 24 Sep 2014 20:02:19 -0300
+Fabio Estevam <festevam@gmail.com> escreveu:
+
+> Hi Mauro,
+> 
+> On Wed, Sep 24, 2014 at 7:27 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> 
+> 
+> > drivers/media//platform/s5p-mfc/s5p_mfc_opr.c:44:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
+> 
+> ...
+> 
+> > -       mfc_debug(3, "Allocating priv: %d\n", b->size);
+> > +       mfc_debug(3, "Allocating priv: %zd\n", b->size);
+> 
+> This should be %zu instead.
+
+Thanks! fixed on both patches.
+
+Regards,
+Mauro
