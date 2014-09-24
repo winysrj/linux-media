@@ -1,141 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4850 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626AbaIPLT2 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44046 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914AbaIXXiK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Sep 2014 07:19:28 -0400
-Message-ID: <54181CA3.5010707@xs4all.nl>
-Date: Tue, 16 Sep 2014 13:18:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient
- buffer underruns
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <2394481.2zcs5YKt7z@avalon> <5416CA2B.1080004@xs4all.nl> <2160177.8xkXcAKlxC@avalon>
-In-Reply-To: <2160177.8xkXcAKlxC@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 24 Sep 2014 19:38:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan McCrohan <jmccrohan@gmail.com>,
+	ivtv-devel@ivtvdriver.org
+Subject: [PATCH 2/3] [media] pci drivers: use %zu instead of %zd
+Date: Wed, 24 Sep 2014 20:37:43 -0300
+Message-Id: <6843e18853dc80bec96978fd3fa6f68bdeee056e.1411601849.git.mchehab@osg.samsung.com>
+In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+In-Reply-To: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
+References: <2d1780eb72dac499b9d44aa38961b8716e8857b3.1411601849.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/16/14 12:29, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 15 September 2014 13:14:51 Hans Verkuil wrote:
->> On 06/06/2014 03:42 PM, Laurent Pinchart wrote:
->>> On Friday 06 June 2014 11:58:18 Hans Verkuil wrote:
->>>> On 06/06/2014 11:50 AM, Hans de Goede wrote:
->>>>> Hi,
->>>>>
->>>>> On 06/05/2014 02:23 PM, Laurent Pinchart wrote:
->>>>>> The V4L2 specification states that
->>>>>>
->>>>>> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
->>>>>> the poll() function succeeds, but sets the POLLERR flag in the revents
->>>>>> field."
->>>>>>
->>>>>> The vb2_poll() function sets POLLERR when the queued buffers list is
->>>>>> empty, regardless of whether this is caused by the stream not being
->>>>>> active yet, or by a transient buffer underrun.
->>>>>>
->>>>>> Bring the implementation in line with the specification by returning
->>>>>> POLLERR only when the queue is not streaming. Buffer underruns during
->>>>>> streaming are not treated specially anymore and just result in poll()
->>>>>> blocking until the next event.
->>>>>
->>>>> After your patch the implementation is still not inline with the spec,
->>>>> queuing buffers, then starting a thread doing the poll, then doing the
->>>>> streamon in the main thread will still cause the poll to return POLLERR,
->>>>> even though buffers are queued, which according to the spec should be
->>>>> enough for the poll to block.
->>>>>
->>>>> The correct check would be:
->>>>>
->>>>> if (list_empty(&q->queued_list) && !vb2_is_streaming(q))
->>>>>
->>>>> 	eturn res | POLLERR;
->>>>
->>>> Good catch! I should have seen that :-(
->>
->> Urgh. This breaks vbi capture tools like alevt and mtt. These rely on poll
->> returning POLLERR if buffers are queued but STREAMON has not been called
->> yet.
-> 
-> Then there's something I don't get. Before this commit, the implementation was
-> 
->     /*
->      * There is nothing to wait for if no buffers have already been queued.
->      */
->     if (list_empty(&q->queued_list))
->             return res | POLLERR;
-> 
-> If buffers are queued and STREAMON hasn't been called yet, vb2_poll() would 
-> not return POLLERR.
+size_t is unsigned.
 
-You are right, I think this has been broken from the beginning. Most of
-the initial drivers that were converted to vb2 didn't use vbi. The first
-complaint came when saa7134 was converted. So it is not actually your
-commit that was wrong, it simply has always been wrong.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> 
->> See bug report https://bugzilla.kernel.org/show_bug.cgi?id=84401
->>
->> The spec also clearly says that poll should return POLLERR if STREAMON
->> was not called.
-> 
-> The V4L2 specification says
-> 
-> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet the 
-> poll() function succeeds, but sets the POLLERR flag in the revents field."
-> 
-> How about then
-> 
-> - adding a flag to vb2_queue that tells that no buffer has been queued
-> - clearing the flag when a buffer is queued
-> - setting the flag when the stream is stopped
-> - modifying the poll implementation to
-> 
->     if (q->no_buffer || !vb2_is_streaming(q) || q->error)
->             return res | POLLERR;
-
-I thought about something like that as well, but I don't think this is a good
-idea. Mostly because you can call STREAMON without having queued buffers with
-vb2. In fact, that is pretty much necessary for video output so you don't
-have to queue up buffers with dummy contents.
-
-Regards,
-
-	Hans
-
-> 
-> (a better name is probably needed for the flag)
-> 
-> This would make poll() not return immediately during transient buffer 
-> underruns.
-> 
-> The other option would be to modify the V4L2 specification to state that 
-> poll() will return immediately with POLLERR at any time no buffer is queued, 
-> and forcing all userspace applications to implement an explicit buffer 
-> underrun check. I don't really like that though.
-> 
->> But that would clash with this multi-thread example.
->>
->> Hans, was this based on actual code that needed this?
->>
->> I am inclined to update alevt and mtt: all that is needed to make it work
->> is a single line that explicitly calls the vbi handler before entering the
->> main loop. This is effectively the same as what happens when the first
->> select gets a POLLERR.
->>
->> We maintain alevt (dvb-apps) and mtt (xawtv3), so that's easy enough to
->> fix.
->>
->> Note that the spec is now definitely out-of-sync since poll no longer
->> returns POLLERR if buffers are queued but STREAMON wasn't called.
-> 
+diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+index 180077c49123..ffb6acdc575f 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
++++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+@@ -80,7 +80,7 @@ void cx18_alsa_announce_pcm_data(struct snd_cx18_card *cxsc, u8 *pcm_data,
+ 	int period_elapsed = 0;
+ 	int length;
+ 
+-	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%zd\n", cxsc,
++	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%zu\n", cxsc,
+ 		pcm_data, num_bytes);
+ 
+ 	substream = cxsc->capture_pcm_substream;
+diff --git a/drivers/media/pci/cx18/cx18-firmware.c b/drivers/media/pci/cx18/cx18-firmware.c
+index 53a7578d525b..c6c83445f8bf 100644
+--- a/drivers/media/pci/cx18/cx18-firmware.c
++++ b/drivers/media/pci/cx18/cx18-firmware.c
+@@ -130,7 +130,7 @@ static int load_cpu_fw_direct(const char *fn, u8 __iomem *mem, struct cx18 *cx)
+ 		}
+ 	}
+ 	if (!test_bit(CX18_F_I_LOADED_FW, &cx->i_flags))
+-		CX18_INFO("loaded %s firmware (%zd bytes)\n", fn, fw->size);
++		CX18_INFO("loaded %s firmware (%zu bytes)\n", fn, fw->size);
+ 	size = fw->size;
+ 	release_firmware(fw);
+ 	cx18_setup_page(cx, SCB_OFFSET);
+@@ -202,7 +202,7 @@ static int load_apu_fw_direct(const char *fn, u8 __iomem *dst, struct cx18 *cx,
+ 		offset += seghdr.size;
+ 	}
+ 	if (!test_bit(CX18_F_I_LOADED_FW, &cx->i_flags))
+-		CX18_INFO("loaded %s firmware V%08x (%zd bytes)\n",
++		CX18_INFO("loaded %s firmware V%08x (%zu bytes)\n",
+ 				fn, apu_version, fw->size);
+ 	size = fw->size;
+ 	release_firmware(fw);
+diff --git a/drivers/media/pci/cx18/cx18-queue.c b/drivers/media/pci/cx18/cx18-queue.c
+index 8884537bd62f..2a247d264b87 100644
+--- a/drivers/media/pci/cx18/cx18-queue.c
++++ b/drivers/media/pci/cx18/cx18-queue.c
+@@ -364,7 +364,7 @@ int cx18_stream_alloc(struct cx18_stream *s)
+ 					((char __iomem *)cx->scb->cpu_mdl));
+ 
+ 		CX18_ERR("Too many buffers, cannot fit in SCB area\n");
+-		CX18_ERR("Max buffers = %zd\n",
++		CX18_ERR("Max buffers = %zu\n",
+ 			bufsz / sizeof(struct cx18_mdl_ent));
+ 		return -ENOMEM;
+ 	}
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index 6973055f0814..3948db386fb5 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -942,7 +942,7 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
+ 
+ 	if (firmware->size != CX23885_FIRM_IMAGE_SIZE) {
+ 		printk(KERN_ERR "ERROR: Firmware size mismatch "
+-			"(have %zd, expected %d)\n",
++			"(have %zu, expected %d)\n",
+ 			firmware->size, CX23885_FIRM_IMAGE_SIZE);
+ 		release_firmware(firmware);
+ 		return -1;
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+index 7a9b98bc208b..7bf9cbca4fa6 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+@@ -81,7 +81,7 @@ static void ivtv_alsa_announce_pcm_data(struct snd_ivtv_card *itvsc,
+ 	int period_elapsed = 0;
+ 	int length;
+ 
+-	dprintk("ivtv alsa announce ptr=%p data=%p num_bytes=%zd\n", itvsc,
++	dprintk("ivtv alsa announce ptr=%p data=%p num_bytes=%zu\n", itvsc,
+ 		pcm_data, num_bytes);
+ 
+ 	substream = itvsc->capture_pcm_substream;
+diff --git a/drivers/media/pci/ivtv/ivtv-firmware.c b/drivers/media/pci/ivtv/ivtv-firmware.c
+index ed73edd2bcd3..4b0e758a7bce 100644
+--- a/drivers/media/pci/ivtv/ivtv-firmware.c
++++ b/drivers/media/pci/ivtv/ivtv-firmware.c
+@@ -65,7 +65,7 @@ retry:
+ 			   the wrong file was sometimes loaded. So we check filesizes to
+ 			   see if at least the right-sized file was loaded. If not, then we
+ 			   retry. */
+-			IVTV_INFO("Retry: file loaded was not %s (expected size %ld, got %zd)\n", fn, size, fw->size);
++			IVTV_INFO("Retry: file loaded was not %s (expected size %ld, got %zu)\n", fn, size, fw->size);
+ 			release_firmware(fw);
+ 			retries--;
+ 			goto retry;
+@@ -76,7 +76,7 @@ retry:
+ 			dst++;
+ 			src++;
+ 		}
+-		IVTV_INFO("Loaded %s firmware (%zd bytes)\n", fn, fw->size);
++		IVTV_INFO("Loaded %s firmware (%zu bytes)\n", fn, fw->size);
+ 		release_firmware(fw);
+ 		return size;
+ 	}
+-- 
+1.9.3
 
