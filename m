@@ -1,43 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:62000 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932225AbaIRPvm (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:64919 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754325AbaIXIMH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 11:51:42 -0400
-Received: by mail-wi0-f173.google.com with SMTP id em10so3385064wid.12
-        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 08:51:41 -0700 (PDT)
+	Wed, 24 Sep 2014 04:12:07 -0400
+Received: by mail-we0-f177.google.com with SMTP id t60so5744750wes.22
+        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 01:12:05 -0700 (PDT)
+Message-ID: <54227CD2.5020705@linaro.org>
+Date: Wed, 24 Sep 2014 09:12:02 +0100
+From: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
 MIME-Version: 1.0
-Date: Thu, 18 Sep 2014 17:51:41 +0200
-Message-ID: <CAL9G6WXe27sk-aM-+SDQYdrtywXBw11dd9V-vvpvNYGBK8SEBw@mail.gmail.com>
-Subject: smsusb_onresponse error
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Peter Griffin <peter.griffin@linaro.org>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>, kernel@stlinux.com,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [STLinux Kernel] [PATCH 1/3] media: st-rc: move to using reset_control_get_optional
+References: <1411424501-12673-1-git-send-email-srinivas.kandagatla@linaro.org> <1411424546-12718-1-git-send-email-srinivas.kandagatla@linaro.org> <20140923180255.GA3430@griffinp-ThinkPad-X1-Carbon-2nd>
+In-Reply-To: <20140923180255.GA3430@griffinp-ThinkPad-X1-Carbon-2nd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Hi Pete,
 
-I have Hauppauge WinTV-MiniStick in a Debian Wheezy (3.2 kernel), I
-notice that I have lots of firmware errors in dmesg:
+On 23/09/14 19:02, Peter Griffin wrote:
+> Hi Srini,
+>
+> On Mon, 22 Sep 2014, Srinivas Kandagatla wrote:
+>
+>> This patch fixes a compilation error while building with the
+>> random kernel configuration.
+>>
+>> drivers/media/rc/st_rc.c: In function 'st_rc_probe':
+>> drivers/media/rc/st_rc.c:281:2: error: implicit declaration of
+>> function 'reset_control_get' [-Werror=implicit-function-declaration]
+>>    rc_dev->rstc = reset_control_get(dev, NULL);
+>>
+>> drivers/media/rc/st_rc.c:281:15: warning: assignment makes pointer
+>> from integer without a cast [enabled by default]
+>>    rc_dev->rstc = reset_control_get(dev, NULL);
+>
+> Is managing the reset line actually optional though? I can't test atm as I don't have
+> access to my board, but quite often if the IP's aren't taken out of reset reads / writes
+> to the perhpiheral will hang the SoC.
+>
+Yes and No.
+AFAIK reset line is optional on SOCs like 7108, 7141.
+I think having the driver function without reset might is a value add in 
+case we plan to reuse the mainline driver for these SOCs.
 
-# dmesg | grep smsusb
-[    6.717599] usbcore: registered new interface driver smsusb
-[63792.528700] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
-[63792.528949] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
-[63792.529197] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
-[63792.529446] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
-[63792.529707] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
-[63792.529947] smsusb_onresponse: line: 118: error, urb status -75, 0 bytes
+On latest ARM SOCs with SBC the IRB IP is moved to SBC and held in reset.
+Am not sure, if the reset line is optional in next generation SOCs?
 
-I am using this firmware:
+> If managing the reset line isn't optional then I think the correct fix is to add
+> depends on RESET_CONTROLLER in the kconfig.
+I agree.
+This would make the COMPILE_TEST less useful though.
 
-# md5sum /lib/firmware/sms1xxx-hcw-55xxx-dvbt-02.fw
-b44807098ba26e52cbedeadc052ba58f  /lib/firmware/sms1xxx-hcw-55xxx-dvbt-02.fw
 
-Is something wrong with the firmware? Is this normal?
-
-Thanks and best regards.
-
--- 
-Josu Lazkano
+thanks,
+srini
+>
+> This will then do the right thing for randconfig builds as well.
+>
+> regards,
+>
+> Peter.
+>
