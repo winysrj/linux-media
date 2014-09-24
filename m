@@ -1,162 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:63593 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932117AbaIRSFm (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2759 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693AbaIXMnP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 14:05:42 -0400
-Received: by mail-wg0-f51.google.com with SMTP id k14so1292193wgh.10
-        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 11:05:40 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH] libdvbv5: MPEG TS parser documentation
-Date: Thu, 18 Sep 2014 20:05:14 +0200
-Message-Id: <1411063514-4568-1-git-send-email-neolynx@gmail.com>
+	Wed, 24 Sep 2014 08:43:15 -0400
+Message-ID: <5422BC49.3050000@xs4all.nl>
+Date: Wed, 24 Sep 2014 14:42:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Fancy Fang <chen.fang@freescale.com>, m.chehab@samsung.com,
+	viro@ZenIV.linux.org.uk
+CC: shawn.guo@freescale.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com> <540FF70E.9050203@xs4all.nl> <5422BBDB.7050904@samsung.com>
+In-Reply-To: <5422BBDB.7050904@samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/libdvbv5/mpeg_ts.h | 96 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 93 insertions(+), 3 deletions(-)
 
-diff --git a/lib/include/libdvbv5/mpeg_ts.h b/lib/include/libdvbv5/mpeg_ts.h
-index 3eab029..2662543 100644
---- a/lib/include/libdvbv5/mpeg_ts.h
-+++ b/lib/include/libdvbv5/mpeg_ts.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ * Copyright (c) 2013-2014 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -21,12 +21,52 @@
- #ifndef _MPEG_TS_H
- #define _MPEG_TS_H
- 
-+/**
-+ * @file mpeg_ts.h
-+ * @ingroup dvb_table
-+ * @brief Provides the table parser for the MPEG-PES Elementary Stream
-+ * @copyright GNU General Public License version 2 (GPLv2)
-+ * @author Andre Roth
-+ *
-+ * @par Relevant specs
-+ * The table described herein is defined in ISO 13818-1
-+ *
-+ * @see
-+ * http://en.wikipedia.org/wiki/MPEG_transport_stream
-+ *
-+ * @par Bug Report
-+ * Please submit bug reports and patches to linux-media@vger.kernel.org
-+ */
- #include <stdint.h>
- #include <unistd.h> /* ssize_t */
- 
-+/**
-+ * @def DVB_MPEG_TS
-+ *	@brief MPEG Transport Stream magic
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_TS_PACKET_SIZE
-+ *	@brief Size of an MPEG packet
-+ *	@ingroup dvb_table
-+ */
- #define DVB_MPEG_TS  0x47
- #define DVB_MPEG_TS_PACKET_SIZE  188
- 
-+/**
-+ * @struct dvb_mpeg_ts_adaption
-+ * @brief MPEG TS header adaption field
-+ *
-+ * @param type			DVB_MPEG_ES_SEQ_START
-+ * @param length		1 bit	Adaptation Field Length
-+ * @param discontinued		1 bit	Discontinuity indicator
-+ * @param random_access		1 bit	Random Access indicator
-+ * @param priority		1 bit	Elementary stream priority indicator
-+ * @param PCR			1 bit	PCR flag
-+ * @param OPCR			1 bit	OPCR flag
-+ * @param splicing_point	1 bit	Splicing point flag
-+ * @param private_data		1 bit	Transport private data flag
-+ * @param extension		1 bit	Adaptation field extension flag
-+ * @param data			Pointer to data
-+ */
- struct dvb_mpeg_ts_adaption {
- 	uint8_t length;
- 	struct {
-@@ -42,8 +82,23 @@ struct dvb_mpeg_ts_adaption {
- 	uint8_t data[];
- } __attribute__((packed));
- 
-+/**
-+ * @structdvb_mpeg_ts
-+ * @brief MPEG TS header
-+ *
-+ * @param sync_byte		DVB_MPEG_TS
-+ * @param tei			1 bit	Transport Error Indicator
-+ * @param payload_start		1 bit	Payload Unit Start Indicator
-+ * @param priority		1 bit	Transport Priority
-+ * @param pid			13 bits	Packet Identifier
-+ * @param scrambling		2 bits	Scrambling control
-+ * @param adaptation_field	1 bit	Adaptation field exist
-+ * @param payload		1 bit	Contains payload
-+ * @param continuity_counter	4 bits	Continuity counter
-+ * @param adaption		Pointer to optional adaption fiels (struct dvb_mpeg_ts_adaption)
-+ */
- struct dvb_mpeg_ts {
--	uint8_t sync_byte; // DVB_MPEG_TS
-+	uint8_t sync_byte;
- 	union {
- 		uint16_t bitfield;
- 		struct {
-@@ -68,8 +123,43 @@ struct dvb_v5_fe_parms;
- extern "C" {
- #endif
- 
--ssize_t dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+/**
-+ * @brief Initialize a struct dvb_mpeg_ts from buffer
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param buf		Buffer
-+ * @param buflen	Length of buffer
-+ * @param table		Pointer to allocated struct dvb_mpeg_ts
-+ * @param table_length	Pointer to size_t where length will be written to
-+ *
-+ * @return		Length of data in table
-+ *
-+ * This function copies the length of struct dvb_mpeg_ts
-+ * to table and fixes endianness. table has to be allocated
-+ * with malloc.
-+ */
-+ssize_t dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen,
-+		uint8_t *table, ssize_t *table_length);
-+
-+/**
-+ * @brief Deallocate memory associated with a struct dvb_mpeg_ts
-+ * @ingroup file
-+ *
-+ * @param ts	struct dvb_mpeg_ts to be deallocated
-+ *
-+ * This function assumes frees dynamically allocated memory by the
-+ * dvb_mpeg_ts_init function.
-+ */
- void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts);
-+
-+/**
-+ * @brief Print details of struct dvb_mpeg_ts
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param seq_start	Pointer to struct dvb_mpeg_ts to print
-+ *
-+ * This function prints the fields of struct dvb_mpeg_ts
-+ */
- void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts);
- 
- #ifdef __cplusplus
--- 
-1.9.1
 
+On 09/24/2014 02:40 PM, Marek Szyprowski wrote:
+> Hello,
+>
+> On 2014-09-10 09:00, Hans Verkuil wrote:
+>> On 09/10/14 07:28, Fancy Fang wrote:
+>>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
+>>> will assign the corresponding offset to the 'boff' field of the
+>>> videobuf_buffer for each requested buffer sequentially. Later, user
+>>> may call mmap() to map one or all of the buffers with the 'offset'
+>>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
+>>> value is only used to find the matched buffer instead of to be the
+>>> real offset from the buffer's physical start address as used by
+>>> vm_iomap_memory(). So, in some case that if the offset is not zero,
+>>> vm_iomap_memory() will fail.
+>> Is this just a fix for something that can fail theoretically, or do you
+>> actually have a case where this happens? I am very reluctant to make
+>> any changes to videobuf. Drivers should all migrate to vb2.
+>>
+>> I have CC-ed Marek as well since he knows a lot more about this stuff
+>> than I do.
+>
+> I'm sorry for a delay, I was really busy with other things.
+>
+>>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+>>> ---
+>>>   drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
+>>>   1 file changed, 3 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>>> index bf80f0f..8bd9889 100644
+>>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+>>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+>>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>>>       /* Try to remap memory */
+>>>       size = vma->vm_end - vma->vm_start;
+>>>       vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+>>> -    retval = vm_iomap_memory(vma, mem->dma_handle, size);
+>>> +    retval = remap_pfn_range(vma, vma->vm_start,
+>>> +                 mem->dma_handle >> PAGE_SHIFT,
+>>> +                 size, vma->vm_page_prot);
+>>>       if (retval) {
+>>>           dev_err(q->dev, "mmap: remap failed with error %d. ",
+>>>               retval);
+>
+> I think we don't need to revert the code to use remap_pfn_range() again (like
+> it was in pre v3.10 times). The simplest way will be to correctly fix
+> vma->vm_pgoff and set it to zero before calling vm_iomap_memory(). It is
+> done the same way in vb2_dma_contig.c:vb2_dc_mmap().
+>
+> To sum up - please change your patch: keep vm_iomap_memory() call and add
+> "vma->vm_pgoff = 0;" line before it with suitable comment.
+
+Much better, I agree completely.
+
+Regards,
+
+	Hans
