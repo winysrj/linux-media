@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:49755 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786AbaIFP1p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Sep 2014 11:27:45 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 4/5] media: davinci: vpif_display: fix the check on suspend/resume callbacks
-Date: Sat,  6 Sep 2014 16:26:50 +0100
-Message-Id: <1410017211-15438-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1410017211-15438-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45260 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751783AbaIXKsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 06:48:51 -0400
+Message-ID: <5422A18F.9090106@iki.fi>
+Date: Wed, 24 Sep 2014 13:48:47 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] hackrf: harmless off by one in debug code
+References: <20140924103639.GB15107@mwanda>
+In-Reply-To: <20140924103639.GB15107@mwanda>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is possible to call STREAMON without having any buffers queued.
-So vb2_is_streaming() can return true without start_streaming()
-having been called. Only after at least one buffer has been
-queued will start_streaming be called.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-The check vb2_is_streaming() is incorrect as this would start
-the DMA without having proper DMA pointers set up. this patch
-uses vb2_start_streaming_called() instead to check is streaming
-was called.
+Antti
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 09/24/2014 01:36 PM, Dan Carpenter wrote:
+> My static checker complains that "i" could be one element beyond the end
+> of the array.
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+> index 328b5ba..fd1fa41 100644
+> --- a/drivers/media/usb/hackrf/hackrf.c
+> +++ b/drivers/media/usb/hackrf/hackrf.c
+> @@ -932,7 +932,7 @@ static int hackrf_set_bandwidth(struct hackrf_dev *dev)
+>   	dev->bandwidth->val = bandwidth;
+>   	dev->bandwidth->cur.val = bandwidth;
+>
+> -	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth_lut[i].freq);
+> +	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth);
+>
+>   	u16tmp = 0;
+>   	u16tmp |= ((bandwidth >> 0) & 0xff) << 0;
+>
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 76f829d..8d6ced5 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1400,7 +1400,7 @@ static int vpif_suspend(struct device *dev)
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
- 
--		if (!vb2_is_streaming(&common->buffer_queue))
-+		if (!vb2_start_streaming_called(&common->buffer_queue))
- 			continue;
- 
- 		mutex_lock(&common->lock);
-@@ -1432,7 +1432,7 @@ static int vpif_resume(struct device *dev)
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
- 
--		if (!vb2_is_streaming(&common->buffer_queue))
-+		if (!vb2_start_streaming_called(&common->buffer_queue))
- 			continue;
- 
- 		mutex_lock(&common->lock);
 -- 
-1.9.1
-
+http://palosaari.fi/
