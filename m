@@ -1,104 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:23343 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045AbaIBBmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Sep 2014 21:42:54 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NB900MYO3FHL270@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Sep 2014 21:42:53 -0400 (EDT)
-Date: Mon, 01 Sep 2014 22:42:49 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Changbing Xiong <cb.xiong@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] media: check status of dmxdev->exit in poll functions
- of demux&dvr
-Message-id: <20140901224249.49246419.m.chehab@samsung.com>
-In-reply-to: <5405083A.3010207@iki.fi>
-References: <1408586740-2169-1-git-send-email-cb.xiong@samsung.com>
- <5405083A.3010207@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:40635 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217AbaIXMl6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 08:41:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 4/4] [media] s5p_mfc_opr_v6: remove address space removal warnings
+Date: Wed, 24 Sep 2014 09:41:42 -0300
+Message-Id: <1c554a0b25c8802e2d58bdc711548ebad52af28d.1411562226.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1411562226.git.mchehab@osg.samsung.com>
+References: <cover.1411562226.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1411562226.git.mchehab@osg.samsung.com>
+References: <cover.1411562226.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 02 Sep 2014 02:58:50 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Smatch still has 3 warnings for s5p_mfc_opr_v6:
 
-> Moikka Changbing and thanks to working that.
-> 
-> I reviewed the first patch and tested all these patches. It does not 
-> deadlock USB device anymore because of patch #1 so it is improvement. 
-> However, what I expect that patch, it should force device unregister but 
-> when I use tzap and unplug running device, it does not stop tzap, but 
-> continues zapping until app is killed using ctrl-c.
-> I used same(?) WinTV Aero for my tests.
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2028:18: warning: cast removes address space of expression
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2034:18: warning: cast removes address space of expression
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2040:18: warning: cast removes address space of expression
 
-...
+Remove them.
 
-> Is there any change to close all those /dev file handles when device 
-> disappears?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Well, we may start returning -ENODEV when such event happens. 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index ed3d20f12184..e38d78f21726 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -2019,25 +2019,25 @@ static int s5p_mfc_get_mvc_view_id_v6(struct s5p_mfc_dev *dev)
+ static unsigned int s5p_mfc_get_pic_type_top_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v6(ctx,
+-		(unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_top);
++		(__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_top);
+ }
+ 
+ static unsigned int s5p_mfc_get_pic_type_bot_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v6(ctx,
+-		(unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_bot);
++		(__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_bot);
+ }
+ 
+ static unsigned int s5p_mfc_get_crop_info_h_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v6(ctx,
+-		(unsigned int) ctx->dev->mfc_regs->d_display_crop_info1);
++		(__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info1);
+ }
+ 
+ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v6(ctx,
+-		(unsigned int) ctx->dev->mfc_regs->d_display_crop_info2);
++		(__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info2);
+ }
+ 
+ static struct s5p_mfc_regs mfc_regs;
+-- 
+1.9.3
 
-At the frontend, we could use fe->exit = DVB_FE_DEVICE_REMOVED to
-signalize it. I don't think that the demod frontend has something
-similar.
-
-Yet, it should be up to the userspace application to properly handle 
-the error codes and close the devices on fatal non-recovery errors like
-ENODEV. 
-
-So, what we can do, at Kernel level, is to always return -ENODEV when
-the device is known to be removed, and double check libdvbv5 if it
-handles such error properly.
-
-Regards,
-Mauro
-
-> 
-> regards
-> Antti
-> 
-> 
-> On 08/21/2014 05:05 AM, Changbing Xiong wrote:
-> > when usb-type tuner is pulled out, user applications did not close device's FD,
-> > and go on polling the device, we should return POLLERR directly.
-> >
-> > Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
-> > ---
-> >   drivers/media/dvb-core/dmxdev.c |    6 +++++-
-> >   1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-> > index 7a5c070..42b5e70 100755
-> > --- a/drivers/media/dvb-core/dmxdev.c
-> > +++ b/drivers/media/dvb-core/dmxdev.c
-> > @@ -1085,9 +1085,10 @@ static long dvb_demux_ioctl(struct file *file, unsigned int cmd,
-> >   static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
-> >   {
-> >   	struct dmxdev_filter *dmxdevfilter = file->private_data;
-> > +	struct dmxdev *dmxdev = dmxdevfilter->dev;
-> >   	unsigned int mask = 0;
-> >
-> > -	if (!dmxdevfilter)
-> > +	if ((!dmxdevfilter) || (dmxdev->exit))
-> >   		return POLLERR;
-> >
-> >   	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
-> > @@ -1181,6 +1182,9 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
-> >
-> >   	dprintk("function : %s\n", __func__);
-> >
-> > +	if (dmxdev->exit)
-> > +		return POLLERR;
-> > +
-> >   	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
-> >
-> >   	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-> > --
-> > 1.7.9.5
-> >
-> 
