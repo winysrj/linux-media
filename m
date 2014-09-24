@@ -1,38 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:61414 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255AbaINDkq (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:34240 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751930AbaIXW17 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Sep 2014 23:40:46 -0400
-Received: by mail-la0-f51.google.com with SMTP id gi9so2973761lab.10
-        for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 20:40:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1410526803-25887-4-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl> <1410526803-25887-4-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 14 Sep 2014 11:40:04 +0800
-Message-ID: <CAMm-=zBR0vzB1x0rK_=oq4t+FqQOon32EShnxuZOzsZj5pOWdg@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 03/14] vb2-dma-sg: add prepare/finish memops
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 24 Sep 2014 18:27:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 12/18] [media] em28xx: Fix identation
+Date: Wed, 24 Sep 2014 19:27:12 -0300
+Message-Id: <13bc539fe05376f488b9d93a7635924acdf766e6.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Thank you for working on this.
+drivers/media/usb/em28xx/em28xx-audio.c:270 snd_em28xx_capture_open() warn: if statement not indented
 
-On Fri, Sep 12, 2014 at 8:59 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This moves dma_(un)map_sg to the prepare/finish memops of videobuf2-dma-sg.c.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I agree with Laurent. dma_map and unmap should be done when we alloc
-(or get) and put a buffer, while prepare and finish should only sync.
-
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 90c7a83989d1..957c7ae30efe 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -268,7 +268,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 	nonblock = !!(substream->f_flags & O_NONBLOCK);
+ 	if (nonblock) {
+ 		if (!mutex_trylock(&dev->lock))
+-		return -EAGAIN;
++			return -EAGAIN;
+ 	} else
+ 		mutex_lock(&dev->lock);
+ 
 -- 
-Best regards,
-Pawel Osciak
+1.9.3
+
