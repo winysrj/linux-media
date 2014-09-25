@@ -1,98 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:58843 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751490AbaIJIxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 04:53:19 -0400
-Date: Wed, 10 Sep 2014 10:53:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60137 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751551AbaIYVaE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 17:30:04 -0400
+Date: Fri, 26 Sep 2014 00:29:54 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L2: UVC: allow using larger buffers
-In-Reply-To: <1489636.2fkWtbAiXo@avalon>
-Message-ID: <Pine.LNX.4.64.1409101052541.13134@axis700.grange>
-References: <Pine.LNX.4.64.1409090941280.1402@axis700.grange>
- <1489636.2fkWtbAiXo@avalon>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: Fix division by 0
+Message-ID: <20140925212953.GN2939@valkosipuli.retiisi.org.uk>
+References: <1411647887-5593-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1411647887-5593-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Thu, Sep 25, 2014 at 03:24:47PM +0300, Laurent Pinchart wrote:
+> If the requested clock rate passed to the XCLK set_rate or round_rate
+> operation is 0, the driver will try to divide by 0. Fix this.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Wed, 10 Sep 2014, Laurent Pinchart wrote:
+Thanks!
 
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 09 September 2014 09:42:43 Guennadi Liakhovetski wrote:
-> > A test in uvc_video_decode_isoc() checks whether an image has been
-> > received from the camera completely. For this the data amount is compared
-> > to the buffer length, which, however, doesn't have to be equal to the
-> > image size. Switch to using formats .sizeimage field for an exact
-> > expected image size.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > Thanks to Laurent for the idea
-> > 
-> >  drivers/media/usb/uvc/uvc_v4l2.c  | 1 +
-> >  drivers/media/usb/uvc/uvc_video.c | 2 +-
-> >  drivers/media/usb/uvc/uvcvideo.h  | 1 +
-> >  3 files changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > b/drivers/media/usb/uvc/uvc_v4l2.c index 3b548b8..87d15c2 100644
-> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > @@ -318,6 +318,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
-> > *stream, stream->ctrl = probe;
-> >  	stream->cur_format = format;
-> >  	stream->cur_frame = frame;
-> > +	stream->image_size = fmt->fmt.pix.sizeimage;
-> > 
-> >  done:
-> >  	mutex_unlock(&stream->mutex);
-> > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > b/drivers/media/usb/uvc/uvc_video.c index e568e07..60abf6f 100644
-> > --- a/drivers/media/usb/uvc/uvc_video.c
-> > +++ b/drivers/media/usb/uvc/uvc_video.c
-> > @@ -1172,7 +1172,7 @@ static void uvc_video_decode_isoc(struct urb *urb,
-> > struct uvc_streaming *stream, urb->iso_frame_desc[i].actual_length);
-> > 
-> >  		if (buf->state == UVC_BUF_STATE_READY) {
-> > -			if (buf->length != buf->bytesused &&
-> > +			if (stream->image_size != buf->bytesused &&
-> >  			    !(stream->cur_format->flags &
-> >  			      UVC_FMT_FLAG_COMPRESSED))
-> >  				buf->error = 1;
-> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> > b/drivers/media/usb/uvc/uvcvideo.h index 404793b..d3a3b71 100644
-> > --- a/drivers/media/usb/uvc/uvcvideo.h
-> > +++ b/drivers/media/usb/uvc/uvcvideo.h
-> > @@ -480,6 +480,7 @@ struct uvc_streaming {
-> >  	struct uvc_format *def_format;
-> >  	struct uvc_format *cur_format;
-> >  	struct uvc_frame *cur_frame;
-> > +	size_t image_size;
-> 
-> As UVC uses the term frame size instead of image size, would you mind renaming 
-> that field ? I can do that while applying the patch, there's no need to 
-> resubmit if you're fine with the change.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Sure, np, go ahead with the change.
-
-Thanks
-Guennadi
-
-> 
-> >  	/* Protect access to ctrl, cur_format, cur_frame and hardware video
-> >  	 * probe control.
-> >  	 */
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
