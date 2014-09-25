@@ -1,159 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:39754 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbaIRTlh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 15:41:37 -0400
-From: ayaka <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, arun.m@samsung.com, arun.kk@samsung.com,
-	ayaka <ayaka@soulik.info>
-Subject: [PATCH] media: fix enum_fmt for s5p-mfc
-Date: Fri, 19 Sep 2014 03:41:12 +0800
-Message-Id: <1411069272-16896-2-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1411069272-16896-1-git-send-email-ayaka@soulik.info>
-References: <1411069272-16896-1-git-send-email-ayaka@soulik.info>
+Received: from mail.kapsi.fi ([217.30.184.167]:37241 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753013AbaIYPas (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 11:30:48 -0400
+Message-ID: <54243525.1030704@iki.fi>
+Date: Thu, 25 Sep 2014 18:30:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 12/12] cx231xx: scan all four existing i2c busses instead
+ of the 3 masters
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-12-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-12-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the s5p-mfc is a driver which use  multiplanar api, so the
-vidioc_enum_fmt_vid serial of ioctl should only for
-multiplanar, non-multiplanar shouldn't be implemented at all.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: ayaka <ayaka@soulik.info>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 24 +++---------------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 24 +++---------------------
- 2 files changed, 6 insertions(+), 42 deletions(-)
+Here is example naming those muxed adapters differently (as I mentioned 
+earlier patch), would make clear people who reads that code which 
+adapters are real and which are muxed. Now you do i2c scan for adapter 
+0, 1, 2, 3, without knowing 1 and 3 are actually mux segments on 
+physical adapter 1.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 4d93835..6611a7a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -283,17 +283,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- 
- /* Enumerate format */
- static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
--							bool mplane, bool out)
-+							bool out)
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_fmt *fmt;
- 	int i, j = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
--		if (mplane && formats[i].num_planes == 1)
--			continue;
--		else if (!mplane && formats[i].num_planes > 1)
--			continue;
- 		if (out && formats[i].type != MFC_FMT_DEC)
- 			continue;
- 		else if (!out && formats[i].type != MFC_FMT_RAW)
-@@ -313,28 +309,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
- 	return 0;
- }
- 
--static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
--							struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, false);
--}
--
- static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
- 							struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, false);
--}
--
--static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
--							struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, true);
-+	return vidioc_enum_fmt(file, f, false);
- }
- 
- static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *priv,
- 							struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, true);
-+	return vidioc_enum_fmt(file, f, true);
- }
- 
- /* Get format */
-@@ -878,9 +862,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- /* v4l2_ioctl_ops */
- static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- 	.vidioc_querycap = vidioc_querycap,
--	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
--	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
- 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
- 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
- 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 3abe468..4725a6f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -953,17 +953,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- }
- 
- static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
--							bool mplane, bool out)
-+							bool out)
- {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_fmt *fmt;
- 	int i, j = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
--		if (mplane && formats[i].num_planes == 1)
--			continue;
--		else if (!mplane && formats[i].num_planes > 1)
--			continue;
- 		if (out && formats[i].type != MFC_FMT_RAW)
- 			continue;
- 		else if (!out && formats[i].type != MFC_FMT_ENC)
-@@ -983,28 +979,16 @@ static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
- 	return -EINVAL;
- }
- 
--static int vidioc_enum_fmt_vid_cap(struct file *file, void *pirv,
--				   struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, false);
--}
--
- static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
- 					  struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, false);
--}
--
--static int vidioc_enum_fmt_vid_out(struct file *file, void *prov,
--				   struct v4l2_fmtdesc *f)
--{
--	return vidioc_enum_fmt(file, f, false, true);
-+	return vidioc_enum_fmt(file, f, false);
- }
- 
- static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *prov,
- 					  struct v4l2_fmtdesc *f)
- {
--	return vidioc_enum_fmt(file, f, true, true);
-+	return vidioc_enum_fmt(file, f, true);
- }
- 
- static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
-@@ -1751,9 +1735,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- 
- static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
- 	.vidioc_querycap = vidioc_querycap,
--	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
--	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
- 	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
- 	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt,
- 	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt,
+regards
+Antti
+
+On 09/25/2014 08:08 AM, Matthias Schwarzott wrote:
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>   drivers/media/usb/cx231xx/cx231xx-core.c | 6 ++++++
+>   drivers/media/usb/cx231xx/cx231xx-i2c.c  | 8 ++++----
+>   2 files changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+> index c49022f..f6b6d26 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+> @@ -1303,6 +1303,12 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>   	cx231xx_i2c_mux_register(dev, 0);
+>   	cx231xx_i2c_mux_register(dev, 1);
+>
+> +	/* scan the real bus segments */
+> +	cx231xx_do_i2c_scan(dev, I2C_0);
+> +	cx231xx_do_i2c_scan(dev, I2C_1);
+> +	cx231xx_do_i2c_scan(dev, I2C_2);
+> +	cx231xx_do_i2c_scan(dev, I2C_3);
+> +
+>   	/* init hardware */
+>   	/* Note : with out calling set power mode function,
+>   	afe can not be set up correctly */
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> index 848aec2..13c476c 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> @@ -492,6 +492,9 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
+>   	int i, rc;
+>   	struct i2c_client client;
+>
+> +	if (!i2c_scan)
+> +		return;
+> +
+>   	memset(&client, 0, sizeof(client));
+>   	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
+>
+> @@ -533,10 +536,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>   	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+>   	i2c_add_adapter(&bus->i2c_adap);
+>
+> -	if (0 == bus->i2c_rc) {
+> -		if (i2c_scan)
+> -			cx231xx_do_i2c_scan(dev, bus->nr);
+> -	} else
+> +	if (0 != bus->i2c_rc)
+>   		cx231xx_warn("%s: i2c bus %d register FAILED\n",
+>   			     dev->name, bus->nr);
+>
+>
+
 -- 
-1.9.3
-
+http://palosaari.fi/
