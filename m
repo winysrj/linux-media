@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36212 "EHLO lists.s-osg.org"
+Received: from bar.sig21.net ([80.81.252.164]:54711 "EHLO bar.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760236AbaIOXP4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 19:15:56 -0400
-Message-ID: <54177328.1050007@osg.samsung.com>
-Date: Mon, 15 Sep 2014 17:15:52 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1753094AbaIYSR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 14:17:56 -0400
+Date: Thu, 25 Sep 2014 20:17:47 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140925181747.GA21522@linuxtv.org>
+References: <20140925125353.GA5129@linuxtv.org>
+ <54241C81.60301@osg.samsung.com>
+ <20140925160134.GA6207@linuxtv.org>
+ <5424539D.8090503@osg.samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: v4l2 ioctls
-References: <54124BDC.3000306@osg.samsung.com> <5412A9DB.8080701@xs4all.nl> <20140912121950.7edfee4e.m.chehab@samsung.com> <541391B9.4070708@osg.samsung.com> <20140915085458.1faea714.m.chehab@samsung.com>
-In-Reply-To: <20140915085458.1faea714.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5424539D.8090503@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/15/2014 05:54 AM, Mauro Carvalho Chehab wrote:
-> Hi Shuah,
+On Thu, Sep 25, 2014 at 11:40:45AM -0600, Shuah Khan wrote:
 > 
-> Em Fri, 12 Sep 2014 18:37:13 -0600
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> Right. I introduced DVB_FE_DEVICE_RESUME code to resume
+> problems in drx39xxj driver. Because I had to make it not
+> toggle power on the fe for resume. In other words, for it
+> to differentiate between disconnect and resume conditions.
 > 
->> Mauro/Hans,
->>
->> Thanks for both for your replies. I finally have it working with
->> the following:
+> dvb_frontend_resume() is used by dvb_usbv2 dvb_usb_core -
+> dvb_usbv2_resume_common()
 > 
-> One additional info: While in DVB mode, opening the device in
-> readonly mode should not take the tuner locking.
+> Calling dvb_frontend_reinitialise() from dvb_frontend_resume()
+> could break dvb_usbv2 drivers because it has handling for
+> reset_resume in its core in dvb_usbv2_reset_resume()
 
-That's what the code does for dvb. It gets the tuner lock in
-dvb_frontend_start() which is called from dvb_frontend_open()
-when dvb is opened in R/W mode.
+Needs testing...
 
+> reverting media: em28xx - remove reset_resume interface
+> might be a short-term solution. I think the longterm
+> solution is adding a dvb_frontend_reset_resume() that
+> does dvb_frontend_reinitialise() just like you suggested.
 > 
-> If you need/want to test it, please use:
-> 	$ dvb-fe-tool --femon
+> In addition, em28xx will call dvb_frontend_reset_resume()
+> from its reset_resume
 > 
-> I implemented this functionality this weekend, so you'll need
-> to update your v4l-utils tool to be able to test it.
-> 
+> What do you think?
 
-ok - I will update v4l-utils on my system.
+The dvb_frontend_resume() is also too risky for short term
+fix, but I think it does the right thing.  Let's sleep over
+it a few nights.
 
--- Shuah
+For short term I think there is no way around the
+b89193e0b06f revert.  You don't want a kernel with
+hang-after-resume bugs to hit major distributions
+like Ubuntu.  For the xc5000 firmware issue I think
+you should get the patches from the development
+branch into 3.17 (and 3.16-stable).  If you have the
+patches ready, tell me and I'll test.
 
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Thanks,
+Johannes
