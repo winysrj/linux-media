@@ -1,116 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4604 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbaIEC2h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 22:28:37 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s852SXbt033849
-	for <linux-media@vger.kernel.org>; Fri, 5 Sep 2014 04:28:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C84CE2A075A
-	for <linux-media@vger.kernel.org>; Fri,  5 Sep 2014 04:28:26 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140905022826.C84CE2A075A@tschai.lan>
-Date: Fri,  5 Sep 2014 04:28:26 +0200 (CEST)
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:10640 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984AbaIYOKx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 10:10:53 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NCG007AJNE33380@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Sep 2014 10:10:51 -0400 (EDT)
+Date: Thu, 25 Sep 2014 11:10:46 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Johannes Stezenbach <js@linuxtv.org>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-id: <20140925111046.1bb1b2d9.m.chehab@samsung.com>
+In-reply-to: <54241C81.60301@osg.samsung.com>
+References: <20140925125353.GA5129@linuxtv.org> <54241C81.60301@osg.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Johannes and Shuah,
 
-Results of the daily build of media_tree:
+Em Thu, 25 Sep 2014 07:45:37 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-date:		Fri Sep  5 04:00:19 CEST 2014
-git branch:	test
-git hash:	89fffac802c18caebdf4e91c0785b522c9f6399a
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-1.slh.1-amd64
+> Hi Johannes,
+> 
+> On 09/25/2014 06:53 AM, Johannes Stezenbach wrote:
+> > Hi Shuah,
+> > 
+> > ever since your patchset which implements suspend/resume
+> > for em28xx, hibernating the system breaks the Hauppauge WinTV HVR 930C driver.
+> > In v3.15.y and v3.16.y it throws a request_firmware warning
+> > during hibernate + resume, and the /dev/dvb/ device nodes disappears after
+> > resume.  In current git v3.17-rc6-247-g005f800, it hangs
+> > after resume.  I bisected the hang in qemu to
+> > b89193e0b06f "media: em28xx - remove reset_resume interface",
+> > the hang is fixed if I revert this commit on top of v3.17-rc6-247-g005f800.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-i686: WARNINGS
-linux-3.17-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
+Yes, that patch is very likely wrong. I talked with some PM
+maintainers with experience at the USB core: basically, some drivers
+call reset_resume, while others call resume. So, drivers need to
+implement both callbacks in order to be properly resumed.
 
-Detailed results are available here:
+> > 
+> > Regarding the request_firmware issue. I think a possible
+> > fix would be:
+> 
+> The request_firmware has been fixed. I ran into this on
+> Hauppauge WinTV HVR 950Q device. The fix is in xc5000
+> driver to not release firmware as soon as it loads.
+> With this fix firmware is cached and available in
+> resume path.
+> 
+> These patches are pulled into linux-media git couple
+> of days ago.
+> 
+> http://patchwork.linuxtv.org/patch/26073/
+> http://patchwork.linuxtv.org/patch/25345/
+> 
+> The reset_resume and this request firmware problem
+> might be related. Could you please try with the
+> above two patches and see if the problems goes away.
+> i.e without reverting
+> 
+> b89193e0b06f "media: em28xx - remove reset_resume interface"
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+This patch should be reverted anyway, as it is breaking resume
+for some USB ehci/xhci drivers.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> Please let me know even if it works. If it doesn't could
+> you please send me full dmesg. I am curious if usb bus
+> is reset i.e looses power during hibernate. If it does,
+> it has to go through disconnect sequence. The reason
+> I removed the reset_resume is because it is a simple
+> resume routine that can't handle power loss to the bus.
+> 
+> thanks,
+> -- Shuah
+> 
+> 
