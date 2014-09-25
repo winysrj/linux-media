@@ -1,70 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:50706 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310AbaIUR2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 13:28:44 -0400
-Received: from [192.168.1.21] ([79.215.138.24]) by mail.gmx.com (mrgmx101)
- with ESMTPSA (Nemesis) id 0MOBOi-1XQHIV0zo4-005bJX for
- <linux-media@vger.kernel.org>; Sun, 21 Sep 2014 19:28:43 +0200
-Message-ID: <541F0AC7.4010004@gmx.net>
-Date: Sun, 21 Sep 2014 19:28:39 +0200
-From: JPT <j-p-t@gmx.net>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:64620 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013AbaIYSgA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 14:36:00 -0400
+Received: by mail-wg0-f49.google.com with SMTP id x12so8530466wgg.32
+        for <linux-media@vger.kernel.org>; Thu, 25 Sep 2014 11:35:58 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Running Technisat DVB-S2 on ARM-NAS
-References: <541EE016.9030504@gmx.net> <541EE2EB.4000802@iki.fi> <541EEA74.2000909@gmx.net> <541EEEAB.10106@iki.fi>
-In-Reply-To: <541EEEAB.10106@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <8A4AD82170F342C1BE0BB0383F79E0C4@ci5fish>
+References: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
+	<8A4AD82170F342C1BE0BB0383F79E0C4@ci5fish>
+Date: Thu, 25 Sep 2014 20:35:58 +0200
+Message-ID: <CAL9G6WVfSigCdA8kLC2yB9C7UwzFdxbKeiE7fEWU4xjHD4p1=g@mail.gmail.com>
+Subject: Re: TeVii S480 in Debian Wheezy
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: =?UTF-8?B?UmVuw6k=?= <poisson.rene@neuf.fr>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> If I didn't remember wrong, that means allocated buffers are 8 * 32 *
-> 2048 = 524288 bytes. It sounds rather big for my taste. Probably even
-> wrong. IIRC USB2.0 frames are 1024 and there could be 1-3 frames. You
-> could use lsusb with all verbosity levels to see if it is
-> 1024/2048/3072. And set value according to that info.
+Thanks René,
 
-lsusb tells:
-    Interface Descriptor:
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0200  1x 512 bytes
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0200  1x 512 bytes
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0200  1x 512 bytes
-    Interface Descriptor:
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0c00  2x 1024 bytes
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0200  1x 512 bytes
-      Endpoint Descriptor:
-        wMaxPacketSize     0x0200  1x 512 bytes
+I have more TeVii devices (S470 and S660) running in other machine
+with no problems, just copying the firmware work out of the box.
+
+Is really necessary to compile the Tevii driver? I have more DVB
+device and want to use Debian kernels.
+
+I try to compile it:
+
+wget http://www.tevii.com/Tevii_Product_20140428_media_build_b6.tar.bz2.rar
+tar -xjvf Tevii_Product_20140428_media_build_b6.tar.bz2.rar
+cd b6/media_build/
+make (output: http://paste.debian.net/plain/123090)
+
+But there are errors, could you help with the driver compilation? I
+prefer to use the Debian kernel/modules in a clean way.
+
+Regards.
+
+2014-09-25 19:45 GMT+02:00 René <poisson.rene@neuf.fr>:
+> Hi Josu,
+>
+> TeVii still have their own version of media tree (may be some day they will
+> make their way through main stream ...)
+>
+> The drivers are available here
+> http://www.tevii.com/Tevii_Release_v5192_20140915.rar but you have to be
+> aware of the following :
+> - rar files are not necessarily rar ! It's sometimes just tar files or
+> tar.gz
+> - you have to compile the drivers so you need at least kernel headers and
+> tools to build drivers from sources (don't know which packages for Debian)
+> - once you have built with "make" and before you "make install" you need to
+> remove the actual media tree from your kernel with "rm -Rf
+> /lib/modules/`uname -r`/kernel/drivers/media" in order to have no symbols
+> discrepencies. Be sure you have no error during make !
+> - I have used TeVii products both at work and at home  and found poor
+> reliability (and poor support).
+>
+> Good luck,
+>
+> René
+>
+> --------------------------------------------------
+> From: "Josu Lazkano" <josu.lazkano@gmail.com>
+> Sent: Thursday, September 25, 2014 5:12 PM
+> To: "linux-media" <linux-media@vger.kernel.org>
+> Subject:  TeVii S480 in Debian Wheezy
+>
+>> Hello all,
+>>
+>> I want to use a new dual DVB-S2 device, TeVii S480.
+>>
+>> I am using Debian Wheezy with 3.2 kernel, I copy the firmware files:
+>>
+>> # md5sum /lib/firmware/dvb-*
+>> a32d17910c4f370073f9346e71d34b80  /lib/firmware/dvb-fe-ds3000.fw
+>> 2946e99fe3a4973ba905fcf59111cf40  /lib/firmware/dvb-usb-s660.fw
+>>
+>> The device is listed as 2 USB devices:
+>>
+>> # lsusb | grep TeVii
+>> Bus 006 Device 002: ID 9022:d483 TeVii Technology Ltd.
+>> Bus 007 Device 002: ID 9022:d484 TeVii Technology Ltd.
+>>
+>> But there is no any device in /dev/dvb/:
+>>
+>> # ls -l /dev/dvb/
+>> ls: cannot access /dev/dvb/: No such file or directory
+>>
+>> Need I install any other driver or piece of software?
+>>
+>> I will appreciate any help.
+>>
+>> Best regards.
+>>
+>> --
+>> Josu Lazkano
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-But I haven't got any clue about the meaning.
-Ask me a question about any bit in the tcp/ip packages, but don't ask me
-about USB ;)
-Where can I get technical details that are, well... readable without
-studing for weeks?
 
-btw, it's attached to a FT1009 USB3.0 SuperSpeed chip.
-
-> So I would recommend
-> .count = 6,
-> .framesperurb = 8,
-> .framesize = 1024,
-> 
-> Use some testing with error and trial to find out smallest working
-> buffers, then add some 20% extra for that.
-
-I set to 8x8x2048 (because max package size is 2x1024)
-but w_scan doesn't find any transponder.
-
-What should happen if buffers are too small?
-
-Tommorrow I'll swap the sat cable just to make sure this isn't the cause.
-
-thanks,
-
-Jan
+-- 
+Josu Lazkano
