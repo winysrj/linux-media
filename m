@@ -1,50 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44395 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756141AbaICUdb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:31 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 34/46] [media] siano: just return 0 instead of using a var
-Date: Wed,  3 Sep 2014 17:33:06 -0300
-Message-Id: <69be89802adaea64bbba12ace3e7bab9db70b465.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp.gentoo.org ([140.211.166.183]:43832 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750864AbaIYFIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 01:08:19 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 02/12] cx231xx: use own i2c_client for eeprom access
+Date: Thu, 25 Sep 2014 07:07:54 +0200
+Message-Id: <1411621684-8295-2-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating a var to store 0 and just return it,
-change the code to return 0 directly.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 050984c5b1e3..a3677438205e 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -2129,8 +2129,6 @@ int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 pin_num,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 791f00c..092fb85 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
  
- static int __init smscore_module_init(void)
- {
--	int rc = 0;
--
- 	INIT_LIST_HEAD(&g_smscore_notifyees);
- 	INIT_LIST_HEAD(&g_smscore_devices);
- 	kmutex_init(&g_smscore_deviceslock);
-@@ -2138,7 +2136,7 @@ static int __init smscore_module_init(void)
- 	INIT_LIST_HEAD(&g_smscore_registry);
- 	kmutex_init(&g_smscore_registrylock);
- 
--	return rc;
-+	return 0;
  }
  
- static void __exit smscore_module_exit(void)
+-static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
++static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
++		       u8 *eedata, int len)
+ {
+ 	int ret = 0;
+-	u8 addr = 0xa0 >> 1;
+ 	u8 start_offset = 0;
+ 	int len_todo = len;
+ 	u8 *eedata_cur = eedata;
+ 	int i;
+-	struct i2c_msg msg_write = { .addr = addr, .flags = 0,
++	struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
+ 		.buf = &start_offset, .len = 1 };
+-	struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
+-
+-	/* mutex_lock(&dev->i2c_lock); */
+-	cx231xx_enable_i2c_port_3(dev, false);
++	struct i2c_msg msg_read = { .addr = client->addr, .flags = I2C_M_RD };
+ 
+ 	/* start reading at offset 0 */
+-	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
++	ret = i2c_transfer(client->adapter, &msg_write, 1);
+ 	if (ret < 0) {
+ 		cx231xx_err("Can't read eeprom\n");
+ 		return ret;
+@@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
+ 		msg_read.len = (len_todo > 64) ? 64 : len_todo;
+ 		msg_read.buf = eedata_cur;
+ 
+-		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
++		ret = i2c_transfer(client->adapter, &msg_read, 1);
+ 		if (ret < 0) {
+ 			cx231xx_err("Can't read eeprom\n");
+ 			return ret;
+@@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 		{
+ 			struct tveeprom tvee;
+ 			static u8 eeprom[256];
++			struct i2c_client client;
++
++			memset(&client, 0, sizeof(client));
++			client.adapter = &dev->i2c_bus[1].i2c_adap;
++			client.addr = 0xa0 >> 1;
+ 
+-			read_eeprom(dev, eeprom, sizeof(eeprom));
+-			tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
++			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
++			tveeprom_hauppauge_analog(&client,
+ 						&tvee, eeprom + 0xc0);
+ 			break;
+ 		}
 -- 
-1.9.3
+2.1.1
 
