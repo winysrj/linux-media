@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39742 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906AbaI2IQX (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46229 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509AbaIYMYs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 04:16:23 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 4/8] of: Add for_each_endpoint_of_node helper macro
-Date: Mon, 29 Sep 2014 10:15:47 +0200
-Message-Id: <1411978551-30480-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
-References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 25 Sep 2014 08:24:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] omap3isp: Fix division by 0
+Date: Thu, 25 Sep 2014 15:24:47 +0300
+Message-Id: <1411647887-5593-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note that while of_graph_get_next_endpoint decrements the reference count
-of the child node passed to it, of_node_put(child) still has to be called
-manually when breaking out of the loop.
+If the requested clock rate passed to the XCLK set_rate or round_rate
+operation is 0, the driver will try to divide by 0. Fix this.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- include/linux/of_graph.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/platform/omap3isp/isp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index befef42..e43442e 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -26,6 +26,17 @@ struct of_endpoint {
- 	const struct device_node *local_node;
- };
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 72265e5..6019156 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -220,6 +220,9 @@ static u32 isp_xclk_calc_divider(unsigned long *rate, unsigned long parent_rate)
+ 		return ISPTCTRL_CTRL_DIV_BYPASS;
+ 	}
  
-+/**
-+ * for_each_endpoint_of_node - iterate over every endpoint in a device node
-+ * @parent: parent device node containing ports and endpoints
-+ * @child: loop variable pointing to the current endpoint node
-+ *
-+ * When breaking out of the loop, of_node_put(child) has to be called manually.
-+ */
-+#define for_each_endpoint_of_node(parent, child) \
-+	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
-+	     child = of_graph_get_next_endpoint(parent, child))
++	if (*rate == 0)
++		*rate = 1;
 +
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
+ 	divider = DIV_ROUND_CLOSEST(parent_rate, *rate);
+ 	if (divider >= ISPTCTRL_CTRL_DIV_BYPASS)
+ 		divider = ISPTCTRL_CTRL_DIV_BYPASS - 1;
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
