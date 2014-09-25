@@ -1,70 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45715 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754529AbaI2SDu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:03:50 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 0/6] Add of-graph helpers to loop over endpoints and find ports by id
-Date: Mon, 29 Sep 2014 20:03:33 +0200
-Message-Id: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:44163 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752574AbaIYOuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 10:50:20 -0400
+Message-ID: <54242BA6.2040309@iki.fi>
+Date: Thu, 25 Sep 2014 17:50:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 01/12] cx231xx: let i2c bus scanning use its own i2c_client
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-now the first three patches of the previous series are combined into one. This
-patch touches of, media, and staging. Since it is rebased onto Grant's tree, it
-now trivially conflicts with 30e94a564d07 (staging: imx-drm: Lines over 80
-characters fixed.)
+Antti
 
-This series converts all existing users of of_graph_get_next_endpoint that pass
-a non-NULL prev argument to the function and decrement its refcount themselves
-to stop doing that. The of_node_put is moved into of_graph_get_next_endpoint
-instead.
-This allows to add a for_each_endpoint_of_node helper macro to loop over all
-endpoints in a device tree node.
-The third of patch adds a of_graph_get_port_by_id function to retrieve a port
-by its known port id from the device tree.
-
-Finally, the last three patches convert functions in drm_of.c and imx-drm-core.c
-to use the for_each_endpoint_of_node macro instead of of_graph_get_next_endpoint.
-
-Changes since v4:
- - Combined patches 1-3 into one
-
-The previous version can be found here: https://lkml.org/lkml/2014/9/29/78
-
-regards
-Philipp
-
-Philipp Zabel (6):
-  of: Decrement refcount of previous endpoint in
-    of_graph_get_next_endpoint
-  of: Add for_each_endpoint_of_node helper macro
-  of: Add of_graph_get_port_by_id function
-  drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
-  imx-drm: use for_each_endpoint_of_node macro in
-    imx_drm_encoder_get_mux_id
-  imx-drm: use for_each_endpoint_of_node macro in
-    imx_drm_encoder_parse_of
-
- drivers/gpu/drm/drm_of.c                       |  8 ++----
- drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
- drivers/of/base.c                              | 35 ++++++++++++++++++++------
- drivers/staging/imx-drm/imx-drm-core.c         | 28 ++++++---------------
- include/linux/of_graph.h                       | 18 +++++++++++++
- 5 files changed, 56 insertions(+), 36 deletions(-)
+On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>   drivers/media/usb/cx231xx/cx231xx-i2c.c | 17 +++++++++++------
+>   drivers/media/usb/cx231xx/cx231xx.h     |  2 +-
+>   2 files changed, 12 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> index 7c0f797..67a1391 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> @@ -480,22 +480,27 @@ static char *i2c_devs[128] = {
+>    * cx231xx_do_i2c_scan()
+>    * check i2c address range for devices
+>    */
+> -void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c)
+> +void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
+>   {
+>   	unsigned char buf;
+>   	int i, rc;
+> +	struct i2c_client client;
+>
+> -	cx231xx_info(": Checking for I2C devices ..\n");
+> +	memset(&client, 0, sizeof(client));
+> +	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
+> +
+> +	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
+>   	for (i = 0; i < 128; i++) {
+> -		c->addr = i;
+> -		rc = i2c_master_recv(c, &buf, 0);
+> +		client.addr = i;
+> +		rc = i2c_master_recv(&client, &buf, 0);
+>   		if (rc < 0)
+>   			continue;
+>   		cx231xx_info("%s: i2c scan: found device @ 0x%x  [%s]\n",
+>   			     dev->name, i << 1,
+>   			     i2c_devs[i] ? i2c_devs[i] : "???");
+>   	}
+> -	cx231xx_info(": Completed Checking for I2C devices.\n");
+> +	cx231xx_info(": Completed Checking for I2C devices on port=%d.\n",
+> +		i2c_port);
+>   }
+>
+>   /*
+> @@ -522,7 +527,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>
+>   	if (0 == bus->i2c_rc) {
+>   		if (i2c_scan)
+> -			cx231xx_do_i2c_scan(dev, &bus->i2c_client);
+> +			cx231xx_do_i2c_scan(dev, bus->nr);
+>   	} else
+>   		cx231xx_warn("%s: i2c bus %d register FAILED\n",
+>   			     dev->name, bus->nr);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+> index aeb1bf4..5efc93e 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx.h
+> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+> @@ -751,7 +751,7 @@ int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq);
+>   int cx231xx_reset_analog_tuner(struct cx231xx *dev);
+>
+>   /* Provided by cx231xx-i2c.c */
+> -void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c);
+> +void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
+>   int cx231xx_i2c_register(struct cx231xx_i2c *bus);
+>   int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
+>
+>
 
 -- 
-2.1.0
-
+http://palosaari.fi/
