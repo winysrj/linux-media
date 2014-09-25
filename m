@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44450 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756023AbaICUdd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 17/46] [media] ov9740: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:49 -0300
-Message-Id: <cfad8f3a0ea118432e3ed00ee5f1664641b661d5.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp.gentoo.org ([140.211.166.183]:43851 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751941AbaIYFI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 01:08:27 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 08/12] cx231xx: let is_tuner check the real i2c port and not the i2c master number
+Date: Thu, 25 Sep 2014 07:08:00 +0200
+Message-Id: <1411621684-8295-8-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using 0 or 1 for boolean, use the true/false
-defines.
+get used i2c port from bus_nr and status of port_3 switch
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-index ea76863dfdb4..ee9eb635d540 100644
---- a/drivers/media/i2c/soc_camera/ov9740.c
-+++ b/drivers/media/i2c/soc_camera/ov9740.c
-@@ -564,13 +564,13 @@ static int ov9740_set_res(struct i2c_client *client, u32 width, u32 height)
- 	u32 y_start;
- 	u32 x_end;
- 	u32 y_end;
--	bool scaling = 0;
-+	bool scaling = false;
- 	u32 scale_input_x;
- 	u32 scale_input_y;
- 	int ret;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 86f90c0..a8c0f90 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -54,10 +54,19 @@ do {							\
+       } 						\
+ } while (0)
  
- 	if ((width != OV9740_MAX_WIDTH) || (height != OV9740_MAX_HEIGHT))
--		scaling = 1;
-+		scaling = true;
++static inline int get_real_i2c_port(struct cx231xx *dev, int bus_nr)
++{
++	if (bus_nr == 1)
++		return dev->port_3_switch_enabled ? I2C_3 : I2C_1;
++	return bus_nr;
++}
++
+ static inline bool is_tuner(struct cx231xx *dev, struct cx231xx_i2c *bus,
+ 			const struct i2c_msg *msg, int tuner_type)
+ {
+-	if (bus->nr != dev->board.tuner_i2c_master)
++	int i2c_port = get_real_i2c_port(dev, bus->nr);
++
++	if (i2c_port != dev->board.tuner_i2c_master)
+ 		return false;
  
- 	/*
- 	 * Try to use as much of the sensor area as possible when supporting
+ 	if (msg->addr != dev->board.tuner_addr)
 -- 
-1.9.3
+2.1.1
 
