@@ -1,93 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4680 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807AbaICHav (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 03:30:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] vivid: add missing includes
-Date: Wed,  3 Sep 2014 09:30:31 +0200
-Message-Id: <1409729431-7870-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1409729431-7870-1-git-send-email-hverkuil@xs4all.nl>
-References: <1409729431-7870-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:37735 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753412AbaIYRks (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 13:40:48 -0400
+Message-ID: <5424539D.8090503@osg.samsung.com>
+Date: Thu, 25 Sep 2014 11:40:45 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Johannes Stezenbach <js@linuxtv.org>
+CC: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: em28xx breaks after hibernate
+References: <20140925125353.GA5129@linuxtv.org> <54241C81.60301@osg.samsung.com> <20140925160134.GA6207@linuxtv.org>
+In-Reply-To: <20140925160134.GA6207@linuxtv.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/25/2014 10:01 AM, Johannes Stezenbach wrote:
+> Hi Shuah,
+> 
+> On Thu, Sep 25, 2014 at 07:45:37AM -0600, Shuah Khan wrote:
+>> On 09/25/2014 06:53 AM, Johannes Stezenbach wrote:
+>>> ever since your patchset which implements suspend/resume
+>>> for em28xx, hibernating the system breaks the Hauppauge WinTV HVR 930C driver.
+>>> In v3.15.y and v3.16.y it throws a request_firmware warning
+>>> during hibernate + resume, and the /dev/dvb/ device nodes disappears after
+>>> resume.  In current git v3.17-rc6-247-g005f800, it hangs
+>>> after resume.  I bisected the hang in qemu to
+>>> b89193e0b06f "media: em28xx - remove reset_resume interface",
+>>> the hang is fixed if I revert this commit on top of v3.17-rc6-247-g005f800.
+>>>
+>>> Regarding the request_firmware issue. I think a possible
+>>> fix would be:
+> 
+> I think you should take a closer look at the code you snipped.
+> Maybe this fixes the root of the issue you worked around
+> with the DVB_FE_DEVICE_RESUME thing, namely calling
+> fe->ops.tuner_ops.init from wrong context.
 
-Fix kbuild test robot warnings about missing vmalloc.h and string.h
-includes.
+Sorry for aggressive snipping. :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c    | 1 +
- drivers/media/platform/vivid/vivid-rds-gen.c | 1 +
- drivers/media/platform/vivid/vivid-tpg.h     | 1 +
- drivers/media/platform/vivid/vivid-vbi-gen.c | 1 +
- drivers/media/platform/vivid/vivid-vid-cap.c | 1 +
- 5 files changed, 5 insertions(+)
+Right. I introduced DVB_FE_DEVICE_RESUME code to resume
+problems in drx39xxj driver. Because I had to make it not
+toggle power on the fe for resume. In other words, for it
+to differentiate between disconnect and resume conditions.
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index fb3b0aa..2c61a62 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -23,6 +23,7 @@
- #include <linux/init.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/vmalloc.h>
- #include <linux/font.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
-diff --git a/drivers/media/platform/vivid/vivid-rds-gen.c b/drivers/media/platform/vivid/vivid-rds-gen.c
-index dab5463..c382343 100644
---- a/drivers/media/platform/vivid/vivid-rds-gen.c
-+++ b/drivers/media/platform/vivid/vivid-rds-gen.c
-@@ -19,6 +19,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/ktime.h>
-+#include <linux/string.h>
- #include <linux/videodev2.h>
- 
- #include "vivid-rds-gen.h"
-diff --git a/drivers/media/platform/vivid/vivid-tpg.h b/drivers/media/platform/vivid/vivid-tpg.h
-index 51ef7d1..8ef3e52 100644
---- a/drivers/media/platform/vivid/vivid-tpg.h
-+++ b/drivers/media/platform/vivid/vivid-tpg.h
-@@ -25,6 +25,7 @@
- #include <linux/errno.h>
- #include <linux/random.h>
- #include <linux/slab.h>
-+#include <linux/vmalloc.h>
- #include <linux/videodev2.h>
- 
- #include "vivid-tpg-colors.h"
-diff --git a/drivers/media/platform/vivid/vivid-vbi-gen.c b/drivers/media/platform/vivid/vivid-vbi-gen.c
-index 22f4bcc..450ec3c 100644
---- a/drivers/media/platform/vivid/vivid-vbi-gen.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-gen.c
-@@ -20,6 +20,7 @@
- #include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/ktime.h>
-+#include <linux/string.h>
- #include <linux/videodev2.h>
- 
- #include "vivid-vbi-gen.h"
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 115437a..b016aed 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -20,6 +20,7 @@
- #include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-+#include <linux/vmalloc.h>
- #include <linux/videodev2.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/v4l2-common.h>
+dvb_frontend_resume() is used by dvb_usbv2 dvb_usb_core -
+dvb_usbv2_resume_common()
+
+Calling dvb_frontend_reinitialise() from dvb_frontend_resume()
+could break dvb_usbv2 drivers because it has handling for
+reset_resume in its core in dvb_usbv2_reset_resume()
+
+reverting media: em28xx - remove reset_resume interface
+might be a short-term solution. I think the longterm
+solution is adding a dvb_frontend_reset_resume() that
+does dvb_frontend_reinitialise() just like you suggested.
+
+In addition, em28xx will call dvb_frontend_reset_resume()
+from its reset_resume
+
+What do you think?
+
+thanks,
+-- Shuah
+
 -- 
-2.1.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
