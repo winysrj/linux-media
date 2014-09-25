@@ -1,150 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4436 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754371AbaIWGKo (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2926 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbaIYHP5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 02:10:44 -0400
-Message-ID: <54210EC5.5080606@xs4all.nl>
-Date: Tue, 23 Sep 2014 08:10:13 +0200
+	Thu, 25 Sep 2014 03:15:57 -0400
+Message-ID: <5423C118.50009@xs4all.nl>
+Date: Thu, 25 Sep 2014 09:15:36 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "chen.fang@freescale.com" <chen.fang@freescale.com>,
-	"m.chehab@samsung.com" <m.chehab@samsung.com>,
-	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
-CC: Shengchao Guo <Shawn.Guo@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com> <540FF70E.9050203@xs4all.nl> <566c6b8349ba4c2ead8f76ff04b52e65@BY2PR03MB556.namprd03.prod.outlook.com> <540FFBF1.6060702@xs4all.nl> <ba228f83093b46d9a6e594a037236198@BY2PR03MB556.namprd03.prod.outlook.com>
-In-Reply-To: <ba228f83093b46d9a6e594a037236198@BY2PR03MB556.namprd03.prod.outlook.com>
-Content-Type: text/plain; charset=windows-1252
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	sakari.ailus@linux.intel.com, ramakrmu@cisco.com,
+	Devin Heitmueller <dheitmueller@kernellabs.co>,
+	olebowle@gmx.com, Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/5] media: v4l2-core changes to use media tuner token
+ api
+References: <cover.1411397045.git.shuahkh@osg.samsung.com> <b83cf780636a80aec53e3b7e8f101645049e94f3.1411397045.git.shuahkh@osg.samsung.com> <CAGoCfizUWx-RrRbtuv7ctTqZskmDPK-w9bRTnEwjwn6oJ=V48g@mail.gmail.com> <54208A03.2010101@osg.samsung.com> <CAGoCfix8BH0coq2q-ndvBvDHGJ6f28mVE0CzAnMZYgCaPg+yrw@mail.gmail.com> <5421DC1A.4030509@osg.samsung.com> <5422B857.9020007@xs4all.nl> <5422E9FD.9050303@osg.samsung.com>
+In-Reply-To: <5422E9FD.9050303@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fancy Fang,
+On 09/24/2014 05:57 PM, Shuah Khan wrote:
+> On 09/24/2014 06:25 AM, Hans Verkuil wrote:
+>> Hi Shuah,
+>>
+>>
+>> Let's be realistic: if an application doesn't test for error codes,
+>> then that's the problem of the application. Also, EBUSY will only be
+>> returned if someone else is holding the tuner in a different mode.
+>> And that didn't work anyway (and probably in worse ways too if the
+>> driver would forcefully change the tuner mode).
+>>
+>> So I really don't see a problem with this.
+>>
+> 
+> I didn't have high hopes you would agree to the simpler approach. :)
+> 
+>>>
+>>> Compared to the current approach, holding lock in open and releasing
+>>> it in close is cleaner with predictable failure conditions. It is lot
+>>> easier to maintain. In addition, this approach keeps it same as the
+>>> dvb core token hold approach as outlined below.
+>>
+>> Absolutely not an option for v4l2. You should always be able to open
+>> a v4l2 device, regardless of the tuner mode or any other mode.
+>>
+>> The only exception is a radio tuner device: that should take the tuner
+>> on open. I think this is a very unfortunate design and I wish that that
+>> could be dropped.
+> 
+> Right this is another problem that needs to be addressed in the
+> user-space.
 
-I do have a few comments:
+This is however out-of-scope for your project. For radio devices you can
+just take the tuner token on open.
 
-1) One reason why the switch to vm_iomap_memory() was made originally was that
-that function did a bunch of sanity checks. Since this patch moves back to
-remap_pfn_range() those sanity checks are lost and should be reinstated.
+BTW, the tuner token in v4l2 should *only* be taken if there actually is
+a tuner. Luckily that's very easy to test for: struct v4l2_ioctl_ops will
+have a non-NULL vidioc_s_tuner field.
 
-2) You need Marek's Ack as well since he understands the memory code much
-better than I do.
+> 
+>>
+>> One thing that we haven't looked at at all is what should be done if
+>> the current input is not a tuner but a composite or S-Video input.
+>>
+>> It is likely (I would have to test this to be sure) that you can capture
+>> from a DVB tuner and at the same time from an S-Video input without any
+>> problems. By taking the tuner token unconditionally this would become
+>> impossible. But doing this right will require more work.
+>>
+>> BTW, what happens if the analog video part of a hybrid board doesn't have
+>> a tuner but only S-Video/Composite inputs? I think I've seen such boards
+>> actually. I would have to dig through my collection though.
+>>
+> 
+> I would recommend trying to bound the problems that need to be solved
+> for the first phase of this media token feature. If we don't we will
+> never be done with it. :)
 
-3) There are efforts underway to make a modern i.mx6 video driver based on
-vb2 and all the other modern V4L2 APIs, wouldn't it be much better if freescale
-jumps on board and starts working on that code as well? See e.g. this mail
-thread: http://www.spinics.net/lists/linux-media/msg79078.html
+I want to think about this myself (i.e. non-tuner inputs) and do some
+testing as well. I'll get back to this when I know more myself.
 
-I assume this refers to the same hardware. The official freescale driver
-for that hardware is horrendous.
+> 
+> I would propose the first step as addressing dvb and v4l2 conflicts
+> and include snd-usb-audio so there is confidence that the media token
+> approach can span non-media drivers.
 
-If you are writing code for unrelated hardware, then you should move over to
-vb2 yourself. videobuf should not be used anymore for new drivers.
+Certainly.
 
-4) I still do not entirely understand the control flow and I will have to take
-another look. I'll see if I can do that tomorrow.
+> I am currently testing with tvtime, xawtv, vlc, and kaffeine. I am
+> planning to add kradio for snd-usb-audio work for the next round of
+> patches.
+> 
+>>
+>> S_PRIORITY has nothing to do with tuner ownership. If there is a real need
+>> to release the token at another time than on close (and I don't see
+>> such a need), then make a new ioctl. Let's not overload S_PRIO with an
+>> unrelated action.
+> 
+> This is not an issue for fine grained approach since simpler approach
+> is nacked. i.e Mauro suggested changing S_PRIORITY as another place
+> to release it if we were to go with simple appraoch (open/close).
+> 
+>>
+>>>
+>>> Devin recommended testing on devices that have an encoder to cover
+>>> the cases where there are multiple /dev/videoX nodes tied to the
+>>> same tuner.
+>>
+>> Good examples are cx23885 (already vb2) and cx88 (the vb2 patches have
+>> been posted, but not yet merged). It shouldn't be too hard to find
+>> hardware based on those chipsets.
+>>
+> 
+> Please see my bounding the problem comment. Can these devices wait until
+> the second phase. We have multiple combinations with hardware features,
+> applications. The way I am designing the media token is if driver
+> doesn't create the token, no change in the dvb-core, v4l2-core behavior.
+> It is not required that driver must create a token to allow evolving
+> driver support and hardware support as we go.
+
+>From what I know I don't think these types of devices will pose any problem
+for this approach. However, in general you should consider all sorts of
+combinations and see if the design will still work for those. You don't
+want to have to redesign it later just because you ignored a particular type
+of device. Which I why I want to see the snd-usb-audio work first, since I
+think that's probably the most complex part of the whole design.
+
+And I do think you should try to get one of those cards (cx88 or cx23885
+based). They are common, they are complex and have hybrid tuners, sometimes
+with radio support as well. You can probably get some of them fairly cheaply
+on ebay. These are good cards to test with, if not now then in the near
+future. My philosophy is that you can never have too much hardware :-)
 
 Regards,
 
 	Hans
-
-On 09/23/2014 05:11 AM, chen.fang@freescale.com wrote:
-> Hans,
-> Do you have any more comment on this patch?
-> 
-> Best regards,
-> Fancy Fang
-> 
-> -----Original Message-----
-> From: Fang Chen-B47543 
-> Sent: Wednesday, September 10, 2014 3:29 PM
-> To: 'Hans Verkuil'; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
-> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
-> Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-> 
-> On the Freescale imx6 platform which belongs to ARM architecture. The driver is our local v4l2 output driver which is not upstream yet unfortunately.
-> 
-> Best regards,
-> Fancy Fang
-> 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Wednesday, September 10, 2014 3:21 PM
-> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
-> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Marek Szyprowski
-> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
-> 
-> On 09/10/14 09:14, chen.fang@freescale.com wrote:
->> It is not a theoretically issue, it is a real case that the mapping failed issue happens in 3.14.y kernel but not happens in previous 3.10.y kernel.
->> So I need your confirmation on it.
-> 
-> With which driver does this happen? On which architecture?
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Thanks.
->>
->> Best regards,
->> Fancy Fang
->>
->> -----Original Message-----
->> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->> Sent: Wednesday, September 10, 2014 3:01 PM
->> To: Fang Chen-B47543; m.chehab@samsung.com; viro@ZenIV.linux.org.uk
->> Cc: Guo Shawn-R65073; linux-media@vger.kernel.org; 
->> linux-kernel@vger.kernel.org; Marek Szyprowski
->> Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory() with remap_pfn_range().
->>
->> On 09/10/14 07:28, Fancy Fang wrote:
->>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core 
->>> will assign the corresponding offset to the 'boff' field of the 
->>> videobuf_buffer for each requested buffer sequentially. Later, user 
->>> may call mmap() to map one or all of the buffers with the 'offset'
->>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
->>> value is only used to find the matched buffer instead of to be the 
->>> real offset from the buffer's physical start address as used by 
->>> vm_iomap_memory(). So, in some case that if the offset is not zero,
->>> vm_iomap_memory() will fail.
->>
->> Is this just a fix for something that can fail theoretically, or do you actually have a case where this happens? I am very reluctant to make any changes to videobuf. Drivers should all migrate to vb2.
->>
->> I have CC-ed Marek as well since he knows a lot more about this stuff than I do.
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
->>> ---
->>>  drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
->>>  1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> b/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> index bf80f0f..8bd9889 100644
->>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->>>  	/* Try to remap memory */
->>>  	size = vma->vm_end - vma->vm_start;
->>>  	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->>> -	retval = vm_iomap_memory(vma, mem->dma_handle, size);
->>> +	retval = remap_pfn_range(vma, vma->vm_start,
->>> +				 mem->dma_handle >> PAGE_SHIFT,
->>> +				 size, vma->vm_page_prot);
->>>  	if (retval) {
->>>  		dev_err(q->dev, "mmap: remap failed with error %d. ",
->>>  			retval);
->>>
->>
-> 
-
