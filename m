@@ -1,83 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2759 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbaIXMnP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 08:43:15 -0400
-Message-ID: <5422BC49.3050000@xs4all.nl>
-Date: Wed, 24 Sep 2014 14:42:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:56106 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751892AbaIYSoU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 14:44:20 -0400
+Message-ID: <5424627F.9010306@iki.fi>
+Date: Thu, 25 Sep 2014 21:44:15 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Fancy Fang <chen.fang@freescale.com>, m.chehab@samsung.com,
-	viro@ZenIV.linux.org.uk
-CC: shawn.guo@freescale.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
- with remap_pfn_range().
-References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com> <540FF70E.9050203@xs4all.nl> <5422BBDB.7050904@samsung.com>
-In-Reply-To: <5422BBDB.7050904@samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Hamish Moffatt <hamish@cloud.net.au>, linux-media@vger.kernel.org
+Subject: Re: problem with second tuner on Leadtek DTV dongle dual
+References: <542406DE.10403@cloud.net.au>
+In-Reply-To: <542406DE.10403@cloud.net.au>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Moikka
+Performance issues are fixed recently (at least I hope so), but it will 
+took some time in order to get fixes in stable. Unfortunately I don't 
+have any IT9135 BX (ver 2 chip) dual device to test like yours...
 
+Could you install that kernel tree:
+http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
+and firmwares from there:
+http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/ITE_3.25.0.0/
 
-On 09/24/2014 02:40 PM, Marek Szyprowski wrote:
-> Hello,
->
-> On 2014-09-10 09:00, Hans Verkuil wrote:
->> On 09/10/14 07:28, Fancy Fang wrote:
->>> When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
->>> will assign the corresponding offset to the 'boff' field of the
->>> videobuf_buffer for each requested buffer sequentially. Later, user
->>> may call mmap() to map one or all of the buffers with the 'offset'
->>> parameter which is equal to its 'boff' value. Obviously, the 'offset'
->>> value is only used to find the matched buffer instead of to be the
->>> real offset from the buffer's physical start address as used by
->>> vm_iomap_memory(). So, in some case that if the offset is not zero,
->>> vm_iomap_memory() will fail.
->> Is this just a fix for something that can fail theoretically, or do you
->> actually have a case where this happens? I am very reluctant to make
->> any changes to videobuf. Drivers should all migrate to vb2.
->>
->> I have CC-ed Marek as well since he knows a lot more about this stuff
->> than I do.
->
-> I'm sorry for a delay, I was really busy with other things.
->
->>> Signed-off-by: Fancy Fang <chen.fang@freescale.com>
->>> ---
->>>   drivers/media/v4l2-core/videobuf-dma-contig.c | 4 +++-
->>>   1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> index bf80f0f..8bd9889 100644
->>> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
->>> @@ -305,7 +305,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->>>       /* Try to remap memory */
->>>       size = vma->vm_end - vma->vm_start;
->>>       vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->>> -    retval = vm_iomap_memory(vma, mem->dma_handle, size);
->>> +    retval = remap_pfn_range(vma, vma->vm_start,
->>> +                 mem->dma_handle >> PAGE_SHIFT,
->>> +                 size, vma->vm_page_prot);
->>>       if (retval) {
->>>           dev_err(q->dev, "mmap: remap failed with error %d. ",
->>>               retval);
->
-> I think we don't need to revert the code to use remap_pfn_range() again (like
-> it was in pre v3.10 times). The simplest way will be to correctly fix
-> vma->vm_pgoff and set it to zero before calling vm_iomap_memory(). It is
-> done the same way in vb2_dma_contig.c:vb2_dc_mmap().
->
-> To sum up - please change your patch: keep vm_iomap_memory() call and add
-> "vma->vm_pgoff = 0;" line before it with suitable comment.
+and test?
 
-Much better, I agree completely.
+regards
+Antti
 
-Regards,
+On 09/25/2014 03:13 PM, Hamish Moffatt wrote:
+> I have a new Leadtek DTV dongle dual (usb 0413:6a05). With linux 3.16.3
+> the first adapter tunes and works fine, but the second tuner will only
+> tune to the one UHF multiplex in our area. The other five multiplexes
+> are all VHF and it won't lock on any of those.
+>
+> Here's the kernel log from inserting the device;
+>
+> [  125.030689] usb 5-1.1: new high-speed USB device number 3 using ehci-pci
+> [  125.126691] usb 5-1.1: New USB device found, idVendor=0413,
+> idProduct=6a05
+> [  125.126695] usb 5-1.1: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [  125.126698] usb 5-1.1: Product: WinFast DTV Dongle Dual
+> [  125.126700] usb 5-1.1: Manufacturer: Leadtek
+> [  125.221407] usb 5-1.1: dvb_usb_af9035: prechip_version=83
+> chip_version=02 chip_type=9135
+> [  125.221813] usb 5-1.1: dvb_usb_v2: found a 'Leadtek WinFast DTV
+> Dongle Dual' in cold state
+> [  125.232168] usb 5-1.1: dvb_usb_v2: downloading firmware from file
+> 'dvb-usb-it9135-02.fw'
+> [  127.157506] usb 5-1.1: dvb_usb_af9035: firmware version=3.39.1.0
+> [  127.157517] usb 5-1.1: dvb_usb_v2: found a 'Leadtek WinFast DTV
+> Dongle Dual' in warm state
+> [  127.159469] usb 5-1.1: dvb_usb_af9035: [0] overriding tuner from 38
+> to 60
+> [  127.160971] usb 5-1.1: dvb_usb_af9035: [1] overriding tuner from 38
+> to 60
+> [  127.162547] usb 5-1.1: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [  127.162571] DVB: registering new adapter (Leadtek WinFast DTV Dongle
+> Dual)
+> [  127.180119] i2c i2c-11: af9033: firmware version: LINK=0.0.0.0
+> OFDM=3.9.1.0
+> [  127.180127] usb 5-1.1: DVB: registering adapter 2 frontend 0 (Afatech
+> AF9033 (DVB-T))...
+> [  127.193146] i2c i2c-11: tuner_it913x: ITE Tech IT913X successfully
+> attached
+> [  127.193152] usb 5-1.1: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [  127.193173] DVB: registering new adapter (Leadtek WinFast DTV Dongle
+> Dual)
+> [  127.205374] i2c i2c-11: af9033: firmware version: LINK=0.0.0.0
+> OFDM=3.9.1.0
+> [  127.205381] usb 5-1.1: DVB: registering adapter 3 frontend 0 (Afatech
+> AF9033 (DVB-T))...
+> [  127.205521] i2c i2c-11: tuner_it913x: ITE Tech IT913X successfully
+> attached
+> [  127.218475] Registered IR keymap rc-empty
+> [  127.218568] input: Leadtek WinFast DTV Dongle Dual as
+> /devices/pci0000:00/0000:00:1d.0/usb5/5-1/5-1.1/rc/rc1/input18
+> [  127.218669] rc1: Leadtek WinFast DTV Dongle Dual as
+> /devices/pci0000:00/0000:00:1d.0/usb5/5-1/5-1.1/rc/rc1
+> [  127.218674] usb 5-1.1: dvb_usb_v2: schedule remote query interval to
+> 500 msecs
+> [  127.218677] usb 5-1.1: dvb_usb_v2: 'Leadtek WinFast DTV Dongle Dual'
+> successfully initialized and connected
+> [  127.218827] usbcore: registered new interface driver dvb_usb_af9035
+>
+> Here's an attempt to tune a VHF station with tzap; w_scan only finds the
+> UHF multiplex. Note it's adapter 2 and 3, as I have a leadtek PCI card
+> at adapters 0 and 1.
+>
+> [ 9:44PM] hamish@quokka:~ $ tzap -a3 ABC
+> using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+> reading channels from file '/home/hamish/.tzap/channels.conf'
+> tuning to 226500000 Hz
+> video pid 0x0200, audio pid 0x028a
+> status 00 | signal ffff | snr 0000 | ber 00fa797a | unc 00073f4b |
+> status 07 | signal ffff | snr 0000 | ber 00fa797a | unc 000765d0 |
+> status 00 | signal ffff | snr 0000 | ber 00fa797a | unc 00078c55 |
+> status 07 | signal ffff | snr 0000 | ber 00fa797a | unc 0007b2da |
+> status 00 | signal ffff | snr 0000 | ber 00e45fb3 | unc 0007d95f |
+> status 07 | signal ffff | snr 0000 | ber 00e45fb3 | unc 0007ffe4 |
+> ^C
+> [ 9:44PM] hamish@quokka:~ $
+> [ 9:44PM] hamish@quokka:~ $ tzap -a2 ABC
+> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+> reading channels from file '/home/hamish/.tzap/channels.conf'
+> tuning to 226500000 Hz
+> video pid 0x0200, audio pid 0x028a
+> status 00 | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+>
+>
+> Is this a known problem, and is there a solution?
+>
+> Thanks,
+>
+> Hamish
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-	Hans
+-- 
+http://palosaari.fi/
