@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35030 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbaIDOq6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:46:58 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] [media] tw68: don't assume that pagesize is always 4096
-Date: Thu,  4 Sep 2014 11:46:47 -0300
-Message-Id: <5bbc05f52d23b17cc0faa81a2e5d4f2a344aaaa9.1409841955.git.m.chehab@samsung.com>
-In-Reply-To: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-In-Reply-To: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-we0-f179.google.com ([74.125.82.179]:56193 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752759AbaIYPNA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 11:13:00 -0400
+Received: by mail-we0-f179.google.com with SMTP id u56so221373wes.24
+        for <linux-media@vger.kernel.org>; Thu, 25 Sep 2014 08:12:59 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 25 Sep 2014 17:12:59 +0200
+Message-ID: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
+Subject: TeVii S480 in Debian Wheezy
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This code implicitly assumes that pagesize is 4096, but this is
-not true on all archs, as the PAGE_SHIFT can be different than
-12 on all those architectures: alpha, arc, arm64, cris, frv,
-hexagon,ia64, m68k, metag, microblaze, mips, openrisc, parisc,
-powerpc, sh, sparc and tile.
+Hello all,
 
-The real constrant here seems to be to limit the buffer size to
-4MB.
+I want to use a new dual DVB-S2 device, TeVii S480.
 
-So, fix the code to reflect that, in a way that it will keep
-working with differnt values for PAGE_SIZE.
+I am using Debian Wheezy with 3.2 kernel, I copy the firmware files:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+# md5sum /lib/firmware/dvb-*
+a32d17910c4f370073f9346e71d34b80  /lib/firmware/dvb-fe-ds3000.fw
+2946e99fe3a4973ba905fcf59111cf40  /lib/firmware/dvb-usb-s660.fw
 
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index 4dd38578cf1b..66658accdca9 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -366,7 +366,7 @@ static int tw68_buffer_pages(int size)
- {
- 	size  = PAGE_ALIGN(size);
- 	size += PAGE_SIZE; /* for non-page-aligned buffers */
--	size /= 4096;
-+	size /= PAGE_SIZE;
- 	return size;
- }
- 
-@@ -376,7 +376,7 @@ static int tw68_buffer_count(unsigned int size, unsigned int count)
- {
- 	unsigned int maxcount;
- 
--	maxcount = 1024 / tw68_buffer_pages(size);
-+	maxcount = (4096 * 1024 / PAGE_SIZE) / tw68_buffer_pages(size);
- 	if (count > maxcount)
- 		count = maxcount;
- 	return count;
+The device is listed as 2 USB devices:
+
+# lsusb | grep TeVii
+Bus 006 Device 002: ID 9022:d483 TeVii Technology Ltd.
+Bus 007 Device 002: ID 9022:d484 TeVii Technology Ltd.
+
+But there is no any device in /dev/dvb/:
+
+# ls -l /dev/dvb/
+ls: cannot access /dev/dvb/: No such file or directory
+
+Need I install any other driver or piece of software?
+
+I will appreciate any help.
+
+Best regards.
+
 -- 
-1.9.3
-
+Josu Lazkano
