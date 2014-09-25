@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34106 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbaIJNl0 (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:51941 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752759AbaIYPiE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 09:41:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Isaac Nickaein <nickaein.i@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Framerate is consistently divided by 2.5
-Date: Wed, 10 Sep 2014 16:41:28 +0300
-Message-ID: <1918377.tBK2dPDOH0@avalon>
-In-Reply-To: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com>
-References: <CA+NJmkdrRWHvSwHQ248qHqaaGBu8N=4aY7XaPQ4WUeD3QrhjMA@mail.gmail.com>
+	Thu, 25 Sep 2014 11:38:04 -0400
+Date: Thu, 25 Sep 2014 17:37:46 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] em28xx-input: NULL dereference on error
+In-Reply-To: <542421DF.9060000@googlemail.com>
+Message-ID: <alpine.DEB.2.10.1409251736480.2766@hadrien>
+References: <20140925113941.GB3708@mwanda> <542421DF.9060000@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-2141670814-1411659467=:2766"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Isaac,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Saturday 06 September 2014 12:35:25 Isaac Nickaein wrote:
-> Hi,
-> 
-> After patching the kernel, the rate that images are captured from the
-> camera reduce by a factor of 2.5.
+--8323329-2141670814-1411659467=:2766
+Content-Type: TEXT/PLAIN; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 
-How have you patched the kernel ? If you have both a working and non-working 
-version you could use git-bisect to find the commit that causes this breakage.
+On Thu, 25 Sep 2014, Frank Schäfer wrote:
 
-> Here are a list of frame rates I have tried followed by the resulted frame-
-> rate:
-> 
-> 10 fps --> 4 fps
-> 15 fps --> 6 fps
-> 25 fps --> 10 fps
-> 30 fps --> 12 fps
-> 
-> Note that all of the rates are consistently divided by 2.5. This seems
-> to be a clocking issue to me. Is there any multipliers in V4L2 (or
-> UVC?) code in framerate calculation which depends on the hardware and
-> be cause of this?
+> Hi Dan,
+>
+> Am 25.09.2014 um 13:39 schrieb Dan Carpenter:
+> > We call "kfree(ir->i2c_client);" in the error handling and that doesn't
+> > work if "ir" is NULL.
+> >
+> > Fixes: 78e719a5f30b ('[media] em28xx-input: i2c IR decoders: improve i2c_client handling')
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> > index 581f6da..23f8f6a 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-input.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> > @@ -712,8 +712,10 @@ static int em28xx_ir_init(struct em28xx *dev)
+> >  	em28xx_info("Registering input extension\n");
+> >
+> >  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+> > +	if (!ir)
+> > +		return -ENOMEM;
+> >  	rc = rc_allocate_device();
+> > -	if (!ir || !rc)
+> > +	if (!rc)
+> >  		goto error;
 
--- 
-Regards,
+I have never understood this kind of code.  If the kmalloc fails, why not
+give up immediately (as in Dan's patch)?
 
-Laurent Pinchart
+julia
 
+
+> >  	/* record handles to ourself */
+> I would prefer to fix it where the actual problem is located.
+> Can you send an updated version that changes the code to do
+>
+> ...
+> error:
+> if (ir)
+>   kfree(ir->i2c_client);
+> ...
+>
+> This makes the code less prone to future error handling changes.
+>
+> Thanks !
+>
+> Regards,
+> Frank
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--8323329-2141670814-1411659467=:2766--
