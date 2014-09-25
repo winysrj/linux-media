@@ -1,135 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35659 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbaI1Abd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Sep 2014 20:31:33 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Olliver Schinagl <oliver@schinagl.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2] Add targets to install the files at the system
-Date: Sat, 27 Sep 2014 21:31:10 -0300
-Message-Id: <1411864270-31635-1-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <1411823912-28014-1-git-send-email-mchehab@osg.samsung.com>
-References: <1411823912-28014-1-git-send-email-mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37741 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752501AbaIYSBP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 14:01:15 -0400
+Message-ID: <54245869.8030502@osg.samsung.com>
+Date: Thu, 25 Sep 2014 12:01:13 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Johannes Stezenbach <js@linuxtv.org>
+CC: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: em28xx breaks after hibernate
+References: <20140925125353.GA5129@linuxtv.org> <54241C81.60301@osg.samsung.com> <20140925160134.GA6207@linuxtv.org> <20140925173613.GA12900@linuxtv.org>
+In-Reply-To: <20140925173613.GA12900@linuxtv.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to be easier to package the scan tables, add
-some targets to install the files, and add the instructions
-about how to use it at the README file.
+Hi Johannes,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
+On 09/25/2014 11:36 AM, Johannes Stezenbach wrote:
+> On Thu, Sep 25, 2014 at 06:01:34PM +0200, Johannes Stezenbach wrote:
 
-v2: Install now is a way faster, and isdb-t is also installed.
+> FWIW, there are six other xc5000 patches in the queue:
+> 
+> http://git.linuxtv.org/cgit.cgi/media_tree.git/log/drivers/media/tuners/xc5000.c?h=devel-3.17-rc6
+> 
+> I'm assuming this is the development branch for the 3.18 merge window,
+> so the question is how will the issue be fixed in 3.17 and 3.16-stable?
+> If you have patches I'm ready to test.
+> 
+> FWIW, I tried v3.17-rc6-247-g005f800 with only my suggested
+> dvb_frontend_resume() change, it breaks in another place after
+> resume and then still hangs.  I think the b89193e0b06f revert is needed to 
+> fix the hang.  If you care, the dmesg after resume:
 
- Makefile | 24 ++++++++++++++++++++++++
- README   | 37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+Our messages crossed looks like. Yes this problem needs
+to be fixed in stable. Reverting b89193e0b06f is definitely
+an option, however I think we might see problems on other
+devices. b89193e0b06f fixed problem on KWorld stick I have.
 
-diff --git a/Makefile b/Makefile
-index 2fb4a8890a37..901dc9df4595 100644
---- a/Makefile
-+++ b/Makefile
-@@ -14,6 +14,7 @@ MKDIR = mkdir -p
- DVBFORMATCONVERT = dvb-format-convert
- 
- DVBV3DIRS = atsc dvb-c dvb-s dvb-t
-+DVBV5DIRS = $(DVBV3DIRS) isdb-t
- 
- DVBV3CHANNELFILES = $(foreach dir,$(DVBV3DIRS),$(wildcard $(dir)/*))
- 
-@@ -25,6 +26,22 @@ DVBV5OUTPUTDIR = dvbv5
- 
- PHONY := clean dvbv3 dvbv5
- 
-+ifeq ($(PREFIX),)
-+PREFIX = /usr/local
-+endif
-+
-+ifeq ($(DATADIR),)
-+DATADIR = $(PREFIX)/share
-+endif
-+
-+ifeq ($(DVBV5DIR),)
-+DVBV5DIR = dvbv5
-+endif
-+
-+ifeq ($(DVBV3DIR),)
-+DVBV3DIR = dvbv3
-+endif
-+
- dvbv3:
- 	@$(foreach var,$(DVBV3DIRS), $(MKDIR) $(DVBV3OUTPUTDIR)/$(var);)
- 	@$(foreach var,$(DVBV3CHANNELFILES), $(DVBFORMATCONVERT) $(DVBFORMATCONVERT_CHANNEL_DVBV3) $(var) $(DVBV3OUTPUTDIR)/$(var);)
-@@ -34,6 +51,13 @@ dvbv5: $(DVBV3OUTPUTDIR)
- 	@$(foreach var,$(DVBV3DIRS), $(MKDIR) $(DVBV5OUTPUTDIR)/$(var);)
- 	@$(foreach var,$(DVBV3CHANNELFILES), $(DVBFORMATCONVERT) $(DVBFORMATCONVERT_CHANNEL_DVBV5) $(DVBV3OUTPUTDIR)/$(var) $(DVBV5OUTPUTDIR)/$(var);)
- 
-+install:
-+	@mkdir -p $(DATADIR)/$(DVBV5DIR)
-+	$(foreach var,$(DVBV5DIRS), install -d -p $(DATADIR)/$(DVBV5DIR)/$(var); install -D -p -m 644 $(var)/* $(DATADIR)/$(DVBV5DIR)/$(var);)
-+
-+install_v3:
-+	@mkdir -p $(DATADIR)/$(DVBV3DIR)
-+	$(foreach var,$(DVBV3DIRS), install -d -p $(DATADIR)/$(DVBV3DIR)/$(var); install -D -p -m 644 $(DVBV3OUTPUTDIR)/$(var)/* $(DATADIR)/$(DVBV3DIR)/$(var);)
- 
- clean:
- 	rm -rf $(DVBV3OUTPUTDIR)/ $(DVBV5OUTPUTDIR)/
-diff --git a/README b/README
-index 87561ee599ae..f0ae695aa09b 100644
---- a/README
-+++ b/README
-@@ -1,6 +1,9 @@
- All tables are now using DVBv5 format. That allows suporting all standards
- available on a standard way.
- 
-+GENERATING FILES TO THE LEGACY DVBV3 FORMAT
-+===========================================
-+
- A Makefile target is provided to convert to the legacy channel format.
- For it to work, you need to have v4l-utils installed (specifically,
- the v4l-utils package that contains the dvbv5 utils).
-@@ -36,3 +39,37 @@ Plese notice that comments are not preserved when doing the conversions.
- PS.: If you're willing to submit new entries and/or corrections, please
- be sure to send them at the DVBv5 format and sending them via e-mail
- to linux-media@vger.kernel.org.
-+
-+INSTALL
-+=======
-+
-+In order to install the files, use:
-+	$ make install
-+
-+By default, it will install the files at /usr/local/share/dvbv5.
-+
-+In order to install the legacy v3 formatted files, use:
-+	$ make install_v3
-+
-+Don't forget to run "make dvbv3" before running the above command,
-+in order to convert the files to the legacy format.
-+
-+By default, it will install the files at /usr/local/share/dvbv3.
-+
-+There are a few extra parameters that could be used to define where
-+the files will be stored:
-+
-+	PREFIX=<dir>		(default: /usr/local)
-+	DATADIR=<dir>		(default: $(PREFIX/share)
-+	DVBV5DIR=<subdir>	(default: dvbv3)
-+	DVBV3DIR=<subdir>	(default: dvbv5)
-+
-+So, if it is desired to install both v3 and v5 files at a tmp file,
-+under the current dir, the install command would be:
-+
-+	$ make install install_v3 PREFIX=`pwd`/tmp
-+	Installing dvbv5-formatted files at /home/myuser/dtv-scan-tables/tmp/share/dvbv5...done.
-+	Installing dvbv3-formatted files at /home/myuser/dtv-scan-tables/tmp/share/dvbv3...done.
-+
-+Please also note that install takes some time, as there are lots
-+of files to be copied.
+Mauro said b89193e0b06f is causing problems on some
+USB ehci/xhci drivers.
+
+Let's go ahead and revert it for now. I will work on
+getting this reset_resume sorted out with the solution
+I proposed in my previous email. I hope it is okay to
+take you up un your offer to test.
+
+thanks,
+-- Shuah
+
 -- 
-1.9.3
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
