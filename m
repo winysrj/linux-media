@@ -1,38 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:61798 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbaIXLOG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 07:14:06 -0400
-Received: by mail-pd0-f175.google.com with SMTP id v10so7285543pde.6
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 04:14:05 -0700 (PDT)
-Message-ID: <5422A779.8030901@gmail.com>
-Date: Wed, 24 Sep 2014 20:14:01 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from mail-bn1bon0110.outbound.protection.outlook.com ([157.56.111.110]:56976
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752344AbaIYCRp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Sep 2014 22:17:45 -0400
+From: "chen.fang@freescale.com" <chen.fang@freescale.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"m.chehab@samsung.com" <m.chehab@samsung.com>,
+	"viro@ZenIV.linux.org.uk" <viro@ZenIV.linux.org.uk>
+CC: Shengchao Guo <Shawn.Guo@freescale.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH] [media] videobuf-dma-contig: replace vm_iomap_memory()
+ with remap_pfn_range().
+Date: Thu, 25 Sep 2014 02:17:42 +0000
+Message-ID: <113c7da497f64f5caa7f2dab341cad60@BY2PR03MB556.namprd03.prod.outlook.com>
+References: <1410326937-31140-1-git-send-email-chen.fang@freescale.com>
+ <540FF70E.9050203@xs4all.nl> <5422BBDB.7050904@samsung.com>
+ <5422BC49.3050000@xs4all.nl>
+In-Reply-To: <5422BC49.3050000@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 3/4] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1410196843-26168-1-git-send-email-tskd08@gmail.com>	<1410196843-26168-4-git-send-email-tskd08@gmail.com>	<20140923170730.4d5d167e@recife.lan>	<542233E5.5070201@gmail.com> <20140924062812.6308f584@recife.lan>
-In-Reply-To: <20140924062812.6308f584@recife.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Btw, please check if your driver is handling it well, as the valid
-> values for interleave are 0, 1, 2, 4 (actually, dib8000 also
-> supports interleaving equal to 8, if sound_broadcast).
-
-I have no info on how to set time interleaving parameters,
-although I can read them as a part of TMCC info.
-I guess I can also set them in the same registers, but I'm not sure.
-
-Since the demod is intelligent and automatically reads TMCC and
-sets the related parameters accordingly,
-I think it is safe to ignore user settings and let the demod set it.
-If someone would get more info in the future,
-[s]he could set those parameters in advance and make a lock faster.
-
-regards,
-akihiro
+VGhhbmtzIGZvciB5b3VyIGlkZWEsIE1hcmVrIGFuZCBIYW5zLiBUaGlzIGNoYW5nZSBtYWtlcyBz
+ZW5zZS4gQW5kIEkndmUgYWxyZWFkeQ0KdmVyaWZpZWQgaXQuIEknbGwgcmVzdWJtaXQgbXkgY2hh
+bmdlIHNvb24uDQoNCkJlc3QgcmVnYXJkcywNCkZhbmN5IEZhbmcNCg0KLS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0NCkZyb206IEhhbnMgVmVya3VpbCBbbWFpbHRvOmh2ZXJrdWlsQHhzNGFsbC5u
+bF0gDQpTZW50OiBXZWRuZXNkYXksIFNlcHRlbWJlciAyNCwgMjAxNCA4OjQzIFBNDQpUbzogTWFy
+ZWsgU3p5cHJvd3NraTsgRmFuZyBDaGVuLUI0NzU0MzsgbS5jaGVoYWJAc2Ftc3VuZy5jb207IHZp
+cm9AWmVuSVYubGludXgub3JnLnVrDQpDYzogR3VvIFNoYXduLVI2NTA3MzsgbGludXgtbWVkaWFA
+dmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBS
+ZTogW1BBVENIXSBbbWVkaWFdIHZpZGVvYnVmLWRtYS1jb250aWc6IHJlcGxhY2Ugdm1faW9tYXBf
+bWVtb3J5KCkgd2l0aCByZW1hcF9wZm5fcmFuZ2UoKS4NCg0KDQoNCk9uIDA5LzI0LzIwMTQgMDI6
+NDAgUE0sIE1hcmVrIFN6eXByb3dza2kgd3JvdGU6DQo+IEhlbGxvLA0KPg0KPiBPbiAyMDE0LTA5
+LTEwIDA5OjAwLCBIYW5zIFZlcmt1aWwgd3JvdGU6DQo+PiBPbiAwOS8xMC8xNCAwNzoyOCwgRmFu
+Y3kgRmFuZyB3cm90ZToNCj4+PiBXaGVuIHVzZXIgcmVxdWVzdHMgVjRMMl9NRU1PUllfTU1BUCB0
+eXBlIGJ1ZmZlcnMsIHRoZSB2aWRlb2J1Zi1jb3JlIA0KPj4+IHdpbGwgYXNzaWduIHRoZSBjb3Jy
+ZXNwb25kaW5nIG9mZnNldCB0byB0aGUgJ2JvZmYnIGZpZWxkIG9mIHRoZSANCj4+PiB2aWRlb2J1
+Zl9idWZmZXIgZm9yIGVhY2ggcmVxdWVzdGVkIGJ1ZmZlciBzZXF1ZW50aWFsbHkuIExhdGVyLCB1
+c2VyIA0KPj4+IG1heSBjYWxsIG1tYXAoKSB0byBtYXAgb25lIG9yIGFsbCBvZiB0aGUgYnVmZmVy
+cyB3aXRoIHRoZSAnb2Zmc2V0Jw0KPj4+IHBhcmFtZXRlciB3aGljaCBpcyBlcXVhbCB0byBpdHMg
+J2JvZmYnIHZhbHVlLiBPYnZpb3VzbHksIHRoZSAnb2Zmc2V0Jw0KPj4+IHZhbHVlIGlzIG9ubHkg
+dXNlZCB0byBmaW5kIHRoZSBtYXRjaGVkIGJ1ZmZlciBpbnN0ZWFkIG9mIHRvIGJlIHRoZSANCj4+
+PiByZWFsIG9mZnNldCBmcm9tIHRoZSBidWZmZXIncyBwaHlzaWNhbCBzdGFydCBhZGRyZXNzIGFz
+IHVzZWQgYnkgDQo+Pj4gdm1faW9tYXBfbWVtb3J5KCkuIFNvLCBpbiBzb21lIGNhc2UgdGhhdCBp
+ZiB0aGUgb2Zmc2V0IGlzIG5vdCB6ZXJvLA0KPj4+IHZtX2lvbWFwX21lbW9yeSgpIHdpbGwgZmFp
+bC4NCj4+IElzIHRoaXMganVzdCBhIGZpeCBmb3Igc29tZXRoaW5nIHRoYXQgY2FuIGZhaWwgdGhl
+b3JldGljYWxseSwgb3IgZG8gDQo+PiB5b3UgYWN0dWFsbHkgaGF2ZSBhIGNhc2Ugd2hlcmUgdGhp
+cyBoYXBwZW5zPyBJIGFtIHZlcnkgcmVsdWN0YW50IHRvIA0KPj4gbWFrZSBhbnkgY2hhbmdlcyB0
+byB2aWRlb2J1Zi4gRHJpdmVycyBzaG91bGQgYWxsIG1pZ3JhdGUgdG8gdmIyLg0KPj4NCj4+IEkg
+aGF2ZSBDQy1lZCBNYXJlayBhcyB3ZWxsIHNpbmNlIGhlIGtub3dzIGEgbG90IG1vcmUgYWJvdXQg
+dGhpcyBzdHVmZiANCj4+IHRoYW4gSSBkby4NCj4NCj4gSSdtIHNvcnJ5IGZvciBhIGRlbGF5LCBJ
+IHdhcyByZWFsbHkgYnVzeSB3aXRoIG90aGVyIHRoaW5ncy4NCj4NCj4+PiBTaWduZWQtb2ZmLWJ5
+OiBGYW5jeSBGYW5nIDxjaGVuLmZhbmdAZnJlZXNjYWxlLmNvbT4NCj4+PiAtLS0NCj4+PiAgIGRy
+aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYyB8IDQgKysrLQ0KPj4+
+ICAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPj4+DQo+
+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250
+aWcuYyANCj4+PiBiL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcu
+Yw0KPj4+IGluZGV4IGJmODBmMGYuLjhiZDk4ODkgMTAwNjQ0DQo+Pj4gLS0tIGEvZHJpdmVycy9t
+ZWRpYS92NGwyLWNvcmUvdmlkZW9idWYtZG1hLWNvbnRpZy5jDQo+Pj4gKysrIGIvZHJpdmVycy9t
+ZWRpYS92NGwyLWNvcmUvdmlkZW9idWYtZG1hLWNvbnRpZy5jDQo+Pj4gQEAgLTMwNSw3ICszMDUs
+OSBAQCBzdGF0aWMgaW50IF9fdmlkZW9idWZfbW1hcF9tYXBwZXIoc3RydWN0IHZpZGVvYnVmX3F1
+ZXVlICpxLA0KPj4+ICAgICAgIC8qIFRyeSB0byByZW1hcCBtZW1vcnkgKi8NCj4+PiAgICAgICBz
+aXplID0gdm1hLT52bV9lbmQgLSB2bWEtPnZtX3N0YXJ0Ow0KPj4+ICAgICAgIHZtYS0+dm1fcGFn
+ZV9wcm90ID0gcGdwcm90X25vbmNhY2hlZCh2bWEtPnZtX3BhZ2VfcHJvdCk7DQo+Pj4gLSAgICBy
+ZXR2YWwgPSB2bV9pb21hcF9tZW1vcnkodm1hLCBtZW0tPmRtYV9oYW5kbGUsIHNpemUpOw0KPj4+
+ICsgICAgcmV0dmFsID0gcmVtYXBfcGZuX3JhbmdlKHZtYSwgdm1hLT52bV9zdGFydCwNCj4+PiAr
+ICAgICAgICAgICAgICAgICBtZW0tPmRtYV9oYW5kbGUgPj4gUEFHRV9TSElGVCwNCj4+PiArICAg
+ICAgICAgICAgICAgICBzaXplLCB2bWEtPnZtX3BhZ2VfcHJvdCk7DQo+Pj4gICAgICAgaWYgKHJl
+dHZhbCkgew0KPj4+ICAgICAgICAgICBkZXZfZXJyKHEtPmRldiwgIm1tYXA6IHJlbWFwIGZhaWxl
+ZCB3aXRoIGVycm9yICVkLiAiLA0KPj4+ICAgICAgICAgICAgICAgcmV0dmFsKTsNCj4NCj4gSSB0
+aGluayB3ZSBkb24ndCBuZWVkIHRvIHJldmVydCB0aGUgY29kZSB0byB1c2UgcmVtYXBfcGZuX3Jh
+bmdlKCkgDQo+IGFnYWluIChsaWtlIGl0IHdhcyBpbiBwcmUgdjMuMTAgdGltZXMpLiBUaGUgc2lt
+cGxlc3Qgd2F5IHdpbGwgYmUgdG8gDQo+IGNvcnJlY3RseSBmaXgNCj4gdm1hLT52bV9wZ29mZiBh
+bmQgc2V0IGl0IHRvIHplcm8gYmVmb3JlIGNhbGxpbmcgdm1faW9tYXBfbWVtb3J5KCkuIEl0IA0K
+PiB2bWEtPmlzDQo+IGRvbmUgdGhlIHNhbWUgd2F5IGluIHZiMl9kbWFfY29udGlnLmM6dmIyX2Rj
+X21tYXAoKS4NCj4NCj4gVG8gc3VtIHVwIC0gcGxlYXNlIGNoYW5nZSB5b3VyIHBhdGNoOiBrZWVw
+IHZtX2lvbWFwX21lbW9yeSgpIGNhbGwgYW5kIA0KPiBhZGQgInZtYS0+dm1fcGdvZmYgPSAwOyIg
+bGluZSBiZWZvcmUgaXQgd2l0aCBzdWl0YWJsZSBjb21tZW50Lg0KDQpNdWNoIGJldHRlciwgSSBh
+Z3JlZSBjb21wbGV0ZWx5Lg0KDQpSZWdhcmRzLA0KDQoJSGFucw0K
