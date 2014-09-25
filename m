@@ -1,64 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37879 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752149AbaIZNM2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 09:12:28 -0400
-Date: Fri, 26 Sep 2014 10:12:22 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140926101222.778ebcaf@recife.lan>
-In-Reply-To: <20140926122721.GA11597@linuxtv.org>
-References: <20140925160134.GA6207@linuxtv.org>
-	<5424539D.8090503@osg.samsung.com>
-	<20140925181747.GA21522@linuxtv.org>
-	<542462C4.7020907@osg.samsung.com>
-	<20140926080030.GB31491@linuxtv.org>
-	<20140926080824.GA8382@linuxtv.org>
-	<20140926071411.61a011bd@recife.lan>
-	<20140926110727.GA880@linuxtv.org>
-	<20140926084215.772adce9@recife.lan>
-	<20140926090316.5ae56d93@recife.lan>
-	<20140926122721.GA11597@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42542 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568AbaIYHk5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 03:40:57 -0400
+Message-ID: <1411630851.5671.2.camel@pengutronix.de>
+Subject: Re: [PATCH v3 1/8] [media] soc_camera: Do not decrement endpoint
+ node refcount in the loop
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Date: Thu, 25 Sep 2014 09:40:51 +0200
+In-Reply-To: <Pine.LNX.4.64.1409200923160.21175@axis700.grange>
+References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+	 <1410449587-1677-2-git-send-email-p.zabel@pengutronix.de>
+	 <Pine.LNX.4.64.1409200923160.21175@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Sep 2014 14:27:21 +0200
-Johannes Stezenbach <js@linuxtv.org> escreveu:
+Hi Guennadi,
 
-> On Fri, Sep 26, 2014 at 09:03:16AM -0300, Mauro Carvalho Chehab wrote:
-> > 
-> > The patch I sent you (or some fixed version of it) is part of the
-> > solution, but this still bothers me:
-> > 
-> > > > [    3.776854]  [<ffffffff813f974f>] drxk_attach+0x546/0x656
-> > > > [    3.777675]  [<ffffffff814c22a3>] em28xx_dvb_init.part.3+0xa3e/0x1cdf
-> > > > [    3.778652]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
-> > > > [    3.779690]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
-> > > > [    3.780615]  [<ffffffff814c5b45>] ? mutex_unlock+0x9/0xb
-> > > > [    3.781428]  [<ffffffff814c0f50>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
-> > > > [    3.782487]  [<ffffffff814230cf>] em28xx_dvb_init+0x1d/0x1f
-> > 
-> > Why em28xx_dvb_init() is being called?
-> > 
-> > That should only happen if the device is re-probed again, but
-> > the reset_resume code should have been preventing it.
+Am Samstag, den 20.09.2014, 09:24 +0200 schrieb Guennadi Liakhovetski:
+> Hi Philippe,
 > 
-> Well, I stuck a WARN_ON(1) into drxk_release(), it is not called
-> during hibernate+resume.
-
-Well, it shouldn't be called at hibernate, but, at resume, the
-reset_resume callback at em28xx should have been called, but I'm
-not seeing any message indicating it.
-
-Try to add a WARN_ON or printk at em28xx_usb_resume().
-
-
-> Do you have a better suggestion to debug it?
+> On Thu, 11 Sep 2014, Philipp Zabel wrote:
 > 
-> Johannes
+> > In preparation for a following patch, stop decrementing the endpoint node
+> > refcount in the loop. This temporarily leaks a reference to the endpoint node,
+> > which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+> > of its prev argument instead.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> > index f4308fe..f752489 100644
+> > --- a/drivers/media/platform/soc_camera/soc_camera.c
+> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> > @@ -1696,11 +1696,11 @@ static void scan_of_host(struct soc_camera_host *ici)
+> >  		if (!i)
+> >  			soc_of_bind(ici, epn, ren->parent);
+> >  
+> > -		of_node_put(epn);
+> >  		of_node_put(ren);
+> >  
+> >  		if (i) {
+> >  			dev_err(dev, "multiple subdevices aren't supported yet!\n");
+> > +			of_node_put(epn);
+> 
+> Sorry, this doesn't look right to me. I think you want to drop the last 
+> reference _after_ the loop, not in this temporary check for multiple 
+> endpoints, which your patch has nothing to do with.
+
+Since we only ever break out of the loop here or if epn == NULL, it
+won't make a difference. Would you prefer this:
+
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+                if (!i)
+                        soc_of_bind(ici, epn, ren->parent);
+ 
+-               of_node_put(epn);
+                of_node_put(ren);
+ 
+                if (i) {
+@@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+                        break;
+                }
+        }
++
++       of_node_put(epn);
+ }
+ 
+ #else
+
+
+regards
+Philipp
+
