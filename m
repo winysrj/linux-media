@@ -1,71 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44381 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755981AbaICUda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:30 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 08/46] [media] stv0900_core: don't allocate a temporary var
-Date: Wed,  3 Sep 2014 17:32:40 -0300
-Message-Id: <dde99cb081475312af183688405bf061a0c41612.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp.gentoo.org ([140.211.166.183]:43830 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750864AbaIYFIP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 01:08:15 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 01/12] cx231xx: let i2c bus scanning use its own i2c_client
+Date: Thu, 25 Sep 2014 07:07:53 +0200
+Message-Id: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The error return code STV0900_NO_ERROR happens only once, at
-the end of the functions. So, just return it directly.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 17 +++++++++++------
+ drivers/media/usb/cx231xx/cx231xx.h     |  2 +-
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
-This driver should actually be fixed to return standard
-Linux error codes, instead of its own macros, but this
-should be done on a separate patchset.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
-index e5a87b57d855..2c88abfab531 100644
---- a/drivers/media/dvb-frontends/stv0900_core.c
-+++ b/drivers/media/dvb-frontends/stv0900_core.c
-@@ -1270,7 +1270,6 @@ enum fe_stv0900_error stv0900_st_dvbs2_single(struct stv0900_internal *intp,
- 					enum fe_stv0900_demod_mode LDPC_Mode,
- 					enum fe_stv0900_demod_num demod)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 7c0f797..67a1391 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -480,22 +480,27 @@ static char *i2c_devs[128] = {
+  * cx231xx_do_i2c_scan()
+  * check i2c address range for devices
+  */
+-void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c)
++void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
  {
--	enum fe_stv0900_error error = STV0900_NO_ERROR;
- 	s32 reg_ind;
+ 	unsigned char buf;
+ 	int i, rc;
++	struct i2c_client client;
  
- 	dprintk("%s\n", __func__);
-@@ -1337,7 +1336,7 @@ enum fe_stv0900_error stv0900_st_dvbs2_single(struct stv0900_internal *intp,
- 		break;
+-	cx231xx_info(": Checking for I2C devices ..\n");
++	memset(&client, 0, sizeof(client));
++	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
++
++	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
+ 	for (i = 0; i < 128; i++) {
+-		c->addr = i;
+-		rc = i2c_master_recv(c, &buf, 0);
++		client.addr = i;
++		rc = i2c_master_recv(&client, &buf, 0);
+ 		if (rc < 0)
+ 			continue;
+ 		cx231xx_info("%s: i2c scan: found device @ 0x%x  [%s]\n",
+ 			     dev->name, i << 1,
+ 			     i2c_devs[i] ? i2c_devs[i] : "???");
  	}
- 
--	return error;
-+	return STV0900_NO_ERROR;
+-	cx231xx_info(": Completed Checking for I2C devices.\n");
++	cx231xx_info(": Completed Checking for I2C devices on port=%d.\n",
++		i2c_port);
  }
  
- static enum fe_stv0900_error stv0900_init_internal(struct dvb_frontend *fe,
-@@ -1555,8 +1554,6 @@ static int stv0900_status(struct stv0900_internal *intp,
- static int stv0900_set_mis(struct stv0900_internal *intp,
- 				enum fe_stv0900_demod_num demod, int mis)
- {
--	enum fe_stv0900_error error = STV0900_NO_ERROR;
--
- 	dprintk("%s\n", __func__);
+ /*
+@@ -522,7 +527,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
  
- 	if (mis < 0 || mis > 255) {
-@@ -1569,7 +1566,7 @@ static int stv0900_set_mis(struct stv0900_internal *intp,
- 		stv0900_write_reg(intp, ISIBITENA, 0xff);
- 	}
+ 	if (0 == bus->i2c_rc) {
+ 		if (i2c_scan)
+-			cx231xx_do_i2c_scan(dev, &bus->i2c_client);
++			cx231xx_do_i2c_scan(dev, bus->nr);
+ 	} else
+ 		cx231xx_warn("%s: i2c bus %d register FAILED\n",
+ 			     dev->name, bus->nr);
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index aeb1bf4..5efc93e 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -751,7 +751,7 @@ int cx231xx_set_analog_freq(struct cx231xx *dev, u32 freq);
+ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
  
--	return error;
-+	return STV0900_NO_ERROR;
- }
- 
+ /* Provided by cx231xx-i2c.c */
+-void cx231xx_do_i2c_scan(struct cx231xx *dev, struct i2c_client *c);
++void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
+ int cx231xx_i2c_register(struct cx231xx_i2c *bus);
+ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
  
 -- 
-1.9.3
+2.1.1
 
