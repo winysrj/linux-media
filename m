@@ -1,75 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44271 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753991AbaICUd1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 16:33:27 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 09/46] [media] em28xx: use true/false for boolean vars
-Date: Wed,  3 Sep 2014 17:32:41 -0300
-Message-Id: <339e7a9901904bcadc6d9d25d1b628d58756adab.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-In-Reply-To: <cover.1409775488.git.m.chehab@samsung.com>
-References: <cover.1409775488.git.m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp.gentoo.org ([140.211.166.183]:43857 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751941AbaIYFIb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 01:08:31 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 11/12] cx231xx: drop unconditional port3 switching
+Date: Thu, 25 Sep 2014 07:08:03 +0200
+Message-Id: <1411621684-8295-11-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using 0 or 1 for boolean, use the true/false
-defines.
+All switching should be done by i2c mux adapters.
+Drop explicit dont_use_port_3 flag.
+Drop info message about switch.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Only the removed code in start_streaming is questionable:
+It did switch the port_3 flag without accessing i2c in between.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index ed843bd221ea..e978a2ae6f21 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -609,17 +609,17 @@ static int em28xx_register_snapshot_button(struct em28xx *dev)
- static void em28xx_init_buttons(struct em28xx *dev)
- {
- 	u8  i = 0, j = 0;
--	bool addr_new = 0;
-+	bool addr_new = false;
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/usb/cx231xx/cx231xx-avcore.c | 17 -----------------
+ drivers/media/usb/cx231xx/cx231xx-cards.c  |  8 --------
+ drivers/media/usb/cx231xx/cx231xx-core.c   |  4 +---
+ drivers/media/usb/cx231xx/cx231xx-dvb.c    |  4 ----
+ drivers/media/usb/cx231xx/cx231xx.h        |  1 -
+ 5 files changed, 1 insertion(+), 33 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index d31ea57..138ee5e 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -1270,8 +1270,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
+ 	int status = 0;
+ 	bool current_is_port_3;
  
- 	dev->button_polling_interval = EM28XX_BUTTONS_DEBOUNCED_QUERY_INTERVAL;
- 	while (dev->board.buttons[i].role >= 0 &&
- 			 dev->board.buttons[i].role < EM28XX_NUM_BUTTON_ROLES) {
- 		struct em28xx_button *button = &dev->board.buttons[i];
- 		/* Check if polling address is already on the list */
--		addr_new = 1;
-+		addr_new = true;
- 		for (j = 0; j < dev->num_button_polling_addresses; j++) {
- 			if (button->reg_r == dev->button_polling_addresses[j]) {
--				addr_new = 0;
-+				addr_new = false;
- 				break;
- 			}
+-	if (dev->board.dont_use_port_3)
+-		is_port_3 = false;
+ 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
+ 				       PWR_CTL_EN, value, 4);
+ 	if (status < 0)
+@@ -1288,9 +1286,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
+ 	else
+ 		value[0] &= ~I2C_DEMOD_EN;
+ 
+-	cx231xx_info("Changing the i2c master port to %d\n",
+-		     is_port_3 ?  3 : 1);
+-
+ 	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+ 					PWR_CTL_EN, value, 4);
+ 
+@@ -2320,9 +2315,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
  		}
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index f6cf99fa30b2..3642438bc7d4 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -721,7 +721,7 @@ static inline void process_frame_data_em25xx(struct em28xx *dev,
- 	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
- 	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
- 	struct em28xx_v4l2      *v4l2 = dev->v4l2;
--	bool frame_end = 0;
-+	bool frame_end = false;
  
- 	/* Check for header */
- 	/* NOTE: at least with bulk transfers, only the first packet
-@@ -2308,7 +2308,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	v4l2->v4l2_dev.ctrl_handler = hdl;
+ 		if (dev->board.tuner_type != TUNER_ABSENT) {
+-			/* Enable tuner */
+-			cx231xx_enable_i2c_port_3(dev, true);
+-
+ 			/* reset the Tuner */
+ 			if (dev->board.tuner_gpio)
+ 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
+@@ -2387,15 +2379,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
+ 		}
  
- 	if (dev->board.is_webcam)
--		v4l2->progressive = 1;
-+		v4l2->progressive = true;
+ 		if (dev->board.tuner_type != TUNER_ABSENT) {
+-			/*
+-			 * Enable tuner
+-			 *	Hauppauge Exeter seems to need to do something different!
+-			 */
+-			if (dev->model == CX231XX_BOARD_HAUPPAUGE_EXETER)
+-				cx231xx_enable_i2c_port_3(dev, false);
+-			else
+-				cx231xx_enable_i2c_port_3(dev, true);
+-
+ 			/* reset the Tuner */
+ 			if (dev->board.tuner_gpio)
+ 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index a6fdb6f..0a0a4e9 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -262,7 +262,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_PAL,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.dont_use_port_3 = 1,
+ 		/* Actually, it has a 417, but it isn't working correctly.
+ 		 * So set to 0 for now until someone can manage to get this
+ 		 * to work reliably. */
+@@ -390,7 +389,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_NTSC,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.dont_use_port_3 = 1,
+ 		.input = {{
+ 			.type = CX231XX_VMUX_COMPOSITE1,
+ 			.vmux = CX231XX_VIN_2_1,
+@@ -532,7 +530,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_NTSC,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.dont_use_port_3 = 1,
  
- 	/*
- 	 * Default format, used for tvp5150 or saa711x output formats
+ 		.input = {{
+ 				.type = CX231XX_VMUX_COMPOSITE1,
+@@ -656,7 +653,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_NTSC,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.dont_use_port_3 = 1,
+ 		.input = {{
+ 			.type = CX231XX_VMUX_COMPOSITE1,
+ 			.vmux = CX231XX_VIN_2_1,
+@@ -683,7 +679,6 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_NTSC,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.dont_use_port_3 = 1,
+ 		/*.has_417 = 1, */
+ 		/* This board is believed to have a hardware encoding chip
+ 		 * supporting mpeg1/2/4, but as the 417 is apparently not
+@@ -1012,9 +1007,6 @@ static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
+ 		len_todo -= msg_read.len;
+ 	}
+ 
+-	cx231xx_enable_i2c_port_3(dev, true);
+-	/* mutex_unlock(&dev->i2c_lock); */
+-
+ 	for (i = 0; i + 15 < len; i += 16)
+ 		cx231xx_info("i2c eeprom %02x: %*ph\n", i, 16, &eedata[i]);
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index c8a6d20..c49022f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -1407,9 +1407,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
+ 	if (dev->board.has_dvb)
+ 		cx231xx_set_alt_setting(dev, INDEX_TS1, 0);
+ 
+-	/* set the I2C master port to 3 on channel 1 */
+-	errCode = cx231xx_enable_i2c_port_3(dev, true);
+-
++	errCode = 0;
+ 	return errCode;
+ }
+ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 869c433..2ea6946 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -266,11 +266,7 @@ static int start_streaming(struct cx231xx_dvb *dvb)
+ 
+ 	if (dev->USE_ISO) {
+ 		cx231xx_info("DVB transfer mode is ISO.\n");
+-		mutex_lock(&dev->i2c_lock);
+-		cx231xx_enable_i2c_port_3(dev, false);
+ 		cx231xx_set_alt_setting(dev, INDEX_TS1, 4);
+-		cx231xx_enable_i2c_port_3(dev, true);
+-		mutex_unlock(&dev->i2c_lock);
+ 		rc = cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
+ 		if (rc < 0)
+ 			return rc;
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 9234cd7..b8daff6 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -367,7 +367,6 @@ struct cx231xx_board {
+ 	unsigned int valid:1;
+ 	unsigned int no_alt_vanc:1;
+ 	unsigned int external_av:1;
+-	unsigned int dont_use_port_3:1;
+ 
+ 	unsigned char xclk, i2c_speed;
+ 
 -- 
-1.9.3
+2.1.1
 
