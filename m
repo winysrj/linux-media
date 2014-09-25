@@ -1,246 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:33714 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755210AbaIDUMI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 16:12:08 -0400
-Received: by mail-pd0-f176.google.com with SMTP id w10so4953434pde.35
-        for <linux-media@vger.kernel.org>; Thu, 04 Sep 2014 13:12:07 -0700 (PDT)
-Message-ID: <5408C78C.2010608@gmail.com>
-Date: Fri, 05 Sep 2014 01:41:56 +0530
-From: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37684 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751921AbaIYOHR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 10:07:17 -0400
+Date: Thu, 25 Sep 2014 11:07:12 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2] em28xx: fix VBI handling logic
+Message-ID: <20140925110712.31795d6b@recife.lan>
+In-Reply-To: <54241FB0.3000904@googlemail.com>
+References: <c3e1b2c823189385494c01a7c776700f0e8d5913.1411142521.git.mchehab@osg.samsung.com>
+	<8444ab3f16a454ab8d2eaefb8990193313c2ac33.1411142521.git.mchehab@osg.samsung.com>
+	<5421CAB2.3030804@googlemail.com>
+	<20140923201838.48cddea1@recife.lan>
+	<54241FB0.3000904@googlemail.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?Ik3DoWNoYSwgS2FyZWwi?= <KMacha@atb-potsdam.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Corrupt images, when capturing images from multiple cameras using
- the V4L2 driver
-References: <BDE207EB81F3F14F85CFF86344BBE70E2D2FDF@saturn.atb-potsdam.de>
-In-Reply-To: <BDE207EB81F3F14F85CFF86344BBE70E2D2FDF@saturn.atb-potsdam.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Karel,
+Em Thu, 25 Sep 2014 15:59:12 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-I suggest you to zero fill v4l2 structures before assign values also
-check the return value of all ioctl call.
-for example,
+> 
+> Am 24.09.2014 um 01:18 schrieb Mauro Carvalho Chehab:
+> > Em Tue, 23 Sep 2014 21:32:02 +0200
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> Am 19.09.2014 um 18:02 schrieb Mauro Carvalho Chehab:
+> >>> When both VBI and video are streaming, and video stream is stopped,
+> >>> a subsequent trial to restart it will fail, because S_FMT will
+> >>> return -EBUSY.
+> >>>
+> >>> That prevents applications like zvbi to work properly.
+> >>>
+> >>> Please notice that, while this fix it fully for zvbi, the
+> >>> best is to get rid of streaming_users and res_get logic as a hole.
+> >>>
+> >>> However, this single-line patch is better to be merged at -stable.
+> >>>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>
+> >>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> >>> index 08569cbccd95..d75e7f82dfb9 100644
+> >>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> >>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> >>> @@ -1351,7 +1351,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+> >>>  	struct em28xx *dev = video_drvdata(file);
+> >>>  	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+> >>>  
+> >>> -	if (v4l2->streaming_users > 0)
+> >>> +	if (vb2_is_busy(&v4l2->vb_vidq))
+> >> Looks dangerous.
+> > Why Dangerous? 
+> You are an experienced kernel developer. If you still fail to see that
+> after so many years, sorry, I can't help you.
+> 
+> > Did you identify any problem?
+> Yes I've identified a potential problem.
+> Read it again, it's in the line you skipped in this reply.
 
-    struct v4l2_format fmt;
+Did you read the video_ioctl_ops struct?
 
-    memset(&fmt, 0, sizeof fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width = xRes;
-    ret = ioctl(fd, VIDIOC_S_FMT, &fmt);
-    if (ret < 0)
-           printf("VIDIOC_S_FMT failed: %d\n", ret);
+See:
 
-Please find comments in-line.
+	.vidioc_g_fmt_vid_cap       = vidioc_g_fmt_vid_cap,
+	.vidioc_try_fmt_vid_cap     = vidioc_try_fmt_vid_cap,
+	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
+	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+	.vidioc_try_fmt_vbi_cap     = vidioc_g_fmt_vbi_cap,
+	.vidioc_s_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
+	.vidioc_g_audio             = vidioc_g_audio,
+	.vidioc_s_audio             = vidioc_s_audio,
 
-On Tuesday 02 September 2014 05:36 PM, Mácha, Karel wrote:
-> Hello, 
-> 
-> I would like to grab images from multiple cameras under using the V4L2
-> API. I followed the presentation under found on
-> http://linuxtv.org/downloads/presentations/summit_jun_2010/20100206-fosdem.pdf 
-> used the code and adapted it sightly for my purpose. It works very well
-> for 1 camera.
-> 
-> However Once I begin to grab images from multiple cameras (successively)
-> I get corrupt images. I uploaded an example image to
-> http://www.directupload.net/file/d/3733/9c4jx3pv_png.htm
-> 
-> Although I set the right resolution for the camera (744 x 480), the
-> output of buffer.bytesused, after the VIDIOC_DQBUF does not correspond
-> with the expected value (744x480 = 357120). This would probably explain
-> the corrupt images.
-> 
-> The more camera I use, the less buffer.bytesused I get and the more
-> stripes are in the image. Could you please give me a hint, what am I
-> doing wrong ?
-> 
-> Thanks, Karel
-> 
-> Here is the minimal C code I use for my application:
-> 
-> 
-> int main()
-> {
-> 	/* ##################### INIT ##################### */
-> 
-> 	int numOfCameras = 6;
-As it works well for 1 camera, try with only 2 instead of 6
-> 	int xRes = 744;
-> 	int yRes = 480;
-> 	int exposure = 2000;
-> 	unsigned int timeBetweenSnapshots = 2; // in sec
-> 	char fileName[sizeof "./output/image 000 from camera 0.PNG"];
-> 
-> 	static const char *devices[] = { "/dev/video0", "/dev/video1",
-> "/dev/video2", "/dev/video3", "/dev/video4", "/dev/video5",
-> "/dev/video6", "/dev/video7" };
-> 
-> 	struct v4l2_capability cap[8];
-> 	struct v4l2_control control[8];
-> 	struct v4l2_format format[8];
-> 	struct v4l2_requestbuffers req[8];
-> 	struct v4l2_buffer buffer[8];
-> 
-> 	int type = V4L2_BUF_TYPE_VIDEO_CAPTURE; // had to declare the type here
-> because of the loop
-> 
-> 	unsigned int i;
-> 	unsigned int j;
-> 	unsigned int k;
-> 
-> 	int fd[8];
-> 	void **mem[8];
-> 	//unsigned char **mem[8];
-> 
-> 	/* ##################### OPEN DEVICE ##################### */
-> 
-> 	for (j = 0; j < numOfCameras; ++j) {
-> 
-> 		fd[j] = open(devices[j], O_RDWR);
-> 		ioctl(fd[j], VIDIOC_QUERYCAP, &cap[j]);
-check the return value
-> 
-> 
-> 		/* ##################### CAM CONTROLL ############### */
-> 
-zero fill control[j]
-memset(control[j], 0, sizeof control[j]);
-> 		control[j].id = V4L2_CID_EXPOSURE_AUTO;
-> 		control[j].value = V4L2_EXPOSURE_SHUTTER_PRIORITY;
-> 		ioctl(fd[j], VIDIOC_S_CTRL, &control[j]);
-> 
-> 		control[j].id = V4L2_CID_EXPOSURE_ABSOLUTE;
-> 		control[j].value = exposure;
-> 		ioctl(fd[j], VIDIOC_S_CTRL, &control[j]);
-> 
-> 		/* ##################### FORMAT ##################### */
-> 
-zero fill format[j]
-memset(format[j], 0, sizeof format[j]);
-> 		ioctl(fd[j], VIDIOC_G_FMT, &format[j]);
-> 		format[j].type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> 		format[j].fmt.pix.width = xRes;
-> 		format[j].fmt.pix.height = yRes;
-> 		//format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-> 		format[j].fmt.pix.pixelformat = V4L2_PIX_FMT_GREY;
-> 		ioctl(fd[j], VIDIOC_S_FMT, &format[j]);
-> 
-> 		/* ##################### REQ BUF #################### */
-> 
-memset(req[j], 0, sizeof req[j]);
-> 		req[j].type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> 		req[j].count = 4;
-> 		req[j].memory = V4L2_MEMORY_MMAP;
-> 		ioctl(fd[j], VIDIOC_REQBUFS, &req[j]);
-> 		mem[j] = malloc(req[j].count * sizeof(*mem));
-> 
-> 		/* ##################### MMAP ##################### */
-> 
-> 		for (i = 0; i < req[j].count; ++i) {
-                        memset(buffer[j], 0, sizeof buffer[j]);
-> 			buffer[j].type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> 			buffer[j].memory = V4L2_MEMORY_MMAP;
-> 			buffer[j].index = i;
-> 			ioctl(fd[j], VIDIOC_QUERYBUF, &buffer[j]);
-> 			mem[j][i] = mmap(0, buffer[j].length,
-> 					PROT_READ|PROT_WRITE,
-> 					MAP_SHARED, fd[j], buffer[j].m.offset);
-> 		}
-> 
-> 		/* ##################### CREATE QUEUE ############### */
-> 
-> 		for (i = 0; i < req[j].count; ++i) {
-memset(buffer[j], 0, sizeof buffer[j]);
-> 			buffer[j].type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> 			buffer[j].memory = V4L2_MEMORY_MMAP;
-> 			buffer[j].index = i;
-> 			ioctl(fd[j], VIDIOC_QBUF, &buffer[j]);
-check the return value
-> 		}
-> 
-> 	} /* ### ### end of camera init ### ### */
-> 
-> 	/* ##################### STREAM ON ##################### */
-> 	for (j = 0; j < numOfCameras; ++j) {
-> 
-> 		ioctl(fd[j], VIDIOC_STREAMON, &type);
-> 	}
-> 
-> 
-> 	/* ##################### GET FRAME ##################### */
-> 
-> 	k = 0;
-> 	while (!kbhit()){
-Instead of multiple frames, capture single frame and check the result.
-> 		k ++;
-> 
-> 		for (j = 0; j < numOfCameras; j++) {
-> 
-    memset(buffer[j], 0, sizeof buffer[j]);
-> 			buffer[j].type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> 			buffer[j].memory = V4L2_MEMORY_MMAP;
-> 			usleep(100000);
-> 			ioctl(fd[j], VIDIOC_DQBUF, &buffer[j]);
-> 			printf("\nBuffer {%p}, Buf. Index %d, Buf. bytes used %d\n",
-> mem[j][buffer[j].index], buffer[j].index,  buffer[j].bytesused);
-> 
-> 			// create filename
-> 			sprintf(fileName, "./output/image %03d from camera %d.PNG", k, j);
-> 			// save as PNG file
-> 			saveToPng(mem[j][buffer[j].index], fileName, xRes, yRes);
-> 
-> 			ioctl(fd[j], VIDIOC_QBUF, &buffer[j]);
-> 
-> 			sleep(timeBetweenSnapshots);
-> 		}
-> 	}
-> 
-> 	/* ##################### STREAM OFF ##################### */
-> 	for (j = 0; j < numOfCameras; ++j) {
-> 
-> 		ioctl(fd[j], VIDIOC_STREAMOFF, &type);
-> 	}
-> 
-> 	/* ##################### CLEANUP ##################### */
-> 
-> 	for (j = 0; j < numOfCameras; ++j) {
-> 
-> 		close(fd[j]);
-> 		free(mem[j]);
-> 	}
-> 
-> 	return (0);
-> }
-> 
-> **********************************************************************
-> Leibniz-Institut für Agrartechnik Potsdam-Bornim e.V.
-> Max-Eyth-Allee 100
-> D-14469 Potsdam
->  
-> Vorstand: 
-> Prof. Dr. Reiner Brunsch (Wissenschaftlicher Direktor)
-> Dr. Martin Geyer (Stellvertreter des Wissenschaftlichen Direktors)
-> Prof. Dr. Thomas Amon  (2. Stellvertreter des Wissenschaftlichen Direktors)
-> Dr. Uta Tietz (Verwaltungsleiterin) 
-> Amtsgericht Potsdam, VR 680 P, USt-ID DE811704150
-> 
-> **********************************************************************
-> This email and any files transmitted with it are confidential and
-> intended solely for the use of the individual or entity to whom they
-> are addressed. If you have received this email in error please notify
-> the system manager.
-> 
-> Scanned by the Clearswift SECURE Email Gateway.
-> 
-> www.clearswift.com
-> **********************************************************************
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
-> 
+Only the video node calls s_fmt_vid_cap. There's nothing to be
+set for VBI. In other words, a call to VIDIOC_S_FMT will
+actually call vidioc_g_fmt_vbi_cap() if called from VBI.
+
+So, I was unable to see any potencial issues.
+
+> > With what application?
+> I would be willing to spend more time on this and test this critical
+> patch (like I already did in the past).
+> But I don't have access to analog TV here at the moment, sorry. It would
+> have to wait ~2 weeks.
+
+On my tests with the 3 existing VBI apps, they all worked fine
+after the patch, no matter if the VBI or the video application
+is started first.
+
+That's why I asked.
 
 Regards,
-Alaganraj
+Mauro
