@@ -1,99 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45726 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468AbaI2SD5 (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:62453 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbaIYNwg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 14:03:57 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 3/6] of: Add of_graph_get_port_by_id function
-Date: Mon, 29 Sep 2014 20:03:36 +0200
-Message-Id: <1412013819-29181-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 25 Sep 2014 09:52:36 -0400
+Message-ID: <54241E7D.3050201@googlemail.com>
+Date: Thu, 25 Sep 2014 15:54:05 +0200
+From: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Luca Olivetti <luca@ventoso.org>,
+	Fengguang Wu <fengguang.wu@intel.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
+	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
+	LKP <lkp@01.org>, linux-kernel@vger.kernel.org, crope@iki.fi
+Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
+ (WAS: [media/em28xx] BUG: unable to handle kernel)
+References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com> <541C8A26.6050207@ventoso.org> <5421C187.2070407@googlemail.com> <5421E00B.2050404@ventoso.org>
+In-Reply-To: <5421E00B.2050404@ventoso.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to get a port device tree node by port id,
-or reg property value.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/of/base.c        | 26 ++++++++++++++++++++++++++
- include/linux/of_graph.h |  7 +++++++
- 2 files changed, 33 insertions(+)
+Am 23.09.2014 um 23:03 schrieb Luca Olivetti:
+> El 23/09/14 20:52, Frank Schäfer ha escrit:
+>
+>>>> This seems to be an ancient bug, which is known at least since 5 1/2 years:
+>>>> https://lkml.org/lkml/2009/2/4/350
+> [...]
+>>> #if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
+>> What happens, if CONFIG_MODULES is enabled, but neither module
+>> af9005-remote nor any other IR module is available ?
+>> Has this ever been tested ?
+> I think I tested at the time and symbol_request returned NULL in that
+> case, however I'm not sure and I cannot find any documentation on how
+> symbol_request is supposed to work in that case.
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index f7a9aa8..e17e534 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2065,6 +2065,32 @@ int of_graph_parse_endpoint(const struct device_node *node,
- EXPORT_SYMBOL(of_graph_parse_endpoint);
- 
- /**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id)
-+{
-+	struct device_node *port;
-+
-+	for_each_child_of_node(node, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			return port;
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-  * of_graph_get_next_endpoint() - get next endpoint node
-  * @parent: pointer to the parent device node
-  * @prev: previous endpoint node, or NULL to get first
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index e43442e..3c1c95a 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -40,6 +40,7 @@ struct of_endpoint {
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
- 
-+static inline struct device_node *of_graph_get_port_by_id(
-+					struct device_node *node, u32 id)
-+{
-+	return NULL;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
--- 
-2.1.0
+Ok, thanks.
+I assume noone wants to invest some time into this old driver and covert
+it to todays kernel IR infrastructure as suggested by Antti ? :-)
+Then I'm going to send a patch with the 
+
+#if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
+
+approach.
+That's at least better than leaving the bug unfixed.
+
+Regards,
+Frank
 
