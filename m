@@ -1,109 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:50397 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbaIBGmo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 02:42:44 -0400
-Received: from epcpsbgx4.samsung.com
- (u164.gpu120.samsung.co.kr [203.254.230.164])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NB9008BRHB6ZIE0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Sep 2014 15:42:42 +0900 (KST)
-Date: Tue, 02 Sep 2014 06:42:42 +0000 (GMT)
-From: Changbing Xiong <cb.xiong@samsung.com>
-Subject: Re: Re: [PATCH 3/3] media: check status of dmxdev->exit in poll
- functions of demux&dvr
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Reply-to: cb.xiong@samsung.com
-MIME-version: 1.0
-Content-transfer-encoding: base64
-Content-type: text/plain; charset=utf-8
-MIME-version: 1.0
-Message-id: <1888513592.247021409640162173.JavaMail.weblogic@epmlwas04b>
+Received: from mail.kapsi.fi ([217.30.184.167]:44218 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753270AbaIYPGr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 11:06:47 -0400
+Message-ID: <54242F82.8090303@iki.fi>
+Date: Thu, 25 Sep 2014 18:06:42 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 05/12] cx231xx: Use symbolic constants for i2c ports
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-5-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1411621684-8295-5-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiBBY3R1YWxseSwgcG9sbCgpIG1heSByZXR1cm4gYW4gZXJyb3IgYXMgd2VsbCAoZnJvbSBwb2xs
-KCkgbWFucGFnZSk6DQoNCj4gIlJFVFVSTiBWQUxVRQ0KPiAgICAgICAgT24gc3VjY2VzcywgYSBw
-b3NpdGl2ZSBudW1iZXIgaXMgcmV0dXJuZWQ7IHRoaXMgaXMgdGhlIG51bWJlciBvZiBzdHJ1Y+KA
-kA0KPiAgICAgICAgdHVyZXMgd2hpY2ggaGF2ZSBub256ZXJvIHJldmVudHMgZmllbGRzIChpbiBv
-dGhlciB3b3JkcywgdGhvc2UgZGVzY3JpcOKAkA0KPiAgICAgICAgdG9ycyAgd2l0aCBldmVudHMg
-b3IgZXJyb3JzIHJlcG9ydGVkKS4gIEEgdmFsdWUgb2YgMCBpbmRpY2F0ZXMgdGhhdCB0aGUNCj4g
-ICAgICAgIGNhbGwgdGltZWQgb3V0IGFuZCBubyBmaWxlIGRlc2NyaXB0b3JzIHdlcmUgcmVhZHku
-ICAgT24gIGVycm9yLCAgLTEgIGlzDQo+ICAgICAgICByZXR1cm5lZCwgYW5kIGVycm5vIGlzIHNl
-dCBhcHByb3ByaWF0ZWx5LiINCg0KPiBTbywgaWYgdGhlIEtlcm5lbCByZXR1cm5zIC1FTk9ERVYs
-IHRoZSBnbGliYyBwb2xsKCkgd3JhcHBlciB3b3VsZCByZXR1cm4gLTENCj4gYW5kIGVycm5vIHdp
-bGwgYmUgRU5PREVWLiBOZXZlciBhY3R1YWxseSB0ZXN0ZWQgaWYgdGhpcyB3b3JrcyBvbiBwb2xs
-KCkNCj4gdGhvdWdoLg0KDQo+IEFjdHVhbGx5LCBwb2xsKCkgbWF5IHJldHVybiBhbiBlcnJvciBh
-cyB3ZWxsIChmcm9tIHBvbGwoKSBtYW5wYWdlKToNCg0KPiAiUkVUVVJOIFZBTFVFDQo+ICAgICAg
-ICBPbiBzdWNjZXNzLCBhIHBvc2l0aXZlIG51bWJlciBpcyByZXR1cm5lZDsgdGhpcyBpcyB0aGUg
-bnVtYmVyIG9mIHN0cnVj4oCQDQo+ICAgICAgICB0dXJlcyB3aGljaCBoYXZlIG5vbnplcm8gcmV2
-ZW50cyBmaWVsZHMgKGluIG90aGVyIHdvcmRzLCB0aG9zZSBkZXNjcmlw4oCQDQo+ICAgICAgICB0
-b3JzICB3aXRoIGV2ZW50cyBvciBlcnJvcnMgcmVwb3J0ZWQpLiAgQSB2YWx1ZSBvZiAwIGluZGlj
-YXRlcyB0aGF0IHRoZQ0KPiAgICAgICAgY2FsbCB0aW1lZCBvdXQgYW5kIG5vIGZpbGUgZGVzY3Jp
-cHRvcnMgd2VyZSByZWFkeS4gICBPbiAgZXJyb3IsICAtMSAgaXMNCj4gICAgICAgIHJldHVybmVk
-LCBhbmQgZXJybm8gaXMgc2V0IGFwcHJvcHJpYXRlbHkuIg0KDQo+IFNvLCBpZiB0aGUgS2VybmVs
-IHJldHVybnMgLUVOT0RFViwgdGhlIGdsaWJjIHBvbGwoKSB3cmFwcGVyIHdvdWxkIHJldHVybiAt
-MQ0KPiBhbmQgZXJybm8gd2lsbCBiZSBFTk9ERVYuIE5ldmVyIGFjdHVhbGx5IHRlc3RlZCBpZiB0
-aGlzIHdvcmtzIG9uIHBvbGwoKQ0KPiB0aG91Z2guDQoNCm1heWJlIHRoZSBwb2xsKCkgbWFucGFn
-ZSBpcyB3cm9uZy4NClRoZSBzdGFuZGFyZCBzeXN0ZW0gY2FsbCBwb2xsKCkgY2FuIG5vdCBnZXQg
-LUVOT0RFViBmcm9tIGVycm5vLiANCk15IGV4cGVyaW1lbnQgaGFzIHByb3ZlZCB0aGF0IEkgd2Fz
-IHJpZ2h0KHJldHVybiAtRU5PREVWIGRpcmVjdGx5IGluIGR2Yl9kdnJfcG9sbCkuICANCmFuZCB5
-b3UgY2FuIGFsc28gY2hlY2sgY29kZSBvZiBkb19wb2xsKCkgYW5kIGRvX3N5c19wb2xsKCkgaW4g
-c2VsZWN0LmMgZmlsZSwgaXQgYWxzbyBzaG93cyB0aGF0IC1FTk9ERVYgaXMgaW52YWxpZC4NCg0K
-cGxlYXNlIGFsc28gY2hlY2sgdGhhdC4NCg0KdGhhbmtzIQ0KWGlvbmcgY2hhbmdiaW5nDQoNCi0t
-LS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLS0tDQpTZW5kZXIgOiBNYXVybyBDYXJ2YWxobyBD
-aGVoYWI8bS5jaGVoYWJAc2Ftc3VuZy5jb20+IERpcmVjdG9yL1NSQlItT3BlbiBTb3VyY2Uv7IK8
-7ISx7KCE7J6QDQpEYXRlIDog5Lmd5pyIIDAyLCAyMDE0IDE1OjAwIChHTVQrMDk6MDApDQpUaXRs
-ZSA6IFJlOiBbUEFUQ0ggMy8zXSBtZWRpYTogY2hlY2sgc3RhdHVzIG9mIGRteGRldi0+ZXhpdCBp
-biBwb2xsIGZ1bmN0aW9ucyBvZiBkZW11eCZkdnINCg0KRW0gVHVlLCAwMiBTZXAgMjAxNCAwMzox
-NjowMCArMDAwMCAoR01UKQ0KQ2hhbmdiaW5nIFhpb25nIGVzY3JldmV1Og0KDQo+IA0KPiA+IFdl
-bGwsIHdlIG1heSBzdGFydCByZXR1cm5pbmcgLUVOT0RFViB3aGVuIHN1Y2ggZXZlbnQgaGFwcGVu
-cy4gDQo+IA0KPiA+IEF0IHRoZSBmcm9udGVuZCwgd2UgY291bGQgdXNlIGZlLT5leGl0ID0gRFZC
-X0ZFX0RFVklDRV9SRU1PVkVEIHRvDQo+ID4gc2lnbmFsaXplIGl0LiBJIGRvbid0IHRoaW5rIHRo
-YXQgdGhlIGRlbW9kIGZyb250ZW5kIGhhcyBzb21ldGhpbmcNCj4gPiBzaW1pbGFyLg0KPiANCj4g
-PiBZZXQsIGl0IHNob3VsZCBiZSB1cCB0byB0aGUgdXNlcnNwYWNlIGFwcGxpY2F0aW9uIHRvIHBy
-b3Blcmx5IGhhbmRsZSANCj4gPiB0aGUgZXJyb3IgY29kZXMgYW5kIGNsb3NlIHRoZSBkZXZpY2Vz
-IG9uIGZhdGFsIG5vbi1yZWNvdmVyeSBlcnJvcnMgbGlrZQ0KPiA+IEVOT0RFVi4gDQo+IA0KPiA+
-IFNvLCB3aGF0IHdlIGNhbiBkbywgYXQgS2VybmVsIGxldmVsLCBpcyB0byBhbHdheXMgcmV0dXJu
-IC1FTk9ERVYgd2hlbg0KPiA+IHRoZSBkZXZpY2UgaXMga25vd24gdG8gYmUgcmVtb3ZlZCwgYW5k
-IGRvdWJsZSBjaGVjayBsaWJkdmJ2NSBpZiBpdA0KPiA+IGhhbmRsZXMgc3VjaCBlcnJvciBwcm9w
-ZXJseS4NCj4gDQo+ICB3ZWxsLCB3ZSBkbyBub3QgdXNlIGxpYmR2YnY1LA0KDQpUaGUgdXBzdHJl
-YW0gc3R1ZmYgSSBtYWludGFpbiwgcmVsYXRlZCB0byBpdCwgYXJlIHRoZSBtZWRpYSBzdWJzeXN0
-ZW1zDQphbmQgbGliZHZidjUuIE9mIGNvdXJzZSwgb3RoZXIgYXBwcyB3aWxsIG5lZWQgdG8gYmUg
-cGF0Y2hlZCBhcyB3ZWxsLg0KDQo+IGFuZCAgLUVOT0RFViBjYW4gYmUgcmV0dXJuZWQgYnkgcmVh
-ZCBzeXNjYWxsLCAgDQo+IGJ1dCBmb3IgcG9sbCBzeXNjYWxsLA0KDQpBY3R1YWxseSwgcG9sbCgp
-IG1heSByZXR1cm4gYW4gZXJyb3IgYXMgd2VsbCAoZnJvbSBwb2xsKCkgbWFucGFnZSk6DQoNCiJS
-RVRVUk4gVkFMVUUNCiAgICAgICBPbiBzdWNjZXNzLCBhIHBvc2l0aXZlIG51bWJlciBpcyByZXR1
-cm5lZDsgdGhpcyBpcyB0aGUgbnVtYmVyIG9mIHN0cnVj4oCQDQogICAgICAgdHVyZXMgd2hpY2gg
-aGF2ZSBub256ZXJvIHJldmVudHMgZmllbGRzIChpbiBvdGhlciB3b3JkcywgdGhvc2UgZGVzY3Jp
-cOKAkA0KICAgICAgIHRvcnMgIHdpdGggZXZlbnRzIG9yIGVycm9ycyByZXBvcnRlZCkuICBBIHZh
-bHVlIG9mIDAgaW5kaWNhdGVzIHRoYXQgdGhlDQogICAgICAgY2FsbCB0aW1lZCBvdXQgYW5kIG5v
-IGZpbGUgZGVzY3JpcHRvcnMgd2VyZSByZWFkeS4gICBPbiAgZXJyb3IsICAtMSAgaXMNCiAgICAg
-ICByZXR1cm5lZCwgYW5kIGVycm5vIGlzIHNldCBhcHByb3ByaWF0ZWx5LiINCg0KU28sIGlmIHRo
-ZSBLZXJuZWwgcmV0dXJucyAtRU5PREVWLCB0aGUgZ2xpYmMgcG9sbCgpIHdyYXBwZXIgd291bGQg
-cmV0dXJuIC0xDQphbmQgZXJybm8gd2lsbCBiZSBFTk9ERVYuIE5ldmVyIGFjdHVhbGx5IHRlc3Rl
-ZCBpZiB0aGlzIHdvcmtzIG9uIHBvbGwoKQ0KdGhvdWdoLg0KDQo+ICAtRU5PREVWIGNhbiBuZXZl
-ciBiZSByZXR1cm5lZCB0byB1c2VyLCBhcyBuZWdhdGl2ZSBudW1iZXINCj4gIGlzIGludmFsaWQg
-IHR5cGUgZm9yIHBvbGwgcmV0dXJuZWQgdmFsdWUuIHBsZWFzZSByZWZlciB0byBteSBzZWNvbmQg
-cGF0Y2guDQo+IA0KPiBhbmQgaW4gb3VyIHVzYWdlLCB3aGV0aGVyIHRvIHJlYWQgdGhlIGRldmlj
-ZSBpcyB1cCB0byB0aGUgcG9sbCByZXN1bHQuIGlmIHR1bmVyIGlzIHBsdWdnZWQgb3V0LCANCj4g
-YW5kIHRoZXJlIGlzIG5vIGRhdGEgaW4gZHZyIHJpbmdidWZmZXIuIHRoZW4gdXNlciBjb2RlIHdp
-bGwgc3RpbGwgZ28gb24gcG9sbGluZyB0aGUgZHZyIGRldmljZSBhbmQgbmV2ZXIgc3RvcC4NCj4g
-aWYgUE9MTEVSUiBpcyByZXR1cm5lZCwgdGhlbiB1c2VyIHdpbGwgcGVyZm9ybSByZWFkIGR2ciwg
-YW5kIHRoZW4gLUVOT0RFViBjYW4gYmUgZ290LCBhbmQgDQo+IHVzZXIgd2lsbCBzdG9wIHBvbGxp
-bmcgZHZyIGRldmljZS4NCg0KWW91ciBhcHAgc2hvdWxkIGJlIGFsc28gYmUgaGFuZGxpbmcgcG9s
-bCgpIGVycm9ycywgYXMgdGhlcmUgYXJlIGFscmVhZHkNCm90aGVyIGVycm9ycyB0aGF0IHBvbGwo
-KSBjYW4gcmV0dXJuLg0KDQo+IHRoZSBmaXJzdCBwYXRjaCBpcyBlbm91Z2ggdG8gZml4IHRoZSBk
-ZWFkbG9jayBpc3N1ZS4NCj4gdGhlIHNlY29uZCBwYXRjaCBpcyB1c2VkIHRvIGNvcnJlY3QgdGhl
-IHdyb25nIHR5cGUgb2YgcmV0dXJuZWQgdmFsdWUuDQo+IHRoZSB0aGlyZCBwYXRjaCBpcyB1c2Vk
-IHRvIHByb3ZpZGUgdXNlciBhIGJldHRlciBjb250cm9sbGluZyBsb2dpYy4NCg0KSSdsbCB0YWtl
-IGEgZGVlcGVyIGxvb2sgYW5kIGRvIHNvbWUgdGVzdHMgb24geW91ciBwYXRjaGVzIGxpa2VseQ0K
-dG9tb3Jyb3cuIA0KDQpSZWdhcmRzLA0KTWF1cm8NCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRo
-aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluDQp0aGUg
-Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
+regards
+Antti
 
+On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
+> use already existing I2C_0 ... I2C_3
+>
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>   drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
+>   drivers/media/usb/cx231xx/cx231xx.h       |  8 ++--
+>   2 files changed, 35 insertions(+), 35 deletions(-)
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> index 092fb85..2f027c7 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x02,
+>   		.norm = V4L2_STD_PAL,
+> @@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x32,
+>   		.norm = V4L2_STD_NTSC,
+> @@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x1c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x02,
+>   		.norm = V4L2_STD_PAL,
+> @@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x1c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x02,
+>   		.norm = V4L2_STD_PAL,
+> @@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x02,
+>   		.norm = V4L2_STD_PAL,
+> @@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x32,
+>   		.norm = V4L2_STD_NTSC,
+> @@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x0e,
+>   		.norm = V4L2_STD_NTSC,
+> @@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.tuner_scl_gpio = -1,
+>   		.tuner_sda_gpio = -1,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 2,
+> -		.demod_i2c_master = 1,
+> -		.ir_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_2,
+> +		.demod_i2c_master = I2C_1,
+> +		.ir_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x10,
+>   		.norm = V4L2_STD_PAL_M,
+> @@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.tuner_scl_gpio = -1,
+>   		.tuner_sda_gpio = -1,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 2,
+> -		.demod_i2c_master = 1,
+> -		.ir_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_2,
+> +		.demod_i2c_master = I2C_1,
+> +		.ir_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x10,
+>   		.norm = V4L2_STD_NTSC_M,
+> @@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.tuner_scl_gpio = -1,
+>   		.tuner_sda_gpio = -1,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 2,
+> -		.demod_i2c_master = 1,
+> -		.ir_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_2,
+> +		.demod_i2c_master = I2C_1,
+> +		.ir_i2c_master = I2C_2,
+>   		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x10,
+> @@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> +		.tuner_i2c_master = I2C_1,
+>   		.norm = V4L2_STD_PAL,
+>
+>   		.input = {{
+> @@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> +		.tuner_i2c_master = I2C_1,
+>   		.norm = V4L2_STD_NTSC,
+>
+>   		.input = {{
+> @@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x0e,
+>   		.norm = V4L2_STD_PAL,
+> @@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
+>   		.ctl_pin_status_mask = 0xFFFFFFC4,
+>   		.agc_analog_digital_select_gpio = 0x0c,
+>   		.gpio_pin_status_mask = 0x4001000,
+> -		.tuner_i2c_master = 1,
+> -		.demod_i2c_master = 2,
+> +		.tuner_i2c_master = I2C_1,
+> +		.demod_i2c_master = I2C_2,
+>   		.has_dvb = 1,
+>   		.demod_addr = 0x0e,
+>   		.norm = V4L2_STD_PAL,
+> @@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+>   	/* request some modules */
+>   	if (dev->board.decoder == CX231XX_AVDECODER) {
+>   		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+> -					&dev->i2c_bus[0].i2c_adap,
+> +					&dev->i2c_bus[I2C_0].i2c_adap,
+>   					"cx25840", 0x88 >> 1, NULL);
+>   		if (dev->sd_cx25840 == NULL)
+>   			cx231xx_info("cx25840 subdev registration failure\n");
+> @@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+>   			struct i2c_client client;
+>
+>   			memset(&client, 0, sizeof(client));
+> -			client.adapter = &dev->i2c_bus[1].i2c_adap;
+> +			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
+>   			client.addr = 0xa0 >> 1;
+>
+>   			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
+> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+> index c92382f..3ab107a 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx.h
+> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+> @@ -322,10 +322,10 @@ enum cx231xx_decoder {
+>   };
+>
+>   enum CX231XX_I2C_MASTER_PORT {
+> -	I2C_0 = 0,
+> -	I2C_1 = 1,
+> -	I2C_2 = 2,
+> -	I2C_3 = 3
+> +	I2C_0 = 0, /* master 0 - internal connection */
+> +	I2C_1 = 1, /* master 1 - I2C_DEMOD_EN = 0    */
+> +	I2C_2 = 2, /* master 2                       */
+> +	I2C_3 = 3  /* master 1 - I2C_DEMOD_EN = 1    */
+>   };
+>
+>   struct cx231xx_board {
+>
+
+-- 
+http://palosaari.fi/
