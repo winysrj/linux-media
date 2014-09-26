@@ -1,81 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:35718 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbaIOGsV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37635 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751020AbaIZLMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:21 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00995K8KGSA0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:20 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 06/17] [media] s5p-mfc: Only set timestamp/timecode for new
- frames.
-Date: Mon, 15 Sep 2014 12:13:01 +0530
-Message-id: <1410763393-12183-7-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+	Fri, 26 Sep 2014 07:12:05 -0400
+Date: Fri, 26 Sep 2014 14:01:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 17/17] smiapp: Decrease link frequency if media bus pixel
+ format BPP requires
+Message-ID: <20140926110156.GO2939@valkosipuli.retiisi.org.uk>
+References: <1410986741-6801-1-git-send-email-sakari.ailus@iki.fi>
+ <1410986741-6801-18-git-send-email-sakari.ailus@iki.fi>
+ <24769200.DuP3evaK0j@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <24769200.DuP3evaK0j@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ilja Friedel <ihf@chromium.org>
+Hi Laurent,
 
-Timestamp i of a previously decoded buffer was overwritten for some
-H.264 streams with timestamp i+1 of the next buffer. This happened when
-encountering frame_type S5P_FIMV_DECODE_FRAME_SKIPPED, indicating no
-new frame.
+Thank you for your comments.
 
-In most cases this wrong indexing might not have been noticed except
-for a one frame delay in frame presentation. For H.264 streams though
-that require reordering of frames for presentation, it caused a slightly
-erratic presentation time lookup and consequently dropped frames in the
-Pepper Flash plugin.
+On Fri, Sep 26, 2014 at 01:44:03PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 17 September 2014 23:45:41 Sakari Ailus wrote:
+> > Decrease the link frequency to the next lower if the user chooses a media
+> > bus code (BPP) cannot be achieved using the selected link frequency.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/i2c/smiapp/smiapp-core.c |   20 ++++++++++++++++++--
+> >  1 file changed, 18 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> > b/drivers/media/i2c/smiapp/smiapp-core.c index 537ca92..ce2c34d 100644
+> > --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> > +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> > @@ -286,11 +286,27 @@ static int smiapp_pll_update(struct smiapp_sensor
+> > *sensor)
+> > 
+> >  	pll->binning_horizontal = sensor->binning_horizontal;
+> >  	pll->binning_vertical = sensor->binning_vertical;
+> > -	pll->link_freq =
+> > -		sensor->link_freq->qmenu_int[sensor->link_freq->val];
+> >  	pll->scale_m = sensor->scale_m;
+> >  	pll->bits_per_pixel = sensor->csi_format->compressed;
+> > 
+> > +	if (!test_bit(sensor->link_freq->val,
+> > +		      &sensor->valid_link_freqs[
+> > +			      sensor->csi_format->compressed
+> > +			      - SMIAPP_COMPRESSED_BASE])) {
+> > +		/*
+> > +		 * Setting the link frequency will perform PLL
+> > +		 * re-calculation already, so skip that.
+> > +		 */
+> > +		return __v4l2_ctrl_s_ctrl(
+> > +			sensor->link_freq,
+> > +			__ffs(sensor->valid_link_freqs[
+> > +				      sensor->csi_format->compressed
+> > +				      - SMIAPP_COMPRESSED_BASE]));
+> 
+> I have an uneasy feeling about this, as smiapp_pll_update is called from the 
+> link freq s_ctrl handler. Have you double-checked the recursion bounds ?
 
-Signed-off-by: Ilja H. Friedel <ihf@google.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+We haven't actually done any PLL tree calculation yet here. The condition
+will evaluate true in a case when the user chooses a format which isn't
+available on a given link frequency, or chooses a link frequency which isn't
+available for a given format.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 9df130b..4ab3b53 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -227,11 +227,14 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 	size_t dec_y_addr;
- 	unsigned int frame_type;
- 
--	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
-+	/* Make sure we actually have a new frame before continuing. */
- 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
-+	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
-+		return;
-+	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
- 
- 	/* Copy timestamp / timecode from decoded src to dst and set
--	   appropriate flags */
-+	   appropriate flags. */
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
- 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
-@@ -257,6 +260,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 				dst_buf->b->v4l2_buf.flags |=
- 						V4L2_BUF_FLAG_BFRAME;
- 				break;
-+			default:
-+				/* Don't know how to handle
-+				   S5P_FIMV_DECODE_FRAME_OTHER_FRAME. */
-+				mfc_debug(2, "Unexpected frame type: %d\n",
-+						frame_type);
- 			}
- 			break;
- 		}
+The condition will be false the next time the function is called since we've
+just chosen a valid combination of the two.
+
+But now that you brought the topic up, I think the link frequency selection
+should just probably return -EBUSY if the selected link frquency cannot be
+used. Also __ffs() should be __fls() instead in order to still come up with
+the highest link freqency.
+
 -- 
-1.7.3.rc2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
