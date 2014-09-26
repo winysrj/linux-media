@@ -1,129 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56454 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:37885 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752525AbaIXTSx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 15:18:53 -0400
-Message-ID: <5423190F.1040904@iki.fi>
-Date: Wed, 24 Sep 2014 22:18:39 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1754195AbaIZOZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 10:25:17 -0400
+Message-ID: <54257743.6050509@osg.samsung.com>
+Date: Fri, 26 Sep 2014 08:25:07 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-To: Bimow.Chen@ite.com.tw, mchehab@osg.samsung.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-References: <20140923085039.51765665@recife.lan>	<542160F0.1000407@iki.fi> <20140923101103.224370bb@recife.lan> <FA28ACF9E7378C4E836BE776152E0E253AF5D5FF@TPEMAIL2.internal.ite.com.tw>
-In-Reply-To: <FA28ACF9E7378C4E836BE776152E0E253AF5D5FF@TPEMAIL2.internal.ite.com.tw>
-Content-Type: text/plain; charset=big5
+To: Johannes Stezenbach <js@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: em28xx breaks after hibernate
+References: <20140925181747.GA21522@linuxtv.org> <542462C4.7020907@osg.samsung.com> <20140926080030.GB31491@linuxtv.org> <20140926080824.GA8382@linuxtv.org> <20140926071411.61a011bd@recife.lan> <20140926110727.GA880@linuxtv.org> <20140926084215.772adce9@recife.lan> <20140926090316.5ae56d93@recife.lan> <20140926122721.GA11597@linuxtv.org> <20140926101222.778ebcaf@recife.lan> <20140926132513.GA30084@linuxtv.org>
+In-Reply-To: <20140926132513.GA30084@linuxtv.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After looking it again, the 10ms delay seen in sniff is between boot
-request and reply. Looks like it took 10ms from chip to reply boot
-command. But there is no any other delays before nor after booth
-command. If some small extra delay is really needed for Linux, but not
-Windows, it indicates linux USB stack or driver is more optimal having
-less delays.
+On 09/26/2014 07:25 AM, Johannes Stezenbach wrote:
+> On Fri, Sep 26, 2014 at 10:12:22AM -0300, Mauro Carvalho Chehab wrote:
+>> Try to add a WARN_ON or printk at em28xx_usb_resume().
+> 
+> It is called two times, once during hibernate and once during resume:
+> 
 
-regards
-Antti
+> root@debian:~# echo disk >/sys/power/state
 
-On 09/24/2014 06:47 AM, Bimow.Chen@ite.com.tw wrote:
-> Hi all,
-> 
-> It's my mistake. Sleep after boot for firmware ready, not before.
-> Please reject this patch.
-> Thank you.
-> 
-> Best regards,
-> Bimow
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
-> Sent: Tuesday, September 23, 2014 9:11 PM
-> To: Antti Palosaari
-> Cc: linux-media@vger.kernel.org; Bimow Chen (³¯¤ßÀ·)
-> Subject: Re: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-> 
-> Em Tue, 23 Sep 2014 15:00:48 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
-> 
->> I am not sure as I cannot reproduce it. Also 30ms wait here is long as
->> hell, whilst it is not critical.
->>
->> When I look that firmware downloading from the 1-2 month old Hauppauge
->> driver sniffs, it is not there:
->>
->> That line is CMD_FW_BOOT, command 0x23 it is 3rd number:
->> #define CMD_FW_BOOT                 0x23
->> 000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
->>
->> Here is whole sequence:
->> 000311:  OUT: 000000 ms 001489 ms BULK[00002] >>> 15 00 29 99 03 01 00
->> 01 57 f7 09 02 6d 6c 02 4f 9f 02 4f a2 0b 16
->> 000312:  OUT: 000001 ms 001489 ms BULK[00081] <<< 04 99 00 66 ff
->> 000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
->> 000314:  OUT: 000011 ms 001490 ms BULK[00081] <<< 04 9a 00 65 ff
->> 000315:  OUT: 000000 ms 001501 ms BULK[00002] >>> 0b 00 00 9b 01 02 00
->> 00 12 22 40 ec
->> 000316:  OUT: 000000 ms 001501 ms BULK[00081] <<< 05 9b 00 02 62 ff
->>
->>
->> So windows driver waits 10ms after boot, not before.
->>
->> Due to these reasons, I would like to skip that patch until I see
->> error or get good explanation why it is needed and so.
-> 
-> Ok. I'll tag it as RFC then.
-> 
->>
->>
->> regards
->> Antti
->>
->>
->> On 09/23/2014 02:50 PM, Mauro Carvalho Chehab wrote:
->>> Antti,
->>>
->>> After the firmware load changes, is this patch still applicable?
->>>
->>> Regards,
->>> Mauro
->>>
->>> Forwarded message:
->>>
->>> Date: Tue, 05 Aug 2014 13:48:03 +0800
->>> From: Bimow Chen <Bimow.Chen@ite.com.tw>
->>> To: linux-media@vger.kernel.org
->>> Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
->>>
->>>
->>>   From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00
->>> 2001
->>> From: Bimow Chen <Bimow.Chen@ite.com.tw>
->>> Date: Tue, 5 Aug 2014 11:20:53 +0800
->>> Subject: [PATCH 4/4] Add sleep for firmware ready.
->>>
->>>
->>> Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
->>> ---
->>>    drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
->>>    1 files changed, 2 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
->>> b/drivers/media/usb/dvb-usb-v2/af9035.c
->>> index 7b9b75f..a450cdb 100644
->>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
->>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
->>> @@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
->>>    	if (ret < 0)
->>>    		goto err;
->>>
->>> +	msleep(30);
->>> +
->>>    	/* firmware loaded, request boot */
->>>    	req.cmd = CMD_FW_BOOT;
->>>    	ret = af9035_ctrl_msg(d, &req);
->>>
->>
+On the upside this does look similar to what I have seen when
+I was debugging suspend/resume on pctv stick that uses em28xx
+and drx39xyj
+
+One thing that helped me debug the problem is testing
+hibernate in platform mode (which is default) and then
+Hibernate in reboot mode.
+
+I enabled usb debug and device debug to see what is happening
+at the usb-core and ran the following cases:
+I enable pm trace:
+echo 1 > /sys/power/pm_trace
+
+Hibernate in platform mode (default and recommended hibernation mode)
+echo platform > /sys/power/disk
+echo disk > /sys/power/state
+
+Hibernate in reboot mode: (usb bus could go through loss of power as
+platform might not maintain power to the buses). reset_resume should
+recover from loss of power or have the force disconnect path handle the
+case. i.e don't install reset_resume
+
+echo reboot > /sys/power/disk
+echo disk > /sys/power/state
+
+I also simply selected suspend from the GUI, this seems to
+take the usb-bus through a different path.
+
+These behave differently when reset_resume is installed vs.
+not installed. In our case, reset_resume simply points to
+resume which can't handle the power loss case. It would be
+good to get data on these different scenarios. I wish I have
+the WinTV 930, but I don't.
+
+If we have full debug for the above three scenarios, it would
+help debug it further. I also do the following to see resume
+works in a simple case: no disk involved suspend to ram
+
+echo mem > /sys/power/state
+
+I am looking at drxk to see if I can figure out anything.
+Also I dumped em28xx eprom to see if looks ok during these
+tests.
+
+thanks,
+-- Shuah
+
 
 -- 
-http://palosaari.fi/
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
