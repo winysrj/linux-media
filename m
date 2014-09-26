@@ -1,67 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:33480 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753495AbaIIPJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:09:44 -0400
-Date: Tue, 09 Sep 2014 12:09:36 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH 2/3] [media] s5p-jpeg: Fix compilation with COMPILE_TEST
-Message-id: <20140909120936.527bd852.m.chehab@samsung.com>
-In-reply-to: <540F15B2.3000902@samsung.com>
-References: <20140909124306.2d5a0d76@canb.auug.org.au>
- <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
- <b7343e6296b5d1d68b7229b8307442fd4141bcb3.1410273306.git.m.chehab@samsung.com>
- <540F15B2.3000902@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:21077 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752976AbaIZE7j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 00:59:39 -0400
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NCH000NZSJECG10@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:59:38 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com, kiran@chromium.org
+Subject: [PATCH v2 08/14] [media] s5p-mfc: modify mfc wakeup sequence for V8
+Date: Fri, 26 Sep 2014 10:22:16 +0530
+Message-id: <1411707142-4881-9-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 09 Sep 2014 16:58:58 +0200
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+From: Arun Mankuzhi <arun.m@samsung.com>
 
-> On 09/09/14 16:38, Mauro Carvalho Chehab wrote:
-> > ERROR: "__bad_ndelay" [drivers/media/platform/s5p-jpeg/s5p-jpeg.ko] undefined!
-> > 
-> > Yet, it sounds a bad idea to use ndelay to wait for 100 us
-> > for the device to reset.
-> > 
-> > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > 
-> > diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> > index e51c078360f5..01eeacf28843 100644
-> > --- a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> > +++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c
-> > @@ -23,7 +23,9 @@ void exynos4_jpeg_sw_reset(void __iomem *base)
-> >  	reg = readl(base + EXYNOS4_JPEG_CNTL_REG);
-> >  	writel(reg & ~EXYNOS4_SOFT_RESET_HI, base + EXYNOS4_JPEG_CNTL_REG);
-> >  
-> > +#ifndef CONFIG_COMPILE_TEST
-> >  	ndelay(100000);
-> > +#endif
-> 
-> Wouldn't be a better fix to replace ndelay(100000); with udelay(100),
-> rather than sticking in a not so pretty #ifndef ?
+>From MFC V8, the MFC wakeup sequence has changed.
+MFC wakeup command has to be sent after the host receives
+firmware load complete status from risc.
 
-Works for me. I'll submit a new version.
+Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   78 +++++++++++++++++++------
+ 1 file changed, 61 insertions(+), 17 deletions(-)
 
-> I guess usleep_range() couldn't simply be used, since
-> exynos4_jpeg_sw_reset() is called with a spinlock held.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 605f11e..565a6ed 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -353,6 +353,58 @@ int s5p_mfc_sleep(struct s5p_mfc_dev *dev)
+ 	return ret;
+ }
+ 
++static int s5p_mfc_v8_wait_wakeup(struct s5p_mfc_dev *dev)
++{
++	int ret;
++
++	/* Release reset signal to the RISC */
++	dev->risc_on = 1;
++	mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
++
++	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
++		mfc_err("Failed to reset MFCV8\n");
++		return -EIO;
++	}
++	mfc_debug(2, "Write command to wakeup MFCV8\n");
++	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
++	if (ret) {
++		mfc_err("Failed to send command to MFCV8 - timeout\n");
++		return ret;
++	}
++
++	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
++		mfc_err("Failed to wakeup MFC\n");
++		return -EIO;
++	}
++	return ret;
++}
++
++static int s5p_mfc_wait_wakeup(struct s5p_mfc_dev *dev)
++{
++	int ret;
++
++	/* Send MFC wakeup command */
++	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
++	if (ret) {
++		mfc_err("Failed to send command to MFC - timeout\n");
++		return ret;
++	}
++
++	/* Release reset signal to the RISC */
++	if (IS_MFCV6_PLUS(dev)) {
++		dev->risc_on = 1;
++		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
++	} else {
++		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
++	}
++
++	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
++		mfc_err("Failed to wakeup MFC\n");
++		return -EIO;
++	}
++	return ret;
++}
++
+ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ {
+ 	int ret;
+@@ -365,6 +417,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 	ret = s5p_mfc_reset(dev);
+ 	if (ret) {
+ 		mfc_err("Failed to reset MFC - timeout\n");
++		s5p_mfc_clock_off();
+ 		return ret;
+ 	}
+ 	mfc_debug(2, "Done MFC reset..\n");
+@@ -373,25 +426,16 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 	/* 2. Initialize registers of channel I/F */
+ 	s5p_mfc_clear_cmds(dev);
+ 	s5p_mfc_clean_dev_int_flags(dev);
+-	/* 3. Initialize firmware */
+-	ret = s5p_mfc_hw_call(dev->mfc_cmds, wakeup_cmd, dev);
+-	if (ret) {
+-		mfc_err("Failed to send command to MFC - timeout\n");
+-		return ret;
+-	}
+-	/* 4. Release reset signal to the RISC */
+-	if (IS_MFCV6_PLUS(dev)) {
+-		dev->risc_on = 1;
+-		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+-	}
++	/* 3. Send MFC wakeup command and wait for completion*/
++	if (IS_MFCV8(dev))
++		ret = s5p_mfc_v8_wait_wakeup(dev);
+ 	else
+-		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+-	mfc_debug(2, "Ok, now will write a command to wakeup the system\n");
+-	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_WAKEUP_RET)) {
+-		mfc_err("Failed to load firmware\n");
+-		return -EIO;
+-	}
++		ret = s5p_mfc_wait_wakeup(dev);
++
+ 	s5p_mfc_clock_off();
++	if (ret)
++		return ret;
++
+ 	dev->int_cond = 0;
+ 	if (dev->int_err != 0 || dev->int_type !=
+ 						S5P_MFC_R2H_CMD_WAKEUP_RET) {
+-- 
+1.7.9.5
 
-Ok.
-
-Regards,
-Mauro
