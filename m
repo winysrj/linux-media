@@ -1,114 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2549 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756797AbaISQPx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47144 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755047AbaIZOUx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 12:15:53 -0400
-Message-ID: <541C56A7.5060708@xs4all.nl>
-Date: Fri, 19 Sep 2014 18:15:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 26 Sep 2014 10:20:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: Set entity->links NULL in cleanup
+Date: Fri, 26 Sep 2014 17:20:53 +0300
+Message-ID: <2859813.J4bS3FA36H@avalon>
+In-Reply-To: <54228C39.7080207@linux.intel.com>
+References: <1401197269-18773-1-git-send-email-sakari.ailus@linux.intel.com> <4899501.NLaQ1XGmm5@avalon> <54228C39.7080207@linux.intel.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [RFC PATCH] vb2: yet another attempt to fix the vb2/VBI/poll regression
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After a long discussion on irc the decision was taken that poll() should:
+Hi Sakari,
 
-- return POLLERR when not streaming or when q->error is set
-- return POLLERR when streaming from a capture queue, but no buffers have been
-  queued yet, and it is not part of an M2M device.
+On Wednesday 24 September 2014 12:17:45 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Oops. this got buried in my inbox...
+> 
+> Laurent Pinchart wrote:
+> > On Thursday 17 July 2014 14:53:49 Sakari Ailus wrote:
+> >> On Thu, Jul 17, 2014 at 01:43:09PM +0200, Laurent Pinchart wrote:
+> >>> On Tuesday 27 May 2014 16:27:49 Sakari Ailus wrote:
+> >>>> Calling media_entity_cleanup() on a cleaned-up entity would result into
+> >>>> double free of the entity->links pointer and likely memory corruption
+> >>>> as well.
+> >>> 
+> >>> My first question is, why would anyone do that ? :-)
+> >> 
+> >> Because it makes error handling easier. Many cleanup functions work this
+> >> way, but not media_entity_cleanup().
+> > 
+> > Do the cleanup functions support being called multiple times, or do they
+> > just support being called on memory that has been zeroed and not further
+> > initialized ? The media_entity_cleanup() function supports the latter.
+>
+> I'd hope they wouldn't be called multiple times, or on memory that's not
+> been zeroed, but in that case it's better to behave rather than corrupt
+> system memory. That could be an indication of other problems, too, so
+> one could consider adding WARN_ON() to this as well. What do you think?
 
-The first rule is logical, the second less so. It emulates vb1 behavior that some
-applications might rely on. It is behavior that we don't want for output devices
-or M2M devices because calling STREAMON without QBUF makes a lot of sense for
-output devices, and for M2M devices I want to avoid causing a regression by
-potentially changing the behavior of M2M capture queues. We don't have legacy apps
-to support there, so let's make sure that those queue types remain unchanged.
+I agree that calling the cleanup function on uninitialized memory simplifies 
+error paths, that's a good feature. Regarding double calls, I have no strong 
+opinion. I don't think they should happen in the first place though.
 
-I do that by setting needs_buffers to false in v4l2_m2m_streamon. All M2M drivers
-use that function with the exception of s5p-mfc, but there STREAMON will return
-an error if not enough buffers are queued so it's not able to do STREAMON without
-a QBUF anyway.
+-- 
+Regards,
 
-There will be a second version, since I need to update some comments in the header
-and adjust the spec, but I would like to get code reviews as soon as possible.
+Laurent Pinchart
 
-Just explaining that second rule makes my head hurt, which is usually a bad sign.
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 80c588f..c8d2b5b 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -463,6 +463,7 @@ int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	int ret;
- 
- 	vq = v4l2_m2m_get_vq(m2m_ctx, type);
-+	vq->needs_buffers = false;
- 	ret = vb2_streamon(vq, type);
- 	if (!ret)
- 		v4l2_m2m_try_schedule(m2m_ctx);
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7e6aff6..efbf1ce 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * to the userspace.
- 	 */
- 	req->count = allocated_buffers;
-+	q->needs_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	return 0;
- }
-@@ -1801,6 +1802,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	 */
- 	list_add_tail(&vb->queued_entry, &q->queued_list);
- 	q->queued_count++;
-+	q->needs_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
- 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
- 		/*
-@@ -2583,10 +2585,18 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffer has been queued and the
--	 * queue isn't streaming, or if the error flag is set.
-+	 * There is nothing to wait for if the queue isn't streaming, or if the
-+	 * error flag is set.
- 	 */
--	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-+	if (!vb2_is_streaming(q) || q->error)
-+		return res | POLLERR;
-+	/*
-+	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize needs_buffers to false. M2M devices
-+	 * also set needs_buffers to false in v4l2_m2m_streamon().
-+	 */
-+	if (q->needs_buffers)
- 		return res | POLLERR;
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 5a10d8d..1c218b1 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -419,6 +419,7 @@ struct vb2_queue {
- 	unsigned int			streaming:1;
- 	unsigned int			start_streaming_called:1;
- 	unsigned int			error:1;
-+	unsigned int			needs_buffers:1;
- 
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
