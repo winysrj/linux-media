@@ -1,119 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42198 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756729AbaITScv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 14:32:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
-Date: Sat, 20 Sep 2014 21:32:54 +0300
-Message-ID: <1554010.2WmUDpr8lj@avalon>
-In-Reply-To: <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:37866 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753813AbaIZMDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 08:03:21 -0400
+Date: Fri, 26 Sep 2014 09:03:16 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140926090316.5ae56d93@recife.lan>
+In-Reply-To: <20140926084215.772adce9@recife.lan>
+References: <20140925125353.GA5129@linuxtv.org>
+	<54241C81.60301@osg.samsung.com>
+	<20140925160134.GA6207@linuxtv.org>
+	<5424539D.8090503@osg.samsung.com>
+	<20140925181747.GA21522@linuxtv.org>
+	<542462C4.7020907@osg.samsung.com>
+	<20140926080030.GB31491@linuxtv.org>
+	<20140926080824.GA8382@linuxtv.org>
+	<20140926071411.61a011bd@recife.lan>
+	<20140926110727.GA880@linuxtv.org>
+	<20140926084215.772adce9@recife.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Fri, 26 Sep 2014 08:42:15 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Thank you for the patch.
+> Em Fri, 26 Sep 2014 13:07:27 +0200
+> Johannes Stezenbach <js@linuxtv.org> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Fri, Sep 26, 2014 at 07:14:11AM -0300, Mauro Carvalho Chehab wrote:
+> > > 
+> > > I just pushed the pending patched and added a reverted patch for
+> > > b89193e0b06f at the media_tree.git. Could you please use it to compile
+> > > or, if you prefer to keep using 3.16, you can use the media_build.git[1]
+> > > tree to just use the newest media stack on the top of 3.16.
+> > > 
+> > > [1] http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> > > 
+> > > I updated the today's tarball for it to have all the patches there.
+> > > 
+> > > > > I should mention I just test "boot -> hibernate -> resume",
+> > > > > the device is not opened before hibernate.
+> > > > 
+> > > > If I run dvb-fe-tool to load the xc5000 firmware before
+> > > > hibernate then the xc5000 issue seems fixed, but the
+> > > > drxk firmware issue still happens.
+> > > 
+> > > Please check if the xc5000 issue disappears with the current patches.
+> > 
+> > I compiled media_tree.git v3.17-rc5-734-g214635f, the
+> > xc5000 issue is fixed.  I tested both "boot -> hibernate ->resume"
+> > and "boot -> dvb-fe-tool -> hibernate ->resume" in qemu.
+> > 
+> > > The drxk issue will likely need a similar fix to the one that Shuah
+> > > did to drxj.
+> > 
+> > The drx-k issue is still present:
 
-On Saturday 20 September 2014 10:56:13 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
-> broke the teletext applications alevt and mtt. These applications
-> expect that calling poll() without having called VIDIOC_STREAMON will
-> cause poll() to return POLLERR. That did not happen in vb2.
-> 
-> This patch fixes that behavior. It also fixes what should happen when
-> poll() is called when STREAMON is called but no buffers have been
-> queued. In that case poll() will also return POLLERR, but only for
-> capture queues since output queues will always return POLLOUT
-> anyway in that situation.
-> 
-> This brings the vb2 behavior in line with the old videobuf behavior.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 15 ++++++++++++---
->  include/media/videobuf2-core.h           |  4 ++++
->  2 files changed, 16 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff6..f3762a8 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req) * to the userspace.
->  	 */
->  	req->count = allocated_buffers;
-> +	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
 
-I think you also need to set waiting_for_buffers at STREAMOFF time, otherwise 
-a STREAMOFF/STREAMON without a REQBUFS in-between won't work as expected.
+The patch I sent you (or some fixed version of it) is part of the
+solution, but this still bothers me:
 
->  	return 0;
->  }
-> @@ -1801,6 +1802,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
-> struct v4l2_buffer *b) */
->  	list_add_tail(&vb->queued_entry, &q->queued_list);
->  	q->queued_count++;
-> +	q->waiting_for_buffers = false;
->  	vb->state = VB2_BUF_STATE_QUEUED;
->  	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
->  		/*
-> @@ -2583,10 +2585,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait) }
-> 
->  	/*
-> -	 * There is nothing to wait for if no buffer has been queued and the
-> -	 * queue isn't streaming, or if the error flag is set.
-> +	 * There is nothing to wait for if the queue isn't streaming, or if the
-> +	 * error flag is set.
->  	 */
-> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
-> +	if (!vb2_is_streaming(q) || q->error)
-> +		return res | POLLERR;
-> +	/*
-> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-> +	 * return POLLERR as well. This only affects capture queues, output
-> +	 * queues will always initialize waiting_for_buffers to false.
-> +	 */
-> +	if (q->waiting_for_buffers)
->  		return res | POLLERR;
-> 
->  	/*
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 5a10d8d..84f790c 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -381,6 +381,9 @@ struct v4l2_fh;
->   * @start_streaming_called: start_streaming() was called successfully and
-> we *		started streaming.
->   * @error:	a fatal error occurred on the queue
-> + * @waiting_for_buffers: used in poll() to check if vb2 is still waiting
-> for + *		buffers. Only set for capture queues if qbuf has not yet been +
-> *		called since poll() needs to return POLLERR in that situation. *
-> @fileio:	file io emulator internal data, used only if emulator is active 
-*
-> @threadio:	thread io internal data, used only if thread is active */
-> @@ -419,6 +422,7 @@ struct vb2_queue {
->  	unsigned int			streaming:1;
->  	unsigned int			start_streaming_called:1;
->  	unsigned int			error:1;
-> +	unsigned int			waiting_for_buffers:1;
-> 
->  	struct vb2_fileio_data		*fileio;
->  	struct vb2_threadio_data	*threadio;
+> > [    3.776854]  [<ffffffff813f974f>] drxk_attach+0x546/0x656
+> > [    3.777675]  [<ffffffff814c22a3>] em28xx_dvb_init.part.3+0xa3e/0x1cdf
+> > [    3.778652]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
+> > [    3.779690]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
+> > [    3.780615]  [<ffffffff814c5b45>] ? mutex_unlock+0x9/0xb
+> > [    3.781428]  [<ffffffff814c0f50>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
+> > [    3.782487]  [<ffffffff814230cf>] em28xx_dvb_init+0x1d/0x1f
 
--- 
+Why em28xx_dvb_init() is being called?
+
+That should only happen if the device is re-probed again, but
+the reset_resume code should have been preventing it.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
