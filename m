@@ -1,350 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56929 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751635AbaIGCAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 22:00:17 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1266 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753214AbaIZCmj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Sep 2014 22:42:39 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8Q2gZfx032653
+	for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 04:42:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5108B2A1CED
+	for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 04:42:23 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v2 5/8] tda18212: convert driver to I2C binding
-Date: Sun,  7 Sep 2014 04:59:57 +0300
-Message-Id: <1410055200-32170-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1410055200-32170-1-git-send-email-crope@iki.fi>
-References: <1410055200-32170-1-git-send-email-crope@iki.fi>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140926024223.5108B2A1CED@tschai.lan>
+Date: Fri, 26 Sep 2014 04:42:23 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert driver from DVB proprietary model to common I2C model.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/tda18212.c | 129 ++++++++++++++++++++++++----------------
- drivers/media/tuners/tda18212.h |  14 -----
- 2 files changed, 79 insertions(+), 64 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index 15b09f8..659787b 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -24,8 +24,8 @@
- #define MAX_XFER_SIZE  64
- 
- struct tda18212_priv {
--	struct tda18212_config *cfg;
--	struct i2c_adapter *i2c;
-+	struct tda18212_config cfg;
-+	struct i2c_client *client;
- 
- 	u32 if_frequency;
- };
-@@ -38,7 +38,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = priv->cfg->i2c_address,
-+			.addr = priv->client->addr,
- 			.flags = 0,
- 			.len = 1 + len,
- 			.buf = buf,
-@@ -46,7 +46,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	};
- 
- 	if (1 + len > sizeof(buf)) {
--		dev_warn(&priv->i2c->dev,
-+		dev_warn(&priv->client->dev,
- 			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
- 			 KBUILD_MODNAME, reg, len);
- 		return -EINVAL;
-@@ -55,12 +55,12 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	buf[0] = reg;
- 	memcpy(&buf[1], val, len);
- 
--	ret = i2c_transfer(priv->i2c, msg, 1);
-+	ret = i2c_transfer(priv->client->adapter, msg, 1);
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
--				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&priv->client->dev, "%s: i2c wr failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
- 	return ret;
-@@ -74,12 +74,12 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	u8 buf[MAX_XFER_SIZE];
- 	struct i2c_msg msg[2] = {
- 		{
--			.addr = priv->cfg->i2c_address,
-+			.addr = priv->client->addr,
- 			.flags = 0,
- 			.len = 1,
- 			.buf = &reg,
- 		}, {
--			.addr = priv->cfg->i2c_address,
-+			.addr = priv->client->addr,
- 			.flags = I2C_M_RD,
- 			.len = len,
- 			.buf = buf,
-@@ -87,19 +87,19 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
- 	};
- 
- 	if (len > sizeof(buf)) {
--		dev_warn(&priv->i2c->dev,
-+		dev_warn(&priv->client->dev,
- 			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
- 			 KBUILD_MODNAME, reg, len);
- 		return -EINVAL;
- 	}
- 
--	ret = i2c_transfer(priv->i2c, msg, 2);
-+	ret = i2c_transfer(priv->client->adapter, msg, 2);
- 	if (ret == 2) {
- 		memcpy(val, buf, len);
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
--				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&priv->client->dev, "%s: i2c rd failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
- 
-@@ -166,7 +166,7 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 		[ATSC_QAM] = { 0x7d, 0x20, 0x63 },
- 	};
- 
--	dev_dbg(&priv->i2c->dev,
-+	dev_dbg(&priv->client->dev,
- 			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
-@@ -176,25 +176,25 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 
- 	switch (c->delivery_system) {
- 	case SYS_ATSC:
--		if_khz = priv->cfg->if_atsc_vsb;
-+		if_khz = priv->cfg.if_atsc_vsb;
- 		i = ATSC_VSB;
- 		break;
- 	case SYS_DVBC_ANNEX_B:
--		if_khz = priv->cfg->if_atsc_qam;
-+		if_khz = priv->cfg.if_atsc_qam;
- 		i = ATSC_QAM;
- 		break;
- 	case SYS_DVBT:
- 		switch (c->bandwidth_hz) {
- 		case 6000000:
--			if_khz = priv->cfg->if_dvbt_6;
-+			if_khz = priv->cfg.if_dvbt_6;
- 			i = DVBT_6;
- 			break;
- 		case 7000000:
--			if_khz = priv->cfg->if_dvbt_7;
-+			if_khz = priv->cfg.if_dvbt_7;
- 			i = DVBT_7;
- 			break;
- 		case 8000000:
--			if_khz = priv->cfg->if_dvbt_8;
-+			if_khz = priv->cfg.if_dvbt_8;
- 			i = DVBT_8;
- 			break;
- 		default:
-@@ -205,15 +205,15 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 	case SYS_DVBT2:
- 		switch (c->bandwidth_hz) {
- 		case 6000000:
--			if_khz = priv->cfg->if_dvbt2_6;
-+			if_khz = priv->cfg.if_dvbt2_6;
- 			i = DVBT2_6;
- 			break;
- 		case 7000000:
--			if_khz = priv->cfg->if_dvbt2_7;
-+			if_khz = priv->cfg.if_dvbt2_7;
- 			i = DVBT2_7;
- 			break;
- 		case 8000000:
--			if_khz = priv->cfg->if_dvbt2_8;
-+			if_khz = priv->cfg.if_dvbt2_8;
- 			i = DVBT2_8;
- 			break;
- 		default:
-@@ -223,7 +223,7 @@ static int tda18212_set_params(struct dvb_frontend *fe)
- 		break;
- 	case SYS_DVBC_ANNEX_A:
- 	case SYS_DVBC_ANNEX_C:
--		if_khz = priv->cfg->if_dvbc;
-+		if_khz = priv->cfg.if_dvbc;
- 		i = DVBC_8;
- 		break;
- 	default:
-@@ -266,7 +266,7 @@ exit:
- 	return ret;
- 
- error:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	goto exit;
- }
- 
-@@ -279,13 +279,6 @@ static int tda18212_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 	return 0;
- }
- 
--static int tda18212_release(struct dvb_frontend *fe)
--{
--	kfree(fe->tuner_priv);
--	fe->tuner_priv = NULL;
--	return 0;
--}
--
- static const struct dvb_tuner_ops tda18212_tuner_ops = {
- 	.info = {
- 		.name           = "NXP TDA18212",
-@@ -295,34 +288,36 @@ static const struct dvb_tuner_ops tda18212_tuner_ops = {
- 		.frequency_step =      1000,
- 	},
- 
--	.release       = tda18212_release,
--
- 	.set_params    = tda18212_set_params,
- 	.get_if_frequency = tda18212_get_if_frequency,
- };
- 
--struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, struct tda18212_config *cfg)
-+static int tda18212_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
- {
--	struct tda18212_priv *priv = NULL;
-+	struct tda18212_config *cfg = client->dev.platform_data;
-+	struct dvb_frontend *fe = cfg->fe;
-+	struct tda18212_priv *priv;
- 	int ret;
- 	u8 chip_id = chip_id;
- 	char *version;
- 
--	priv = kzalloc(sizeof(struct tda18212_priv), GFP_KERNEL);
--	if (priv == NULL)
--		return NULL;
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		ret = -ENOMEM;
-+		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
-+		goto err;
-+	}
- 
--	priv->cfg = cfg;
--	priv->i2c = i2c;
--	fe->tuner_priv = priv;
-+	memcpy(&priv->cfg, cfg, sizeof(struct tda18212_config));
-+	priv->client = client;
- 
-+	/* check if the tuner is there */
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
- 
--	/* check if the tuner is there */
- 	ret = tda18212_rd_reg(priv, 0x00, &chip_id);
--	dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
-+	dev_dbg(&priv->client->dev, "%s: chip_id=%02x\n", __func__, chip_id);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
-@@ -338,23 +333,57 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
- 		version = "S"; /* slave */
- 		break;
- 	default:
-+		ret = -ENODEV;
- 		goto err;
- 	}
- 
--	dev_info(&priv->i2c->dev,
-+	dev_info(&priv->client->dev,
- 			"%s: NXP TDA18212HN/%s successfully identified\n",
- 			KBUILD_MODNAME, version);
- 
-+	fe->tuner_priv = priv;
- 	memcpy(&fe->ops.tuner_ops, &tda18212_tuner_ops,
--		sizeof(struct dvb_tuner_ops));
-+			sizeof(struct dvb_tuner_ops));
-+	i2c_set_clientdata(client, priv);
- 
--	return fe;
-+	return 0;
- err:
--	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
- 	kfree(priv);
--	return NULL;
-+	return ret;
- }
--EXPORT_SYMBOL(tda18212_attach);
-+
-+static int tda18212_remove(struct i2c_client *client)
-+{
-+	struct tda18212_priv *priv = i2c_get_clientdata(client);
-+	struct dvb_frontend *fe = priv->cfg.fe;
-+
-+	dev_dbg(&client->dev, "%s:\n", __func__);
-+
-+	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
-+	fe->tuner_priv = NULL;
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id tda18212_id[] = {
-+	{"tda18212", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, tda18212_id);
-+
-+static struct i2c_driver tda18212_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "tda18212",
-+	},
-+	.probe		= tda18212_probe,
-+	.remove		= tda18212_remove,
-+	.id_table	= tda18212_id,
-+};
-+
-+module_i2c_driver(tda18212_driver);
- 
- MODULE_DESCRIPTION("NXP TDA18212HN silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-diff --git a/drivers/media/tuners/tda18212.h b/drivers/media/tuners/tda18212.h
-index 265559a..e58c909 100644
---- a/drivers/media/tuners/tda18212.h
-+++ b/drivers/media/tuners/tda18212.h
-@@ -25,8 +25,6 @@
- #include "dvb_frontend.h"
- 
- struct tda18212_config {
--	u8 i2c_address;
--
- 	u16 if_dvbt_6;
- 	u16 if_dvbt_7;
- 	u16 if_dvbt_8;
-@@ -44,16 +42,4 @@ struct tda18212_config {
- 	struct dvb_frontend *fe;
- };
- 
--#if IS_ENABLED(CONFIG_MEDIA_TUNER_TDA18212)
--extern struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, struct tda18212_config *cfg);
--#else
--static inline struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, struct tda18212_config *cfg)
--{
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif
--
- #endif
--- 
-http://palosaari.fi/
+date:		Fri Sep 26 04:00:16 CEST 2014
+git branch:	test
+git hash:	c0aaf696d45e2a72048a56441e81dad78659c698
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-2.slh.3-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
