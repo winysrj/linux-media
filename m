@@ -1,73 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2541 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754639AbaILNAh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 09:00:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/14] saa7134: don't rebuild the page table unless new_cookies is set.
-Date: Fri, 12 Sep 2014 15:00:02 +0200
-Message-Id: <1410526803-25887-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
-References: <1410526803-25887-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:52190 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752718AbaIZEeW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 00:34:22 -0400
+Message-ID: <5424ECC9.4070409@gentoo.org>
+Date: Fri, 26 Sep 2014 06:34:17 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 04/12] cx231xx: give each master i2c bus a seperate name
+References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-4-git-send-email-zzam@gentoo.org> <54242F0F.9020702@iki.fi>
+In-Reply-To: <54242F0F.9020702@iki.fi>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 25.09.2014 17:04, Antti Palosaari wrote:
+> So this patch adds bus number to adapter name as postfix?
+> 
+> "cx231xx" => "cx231xx-1"
+> 
+Yes, it is attached, and the result looks like
+* cx231xx #0-0
+* cx231xx #0-1
+* cx231xx #0-2
 
-Only if new_cookies is set do you need to build the page table,
-otherwise it will be unchanged.
+> I have no clear opinion for that. I think name should be given when
+> adapter is crated, not afterwards.
+> 
+It is written to the i2c_adapter before calling i2c_add_adapter. Is this
+good enough?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-ts.c    | 2 ++
- drivers/media/pci/saa7134/saa7134-vbi.c   | 2 ++
- drivers/media/pci/saa7134/saa7134-video.c | 2 ++
- 3 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
-index 2709b83..4095776 100644
---- a/drivers/media/pci/saa7134/saa7134-ts.c
-+++ b/drivers/media/pci/saa7134/saa7134-ts.c
-@@ -107,6 +107,8 @@ int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2)
- 	vb2_set_plane_payload(vb2, 0, size);
- 	vb2->v4l2_buf.field = dev->field;
- 
-+	if (!vb2->new_cookies)
-+		return 0;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
-index e188903..5b422d0 100644
---- a/drivers/media/pci/saa7134/saa7134-vbi.c
-+++ b/drivers/media/pci/saa7134/saa7134-vbi.c
-@@ -131,6 +131,8 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 
- 	vb2_set_plane_payload(vb2, 0, size);
- 
-+	if (!vb2->new_cookies)
-+		return 0;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 15a686b..3ab39be 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -895,6 +895,8 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 	vb2_set_plane_payload(vb2, 0, size);
- 	vb2->v4l2_buf.field = dev->field;
- 
-+	if (!vb2->new_cookies)
-+		return 0;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
--- 
-2.1.0
+Regards
+Matthias
 
