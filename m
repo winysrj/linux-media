@@ -1,376 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:62447 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756604AbaIRWCE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 18:02:04 -0400
-Received: by mail-we0-f173.google.com with SMTP id t60so1620769wes.18
-        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 15:02:02 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH] libdvbv5: MPEG TS parser documentation and cleanups
-Date: Fri, 19 Sep 2014 00:01:19 +0200
-Message-Id: <1411077679-29737-1-git-send-email-neolynx@gmail.com>
+Received: from bar.sig21.net ([80.81.252.164]:47304 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753986AbaIZMCr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 08:02:47 -0400
+Date: Fri, 26 Sep 2014 14:02:33 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140926120233.GA2063@linuxtv.org>
+References: <54241C81.60301@osg.samsung.com>
+ <20140925160134.GA6207@linuxtv.org>
+ <5424539D.8090503@osg.samsung.com>
+ <20140925181747.GA21522@linuxtv.org>
+ <542462C4.7020907@osg.samsung.com>
+ <20140926080030.GB31491@linuxtv.org>
+ <20140926080824.GA8382@linuxtv.org>
+ <20140926071411.61a011bd@recife.lan>
+ <20140926110727.GA880@linuxtv.org>
+ <20140926084215.772adce9@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140926084215.772adce9@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documents the table parser for MPEG-PES. Cleanup doxygen of
-other parsers.
+On Fri, Sep 26, 2014 at 08:42:15AM -0300, Mauro Carvalho Chehab wrote:
+> Could you please try this patch (untested):
+> 
+> [media] drxk: load firmware again at resume
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- doxygen_libdvbv5.cfg            |   3 +-
- lib/include/libdvbv5/mpeg_es.h  |  11 ++-
- lib/include/libdvbv5/mpeg_pes.h | 146 ++++++++++++++++++++++++++++++++++++++--
- lib/include/libdvbv5/mpeg_ts.h  |  18 +++--
- 4 files changed, 164 insertions(+), 14 deletions(-)
+No joy.  I think you need to keep the firmware around
+for reuse after resume instead of requesting it again.
 
-diff --git a/doxygen_libdvbv5.cfg b/doxygen_libdvbv5.cfg
-index bbdaf9a..45bbdbd 100644
---- a/doxygen_libdvbv5.cfg
-+++ b/doxygen_libdvbv5.cfg
-@@ -764,8 +764,9 @@ INPUT                  = $(SRCDIR)/doc/libdvbv5-index.doc \
- 			 $(SRCDIR)/lib/include/libdvbv5/sdt.h \
- 			 $(SRCDIR)/lib/include/libdvbv5/vct.h \
- 			 $(SRCDIR)/lib/include/libdvbv5/crc32.h \
--			 $(SRCDIR)/lib/include/libdvbv5/mpeg_es.h \
- 			 $(SRCDIR)/lib/include/libdvbv5/mpeg_ts.h \
-+			 $(SRCDIR)/lib/include/libdvbv5/mpeg_pes.h \
-+			 $(SRCDIR)/lib/include/libdvbv5/mpeg_es.h \
- 
- # This tag can be used to specify the character encoding of the source files
- # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
-diff --git a/lib/include/libdvbv5/mpeg_es.h b/lib/include/libdvbv5/mpeg_es.h
-index cc2156b..ac3ea13 100644
---- a/lib/include/libdvbv5/mpeg_es.h
-+++ b/lib/include/libdvbv5/mpeg_es.h
-@@ -70,7 +70,8 @@
- 
- /**
-  * @struct dvb_mpeg_es_seq_start
-- * @brief Sequence header
-+ * @brief MPEG ES Sequence header
-+ * @ingroup dvb_table
-  *
-  * @param type		DVB_MPEG_ES_SEQ_START
-  * @param sync		Sync bytes
-@@ -117,7 +118,8 @@ struct dvb_mpeg_es_seq_start {
- 
- /**
-  * @struct dvb_mpeg_es_pic_start
-- * @brief Picture start header
-+ * @brief MPEG ES Picture start header
-+ * @ingroup dvb_table
-  *
-  * @param type		DVB_MPEG_ES_PIC_START
-  * @param sync		Sync bytes
-@@ -172,6 +174,7 @@ enum dvb_mpeg_es_frame_t
- 
- /**
-  * @brief Vector that translates from enum dvb_mpeg_es_frame_t to string.
-+ * @ingroup dvb_table
-  */
- extern const char *dvb_mpeg_es_frame_names[5];
- 
-@@ -183,6 +186,7 @@ extern "C" {
- 
- /**
-  * @brief Initialize a struct dvb_mpeg_es_seq_start from buffer
-+ * @ingroup dvb_table
-  *
-  * @param buf		Buffer
-  * @param buflen	Length of buffer
-@@ -199,6 +203,7 @@ int  dvb_mpeg_es_seq_start_init (const uint8_t *buf, ssize_t buflen,
- 
- /**
-  * @brief Print details of struct dvb_mpeg_es_seq_start
-+ * @ingroup dvb_table
-  *
-  * @param parms		struct dvb_v5_fe_parms for log functions
-  * @param seq_start	Pointer to struct dvb_mpeg_es_seq_start to print
-@@ -210,6 +215,7 @@ void dvb_mpeg_es_seq_start_print(struct dvb_v5_fe_parms *parms,
- 
- /**
-  * @brief Initialize a struct dvb_mpeg_es_pic_start from buffer
-+ * @ingroup dvb_table
-  *
-  * @param buf		Buffer
-  * @param buflen	Length of buffer
-@@ -226,6 +232,7 @@ int  dvb_mpeg_es_pic_start_init (const uint8_t *buf, ssize_t buflen,
- 
- /**
-  * @brief Print details of struct dvb_mpeg_es_pic_start
-+ * @ingroup dvb_table
-  *
-  * @param parms		struct dvb_v5_fe_parms for log functions
-  * @param pic_start	Pointer to struct dvb_mpeg_es_pic_start to print
-diff --git a/lib/include/libdvbv5/mpeg_pes.h b/lib/include/libdvbv5/mpeg_pes.h
-index 5889df7..1f24f99 100644
---- a/lib/include/libdvbv5/mpeg_pes.h
-+++ b/lib/include/libdvbv5/mpeg_pes.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ * Copyright (c) 2013-2014 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -21,10 +21,66 @@
- #ifndef _MPEG_PES_H
- #define _MPEG_PES_H
- 
-+/**
-+ * @file mpeg_pes.h
-+ * @ingroup dvb_table
-+ * @brief Provides the table parser for the MPEG-PES Elementary Stream
-+ * @copyright GNU General Public License version 2 (GPLv2)
-+ * @author Andre Roth
-+ *
-+ * @par Relevant specs
-+ * The table described herein is defined in ISO 13818-1
-+ *
-+ * @see
-+ * http://dvd.sourceforge.net/dvdinfo/pes-hdr.html
-+ *
-+ * @par Bug Report
-+ * Please submit bug reports and patches to linux-media@vger.kernel.org
-+ */
-+
- #include <stdint.h>
- #include <unistd.h> /* ssize_t */
- 
-+
-+/**
-+ * @def DVB_MPEG_PES
-+ *	@brief MPEG Packetized Elementary Stream magic
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_PES_AUDIO
-+ *	@brief PES Audio
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_PES_VIDEO
-+ *	@brief PES Video
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_MAP
-+ *	@brief PES Stream map
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_PADDING
-+ *	@brief PES padding
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_PRIVATE_2
-+ *	@brief PES private
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_ECM
-+ *	@brief PES ECM Stream
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_EMM
-+ *	@brief PES EMM Stream
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_DIRECTORY
-+ *	@brief PES Stream directory
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_DSMCC
-+ *	@brief PES DSMCC
-+ *	@ingroup dvb_table
-+ * @def DVB_MPEG_STREAM_H222E
-+ *	@brief PES H.222.1 type E
-+ *	@ingroup dvb_table
-+ */
-+
- #define DVB_MPEG_PES  0x00001
-+
-+#define DVB_MPEG_PES_AUDIO  0xc0 ... 0xcf
- #define DVB_MPEG_PES_VIDEO  0xe0 ... 0xef
- 
- #define DVB_MPEG_STREAM_MAP       0xBC
-@@ -36,6 +92,20 @@
- #define DVB_MPEG_STREAM_DSMCC     0x7A
- #define DVB_MPEG_STREAM_H222E     0xF8
- 
-+/**
-+ * @struct ts_t
-+ * @brief MPEG PES timestamp structure, used for dts and pts
-+ * @ingroup dvb_table
-+ *
-+ * @param tag		4 bits  Should be 0010 for PTS and 0011 for DTS
-+ * @param bits30	3 bits	Timestamp bits 30-32
-+ * @param one		1 bit	Sould be 1
-+ * @param bits15	15 bits	Timestamp bits 15-29
-+ * @param one1		1 bit	Should be 1
-+ * @param bits00	15 Bits	Timestamp bits 0-14
-+ * @param one2		1 bit	Should be 1
-+ */
-+
- struct ts_t {
- 	uint8_t  one:1;
- 	uint8_t  bits30:3;
-@@ -58,6 +128,28 @@ struct ts_t {
- 	} __attribute__((packed));
- } __attribute__((packed));
- 
-+/**
-+ * @struct dvb_mpeg_pes_optional
-+ * @brief MPEG PES optional header
-+ * @ingroup dvb_table
-+ *
-+ * @param two				2 bits	Should be 10
-+ * @param PES_scrambling_control	2 bits	PES Scrambling Control (Not Scrambled=00, otherwise scrambled)
-+ * @param PES_priority			1 bit	PES Priority
-+ * @param data_alignment_indicator	1 bit	PES data alignment
-+ * @param copyright			1 bit	PES content protected by copyright
-+ * @param original_or_copy		1 bit	PES content is original (=1) or copied (=0)
-+ * @param PTS_DTS			2 bit	PES header contains PTS (=10, =11) and/or DTS (=01, =11)
-+ * @param ESCR				1 bit	PES header contains ESCR fields
-+ * @param ES_rate			1 bit	PES header contains ES_rate field
-+ * @param DSM_trick_mode		1 bit	PES header contains DSM_trick_mode field
-+ * @param additional_copy_info		1 bit	PES header contains additional_copy_info field
-+ * @param PES_CRC			1 bit	PES header contains CRC field
-+ * @param PES_extension			1 bit	PES header contains extension field
-+ * @param length			8 bit	PES header data length
-+ * @param pts				64 bit	PES PTS timestamp
-+ * @param dts				64 bit	PES DTS timestamp
-+ */
- struct dvb_mpeg_pes_optional {
- 	union {
- 		uint16_t bitfield;
-@@ -82,6 +174,16 @@ struct dvb_mpeg_pes_optional {
- 	uint64_t dts;
- } __attribute__((packed));
- 
-+/**
-+ * @struct dvb_mpeg_pes
-+ * @brief MPEG PES data structure
-+ * @ingroup dvb_table
-+ *
-+ * @param sync		24 bits	DVB_MPEG_PES
-+ * @param stream_id	8 bits	PES Stream ID
-+ * @param length	16 bits	PES packet length
-+ * @param optional	Pointer to optional PES header
-+ */
- struct dvb_mpeg_pes {
- 	union {
- 		uint32_t bitfield;
-@@ -100,9 +202,45 @@ struct dvb_v5_fe_parms;
- extern "C" {
- #endif
- 
--ssize_t dvb_mpeg_pes_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table);
--void dvb_mpeg_pes_free(struct dvb_mpeg_pes *ts);
--void dvb_mpeg_pes_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_pes *ts);
-+/**
-+ * @brief Initialize a struct dvb_mpeg_pes from buffer
-+ * @ingroup dvb_table
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param buf		Buffer
-+ * @param buflen	Length of buffer
-+ * @param table		Pointer to allocated struct dvb_mpeg_pes
-+ *
-+ * @return		Length of data in table
-+ *
-+ * This function copies the length of struct dvb_mpeg_pes
-+ * to table and fixes endianness. The pointer table has to be
-+ * allocated on stack or dynamically.
-+ */
-+ssize_t dvb_mpeg_pes_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen,
-+		uint8_t *table);
-+
-+/**
-+ * @brief Deallocate memory associated with a struct dvb_mpeg_pes
-+ * @ingroup dvb_table
-+ *
-+ * @param pes	struct dvb_mpeg_pes to be deallocated
-+ *
-+ * If the pointer pes was allocated dynamically, this function
-+ * can be used to free the memory.
-+ */
-+void dvb_mpeg_pes_free (struct dvb_mpeg_pes *pes);
-+
-+/**
-+ * @brief Print details of struct dvb_mpeg_pes
-+ * @ingroup dvb_table
-+ *
-+ * @param parms		struct dvb_v5_fe_parms for log functions
-+ * @param pes    	Pointer to struct dvb_mpeg_pes to print
-+ *
-+ * This function prints the fields of struct dvb_mpeg_pes
-+ */
-+void dvb_mpeg_pes_print (struct dvb_v5_fe_parms *parms, struct dvb_mpeg_pes *pes);
- 
- #ifdef __cplusplus
- }
-diff --git a/lib/include/libdvbv5/mpeg_ts.h b/lib/include/libdvbv5/mpeg_ts.h
-index cfb8831..f85be59 100644
---- a/lib/include/libdvbv5/mpeg_ts.h
-+++ b/lib/include/libdvbv5/mpeg_ts.h
-@@ -54,6 +54,7 @@
- /**
-  * @struct dvb_mpeg_ts_adaption
-  * @brief MPEG TS header adaption field
-+ * @ingroup dvb_table
-  *
-  * @param type			DVB_MPEG_ES_SEQ_START
-  * @param length		1 bit	Adaptation Field Length
-@@ -85,6 +86,7 @@ struct dvb_mpeg_ts_adaption {
- /**
-  * @struct dvb_mpeg_ts
-  * @brief MPEG TS header
-+ * @ingroup dvb_table
-  *
-  * @param sync_byte		DVB_MPEG_TS
-  * @param tei			1 bit	Transport Error Indicator
-@@ -125,6 +127,7 @@ extern "C" {
- 
- /**
-  * @brief Initialize a struct dvb_mpeg_ts from buffer
-+ * @ingroup dvb_table
-  *
-  * @param parms		struct dvb_v5_fe_parms for log functions
-  * @param buf		Buffer
-@@ -135,32 +138,33 @@ extern "C" {
-  * @return		Length of data in table
-  *
-  * This function copies the length of struct dvb_mpeg_ts
-- * to table and fixes endianness. table has to be allocated
-- * with malloc.
-+ * to table and fixes endianness. The pointer table has to be allocated
-+ * on stack or dynamically.
-  */
- ssize_t dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen,
- 		uint8_t *table, ssize_t *table_length);
- 
- /**
-  * @brief Deallocate memory associated with a struct dvb_mpeg_ts
-- * @ingroup file
-+ * @ingroup dvb_table
-  *
-  * @param ts	struct dvb_mpeg_ts to be deallocated
-  *
-- * This function assumes frees dynamically allocated memory by the
-- * dvb_mpeg_ts_init function.
-+ * If ts was allocated dynamically, this function
-+ * can be used to free the memory.
-  */
--void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts);
-+void dvb_mpeg_ts_free (struct dvb_mpeg_ts *ts);
- 
- /**
-  * @brief Print details of struct dvb_mpeg_ts
-+ * @ingroup dvb_table
-  *
-  * @param parms		struct dvb_v5_fe_parms for log functions
-  * @param ts    	Pointer to struct dvb_mpeg_ts to print
-  *
-  * This function prints the fields of struct dvb_mpeg_ts
-  */
--void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts);
-+void dvb_mpeg_ts_print (struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts);
- 
- #ifdef __cplusplus
- }
--- 
-1.9.1
+[    2.521597] PM: Image loading progress:  80%
+[    2.535627] PM: Image loading progress:  90%
+[    2.552505] PM: Image loading done.
+[    2.553169] PM: Read 107920 kbytes in 0.50 seconds (215.84 MB/s)
+[    2.562310] em2884 #0: Suspending extensions
+[    2.969484] Switched to clocksource tsc
+[    3.792296] ------------[ cut here ]------------
+[    3.794177] WARNING: CPU: 0 PID: 38 at drivers/base/firmware_class.c:1124 _request_firmware+0x205/0x568()
+[    3.796157] Modules linked in:
+[    3.796723] CPU: 0 PID: 38 Comm: kworker/0:1 Not tainted 3.17.0-rc5-00734-g214635f-dirty #84
+[    3.798197] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.7.5-20140531_083030-gandalf 04/01/2014
+[    3.800121] Workqueue: events request_module_async
+[    3.801115]  0000000000000000 ffff88003dfefb38 ffffffff814bcae8 0000000000000000
+[    3.802533]  ffff88003dfefb70 ffffffff81032d75 ffffffff81320b3c 00000000fffffff5
+[    3.803900]  ffff880039e63de0 ffff88003cfaf880 ffff8800363aa900 ffff88003dfefb80
+[    3.805283] Call Trace:
+[    3.805723]  [<ffffffff814bcae8>] dump_stack+0x4e/0x7a
+[    3.806617]  [<ffffffff81032d75>] warn_slowpath_common+0x7a/0x93
+[    3.807636]  [<ffffffff81320b3c>] ? _request_firmware+0x205/0x568
+[    3.808673]  [<ffffffff81032e32>] warn_slowpath_null+0x15/0x17
+[    3.809638]  [<ffffffff81320b3c>] _request_firmware+0x205/0x568
+[    3.810611]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
+[    3.811545]  [<ffffffff81063c2c>] ? lockdep_init_map+0xc4/0x13f
+[    3.812477]  [<ffffffff81320ecf>] request_firmware+0x30/0x42
+[    3.813399]  [<ffffffff813f974f>] drxk_attach+0x546/0x651
+[    3.814233]  [<ffffffff814c22c3>] em28xx_dvb_init.part.3+0xa3e/0x1cdf
+[    3.815235]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
+[    3.816341]  [<ffffffff81065585>] ? trace_hardirqs_on+0xd/0xf
+[    3.817280]  [<ffffffff814c5b65>] ? mutex_unlock+0x9/0xb
+[    3.818127]  [<ffffffff814c0f70>] ? em28xx_v4l2_init.part.11+0xcbd/0xd04
+[    3.819176]  [<ffffffff814230f4>] em28xx_dvb_init+0x1d/0x1f
+[    3.820078]  [<ffffffff8141cff0>] em28xx_init_extension+0x51/0x67
+[    3.821026]  [<ffffffff8141e5e8>] request_module_async+0x19/0x1b
+[    3.821966]  [<ffffffff8104585c>] process_one_work+0x1d2/0x38a
+[    3.822884]  [<ffffffff810462f0>] worker_thread+0x1f6/0x2a3
+[    3.823752]  [<ffffffff810460fa>] ? rescuer_thread+0x214/0x214
+[    3.824697]  [<ffffffff81049c09>] kthread+0xc7/0xcf
+[    3.825451]  [<ffffffff8125d487>] ? debug_smp_processor_id+0x17/0x19
+[    3.826430]  [<ffffffff8106555c>] ? trace_hardirqs_on_caller+0x183/0x19f
+[    3.827501]  [<ffffffff81049b42>] ? __kthread_parkme+0x62/0x62
+[    3.828449]  [<ffffffff814c866c>] ret_from_fork+0x7c/0xb0
+[    3.829315]  [<ffffffff81049b42>] ? __kthread_parkme+0x62/0x62
+[    3.830228] ---[ end trace 9c556ab09f9d1814 ]---
+[    3.830932] usb 1-1: firmware: dvb-usb-hauppauge-hvr930c-drxk.fw will not be loaded
+[    3.832134] drxk: Could not load firmware file dvb-usb-hauppauge-hvr930c-drxk.fw.
 
+
+Johannes
