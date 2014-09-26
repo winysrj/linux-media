@@ -1,84 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44815 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbaIYPA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:00:28 -0400
-Message-ID: <54242E08.7020307@iki.fi>
-Date: Thu, 25 Sep 2014 18:00:24 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 03/12] cx231xx: delete i2c_client per bus
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-3-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-3-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:20605 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751835AbaIZE51 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 00:57:27 -0400
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NCH000G6SFNCG10@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:57:24 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com, kiran@chromium.org
+Subject: [PATCH v2 00/14] Fixes from Chrome OS tree for MFC driver
+Date: Fri, 26 Sep 2014 10:22:08 +0530
+Message-id: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Upstreaming the fixes which have gone in to Chrome OS tree for MFC driver.
+Tested on MFCV8, MFCV7 and MFCV6 based Exynos5 based boards, peach-pi
+(5800), peach-pit (5420) and snow (5250).
 
-Good catch, certainly pointless to add "dummy" I2C client per adapter. 
-Just wastes memory.
+These are all independent fixes and hence posting them as a patchset.
 
-Missing patch description.
+Changes from v1:
+1) Addressed all review comments from Kamil.
+2) Dropped patches
+   [media] s5p-mfc: set B-frames as 2 while encoding
+   [media] s5p-mfc: remove reduntant clock on & clock off
+   [media] s5p-mfc: don't disable clock when next ctx is pending
+3) Rebased on media-tree
 
-regards
-Antti
+Arun Mankuzhi (2):
+  [media] s5p-mfc: modify mfc wakeup sequence for V8
+  [media] s5p-mfc: De-init MFC when watchdog kicks in
 
-On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-i2c.c | 7 -------
->   drivers/media/usb/cx231xx/cx231xx.h     | 1 -
->   2 files changed, 8 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 67a1391..a30d400 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -455,10 +455,6 @@ static struct i2c_adapter cx231xx_adap_template = {
->   	.algo = &cx231xx_algo,
->   };
->
-> -static struct i2c_client cx231xx_client_template = {
-> -	.name = "cx231xx internal",
-> -};
-> -
->   /* ----------------------------------------------------------- */
->
->   /*
-> @@ -514,7 +510,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   	BUG_ON(!dev->cx231xx_send_usb_command);
->
->   	bus->i2c_adap = cx231xx_adap_template;
-> -	bus->i2c_client = cx231xx_client_template;
->   	bus->i2c_adap.dev.parent = &dev->udev->dev;
->
->   	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-> @@ -523,8 +518,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
->   	i2c_add_adapter(&bus->i2c_adap);
->
-> -	bus->i2c_client.adapter = &bus->i2c_adap;
-> -
->   	if (0 == bus->i2c_rc) {
->   		if (i2c_scan)
->   			cx231xx_do_i2c_scan(dev, bus->nr);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 5efc93e..c92382f 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -472,7 +472,6 @@ struct cx231xx_i2c {
->
->   	/* i2c i/o */
->   	struct i2c_adapter i2c_adap;
-> -	struct i2c_client i2c_client;
->   	u32 i2c_rc;
->
->   	/* different settings for each bus */
->
+Ilja Friedel (1):
+  [media] s5p-mfc: Only set timestamp/timecode for new frames.
+
+Kiran AVND (4):
+  [media] s5p-mfc: support MIN_BUFFERS query for encoder
+  [media] s5p-mfc: keep RISC ON during reset for V7/V8
+  [media] s5p-mfc: check mfc bus ctrl before reset
+  [media] s5p-mfc: flush dpbs when resolution changes
+
+Pawel Osciak (5):
+  [media] s5p-mfc: Fix REQBUFS(0) for encoder.
+  [media] s5p-mfc: Don't crash the kernel if the watchdog kicks in.
+  [media] s5p-mfc: Remove unused alloc field from private buffer
+    struct.
+  [media] s5p-mfc: fix V4L2_CID_MIN_BUFFERS_FOR_CAPTURE on resolution
+    change.
+  [media] s5p-mfc: fix a race in interrupt flags handling
+
+Prathyush K (1):
+  [media] s5p-mfc: clear 'enter_suspend' flag if suspend fails
+
+Wu-Cheng Li (1):
+  [media] s5p-mfc: Don't change the image size to smaller than the
+    request.
+
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   49 +++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  122 ++++++++++++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    6 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   67 ++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   13 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   32 +-----
+ 8 files changed, 199 insertions(+), 95 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.7.9.5
+
