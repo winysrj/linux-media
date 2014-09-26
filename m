@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:24652 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753274AbaIVH7b (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:64790 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752990AbaIZFAD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 03:59:31 -0400
-Date: Mon, 22 Sep 2014 10:58:53 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Dreissig <mukadr@gmail.com>,
-	Martin Kepplinger <martink@posteo.de>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] as102: remove some unneeded checks
-Message-ID: <20140922075853.GA12362@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Fri, 26 Sep 2014 01:00:03 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NCH00737SK2XUD0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Sep 2014 14:00:02 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com, kiran@chromium.org
+Subject: [PATCH v2 10/14] [media] s5p-mfc: flush dpbs when resolution changes
+Date: Fri, 26 Sep 2014 10:22:18 +0530
+Message-id: <1411707142-4881-11-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We know "ret" is zero so we don't need to test for it.  It upsets the
-static checkers when we test stuff but we know the answer.
+While resolution change is detected by MFC, we flush out
+older dpbs, send the resolution change event to application,
+and then accept further queuing of new src buffers.
 
-drivers/media/usb/as102/as102_usb_drv.c:164 as102_send_ep1() warn: we tested 'ret' before and it was 'false'
-drivers/media/usb/as102/as102_usb_drv.c:189 as102_read_ep2() warn: we tested 'ret' before and it was 'false'
+Sometimes, we error out during dpb flush because of lack of src
+buffers. Since we have not started decoding new resolution yet,
+it is simpler to push zero-size buffer until we flush out all dpbs.
 
-Also, we don't need to initialize "ret".
+This is already been done while handling EOS command, and this patch
+extends the same logic to resolution change as well.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/as102/as102_usb_drv.c b/drivers/media/usb/as102/as102_usb_drv.c
-index 43133df..3f66906 100644
---- a/drivers/media/usb/as102/as102_usb_drv.c
-+++ b/drivers/media/usb/as102/as102_usb_drv.c
-@@ -145,7 +145,7 @@ static int as102_send_ep1(struct as10x_bus_adapter_t *bus_adap,
- 			  int send_buf_len,
- 			  int swap32)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index c1c12f8..991008a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1537,27 +1537,11 @@ static inline int s5p_mfc_get_new_ctx(struct s5p_mfc_dev *dev)
+ static inline void s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
  {
--	int ret = 0, actual_len;
-+	int ret, actual_len;
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+-	struct s5p_mfc_buf *temp_vb;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dev->irqlock, flags);
+-
+-	/* Frames are being decoded */
+-	if (list_empty(&ctx->src_queue)) {
+-		mfc_debug(2, "No src buffers.\n");
+-		spin_unlock_irqrestore(&dev->irqlock, flags);
+-		return;
+-	}
+-	/* Get the next source buffer */
+-	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+-	temp_vb->flags |= MFC_BUF_FLAG_USED;
+-	s5p_mfc_set_dec_stream_buffer_v6(ctx,
+-			vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0, 0);
+-	spin_unlock_irqrestore(&dev->irqlock, flags);
  
- 	ret = usb_bulk_msg(bus_adap->usb_dev,
- 			   usb_sndbulkpipe(bus_adap->usb_dev, 1),
-@@ -161,13 +161,13 @@ static int as102_send_ep1(struct as10x_bus_adapter_t *bus_adap,
- 			actual_len, send_buf_len);
- 		return -1;
- 	}
--	return ret ? ret : actual_len;
-+	return actual_len;
++	s5p_mfc_set_dec_stream_buffer_v6(ctx, 0, 0, 0);
+ 	dev->curr_ctx = ctx->num;
+ 	s5p_mfc_clean_ctx_int_flags(ctx);
+-	s5p_mfc_decode_one_frame_v6(ctx, 1);
++	s5p_mfc_decode_one_frame_v6(ctx, MFC_DEC_LAST_FRAME);
  }
  
- static int as102_read_ep2(struct as10x_bus_adapter_t *bus_adap,
- 		   unsigned char *recv_buf, int recv_buf_len)
- {
--	int ret = 0, actual_len;
-+	int ret, actual_len;
- 
- 	if (recv_buf == NULL)
- 		return -EINVAL;
-@@ -186,7 +186,7 @@ static int as102_read_ep2(struct as10x_bus_adapter_t *bus_adap,
- 			actual_len, recv_buf_len);
- 		return -1;
- 	}
--	return ret ? ret : actual_len;
-+	return actual_len;
- }
- 
- static struct as102_priv_ops_t as102_priv_ops = {
+ static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
+-- 
+1.7.9.5
+
