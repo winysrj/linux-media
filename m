@@ -1,101 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55915 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756354AbaIKPdS (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:8553 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752990AbaIZFAe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Sep 2014 11:33:18 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 5/8] of: Add of_graph_get_port_by_id function
-Date: Thu, 11 Sep 2014 17:33:04 +0200
-Message-Id: <1410449587-1677-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
-References: <1410449587-1677-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 26 Sep 2014 01:00:34 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NCH00K9FSKX7R60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Sep 2014 14:00:33 +0900 (KST)
+From: Kiran AVND <avnd.kiran@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	arun.kk@samsung.com, kiran@chromium.org
+Subject: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size to
+ smaller than the request.
+Date: Fri, 26 Sep 2014 10:22:22 +0530
+Message-id: <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to get a port device tree node by port id,
-or reg property value.
+From: Wu-Cheng Li <wuchengli@chromium.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v2:
- - Fixed and simplified of_graph_get_port_by_id function
----
- drivers/of/base.c        | 26 ++++++++++++++++++++++++++
- include/linux/of_graph.h |  7 +++++++
- 2 files changed, 33 insertions(+)
+Use the requested size as the minimum bound, unless it's less than the
+required hardware minimum. The bound align function will align to the
+closest value but we do not want to adjust below the requested size.
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index a49b5628..76e2651 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2053,6 +2053,32 @@ int of_graph_parse_endpoint(const struct device_node *node,
- EXPORT_SYMBOL(of_graph_parse_endpoint);
+Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 407dc63..7b48180 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1056,6 +1056,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_fmt *fmt;
+ 	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
++	u32 min_w, min_h;
  
- /**
-+ * of_graph_get_port_by_id() - get the port matching a given id
-+ * @parent: pointer to the parent device node
-+ * @id: id of the port
-+ *
-+ * Return: A 'port' node pointer with refcount incremented. The caller
-+ * has to use of_node_put() on it when done.
-+ */
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id)
-+{
-+	struct device_node *port;
-+
-+	for_each_child_of_node(node, port) {
-+		u32 port_id = 0;
-+
-+		if (of_node_cmp(port->name, "port") != 0)
-+			continue;
-+		of_property_read_u32(port, "reg", &port_id);
-+		if (id == port_id)
-+			return port;
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL(of_graph_get_port_by_id);
-+
-+/**
-  * of_graph_get_next_endpoint() - get next endpoint node
-  * @parent: pointer to the parent device node
-  * @prev: previous endpoint node, or NULL to get first
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index e43442e..3c1c95a 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -40,6 +40,7 @@ struct of_endpoint {
- #ifdef CONFIG_OF
- int of_graph_parse_endpoint(const struct device_node *node,
- 				struct of_endpoint *endpoint);
-+struct device_node *of_graph_get_port_by_id(struct device_node *node, u32 id);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -53,6 +54,12 @@ static inline int of_graph_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
- }
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		fmt = find_format(f, MFC_FMT_ENC);
+@@ -1090,8 +1091,16 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			return -EINVAL;
+ 		}
  
-+static inline struct device_node *of_graph_get_port_by_id(
-+					struct device_node *node, u32 id)
-+{
-+	return NULL;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
+-		v4l_bound_align_image(&pix_fmt_mp->width, 8, 1920, 1,
+-			&pix_fmt_mp->height, 4, 1080, 1, 0);
++		/*
++		 * Use the requested size as the minimum bound, unless it's less
++		 * than the required hardware minimum. The bound align function
++		 * will align to the closest value but we do not want to adjust
++		 * below the requested size.
++		 */
++		min_w = min(max(16u, pix_fmt_mp->width), 1920u);
++		min_h = min(max(16u, pix_fmt_mp->height), 1088u);
++		v4l_bound_align_image(&pix_fmt_mp->width, min_w, 1920, 4,
++			&pix_fmt_mp->height, min_h, 1088, 4, 0);
+ 	} else {
+ 		mfc_err("invalid buf type\n");
+ 		return -EINVAL;
 -- 
-2.1.0
+1.7.9.5
 
