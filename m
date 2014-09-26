@@ -1,56 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:34090 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbaIISba (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 14:31:30 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:37911 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaIZPnO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 11:43:14 -0400
+Date: Fri, 26 Sep 2014 12:43:09 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140926124309.558c8682@recife.lan>
+In-Reply-To: <20140926152228.GA21876@linuxtv.org>
+References: <20140926071411.61a011bd@recife.lan>
+	<20140926110727.GA880@linuxtv.org>
+	<20140926084215.772adce9@recife.lan>
+	<20140926090316.5ae56d93@recife.lan>
+	<20140926122721.GA11597@linuxtv.org>
+	<20140926101222.778ebcaf@recife.lan>
+	<20140926132513.GA30084@linuxtv.org>
+	<20140926142543.GA3806@linuxtv.org>
+	<54257888.90802@osg.samsung.com>
+	<20140926150602.GA15766@linuxtv.org>
+	<20140926152228.GA21876@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <c522bdd8972633e0eb481ffc5ebb7da98b190fa7.1410273306.git.m.chehab@samsung.com>
-References: <20140909124306.2d5a0d76@canb.auug.org.au> <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
- <c522bdd8972633e0eb481ffc5ebb7da98b190fa7.1410273306.git.m.chehab@samsung.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 9 Sep 2014 19:30:58 +0100
-Message-ID: <CA+V-a8vXAWyRo+-LuEhMNfn1KWDfvy38pROYspPmRBckbFpj7A@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] vpif: Fix compilation with allmodconfig
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 9, 2014 at 3:38 PM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> When vpif is compiled as module, those errors happen:
->
-> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-> ERROR: "vpif_lock" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
->
-> That's because vpif_lock symbol is not exported.
->
+Em Fri, 26 Sep 2014 17:22:28 +0200
+Johannes Stezenbach <js@linuxtv.org> escreveu:
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> On Fri, Sep 26, 2014 at 05:06:02PM +0200, Johannes Stezenbach wrote:
+> > On Fri, Sep 26, 2014 at 08:30:32AM -0600, Shuah Khan wrote:
+> > > On 09/26/2014 08:25 AM, Johannes Stezenbach wrote:
+> > > > 
+> > > > So, what is happening is that the em28xx driver still async initializes
+> > > > while the initramfs already has started resume.  Thus the rootfs in not
+> > > > mounted and the firmware is not loadable.  Maybe this is only an issue
+> > > > of my qemu test because I compiled a non-modular kernel but don't have
+> > > > the firmware in the initramfs for testing simplicity?
+> > > > 
+> > > > 
+> > > 
+> > > Right. We have an issue when media drivers are compiled static
+> > > (non-modular). I have been debugging that problem for a while.
+> > > We have to separate the two cases - if you are compiling em28xx
+> > > as static then you will run into the issue.
+> > 
+> > So I compiled em28xx as modules and installed them in my qemu image.
+> > One issue solved, but it still breaks after resume:
+> > 
+> > [   20.212162] usb 1-1: reset high-speed USB device number 2 using ehci-pci
+> > [   20.503868] em2884 #0: Resuming extensions
+> > [   20.505275] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
+> > [   20.533513] drxk: status = 0x439130d9
+> > [   20.534282] drxk: detected a drx-3913k, spin A2, xtal 20.250 MHz
+> > [   23.008852] em2884 #0: writing to i2c device at 0x52 failed (error=-5)
+> > [   23.011408] drxk: i2c write error at addr 0x29
+> > [   23.013187] drxk: write_block: i2c write error at addr 0x8303b4
+> > [   23.015440] drxk: Error -5 while loading firmware
+> > [   23.017291] drxk: Error -5 on init_drxk
+> > [   23.018835] em2884 #0: fe0 resume 0
+> > 
+> > Any idea on this?
+> 
+> I backed out Mauro's test patch, now it seems to work
+> (v3.17-rc5-734-g214635f, no patches, em28xx as modules).
+> But I'm not 100% sure the above was related to this,
+> it seemed the 930C got upset during all the testing
+> and I had to unplug it to get it back working.
+
+Could you please test again with the patch? Without it, I suspect that,
+if you suspend while streaming, the frontend won't relock again after
+resume. Of course, I may be wrong ;)
 
 Regards,
---Prabhakar Lad
-
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->
-> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-> index cd08e5248387..3dad5bd7fe0a 100644
-> --- a/drivers/media/platform/davinci/vpif.c
-> +++ b/drivers/media/platform/davinci/vpif.c
-> @@ -38,6 +38,7 @@ MODULE_LICENSE("GPL");
->  #define VPIF_CH3_MAX_MODES     2
->
->  spinlock_t vpif_lock;
-> +EXPORT_SYMBOL_GPL(vpif_lock);
->
->  void __iomem *vpif_base;
->  EXPORT_SYMBOL_GPL(vpif_base);
-> --
-> 1.9.3
->
+Mauro
