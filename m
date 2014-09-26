@@ -1,142 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37813 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036AbaIOMtX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 08:49:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
-Date: Mon, 15 Sep 2014 15:49:25 +0300
-Message-ID: <11047185.EGVanoRbYV@avalon>
-In-Reply-To: <20140915090224.5a2889a1.m.chehab@samsung.com>
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <5416CA2B.1080004@xs4all.nl> <20140915090224.5a2889a1.m.chehab@samsung.com>
+Received: from bar.sig21.net ([80.81.252.164]:53399 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754522AbaIZPWg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 11:22:36 -0400
+Date: Fri, 26 Sep 2014 17:22:28 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140926152228.GA21876@linuxtv.org>
+References: <20140926071411.61a011bd@recife.lan>
+ <20140926110727.GA880@linuxtv.org>
+ <20140926084215.772adce9@recife.lan>
+ <20140926090316.5ae56d93@recife.lan>
+ <20140926122721.GA11597@linuxtv.org>
+ <20140926101222.778ebcaf@recife.lan>
+ <20140926132513.GA30084@linuxtv.org>
+ <20140926142543.GA3806@linuxtv.org>
+ <54257888.90802@osg.samsung.com>
+ <20140926150602.GA15766@linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140926150602.GA15766@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Monday 15 September 2014 09:02:24 Mauro Carvalho Chehab wrote:
-> Em Mon, 15 Sep 2014 13:14:51 +0200 Hans Verkuil escreveu:
-> > On 06/06/2014 03:42 PM, Laurent Pinchart wrote:
-> > > On Friday 06 June 2014 11:58:18 Hans Verkuil wrote:
-> > >> On 06/06/2014 11:50 AM, Hans de Goede wrote:
-> > >>> Hi,
-> > >>> 
-> > >>> On 06/05/2014 02:23 PM, Laurent Pinchart wrote:
-> > >>>> The V4L2 specification states that
-> > >>>> 
-> > >>>> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
-> > >>>> the poll() function succeeds, but sets the POLLERR flag in the
-> > >>>> revents field."
-> > >>>> 
-> > >>>> The vb2_poll() function sets POLLERR when the queued buffers list is
-> > >>>> empty, regardless of whether this is caused by the stream not being
-> > >>>> active yet, or by a transient buffer underrun.
-> > >>>> 
-> > >>>> Bring the implementation in line with the specification by returning
-> > >>>> POLLERR only when the queue is not streaming. Buffer underruns during
-> > >>>> streaming are not treated specially anymore and just result in poll()
-> > >>>> blocking until the next event.
-> > >>> 
-> > >>> After your patch the implementation is still not inline with the spec,
-> > >>> queuing buffers, then starting a thread doing the poll, then doing the
-> > >>> streamon in the main thread will still cause the poll to return
-> > >>> POLLERR, even though buffers are queued, which according to the spec
-> > >>> should be enough for the poll to block.
-> > >>> 
-> > >>> The correct check would be:
-> > >>> 
-> > >>> if (list_empty(&q->queued_list) && !vb2_is_streaming(q))
-> > >>> 
-> > >>> 	eturn res | POLLERR;
-> > >> 
-> > >> Good catch! I should have seen that :-(
-> > 
-> > Urgh. This breaks vbi capture tools like alevt and mtt. These rely on poll
-> > returning POLLERR if buffers are queued but STREAMON has not been called
-> > yet.
-> > 
-> > See bug report https://bugzilla.kernel.org/show_bug.cgi?id=84401
-> > 
-> > The spec also clearly says that poll should return POLLERR if STREAMON
-> > was not called.
-> > 
-> > But that would clash with this multi-thread example.
-> > 
-> > Hans, was this based on actual code that needed this?
-> > 
-> > I am inclined to update alevt and mtt: all that is needed to make it work
-> > is a single line that explicitly calls the vbi handler before entering the
-> > main loop. This is effectively the same as what happens when the first
-> > select gets a POLLERR.
-> > 
-> > We maintain alevt (dvb-apps) and mtt (xawtv3), so that's easy enough to
-> > fix.
-> 
-> No, the best is to revert the patch ASAP, as this is a regression.
-
-Reverting the patch will also be a regression, as that would break 
-applications that now rely on the new behaviour (I've developed this patch to 
-fix a problem I've noticed with gstreamer). One way or another, we're screwed 
-and we'll break userspace.
-
-> We can then work to change alevt and mtt to do it, but we need to check
-> other tools, like zvbi.
-> 
-> Only after having this change at the VBI tools for a while we can change
-> the Kernel again, (if it makes sense: as you said, this patch is violating
-> the spec on VB2).
-> 
-> > Note that the spec is now definitely out-of-sync since poll no longer
-> > returns POLLERR if buffers are queued but STREAMON wasn't called.
-> > 
-> > > I'll update the patch accordingly.
+On Fri, Sep 26, 2014 at 05:06:02PM +0200, Johannes Stezenbach wrote:
+> On Fri, Sep 26, 2014 at 08:30:32AM -0600, Shuah Khan wrote:
+> > On 09/26/2014 08:25 AM, Johannes Stezenbach wrote:
 > > > 
-> > >> v4l2-compliance should certainly be extended to test this as well.
-> > >>
-> > >>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>>> ---
-> > >>>> 
-> > >>>>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
-> > >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
-> > >>>> 
-> > >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > >>>> b/drivers/media/v4l2-core/videobuf2-core.c index 349e659..fd428e0
-> > >>>> 100644
-> > >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > >>>> @@ -2533,9 +2533,9 @@ unsigned int vb2_poll(struct vb2_queue *q,
-> > >>>> struct
-> > >>>> file *file, poll_table *wait)>>
-> > >>>>  	}
-> > >>>>  	
-> > >>>>  	/*
-> > >>>> -	 * There is nothing to wait for if no buffers have already been
-> > >>>> queued.
-> > >>>> +	 * There is nothing to wait for if the queue isn't streaming.
-> > >>>>  	 */
-> > >>>> 
-> > >>>> -	if (list_empty(&q->queued_list))
-> > >>>> +	if (!vb2_is_streaming(q))
-> > >>>>  		return res | POLLERR;
-> > >>>>  	
-> > >>>>  	if (list_empty(&q->done_list))
+> > > So, what is happening is that the em28xx driver still async initializes
+> > > while the initramfs already has started resume.  Thus the rootfs in not
+> > > mounted and the firmware is not loadable.  Maybe this is only an issue
+> > > of my qemu test because I compiled a non-modular kernel but don't have
+> > > the firmware in the initramfs for testing simplicity?
+> > > 
+> > > 
+> > 
+> > Right. We have an issue when media drivers are compiled static
+> > (non-modular). I have been debugging that problem for a while.
+> > We have to separate the two cases - if you are compiling em28xx
+> > as static then you will run into the issue.
+> 
+> So I compiled em28xx as modules and installed them in my qemu image.
+> One issue solved, but it still breaks after resume:
+> 
+> [   20.212162] usb 1-1: reset high-speed USB device number 2 using ehci-pci
+> [   20.503868] em2884 #0: Resuming extensions
+> [   20.505275] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
+> [   20.533513] drxk: status = 0x439130d9
+> [   20.534282] drxk: detected a drx-3913k, spin A2, xtal 20.250 MHz
+> [   23.008852] em2884 #0: writing to i2c device at 0x52 failed (error=-5)
+> [   23.011408] drxk: i2c write error at addr 0x29
+> [   23.013187] drxk: write_block: i2c write error at addr 0x8303b4
+> [   23.015440] drxk: Error -5 while loading firmware
+> [   23.017291] drxk: Error -5 on init_drxk
+> [   23.018835] em2884 #0: fe0 resume 0
+> 
+> Any idea on this?
+
+I backed out Mauro's test patch, now it seems to work
+(v3.17-rc5-734-g214635f, no patches, em28xx as modules).
+But I'm not 100% sure the above was related to this,
+it seemed the 930C got upset during all the testing
+and I had to unplug it to get it back working.
 
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Best Regards,
+Johannes
