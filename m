@@ -1,126 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:48095 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbaIHMky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 08:40:54 -0400
-Date: Mon, 8 Sep 2014 14:40:33 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] firewire: firedtv-avc: potential buffer
- overflow
-Message-ID: <20140908144033.42a0762d@kant>
-In-Reply-To: <20140908140502.20d6f864@kant>
-References: <20140908111843.GC6947@mwanda>
-	<20140908140502.20d6f864@kant>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:43518 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753984AbaIZNAP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 09:00:15 -0400
+Received: by mail-pa0-f41.google.com with SMTP id fa1so4753860pad.0
+        for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 06:00:14 -0700 (PDT)
+From: Zhangfei Gao <zhangfei.gao@linaro.org>
+To: m.chehab@samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Zhangfei Gao <zhangfei.gao@linaro.org>
+Subject: [PATCH] [media] rc: fix hix5hd2 compile-test issue
+Date: Fri, 26 Sep 2014 20:57:30 +0800
+Message-Id: <1411736250-29252-1-git-send-email-zhangfei.gao@linaro.org>
+In-Reply-To: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
+References: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sep 08 Stefan Richter wrote:
-> On Sep 08 Dan Carpenter wrote:
-> > "program_info_length" is user controlled and can go up to 4095.  The
-> > operand[] array has 509 bytes so we need to add a limit here to prevent
-> > buffer overflows.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-> 
-> Thank you.
+Add dependence to solve build error in arch like ia64
+error: implicit declaration of function 'readl_relaxed' & 'writel_relaxed'
 
-Oops, that was a bit too quick.  After the memcpy() accesses which you
-protect, there are another four bytes written, still without checking
-the bounds.
+Change CONFIG_PM to CONFIG_PM_SLEEP to solve
+warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
 
-> > 
-> > diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
-> > index d1a1a13..ac17567 100644
-> > --- a/drivers/media/firewire/firedtv-avc.c
-> > +++ b/drivers/media/firewire/firedtv-avc.c
-> > @@ -1157,6 +1157,10 @@ int avc_ca_pmt(struct firedtv *fdtv, char *msg, int length)
-> >  		if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
-> >  			dev_err(fdtv->device,
-> >  				"invalid pmt_cmd_id %d\n", pmt_cmd_id);
-> > +		if (program_info_length > sizeof(c->operand) - write_pos) {
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
+---
+ drivers/media/rc/Kconfig      |    2 +-
+ drivers/media/rc/ir-hix5hd2.c |    7 +------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-So I suggest something like this instead:
-
-+		if (program_info_length > sizeof(c->operand) - 4 - write_pos) {
-
-> > +			ret = -EINVAL;
-> > +			goto out;
-> > +		}
-> >  
-> >  		memcpy(&c->operand[write_pos], &msg[read_pos],
-> >  		       program_info_length);
-> > @@ -1180,6 +1184,11 @@ int avc_ca_pmt(struct firedtv *fdtv, char *msg, int length)
-> >  				dev_err(fdtv->device, "invalid pmt_cmd_id %d "
-> >  					"at stream level\n", pmt_cmd_id);
-> >  
-> > +			if (es_info_length > sizeof(c->operand) - write_pos) {
-
-And likewise:
-
-+			if (es_info_length > sizeof(c->operand) - 4 - write_pos) {
-
-> > +				ret = -EINVAL;
-> > +				goto out;
-> > +			}
-> > +
-> >  			memcpy(&c->operand[write_pos], &msg[read_pos],
-> >  			       es_info_length);
-> >  			read_pos += es_info_length;
-
-FYI, after this follows:
-
-			write_pos += es_info_length;
-		}
-	}
-	write_pos += 4; /* CRC */
-
-	c->operand[7] = 0x82;
-	c->operand[8] = (write_pos - 10) >> 8;
-	c->operand[9] = (write_pos - 10) & 0xff;
-	c->operand[14] = write_pos - 15;
-
-	crc32_csum = crc32_be(0, &c->operand[10], c->operand[12] - 1);
-	c->operand[write_pos - 4] = (crc32_csum >> 24) & 0xff;
-	c->operand[write_pos - 3] = (crc32_csum >> 16) & 0xff;
-	c->operand[write_pos - 2] = (crc32_csum >>  8) & 0xff;
-	c->operand[write_pos - 1] = (crc32_csum >>  0) & 0xff;
-	pad_operands(c, write_pos);
-
-	fdtv->avc_data_length = ALIGN(3 + write_pos, 4);
-	ret = avc_write(fdtv);
-
-
-And pad_operands() is defined in the same source file as:
-
-#define LAST_OPERAND (509 - 1)
-
-static inline void clear_operands(struct avc_command_frame *c, int from, int to)
-{
-	memset(&c->operand[from], 0, to - from + 1);
-}
-
-static void pad_operands(struct avc_command_frame *c, int from)
-{
-	int to = ALIGN(from, 4);
-
-	if (from <= to && to <= LAST_OPERAND)
-		clear_operands(c, from, to);
-}
-
-BTW, the calculation of "to" in pad_operands appears to be wrong, but this does
-not affect Dan's patch.  I will send an extra patch for that.
-
-Regards,
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 8ce08107a69d..28fb2cb34e8d 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -166,7 +166,7 @@ config IR_ENE
+ 
+ config IR_HIX5HD2
+ 	tristate "Hisilicon hix5hd2 IR remote control"
+-	depends on RC_CORE
++	depends on RC_CORE && ARM
+ 	help
+ 	 Say Y here if you want to use hisilicon hix5hd2 remote control.
+ 	 To compile this driver as a module, choose M here: the module will be
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index 94967d0e0478..c1d8527ace92 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -16,11 +16,6 @@
+ #include <linux/regmap.h>
+ #include <media/rc-core.h>
+ 
+-/* Allow the driver to compile on all architectures */
+-#ifndef writel_relaxed
+-# define writel_relaxed writel
+-#endif
+-
+ #define IR_ENABLE		0x00
+ #define IR_CONFIG		0x04
+ #define CNT_LEADS		0x08
+@@ -294,7 +289,7 @@ static int hix5hd2_ir_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int hix5hd2_ir_suspend(struct device *dev)
+ {
+ 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
 -- 
-Stefan Richter
--=====-====- =--= -=---
-http://arcgraph.de/sr/
+1.7.9.5
+
