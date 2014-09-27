@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp02.post.sk ([195.146.144.202]:47679 "EHLO smtp02.post.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753661AbaICTFK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Sep 2014 15:05:10 -0400
-Date: Wed, 3 Sep 2014 20:57:21 +0200 (CEST)
-From: Husam Al Sayed <oscar55@post.sk>
-Reply-To: "alsayedhusa@hotmail.com" <alsayedhusa@hotmail.com>
-Cc: bp@alien8.de, linux-edac@vger.kernel.org, m.chehab@samsung.com,
-	boris.ostrovsky@oracle.com, david.vrabel@citrix.com,
-	stefano.stabellini@eu.citrix.com, ian.campbell@citrix.com,
-	wei.liu2@citrix.com, netdev@vger.kernel.org,
-	konrad.wilk@oracle.com, xen-devel@lists.xenproject.org,
-	david@fromorbit.com, bpm@sgi.com, xfs@oss.sgi.com,
-	anirudh@xilinx.com, John.Linn@xilinx.com, jacmet@sunsite.dk,
-	linux-serial@vger.kernel.org, jpr@f6fbb.org,
-	Henk.Vergonet@gmail.com, usbb2k-api-dev@nongnu.org,
-	jreuter@yaina.de, linux-hams@vger.kernel.org, dsd@gentoo.org,
-	kune@deine-taler.de, linux-wireless@vger.kernel.org,
-	zd1211-devs@lists.sourceforge.net,
-	mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
-	macro@linux-mips.org
-Message-ID: <1457604116.347310.1409770641577.JavaMail.root@mbox05>
-Subject: FROM: Husam Al Sayed.
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:36726 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752418AbaI0BL5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 21:11:57 -0400
+Received: by mail-pa0-f46.google.com with SMTP id kq14so954359pab.5
+        for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 18:11:57 -0700 (PDT)
+From: Behan Webster <behanw@converseincode.com>
+To: archit@ti.com, b.zolnierkie@samsung.com, m.chehab@samsung.com
+Cc: behanw@converseincode.com, hans.verkuil@cisco.com,
+	k.debski@samsung.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] media, platform, LLVMLinux: Remove nested function from ti-vpe
+Date: Fri, 26 Sep 2014 18:11:45 -0700
+Message-Id: <1411780305-5685-1-git-send-email-behanw@converseincode.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FROM: Husam Al Sayed.
+Replace the use of nested functions where a normal function will suffice.
 
-EMAIL:alsayedhusa@hotmail.com
- 
-Hello,
- 
-I decided to write you this proposal in good faith, believing that you will
-not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
- 
-One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do about his funds, if to renew the contract.
- 
-I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
- 
- 
- 
-Have a nice day and God bless. Anticipating your communication.
- 
-Regards,
-FROM: Husam Al Sayed.
-EMAIL: alsayedhusa@hotmail.com
-_____________________________________________________________________
+Nested functions are not liked by upstream kernel developers in general. Their
+use breaks the use of clang as a compiler, and doesn't make the code any
+better.
 
-Vsetko podstatne z vedy, pocitacov,  mobilov aj hier - http://www.TECHsme.sk
+This code now works for both gcc and clang.
+
+Signed-off-by: Behan Webster <behanw@converseincode.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/ti-vpe/csc.c | 8 ++------
+ drivers/media/platform/ti-vpe/sc.c  | 8 ++------
+ 2 files changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index 940df40..44fbf41 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -93,12 +93,8 @@ void csc_dump_regs(struct csc_data *csc)
+ {
+ 	struct device *dev = &csc->pdev->dev;
+ 
+-	u32 read_reg(struct csc_data *csc, int offset)
+-	{
+-		return ioread32(csc->base + offset);
+-	}
+-
+-#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(csc, CSC_##r))
++#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
++	ioread32(csc->base + CSC_##r))
+ 
+ 	DUMPREG(CSC00);
+ 	DUMPREG(CSC01);
+diff --git a/drivers/media/platform/ti-vpe/sc.c b/drivers/media/platform/ti-vpe/sc.c
+index 6314171..1088381 100644
+--- a/drivers/media/platform/ti-vpe/sc.c
++++ b/drivers/media/platform/ti-vpe/sc.c
+@@ -24,12 +24,8 @@ void sc_dump_regs(struct sc_data *sc)
+ {
+ 	struct device *dev = &sc->pdev->dev;
+ 
+-	u32 read_reg(struct sc_data *sc, int offset)
+-	{
+-		return ioread32(sc->base + offset);
+-	}
+-
+-#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(sc, CFG_##r))
++#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
++	ioread32(sc->base + CFG_##r))
+ 
+ 	DUMPREG(SC0);
+ 	DUMPREG(SC1);
+-- 
+1.9.1
+
