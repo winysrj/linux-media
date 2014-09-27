@@ -1,95 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:53626 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754110AbaI2ORj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 10:17:39 -0400
-Received: by mail-pa0-f44.google.com with SMTP id et14so2763798pad.17
-        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 07:17:39 -0700 (PDT)
-Date: Mon, 29 Sep 2014 22:17:36 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
-Cc: "Antti Palosaari" <crope@iki.fi>,
-	"linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH] Add IR support for DVBSky T9580 Dual DVB-S2/T2/C PCIe card
-Message-ID: <201409292217331712046@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Received: from lists.s-osg.org ([54.187.51.154]:38083 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750793AbaI0AsS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 20:48:18 -0400
+Date: Fri, 26 Sep 2014 21:48:09 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Randy Dunlap <rdunlap@infradead.org>,
+	Akihiro Tsukada <tskd08@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: linux-next: Tree for Sep 26 (media/pci/pt3)
+Message-ID: <20140926214809.6443ea21@recife.lan>
+In-Reply-To: <54259BFB.6010301@infradead.org>
+References: <20140926211014.6491e1ee@canb.auug.org.au>
+	<54259BFB.6010301@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBSky T9580 uses Integrated CX23885 IR controller to decode IR signal.
-The IR type of DVBSky remote control is RC5.
+Em Fri, 26 Sep 2014 10:01:47 -0700
+Randy Dunlap <rdunlap@infradead.org> escreveu:
 
-Signed-off-by: Nibble Max <nibble.max@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-cards.c | 3 +++
- drivers/media/pci/cx23885/cx23885-input.c | 8 ++++++++
- 2 files changed, 11 insertions(+)
+> On 09/26/14 04:10, Stephen Rothwell wrote:
+> > Hi all,
+> > 
+> > There will be no linux-next release on Monday.
+> > 
+> > This has not been a good day :-(
+> > 
+> > Changes since 20140925:
+> 
+> 
+> on x86_64:
+> when CONFIG_MODULES is not enabled:
+> 
+> ../drivers/media/pci/pt3/pt3.c: In function 'pt3_attach_fe':
+> ../drivers/media/pci/pt3/pt3.c:433:6: error: implicit declaration of function 'module_is_live' [-Werror=implicit-function-declaration]
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 88c257d..d07f025 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -1621,6 +1621,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TBS_6980:
- 	case CX23885_BOARD_TBS_6981:
-+	case CX23885_BOARD_DVBSKY_T9580:
- 		if (!enable_885_ir)
- 			break;
- 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-@@ -1667,6 +1668,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TBS_6980:
- 	case CX23885_BOARD_TBS_6981:
-+	case CX23885_BOARD_DVBSKY_T9580:
- 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
- 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
- 		dev->sd_ir = NULL;
-@@ -1714,6 +1716,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TBS_6980:
- 	case CX23885_BOARD_TBS_6981:
-+	case CX23885_BOARD_DVBSKY_T9580:
- 		if (dev->sd_ir)
- 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
- 		break;
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 9d37fe6..f81c2f9 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -87,6 +87,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TBS_6980:
- 	case CX23885_BOARD_TBS_6981:
-+	case CX23885_BOARD_DVBSKY_T9580:
- 		/*
- 		 * The only boards we handle right now.  However other boards
- 		 * using the CX2388x integrated IR controller should be similar
-@@ -139,6 +140,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 	case CX23885_BOARD_MYGICA_X8507:
-+	case CX23885_BOARD_DVBSKY_T9580:
- 		/*
- 		 * The IR controller on this board only returns pulse widths.
- 		 * Any other mode setting will fail to set up the device.
-@@ -305,6 +307,12 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 		/* A guess at the remote */
- 		rc_map = RC_MAP_TBS_NEC;
- 		break;
-+	case CX23885_BOARD_DVBSKY_T9580:
-+		/* Integrated CX23885 IR controller */
-+		driver_type = RC_DRIVER_IR_RAW;
-+		allowed_protos = RC_BIT_ALL;
-+		rc_map = RC_MAP_DVBSKY;
-+		break;
- 	default:
- 		return -ENODEV;
- 	}
--- 
-1.9.1
 
+:(
+
+I didn't notice that weird I2C attach code on this driver.
+
+Akihiro, could you please fix it? The entire I2C attach code at
+pt3_attach looks weird. We should soon add support for the I2C
+tuner attach code for all DVB drivers on a common place, just like
+what we do for V4L drivers. That's why I didn't spend much time on
+that piece of the code.
+
+Yet, while we don't have it, please take a look at 
+drivers/media/v4l2-core/v4l2-device.c and do (almost) the same on
+your driver, if possible, putting the I2C load module on a function.
+That will make easier for us to replace such function when we'll add 
+core support for it. The function at v4l2-device for you to take
+a look is: v4l2_device_register_subdev().
+
+Thank you,
+Mauro
