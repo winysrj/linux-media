@@ -1,108 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:43039 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754154AbaIVPHQ (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33264 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721AbaI0XY1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:07:16 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.co, hverkuil@xs4all.nl, ramakrmu@cisco.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 5/5] media: au0828-core changes to create and destroy media token res
-Date: Mon, 22 Sep 2014 09:00:49 -0600
-Message-Id: <80d31dd3dbe205c9a462aa6dcae2c25de332259a.1411397045.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
-References: <cover.1411397045.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1411397045.git.shuahkh@osg.samsung.com>
-References: <cover.1411397045.git.shuahkh@osg.samsung.com>
+	Sat, 27 Sep 2014 19:24:27 -0400
+Received: by mail-wi0-f178.google.com with SMTP id z2so1331533wiv.5
+        for <linux-media@vger.kernel.org>; Sat, 27 Sep 2014 16:24:26 -0700 (PDT)
+Received: from [192.168.1.63] (APuteaux-651-1-289-51.w82-120.abo.wanadoo.fr. [82.120.12.51])
+        by mx.google.com with ESMTPSA id wx3sm10796318wjc.19.2014.09.27.16.24.25
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 27 Sep 2014 16:24:25 -0700 (PDT)
+Message-ID: <54274727.3010808@gmail.com>
+Date: Sun, 28 Sep 2014 01:24:23 +0200
+From: =?UTF-8?B?RnLDqWTDqXJpYyBCZXJuYXJk?= <fred.pa.bernard@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Error compiling coda-common.c:1893:2 from media_build on Cubox-i
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changed au0828-core to create media token resource in its
-usb_probe() and destroy it from usb_disconnect() interfaces.
-It creates the resource on the main struct device which is
-the parent device for the interface usb device. This is the
-main struct device that is common for all the drivers that
-control the media device, including the non-media sound
-drivers.
+Please check https://bugzilla.kernel.org/show_bug.cgi?id=85201
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+I aim to use a Cinergy HTC USB XS on ARM with xbmc. The USB stick uses a the driver dvb-usb-dib0700 with the firmware dvb-usb-terratec-htc-stick-drxk.fw taken here
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index bc06480..189e435 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -26,6 +26,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
- #include <linux/mutex.h>
-+#include <linux/media_tknres.h>
- 
- /*
-  * 1 = General debug messages
-@@ -127,6 +128,17 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	return status;
- }
- 
-+/* interfaces to create and destroy media tknres */
-+static int au0828_create_media_tknres(struct au0828_dev *dev)
-+{
-+	return media_tknres_create(&dev->usbdev->dev);
-+}
-+
-+static int au0828_destroy_media_tknres(struct au0828_dev *dev)
-+{
-+	return media_tknres_destroy(&dev->usbdev->dev);
-+}
-+
- static void au0828_usb_release(struct au0828_dev *dev)
- {
- 	/* I2C */
-@@ -157,6 +169,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
- 
-+	au0828_destroy_media_tknres(dev);
-+
- 	usb_set_intfdata(interface, NULL);
- 	mutex_lock(&dev->mutex);
- 	dev->usbdev = NULL;
-@@ -215,6 +229,13 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	dev->usbdev = usbdev;
- 	dev->boardnr = id->driver_info;
- 
-+	/* create media token resource */
-+	if (au0828_create_media_tknres(dev)) {
-+		mutex_unlock(&dev->lock);
-+		kfree(dev);
-+		return -ENOMEM;
-+	}
-+
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
- 
-@@ -223,6 +244,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_device_register failed\n",
- 		       __func__);
-+		au0828_destroy_media_tknres(dev);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
- 		return retval;
-@@ -232,6 +254,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
- 		       __func__);
-+		au0828_destroy_media_tknres(dev);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
- 		return retval;
--- 
-1.7.10.4
+wgethttps://github.com/OpenELEC/dvb-firmware/blob/master/firmware/dvb-usb-terratec-htc-stick-drxk.fw
+
+I checked on a amd64 PC and successfully media_builded, installed VDR and scan utilities and scanned TV channels with
+
+w_scan -ft-A3-c FR >/etc/vdr/channels.conf
+
+So I switched to the ARM real target.
+
+I encountered this error while executing './build' in build_media directory :
+
+   CC [M]  /root/media_build/v4l/mcam-core.o
+   CC [M]  /root/media_build/v4l/coda-common.o
+/root/media_build/v4l/coda-common.c: In function 'coda_probe':
+/root/media_build/v4l/coda-common.c:1893:2: error: implicit declaration of function 'devm_reset_control_get_optional' [-Werror=implicit-function-declaration]
+/root/media_build/v4l/coda-common.c:1893:12: warning: assignment makes pointer from integer without a cast [enabled by default]
+cc1: some warnings being treated as errors
+make[3]: *** [/root/media_build/v4l/coda-common.o] Error 1
+make[2]: *** [_module_/root/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-3.14.14+'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/media_build/v4l'
+make: *** [all] Error 2
+build failed at ./build line 491.
+
+Here is the context
+
+The device is a CuBox-i4Pro (SoC is i.MX6 Quad see here :http://www.solid-run.com/wiki/CuBox-i_Hardware)
+
+I use the Debian wheezy available at the link given herehttp://www.solid-run.com/wiki/Debian_and_derivatives  and more specificallyhttp://www.igorpecovnik.com/2014/08/19/cubox-i-hummingboard-debian-sd-image/
+
+I build a kernel 3.14 as said herehttp://www.solid-run.com/wiki/Building_the_kernel_and_u-boot_for_the_CuBox-i_and_the_HummingBoard  and generated kernel packages with
+
+apt-get install dpkg-dev
+apt-get install libfile-fcntllock-perl
+make deb-pkg
+cd ..
+dpkg -i linux*deb
+
+And then
+
+git clone git://linuxtv.org/media_build.git
+cd media_build
+  ./build
+
+And that's where the error occurs
+
+I can't go farther.
+
+Thanks for helping
+
+Best regards
+
+Frédéric Bernard
+F92400 Courbevoie
 
