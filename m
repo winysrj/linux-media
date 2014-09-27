@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:62385 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbaIOGsD (ORCPT
+Received: from dougal.woof94.com ([125.63.57.136]:55095 "EHLO
+	dougal.woof94.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbaI0DdL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 02:48:03 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NBX00CU2K827G40@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Sep 2014 15:48:02 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com
-Subject: [PATCH 04/17] [media] s5p-mfc: clear 'enter_suspend' flag if suspend
- fails
-Date: Mon, 15 Sep 2014 12:12:59 +0530
-Message-id: <1410763393-12183-5-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
-References: <1410763393-12183-1-git-send-email-avnd.kiran@samsung.com>
+	Fri, 26 Sep 2014 23:33:11 -0400
+In-Reply-To: <54261AA6.10800@iki.fi>
+References: <542406DE.10403@cloud.net.au> <5424627F.9010306@iki.fi> <54261797.7080509@cloud.net.au> <54261AA6.10800@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: problem with second tuner on Leadtek DTV dongle dual
+From: Hamish Moffatt <hamish@cloud.net.au>
+Date: Sat, 27 Sep 2014 13:32:54 +1000
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Message-ID: <b2c9454a-c6ba-4851-b940-b0ca34f714e5@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Prathyush K <prathyush.k@samsung.com>
 
-The enter_suspend flag is set after we enter mfc suspend function but if
-suspend fails after that due to any reason (like hardware timeout etc),
-this flag must be cleared before returning an error. Otherwise, this
-flag never gets cleared and the MFC suspend will always return an error
-on subsequent tries. If clock off fails, disable hw_lock also.
 
-Signed-off-by: Prathyush K <prathyush.k@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+On 27 September 2014 12:02:14 PM AEST, Antti Palosaari <crope@iki.fi> wrote:
+>On 09/27/2014 04:49 AM, Hamish Moffatt wrote:
+>> On 26/09/14 04:44, Antti Palosaari wrote:
+>>> Moikka
+>>> Performance issues are fixed recently (at least I hope so), but it
+>>> will took some time in order to get fixes in stable. Unfortunately I
+>>> don't have any IT9135 BX (ver 2 chip) dual device to test like
+>yours...
+>>>
+>>> Could you install that kernel tree:
+>>> http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
+>>> and firmwares from there:
+>>> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/ITE_3.25.0.0/
+>>>
+>>
+>> OK I have
+>> http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=devel-3.17-rc6
+>> running now (reporting itself as 3.17-rc5), with the 3.40.1.0
+>firmware
+>> from your site.
+>>
+>> Both tuners work for all stations, except that the first tuning
+>attempt
+>> on each tuner simply doesn't lock. Doesn't seem to matter what I tune
+>to.
+>
+>:/ Sounds like a something is not initialized in a correct order. I 
+>suspect it is it913x tuner driver. But without a hardware, I cannot do 
+>much for it. So let it be.
+>
+>Good to hear that it works that better, even first tune will fail. It
+>is 
+>though annoying as you will need to close app and then try again. I 
+>suspect it needs "power on - sleep - power on" in order to init all 
+>properly.
+>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index ebfe381..e37fb99 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1312,11 +1312,17 @@ static int s5p_mfc_suspend(struct device *dev)
- 			m_dev->int_cond, msecs_to_jiffies(MFC_INT_TIMEOUT));
- 		if (ret == 0) {
- 			mfc_err("Waiting for hardware to finish timed out\n");
-+			clear_bit(0, &m_dev->enter_suspend);
- 			return -EIO;
- 		}
- 	}
- 
--	return s5p_mfc_sleep(m_dev);
-+	ret = s5p_mfc_sleep(m_dev);
-+	if (ret) {
-+		clear_bit(0, &m_dev->enter_suspend);
-+		clear_bit(0, &m_dev->hw_lock);
-+	}
-+	return ret;
- }
- 
- static int s5p_mfc_resume(struct device *dev)
+Well it's easy enough to work around by running dvbtune or tzap with a timeout on boot or when the device is inserted. I've had tuners with such quirks before.
+
+Still, 3.16.3 with the 3.39 firmware didn't show this. 3.16.3 with the 3.40 firmware was quite unpredictable though.
+
+These dongles are pretty cheap here. Do you have DVB-T to test with?
+
+Thanks
+Hamish
+
 -- 
-1.7.3.rc2
-
+Sent from my Android phone with K-9 Mail. Please excuse my brevity.
