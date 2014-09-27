@@ -1,60 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:32776 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaIIIlE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 04:41:04 -0400
-Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 3EA1720015
-	for <linux-media@vger.kernel.org>; Tue,  9 Sep 2014 10:40:03 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.18] uvcvideo changes
-Date: Tue, 09 Sep 2014 11:41 +0300
-Message-ID: <352565057.M5lg4dyeH3@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:53599 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783AbaI0NSz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Sep 2014 09:18:55 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Add targets to install the files at the system
+Date: Sat, 27 Sep 2014 10:18:32 -0300
+Message-Id: <1411823912-28014-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In order to be easier to package the scan tables, add
+some targets to install the files, and add the instructions
+about how to use it at the README file.
 
-The following changes since commit 91f96e8b7255537da3a58805cf465003521d7c5f:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Makefile | 27 +++++++++++++++++++++++++++
+ README   | 37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-  [media] tw68: drop bogus cpu_to_le32() call (2014-09-08 16:40:54 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git uvc/next
-
-for you to fetch changes up to 18e27c1f02310ecc196b059d890bd840fe247960:
-
-  media: usb: uvc: add a quirk for Dell XPS M1330 webcam (2014-09-09 11:37:43 
-+0300)
-
-----------------------------------------------------------------
-Paul Fertser (1):
-      media: usb: uvc: add a quirk for Dell XPS M1330 webcam
-
-Vincent Palatin (2):
-      v4l: Add camera pan/tilt speed controls
-      v4l: uvcvideo: Add support for pan/tilt speed controls
-
-William Manley (1):
-      uvcvideo: Work around buggy Logitech C920 firmware
-
- Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++
- Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++
- drivers/media/usb/uvc/uvc_ctrl.c             | 60 ++++++++++++++++++++++++---
- drivers/media/usb/uvc/uvc_driver.c           | 20 +++++++++++-
- drivers/media/usb/uvc/uvc_video.c            |  6 ++++
- drivers/media/usb/uvc/uvcvideo.h             |  3 +-
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/uapi/linux/v4l2-controls.h           |  2 ++
- 8 files changed, 118 insertions(+), 6 deletions(-)
-
+diff --git a/Makefile b/Makefile
+index 2fb4a8890a37..0e58193bbb43 100644
+--- a/Makefile
++++ b/Makefile
+@@ -25,6 +25,22 @@ DVBV5OUTPUTDIR = dvbv5
+ 
+ PHONY := clean dvbv3 dvbv5
+ 
++ifeq ($(PREFIX),)
++PREFIX = /usr/local
++endif
++
++ifeq ($(DATADIR),)
++DATADIR = $(PREFIX)/share
++endif
++
++ifeq ($(DVBV5DIR),)
++DVBV5DIR = dvbv5
++endif
++
++ifeq ($(DVBV3DIR),)
++DVBV3DIR = dvbv3
++endif
++
+ dvbv3:
+ 	@$(foreach var,$(DVBV3DIRS), $(MKDIR) $(DVBV3OUTPUTDIR)/$(var);)
+ 	@$(foreach var,$(DVBV3CHANNELFILES), $(DVBFORMATCONVERT) $(DVBFORMATCONVERT_CHANNEL_DVBV3) $(var) $(DVBV3OUTPUTDIR)/$(var);)
+@@ -34,6 +50,17 @@ dvbv5: $(DVBV3OUTPUTDIR)
+ 	@$(foreach var,$(DVBV3DIRS), $(MKDIR) $(DVBV5OUTPUTDIR)/$(var);)
+ 	@$(foreach var,$(DVBV3CHANNELFILES), $(DVBFORMATCONVERT) $(DVBFORMATCONVERT_CHANNEL_DVBV5) $(DVBV3OUTPUTDIR)/$(var) $(DVBV5OUTPUTDIR)/$(var);)
+ 
++install:
++	@echo -n Installing dvbv5-formatted files at $(DATADIR)/$(DVBV5DIR)...
++	@mkdir -p $(DATADIR)/$(DVBV5DIR)
++	@$(foreach var,$(DVBV3CHANNELFILES), install -D -p -m 644 $(var) $(DATADIR)/$(DVBV5DIR)/$(var);)
++	@echo done.
++
++install_v3:
++	@echo -n Installing dvbv3-formatted files at $(DATADIR)/$(DVBV3DIR)...
++	@mkdir -p $(DATADIR)/$(DVBV3DIR)
++	@$(foreach var,$(DVBV3CHANNELFILES), install -D -p -m 644 $(DVBV3OUTPUTDIR)/$(var) $(DATADIR)/$(DVBV3DIR)/$(var);)
++	@echo done.
+ 
+ clean:
+ 	rm -rf $(DVBV3OUTPUTDIR)/ $(DVBV5OUTPUTDIR)/
+diff --git a/README b/README
+index 87561ee599ae..f0ae695aa09b 100644
+--- a/README
++++ b/README
+@@ -1,6 +1,9 @@
+ All tables are now using DVBv5 format. That allows suporting all standards
+ available on a standard way.
+ 
++GENERATING FILES TO THE LEGACY DVBV3 FORMAT
++===========================================
++
+ A Makefile target is provided to convert to the legacy channel format.
+ For it to work, you need to have v4l-utils installed (specifically,
+ the v4l-utils package that contains the dvbv5 utils).
+@@ -36,3 +39,37 @@ Plese notice that comments are not preserved when doing the conversions.
+ PS.: If you're willing to submit new entries and/or corrections, please
+ be sure to send them at the DVBv5 format and sending them via e-mail
+ to linux-media@vger.kernel.org.
++
++INSTALL
++=======
++
++In order to install the files, use:
++	$ make install
++
++By default, it will install the files at /usr/local/share/dvbv5.
++
++In order to install the legacy v3 formatted files, use:
++	$ make install_v3
++
++Don't forget to run "make dvbv3" before running the above command,
++in order to convert the files to the legacy format.
++
++By default, it will install the files at /usr/local/share/dvbv3.
++
++There are a few extra parameters that could be used to define where
++the files will be stored:
++
++	PREFIX=<dir>		(default: /usr/local)
++	DATADIR=<dir>		(default: $(PREFIX/share)
++	DVBV5DIR=<subdir>	(default: dvbv3)
++	DVBV3DIR=<subdir>	(default: dvbv5)
++
++So, if it is desired to install both v3 and v5 files at a tmp file,
++under the current dir, the install command would be:
++
++	$ make install install_v3 PREFIX=`pwd`/tmp
++	Installing dvbv5-formatted files at /home/myuser/dtv-scan-tables/tmp/share/dvbv5...done.
++	Installing dvbv3-formatted files at /home/myuser/dtv-scan-tables/tmp/share/dvbv3...done.
++
++Please also note that install takes some time, as there are lots
++of files to be copied.
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
