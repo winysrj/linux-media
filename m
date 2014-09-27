@@ -1,113 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34139 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751746AbaIXW1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com
-Subject: [PATCH 02/18] [media] st_rc: fix address space casting
-Date: Wed, 24 Sep 2014 19:27:02 -0300
-Message-Id: <85bbfa5dbeda81dbef758ee1c450ed938b70ac4d.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46946 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751020AbaI0Bpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Sep 2014 21:45:45 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Akihiro Tsukada <tskd08@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH] pt3: fix DTV FE I2C driver load error paths
+Date: Sat, 27 Sep 2014 04:45:36 +0300
+Message-Id: <1411782336-28235-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/rc/st_rc.c:107:38: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:107:38:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:107:38:    got void *
-drivers/media/rc/st_rc.c:110:53: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:110:53:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:110:53:    got void *
-drivers/media/rc/st_rc.c:116:54: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:116:54:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:116:54:    got void *
-drivers/media/rc/st_rc.c:120:45: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:120:45:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:120:45:    got void *
-drivers/media/rc/st_rc.c:121:43: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:121:43:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:121:43:    got void *
-drivers/media/rc/st_rc.c:150:46: warning: incorrect type in argument 1 (different address spaces)
-drivers/media/rc/st_rc.c:150:46:    expected void const volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:150:46:    got void *
-drivers/media/rc/st_rc.c:153:42: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:153:42:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:153:42:    got void *
-drivers/media/rc/st_rc.c:174:32: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:174:32:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:174:32:    got void *
-drivers/media/rc/st_rc.c:177:48: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:177:48:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:177:48:    got void *
-drivers/media/rc/st_rc.c:187:48: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:187:48:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:187:48:    got void *
-drivers/media/rc/st_rc.c:204:42: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:204:42:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:204:42:    got void *
-drivers/media/rc/st_rc.c:205:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:205:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:205:35:    got void *
-drivers/media/rc/st_rc.c:215:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:215:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:215:35:    got void *
-drivers/media/rc/st_rc.c:216:35: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:216:35:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:216:35:    got void *
-drivers/media/rc/st_rc.c:269:22: warning: incorrect type in assignment (different address spaces)
-drivers/media/rc/st_rc.c:269:22:    expected void *base
-drivers/media/rc/st_rc.c:269:22:    got void [noderef] <asn:2>*
-drivers/media/rc/st_rc.c:349:46: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:349:46:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:349:46:    got void *
-drivers/media/rc/st_rc.c:350:46: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:350:46:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:350:46:    got void *
-drivers/media/rc/st_rc.c:371:61: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:371:61:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:371:61:    got void *
-drivers/media/rc/st_rc.c:372:54: warning: incorrect type in argument 2 (different address spaces)
-drivers/media/rc/st_rc.c:372:54:    expected void volatile [noderef] <asn:2>*addr
-drivers/media/rc/st_rc.c:372:54:    got void *
+Get rid of 'module_is_live' usage.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+on x86_64:
+when CONFIG_MODULES is not enabled:
 
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index e309441a266d..0e758ae2e529 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -22,8 +22,8 @@ struct st_rc_device {
- 	int				irq;
- 	int				irq_wake;
- 	struct clk			*sys_clock;
--	void				*base;	/* Register base address */
--	void				*rx_base;/* RX Register base address */
-+	volatile void __iomem		*base;	/* Register base address */
-+	volatile void __iomem		*rx_base;/* RX Register base address */
- 	struct rc_dev			*rdev;
- 	bool				overclocking;
- 	int				sample_mult;
-@@ -267,8 +267,8 @@ static int st_rc_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+../drivers/media/pci/pt3/pt3.c: In function 'pt3_attach_fe':
+../drivers/media/pci/pt3/pt3.c:433:6: error: implicit declaration of function 'module_is_live' [-Werror=implicit-function-declaration]
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Akihiro Tsukada <tskd08@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+Maybe that is proper fix. I didn't test it.
+---
+ drivers/media/pci/pt3/pt3.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
+index 90f86ce..1fdeac1 100644
+--- a/drivers/media/pci/pt3/pt3.c
++++ b/drivers/media/pci/pt3/pt3.c
+@@ -393,7 +393,7 @@ static int pt3_attach_fe(struct pt3_board *pt3, int i)
+ 		return -ENODEV;
+ 	pt3->adaps[i]->i2c_demod = cl;
+ 	if (!try_module_get(cl->dev.driver->owner))
+-		goto err_demod;
++		goto err_demod_i2c_unregister_device;
  
- 	rc_dev->base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(rc_dev->base)) {
--		ret = PTR_ERR(rc_dev->base);
-+	if (IS_ERR((__force void *)rc_dev->base)) {
-+		ret = PTR_ERR((__force void *)rc_dev->base);
- 		goto err;
+ 	if (!strncmp(cl->name, TC90522_I2C_DEV_SAT, sizeof(cl->name))) {
+ 		struct qm1d1c0042_config tcfg;
+@@ -415,28 +415,27 @@ static int pt3_attach_fe(struct pt3_board *pt3, int i)
+ 		cl = i2c_new_device(cfg.tuner_i2c, &info);
  	}
+ 	if (!cl || !cl->dev.driver)
+-		goto err_demod;
++		goto err_demod_module_put;
+ 	pt3->adaps[i]->i2c_tuner = cl;
+ 	if (!try_module_get(cl->dev.driver->owner))
+-		goto err_tuner;
++		goto err_tuner_i2c_unregister_device;
+ 
+ 	dvb_adap = &pt3->adaps[one_adapter ? 0 : i]->dvb_adap;
+ 	ret = dvb_register_frontend(dvb_adap, cfg.fe);
+ 	if (ret < 0)
+-		goto err_tuner;
++		goto err_tuner_module_put;
+ 	pt3->adaps[i]->fe = cfg.fe;
+ 	return 0;
+ 
+-err_tuner:
++err_tuner_module_put:
++	module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
++err_tuner_i2c_unregister_device:
+ 	i2c_unregister_device(pt3->adaps[i]->i2c_tuner);
+-	if (pt3->adaps[i]->i2c_tuner->dev.driver->owner &&
+-	    module_is_live(pt3->adaps[i]->i2c_tuner->dev.driver->owner))
+-		module_put(pt3->adaps[i]->i2c_tuner->dev.driver->owner);
+-err_demod:
++err_demod_module_put:
++	module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
++err_demod_i2c_unregister_device:
+ 	i2c_unregister_device(pt3->adaps[i]->i2c_demod);
+-	if (pt3->adaps[i]->i2c_demod->dev.driver->owner &&
+-	    module_is_live(pt3->adaps[i]->i2c_demod->dev.driver->owner))
+-		module_put(pt3->adaps[i]->i2c_demod->dev.driver->owner);
++
+ 	return ret;
+ }
  
 -- 
-1.9.3
+http://palosaari.fi/
 
