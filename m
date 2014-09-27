@@ -1,71 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:28976 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbaIVGSs (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:38099 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751537AbaI0LzB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 02:18:48 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NCA00BHGHNYGL30@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Sep 2014 07:21:34 +0100 (BST)
-Message-id: <541FBF45.6030601@samsung.com>
-Date: Mon, 22 Sep 2014 08:18:45 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>
+	Sat, 27 Sep 2014 07:55:01 -0400
+Date: Sat, 27 Sep 2014 08:54:55 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: RFC: vb2: replace alloc_ctx by struct device * in vb2_queue
-References: <541ECD1D.5020605@xs4all.nl>
-In-reply-to: <541ECD1D.5020605@xs4all.nl>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+	Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	=?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Subject: Re: Upcoming v4l-utils 1.6.0 release
+Message-ID: <20140927085455.5b0baf89@recife.lan>
+In-Reply-To: <54269807.50109@googlemail.com>
+References: <20140925213820.1bbf43c2@recife.lan>
+	<54269807.50109@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Sat, 27 Sep 2014 12:57:11 +0200
+Gregor Jasny <gjasny@googlemail.com> escreveu:
 
-On 2014-09-21 15:05, Hans Verkuil wrote:
-> Hi Marek, Pawel,
->
-> Currently for dma_config (and the dma_sg code that I posted before) drivers have
-> to allocate a alloc_ctx context, but in practice that just contains a device pointer.
->
-> Is there any reason why we can't just change in struct vb2_queue:
->
-> 	void                            *alloc_ctx[VIDEO_MAX_PLANES];
->
-> to:
->
-> 	struct device                   *alloc_ctx[VIDEO_MAX_PLANES];
->
-> or possibly even just:
->
-> 	struct device                   *alloc_ctx;
->
-> That simplifies the code quite a bit and I don't see and need for anything
-> else. The last option would make it impossible to have different allocation
-> contexts for different planes, but that might be something that Samsumg needs.
+> Hello,
+> 
+> Mauro was very busy adding Doxygen documentation to libdvbv5. Instead of
+> cherry picking the (many) individual commits I'd like to release master
+> as 1.6.0.
 
-The last option won't work for for s5p-mfc driver, so better please keep
-separate context per each plane.
+Works for me.
 
-If we are going to change the structures and their names, then maybe we 
-should
-get rid of 'context' name are simply replace it by the following entry in
-vb2_queue:
+> Has anyone uncommited pending work? If not I'd like to release on Monday
+> (29th).
+> 
+> About the DVB API/ABI incompatibility discussed below:
+> 
+> As far as I understand the service_location feature should work but is
+> an extension to the standard. Does it harm if we keep it until we have
+> something better in place to handle extensions?
 
-struct device  *alloc_dev[VIDEO_MAX_PLANES];
+I'm not sure if it works, as the table parser doesn't call that code.
+Ok, some library client could use it, but I don't think that this is
+actually being used on tvdaemon.
 
+> The service list descriptor feature is unimplemented (and thus broken).
+> Would it help if we return -1 from dvb_desc_service_list_init to reflect
+> that fact or does it break something else? But I'd keep the symbol in
+> the library to maintain ABI compatibility.
 
-and change respective parameter names in memory allocators.
+The big problem with the service list descriptor is that there's a
+field commented on its structure. Once we decide to implement it,
+we'll need to uncomment such field or to replace it with something
+else. At the moment we do that, we'll be breaking ABI compatibility.
 
-The true context was useful when we were using custom, non-mainline memory
-allocators.
+I would actually prefer if we could get rid of those two broken
+descriptors on some release, and to re-add them only when they're
+actually working.
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+> Is there a reason to expose the individual descriptor functions to the
+> public API? Aren't dvb_descriptors table and its users enough?
 
+That depends on the usecase. For applications like dvbv5 tools,
+that only use the library to scan channels and tune, there's no need.
+
+However, if the application wants to do something more fancy, like
+parsing the program guide, it will need to look inside the EIT
+descriptors, where the program guide is stored.
+
+There's also a feature that André is working to add to tvdaemon and to
+the libdvbv5 library. He can comment a little more about his needs.
+
+As far of what I understood, he wants to use the library to produce
+a MPEG-TS, probably to generate what is called MPEG remux.
+
+MPEG remux means to be able to create a new MPEG-TS with a subset of 
+the elementary streams that are found on the original stream. In other
+words, imagine a stream with 6 independent channels multiplexed inside a 
+single MPEG-TS (this is common on DVB-C). A remuxed MPEG could contain
+just one of those channels.
+
+In order to be able to create a MPEG-TS, the application need to
+be able to handle all tables/descriptors required to produce it.
+
+Regards,
+Mauro
