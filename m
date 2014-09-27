@@ -1,45 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:44001 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789AbaIZOGk (ORCPT
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:42915 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbaI0MF4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 10:06:40 -0400
-Received: by mail-pa0-f42.google.com with SMTP id bj1so2593854pad.15
-        for <linux-media@vger.kernel.org>; Fri, 26 Sep 2014 07:06:40 -0700 (PDT)
-Message-ID: <542572E6.70803@linaro.org>
-Date: Fri, 26 Sep 2014 22:06:30 +0800
-From: zhangfei <zhangfei.gao@linaro.org>
+	Sat, 27 Sep 2014 08:05:56 -0400
+Received: by mail-ob0-f172.google.com with SMTP id wp18so1937280obc.17
+        for <linux-media@vger.kernel.org>; Sat, 27 Sep 2014 05:05:55 -0700 (PDT)
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: m.chehab@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rc: fix hix5hd2 compile-test issue
-References: <1411571401-30664-1-git-send-email-zhangfei.gao@linaro.org> <1411736250-29252-1-git-send-email-zhangfei.gao@linaro.org> <20140926131229.GS5182@n2100.arm.linux.org.uk>
-In-Reply-To: <20140926131229.GS5182@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
+References: <CAL9G6WWEocLTVeZSOtRaJYa6ieJyCzF9BiacZgrdWvKnt3P78Q@mail.gmail.com>
+Date: Sat, 27 Sep 2014 14:05:55 +0200
+Message-ID: <CAL9G6WUWCjKMt0+_svowHtQkLh8rpLqvPk_JKMFAg0Y3hJC8qg@mail.gmail.com>
+Subject: Re: TeVii S480 in Debian Wheezy
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Thanks and sorry, I have a S482 device, not the S480 (confused in the topic).
 
+I get it working with s2-liplianin-v39 tree:
 
-On 09/26/2014 09:12 PM, Russell King - ARM Linux wrote:
-> On Fri, Sep 26, 2014 at 08:57:30PM +0800, Zhangfei Gao wrote:
->> Add dependence to solve build error in arch like ia64
->> error: implicit declaration of function 'readl_relaxed' & 'writel_relaxed'
->>
->> Change CONFIG_PM to CONFIG_PM_SLEEP to solve
->> warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
->
-> There is work currently in progress (in linux-next) to provide
-> asm-generic accessors for the above.
+# ls -l /dev/dvb/
+total 0
+drwxr-xr-x 2 root root 120 sep 27 13:52 adapter0
+drwxr-xr-x 2 root root 120 sep 27 13:52 adapter1
 
-Thanks Russell for the info.
+Will this code merge in the Linux kernel?
 
-Have found the patch set about "asm-generic: io: implement relaxed 
-accessor macros as conditional wrappers".
+Best regards.
 
-That's great.
-
-Thanks
-
+-- 
+Josu Lazkano
