@@ -1,122 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:36505 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbaILVGS convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4507 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531AbaI1CZs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Sep 2014 17:06:18 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAK5ve-K1tu8dRwF2cqdVesZUT+VWp-NnD3ZQh6mXtnXSRJ3hPA@mail.gmail.com>
-References: <1408542118-32723-1-git-send-email-j.anaszewski@samsung.com>
- <1408542118-32723-2-git-send-email-j.anaszewski@samsung.com> <CAK5ve-K1tu8dRwF2cqdVesZUT+VWp-NnD3ZQh6mXtnXSRJ3hPA@mail.gmail.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Fri, 12 Sep 2014 14:05:55 -0700
-Message-ID: <CAK5ve-LTXTzV3v_5o5jPVDE_C=RP5+B5OtCUachiy9E8siP6+w@mail.gmail.com>
-Subject: Re: [PATCH/RFC v5 1/4] leds: Improve and export led_update_brightness
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	b.zolnierkie@samsung.com, Richard Purdie <rpurdie@rpsys.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sat, 27 Sep 2014 22:25:48 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8S2PiQ1057513
+	for <linux-media@vger.kernel.org>; Sun, 28 Sep 2014 04:25:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E31EE2A1CFB
+	for <linux-media@vger.kernel.org>; Sun, 28 Sep 2014 04:25:43 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140928022543.E31EE2A1CFB@tschai.lan>
+Date: Sun, 28 Sep 2014 04:25:43 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 5, 2014 at 2:03 PM, Bryan Wu <cooloney@gmail.com> wrote:
-> On Wed, Aug 20, 2014 at 6:41 AM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
->> led_update_brightness helper function used to be exploited only locally
->> in the led-class.c module, where its result was being passed to the
->> brightness_show sysfs callback. With the introduction of v4l2-flash
->> subdevice the same functionality becomes required for reading current
->> brightness from a LED device. This patch adds checking of return value
->> of the brightness_get callback and moves the led_update_brightness()
->> function to the LED subsystem public API.
->>
->
-> This one looks good to me.
-> Thanks,
-> -Bryan
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Merged， no need to update this patch then.
+Results of the daily build of media_tree:
 
--Bryan
+date:		Sun Sep 28 04:00:19 CEST 2014
+git branch:	test
+git hash:	214635f94dc3e4069b05817e5d55b58784ba8971
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-3.slh.1-amd64
 
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>  drivers/leds/led-class.c |    6 ------
->>  drivers/leds/led-core.c  |   16 ++++++++++++++++
->>  include/linux/leds.h     |   10 ++++++++++
->>  3 files changed, 26 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
->> index f4e5bb4..6f82a76 100644
->> --- a/drivers/leds/led-class.c
->> +++ b/drivers/leds/led-class.c
->> @@ -23,12 +23,6 @@
->>
->>  static struct class *leds_class;
->>
->> -static void led_update_brightness(struct led_classdev *led_cdev)
->> -{
->> -       if (led_cdev->brightness_get)
->> -               led_cdev->brightness = led_cdev->brightness_get(led_cdev);
->> -}
->> -
->>  static ssize_t brightness_show(struct device *dev,
->>                 struct device_attribute *attr, char *buf)
->>  {
->> diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
->> index 8380eb7..466ce5a 100644
->> --- a/drivers/leds/led-core.c
->> +++ b/drivers/leds/led-core.c
->> @@ -127,3 +127,19 @@ void led_set_brightness(struct led_classdev *led_cdev,
->>         __led_set_brightness(led_cdev, brightness);
->>  }
->>  EXPORT_SYMBOL(led_set_brightness);
->> +
->> +int led_update_brightness(struct led_classdev *led_cdev)
->> +{
->> +       int ret = 0;
->> +
->> +       if (led_cdev->brightness_get) {
->> +               ret = led_cdev->brightness_get(led_cdev);
->> +               if (ret >= 0) {
->> +                       led_cdev->brightness = ret;
->> +                       return 0;
->> +               }
->> +       }
->> +
->> +       return ret;
->> +}
->> +EXPORT_SYMBOL(led_update_brightness);
->> diff --git a/include/linux/leds.h b/include/linux/leds.h
->> index bc221d11..cc85b16 100644
->> --- a/include/linux/leds.h
->> +++ b/include/linux/leds.h
->> @@ -139,6 +139,16 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
->>   */
->>  extern void led_set_brightness(struct led_classdev *led_cdev,
->>                                enum led_brightness brightness);
->> +/**
->> + * led_update_brightness - update LED brightness
->> + * @led_cdev: the LED to query
->> + *
->> + * Get an LED's current brightness and update led_cdev->brightness
->> + * member with the obtained value.
->> + *
->> + * Returns: 0 on success or negative error value on failure
->> + */
->> +extern int led_update_brightness(struct led_classdev *led_cdev);
->>
->>  /*
->>   * LED Triggers
->> --
->> 1.7.9.5
->>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
