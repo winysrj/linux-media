@@ -1,329 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47793 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:52697 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbaIYPNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 11:13:40 -0400
-Message-ID: <5424311F.2070805@iki.fi>
-Date: Thu, 25 Sep 2014 18:13:35 +0300
+	id S1753510AbaI1UnN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Sep 2014 16:43:13 -0400
+Message-ID: <542872DB.3070003@iki.fi>
+Date: Sun, 28 Sep 2014 23:43:07 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH 06/12] cx231xx: add wrapper to get the i2c_adapter pointer
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org> <1411621684-8295-6-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-6-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: em28xx: Too many ISO frames scheduled when starting stream
+References: <54284488.60404@iki.fi>	<54284FE7.5090805@iki.fi> <20140928165741.47a19ddc@recife.lan>
+In-Reply-To: <20140928165741.47a19ddc@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have to say I don't see very necessary to define function which 
-returns given adapter by adapter number.
 
-*adapter = cx231xx_get_i2c_adap(I2C_1);
-vs.
-*adapter = dev->i2c_bus[I2C_1].i2c_adap;
 
-not big difference. Anyhow, I didn't saw any bugs.
+On 09/28/2014 10:57 PM, Mauro Carvalho Chehab wrote:
+> Em Sun, 28 Sep 2014 21:13:59 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 09/28/2014 08:25 PM, Antti Palosaari wrote:
+>>> I want raise that bug:
+>>> Too many ISO frames scheduled when starting stream
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=72891
+>>>
+>>> Is there anyone who cares to study it? It looks like em28xx driver bug
+>>> or USB host controller driver or both.
+>>>
+>>> According to comments bug appeared on kernel 3.13.
+>>
+>> em28xx didn't even get any notable changes at that time... I looked all
+>> the 3.13 em28xx patches and there is no patch that could cause issues
+>> listed. So root of cause is somewhere else or there is reports which has
+>> kernel with media_build installed.
+>> Also, em28xx uses ISOC to data transferred, whilst most devices are
+>> using BULK. No other reports from other ISOC DVB devices so far though.
+>> I suspect it may be some compatibility issue with em28xx chip / em28xx
+>> driver / USB stack / USB host controller.
+>>
+>> There were em28xx patches went to 3.13 (stable patches not included):
+>> bdee6bd [media] em28xx-video: Swap release order to avoid lock nesting
+>> 6dbea9f [media] Add support for KWorld UB435-Q V2
+>> be353fa [media] V4L2: em28xx: tell the ov2640 driver to balance clock
+>> enabling internally
+>> fc5d0f8 [media] V4L2: em28xx: register a V4L2 clock source
+>> 032f1dd [media] em28xx: fix error path in em28xx_start_analog_streaming()
+>> b68cafc [media] em28xx: fix and unify the coding style of the GPIO
+>> register write sequences
+>> de0fc46 [media] em28xx: MaxMedia UB425-TC change demod settings
+>> b6c7abb [media] em28xx: MaxMedia UB425-TC switch RF tuner driver to another
+>> 8d100b2 [media] em28xx: MaxMedia UB425-TC offer firmware for demodulator
+>
+> None of the above patches seem to be related. Also, I use a lot em28xx
+> here without any issues on an eHCI USB port. Even on a xHCI USB port,
+> I was unable to reproduce this bug with just one em28xx device plugged.
+>
+> I _suspect_ that this issue is related to ISOC transfers, and the
+> return code is EFBIG.
+>
+> The EFBIG return code happens if there's not enough space in a given
+> USB bus to reserve traffic for ISOC transfers when submitting the
+> URBs. Changing the URB size helps to reduce the amount of ISOC
+> transfers, making more unlikely for this bug to happen. However, the
+> em28xx driver already tries to use the max supported size, using the
+> USB descriptors.
+>
+> There's one easy way to reproduce it: plug two em28xx devices with
+> analog TV and try to start both. The first analog TV stream will
+> allocate about 60% of the bus traffic, and the Kernel will return
+> EFBIG when trying to stream at the second one.
+>
+> That's said, on a USB bus where there's just one device connected,
+> this error shouldn't happen, especially for DVB, where the bandwidth
+> requirements are generally lower.
+>
+> It used to be possible to check how much was allocated for ISOC
+> traffic via:
+>
+> # cat /sys/kernel/debug/usb/devices
+>
+> T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=5000 MxCh= 1
+> B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+> D:  Ver= 3.00 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+> P:  Vendor=1d6b ProdID=0003 Rev= 3.17
+> S:  Manufacturer=Linux 3.17.0-rc6+ xhci_hcd
+> S:  Product=xHCI Host Controller
+> S:  SerialNumber=0000:00:14.0
+> C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+> I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+> E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+>
+> The "Alloc" above would indicate how many slots were allocated.
+> However, at least here on an Atom NUC I'm testing and latest
+> upstream Kernel + media patches, no matter if I start some traffic
+> or not there, it still shows 0/800. It seems that there's a bug
+> somewhere on the USB stack that it is preventing it to show.
+>
+> In any case, the return of EFBIG doesn't imply that there's a bug at
+> em28xx driver or at the usb stack. It is just an indication that the
+> bus has reached its maximum hardware capacity.
+>
+> That's said, I was never ever be able to get EFBIG when there's
+> just one isoc device connected into an USB bus. Not sure if
+> this is the case of the reporter of BZ#72891.
+>
+> I suggest you to double check if this is the only one device
+> connected at the bus that could be using ISOC traffic.
+>
+> If there's just one device connected, and no other weird setup
+> (like trying to run the driver inside a VM, or some USB hubs
+> connected internally or externally), then we should seek for this
+> bug at the USB stack.
+>
+> Btw, Hans de Goede faced with this issue a lot with his works with
+> gspca. I think he sent some patches to the USB stack to try to
+> reduce the changes of this error to happen.
+>
+> Another possibility is that maybe the USB descriptors are broken
+> on some versions of the silicon, with makes the USB core to return
+> such error because em28xx is overriding the physical limits due to
+> a bad descriptor at the device's ROM. Never saw this on em28xx,
+> but I have some other USB devices with bad descriptors.
+>
+> I hope that helps.
+
+Some related things I have noticed:
+* It happens very often when you scan channels. This is due to scan 
+starts and stops stream for every channel scanned.
+* It is not USB bw issue as I don't have any other devices. Also, it 
+occurs during scan which indicates same.
+* I have feeling it happens more often with newer em28xx devices, but it 
+could be due to reason I usually work with new devices.
+
+I have been scanning DVB-C channels in a loop one hour now using old 
+PCTV 520e. Kernel is 3.11.10 and drivers are from latest media tree. No 
+error seen so far...
 
 regards
 Antti
-
-On 09/25/2014 08:07 AM, Matthias Schwarzott wrote:
-> Already map unused I2C_3 to adapter number 1 to prepare for switching.
->
-> Add local variables for i2c_adapters in dvb_init to get line lengths
-> shorter.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-cards.c |  8 +++---
->   drivers/media/usb/cx231xx/cx231xx-dvb.c   | 42 +++++++++++++++++--------------
->   drivers/media/usb/cx231xx/cx231xx-i2c.c   | 19 +++++++++++++-
->   drivers/media/usb/cx231xx/cx231xx-input.c |  3 ++-
->   drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->   5 files changed, 49 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 2f027c7..330fe39 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
->   	/* request some modules */
->   	if (dev->board.decoder == CX231XX_AVDECODER) {
->   		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -					&dev->i2c_bus[I2C_0].i2c_adap,
-> +					cx231xx_get_i2c_adap(dev, I2C_0),
->   					"cx25840", 0x88 >> 1, NULL);
->   		if (dev->sd_cx25840 == NULL)
->   			cx231xx_info("cx25840 subdev registration failure\n");
-> @@ -1043,8 +1043,10 @@ void cx231xx_card_setup(struct cx231xx *dev)
->
->   	/* Initialize the tuner */
->   	if (dev->board.tuner_type != TUNER_ABSENT) {
-> +		struct tuner_i2c = cx231xx_get_i2c_adap(dev,
-> +					dev->board.tuner_i2c_master);
->   		dev->sd_tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -						    &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +						    tuner_i2c,
->   						    "tuner",
->   						    dev->tuner_addr, NULL);
->   		if (dev->sd_tuner == NULL)
-> @@ -1062,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
->   			struct i2c_client client;
->
->   			memset(&client, 0, sizeof(client));
-> -			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
-> +			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
->   			client.addr = 0xa0 >> 1;
->
->   			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 6c7b5e2..869c433 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -378,7 +378,7 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
->   	struct xc5000_config cfg;
->
->   	memset(&cfg, 0, sizeof(cfg));
-> -	cfg.i2c_adap = &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap;
-> +	cfg.i2c_adap = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
->   	cfg.i2c_addr = addr;
->
->   	if (!dev->dvb->frontend) {
-> @@ -583,6 +583,8 @@ static int dvb_init(struct cx231xx *dev)
->   {
->   	int result = 0;
->   	struct cx231xx_dvb *dvb;
-> +	struct i2c_adapter *tuner_i2c;
-> +	struct i2c_adapter *demod_i2c;
->
->   	if (!dev->board.has_dvb) {
->   		/* This device does not support the extension */
-> @@ -599,6 +601,8 @@ static int dvb_init(struct cx231xx *dev)
->   	dev->cx231xx_set_analog_freq = cx231xx_set_analog_freq;
->   	dev->cx231xx_reset_analog_tuner = cx231xx_reset_analog_tuner;
->
-> +	tuner_i2c = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
-> +	demod_i2c = cx231xx_get_i2c_adap(dev, dev->board.demod_i2c_master);
->   	mutex_lock(&dev->lock);
->   	cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
->   	cx231xx_demod_reset(dev);
-> @@ -609,7 +613,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1432_attach,
->   					&dvico_s5h1432_config,
-> -					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -622,7 +626,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
-> -			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       tuner_i2c,
->   			       &cnxt_rde250_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -634,7 +638,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1411_attach,
->   					       &xc5000_s5h1411_config,
-> -					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					       demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -647,7 +651,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
-> -			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       tuner_i2c,
->   			       &cnxt_rdu250_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -657,7 +661,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1432_attach,
->   					&dvico_s5h1432_config,
-> -					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -670,7 +674,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       0x60, tuner_i2c,
->   			       &cnxt_rde253s_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -681,7 +685,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1411_attach,
->   					       &tda18271_s5h1411_config,
-> -					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					       demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -694,7 +698,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       0x60, tuner_i2c,
->   			       &cnxt_rde253s_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -703,11 +707,11 @@ static int dvb_init(struct cx231xx *dev)
->   	case CX231XX_BOARD_HAUPPAUGE_EXETER:
->
->   		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
-> -		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-> +		       __func__, i2c_adapter_id(tuner_i2c));
->
->   		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
->   						&hcw_lgdt3305_config,
-> -						&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap);
-> +						tuner_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -720,7 +724,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			   0x60, tuner_i2c,
->   			   &hcw_tda18271_config);
->   		break;
->
-> @@ -728,7 +732,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(si2165_attach,
->   			&hauppauge_930C_HD_1113xx_si2165_config,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-> +			tuner_i2c
->   			);
->
->   		if (dev->dvb->frontend == NULL) {
-> @@ -745,7 +749,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
->   			0x60,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			tuner_i2c,
->   			&hcw_tda18271_config);
->
->   		dev->cx231xx_reset_analog_tuner = NULL;
-> @@ -761,7 +765,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(si2165_attach,
->   			&pctv_quatro_stick_1114xx_si2165_config,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-> +			tuner_i2c
->   			);
->
->   		if (dev->dvb->frontend == NULL) {
-> @@ -786,7 +790,7 @@ static int dvb_init(struct cx231xx *dev)
->   		request_module("si2157");
->
->   		client = i2c_new_device(
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			tuner_i2c,
->   			&info);
->   		if (client == NULL || client->dev.driver == NULL) {
->   			dvb_frontend_detach(dev->dvb->frontend);
-> @@ -811,11 +815,11 @@ static int dvb_init(struct cx231xx *dev)
->   	case CX231XX_BOARD_KWORLD_UB430_USB_HYBRID:
->
->   		printk(KERN_INFO "%s: looking for demod on i2c bus: %d\n",
-> -		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-> +		       __func__, i2c_adapter_id(tuner_i2c));
->
->   		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
->   						&pv_mb86a20s_config,
-> -						&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +						demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -828,7 +832,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			   0x60, tuner_i2c,
->   			   &pv_tda18271_config);
->   		break;
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 178fa48..86f90c0 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -483,7 +483,7 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
->   	struct i2c_client client;
->
->   	memset(&client, 0, sizeof(client));
-> -	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
-> +	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
->
->   	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
->   	for (i = 0; i < 128; i++) {
-> @@ -542,3 +542,20 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
->   	i2c_del_adapter(&bus->i2c_adap);
->   	return 0;
->   }
-> +
-> +struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
-> +{
-> +	switch (i2c_port) {
-> +	case I2C_0:
-> +		return &dev->i2c_bus[0].i2c_adap;
-> +	case I2C_1:
-> +		return &dev->i2c_bus[1].i2c_adap;
-> +	case I2C_2:
-> +		return &dev->i2c_bus[2].i2c_adap;
-> +	case I2C_3:
-> +		return &dev->i2c_bus[1].i2c_adap;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(cx231xx_get_i2c_adap);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
-> index 05f0434..5ae2ce3 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-input.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-input.c
-> @@ -100,7 +100,8 @@ int cx231xx_ir_init(struct cx231xx *dev)
->   	ir_i2c_bus = cx231xx_boards[dev->model].ir_i2c_master;
->   	dev_dbg(&dev->udev->dev, "Trying to bind ir at bus %d, addr 0x%02x\n",
->   		ir_i2c_bus, info.addr);
-> -	dev->ir_i2c_client = i2c_new_device(&dev->i2c_bus[ir_i2c_bus].i2c_adap, &info);
-> +	dev->ir_i2c_client = i2c_new_device(
-> +		cx231xx_get_i2c_adap(dev, ir_i2c_bus), &info);
->
->   	return 0;
->   }
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 3ab107a..2118d00 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -753,6 +753,7 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
->   void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus);
->   int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-> +struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
->
->   /* Internal block control functions */
->   int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
->
 
 -- 
 http://palosaari.fi/
