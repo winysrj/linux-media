@@ -1,168 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:40279 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbaIMIvB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Sep 2014 04:51:01 -0400
-Received: by mail-lb0-f172.google.com with SMTP id w7so2131098lbi.31
-        for <linux-media@vger.kernel.org>; Sat, 13 Sep 2014 01:50:59 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/4] em28xx: get rid of field has_audio in struct em28xx_audio_mode
-Date: Sat, 13 Sep 2014 10:52:21 +0200
-Message-Id: <1410598342-31094-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1410598342-31094-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1410598342-31094-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:38277 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751316AbaI1LMR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Sep 2014 07:12:17 -0400
+Date: Sun, 28 Sep 2014 08:12:11 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140928081211.4b26aa18@recife.lan>
+In-Reply-To: <20140928105540.GA28748@linuxtv.org>
+References: <20140926084215.772adce9@recife.lan>
+	<20140926090316.5ae56d93@recife.lan>
+	<20140926122721.GA11597@linuxtv.org>
+	<20140926101222.778ebcaf@recife.lan>
+	<20140926132513.GA30084@linuxtv.org>
+	<20140926142543.GA3806@linuxtv.org>
+	<54257888.90802@osg.samsung.com>
+	<20140926150602.GA15766@linuxtv.org>
+	<20140926152228.GA21876@linuxtv.org>
+	<20140926124309.558c8682@recife.lan>
+	<20140928105540.GA28748@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Field has_audio in struct em28xx_audio_mode is used together with value
-EM28XX_NO_AC97 of field ac97 to determine the internal type of audio (none/i2s/ac97).
-This makes the code difficult to understand:
+Em Sun, 28 Sep 2014 12:55:40 +0200
+Johannes Stezenbach <js@linuxtv.org> escreveu:
 
-  !dev->audio_mode.has_audio && audio_mode.ac97 == EM28XX_NO_AC97	=> no audio
-  !dev->audio_mode.has_audio && audio_mode.ac97 != EM28XX_NO_AC97	=> BUG
-  dev->audio_mode.has_audio && dev->audio_mode.ac97 == EM28XX_NO_AC97	=> AC97 audio
-  dev->audio_mode.has_audio && dev->audio_mode.ac97 != EM28XX_NO_AC97	=> I2S audio
+> On Fri, Sep 26, 2014 at 12:43:09PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Fri, 26 Sep 2014 17:22:28 +0200
+> > Johannes Stezenbach <js@linuxtv.org> escreveu:
+> > 
+> > > On Fri, Sep 26, 2014 at 05:06:02PM +0200, Johannes Stezenbach wrote:
+> > > > 
+> > > > [   20.212162] usb 1-1: reset high-speed USB device number 2 using ehci-pci
+> > > > [   20.503868] em2884 #0: Resuming extensions
+> > > > [   20.505275] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
+> > > > [   20.533513] drxk: status = 0x439130d9
+> > > > [   20.534282] drxk: detected a drx-3913k, spin A2, xtal 20.250 MHz
+> > > > [   23.008852] em2884 #0: writing to i2c device at 0x52 failed (error=-5)
+> > > > [   23.011408] drxk: i2c write error at addr 0x29
+> > > > [   23.013187] drxk: write_block: i2c write error at addr 0x8303b4
+> > > > [   23.015440] drxk: Error -5 while loading firmware
+> > > > [   23.017291] drxk: Error -5 on init_drxk
+> > > > [   23.018835] em2884 #0: fe0 resume 0
+> > > > 
+> > > > Any idea on this?
+> > > 
+> > > I backed out Mauro's test patch, now it seems to work
+> > > (v3.17-rc5-734-g214635f, no patches, em28xx as modules).
+> > > But I'm not 100% sure the above was related to this,
+> > > it seemed the 930C got upset during all the testing
+> > > and I had to unplug it to get it back working.
+> > 
+> > Could you please test again with the patch? Without it, I suspect that,
+> > if you suspend while streaming, the frontend won't relock again after
+> > resume. Of course, I may be wrong ;)
+> 
+> I tried again both with and without the patch.  The issue above
+> odesn't reproduce, but after hibernate it fails to tune
+> (while it works after suspend-to-ram).  Restarting dvbv5-zap
+> does not fix it.  All I get is:
+> 
+> [  500.299216] drxk: Error -22 on dvbt_sc_command
+> [  500.301012] drxk: Error -22 on set_dvbt
+> [  500.301967] drxk: Error -22 on start
 
-Simplify the whole thing by introducing an enum em28xx_int_audio_type which
-describes the internal audio type (none, ac97, i2s) and is hooked directly to
-the device struct.
-Then get rid of field has_audio in struct em28xx_audio_mode.
+Just to be 100% sure if I understood well: you're having exactly
+the same behavior with and without my patch, right?
 
-A follow-up patch will then remove struct em28xx_ac97_mode and finally the
-whole struct em28xx_audio_mode.
+If so, I guess I'll keep it, as we'll likely need to add more stuff
+for the frontend resume logic, and with that patch, it now have some
+space to add an specific restart sequence at resume.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c  | 14 ++++++++------
- drivers/media/usb/em28xx/em28xx-video.c |  6 +++---
- drivers/media/usb/em28xx/em28xx.h       |  8 +++++++-
- 3 files changed, 18 insertions(+), 10 deletions(-)
+I'll see if I can work on another patch for you today. If not,
+I won't be able to touch on it until the end of the week, as I'm
+traveling next week.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 16747ca..ed83e4e 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -433,7 +433,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
- 	int ret, i;
- 	u8 xclk;
+> There are no other errors messages during hibernate + resume.
+> It happens whether I let dvbv5-zap run during hibernate
+> or stop it first. 
+
+
+> On rmmod it Oopsed:
+> 
+> root@debian:~# rmmod em28xx_dvb em28xx_v4l drxk em28xx
+> [ 1992.790039] em2884 #0: Closing DVB extension
+> [ 1992.797623] xc5000 2-0061: destroying instance
+> [ 1992.799595] general protection fault: 0000 [#1] PREEMPT SMP
+> [ 1992.800032] Modules linked in: drxk em28xx_dvb(-) em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_core em28xx tveeprom
+> [ 1992.800032] CPU: 3 PID: 2095 Comm: rmmod Not tainted 3.17.0-rc5-00734-g214635f-dirty #91
+> [ 1992.800032] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.7.5-20140531_083030-gandalf 04/01/2014
+> [ 1992.800032] task: ffff88003cf700d0 ti: ffff88003c398000 task.ti: ffff88003c398000
+> [ 1992.800032] RIP: 0010:[<ffffffff81320721>]  [<ffffffff81320721>] release_firmware+0x2c/0x52
+> [ 1992.800032] RSP: 0000:ffff88003c39be58  EFLAGS: 00010246
+> [ 1992.800032] RAX: ffffffff8188d408 RBX: 6b6b6b6b6b6b6b6b RCX: 0000000000000006
+> [ 1992.800032] RDX: 0000000000000004 RSI: ffff88003cf70860 RDI: 6b6b6b6b6b6b6b6b
+> [ 1992.800032] RBP: ffff88003c39be60 R08: 0000000000000200 R09: 0000000000000001
+> [ 1992.800032] R10: ffff88003c39bcc0 R11: ffffffff82ac6100 R12: ffff88003bc5a000
+> [ 1992.800032] R13: ffff88003d6a81c8 R14: 00007fd6e977d090 R15: 0000000000000800
+> [ 1992.800032] FS:  00007fd6e8633700(0000) GS:ffff88003e200000(0000) knlGS:0000000000000000
+> [ 1992.800032] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [ 1992.800032] CR2: 0000000000400184 CR3: 000000003b996000 CR4: 00000000000006a0
+> [ 1992.800032] Stack:
+> [ 1992.800032]  ffff88003befcc00 ffff88003c39be80 ffffffff813cbd36 ffff88003bc5a000
+> [ 1992.800032]  ffff88003baa2000 ffff88003c39bea0 ffffffff813e2f75 ffff88003d6a8000
+> [ 1992.800032]  ffff88003baa2000 ffff88003c39bec8 ffffffffa0046804 ffff88003baa2000
+> [ 1992.800032] Call Trace:
+> [ 1992.800032]  [<ffffffff813cbd36>] xc5000_release+0xa0/0xbf
+> [ 1992.800032]  [<ffffffff813e2f75>] dvb_frontend_detach+0x35/0x7d
+> [ 1992.800032]  [<ffffffffa0046804>] em28xx_dvb_fini+0x195/0x1d0 [em28xx_dvb]
+> [ 1992.800032]  [<ffffffffa0009211>] em28xx_unregister_extension+0x3d/0x79 [em28xx]
+> [ 1992.800032]  [<ffffffffa0048e20>] em28xx_dvb_unregister+0x10/0x1f0 [em28xx_dvb]
+> [ 1992.800032]  [<ffffffff810942e8>] SyS_delete_module+0x141/0x19e
+> [ 1992.800032]  [<ffffffff81488792>] system_call_fastpath+0x16/0x1b
+> [ 1992.800032] Code: 48 85 ff 48 c7 c0 08 d4 88 81 48 89 e5 53 48 89 fb 74 3b 48 3d 08 d4 88 81 74 10 48 8b 50 08 48 39 53 08 74 18 48 83 c0 18 eb e8 <48> 8b 7b 18 48 85 ff 75 13 48 8b 7b 08 e8 32 16 de ff 48 89 df
+> [ 1992.800032] RIP  [<ffffffff81320721>] release_firmware+0x2c/0x52
+> [ 1992.800032]  RSP <ffff88003c39be58>
+> [ 1992.867774] ---[ end trace 499f4df0704fd661 ]---
+> 
+> (xc5000 is non-modular because it is autoselected by some dependency)
+
+Please try this change:
+
+[media] em28xx: remove firmware before releasing xc5000 priv state
+
+hybrid_tuner_release_state() can free the priv state, so we need to
+release the firmware before calling it.
+
+Signed-off-by: Mauro Carvalho Chehab
+
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index e44c8aba6074..803a0e63d47e 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -1333,9 +1333,9 @@ static int xc5000_release(struct dvb_frontend *fe)
  
--	if (!dev->audio_mode.has_audio)
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE)
- 		return 0;
- 
- 	/* It is assumed that all devices use master volume for output.
-@@ -512,25 +512,25 @@ int em28xx_audio_setup(struct em28xx *dev)
- 	    dev->chip_id == CHIP_ID_EM28174 ||
- 	    dev->chip_id == CHIP_ID_EM28178) {
- 		/* Digital only device - don't load any alsa module */
--		dev->audio_mode.has_audio = false;
-+		dev->int_audio_type = EM28XX_INT_AUDIO_NONE;
- 		dev->usb_audio_type = EM28XX_USB_AUDIO_NONE;
- 		return 0;
+ 	if (priv) {
+ 		cancel_delayed_work(&priv->timer_sleep);
+-		hybrid_tuner_release_state(priv);
+ 		if (priv->firmware)
+ 			release_firmware(priv->firmware);
++		hybrid_tuner_release_state(priv);
  	}
  
--	dev->audio_mode.has_audio = true;
--
- 	/* See how this device is configured */
- 	cfg = em28xx_read_reg(dev, EM28XX_R00_CHIPCFG);
- 	em28xx_info("Config register raw data: 0x%02x\n", cfg);
- 	if (cfg < 0) {
- 		/* Register read error?  */
- 		cfg = EM28XX_CHIPCFG_AC97; /* Be conservative */
-+		dev->int_audio_type = EM28XX_INT_AUDIO_AC97;
- 	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) == 0x00) {
- 		/* The device doesn't have vendor audio at all */
--		dev->audio_mode.has_audio = false;
-+		dev->int_audio_type = EM28XX_INT_AUDIO_NONE;
- 		dev->usb_audio_type = EM28XX_USB_AUDIO_NONE;
- 		return 0;
- 	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) != EM28XX_CHIPCFG_AC97) {
-+		dev->int_audio_type = EM28XX_INT_AUDIO_I2S;
- 		if (dev->chip_id < CHIP_ID_EM2860 &&
- 	            (cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
- 		    EM2820_CHIPCFG_I2S_1_SAMPRATE)
-@@ -546,6 +546,8 @@ int em28xx_audio_setup(struct em28xx *dev)
- 		/* Skip the code that does AC97 vendor detection */
- 		dev->audio_mode.ac97 = EM28XX_NO_AC97;
- 		goto init_audio;
-+	} else {
-+		dev->int_audio_type = EM28XX_INT_AUDIO_AC97;
- 	}
- 
- 	dev->audio_mode.ac97 = EM28XX_AC97_OTHER;
-@@ -561,7 +563,7 @@ int em28xx_audio_setup(struct em28xx *dev)
- 		dev->audio_mode.ac97 = EM28XX_NO_AC97;
- 		if (dev->usb_audio_type == EM28XX_USB_AUDIO_VENDOR)
- 			dev->usb_audio_type = EM28XX_USB_AUDIO_NONE;
--		dev->audio_mode.has_audio = false;
-+		dev->int_audio_type = EM28XX_INT_AUDIO_NONE;
- 		goto init_audio;
- 	}
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 3642438..3284de9 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1720,7 +1720,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	else
- 		cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_VBI_CAPTURE;
- 
--	if (dev->audio_mode.has_audio)
-+	if (dev->int_audio_type != EM28XX_INT_AUDIO_NONE)
- 		cap->device_caps |= V4L2_CAP_AUDIO;
- 
- 	if (dev->tuner_type != TUNER_ABSENT)
-@@ -2514,7 +2514,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_FREQUENCY);
- 		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_FREQUENCY);
- 	}
--	if (!dev->audio_mode.has_audio) {
-+	if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
- 		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_AUDIO);
- 		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_AUDIO);
- 	}
-@@ -2544,7 +2544,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_FREQUENCY);
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_FREQUENCY);
- 		}
--		if (!dev->audio_mode.has_audio) {
-+		if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_AUDIO);
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_AUDIO);
- 		}
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 3fd176f..857ad0c 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -309,7 +309,12 @@ enum em28xx_ac97_mode {
- 
- struct em28xx_audio_mode {
- 	enum em28xx_ac97_mode ac97;
--	unsigned int has_audio:1;
-+};
-+
-+enum em28xx_int_audio_type {
-+	EM28XX_INT_AUDIO_NONE = 0,
-+	EM28XX_INT_AUDIO_AC97,
-+	EM28XX_INT_AUDIO_I2S,
- };
- 
- enum em28xx_usb_audio_type {
-@@ -608,6 +613,7 @@ struct em28xx {
- 	unsigned char disconnected:1;	/* device has been diconnected */
- 	unsigned int has_video:1;
- 	unsigned int is_audio_only:1;
-+	enum em28xx_int_audio_type int_audio_type;
- 	enum em28xx_usb_audio_type usb_audio_type;
- 
- 	struct em28xx_board board;
--- 
-1.8.4.5
+ 	mutex_unlock(&xc5000_list_mutex);
 
+> 
+> 
+> Johannes
