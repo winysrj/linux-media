@@ -1,123 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37460 "EHLO lists.s-osg.org"
+Received: from bar.sig21.net ([80.81.252.164]:55383 "EHLO bar.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750974AbaIXP5w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 11:57:52 -0400
-Message-ID: <5422E9FD.9050303@osg.samsung.com>
-Date: Wed, 24 Sep 2014 09:57:49 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1751316AbaI1Lyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Sep 2014 07:54:33 -0400
+Date: Sun, 28 Sep 2014 13:54:05 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140928115405.GA30490@linuxtv.org>
+References: <20140926122721.GA11597@linuxtv.org>
+ <20140926101222.778ebcaf@recife.lan>
+ <20140926132513.GA30084@linuxtv.org>
+ <20140926142543.GA3806@linuxtv.org>
+ <54257888.90802@osg.samsung.com>
+ <20140926150602.GA15766@linuxtv.org>
+ <20140926152228.GA21876@linuxtv.org>
+ <20140926124309.558c8682@recife.lan>
+ <20140928105540.GA28748@linuxtv.org>
+ <20140928081211.4b26aa18@recife.lan>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	sakari.ailus@linux.intel.com, ramakrmu@cisco.com,
-	Devin Heitmueller <dheitmueller@kernellabs.co>,
-	olebowle@gmx.com, Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 2/5] media: v4l2-core changes to use media tuner token
- api
-References: <cover.1411397045.git.shuahkh@osg.samsung.com> <b83cf780636a80aec53e3b7e8f101645049e94f3.1411397045.git.shuahkh@osg.samsung.com> <CAGoCfizUWx-RrRbtuv7ctTqZskmDPK-w9bRTnEwjwn6oJ=V48g@mail.gmail.com> <54208A03.2010101@osg.samsung.com> <CAGoCfix8BH0coq2q-ndvBvDHGJ6f28mVE0CzAnMZYgCaPg+yrw@mail.gmail.com> <5421DC1A.4030509@osg.samsung.com> <5422B857.9020007@xs4all.nl>
-In-Reply-To: <5422B857.9020007@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140928081211.4b26aa18@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2014 06:25 AM, Hans Verkuil wrote:
-> Hi Shuah,
+On Sun, Sep 28, 2014 at 08:12:11AM -0300, Mauro Carvalho Chehab wrote:
+> Em Sun, 28 Sep 2014 12:55:40 +0200
+> Johannes Stezenbach <js@linuxtv.org> escreveu:
 > 
+> > I tried again both with and without the patch.  The issue above
+> > odesn't reproduce, but after hibernate it fails to tune
+> > (while it works after suspend-to-ram).  Restarting dvbv5-zap
+> > does not fix it.  All I get is:
+> > 
+> > [  500.299216] drxk: Error -22 on dvbt_sc_command
+> > [  500.301012] drxk: Error -22 on set_dvbt
+> > [  500.301967] drxk: Error -22 on start
 > 
-> Let's be realistic: if an application doesn't test for error codes,
-> then that's the problem of the application. Also, EBUSY will only be
-> returned if someone else is holding the tuner in a different mode.
-> And that didn't work anyway (and probably in worse ways too if the
-> driver would forcefully change the tuner mode).
+> Just to be 100% sure if I understood well: you're having exactly
+> the same behavior with and without my patch, right?
+
+Yes, no observable difference in my tests.
+
+> I'll see if I can work on another patch for you today. If not,
+> I won't be able to touch on it until the end of the week, as I'm
+> traveling next week.
+
+no need to hurry
+
+(BTW, I still think you should make sure the hang-on-resume fix,
+revert of b89193e0b06f, goes into 3.17, but it's your call.)
+
+> > On rmmod it Oopsed:
+...
+> Please try this change:
 > 
-> So I really don't see a problem with this.
+> [media] em28xx: remove firmware before releasing xc5000 priv state
+> 
+> hybrid_tuner_release_state() can free the priv state, so we need to
+> release the firmware before calling it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab
+> 
+> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+> index e44c8aba6074..803a0e63d47e 100644
+> --- a/drivers/media/tuners/xc5000.c
+> +++ b/drivers/media/tuners/xc5000.c
+> @@ -1333,9 +1333,9 @@ static int xc5000_release(struct dvb_frontend *fe)
+>  
+>  	if (priv) {
+>  		cancel_delayed_work(&priv->timer_sleep);
+> -		hybrid_tuner_release_state(priv);
+>  		if (priv->firmware)
+>  			release_firmware(priv->firmware);
+> +		hybrid_tuner_release_state(priv);
+>  	}
+>  
+>  	mutex_unlock(&xc5000_list_mutex);
 > 
 
-I didn't have high hopes you would agree to the simpler approach. :)
+Works.  And after module reload, dvbv5-zap can work again.
 
->>
->> Compared to the current approach, holding lock in open and releasing
->> it in close is cleaner with predictable failure conditions. It is lot
->> easier to maintain. In addition, this approach keeps it same as the
->> dvb core token hold approach as outlined below.
-> 
-> Absolutely not an option for v4l2. You should always be able to open
-> a v4l2 device, regardless of the tuner mode or any other mode.
-> 
-> The only exception is a radio tuner device: that should take the tuner
-> on open. I think this is a very unfortunate design and I wish that that
-> could be dropped.
 
-Right this is another problem that needs to be addressed in the
-user-space.
-
-> 
-> One thing that we haven't looked at at all is what should be done if
-> the current input is not a tuner but a composite or S-Video input.
-> 
-> It is likely (I would have to test this to be sure) that you can capture
-> from a DVB tuner and at the same time from an S-Video input without any
-> problems. By taking the tuner token unconditionally this would become
-> impossible. But doing this right will require more work.
-> 
-> BTW, what happens if the analog video part of a hybrid board doesn't have
-> a tuner but only S-Video/Composite inputs? I think I've seen such boards
-> actually. I would have to dig through my collection though.
-> 
-
-I would recommend trying to bound the problems that need to be solved
-for the first phase of this media token feature. If we don't we will
-never be done with it. :)
-
-I would propose the first step as addressing dvb and v4l2 conflicts
-and include snd-usb-audio so there is confidence that the media token
-approach can span non-media drivers.
-
-I am currently testing with tvtime, xawtv, vlc, and kaffeine. I am
-planning to add kradio for snd-usb-audio work for the next round of
-patches.
-
-> 
-> S_PRIORITY has nothing to do with tuner ownership. If there is a real need
-> to release the token at another time than on close (and I don't see
-> such a need), then make a new ioctl. Let's not overload S_PRIO with an
-> unrelated action.
-
-This is not an issue for fine grained approach since simpler approach
-is nacked. i.e Mauro suggested changing S_PRIORITY as another place
-to release it if we were to go with simple appraoch (open/close).
-
-> 
->>
->> Devin recommended testing on devices that have an encoder to cover
->> the cases where there are multiple /dev/videoX nodes tied to the
->> same tuner.
-> 
-> Good examples are cx23885 (already vb2) and cx88 (the vb2 patches have
-> been posted, but not yet merged). It shouldn't be too hard to find
-> hardware based on those chipsets.
-> 
-
-Please see my bounding the problem comment. Can these devices wait until
-the second phase. We have multiple combinations with hardware features,
-applications. The way I am designing the media token is if driver
-doesn't create the token, no change in the dvb-core, v4l2-core behavior.
-It is not required that driver must create a token to allow evolving
-driver support and hardware support as we go.
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Thanks,
+Johannes
