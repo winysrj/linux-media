@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:47178 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752164AbaIJRLD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Sep 2014 13:11:03 -0400
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by gateway2.nyi.internal (Postfix) with ESMTP id B602021D91
-	for <linux-media@vger.kernel.org>; Wed, 10 Sep 2014 13:11:01 -0400 (EDT)
-Date: Wed, 10 Sep 2014 10:10:13 -0700
-From: Greg KH <greg@kroah.com>
-To: Maciej Matraszek <m.matraszek@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	stable@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2] [media] v4l2-common: fix overflow in
- v4l_bound_align_image()
-Message-ID: <20140910171013.GA14048@kroah.com>
-References: <1410367869-27688-1-git-send-email-m.matraszek@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:38320 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754569AbaI2CjD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Sep 2014 22:39:03 -0400
+Date: Sun, 28 Sep 2014 23:38:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: em28xx breaks after hibernate
+Message-ID: <20140928233853.72a1d106@recife.lan>
+In-Reply-To: <20140928115405.GA30490@linuxtv.org>
+References: <20140926122721.GA11597@linuxtv.org>
+	<20140926101222.778ebcaf@recife.lan>
+	<20140926132513.GA30084@linuxtv.org>
+	<20140926142543.GA3806@linuxtv.org>
+	<54257888.90802@osg.samsung.com>
+	<20140926150602.GA15766@linuxtv.org>
+	<20140926152228.GA21876@linuxtv.org>
+	<20140926124309.558c8682@recife.lan>
+	<20140928105540.GA28748@linuxtv.org>
+	<20140928081211.4b26aa18@recife.lan>
+	<20140928115405.GA30490@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1410367869-27688-1-git-send-email-m.matraszek@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 10, 2014 at 06:51:09PM +0200, Maciej Matraszek wrote:
-> Fix clamp_align() used in v4l_bound_align_image() to prevent overflow when
-> passed large value like UINT32_MAX. In the current implementation:
->     clamp_align(UINT32_MAX, 8, 8192, 3)
-> returns 8, because in line:
->     x = (x + (1 << (align - 1))) & mask;
-> x overflows to (-1 + 4) & 0x7 = 3, while expected value is 8192.
-> 
-> v4l_bound_align_image() is heavily used in VIDIOC_S_FMT
-> and VIDIOC_SUBDEV_S_FMT ioctls handlers, and documentation of the latter
-> explicitly states that:
-> 
-> "The modified format should be as close as possible to the original request."
->   -- http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-subdev-g-fmt.html
-> 
-> Thus one would expect, that passing UINT32_MAX as format width and height
-> will result in setting maximum possible resolution for the device.
-> Particularly, when the driver doesn't support VIDIOC_ENUM_FRAMESIZES ioctl,
-> which is common in the codebase.
-> 
-> Fixes: b0d3159be9a3 ("V4L/DVB (11901): v4l2: Create helper function for bounding and aligning images")
-> Signed-off-by: Maciej Matraszek <m.matraszek@samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> ---
+Em Sun, 28 Sep 2014 13:54:05 +0200
+Johannes Stezenbach <js@linuxtv.org> escreveu:
 
-<formletter>
+> On Sun, Sep 28, 2014 at 08:12:11AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Sun, 28 Sep 2014 12:55:40 +0200
+> > Johannes Stezenbach <js@linuxtv.org> escreveu:
+> > 
+> > > I tried again both with and without the patch.  The issue above
+> > > odesn't reproduce, but after hibernate it fails to tune
+> > > (while it works after suspend-to-ram).  Restarting dvbv5-zap
+> > > does not fix it.  All I get is:
+> > > 
+> > > [  500.299216] drxk: Error -22 on dvbt_sc_command
+> > > [  500.301012] drxk: Error -22 on set_dvbt
+> > > [  500.301967] drxk: Error -22 on start
+> > 
+> > Just to be 100% sure if I understood well: you're having exactly
+> > the same behavior with and without my patch, right?
+> 
+> Yes, no observable difference in my tests.
+> 
+> > I'll see if I can work on another patch for you today. If not,
+> > I won't be able to touch on it until the end of the week, as I'm
+> > traveling next week.
+> 
+> no need to hurry
+> 
+Johannes,
 
-This is not the correct way to submit patches for inclusion in the
-stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
-for how to do this properly.
+Resuming from suspend to disk is really hard with em28xx/drx-k. 
+Not sure why, but the drx-k doesn't let the firmware to be reloaded
+at resume. Once the firmware is loaded, any trial to reload it makes
+the device to misfunction.
 
-</formletter>
+Also, re-sending the init sequence that it is there at em28xx also
+makes it unstable.
+
+I suspect that a certain specific shutdown sequence would be needed
+for it to work, but I was unable to reproduce it.
+
+Perhaps the issue is related to either some I2C gateway at the analog
+demod (we don't have a driver for it) or some GPIO sequence is needed
+to reset it.
+
+So, I'm giving up for it for today. I may give a second trial if I
+won't be side-tracked by some other issue.
+
+Regards,
+Mauro
