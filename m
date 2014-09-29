@@ -1,68 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 5.mo2.mail-out.ovh.net ([87.98.181.248]:39655 "EHLO
-	mo2.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932212AbaISUBH (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:20729 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970AbaI2JQh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Sep 2014 16:01:07 -0400
-Received: from mail637.ha.ovh.net (gw6.ovh.net [213.251.189.206])
-	by mo2.mail-out.ovh.net (Postfix) with SMTP id 91EACFF9EAA
-	for <linux-media@vger.kernel.org>; Fri, 19 Sep 2014 21:55:31 +0200 (CEST)
-Message-ID: <541C8A26.6050207@ventoso.org>
-Date: Fri, 19 Sep 2014 21:55:18 +0200
-From: Luca Olivetti <luca@ventoso.org>
+	Mon, 29 Sep 2014 05:16:37 -0400
+Date: Mon, 29 Sep 2014 12:13:17 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v4 1/8] [media] soc_camera: Do not decrement endpoint
+ node refcount in the loop
+Message-ID: <20140929091316.GA23154@mwanda>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+ <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-To: =?windows-1252?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Fengguang Wu <fengguang.wu@intel.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Jet Chen <jet.chen@intel.com>,
-	Su Tao <tao.su@intel.com>, Yuanhan Liu <yuanhan.liu@intel.com>,
-	LKP <lkp@01.org>, linux-kernel@vger.kernel.org, crope@iki.fi
-Subject: Re: [media/dvb_usb_af9005] BUG: unable to handle kernel paging request
- (WAS: [media/em28xx] BUG: unable to handle kernel)
-References: <20140919014124.GA8326@localhost> <541C7D9D.30908@googlemail.com> <541C826D.7060702@googlemail.com>
-In-Reply-To: <541C826D.7060702@googlemail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-El 19/09/14 21:22, Frank Schäfer ha escrit:
+On Mon, Sep 29, 2014 at 10:15:44AM +0200, Philipp Zabel wrote:
+> In preparation for a following patch, stop decrementing the endpoint node
+> refcount in the loop. This temporarily leaks a reference to the endpoint node,
+> which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+> of its prev argument instead.
 
->>
->> So symbol_request() returns pointers.!= NULL
->>
->> A closer look at the definition of symbol_request() shows, that it does
->> nothing if CONFIG_MODULES is disabled (it just returns its argument).
->>
->>
->> One possibility to fix this bug would be to embrace these three lines with
->>
->> #ifdef CONFIG_DVB_USB_AF9005_REMOTE
->> ...
->> #endif
-> Luca, what do you think ?
-> 
-> This seems to be an ancient bug, which is known at least since 5 1/2 years:
-> https://lkml.org/lkml/2009/2/4/350
+Don't do this...
 
-Well, it's been a while so I don't remember the details, but I think the
-same now as then ;-)
-The idea behind CONFIG_DVB_USB_AF9005_REMOTE was to provide an
-alternative implementation (based on lirc, at the time it wasn't in the
-kernel), since this adapter doesn't decode the IR pulses by itself.
-In theory you could leave it undefined but still provide an
-implementation in a different module. Just adding
+My understanding (and I haven't invested much time into trying to
+understand this beyond glancing at the change) is that patch 1 and 2,
+introduce small bugs that are fixed in patch 3?
 
-#ifdef CONFIG_DVB_USB_AF9005_REMOTE
+Just fold all three patches into one patch.  We need an Ack from Mauro
+and Greg and then send the patch through Grant's tree.
 
-would nuke the (futile?) effort.
-
-Now, since the problem seems to be with CONFIG_MODULES disabled, maybe
-you could combine both conditions
-
-#if defined(CONFIG_MODULE) || defined(CONFIG_DVB_USB_AF9005_REMOTE)
-
-Bye
--- 
-Luca
+regards,
+dan carpenter
 
