@@ -1,140 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:11817 "EHLO
-	ironport.ite.com.tw" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755232AbaIWJwv (ORCPT
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.226]:55344 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753507AbaI2Son (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 05:52:51 -0400
-Subject: [2/2] af9033: fix snr value not correct issue
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi
-Content-Type: multipart/mixed; boundary="=-UqWojKWp5PglcTj+a/+k"
-Date: Tue, 23 Sep 2014 17:45:36 +0800
-Message-ID: <1411465536.1919.7.camel@ite-desktop>
+	Mon, 29 Sep 2014 14:44:43 -0400
+Message-ID: <1412016072.9649.15.camel@localhost>
+Subject: [PATCH] [media] cx231xx: cx231xx_uninit_bulk attempts to reference
+ and free isoc_ctl instead of bulk_ctl
+From: Luke Suchocki <kernel@suchocki.net>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org
+Date: Mon, 29 Sep 2014 13:41:12 -0500
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-UqWojKWp5PglcTj+a/+k
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+cx231xx_uninit_bulk() checks that
+dev->video_mode.bulk_ctl.transfer_buffer[i] is not NULL, but then calls
+usb_free_cohert() with dev->video_mode.isoc_ctl.transfer_buffer[i]
+resulting in "BUG: unable to handle NULL pointer dereference" when
+closing stream; most likely a cut-and-paste slip from previous
+uninit_isoc function.
 
-Snr returns value not correct. Fix it.
+This will present itself when cx231xx.ko is loaded with
+"transfer_mode=0" (USB bulk transfers).
 
---=-UqWojKWp5PglcTj+a/+k
-Content-Disposition: attachment; filename="0002-af9033-fix-snr-value-not-correct-issue.patch"
-Content-Type: text/x-patch; name="0002-af9033-fix-snr-value-not-correct-issue.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Luke Suchocki <kernel@suchocki.net>
 
->From f3d5c9e2b01e666eca7aa66cd15b67609a0589ea Mon Sep 17 00:00:00 2001
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-Date: Tue, 23 Sep 2014 17:23:31 +0800
-Subject: [PATCH 2/2] af9033: fix snr value not correct issue
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c  2014-09-29
+13:06:52.006326612 -0500
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c  2014-09-29
+13:10:46.796695980 -0500
+@@ -943,7 +943,7 @@ void cx231xx_uninit_bulk(struct cx231xx
+                        if (dev->video_mode.bulk_ctl.transfer_buffer[i])
+{
+                                usb_free_coherent(dev->udev,
 
-Snr returns value not correct. Fix it.
-
-Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
----
- drivers/media/dvb-frontends/af9033.c      |   46 +++++++++++++++++++++++++++--
- drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
- 2 files changed, 47 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 0a0aeaf..37bd624 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -840,7 +840,7 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
- 	struct af9033_state *state = fe->demodulator_priv;
- 	int ret, i, len;
--	u8 buf[3], tmp;
-+	u8 buf[3], tmp, tmp2;
- 	u32 snr_val;
- 	const struct val_snr *uninitialized_var(snr_lut);
- 
-@@ -851,6 +851,33 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	snr_val = (buf[2] << 16) | (buf[1] << 8) | buf[0];
- 
-+	/* read superframe number */
-+	ret = af9033_rd_reg(state, 0x80f78b, &tmp);
-+	if (ret < 0)
-+		goto err;
+urb->transfer_buffer_length,
+-
+dev->video_mode.isoc_ctl.
 +
-+	if (tmp)
-+		snr_val /= tmp;
-+
-+	/* read current transmission mode */
-+	ret = af9033_rd_reg(state, 0x80f900, &tmp);
-+	if (ret < 0)
-+		goto err;
-+
-+	switch ((tmp >> 0) & 3) {
-+	case 0:
-+		snr_val *= 4;
-+		break;
-+	case 1:
-+		snr_val *= 1;
-+		break;
-+	case 2:
-+		snr_val *= 2;
-+		break;
-+	default:
-+		goto err;
-+	}
-+
- 	/* read current modulation */
- 	ret = af9033_rd_reg(state, 0x80f903, &tmp);
- 	if (ret < 0)
-@@ -874,13 +901,26 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	}
- 
- 	for (i = 0; i < len; i++) {
--		tmp = snr_lut[i].snr;
-+		tmp2 = snr_lut[i].snr;
- 
- 		if (snr_val < snr_lut[i].val)
- 			break;
- 	}
- 
--	*snr = tmp * 10; /* dB/10 */
-+	/* scale value to 0x0000-0xffff */
-+	switch ((tmp >> 0) & 3) {
-+	case 0:
-+		*snr = tmp2 * 0xFFFF / 23;
-+		break;
-+	case 1:
-+		*snr = tmp2 * 0xFFFF / 26;
-+		break;
-+	case 2:
-+		*snr = tmp2 * 0xFFFF / 32;
-+		break;
-+	default:
-+		goto err;
-+	}
- 
- 	return 0;
- 
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index 58315e0..6351626 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -180,7 +180,10 @@ static const struct val_snr qam64_snr_lut[] = {
- 	{ 0x05570d, 26 },
- 	{ 0x059feb, 27 },
- 	{ 0x05bf38, 28 },
--	{ 0xffffff, 29 },
-+	{ 0x05f78f, 29 },
-+	{ 0x0612c3, 30 },
-+	{ 0x0626be, 31 },
-+	{ 0xffffff, 32 },
- };
- 
- static const struct reg_val ofsm_init[] = {
--- 
-1.7.0.4
+dev->video_mode.bulk_ctl.
+                                                transfer_buffer[i],
+                                                urb->transfer_dma);
 
 
---=-UqWojKWp5PglcTj+a/+k--
 
