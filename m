@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:25829 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbaIYLkh (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:56858 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbaI2HpF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 07:40:37 -0400
-Date: Thu, 25 Sep 2014 14:40:08 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>
-Cc: Fabian Frederick <fabf@skynet.be>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] xc5000: use after free in release()
-Message-ID: <20140925114008.GC3708@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Mon, 29 Sep 2014 03:45:05 -0400
+Received: by mail-la0-f51.google.com with SMTP id pv20so7682157lab.24
+        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 00:45:03 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 4/5] cx23885: add I2C client for CI into state and handle unregistering
+Date: Mon, 29 Sep 2014 10:44:19 +0300
+Message-Id: <1411976660-19329-4-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
+References: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I moved the call to hybrid_tuner_release_state(priv) after
-"priv->firmware" dereference.
+If the CI chip has an I2C driver, we need to store I2C client into state.
 
-Fixes: 5264a522a597 ('[media] media: tuner xc5000 - release firmwware from xc5000_release()')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 7 +++++++
+ drivers/media/pci/cx23885/cx23885.h     | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index e44c8ab..803a0e6 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -1333,9 +1333,9 @@ static int xc5000_release(struct dvb_frontend *fe)
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index d327459..cc88997 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1923,6 +1923,13 @@ int cx23885_dvb_unregister(struct cx23885_tsport *port)
+ 	 * implement MFE support.
+ 	 */
  
- 	if (priv) {
- 		cancel_delayed_work(&priv->timer_sleep);
--		hybrid_tuner_release_state(priv);
- 		if (priv->firmware)
- 			release_firmware(priv->firmware);
-+		hybrid_tuner_release_state(priv);
- 	}
++	/* remove I2C client for CI */
++	client = port->i2c_client_ci;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	/* remove I2C client for tuner */
+ 	client = port->i2c_client_tuner;
+ 	if (client) {
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 1792d1a..c35ba2d 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -297,6 +297,7 @@ struct cx23885_tsport {
  
- 	mutex_unlock(&xc5000_list_mutex);
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++	struct i2c_client *i2c_client_ci;
+ 
+ 	int (*set_frontend)(struct dvb_frontend *fe);
+ 	int (*fe_set_voltage)(struct dvb_frontend *fe,
+-- 
+1.9.1
+
