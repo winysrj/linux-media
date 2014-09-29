@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2382 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756028AbaITMmG (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:47340 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754412AbaI2ODu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 08:42:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/16] cx88: fix sparse warning
-Date: Sat, 20 Sep 2014 14:41:40 +0200
-Message-Id: <1411216911-7950-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 29 Sep 2014 10:03:50 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 2/5] video: add RGB444_1X12 and RGB565_1X16 bus formats
+Date: Mon, 29 Sep 2014 16:02:40 +0200
+Message-Id: <1411999363-28770-3-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add RGB444 format using a 12 bits bus and RGB565 using a 16 bits bus.
 
-drivers/media/pci/cx88/cx88-blackbird.c:476:25: warning: cast to restricted __le32
+These formats will later be used by atmel-hlcdc driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
 ---
- drivers/media/pci/cx88/cx88-blackbird.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/uapi/linux/v4l2-mediabus.h    | 2 ++
+ include/uapi/linux/video-bus-format.h | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 25d06f3..32abba4 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -428,7 +428,7 @@ static int blackbird_load_firmware(struct cx8802_dev *dev)
- 	int i, retval = 0;
- 	u32 value = 0;
- 	u32 checksum = 0;
--	u32 *dataptr;
-+	__le32 *dataptr;
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 7b0a06c..05336d6 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -33,6 +33,8 @@ enum v4l2_mbus_pixelcode {
+ 	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
+ 	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
+ 	VIDEO_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
++	VIDEO_BUS_TO_V4L2_MBUS(RGB444_1X12),
++	VIDEO_BUS_TO_V4L2_MBUS(RGB565_1X16),
  
- 	retval  = register_write(dev->core, IVTV_REG_VPU, 0xFFFFFFED);
- 	retval |= register_write(dev->core, IVTV_REG_HW_BLOCKS, IVTV_CMD_HW_BLOCKS_RST);
-@@ -467,7 +467,7 @@ static int blackbird_load_firmware(struct cx8802_dev *dev)
+ 	VIDEO_BUS_TO_V4L2_MBUS(Y8_1X8),
+ 	VIDEO_BUS_TO_V4L2_MBUS(UV8_1X8),
+diff --git a/include/uapi/linux/video-bus-format.h b/include/uapi/linux/video-bus-format.h
+index 4abbd5d..f85f7ee 100644
+--- a/include/uapi/linux/video-bus-format.h
++++ b/include/uapi/linux/video-bus-format.h
+@@ -34,7 +34,7 @@
+ enum video_bus_format {
+ 	VIDEO_BUS_FMT_FIXED = 0x0001,
  
- 	/* transfer to the chip */
- 	dprintk(1,"Loading firmware ...\n");
--	dataptr = (u32*)firmware->data;
-+	dataptr = (__le32 *)firmware->data;
- 	for (i = 0; i < (firmware->size >> 2); i++) {
- 		value = le32_to_cpu(*dataptr);
- 		checksum += ~value;
+-	/* RGB - next is 0x100e */
++	/* RGB - next is 0x1010 */
+ 	VIDEO_BUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+ 	VIDEO_BUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+ 	VIDEO_BUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+@@ -48,6 +48,8 @@ enum video_bus_format {
+ 	VIDEO_BUS_FMT_RGB888_2X12_BE = 0x100b,
+ 	VIDEO_BUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	VIDEO_BUS_FMT_ARGB8888_1X32 = 0x100d,
++	VIDEO_BUS_FMT_RGB444_1X12 = 0x100e,
++	VIDEO_BUS_FMT_RGB565_1X16 = 0x100f,
+ 
+ 	/* YUV (including grey) - next is 0x2024 */
+ 	VIDEO_BUS_FMT_Y8_1X8 = 0x2001,
 -- 
-2.1.0
+1.9.1
 
