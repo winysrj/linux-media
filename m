@@ -1,116 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.atb-potsdam.de ([141.89.210.5]:52663 "EHLO
-	mailgate.atb-potsdam.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753091AbaIBMWN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 08:22:13 -0400
-From: =?utf-8?B?TcOhY2hhLCBLYXJlbA==?= <KMacha@atb-potsdam.de>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Corrupt images, when capturing images from multiple cameras using the
- V4L2 driver
-Date: Tue, 2 Sep 2014 12:06:46 +0000
-Message-ID: <BDE207EB81F3F14F85CFF86344BBE70E2D2FDF@saturn.atb-potsdam.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lists.s-osg.org ([54.187.51.154]:38435 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822AbaI2SaY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 14:30:24 -0400
+Date: Mon, 29 Sep 2014 15:30:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/6] some fixes and cleanups for the em28xx-based
+ HVR-930C
+Message-ID: <20140929153018.2f701689@recife.lan>
+In-Reply-To: <20140929174430.GA18967@linuxtv.org>
+References: <cover.1411956856.git.mchehab@osg.samsung.com>
+	<20140929174430.GA18967@linuxtv.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8sIAoKSSB3b3VsZCBsaWtlIHRvIGdyYWIgaW1hZ2VzIGZyb20gbXVsdGlwbGUgY2FtZXJh
-cyB1bmRlciB1c2luZyB0aGUgVjRMMgpBUEkuIEkgZm9sbG93ZWQgdGhlIHByZXNlbnRhdGlvbiB1
-bmRlciBmb3VuZCBvbgpodHRwOi8vbGludXh0di5vcmcvZG93bmxvYWRzL3ByZXNlbnRhdGlvbnMv
-c3VtbWl0X2p1bl8yMDEwLzIwMTAwMjA2LWZvc2RlbS5wZGYgCnVzZWQgdGhlIGNvZGUgYW5kIGFk
-YXB0ZWQgaXQgc2lnaHRseSBmb3IgbXkgcHVycG9zZS4gSXQgd29ya3MgdmVyeSB3ZWxsCmZvciAx
-IGNhbWVyYS4KCkhvd2V2ZXIgT25jZSBJIGJlZ2luIHRvIGdyYWIgaW1hZ2VzIGZyb20gbXVsdGlw
-bGUgY2FtZXJhcyAoc3VjY2Vzc2l2ZWx5KQpJIGdldCBjb3JydXB0IGltYWdlcy4gSSB1cGxvYWRl
-ZCBhbiBleGFtcGxlIGltYWdlIHRvCmh0dHA6Ly93d3cuZGlyZWN0dXBsb2FkLm5ldC9maWxlL2Qv
-MzczMy85YzRqeDNwdl9wbmcuaHRtCgpBbHRob3VnaCBJIHNldCB0aGUgcmlnaHQgcmVzb2x1dGlv
-biBmb3IgdGhlIGNhbWVyYSAoNzQ0IHggNDgwKSwgdGhlCm91dHB1dCBvZiBidWZmZXIuYnl0ZXN1
-c2VkLCBhZnRlciB0aGUgVklESU9DX0RRQlVGIGRvZXMgbm90IGNvcnJlc3BvbmQKd2l0aCB0aGUg
-ZXhwZWN0ZWQgdmFsdWUgKDc0NHg0ODAgPSAzNTcxMjApLiBUaGlzIHdvdWxkIHByb2JhYmx5IGV4
-cGxhaW4KdGhlIGNvcnJ1cHQgaW1hZ2VzLgoKVGhlIG1vcmUgY2FtZXJhIEkgdXNlLCB0aGUgbGVz
-cyBidWZmZXIuYnl0ZXN1c2VkIEkgZ2V0IGFuZCB0aGUgbW9yZQpzdHJpcGVzIGFyZSBpbiB0aGUg
-aW1hZ2UuIENvdWxkIHlvdSBwbGVhc2UgZ2l2ZSBtZSBhIGhpbnQsIHdoYXQgYW0gSQpkb2luZyB3
-cm9uZyA/CgpUaGFua3MsIEthcmVsCgpIZXJlIGlzIHRoZSBtaW5pbWFsIEMgY29kZSBJIHVzZSBm
-b3IgbXkgYXBwbGljYXRpb246CgoKaW50IG1haW4oKQp7CgkvKiAjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMgSU5JVCAjIyMjIyMjIyMjIyMjIyMjIyMjIyMgKi8KCglpbnQgbnVtT2ZDYW1lcmFzID0gNjsK
-CWludCB4UmVzID0gNzQ0OwoJaW50IHlSZXMgPSA0ODA7CglpbnQgZXhwb3N1cmUgPSAyMDAwOwoJ
-dW5zaWduZWQgaW50IHRpbWVCZXR3ZWVuU25hcHNob3RzID0gMjsgLy8gaW4gc2VjCgljaGFyIGZp
-bGVOYW1lW3NpemVvZiAiLi9vdXRwdXQvaW1hZ2UgMDAwIGZyb20gY2FtZXJhIDAuUE5HIl07CgoJ
-c3RhdGljIGNvbnN0IGNoYXIgKmRldmljZXNbXSA9IHsgIi9kZXYvdmlkZW8wIiwgIi9kZXYvdmlk
-ZW8xIiwKIi9kZXYvdmlkZW8yIiwgIi9kZXYvdmlkZW8zIiwgIi9kZXYvdmlkZW80IiwgIi9kZXYv
-dmlkZW81IiwKIi9kZXYvdmlkZW82IiwgIi9kZXYvdmlkZW83IiB9OwoKCXN0cnVjdCB2NGwyX2Nh
-cGFiaWxpdHkgY2FwWzhdOwoJc3RydWN0IHY0bDJfY29udHJvbCBjb250cm9sWzhdOwoJc3RydWN0
-IHY0bDJfZm9ybWF0IGZvcm1hdFs4XTsKCXN0cnVjdCB2NGwyX3JlcXVlc3RidWZmZXJzIHJlcVs4
-XTsKCXN0cnVjdCB2NGwyX2J1ZmZlciBidWZmZXJbOF07CgoJaW50IHR5cGUgPSBWNEwyX0JVRl9U
-WVBFX1ZJREVPX0NBUFRVUkU7IC8vIGhhZCB0byBkZWNsYXJlIHRoZSB0eXBlIGhlcmUKYmVjYXVz
-ZSBvZiB0aGUgbG9vcAoKCXVuc2lnbmVkIGludCBpOwoJdW5zaWduZWQgaW50IGo7Cgl1bnNpZ25l
-ZCBpbnQgazsKCglpbnQgZmRbOF07Cgl2b2lkICoqbWVtWzhdOwoJLy91bnNpZ25lZCBjaGFyICoq
-bWVtWzhdOwoKCS8qICMjIyMjIyMjIyMjIyMjIyMjIyMjIyBPUEVOIERFVklDRSAjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMgKi8KCglmb3IgKGogPSAwOyBqIDwgbnVtT2ZDYW1lcmFzOyArK2opIHsKCgkJ
-ZmRbal0gPSBvcGVuKGRldmljZXNbal0sIE9fUkRXUik7CgkJaW9jdGwoZmRbal0sIFZJRElPQ19R
-VUVSWUNBUCwgJmNhcFtqXSk7CgoKCQkvKiAjIyMjIyMjIyMjIyMjIyMjIyMjIyMgQ0FNIENPTlRS
-T0xMICMjIyMjIyMjIyMjIyMjIyAqLwoKCQljb250cm9sW2pdLmlkID0gVjRMMl9DSURfRVhQT1NV
-UkVfQVVUTzsKCQljb250cm9sW2pdLnZhbHVlID0gVjRMMl9FWFBPU1VSRV9TSFVUVEVSX1BSSU9S
-SVRZOwoJCWlvY3RsKGZkW2pdLCBWSURJT0NfU19DVFJMLCAmY29udHJvbFtqXSk7CgoJCWNvbnRy
-b2xbal0uaWQgPSBWNEwyX0NJRF9FWFBPU1VSRV9BQlNPTFVURTsKCQljb250cm9sW2pdLnZhbHVl
-ID0gZXhwb3N1cmU7CgkJaW9jdGwoZmRbal0sIFZJRElPQ19TX0NUUkwsICZjb250cm9sW2pdKTsK
-CgkJLyogIyMjIyMjIyMjIyMjIyMjIyMjIyMjIEZPUk1BVCAjIyMjIyMjIyMjIyMjIyMjIyMjIyMg
-Ki8KCgkJaW9jdGwoZmRbal0sIFZJRElPQ19HX0ZNVCwgJmZvcm1hdFtqXSk7CgkJZm9ybWF0W2pd
-LnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkU7CgkJZm9ybWF0W2pdLmZtdC5waXgu
-d2lkdGggPSB4UmVzOwoJCWZvcm1hdFtqXS5mbXQucGl4LmhlaWdodCA9IHlSZXM7CgkJLy9mb3Jt
-YXQuZm10LnBpeC5waXhlbGZvcm1hdCA9IFY0TDJfUElYX0ZNVF9ZVVlWOwoJCWZvcm1hdFtqXS5m
-bXQucGl4LnBpeGVsZm9ybWF0ID0gVjRMMl9QSVhfRk1UX0dSRVk7CgkJaW9jdGwoZmRbal0sIFZJ
-RElPQ19TX0ZNVCwgJmZvcm1hdFtqXSk7CgoJCS8qICMjIyMjIyMjIyMjIyMjIyMjIyMjIyBSRVEg
-QlVGICMjIyMjIyMjIyMjIyMjIyMjIyMjICovCgoJCXJlcVtqXS50eXBlID0gVjRMMl9CVUZfVFlQ
-RV9WSURFT19DQVBUVVJFOwoJCXJlcVtqXS5jb3VudCA9IDQ7CgkJcmVxW2pdLm1lbW9yeSA9IFY0
-TDJfTUVNT1JZX01NQVA7CgkJaW9jdGwoZmRbal0sIFZJRElPQ19SRVFCVUZTLCAmcmVxW2pdKTsK
-CQltZW1bal0gPSBtYWxsb2MocmVxW2pdLmNvdW50ICogc2l6ZW9mKCptZW0pKTsKCgkJLyogIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIE1NQVAgIyMjIyMjIyMjIyMjIyMjIyMjIyMjICovCgoJCWZvciAo
-aSA9IDA7IGkgPCByZXFbal0uY291bnQ7ICsraSkgewoJCQlidWZmZXJbal0udHlwZSA9IFY0TDJf
-QlVGX1RZUEVfVklERU9fQ0FQVFVSRTsKCQkJYnVmZmVyW2pdLm1lbW9yeSA9IFY0TDJfTUVNT1JZ
-X01NQVA7CgkJCWJ1ZmZlcltqXS5pbmRleCA9IGk7CgkJCWlvY3RsKGZkW2pdLCBWSURJT0NfUVVF
-UllCVUYsICZidWZmZXJbal0pOwoJCQltZW1bal1baV0gPSBtbWFwKDAsIGJ1ZmZlcltqXS5sZW5n
-dGgsCgkJCQkJUFJPVF9SRUFEfFBST1RfV1JJVEUsCgkJCQkJTUFQX1NIQVJFRCwgZmRbal0sIGJ1
-ZmZlcltqXS5tLm9mZnNldCk7CgkJfQoKCQkvKiAjIyMjIyMjIyMjIyMjIyMjIyMjIyMgQ1JFQVRF
-IFFVRVVFICMjIyMjIyMjIyMjIyMjIyAqLwoKCQlmb3IgKGkgPSAwOyBpIDwgcmVxW2pdLmNvdW50
-OyArK2kpIHsKCQkJYnVmZmVyW2pdLnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkU7
-CgkJCWJ1ZmZlcltqXS5tZW1vcnkgPSBWNEwyX01FTU9SWV9NTUFQOwoJCQlidWZmZXJbal0uaW5k
-ZXggPSBpOwoJCQlpb2N0bChmZFtqXSwgVklESU9DX1FCVUYsICZidWZmZXJbal0pOwoJCX0KCgl9
-IC8qICMjIyAjIyMgZW5kIG9mIGNhbWVyYSBpbml0ICMjIyAjIyMgKi8KCgkvKiAjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMgU1RSRUFNIE9OICMjIyMjIyMjIyMjIyMjIyMjIyMjIyAqLwoJZm9yIChqID0g
-MDsgaiA8IG51bU9mQ2FtZXJhczsgKytqKSB7CgoJCWlvY3RsKGZkW2pdLCBWSURJT0NfU1RSRUFN
-T04sICZ0eXBlKTsKCX0KCgoJLyogIyMjIyMjIyMjIyMjIyMjIyMjIyMjIEdFVCBGUkFNRSAjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMgKi8KCglrID0gMDsKCXdoaWxlICgha2JoaXQoKSl7CgkJayArKzsK
-CgkJZm9yIChqID0gMDsgaiA8IG51bU9mQ2FtZXJhczsgaisrKSB7CgoJCQlidWZmZXJbal0udHlw
-ZSA9IFY0TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRTsKCQkJYnVmZmVyW2pdLm1lbW9yeSA9IFY0
-TDJfTUVNT1JZX01NQVA7CgkJCXVzbGVlcCgxMDAwMDApOwoJCQlpb2N0bChmZFtqXSwgVklESU9D
-X0RRQlVGLCAmYnVmZmVyW2pdKTsKCQkJcHJpbnRmKCJcbkJ1ZmZlciB7JXB9LCBCdWYuIEluZGV4
-ICVkLCBCdWYuIGJ5dGVzIHVzZWQgJWRcbiIsCm1lbVtqXVtidWZmZXJbal0uaW5kZXhdLCBidWZm
-ZXJbal0uaW5kZXgsICBidWZmZXJbal0uYnl0ZXN1c2VkKTsKCgkJCS8vIGNyZWF0ZSBmaWxlbmFt
-ZQoJCQlzcHJpbnRmKGZpbGVOYW1lLCAiLi9vdXRwdXQvaW1hZ2UgJTAzZCBmcm9tIGNhbWVyYSAl
-ZC5QTkciLCBrLCBqKTsKCQkJLy8gc2F2ZSBhcyBQTkcgZmlsZQoJCQlzYXZlVG9QbmcobWVtW2pd
-W2J1ZmZlcltqXS5pbmRleF0sIGZpbGVOYW1lLCB4UmVzLCB5UmVzKTsKCgkJCWlvY3RsKGZkW2pd
-LCBWSURJT0NfUUJVRiwgJmJ1ZmZlcltqXSk7CgoJCQlzbGVlcCh0aW1lQmV0d2VlblNuYXBzaG90
-cyk7CgkJfQoJfQoKCS8qICMjIyMjIyMjIyMjIyMjIyMjIyMjIyBTVFJFQU0gT0ZGICMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyAqLwoJZm9yIChqID0gMDsgaiA8IG51bU9mQ2FtZXJhczsgKytqKSB7CgoJ
-CWlvY3RsKGZkW2pdLCBWSURJT0NfU1RSRUFNT0ZGLCAmdHlwZSk7Cgl9CgoJLyogIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIENMRUFOVVAgIyMjIyMjIyMjIyMjIyMjIyMjIyMjICovCgoJZm9yIChqID0g
-MDsgaiA8IG51bU9mQ2FtZXJhczsgKytqKSB7CgoJCWNsb3NlKGZkW2pdKTsKCQlmcmVlKG1lbVtq
-XSk7Cgl9CgoJcmV0dXJuICgwKTsKfQoKKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgpMZWlibml6LUluc3RpdHV0IGbD
-vHIgQWdyYXJ0ZWNobmlrIFBvdHNkYW0tQm9ybmltIGUuVi4KTWF4LUV5dGgtQWxsZWUgMTAwCkQt
-MTQ0NjkgUG90c2RhbQogClZvcnN0YW5kOiAKUHJvZi4gRHIuIFJlaW5lciBCcnVuc2NoIChXaXNz
-ZW5zY2hhZnRsaWNoZXIgRGlyZWt0b3IpCkRyLiBNYXJ0aW4gR2V5ZXIgKFN0ZWxsdmVydHJldGVy
-IGRlcyBXaXNzZW5zY2hhZnRsaWNoZW4gRGlyZWt0b3JzKQpQcm9mLiBEci4gVGhvbWFzIEFtb24g
-ICgyLiBTdGVsbHZlcnRyZXRlciBkZXMgV2lzc2Vuc2NoYWZ0bGljaGVuIERpcmVrdG9ycykKRHIu
-IFV0YSBUaWV0eiAoVmVyd2FsdHVuZ3NsZWl0ZXJpbikgCkFtdHNnZXJpY2h0IFBvdHNkYW0sIFZS
-IDY4MCBQLCBVU3QtSUQgREU4MTE3MDQxNTAKCioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKVGhpcyBlbWFpbCBhbmQg
-YW55IGZpbGVzIHRyYW5zbWl0dGVkIHdpdGggaXQgYXJlIGNvbmZpZGVudGlhbCBhbmQKaW50ZW5k
-ZWQgc29sZWx5IGZvciB0aGUgdXNlIG9mIHRoZSBpbmRpdmlkdWFsIG9yIGVudGl0eSB0byB3aG9t
-IHRoZXkKYXJlIGFkZHJlc3NlZC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyBlbWFpbCBpbiBl
-cnJvciBwbGVhc2Ugbm90aWZ5CnRoZSBzeXN0ZW0gbWFuYWdlci4KClNjYW5uZWQgYnkgdGhlIENs
-ZWFyc3dpZnQgU0VDVVJFIEVtYWlsIEdhdGV3YXkuCgp3d3cuY2xlYXJzd2lmdC5jb20KKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKgo=
+Em Mon, 29 Sep 2014 19:44:30 +0200
+Johannes Stezenbach <js@linuxtv.org> escreveu:
+
+> Hi Mauro,
+> 
+> On Sun, Sep 28, 2014 at 11:23:17PM -0300, Mauro Carvalho Chehab wrote:
+> > This patch series addresses some issues with suspend2ram of devices
+> > based on DRX-K.
+> > 
+> > With this patch series, it is now possible to suspend to ram while
+> > streaming. At resume, the stream will continue to play.
+> > 
+> > While doing that, I added a few other changes:
+> > 
+> > - I moved the init code to .init. That is an initial step to fix
+> >   suspend to disk;
+> > 
+> > - There's a fix to an issue that happens at xc5000 removal (sent
+> >   already as a RFC patch);
+> > 
+> > - A dprintk change at his logic to not require both a boot parameter and
+> >   a dynamic_printk enablement. It also re-adds __func__ to the printks,
+> >   that got previously removed;
+> > 
+> > - It removes the unused mfe_sharing var from the dvb attach logic.
+> > 
+> > Mauro Carvalho Chehab (6):
+> >   [media] em28xx: remove firmware before releasing xc5000 priv state
+> >   [media] drxk: Fix debug printks
+> >   [media] em28xx-dvb: remove unused mfe_sharing
+> >   [media] em28xx-dvb: handle to stop/start streaming at PM
+> >   [media] em28xx: move board-specific init code
+> >   [media] drxk: move device init code to .init callback
+> > 
+> >  drivers/media/dvb-frontends/drxk_hard.c | 117 ++++++++++++++++----------------
+> >  drivers/media/tuners/xc5000.c           |   2 +-
+> >  drivers/media/usb/em28xx/em28xx-dvb.c   |  45 ++++++++----
+> >  3 files changed, 92 insertions(+), 72 deletions(-)
+> 
+> 
+> Disregarding your mails from the "em28xx breaks after hibernate"
+> that hibernate doesn't work for you, I decided to give these
+> changes a try on top of today's media_tree.git
+> (cf3167c -> 3.17.0-rc5-00741-g9a3fbd8), still inside qemu
+> (can't upgrade/reboot my main machine right now).
+
+Well, I think I was not clear: It doesn't work for me when 
+I power down the USB or the machine after suspended. If I keep
+the device energized, it works ;)
+
+> Works!  For hibernate, using "echo reboot >/sys/power/disk", so
+> the host driver cannot interfere with the qemu driver during hibernate.
+> Qemu causes several USB resets to the device during
+> hibernate -> resume, but the USB power is not cut.
+> It works even while running dvbv5-zap and streaming to mplayer.
+
+Thanks for testing it! it is great to have a separate test for
+the patches.
+
+Could I add a tested-by tag on those patches?
+
+> I tried both suspend-to-ram and hibernate a couple of times,
+> at least in Qemu it all works.
+> 
+> There are a lot of drxk debug prints now enabled by default,
+> not sure if that was intentional.
+
+You're probably probing the device with debug=1, right?
+
+Before the patches, debug=1 were not working well, because:
+
+- it would require to also manually enable the debug lines via
+  dynamic_printk sysfs nodes;
+
+- the called function where not displayed. Weveral printks there
+  are just dprintk(1, "\n"), used as a way to trace the drxk
+  driver. With the old way, this were just printing:
+	  drxk: <empty line>
+
+We should likely do some cleanup in some future, removing those
+empty printks, as function trace can easily be done via perf, 
+and to remove the debug level, using just dynamic_printk.
+
+Regards,
+Mauro
