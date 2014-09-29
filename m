@@ -1,94 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34336 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753736AbaIWMAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 08:00:54 -0400
-Message-ID: <542160F0.1000407@iki.fi>
-Date: Tue, 23 Sep 2014 15:00:48 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: Re: Fw: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
-References: <20140923085039.51765665@recife.lan>
-In-Reply-To: <20140923085039.51765665@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40089 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752848AbaI2MyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 08:54:24 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 3/6] [media] coda: add coda_write_base helper
+Date: Mon, 29 Sep 2014 14:53:44 +0200
+Message-Id: <1411995227-3623-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
+References: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am not sure as I cannot reproduce it. Also 30ms wait here is long as 
-hell, whilst it is not critical.
+Add a helper function that writes a vb2_buffer's Y, Cb, and
+Cr plane base addresses of into three consecutive registers.
+This moves common code out of coda-bit.c.
 
-When I look that firmware downloading from the 1-2 month old Hauppauge 
-driver sniffs, it is not there:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 68 +++++++------------------------
+ drivers/media/platform/coda/coda-common.c | 24 +++++++++++
+ drivers/media/platform/coda/coda.h        |  2 +
+ 3 files changed, 40 insertions(+), 54 deletions(-)
 
-That line is CMD_FW_BOOT, command 0x23 it is 3rd number:
-#define CMD_FW_BOOT                 0x23
-000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
-
-Here is whole sequence:
-000311:  OUT: 000000 ms 001489 ms BULK[00002] >>> 15 00 29 99 03 01 00 
-01 57 f7 09 02 6d 6c 02 4f 9f 02 4f a2 0b 16
-000312:  OUT: 000001 ms 001489 ms BULK[00081] <<< 04 99 00 66 ff
-000313:  OUT: 000000 ms 001490 ms BULK[00002] >>> 05 00 23 9a 65 dc
-000314:  OUT: 000011 ms 001490 ms BULK[00081] <<< 04 9a 00 65 ff
-000315:  OUT: 000000 ms 001501 ms BULK[00002] >>> 0b 00 00 9b 01 02 00 
-00 12 22 40 ec
-000316:  OUT: 000000 ms 001501 ms BULK[00081] <<< 05 9b 00 02 62 ff
-
-
-So windows driver waits 10ms after boot, not before.
-
-Due to these reasons, I would like to skip that patch until I see error 
-or get good explanation why it is needed and so.
-
-
-regards
-Antti
-
-
-On 09/23/2014 02:50 PM, Mauro Carvalho Chehab wrote:
-> Antti,
->
-> After the firmware load changes, is this patch still applicable?
->
-> Regards,
-> Mauro
->
-> Forwarded message:
->
-> Date: Tue, 05 Aug 2014 13:48:03 +0800
-> From: Bimow Chen <Bimow.Chen@ite.com.tw>
-> To: linux-media@vger.kernel.org
-> Subject: [PATCH 4/4] V4L/DVB: Add sleep for firmware ready
->
->
->  From b19fa868ce937a6ef10f1591a49b2a7ad14964a9 Mon Sep 17 00:00:00 2001
-> From: Bimow Chen <Bimow.Chen@ite.com.tw>
-> Date: Tue, 5 Aug 2014 11:20:53 +0800
-> Subject: [PATCH 4/4] Add sleep for firmware ready.
->
->
-> Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
-> ---
->   drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
->   1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> index 7b9b75f..a450cdb 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> @@ -602,6 +602,8 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
->   	if (ret < 0)
->   		goto err;
->
-> +	msleep(30);
-> +
->   	/* firmware loaded, request boot */
->   	req.cmd = CMD_FW_BOOT;
->   	ret = af9035_ctrl_msg(d, &req);
->
-
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 9b8ea8b..f01393c 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1036,9 +1036,9 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
+ 	struct coda_dev *dev = ctx->dev;
+ 	int force_ipicture;
+ 	int quant_param = 0;
+-	u32 picture_y, picture_cb, picture_cr;
+ 	u32 pic_stream_buffer_addr, pic_stream_buffer_size;
+ 	u32 dst_fourcc;
++	u32 reg;
+ 
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+@@ -1129,37 +1129,17 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
+ 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
+ 
+ 
+-	picture_y = vb2_dma_contig_plane_dma_addr(src_buf, 0);
+-	switch (q_data_src->fourcc) {
+-	case V4L2_PIX_FMT_YVU420:
+-		/* Switch Cb and Cr for YVU420 format */
+-		picture_cr = picture_y + q_data_src->bytesperline *
+-				q_data_src->height;
+-		picture_cb = picture_cr + q_data_src->bytesperline / 2 *
+-				q_data_src->height / 2;
+-		break;
+-	case V4L2_PIX_FMT_YUV420:
+-	default:
+-		picture_cb = picture_y + q_data_src->bytesperline *
+-				q_data_src->height;
+-		picture_cr = picture_cb + q_data_src->bytesperline / 2 *
+-				q_data_src->height / 2;
+-		break;
+-	}
+-
+ 	if (dev->devtype->product == CODA_960) {
+ 		coda_write(dev, 4/*FIXME: 0*/, CODA9_CMD_ENC_PIC_SRC_INDEX);
+ 		coda_write(dev, q_data_src->width, CODA9_CMD_ENC_PIC_SRC_STRIDE);
+ 		coda_write(dev, 0, CODA9_CMD_ENC_PIC_SUB_FRAME_SYNC);
+ 
+-		coda_write(dev, picture_y, CODA9_CMD_ENC_PIC_SRC_ADDR_Y);
+-		coda_write(dev, picture_cb, CODA9_CMD_ENC_PIC_SRC_ADDR_CB);
+-		coda_write(dev, picture_cr, CODA9_CMD_ENC_PIC_SRC_ADDR_CR);
++		reg = CODA9_CMD_ENC_PIC_SRC_ADDR_Y;
+ 	} else {
+-		coda_write(dev, picture_y, CODA_CMD_ENC_PIC_SRC_ADDR_Y);
+-		coda_write(dev, picture_cb, CODA_CMD_ENC_PIC_SRC_ADDR_CB);
+-		coda_write(dev, picture_cr, CODA_CMD_ENC_PIC_SRC_ADDR_CR);
++		reg = CODA_CMD_ENC_PIC_SRC_ADDR_Y;
+ 	}
++	coda_write_base(ctx, q_data_src, src_buf, reg);
++
+ 	coda_write(dev, force_ipicture << 1 & 0x2,
+ 		   CODA_CMD_ENC_PIC_OPTION);
+ 
+@@ -1501,20 +1481,11 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 	struct vb2_buffer *dst_buf;
+ 	struct coda_dev *dev = ctx->dev;
+ 	struct coda_q_data *q_data_dst;
+-	u32 stridey, height;
+-	u32 picture_y, picture_cb, picture_cr;
++	u32 reg_addr, reg_stride;
+ 
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+-	if (ctx->params.rot_mode & CODA_ROT_90) {
+-		stridey = q_data_dst->height;
+-		height = q_data_dst->width;
+-	} else {
+-		stridey = q_data_dst->width;
+-		height = q_data_dst->height;
+-	}
+-
+ 	/* Try to copy source buffer contents into the bitstream ringbuffer */
+ 	mutex_lock(&ctx->bitstream_mutex);
+ 	coda_fill_bitstream(ctx);
+@@ -1545,17 +1516,6 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 	if (dev->devtype->product == CODA_960)
+ 		coda_set_gdi_regs(ctx);
+ 
+-	/* Set rotator output */
+-	picture_y = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
+-	if (q_data_dst->fourcc == V4L2_PIX_FMT_YVU420) {
+-		/* Switch Cr and Cb for YVU420 format */
+-		picture_cr = picture_y + stridey * height;
+-		picture_cb = picture_cr + stridey / 2 * height / 2;
+-	} else {
+-		picture_cb = picture_y + stridey * height;
+-		picture_cr = picture_cb + stridey / 2 * height / 2;
+-	}
+-
+ 	if (dev->devtype->product == CODA_960) {
+ 		/*
+ 		 * The CODA960 seems to have an internal list of buffers with
+@@ -1565,16 +1525,16 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 		 */
+ 		coda_write(dev, CODA_MAX_FRAMEBUFFERS + dst_buf->v4l2_buf.index,
+ 				CODA9_CMD_DEC_PIC_ROT_INDEX);
+-		coda_write(dev, picture_y, CODA9_CMD_DEC_PIC_ROT_ADDR_Y);
+-		coda_write(dev, picture_cb, CODA9_CMD_DEC_PIC_ROT_ADDR_CB);
+-		coda_write(dev, picture_cr, CODA9_CMD_DEC_PIC_ROT_ADDR_CR);
+-		coda_write(dev, stridey, CODA9_CMD_DEC_PIC_ROT_STRIDE);
++
++		reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
++		reg_stride = CODA9_CMD_DEC_PIC_ROT_STRIDE;
+ 	} else {
+-		coda_write(dev, picture_y, CODA_CMD_DEC_PIC_ROT_ADDR_Y);
+-		coda_write(dev, picture_cb, CODA_CMD_DEC_PIC_ROT_ADDR_CB);
+-		coda_write(dev, picture_cr, CODA_CMD_DEC_PIC_ROT_ADDR_CR);
+-		coda_write(dev, stridey, CODA_CMD_DEC_PIC_ROT_STRIDE);
++		reg_addr = CODA_CMD_DEC_PIC_ROT_ADDR_Y;
++		reg_stride = CODA_CMD_DEC_PIC_ROT_STRIDE;
+ 	}
++	coda_write_base(ctx, q_data_dst, dst_buf, reg_addr);
++	coda_write(dev, q_data_dst->bytesperline, reg_stride);
++
+ 	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode,
+ 			CODA_CMD_DEC_PIC_ROT_MODE);
+ 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 538d4ac..fac2517 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -82,6 +82,30 @@ unsigned int coda_read(struct coda_dev *dev, u32 reg)
+ 	return data;
+ }
+ 
++void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
++		     struct vb2_buffer *buf, unsigned int reg_y)
++{
++	u32 base_y = vb2_dma_contig_plane_dma_addr(buf, 0);
++	u32 base_cb, base_cr;
++
++	switch (q_data->fourcc) {
++	case V4L2_PIX_FMT_YVU420:
++		/* Switch Cb and Cr for YVU420 format */
++		base_cr = base_y + q_data->bytesperline * q_data->height;
++		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
++		break;
++	case V4L2_PIX_FMT_YUV420:
++	default:
++		base_cb = base_y + q_data->bytesperline * q_data->height;
++		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
++		break;
++	}
++
++	coda_write(ctx->dev, base_y, reg_y);
++	coda_write(ctx->dev, base_cb, reg_y + 4);
++	coda_write(ctx->dev, base_cr, reg_y + 8);
++}
++
+ /*
+  * Array of all formats supported by any version of Coda:
+  */
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index bbc18c0..76ba83c 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -232,6 +232,8 @@ extern int coda_debug;
+ 
+ void coda_write(struct coda_dev *dev, u32 data, u32 reg);
+ unsigned int coda_read(struct coda_dev *dev, u32 reg);
++void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
++		     struct vb2_buffer *buf, unsigned int reg_y);
+ 
+ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
+ 		       size_t size, const char *name, struct dentry *parent);
 -- 
-http://palosaari.fi/
+2.1.0
+
