@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36976 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374AbaIUTbe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 15:31:34 -0400
-Date: Sun, 21 Sep 2014 16:31:28 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [GIT PULL for v3.17-rc6] media fixes
-Message-ID: <20140921163128.3070337b@recife.lan>
-In-Reply-To: <CA+55aFzXsn2jGw9V5prvZqaKo_rvWFVj5gCT865FTdzp4-rsYg@mail.gmail.com>
-References: <20140921115023.06f6dba4@recife.lan>
-	<CA+55aFzXsn2jGw9V5prvZqaKo_rvWFVj5gCT865FTdzp4-rsYg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45751 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754147AbaI2SEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 14:04:14 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 2/6] of: Add for_each_endpoint_of_node helper macro
+Date: Mon, 29 Sep 2014 20:03:35 +0200
+Message-Id: <1412013819-29181-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 21 Sep 2014 11:05:06 -0700
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+Note that while of_graph_get_next_endpoint decrements the reference count
+of the child node passed to it, of_node_put(child) still has to be called
+manually when breaking out of the loop.
 
-> On Sun, Sep 21, 2014 at 7:50 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> >
-> > PS.: FYI, I'm now starting to use mchehab@osg.samsung.com e-mail address.
-> > The old one (m.chehab@samsung.com) is still valid, but we're using the
-> > OSG subdomain for the Samsung's Open Source Group.
-> 
-> Thanks for signing this. When I get things from new email addresses, a
-> signed tag is appreciated (even if it's then kernel.org).
-> 
-> In fact, a signed tag is always appreciated, so I'm hoping this is
-> going to be your new workflow..
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/of_graph.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Yes, my new workflow is to generate a signed tag for every pull
-request I'll send you. I updated the scripts for that and tested
-them today.
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index befef42..e43442e 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -26,6 +26,17 @@ struct of_endpoint {
+ 	const struct device_node *local_node;
+ };
+ 
++/**
++ * for_each_endpoint_of_node - iterate over every endpoint in a device node
++ * @parent: parent device node containing ports and endpoints
++ * @child: loop variable pointing to the current endpoint node
++ *
++ * When breaking out of the loop, of_node_put(child) has to be called manually.
++ */
++#define for_each_endpoint_of_node(parent, child) \
++	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
++	     child = of_graph_get_next_endpoint(parent, child))
++
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
+-- 
+2.1.0
 
-So, you should expect signed tags on my next pull requests.
-
-Regards,
-Mauro
