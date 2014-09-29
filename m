@@ -1,79 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:53928 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803AbaIZPmf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 11:42:35 -0400
-Date: Fri, 26 Sep 2014 17:42:27 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: em28xx breaks after hibernate
-Message-ID: <20140926154227.GA22194@linuxtv.org>
-References: <20140926110727.GA880@linuxtv.org>
- <20140926084215.772adce9@recife.lan>
- <20140926090316.5ae56d93@recife.lan>
- <20140926122721.GA11597@linuxtv.org>
- <20140926101222.778ebcaf@recife.lan>
- <20140926132513.GA30084@linuxtv.org>
- <20140926142543.GA3806@linuxtv.org>
- <54257888.90802@osg.samsung.com>
- <20140926150602.GA15766@linuxtv.org>
- <542584CD.6060507@osg.samsung.com>
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:38818 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754745AbaI2Tik (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 15:38:40 -0400
+Received: by mail-vc0-f170.google.com with SMTP id hy10so1687554vcb.29
+        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 12:38:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <542584CD.6060507@osg.samsung.com>
+In-Reply-To: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
+References: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
+Date: Mon, 29 Sep 2014 21:38:39 +0200
+Message-ID: <CA+gwMccqt9zP4bOdDKyiZa=S+xPuZgcpg4aWcdUCyqwobAnKfQ@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR
+ tracker to grayscale
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 26, 2014 at 09:22:53AM -0600, Shuah Khan wrote:
-> > 
-> > [   20.212162] usb 1-1: reset high-speed USB device number 2 using ehci-pci
-> > [   20.503868] em2884 #0: Resuming extensions
-> > [   20.505275] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
-> > [   20.533513] drxk: status = 0x439130d9
-> > [   20.534282] drxk: detected a drx-3913k, spin A2, xtal 20.250 MHz
-> > [   23.008852] em2884 #0: writing to i2c device at 0x52 failed (error=-5)
-> > [   23.011408] drxk: i2c write error at addr 0x29
-> > [   23.013187] drxk: write_block: i2c write error at addr 0x8303b4
-> > [   23.015440] drxk: Error -5 while loading firmware
-> > [   23.017291] drxk: Error -5 on init_drxk
-> > [   23.018835] em2884 #0: fe0 resume 0
-> > 
-> > Any idea on this?
-> > 
-> 
-> Looks like this is what's happening:
-> during suspend:
-> 
-> drxk_sleep() gets called and marks state->m_drxk_state == DRXK_UNINITIALIZED
-> 
-> init_drxk() does download_microcode() and this step fails
-> because the conditions in which init_drxk() gets called
-> from drxk_attach() are different.
-> 
-> i2c isn't ready.
-> 
-> Is it possible for you to test this without power loss
-> on usb assuming this test run usb bus looses power?
-> 
-> If you could do the following tests and see if there is
-> a difference:
-> 
-> echo mem > /sys/power/state
-> vs
-> echo disk > /sys/power/state
-> 
-> If it is possible, with and without reset_resume hook.
+Hi Laurent,
 
-My testing time is up for today, I'll look into it
-maybe tomorrow.
+On Wed, Aug 6, 2014 at 10:50 PM, Philipp Zabel <philipp.zabel@gmail.com> wrote:
+> This patch adds a quirk to force Y8 pixel format even if the camera reports
+> half-width YUYV.
+>
+> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 
-BTW, what about 3.17?  The patches in media_tree.git are for
-3.18, right?  If so, and you have patches for 3.17 or
-3.16-stable to test, let me know.
+do you have any further comments on this patch?
 
+regards
+Philipp
 
-Thanks,
-Johannes
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 29 ++++++++++++++++++++++++++++-
+>  drivers/media/usb/uvc/uvcvideo.h   |  1 +
+>  2 files changed, 29 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index c3bb250..90a8f10 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+>         struct uvc_format_desc *fmtdesc;
+>         struct uvc_frame *frame;
+>         const unsigned char *start = buffer;
+> +       bool force_yuy2_to_y8 = false;
+>         unsigned int interval;
+>         unsigned int i, n;
+>         __u8 ftype;
+> @@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device *dev,
+>                 /* Find the format descriptor from its GUID. */
+>                 fmtdesc = uvc_format_by_guid(&buffer[5]);
+>
+> +               format->bpp = buffer[21];
+> +
+> +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
+> +                       if (fmtdesc && fmtdesc->fcc == V4L2_PIX_FMT_YUYV &&
+> +                           format->bpp == 16) {
+> +                               force_yuy2_to_y8 = true;
+> +                               fmtdesc = &uvc_fmts[9];
+> +                               format->bpp = 8;
+> +                       } else {
+> +                               uvc_printk(KERN_WARNING,
+> +                                       "Forcing %d-bit %s to %s not supported",
+> +                                       format->bpp, fmtdesc->name,
+> +                                       uvc_fmts[9].name);
+> +                       }
+> +               }
+> +
+>                 if (fmtdesc != NULL) {
+>                         strlcpy(format->name, fmtdesc->name,
+>                                 sizeof format->name);
+> @@ -345,7 +362,6 @@ static int uvc_parse_format(struct uvc_device *dev,
+>                         format->fcc = 0;
+>                 }
+>
+> -               format->bpp = buffer[21];
+>                 if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+>                         ftype = UVC_VS_FRAME_UNCOMPRESSED;
+>                 } else {
+> @@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+>                 frame->bFrameIndex = buffer[3];
+>                 frame->bmCapabilities = buffer[4];
+>                 frame->wWidth = get_unaligned_le16(&buffer[5]);
+> +               if (force_yuy2_to_y8)
+> +                       frame->wWidth *= 2;
+>                 frame->wHeight = get_unaligned_le16(&buffer[7]);
+>                 frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
+>                 frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
+> @@ -2467,6 +2485,15 @@ static struct usb_device_id uvc_ids[] = {
+>           .bInterfaceProtocol   = 0,
+>           .driver_info          = UVC_QUIRK_PROBE_MINMAX
+>                                 | UVC_QUIRK_IGNORE_SELECTOR_UNIT },
+> +       /* Oculus VR Positional Tracker DK2 */
+> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
+> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
+> +         .idVendor             = 0x2833,
+> +         .idProduct            = 0x0201,
+> +         .bInterfaceClass      = USB_CLASS_VIDEO,
+> +         .bInterfaceSubClass   = 1,
+> +         .bInterfaceProtocol   = 0,
+> +         .driver_info          = UVC_QUIRK_FORCE_Y8 },
+>         /* Generic USB Video Class */
+>         { USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
+>         {}
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 9e35982..1dd78c0 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -137,6 +137,7 @@
+>  #define UVC_QUIRK_FIX_BANDWIDTH                0x00000080
+>  #define UVC_QUIRK_PROBE_DEF            0x00000100
+>  #define UVC_QUIRK_RESTRICT_FRAME_RATE  0x00000200
+> +#define UVC_QUIRK_FORCE_Y8             0x00000400
+>
+>  /* Format flags */
+>  #define UVC_FMT_FLAG_COMPRESSED                0x00000001
+> --
+> 2.0.1
+>
