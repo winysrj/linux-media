@@ -1,55 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:51795 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932312AbaIWVkG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 17:40:06 -0400
-Received: from axis700.grange ([213.168.119.128]) by mail.gmx.com (mrgmx003)
- with ESMTPSA (Nemesis) id 0LyVpm-1YKNEY2Bmw-015mwg for
- <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 23:40:04 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 3CC5240BD9
-	for <linux-media@vger.kernel.org>; Tue, 23 Sep 2014 23:40:03 +0200 (CEST)
-Date: Tue, 23 Sep 2014 23:40:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera for 3.18
-Message-ID: <Pine.LNX.4.64.1409232338330.25286@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49619 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753536AbaI2U2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 16:28:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 05/11] v4l: of: Add v4l2_of_parse_link() function
+Date: Mon, 29 Sep 2014 23:27:51 +0300
+Message-Id: <1412022477-28749-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The function fills a link data structure with the device node and port
+number at both the local and remote ends of a link defined by one of its
+endpoint nodes.
 
-Please, pull the following three patches:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-of.c | 61 +++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-of.h           | 27 +++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
-The following changes since commit 4db4327f32bc3757355abff261c979408c85c771:
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-  Merge branch 'topic/devel-3.17-rc6' into to_next (2014-09-22 21:24:28 -0300)
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index b4ed9a9..c473479 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -142,3 +142,64 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_of_parse_endpoint);
++
++/**
++ * v4l2_of_parse_link() - parse a link between two endpoints
++ * @node: pointer to the endpoint at the local end of the link
++ * @link: pointer to the V4L2 OF link data structure
++ *
++ * Fill the link structure with the local and remote nodes and port numbers.
++ * The local_node and remote_node fields are set to point to the local and
++ * remote port parent nodes respectively (the port parent node being the parent
++ * node of the port node if that node isn't a 'ports' node, or the grand-parent
++ * node of the port node otherwise).
++ *
++ * A reference is taken to both the local and remote nodes, the caller must use
++ * v4l2_of_put_link() to drop the references when done with the link.
++ *
++ * Return: 0 on success, or -ENOLINK if the remote endpoint can't be found.
++ */
++int v4l2_of_parse_link(const struct device_node *node,
++		       struct v4l2_of_link *link)
++{
++	struct device_node *np;
++
++	memset(link, 0, sizeof(*link));
++
++	np = of_get_parent(node);
++	of_property_read_u32(np, "reg", &link->local_port);
++	np = of_get_next_parent(np);
++	if (of_node_cmp(np->name, "ports") == 0)
++		np = of_get_next_parent(np);
++	link->local_node = np;
++
++	np = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!np) {
++		of_node_put(link->local_node);
++		return -ENOLINK;
++	}
++
++	np = of_get_parent(np);
++	of_property_read_u32(np, "reg", &link->remote_port);
++	np = of_get_next_parent(np);
++	if (of_node_cmp(np->name, "ports") == 0)
++		np = of_get_next_parent(np);
++	link->remote_node = np;
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_of_parse_link);
++
++/**
++ * v4l2_of_put_link() - drop references to nodes in a link
++ * @link: pointer to the V4L2 OF link data structure
++ *
++ * Drop references to the local and remote nodes in the link. This function must
++ * be called on every link parsed with v4l2_of_parse_link().
++ */
++void v4l2_of_put_link(struct v4l2_of_link *link)
++{
++	of_node_put(link->local_node);
++	of_node_put(link->remote_node);
++}
++EXPORT_SYMBOL(v4l2_of_put_link);
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index 70fa7b7..078846d 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -66,9 +66,26 @@ struct v4l2_of_endpoint {
+ 	struct list_head head;
+ };
+ 
++/**
++ * struct v4l2_of_link - a link between two endpoints
++ * @local_node: pointer to device_node of this endpoint
++ * @local_port: identifier of the port this endpoint belongs to
++ * @remote_node: pointer to device_node of the remote endpoint
++ * @remote_port: identifier of the port the remote endpoint belongs to
++ */
++struct v4l2_of_link {
++	struct device_node *local_node;
++	unsigned int local_port;
++	struct device_node *remote_node;
++	unsigned int remote_port;
++};
++
+ #ifdef CONFIG_OF
+ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint);
++int v4l2_of_parse_link(const struct device_node *node,
++		       struct v4l2_of_link *link);
++void v4l2_of_put_link(struct v4l2_of_link *link);
+ #else /* CONFIG_OF */
+ 
+ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+@@ -77,6 +94,16 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
+ }
+ 
++static inline int v4l2_of_parse_link(const struct device_node *node,
++				     struct v4l2_of_link *link)
++{
++	return -ENOSYS;
++}
++
++static inline void v4l2_of_put_link(struct v4l2_of_link *link)
++{
++}
++
+ #endif /* CONFIG_OF */
+ 
+ #endif /* _V4L2_OF_H */
+-- 
+1.8.5.5
 
-are available in the git repository at:
-
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.18-1
-
-for you to fetch changes up to 0c87b375d25fa05bb9686f28eb3d720df0428866:
-
-  soc_camera: Support VIDIOC_EXPBUF ioctl (2014-09-23 23:22:08 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      mx2-camera: potential negative underflow bug
-
-Kazunori Kobayashi (1):
-      soc_camera: Support VIDIOC_EXPBUF ioctl
-
-Sergei Shtylyov (1):
-      rcar_vin: fix error message in rcar_vin_get_formats()
-
- drivers/media/platform/soc_camera/mx2_camera.c |  2 +-
- drivers/media/platform/soc_camera/rcar_vin.c   |  2 +-
- drivers/media/platform/soc_camera/soc_camera.c | 17 +++++++++++++++++
- 3 files changed, 19 insertions(+), 2 deletions(-)
-
-Thanks
-Guennadi
