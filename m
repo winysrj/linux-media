@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:18132 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbaIDOv1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Sep 2014 10:51:27 -0400
-Message-ID: <54087C49.2030304@cisco.com>
-Date: Thu, 04 Sep 2014 16:50:49 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] [media] tw68: make tw68_pci_tbl static and constify
-References: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-In-Reply-To: <ce9e1ac1b9becb9481f8492d9ccf713398a07ef8.1409841955.git.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49613 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbaI2U2C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 16:28:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH 01/11] media: entity: Document the media_entity_ops structure
+Date: Mon, 29 Sep 2014 23:27:47 +0300
+Message-Id: <1412022477-28749-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@xs4all.nl>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/media-entity.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Thanks!
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e004591..786906b 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -44,6 +44,15 @@ struct media_pad {
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+ };
+ 
++/**
++ * struct media_entity_operations - Media entity operations
++ * @link_setup:		Notify the entity of link changes. The operation can
++ *			return an error, in which case link setup will be
++ *			cancelled. Optional.
++ * @link_validate:	Return whether a link is valid from the entity point of
++ *			view. The media_entity_pipeline_start() function
++ *			validates all links by calling this operation. Optional.
++ */
+ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+-- 
+1.8.5.5
 
-	Hans
-
-On 09/04/14 16:46, Mauro Carvalho Chehab wrote:
-> drivers/media/pci/tw68/tw68-core.c:72:22: warning: symbol 'tw68_pci_tbl' was not declared. Should it be static?
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
-> index baf93af1d764..a6fb48cf7aae 100644
-> --- a/drivers/media/pci/tw68/tw68-core.c
-> +++ b/drivers/media/pci/tw68/tw68-core.c
-> @@ -69,7 +69,7 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
->   * the PCI ID database up to date.  Note that the entries must be
->   * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
->   */
-> -struct pci_device_id tw68_pci_tbl[] = {
-> +static const struct pci_device_id tw68_pci_tbl[] = {
->  	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6800)},
->  	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6801)},
->  	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6804)},
-> 
