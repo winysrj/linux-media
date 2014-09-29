@@ -1,118 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:40375 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434AbaINHwu (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:62404 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754306AbaI2Ok1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Sep 2014 03:52:50 -0400
-Received: by mail-oa0-f48.google.com with SMTP id g18so1700810oah.35
-        for <linux-media@vger.kernel.org>; Sun, 14 Sep 2014 00:52:50 -0700 (PDT)
+	Mon, 29 Sep 2014 10:40:27 -0400
+Date: Mon, 29 Sep 2014 16:40:24 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more
+ standard place
+Message-ID: <20140929144023.GB2273@ulmo>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
 MIME-Version: 1.0
-Date: Sun, 14 Sep 2014 15:52:50 +0800
-Message-ID: <CAP0kTBbc_DnAmX1g+a0wPWdLkmH+SK+Nnp14yPNvA6VE=k6PMA@mail.gmail.com>
-Subject: DVICO Fusion Pro HD 0x9888:0x8229 possible regression linux 3.13.0-35 ?
-From: Ben Kelly <kell4now@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
+Content-Disposition: inline
+In-Reply-To: <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My DVICO DVB card has stopped working after I did a release upgrade of
-my system (12.04 -> 14.04). The driver looks good, but the dmesg shows
-me that the frontend device fails:-
 
-[   21.412769] cx88[1]/2: subsystem: 18ac:db30, board: DViCO
-FusionHDTV DVB-T PRO [card=64]
+--O5XBE6gyVG5Rl6Rj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[   21.412771] cx88[1]/2: cx2388x based DVB/ATSC card
+On Mon, Sep 29, 2014 at 04:02:39PM +0200, Boris Brezillon wrote:
+> Rename mediabus formats and move the enum into a separate header file so
+> that it can be used by DRM/KMS subsystem without any reference to the V4L2
+> subsystem.
+>=20
+> Old V4L2_MBUS_FMT_ definitions are now macros that points to VIDEO_BUS_FM=
+T_
+> definitions.
+>=20
+> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  include/uapi/linux/Kbuild             |   1 +
+>  include/uapi/linux/v4l2-mediabus.h    | 183 +++++++++++++++-------------=
+------
+>  include/uapi/linux/video-bus-format.h | 127 +++++++++++++++++++++++
+>  3 files changed, 207 insertions(+), 104 deletions(-)
+>  create mode 100644 include/uapi/linux/video-bus-format.h
 
-[   21.412772] cx8802_alloc_frontends() allocating 1 frontend(s)
+Hi Mauro,
 
-[   21.416208] asus_wmi: ASUS WMI generic driver loaded
+Do you have any objections to me merging patches 1 and 2 through the
+drm/panel tree given the dependency of the later patches in the series
+on these new constants? If you want I can provide a stable branch once
+v3.18-rc1 is out for you to pull into you tree to resolve possible
+conflicts.
 
-[   21.416362] i2c i2c-2: sendbytes: NAK bailout.
+Thierry
 
-[   21.416450] zl10353_read_register: readreg error (reg=127, ret==-5)
+--O5XBE6gyVG5Rl6Rj
+Content-Type: application/pgp-signature
 
-[   21.417321] cx88[1]/2: dvb frontend not attached. Can't attach xc3028
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-[   21.417385] cx88[1]/2: dvb_register failed (err = -22)
+iQIcBAEBAgAGBQJUKW9XAAoJEN0jrNd/PrOhdGEQAIGS5+E6bA05hTMqi1sV0j+5
+XlSqV2sdTiVg2p+MzLHI0sYI62QJGOZ0UZR7yCKNrBuN9Awmr9sWlMplqQWVkxdo
+0X4xoS+Sx5yQNQKDMLnYvGlzTU8b1BEfEffTHeauNhN3fC9KxqKdUwH+hG+QARbW
+Lk4jMPg7tMF+hkEnUxowA5Oh6o+qGTdH3EVIiGqXGSbdutBU0WL930nKk3DOi/Ql
+9pWOhQp1a0kJddvLz1/JWaeKhcPM3RurdFsyeOOMZ91l+jVg/v3I9vl+mUPox0NA
+lNnTIUqE/sfO90SqfBOfdRbZSbfuJuOSqNRmf0hy6k70heJiYV9zWkdEvO2NDNaf
+aE146rEc4OsNvxEDjF3XxlMg5WT8FbuqkmWzzKRm8l7C3L71CwxxWbDew8uwWhIf
+Oboab86AGCdaralrnbBdQ6nWWK31dptqd07BTzl5s/6c0oHqjOu6X5NKFW/wet3d
+7P1AhkSm7XvGnnzL7zIQcHHLupehyYJ5rlw0YvMoeO+cuh8Fq+MRFxiqqW5pUZLG
+kpqcDXG1XQSzkuypQhlAR6r2SzjI2o4ianCSy+Pm8YqmIzvEmcBl27NjmpIhR17q
+0v0RFIp7REQzsIQc/7JlVJwHf9CfTaG1x1ZlgtJ/Z967It8zM+n57ou2rEuKq89z
+aVGPS6o/GInxWCkQEm1F
+=r626
+-----END PGP SIGNATURE-----
 
-[   21.417446] cx88[1]/2: cx8802 probe failed, err = -22
-
-
-Kernel:
-
-Linux mythtv 3.13.0-35-generic #62-Ubuntu SMP Fri Aug 15 01:58:01 UTC
-2014 i686 i686 i686 GNU/Linux
-
-Ubuntu 3.13.0-35.62-generic 3.13.11.6
-
-
-Lspci:
-
-05:02.0 Multimedia video controller: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
-
-        Subsystem: DViCO Corporation Device db30
-
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-
-        Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 64 bytes
-
-        Interrupt: pin A routed to IRQ 19
-
-        Region 0: Memory at f2000000 (32-bit, non-prefetchable) [size=16M]
-
-        Capabilities: <access denied>
-
-        Kernel driver in use: cx8800
-
-
-
-05:02.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
-PCI Video and Audio Decoder [Audio Port] (rev 05)
-
-        Subsystem: DViCO Corporation Device db30
-
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-
-        Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 64 bytes
-
-        Interrupt: pin A routed to IRQ 19
-
-        Region 0: Memory at f1000000 (32-bit, non-prefetchable) [size=16M]
-
-        Capabilities: <access denied>
-
-        Kernel driver in use: cx88_audio
-
-
-
-05:02.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
-PCI Video and Audio Decoder [MPEG Port] (rev 05)
-
-        Subsystem: DViCO Corporation Device db30
-
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
->TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-
-        Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 64 bytes
-
-        Interrupt: pin A routed to IRQ 19
-
-        Region 0: Memory at f0000000 (32-bit, non-prefetchable) [size=16M]
-
-        Capabilities: <access denied>
-
-        Kernel driver in use: cx88-mpeg driver manager
+--O5XBE6gyVG5Rl6Rj--
