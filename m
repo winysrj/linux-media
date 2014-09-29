@@ -1,78 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:39808 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532AbaIVQuX (ORCPT
+Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:52075 "EHLO
+	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbaI2Ioa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 12:50:23 -0400
-Message-ID: <5420534C.7070701@soulik.info>
-Date: Tue, 23 Sep 2014 00:50:20 +0800
-From: ayaka <ayaka@soulik.info>
-MIME-Version: 1.0
+	Mon, 29 Sep 2014 04:44:30 -0400
+Subject: [PATCH 2/2] af9033: fix snr value not correct issue
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
 To: linux-media@vger.kernel.org
-CC: kyungmin.park@samsung.com, jtp.park@samsung.com,
-	m.chehab@samsung.com
-Subject: Re: [PATCH] s5p-mfc: correct the formats info for encoder
-References: <1406132104-6430-1-git-send-email-ayaka@soulik.info> <1406132104-6430-2-git-send-email-ayaka@soulik.info> <072d01cfd682$4cf2b220$e6d81660$%debski@samsung.com>
-In-Reply-To: <072d01cfd682$4cf2b220$e6d81660$%debski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: crope@iki.fi
+Content-Type: multipart/mixed; boundary="=-/XpKs2nAvlpx0Uk5ygu6"
+Date: Mon, 29 Sep 2014 16:47:38 +0800
+Message-ID: <1411980458.1747.12.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+
+--=-/XpKs2nAvlpx0Uk5ygu6
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Snr returns value not correct. Fix it.
+
+--=-/XpKs2nAvlpx0Uk5ygu6
+Content-Disposition: attachment; filename="0002-af9033-fix-snr-value-not-correct-issue.patch"
+Content-Type: text/x-patch; name="0002-af9033-fix-snr-value-not-correct-issue.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From 427a5c6ef49e3235ac35a0464c375f2a2706619e Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Mon, 29 Sep 2014 16:30:52 +0800
+Subject: [PATCH 2/2] af9033: fix snr value not correct issue
+
+Snr returns value not correct. Fix it.
+
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/dvb-frontends/af9033.c      |   52 ++++++++++++++++++++++++++---
+ drivers/media/dvb-frontends/af9033_priv.h |    5 ++-
+ 2 files changed, 51 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index e191bd5..30dc366 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -851,8 +851,8 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
+ 
+ 	/* use DVBv5 CNR */
+-	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
+-		*snr = div_s64(c->cnr.stat[0].svalue, 100); /* 1000x => 10x */
++	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
++		*snr = c->cnr.stat[0].uvalue;
+ 	else
+ 		*snr = 0;
+ 
+@@ -1025,6 +1025,33 @@ static void af9033_stat_work(struct work_struct *work)
+ 
+ 		snr_val = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+ 
++		/* read superframe number */
++		ret = af9033_rd_reg(dev, 0x80f78b, &u8tmp);
++		if (ret)
++			goto err;
++
++		if (u8tmp)
++			snr_val /= u8tmp;
++
++		/* read current transmission mode */
++		ret = af9033_rd_reg(dev, 0x80f900, &u8tmp);
++		if (ret)
++			goto err;
++
++		switch ((u8tmp >> 0) & 3) {
++		case 0:
++			snr_val *= 4;
++			break;
++		case 1:
++			snr_val *= 1;
++			break;
++		case 2:
++			snr_val *= 2;
++			break;
++		default:
++			goto err;
++		}
++
+ 		/* read current modulation */
+ 		ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
+ 		if (ret)
+@@ -1048,14 +1075,29 @@ static void af9033_stat_work(struct work_struct *work)
+ 		}
+ 
+ 		for (i = 0; i < len; i++) {
+-			tmp = snr_lut[i].snr * 1000;
++			tmp = snr_lut[i].snr;
+ 			if (snr_val < snr_lut[i].val)
+ 				break;
+ 		}
+ 
++		/* scale value to 0x0000-0xffff */
++		switch ((u8tmp >> 0) & 3) {
++		case 0:
++			tmp = tmp * 0xFFFF / 23;
++			break;
++		case 1:
++			tmp = tmp * 0xFFFF / 26;
++			break;
++		case 2:
++			tmp = tmp * 0xFFFF / 32;
++			break;
++		default:
++			goto err;
++		}
++
+ 		c->cnr.len = 1;
+-		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
+-		c->cnr.stat[0].svalue = tmp;
++		c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
++		c->cnr.stat[0].uvalue = tmp;
+ 	} else {
+ 		c->cnr.len = 1;
+ 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index c9c8798..8e23275 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -181,7 +181,10 @@ static const struct val_snr qam64_snr_lut[] = {
+ 	{ 0x05570d, 26 },
+ 	{ 0x059feb, 27 },
+ 	{ 0x05bf38, 28 },
+-	{ 0xffffff, 29 },
++	{ 0x05f78f, 29 },
++	{ 0x0612c3, 30 },
++	{ 0x0626be, 31 },
++	{ 0xffffff, 32 },
+ };
+ 
+ static const struct reg_val ofsm_init[] = {
+-- 
+1.7.0.4
 
 
+--=-/XpKs2nAvlpx0Uk5ygu6--
 
- 2014/09/23 00:28, Kamil Debski wrote:
-> Hi Ayaka,
-> 
-> Sorry for such a late reply - I just noticed this patch.
-> 
->> The NV12M is supported by all the version of MFC, so it is better
->> to use it as default OUTPUT format. MFC v5 doesn't support NV21,
->> I have tested it, for the SEC doc it is not supported either.
-> 
-
-> A proper Sign-off is missing here.
-> 
-Sorry  to miss it again.
-> According to the documentation of MFC v5 I have non-tiled format
-> is supported. Which documentation were you looking at?
-> 
-But the V4L2_PIX_FMT_NV12MT is only supported by MFC_V5_BIT from your
-code, V4L2_PIX_FMT_NV12M is supported by all the version.
-
->> From my documentation:
-> ++++++++++++++ ENC_MAP_FOR_CUR	0xC51C Memory structure setting
-> register of the current frame.	R/W	0x00000000
-> 
-> Bits	Name	Description	Reset Value [31:2]	RESERVED	Reserved	0 [1:0]
-> ENC_MAP_FOR_CUR	Memory structure of the current frame 0 : Linear
-> mode 3 : 64x32 tiled mode	0 ++++++++++++++
-> 
-In the page 2277. The same result.
-I think the V4L2_PIX_FMT_NV12MT is 64x32 Tiles mode, but what I remove
-for MFC v5 is V4L2_PIX_FMT_NV21M.
-> Best wishes,
-> 
-
-- -- 
-ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUIFNLAAoJEPsGh4kgR4i5HcIP/2qwn7uIFq66qpSajXmtcLx3
-3/wt8n26u6GhTMUnIJKZS07FGtv7qizUVqeY3WmfWQw3jLaUjZeVviVH08y3DrE8
-+7Vjq2rxz57ou4bBtc4qIgTWB7z2yuVSpBOYUB94laItQ7KDap4EgLf89m4KaKTt
-5nULR0byxXh+RuUOw80v0eP/TBz7SRfYZnulASV9QlGS6T3Xp6v4U6W8LbSbieR5
-63PwPxYP7aDVb5R6qzaLIVXNuI53vn5VhrQ6JJUfKee5YSbkV/Ff6XK+7/P162Pn
-5cVt06X+RUeZXHGqCroMNb9cdm+7JHOZL458NPn4NmTJnFcPNu6JzW9iLymHeHC8
-iFmNhpDuHJBulKsW44lqKe1fHT22a5C/oJAI1ZS9c3yrH+TqHkfEkUJjglSRByzj
-ptTFFZVTCdiL5VwnDlfowR4ZzrkZuoWzHIn5cGeHogvbLbxCbtV67+IFpWlXfyJu
-rKnCI+DKYb5cjEiHm7kzGbAO04AfNMT79sNwrD+sPuvnaFyRiy2rjKv3ubnPFRVp
-3agNRzAcCgmsW3K10P3ism4ceJUqeZtFvieCQrjiQdxj8EB7QAcgOhgn3K//zrQ1
-mQP7xuVQcwpaRIOx/3jSlVWYFrkFs2+tmgS9oEn+v40gXOQXk8rML21gHvpDuCnf
-qJXx0UVYQRV7Bhgv8EFW
-=SNTL
------END PGP SIGNATURE-----
