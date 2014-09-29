@@ -1,54 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34257 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828AbaIXW17 (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:47345 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754426AbaI2ODv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Christoph Jaeger <christophjaeger@linux.com>,
-	Dave Jones <davej@redhat.com>
-Subject: [PATCH 11/18] [media] drxd: remove a dead code
-Date: Wed, 24 Sep 2014 19:27:11 -0300
-Message-Id: <72d5c25b8175ac7655c165339ad2d2880419dec7.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+	Mon, 29 Sep 2014 10:03:51 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 3/5] drm: add bus_formats and nbus_formats fields to drm_display_info
+Date: Mon, 29 Sep 2014 16:02:41 +0200
+Message-Id: <1411999363-28770-4-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/drxd_hard.c:2839 drxd_init() info: ignoring unreachable code.
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
 
-Firmware request/release is not at drxd_init. So, we can remove
-that dead code.
+Add bus_formats and nbus_formats fields and
+drm_display_info_set_bus_formats helper function to specify the bus
+formats supported by a given display.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This information can be used by display controller drivers to configure
+the output interface appropriately (i.e. RGB565, RGB666 or RGB888 on raw
+RGB or LVDS busses).
 
-diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-index 961641b67728..687e893d29fe 100644
---- a/drivers/media/dvb-frontends/drxd_hard.c
-+++ b/drivers/media/dvb-frontends/drxd_hard.c
-@@ -2831,14 +2831,8 @@ static int drxd_read_status(struct dvb_frontend *fe, fe_status_t * status)
- static int drxd_init(struct dvb_frontend *fe)
- {
- 	struct drxd_state *state = fe->demodulator_priv;
--	int err = 0;
- 
--/*	if (request_firmware(&state->fw, "drxd.fw", state->dev)<0) */
- 	return DRXD_init(state, NULL, 0);
--
--	err = DRXD_init(state, state->fw->data, state->fw->size);
--	release_firmware(state->fw);
--	return err;
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/drm/drm_crtc.c | 31 +++++++++++++++++++++++++++++++
+ include/drm/drm_crtc.h     |  8 ++++++++
+ 2 files changed, 39 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+index 90e7730..c31420f 100644
+--- a/drivers/gpu/drm/drm_crtc.c
++++ b/drivers/gpu/drm/drm_crtc.c
+@@ -852,6 +852,37 @@ static void drm_mode_remove(struct drm_connector *connector,
+ 	drm_mode_destroy(connector->dev, mode);
  }
  
- static int drxd_config_i2c(struct dvb_frontend *fe, int onoff)
++/*
++ * drm_display_info_set_bus_formats - set the supported bus formats
++ * @info: display info to store bus formats in
++ * @fmts: array containing the supported bus formats
++ * @nfmts: the number of entries in the fmts array
++ *
++ * Store the suppported bus formats in display info structure.
++ */
++int drm_display_info_set_bus_formats(struct drm_display_info *info,
++				     const enum video_bus_format *fmts,
++				     unsigned int num_fmts)
++{
++	enum video_bus_format *formats = NULL;
++
++	if (!fmts && num_fmts)
++		return -EINVAL;
++
++	if (fmts && num_fmts) {
++		formats = kmemdup(fmts, sizeof(*fmts) * num_fmts, GFP_KERNEL);
++		if (!formats)
++			return -ENOMEM;
++	}
++
++	kfree(info->bus_formats);
++	info->bus_formats = formats;
++	info->num_bus_formats = num_fmts;
++
++	return 0;
++}
++EXPORT_SYMBOL(drm_display_info_set_bus_formats);
++
+ /**
+  * drm_connector_init - Init a preallocated connector
+  * @dev: DRM device
+diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+index f1105d0..488f779 100644
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -31,6 +31,7 @@
+ #include <linux/idr.h>
+ #include <linux/fb.h>
+ #include <linux/hdmi.h>
++#include <linux/video-bus-format.h>
+ #include <drm/drm_mode.h>
+ #include <drm/drm_fourcc.h>
+ #include <drm/drm_modeset_lock.h>
+@@ -130,6 +131,9 @@ struct drm_display_info {
+ 	enum subpixel_order subpixel_order;
+ 	u32 color_formats;
+ 
++	const enum video_bus_format *bus_formats;
++	int num_bus_formats;
++
+ 	/* Mask of supported hdmi deep color modes */
+ 	u8 edid_hdmi_dc_modes;
+ 
+@@ -975,6 +979,10 @@ extern int drm_mode_connector_set_path_property(struct drm_connector *connector,
+ extern int drm_mode_connector_update_edid_property(struct drm_connector *connector,
+ 						struct edid *edid);
+ 
++extern int drm_display_info_set_bus_formats(struct drm_display_info *info,
++					    const enum video_bus_format *fmts,
++					    unsigned int nfmts);
++
+ static inline bool drm_property_type_is(struct drm_property *property,
+ 		uint32_t type)
+ {
 -- 
-1.9.3
+1.9.1
 
