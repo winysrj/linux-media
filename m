@@ -1,43 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:38854 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbaIXXCV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 19:02:21 -0400
-Received: by mail-la0-f51.google.com with SMTP id pv20so2032048lab.10
-        for <linux-media@vger.kernel.org>; Wed, 24 Sep 2014 16:02:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <ed21f64844bd63573466c2667fd035f9e650a5f9.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-	<ed21f64844bd63573466c2667fd035f9e650a5f9.1411597610.git.mchehab@osg.samsung.com>
-Date: Wed, 24 Sep 2014 20:02:19 -0300
-Message-ID: <CAOMZO5CoaX05r50p+Ug++napxZEoL_+CR8-T7tN6wtiSRfT1pw@mail.gmail.com>
-Subject: Re: [PATCH 15/18] [media] s5p_mfc_opr: Fix warnings
-From: Fabio Estevam <festevam@gmail.com>
+Received: from bar.sig21.net ([80.81.252.164]:36169 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753898AbaI2Sof (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 14:44:35 -0400
+Date: Mon, 29 Sep 2014 20:44:28 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/6] some fixes and cleanups for the em28xx-based HVR-930C
+Message-ID: <20140929184428.GA447@linuxtv.org>
+References: <cover.1411956856.git.mchehab@osg.samsung.com>
+ <20140929174430.GA18967@linuxtv.org>
+ <20140929153018.2f701689@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140929153018.2f701689@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, Sep 29, 2014 at 03:30:18PM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 29 Sep 2014 19:44:30 +0200
+> Johannes Stezenbach <js@linuxtv.org> escreveu:
+> 
+> > Disregarding your mails from the "em28xx breaks after hibernate"
+> > that hibernate doesn't work for you, I decided to give these
+> > changes a try on top of today's media_tree.git
+> > (cf3167c -> 3.17.0-rc5-00741-g9a3fbd8), still inside qemu
+> > (can't upgrade/reboot my main machine right now).
+> 
+> Well, I think I was not clear: It doesn't work for me when 
+> I power down the USB or the machine after suspended. If I keep
+> the device energized, it works ;)
 
-On Wed, Sep 24, 2014 at 7:27 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
+Ah, OK.  I'll try to test with power removed tomorrow.
+
+> > Works!  For hibernate, using "echo reboot >/sys/power/disk", so
+> > the host driver cannot interfere with the qemu driver during hibernate.
+> > Qemu causes several USB resets to the device during
+> > hibernate -> resume, but the USB power is not cut.
+> > It works even while running dvbv5-zap and streaming to mplayer.
+> 
+> Thanks for testing it! it is great to have a separate test for
+> the patches.
+> 
+> Could I add a tested-by tag on those patches?
+
+sure
+
+> > I tried both suspend-to-ram and hibernate a couple of times,
+> > at least in Qemu it all works.
+> > 
+> > There are a lot of drxk debug prints now enabled by default,
+> > not sure if that was intentional.
+> 
+> You're probably probing the device with debug=1, right?
+
+right, forgot I had added this to the kernel command line
+in my qemu start script
 
 
-> drivers/media//platform/s5p-mfc/s5p_mfc_opr.c:44:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
-
-...
-
-> -       mfc_debug(3, "Allocating priv: %d\n", b->size);
-> +       mfc_debug(3, "Allocating priv: %zd\n", b->size);
-
-This should be %zu instead.
+Thanks,
+Johannes
