@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2657 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbaIUKql (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39742 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbaI2IQX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 06:46:41 -0400
-Message-ID: <541EAC85.50803@xs4all.nl>
-Date: Sun, 21 Sep 2014 12:46:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Divneil Wadhawan <divneil@outlook.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>,<BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>,<536A1A45.6080201@xs4all.nl> <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>,<53B65C2E.9040503@xs4all.nl> <BAY176-W19A194B095C32CE30B0B8DA90D0@phx.gbl>,<53C78FEA.1050600@xs4all.nl> <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
-In-Reply-To: <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 29 Sep 2014 04:16:23 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 4/8] of: Add for_each_endpoint_of_node helper macro
+Date: Mon, 29 Sep 2014 10:15:47 +0200
+Message-Id: <1411978551-30480-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/21/2014 08:03 AM, Divneil Wadhawan wrote:
-> 
-> Hi Hans,
-> 
->> This patch is all messed up and doesn't apply.
->>
->> Check your mailer settings: it clearly replaced hard tabs by a space.
->>
->> Can you repost?
-> 
-> I tried to find out if I can change the mailer settings. Seems, that is the problem.
-> 
-> 
-> I tried using mutt, but, seems the configuration is missing.
-> 
-> If you have a simple method, on using mutt, I will send it from there, as, mutt is respecting the TAB spaces.
-> 
-> I didn't spend much time with it for time being.
+Note that while of_graph_get_next_endpoint decrements the reference count
+of the child node passed to it, of_node_put(child) still has to be called
+manually when breaking out of the loop.
 
-Ping?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/of_graph.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-If you really can't get your mailer to behave, then mail it as an attachment.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> Regards,
-> 
-> Divneil 		 	   		  --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+index befef42..e43442e 100644
+--- a/include/linux/of_graph.h
++++ b/include/linux/of_graph.h
+@@ -26,6 +26,17 @@ struct of_endpoint {
+ 	const struct device_node *local_node;
+ };
+ 
++/**
++ * for_each_endpoint_of_node - iterate over every endpoint in a device node
++ * @parent: parent device node containing ports and endpoints
++ * @child: loop variable pointing to the current endpoint node
++ *
++ * When breaking out of the loop, of_node_put(child) has to be called manually.
++ */
++#define for_each_endpoint_of_node(parent, child) \
++	for (child = of_graph_get_next_endpoint(parent, NULL); child != NULL; \
++	     child = of_graph_get_next_endpoint(parent, child))
++
+ #ifdef CONFIG_OF
+ int of_graph_parse_endpoint(const struct device_node *node,
+ 				struct of_endpoint *endpoint);
+-- 
+2.1.0
 
