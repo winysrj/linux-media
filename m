@@ -1,82 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:43379 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbaITEDT (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:53626 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754110AbaI2ORj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 00:03:19 -0400
-Date: Fri, 19 Sep 2014 21:03:15 -0700
-From: Amber Thrall <amber.rose.thrall@gmail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] Media: USB: usbtv: Fixed all coding style issues in usbtv
- source files.
-Message-ID: <20140920040314.GA17113@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Mon, 29 Sep 2014 10:17:39 -0400
+Received: by mail-pa0-f44.google.com with SMTP id et14so2763798pad.17
+        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 07:17:39 -0700 (PDT)
+Date: Mon, 29 Sep 2014 22:17:36 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Olli Salonen" <olli.salonen@iki.fi>
+Cc: "Antti Palosaari" <crope@iki.fi>,
+	"linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] Add IR support for DVBSky T9580 Dual DVB-S2/T2/C PCIe card
+Message-ID: <201409292217331712046@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed various coding styles, ignoring coding style error on line 5 for all files containing a link that is longer than 80 characters long.
+DVBSky T9580 uses Integrated CX23885 IR controller to decode IR signal.
+The IR type of DVBSky remote control is RC5.
 
-Signed-off-by: Amber Thrall <amber.rose.thrall@gmail.com>
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
 ---
- drivers/media/usb/usbtv/usbtv-audio.c | 1 +
- drivers/media/usb/usbtv/usbtv-core.c  | 1 +
- drivers/media/usb/usbtv/usbtv-video.c | 3 +++
- 3 files changed, 5 insertions(+)
+ drivers/media/pci/cx23885/cx23885-cards.c | 3 +++
+ drivers/media/pci/cx23885/cx23885-input.c | 8 ++++++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-audio.c b/drivers/media/usb/usbtv/usbtv-audio.c
-index 2d8795f..78c12d2 100644
---- a/drivers/media/usb/usbtv/usbtv-audio.c
-+++ b/drivers/media/usb/usbtv/usbtv-audio.c
-@@ -311,6 +311,7 @@ static int snd_usbtv_card_trigger(struct snd_pcm_substream *substream, int cmd)
- static snd_pcm_uframes_t snd_usbtv_pointer(struct snd_pcm_substream *substream)
- {
- 	struct usbtv *chip = snd_pcm_substream_chip(substream);
-+
- 	return chip->snd_buffer_pos;
- }
- 
-diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-index bf25ecf..29428be 100644
---- a/drivers/media/usb/usbtv/usbtv-core.c
-+++ b/drivers/media/usb/usbtv/usbtv-core.c
-@@ -108,6 +108,7 @@ usbtv_video_fail:
- static void usbtv_disconnect(struct usb_interface *intf)
- {
- 	struct usbtv *usbtv = usb_get_intfdata(intf);
-+
- 	usb_set_intfdata(intf, NULL);
- 
- 	if (!usbtv)
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 3d6ed1f..9d3525f 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -263,6 +263,7 @@ static void usbtv_chunk_to_vbuf(u32 *frame, __be32 *src, int chunk_no, int odd)
- 		int part_index = (line * 2 + !odd) * 3 + (part_no % 3);
- 
- 		u32 *dst = &frame[part_index * USBTV_CHUNK/2];
-+
- 		memcpy(dst, src, USBTV_CHUNK/2 * sizeof(*src));
- 		src += USBTV_CHUNK/2;
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 88c257d..d07f025 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -1621,6 +1621,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
++	case CX23885_BOARD_DVBSKY_T9580:
+ 		if (!enable_885_ir)
+ 			break;
+ 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+@@ -1667,6 +1668,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
++	case CX23885_BOARD_DVBSKY_T9580:
+ 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+ 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+ 		dev->sd_ir = NULL;
+@@ -1714,6 +1716,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
++	case CX23885_BOARD_DVBSKY_T9580:
+ 		if (dev->sd_ir)
+ 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+ 		break;
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 9d37fe6..f81c2f9 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -87,6 +87,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
++	case CX23885_BOARD_DVBSKY_T9580:
+ 		/*
+ 		 * The only boards we handle right now.  However other boards
+ 		 * using the CX2388x integrated IR controller should be similar
+@@ -139,6 +140,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 	case CX23885_BOARD_MYGICA_X8507:
++	case CX23885_BOARD_DVBSKY_T9580:
+ 		/*
+ 		 * The IR controller on this board only returns pulse widths.
+ 		 * Any other mode setting will fail to set up the device.
+@@ -305,6 +307,12 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TBS_NEC;
+ 		break;
++	case CX23885_BOARD_DVBSKY_T9580:
++		/* Integrated CX23885 IR controller */
++		driver_type = RC_DRIVER_IR_RAW;
++		allowed_protos = RC_BIT_ALL;
++		rc_map = RC_MAP_DVBSKY;
++		break;
+ 	default:
+ 		return -ENODEV;
  	}
-@@ -407,6 +408,7 @@ static void usbtv_stop(struct usbtv *usbtv)
- 	/* Cancel running transfers. */
- 	for (i = 0; i < USBTV_ISOC_TRANSFERS; i++) {
- 		struct urb *ip = usbtv->isoc_urbs[i];
-+
- 		if (ip == NULL)
- 			continue;
- 		usb_kill_urb(ip);
-@@ -560,6 +562,7 @@ static int usbtv_g_input(struct file *file, void *priv, unsigned int *i)
- static int usbtv_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	struct usbtv *usbtv = video_drvdata(file);
-+
- 	return usbtv_select_input(usbtv, i);
- }
- 
 -- 
-2.1.0
+1.9.1
+
