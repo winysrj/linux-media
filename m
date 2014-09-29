@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:48400 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932632AbaIEOTx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Sep 2014 10:19:53 -0400
-Received: by mail-we0-f180.google.com with SMTP id w61so11921754wes.11
-        for <linux-media@vger.kernel.org>; Fri, 05 Sep 2014 07:19:51 -0700 (PDT)
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: m.chehab@samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, mark.rutland@arm.com,
-	lars@metafoo.de,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH 2/2] adv7604: Add DT parsing support
-Date: Fri,  5 Sep 2014 16:19:33 +0200
-Message-Id: <1409926773-30696-2-git-send-email-jean-michel.hautbois@vodalys.com>
-In-Reply-To: <1409926773-30696-1-git-send-email-jean-michel.hautbois@vodalys.com>
-References: <1409926773-30696-1-git-send-email-jean-michel.hautbois@vodalys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48378 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041AbaI2IQz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 04:16:55 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 8/8] imx-drm: use for_each_endpoint_of_node macro in imx_drm_encoder_parse_of
+Date: Mon, 29 Sep 2014 10:15:51 +0200
+Message-Id: <1411978551-30480-9-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows specifying I²C secodnary addresses different from default ones.
+Using the for_each_... macro should make the code bit shorter and
+easier to read. Since we can break out of the loop, we keep the
+call to of_node_put after the loop.
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/i2c/adv7604.c | 1 +
- 1 file changed, 1 insertion(+)
+Changes since v3:
+ - Kept of_node_put after the loop, as in the earlier soc_camera patch.
+   This reduces the line count and is safe to do since of_node_put(NULL)
+   is a no-op.
+---
+ drivers/staging/imx-drm/imx-drm-core.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 8336c02..75613a4 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2705,6 +2705,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 69e7194..43285dc 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -439,17 +439,13 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	struct drm_encoder *encoder, struct device_node *np)
+ {
+ 	struct imx_drm_device *imxdrm = drm->dev_private;
+-	struct device_node *ep = NULL;
++	struct device_node *ep;
+ 	uint32_t crtc_mask = 0;
+-	int i;
++	int i = 0;
  
- static struct of_device_id adv7604_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-+	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, adv7604_of_id);
+-	for (i = 0; ; i++) {
++	for_each_endpoint_of_node(np, ep) {
+ 		u32 mask;
+ 
+-		ep = of_graph_get_next_endpoint(np, ep);
+-		if (!ep)
+-			break;
+-
+ 		mask = imx_drm_find_crtc_mask(imxdrm, ep);
+ 
+ 		/*
+@@ -462,6 +458,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 			return -EPROBE_DEFER;
+ 
+ 		crtc_mask |= mask;
++		i++;
+ 	}
+ 
+ 	of_node_put(ep);
 -- 
-2.0.4
+2.1.0
 
