@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1622 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbaIUOsq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49618 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754659AbaI2U2I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Sep 2014 10:48:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 29 Sep 2014 16:28:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 01/11] videodev2.h: add V4L2_CTRL_FLAG_CAN_STORE
-Date: Sun, 21 Sep 2014 16:48:19 +0200
-Message-Id: <1411310909-32825-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Srikanth Thokala <sthokal@xilinx.com>,
+	dmaengine@vger.kernel.org
+Subject: [PATCH 08/11] dma: xilinx: vdma: icg should be difference of stride and hsize
+Date: Mon, 29 Sep 2014 23:27:54 +0300
+Message-Id: <1412022477-28749-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Srikanth Thokala <srikanth.thokala@xilinx.com>
 
-Controls that have a configuration store will set this flag.
+This patch modifies the icg field to match the description
+as mentioned in the DMA Linux framework.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Srikanth Thokala <sthokal@xilinx.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
 ---
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/xilinx/xilinx_vdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 0b1ba5c..199834b 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1375,6 +1375,7 @@ struct v4l2_querymenu {
- #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
- #define V4L2_CTRL_FLAG_VOLATILE		0x0080
- #define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
-+#define V4L2_CTRL_FLAG_CAN_STORE	0x0200
- 
- /*  Query flags, to be ORed with the control ID */
- #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+Cc: dmaengine@vger.kernel.org
+
+diff --git a/drivers/dma/xilinx/xilinx_vdma.c b/drivers/dma/xilinx/xilinx_vdma.c
+index b3b8761..a67ced1 100644
+--- a/drivers/dma/xilinx/xilinx_vdma.c
++++ b/drivers/dma/xilinx/xilinx_vdma.c
+@@ -963,7 +963,7 @@ xilinx_vdma_dma_prep_interleaved(struct dma_chan *dchan,
+ 	hw = &segment->hw;
+ 	hw->vsize = xt->numf;
+ 	hw->hsize = xt->sgl[0].size;
+-	hw->stride = xt->sgl[0].icg <<
++	hw->stride = (xt->sgl[0].icg + xt->sgl[0].size) <<
+ 			XILINX_VDMA_FRMDLY_STRIDE_STRIDE_SHIFT;
+ 	hw->stride |= chan->config.frm_dly <<
+ 			XILINX_VDMA_FRMDLY_STRIDE_FRMDLY_SHIFT;
 -- 
-2.1.0
+1.8.5.5
 
