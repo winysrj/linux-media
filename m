@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:53676 "EHLO
-	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752344AbaIVPHJ (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38897 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaI2RAd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:07:09 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.co, hverkuil@xs4all.nl, ramakrmu@cisco.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+	Mon, 29 Sep 2014 13:00:33 -0400
+Date: Mon, 29 Sep 2014 12:59:37 -0400
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de, Grant Likely <grant.likely@linaro.org>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org
-Subject: [PATCH 0/5] media token resource framework 
-Date: Mon, 22 Sep 2014 09:00:44 -0600
-Message-Id: <cover.1411397045.git.shuahkh@osg.samsung.com>
+Subject: Re: [PATCH v4 1/8] [media] soc_camera: Do not decrement endpoint
+ node refcount in the loop
+Message-ID: <20140929165937.GB13163@kroah.com>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+ <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
+ <20140929091316.GA23154@mwanda>
+ <1411983923.3050.1.camel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1411983923.3050.1.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add media token device resource framework to allow sharing
-resources such as tuner, dma, audio etc. across media drivers
-and non-media sound drivers that control media hardware. The
-Media token resource is created at the main struct device that
-is common to all drivers that claim various pieces of the main
-media device, which allows them to find the resource using the
-main struct device. As an example, digital, analog, and
-snd-usb-audio drivers can use the media token resource API
-using the main struct device for the interface the media device
-is attached to.
+On Mon, Sep 29, 2014 at 11:45:23AM +0200, Philipp Zabel wrote:
+> Am Montag, den 29.09.2014, 12:13 +0300 schrieb Dan Carpenter:
+> > On Mon, Sep 29, 2014 at 10:15:44AM +0200, Philipp Zabel wrote:
+> > > In preparation for a following patch, stop decrementing the endpoint node
+> > > refcount in the loop. This temporarily leaks a reference to the endpoint node,
+> > > which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+> > > of its prev argument instead.
+> > 
+> > Don't do this...
+> > 
+> > My understanding (and I haven't invested much time into trying to
+> > understand this beyond glancing at the change) is that patch 1 and 2,
+> > introduce small bugs that are fixed in patch 3?
+> >
+> > Just fold all three patches into one patch.  We need an Ack from Mauro
+> > and Greg and then send the patch through Grant's tree.
+> 
+> Yes. Patches 1 and 2 leak a reference on of_nodes touched by the loop.
+> As far as I am aware, all users of this code don't use the reference
+> counting (CONFIG_OF_DYNAMIC is disabled), so this bug should be
+> theoretical.
+> 
+> I'd be happy do as you suggest if Mauro and Greg agree.
 
-This patch series consists of media token resource framework
-and changes to use it in dvb-core, v4l2-core, and au0828
-driver.
+Let's see the correct patch, don't break things and then later on fix
+them...
 
-With these changes dvb and v4l2 can share the tuner without
-disrupting each other. Used tvtime, xawtv, kaffeine, and
-vlc to during development to identify v4l2 vb2 and vb1 ioctls
-and file operations that disrupt the digital stream and would
-require changes to check tuner ownership prior to changing the
-tuner configuration. vb2 changes are made in the v4l2-core and
-vb1 changes are made in the au0828 driver to encourage porting
-drivers to vb2 to advantage of the new media token resource
-framework with changes in the core.
+thanks,
 
-Shuah Khan (5):
-  media: add media token device resource framework
-  media: v4l2-core changes to use media tuner token api
-  media: au0828-video changes to use media tuner token api
-  media: dvb-core changes to use media tuner token api
-  media: au0828-core changes to create and destroy media token res
-
- MAINTAINERS                             |    2 +
- drivers/media/dvb-core/dvb_frontend.c   |   10 +
- drivers/media/usb/au0828/au0828-core.c  |   23 ++
- drivers/media/usb/au0828/au0828-video.c |   43 +++-
- drivers/media/v4l2-core/v4l2-fh.c       |   16 ++
- drivers/media/v4l2-core/v4l2-ioctl.c    |   96 +++++++-
- include/linux/media_tknres.h            |   98 +++++++++
- lib/Makefile                            |    2 +
- lib/media_tknres.c                      |  361 +++++++++++++++++++++++++++++++
- 9 files changed, 648 insertions(+), 3 deletions(-)
- create mode 100644 include/linux/media_tknres.h
- create mode 100644 lib/media_tknres.c
-
--- 
-1.7.10.4
-
+greg k-h
