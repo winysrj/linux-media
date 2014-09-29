@@ -1,48 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751783AbaIXKsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 06:48:51 -0400
-Message-ID: <5422A18F.9090106@iki.fi>
-Date: Wed, 24 Sep 2014 13:48:47 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] hackrf: harmless off by one in debug code
-References: <20140924103639.GB15107@mwanda>
-In-Reply-To: <20140924103639.GB15107@mwanda>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45715 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754529AbaI2SDu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 14:03:50 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 0/6] Add of-graph helpers to loop over endpoints and find ports by id
+Date: Mon, 29 Sep 2014 20:03:33 +0200
+Message-Id: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Hi,
 
-Antti
+now the first three patches of the previous series are combined into one. This
+patch touches of, media, and staging. Since it is rebased onto Grant's tree, it
+now trivially conflicts with 30e94a564d07 (staging: imx-drm: Lines over 80
+characters fixed.)
 
-On 09/24/2014 01:36 PM, Dan Carpenter wrote:
-> My static checker complains that "i" could be one element beyond the end
-> of the array.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-> index 328b5ba..fd1fa41 100644
-> --- a/drivers/media/usb/hackrf/hackrf.c
-> +++ b/drivers/media/usb/hackrf/hackrf.c
-> @@ -932,7 +932,7 @@ static int hackrf_set_bandwidth(struct hackrf_dev *dev)
->   	dev->bandwidth->val = bandwidth;
->   	dev->bandwidth->cur.val = bandwidth;
->
-> -	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth_lut[i].freq);
-> +	dev_dbg(dev->dev, "bandwidth selected=%d\n", bandwidth);
->
->   	u16tmp = 0;
->   	u16tmp |= ((bandwidth >> 0) & 0xff) << 0;
->
+This series converts all existing users of of_graph_get_next_endpoint that pass
+a non-NULL prev argument to the function and decrement its refcount themselves
+to stop doing that. The of_node_put is moved into of_graph_get_next_endpoint
+instead.
+This allows to add a for_each_endpoint_of_node helper macro to loop over all
+endpoints in a device tree node.
+The third of patch adds a of_graph_get_port_by_id function to retrieve a port
+by its known port id from the device tree.
+
+Finally, the last three patches convert functions in drm_of.c and imx-drm-core.c
+to use the for_each_endpoint_of_node macro instead of of_graph_get_next_endpoint.
+
+Changes since v4:
+ - Combined patches 1-3 into one
+
+The previous version can be found here: https://lkml.org/lkml/2014/9/29/78
+
+regards
+Philipp
+
+Philipp Zabel (6):
+  of: Decrement refcount of previous endpoint in
+    of_graph_get_next_endpoint
+  of: Add for_each_endpoint_of_node helper macro
+  of: Add of_graph_get_port_by_id function
+  drm: use for_each_endpoint_of_node macro in drm_of_find_possible_crtcs
+  imx-drm: use for_each_endpoint_of_node macro in
+    imx_drm_encoder_get_mux_id
+  imx-drm: use for_each_endpoint_of_node macro in
+    imx_drm_encoder_parse_of
+
+ drivers/gpu/drm/drm_of.c                       |  8 ++----
+ drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+ drivers/of/base.c                              | 35 ++++++++++++++++++++------
+ drivers/staging/imx-drm/imx-drm-core.c         | 28 ++++++---------------
+ include/linux/of_graph.h                       | 18 +++++++++++++
+ 5 files changed, 56 insertions(+), 36 deletions(-)
 
 -- 
-http://palosaari.fi/
+2.1.0
+
