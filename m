@@ -1,124 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3191 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757013AbaITTMV (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3560 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753894AbaI2C0e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 15:12:21 -0400
-Message-ID: <541DD182.7000008@xs4all.nl>
-Date: Sat, 20 Sep 2014 21:12:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] vb2: fix VBI/poll regression
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-2-git-send-email-hverkuil@xs4all.nl> <1554010.2WmUDpr8lj@avalon>
-In-Reply-To: <1554010.2WmUDpr8lj@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 28 Sep 2014 22:26:34 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s8T2QUjk072996
+	for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 04:26:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8C62F2A1CE1
+	for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 04:26:29 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140929022629.8C62F2A1CE1@tschai.lan>
+Date: Mon, 29 Sep 2014 04:26:29 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2014 08:32 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Saturday 20 September 2014 10:56:13 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The recent conversion of saa7134 to vb2 unconvered a poll() bug that
->> broke the teletext applications alevt and mtt. These applications
->> expect that calling poll() without having called VIDIOC_STREAMON will
->> cause poll() to return POLLERR. That did not happen in vb2.
->>
->> This patch fixes that behavior. It also fixes what should happen when
->> poll() is called when STREAMON is called but no buffers have been
->> queued. In that case poll() will also return POLLERR, but only for
->> capture queues since output queues will always return POLLOUT
->> anyway in that situation.
->>
->> This brings the vb2 behavior in line with the old videobuf behavior.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 15 ++++++++++++---
->>  include/media/videobuf2-core.h           |  4 ++++
->>  2 files changed, 16 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->> b/drivers/media/v4l2-core/videobuf2-core.c index 7e6aff6..f3762a8 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -977,6 +977,7 @@ static int __reqbufs(struct vb2_queue *q, struct
->> v4l2_requestbuffers *req) * to the userspace.
->>  	 */
->>  	req->count = allocated_buffers;
->> +	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
-> 
-> I think you also need to set waiting_for_buffers at STREAMOFF time, otherwise 
-> a STREAMOFF/STREAMON without a REQBUFS in-between won't work as expected.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Good catch. And I realized that it should also be set when CREATE_BUFS is called
-instead of REQBUFS (although only when there are no buffers allocated yet).
+Results of the daily build of media_tree:
 
-Regards,
+date:		Mon Sep 29 04:00:23 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-3.slh.1-amd64
 
-	Hans
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-> 
->>  	return 0;
->>  }
->> @@ -1801,6 +1802,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
->> struct v4l2_buffer *b) */
->>  	list_add_tail(&vb->queued_entry, &q->queued_list);
->>  	q->queued_count++;
->> +	q->waiting_for_buffers = false;
->>  	vb->state = VB2_BUF_STATE_QUEUED;
->>  	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
->>  		/*
->> @@ -2583,10 +2585,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
->> file *file, poll_table *wait) }
->>
->>  	/*
->> -	 * There is nothing to wait for if no buffer has been queued and the
->> -	 * queue isn't streaming, or if the error flag is set.
->> +	 * There is nothing to wait for if the queue isn't streaming, or if the
->> +	 * error flag is set.
->>  	 */
->> -	if ((list_empty(&q->queued_list) && !vb2_is_streaming(q)) || q->error)
->> +	if (!vb2_is_streaming(q) || q->error)
->> +		return res | POLLERR;
->> +	/*
->> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
->> +	 * return POLLERR as well. This only affects capture queues, output
->> +	 * queues will always initialize waiting_for_buffers to false.
->> +	 */
->> +	if (q->waiting_for_buffers)
->>  		return res | POLLERR;
->>
->>  	/*
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index 5a10d8d..84f790c 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -381,6 +381,9 @@ struct v4l2_fh;
->>   * @start_streaming_called: start_streaming() was called successfully and
->> we *		started streaming.
->>   * @error:	a fatal error occurred on the queue
->> + * @waiting_for_buffers: used in poll() to check if vb2 is still waiting
->> for + *		buffers. Only set for capture queues if qbuf has not yet been +
->> *		called since poll() needs to return POLLERR in that situation. *
->> @fileio:	file io emulator internal data, used only if emulator is active 
-> *
->> @threadio:	thread io internal data, used only if thread is active */
->> @@ -419,6 +422,7 @@ struct vb2_queue {
->>  	unsigned int			streaming:1;
->>  	unsigned int			start_streaming_called:1;
->>  	unsigned int			error:1;
->> +	unsigned int			waiting_for_buffers:1;
->>
->>  	struct vb2_fileio_data		*fileio;
->>  	struct vb2_threadio_data	*threadio;
-> 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
