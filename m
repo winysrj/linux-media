@@ -1,139 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15807 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751063AbaIDNFW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Sep 2014 09:05:22 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from top.free-electrons.com ([176.31.233.9]:47456 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753656AbaI2OMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 10:12:44 -0400
+Date: Mon, 29 Sep 2014 16:10:27 +0200
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] hdpvr: reduce memory footprint when debugging
-Date: Thu,  4 Sep 2014 16:04:38 +0300
-Message-Id: <1409835878-12617-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more
+ standard place
+Message-ID: <20140929161027.4b885317@bbrezillon>
+In-Reply-To: <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to use hex_dump_to_buffer() since we have a kernel helper to
-dump up to 64 bytes just via printk().
+On Mon, 29 Sep 2014 16:02:39 +0200
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/usb/hdpvr/hdpvr-control.c | 21 ++++++---------------
- drivers/media/usb/hdpvr/hdpvr-core.c    | 27 ++++++---------------------
- 2 files changed, 12 insertions(+), 36 deletions(-)
+> Rename mediabus formats and move the enum into a separate header file so
+> that it can be used by DRM/KMS subsystem without any reference to the V4L2
+> subsystem.
+> 
+> Old V4L2_MBUS_FMT_ definitions are now macros that points to VIDEO_BUS_FMT_
+> definitions.
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
-index 6053661..6e86032 100644
---- a/drivers/media/usb/hdpvr/hdpvr-control.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-control.c
-@@ -59,13 +59,10 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- 			      1000);
- 
- #ifdef HDPVR_DEBUG
--	if (hdpvr_debug & MSG_INFO) {
--		char print_buf[15];
--		hex_dump_to_buffer(dev->usbc_buf, 5, 16, 1, print_buf,
--				   sizeof(print_buf), 0);
-+	if (hdpvr_debug & MSG_INFO)
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
--			 "get video info returned: %d, %s\n", ret, print_buf);
--	}
-+			 "get video info returned: %d, %5ph\n", ret,
-+			 dev->usbc_buf);
- #endif
- 	mutex_unlock(&dev->usbc_mutex);
- 
-@@ -82,9 +79,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- 
- int get_input_lines_info(struct hdpvr_device *dev)
- {
--#ifdef HDPVR_DEBUG
--	char print_buf[9];
--#endif
- 	int ret, lines;
- 
- 	mutex_lock(&dev->usbc_mutex);
-@@ -96,13 +90,10 @@ int get_input_lines_info(struct hdpvr_device *dev)
- 			      1000);
- 
- #ifdef HDPVR_DEBUG
--	if (hdpvr_debug & MSG_INFO) {
--		hex_dump_to_buffer(dev->usbc_buf, 3, 16, 1, print_buf,
--				   sizeof(print_buf), 0);
-+	if (hdpvr_debug & MSG_INFO)
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
--			 "get input lines info returned: %d, %s\n", ret,
--			 print_buf);
--	}
-+			 "get input lines info returned: %d, %3ph\n", ret,
-+			 dev->usbc_buf);
- #else
- 	(void)ret;	/* suppress compiler warning */
- #endif
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index c563896..42b4cdf 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -124,14 +124,6 @@ static int device_authorization(struct hdpvr_device *dev)
- 	int ret, retval = -ENOMEM;
- 	char request_type = 0x38, rcv_request = 0x81;
- 	char *response;
--#ifdef HDPVR_DEBUG
--	size_t buf_size = 46;
--	char *print_buf = kzalloc(5*buf_size+1, GFP_KERNEL);
--	if (!print_buf) {
--		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
--		return retval;
--	}
--#endif
- 
- 	mutex_lock(&dev->usbc_mutex);
- 	ret = usb_control_msg(dev->udev,
-@@ -147,11 +139,9 @@ static int device_authorization(struct hdpvr_device *dev)
- 	}
- #ifdef HDPVR_DEBUG
- 	else {
--		hex_dump_to_buffer(dev->usbc_buf, 46, 16, 1, print_buf,
--				   5*buf_size+1, 0);
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
--			 "Status request returned, len %d: %s\n",
--			 ret, print_buf);
-+			 "Status request returned, len %d: %46ph\n",
-+			 ret, dev->usbc_buf);
- 	}
- #endif
- 
-@@ -189,15 +179,13 @@ static int device_authorization(struct hdpvr_device *dev)
- 
- 	response = dev->usbc_buf+38;
- #ifdef HDPVR_DEBUG
--	hex_dump_to_buffer(response, 8, 16, 1, print_buf, 5*buf_size+1, 0);
--	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, "challenge: %s\n",
--		 print_buf);
-+	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, "challenge: %8ph\n",
-+		 response);
- #endif
- 	challenge(response);
- #ifdef HDPVR_DEBUG
--	hex_dump_to_buffer(response, 8, 16, 1, print_buf, 5*buf_size+1, 0);
--	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, " response: %s\n",
--		 print_buf);
-+	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, " response: %8ph\n",
-+		 response);
- #endif
- 
- 	msleep(100);
-@@ -213,9 +201,6 @@ static int device_authorization(struct hdpvr_device *dev)
- 	retval = ret != 8;
- unlock:
- 	mutex_unlock(&dev->usbc_mutex);
--#ifdef HDPVR_DEBUG
--	kfree(print_buf);
--#endif
- 	return retval;
- }
- 
+I forgot to change the commit message: v4l2_mbus_pixelcode is now an
+enum that takes its values from the VIDEO_BUS_FMT_ definitions (as
+suggested by Guennadi).
+
+
+> 
+> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  include/uapi/linux/Kbuild             |   1 +
+>  include/uapi/linux/v4l2-mediabus.h    | 183 +++++++++++++++-------------------
+>  include/uapi/linux/video-bus-format.h | 127 +++++++++++++++++++++++
+>  3 files changed, 207 insertions(+), 104 deletions(-)
+>  create mode 100644 include/uapi/linux/video-bus-format.h
+> 
+> diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+> index be88166..8712730 100644
+> --- a/include/uapi/linux/Kbuild
+> +++ b/include/uapi/linux/Kbuild
+> @@ -410,6 +410,7 @@ header-y += veth.h
+>  header-y += vfio.h
+>  header-y += vhost.h
+>  header-y += videodev2.h
+> +header-y += video-bus-format.h
+>  header-y += virtio_9p.h
+>  header-y += virtio_balloon.h
+>  header-y += virtio_blk.h
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 1445e85..7b0a06c 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -13,118 +13,93 @@
+>  
+>  #include <linux/types.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/video-bus-format.h>
+>  
+> -/*
+> - * These pixel codes uniquely identify data formats on the media bus. Mostly
+> - * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+> - * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+> - * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+> - * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+> - * transferred over the bus: "LE" means that the least significant bits are
+> - * transferred first, "BE" means that the most significant bits are transferred
+> - * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+> - * incomplete high byte, are filled with padding bits.
+> - *
+> - * The pixel codes are grouped by type, bus_width, bits per component, samples
+> - * per pixel and order of subsamples. Numerical values are sorted using generic
+> - * numerical sort order (8 thus comes before 10).
+> - *
+> - * As their value can't change when a new pixel code is inserted in the
+> - * enumeration, the pixel codes are explicitly given a numerical value. The next
+> - * free values for each category are listed below, update them when inserting
+> - * new pixel codes.
+> - */
+> -enum v4l2_mbus_pixelcode {
+> -	V4L2_MBUS_FMT_FIXED = 0x0001,
+> +#define VIDEO_BUS_TO_V4L2_MBUS(x)	V4L2_MBUS_FMT_ ## x = VIDEO_BUS_FMT_ ## x
+>  
+> -	/* RGB - next is 0x100e */
+> -	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+> -	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+> -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
+> -	V4L2_MBUS_FMT_BGR565_2X8_BE = 0x1005,
+> -	V4L2_MBUS_FMT_BGR565_2X8_LE = 0x1006,
+> -	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+> -	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+> -	V4L2_MBUS_FMT_RGB666_1X18 = 0x1009,
+> -	V4L2_MBUS_FMT_RGB888_1X24 = 0x100a,
+> -	V4L2_MBUS_FMT_RGB888_2X12_BE = 0x100b,
+> -	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+> -	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+> +enum v4l2_mbus_pixelcode {
+> +	VIDEO_BUS_TO_V4L2_MBUS(FIXED),
+>  
+> -	/* YUV (including grey) - next is 0x2024 */
+> -	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+> -	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+> -	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> -	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> -	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+> -	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
+> -	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
+> -	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
+> -	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+> -	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+> -	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+> -	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
+> -	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
+> -	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+> -	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
+> -	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
+> -	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
+> -	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
+> -	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
+> -	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+> -	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
+> -	V4L2_MBUS_FMT_UYVY10_1X20 = 0x201a,
+> -	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
+> -	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+> -	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+> -	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
+> -	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
+> -	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
+> -	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
+> -	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
+> -	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
+> -	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
+> -	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
+> -	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
+> -	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB444_2X8_PADHI_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB444_2X8_PADHI_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB555_2X8_PADHI_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB555_2X8_PADHI_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(BGR565_2X8_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(BGR565_2X8_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB565_2X8_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB565_2X8_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB666_1X18),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB888_1X24),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
+>  
+> -	/* Bayer - next is 0x3019 */
+> -	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+> -	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+> -	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+> -	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
+> -	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
+> -	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
+> -	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
+> -	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+> -	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
+> -	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+> -	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+> -	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+> -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+> -	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
+> -	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
+> -	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
+> -	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
+> -	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+> -	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+> -	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+> -	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
+> +	VIDEO_BUS_TO_V4L2_MBUS(Y8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UV8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY8_1_5X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY8_1_5X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV8_1_5X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU8_1_5X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY8_2X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY8_2X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV8_2X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU8_2X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(Y10_1X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY10_2X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY10_2X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV10_2X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU10_2X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(Y12_1X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY8_1X16),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY8_1X16),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV8_1X16),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU8_1X16),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YDYUYDYV8_1X16),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY10_1X20),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY10_1X20),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV10_1X20),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU10_1X20),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUV10_1X30),
+> +	VIDEO_BUS_TO_V4L2_MBUS(AYUV8_1X32),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY12_2X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY12_2X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV12_2X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU12_2X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(UYVY12_1X24),
+> +	VIDEO_BUS_TO_V4L2_MBUS(VYUY12_1X24),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YUYV12_1X24),
+> +	VIDEO_BUS_TO_V4L2_MBUS(YVYU12_1X24),
+>  
+> -	/* JPEG compressed formats - next is 0x4002 */
+> -	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGBRG8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGRBG8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SRGGB8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_ALAW8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGBRG10_ALAW8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGRBG10_ALAW8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SRGGB10_ALAW8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_DPCM8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGBRG10_DPCM8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGRBG10_DPCM8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SRGGB10_DPCM8_1X8),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_2X8_PADHI_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_2X8_PADHI_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_2X8_PADLO_BE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_2X8_PADLO_LE),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR10_1X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGBRG10_1X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGRBG10_1X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SRGGB10_1X10),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SBGGR12_1X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGBRG12_1X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SGRBG12_1X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(SRGGB12_1X12),
+>  
+> -	/* Vendor specific formats - next is 0x5002 */
+> +	VIDEO_BUS_TO_V4L2_MBUS(JPEG_1X8),
+>  
+> -	/* S5C73M3 sensor specific interleaved UYVY and JPEG */
+> -	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x5001,
+> +	VIDEO_BUS_TO_V4L2_MBUS(S5C_UYVY_JPEG_1X8),
+>  
+> -	/* HSV - next is 0x6002 */
+> -	V4L2_MBUS_FMT_AHSV8888_1X32 = 0x6001,
+> +	VIDEO_BUS_TO_V4L2_MBUS(AHSV8888_1X32),
+>  };
+>  
+>  /**
+> diff --git a/include/uapi/linux/video-bus-format.h b/include/uapi/linux/video-bus-format.h
+> new file mode 100644
+> index 0000000..4abbd5d
+> --- /dev/null
+> +++ b/include/uapi/linux/video-bus-format.h
+> @@ -0,0 +1,127 @@
+> +/*
+> + * Video Bus API header
+> + *
+> + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __LINUX_VIDEO_BUS_FORMAT_H
+> +#define __LINUX_VIDEO_BUS_FORMAT_H
+> +
+> +/*
+> + * These bus formats uniquely identify data formats on the data bus. Mostly
+> + * they correspond to similarly named VIDEO_PIX_FMT_* formats, format 0 is
+> + * reserved, VIDEO_BUS_FMT_FIXED shall be used by host-client pairs, where the
+> + * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+> + * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+> + * transferred over the bus: "LE" means that the least significant bits are
+> + * transferred first, "BE" means that the most significant bits are transferred
+> + * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+> + * incomplete high byte, are filled with padding bits.
+> + *
+> + * The bus formats are grouped by type, bus_width, bits per component, samples
+> + * per pixel and order of subsamples. Numerical values are sorted using generic
+> + * numerical sort order (8 thus comes before 10).
+> + *
+> + * As their value can't change when a new bus format is inserted in the
+> + * enumeration, the bus formats are explicitly given a numerical value. The next
+> + * free values for each category are listed below, update them when inserting
+> + * new pixel codes.
+> + */
+> +enum video_bus_format {
+> +	VIDEO_BUS_FMT_FIXED = 0x0001,
+> +
+> +	/* RGB - next is 0x100e */
+> +	VIDEO_BUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+> +	VIDEO_BUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+> +	VIDEO_BUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+> +	VIDEO_BUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
+> +	VIDEO_BUS_FMT_BGR565_2X8_BE = 0x1005,
+> +	VIDEO_BUS_FMT_BGR565_2X8_LE = 0x1006,
+> +	VIDEO_BUS_FMT_RGB565_2X8_BE = 0x1007,
+> +	VIDEO_BUS_FMT_RGB565_2X8_LE = 0x1008,
+> +	VIDEO_BUS_FMT_RGB666_1X18 = 0x1009,
+> +	VIDEO_BUS_FMT_RGB888_1X24 = 0x100a,
+> +	VIDEO_BUS_FMT_RGB888_2X12_BE = 0x100b,
+> +	VIDEO_BUS_FMT_RGB888_2X12_LE = 0x100c,
+> +	VIDEO_BUS_FMT_ARGB8888_1X32 = 0x100d,
+> +
+> +	/* YUV (including grey) - next is 0x2024 */
+> +	VIDEO_BUS_FMT_Y8_1X8 = 0x2001,
+> +	VIDEO_BUS_FMT_UV8_1X8 = 0x2015,
+> +	VIDEO_BUS_FMT_UYVY8_1_5X8 = 0x2002,
+> +	VIDEO_BUS_FMT_VYUY8_1_5X8 = 0x2003,
+> +	VIDEO_BUS_FMT_YUYV8_1_5X8 = 0x2004,
+> +	VIDEO_BUS_FMT_YVYU8_1_5X8 = 0x2005,
+> +	VIDEO_BUS_FMT_UYVY8_2X8 = 0x2006,
+> +	VIDEO_BUS_FMT_VYUY8_2X8 = 0x2007,
+> +	VIDEO_BUS_FMT_YUYV8_2X8 = 0x2008,
+> +	VIDEO_BUS_FMT_YVYU8_2X8 = 0x2009,
+> +	VIDEO_BUS_FMT_Y10_1X10 = 0x200a,
+> +	VIDEO_BUS_FMT_UYVY10_2X10 = 0x2018,
+> +	VIDEO_BUS_FMT_VYUY10_2X10 = 0x2019,
+> +	VIDEO_BUS_FMT_YUYV10_2X10 = 0x200b,
+> +	VIDEO_BUS_FMT_YVYU10_2X10 = 0x200c,
+> +	VIDEO_BUS_FMT_Y12_1X12 = 0x2013,
+> +	VIDEO_BUS_FMT_UYVY8_1X16 = 0x200f,
+> +	VIDEO_BUS_FMT_VYUY8_1X16 = 0x2010,
+> +	VIDEO_BUS_FMT_YUYV8_1X16 = 0x2011,
+> +	VIDEO_BUS_FMT_YVYU8_1X16 = 0x2012,
+> +	VIDEO_BUS_FMT_YDYUYDYV8_1X16 = 0x2014,
+> +	VIDEO_BUS_FMT_UYVY10_1X20 = 0x201a,
+> +	VIDEO_BUS_FMT_VYUY10_1X20 = 0x201b,
+> +	VIDEO_BUS_FMT_YUYV10_1X20 = 0x200d,
+> +	VIDEO_BUS_FMT_YVYU10_1X20 = 0x200e,
+> +	VIDEO_BUS_FMT_YUV10_1X30 = 0x2016,
+> +	VIDEO_BUS_FMT_AYUV8_1X32 = 0x2017,
+> +	VIDEO_BUS_FMT_UYVY12_2X12 = 0x201c,
+> +	VIDEO_BUS_FMT_VYUY12_2X12 = 0x201d,
+> +	VIDEO_BUS_FMT_YUYV12_2X12 = 0x201e,
+> +	VIDEO_BUS_FMT_YVYU12_2X12 = 0x201f,
+> +	VIDEO_BUS_FMT_UYVY12_1X24 = 0x2020,
+> +	VIDEO_BUS_FMT_VYUY12_1X24 = 0x2021,
+> +	VIDEO_BUS_FMT_YUYV12_1X24 = 0x2022,
+> +	VIDEO_BUS_FMT_YVYU12_1X24 = 0x2023,
+> +
+> +	/* Bayer - next is 0x3019 */
+> +	VIDEO_BUS_FMT_SBGGR8_1X8 = 0x3001,
+> +	VIDEO_BUS_FMT_SGBRG8_1X8 = 0x3013,
+> +	VIDEO_BUS_FMT_SGRBG8_1X8 = 0x3002,
+> +	VIDEO_BUS_FMT_SRGGB8_1X8 = 0x3014,
+> +	VIDEO_BUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
+> +	VIDEO_BUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
+> +	VIDEO_BUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
+> +	VIDEO_BUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+> +	VIDEO_BUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
+> +	VIDEO_BUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+> +	VIDEO_BUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+> +	VIDEO_BUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
+> +	VIDEO_BUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+> +	VIDEO_BUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+> +	VIDEO_BUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+> +	VIDEO_BUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+> +	VIDEO_BUS_FMT_SBGGR10_1X10 = 0x3007,
+> +	VIDEO_BUS_FMT_SGBRG10_1X10 = 0x300e,
+> +	VIDEO_BUS_FMT_SGRBG10_1X10 = 0x300a,
+> +	VIDEO_BUS_FMT_SRGGB10_1X10 = 0x300f,
+> +	VIDEO_BUS_FMT_SBGGR12_1X12 = 0x3008,
+> +	VIDEO_BUS_FMT_SGBRG12_1X12 = 0x3010,
+> +	VIDEO_BUS_FMT_SGRBG12_1X12 = 0x3011,
+> +	VIDEO_BUS_FMT_SRGGB12_1X12 = 0x3012,
+> +
+> +	/* JPEG compressed formats - next is 0x4002 */
+> +	VIDEO_BUS_FMT_JPEG_1X8 = 0x4001,
+> +
+> +	/* Vendor specific formats - next is 0x5002 */
+> +
+> +	/* S5C73M3 sensor specific interleaved UYVY and JPEG */
+> +	VIDEO_BUS_FMT_S5C_UYVY_JPEG_1X8 = 0x5001,
+> +
+> +	/* HSV - next is 0x6002 */
+> +	VIDEO_BUS_FMT_AHSV8888_1X32 = 0x6001,
+> +};
+> +
+> +#endif /* __LINUX_VIDEO_BUS_FORMAT_H */
+
+
+
 -- 
-2.1.0
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
