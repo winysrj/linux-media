@@ -1,214 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43394 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757055AbaIDChB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Sep 2014 22:37:01 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 13/37] af9035: use I2C it913x tuner driver
-Date: Thu,  4 Sep 2014 05:36:21 +0300
-Message-Id: <1409798205-25645-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1409798205-25645-1-git-send-email-crope@iki.fi>
-References: <1409798205-25645-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40078 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752848AbaI2MyR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 08:54:17 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 4/6] [media] coda: disable rotator if not needed
+Date: Mon, 29 Sep 2014 14:53:45 +0200
+Message-Id: <1411995227-3623-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
+References: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use I2C it913x tuner driver.
+This will still do a 1:1 copy into the internal buffers, but stop
+producing visual artifacts in chroma interleaved (NV12) mode.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 135 ++++++++++++++++++++++++++++++++--
- drivers/media/usb/dvb-usb-v2/af9035.h |   3 +-
- 2 files changed, 131 insertions(+), 7 deletions(-)
+ drivers/media/platform/coda/coda-bit.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 0ec8919..1a5b600 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -193,6 +193,93 @@ static int af9035_wr_reg_mask(struct dvb_usb_device *d, u32 reg, u8 val,
- 	return af9035_wr_regs(d, reg, &val, 1);
- }
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index f01393c..747b544 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1037,6 +1037,7 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
+ 	int force_ipicture;
+ 	int quant_param = 0;
+ 	u32 pic_stream_buffer_addr, pic_stream_buffer_size;
++	u32 rot_mode = 0;
+ 	u32 dst_fourcc;
+ 	u32 reg;
  
-+static int af9035_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
-+		void *platform_data)
-+{
-+	int ret, num;
-+	struct state *state = d_to_priv(d);
-+	struct i2c_client *client;
-+	struct i2c_adapter *adapter = &d->i2c_adap;
-+	struct i2c_board_info board_info = {
-+		.addr = addr,
-+		.platform_data = platform_data,
-+	};
-+
-+	strlcpy(board_info.type, type, I2C_NAME_SIZE);
-+
-+	/* find first free client */
-+	for (num = 0; num < AF9035_I2C_CLIENT_MAX; num++) {
-+		if (state->i2c_client[num] == NULL)
-+			break;
-+	}
-+
-+	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
-+
-+	if (num == AF9035_I2C_CLIENT_MAX) {
-+		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
-+				KBUILD_MODNAME);
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	request_module(board_info.type);
-+
-+	/* register I2C device */
-+	client = i2c_new_device(adapter, &board_info);
-+	if (client == NULL || client->dev.driver == NULL) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	/* increase I2C driver usage count */
-+	if (!try_module_get(client->dev.driver->owner)) {
-+		i2c_unregister_device(client);
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	state->i2c_client[num] = client;
-+	return 0;
-+err:
-+	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static void af9035_del_i2c_dev(struct dvb_usb_device *d)
-+{
-+	int num;
-+	struct state *state = d_to_priv(d);
-+	struct i2c_client *client;
-+
-+	/* find last used client */
-+	num = AF9035_I2C_CLIENT_MAX;
-+	while (num--) {
-+		if (state->i2c_client[num] != NULL)
-+			break;
-+	}
-+
-+	dev_dbg(&d->udev->dev, "%s: num=%d\n", __func__, num);
-+
-+	if (num == -1) {
-+		dev_err(&d->udev->dev, "%s: I2C client out of index\n",
-+				KBUILD_MODNAME);
-+		goto err;
-+	}
-+
-+	client = state->i2c_client[num];
-+
-+	/* decrease I2C driver usage count */
-+	module_put(client->dev.driver->owner);
-+
-+	/* unregister I2C device */
-+	i2c_unregister_device(client);
-+
-+	state->i2c_client[num] = NULL;
-+	return;
-+err:
-+	dev_dbg(&d->udev->dev, "%s: failed\n", __func__);
-+}
-+
- static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 		struct i2c_msg msg[], int num)
- {
-@@ -1231,17 +1318,39 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	case AF9033_TUNER_IT9135_38:
- 	case AF9033_TUNER_IT9135_51:
- 	case AF9033_TUNER_IT9135_52:
-+	{
-+		struct it913x_config it913x_config = {
-+			.fe = adap->fe[0],
-+			.chip_ver = 1,
-+		};
-+
-+		ret = af9035_add_i2c_dev(d, "it913x",
-+				state->af9033_config[adap->id].i2c_addr,
-+				&it913x_config);
-+		if (ret)
-+			goto err;
-+
-+		fe = adap->fe[0];
-+		break;
-+	}
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
- 	case AF9033_TUNER_IT9135_62:
--		/* attach tuner */
--		/*
--		fe = dvb_attach(it913x_attach, adap->fe[0], &d->i2c_adap,
-+	{
-+		struct it913x_config it913x_config = {
-+			.fe = adap->fe[0],
-+			.chip_ver = 2,
-+		};
-+
-+		ret = af9035_add_i2c_dev(d, "it913x",
- 				state->af9033_config[adap->id].i2c_addr,
--				state->af9033_config[0].tuner);
--		*/
--		fe = NULL;
-+				&it913x_config);
-+		if (ret)
-+			goto err;
-+
-+		fe = adap->fe[0];
- 		break;
-+	}
- 	default:
- 		fe = NULL;
+@@ -1124,8 +1125,9 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
  	}
-@@ -1306,6 +1415,19 @@ err:
- 	return ret;
- }
  
-+static void af9035_exit(struct dvb_usb_device *d)
-+{
-+	struct state *state = d_to_priv(d);
-+
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-+
-+	if (state->i2c_client[1])
-+		af9035_del_i2c_dev(d);
-+
-+	if (state->i2c_client[0])
-+		af9035_del_i2c_dev(d);
-+}
-+
- #if IS_ENABLED(CONFIG_RC_CORE)
- static int af9035_rc_query(struct dvb_usb_device *d)
- {
-@@ -1482,6 +1604,7 @@ static const struct dvb_usb_device_properties af9035_props = {
- 	.init = af9035_init,
- 	.get_rc_config = af9035_get_rc_config,
- 	.get_stream_config = af9035_get_stream_config,
-+	.exit = af9035_exit,
+ 	/* submit */
+-	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode,
+-		   CODA_CMD_ENC_PIC_ROT_MODE);
++	if (ctx->params.rot_mode)
++		rot_mode = CODA_ROT_MIR_ENABLE | ctx->params.rot_mode;
++	coda_write(dev, rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
+ 	coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
  
- 	.get_adapter_count = af9035_get_adapter_count,
- 	.adapter = {
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index 70ec9c9..0911c4fc 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -62,8 +62,9 @@ struct state {
- 	u8 dual_mode:1;
- 	u16 eeprom_addr;
- 	struct af9033_config af9033_config[2];
--
- 	struct af9033_ops ops;
-+	#define AF9035_I2C_CLIENT_MAX 2
-+	struct i2c_client *i2c_client[AF9035_I2C_CLIENT_MAX];
- };
  
- static const u32 clock_lut_af9035[] = {
 -- 
-http://palosaari.fi/
+2.1.0
 
