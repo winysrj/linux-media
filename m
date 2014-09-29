@@ -1,100 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64271 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753786AbaIZE5m (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45768 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754097AbaI2SEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 00:57:42 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCH007VASG4XUC0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:57:40 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com, kiran@chromium.org
-Subject: [PATCH v2 01/14] [media] s5p-mfc: support MIN_BUFFERS query for encoder
-Date: Fri, 26 Sep 2014 10:22:09 +0530
-Message-id: <1411707142-4881-2-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+	Mon, 29 Sep 2014 14:04:21 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
+Date: Mon, 29 Sep 2014 20:03:34 +0200
+Message-Id: <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_MIN_BUFFERS_FOR_OUTPUT query for encoder.
-Once mfc encoder state is HEAD_PARSED, which is sequence
-header produced, dpb_count is avaialable. Let user space
-query this value.
+Decrementing the reference count of the previous endpoint node allows to
+use the of_graph_get_next_endpoint function in a for_each_... style macro.
+All current users of this function that pass a non-NULL prev parameter
+(that is, soc_camera and imx-drm) are changed to not decrement the passed
+prev argument's refcount themselves.
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   42 ++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+Changes since v4:
+ - Folded patches 1-3 into this one
+---
+ drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+ drivers/of/base.c                              |  9 +--------
+ drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
+ 3 files changed, 5 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 41f3b7f..b45cccc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -690,6 +690,16 @@ static struct mfc_control controls[] = {
- 		.step = 1,
- 		.default_value = 0,
- 	},
-+	{
-+		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Minimum number of output bufs",
-+		.minimum = 1,
-+		.maximum = 32,
-+		.step = 1,
-+		.default_value = 1,
-+		.is_volatile = 1,
-+	},
- };
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..619b2d4 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
  
- #define NUM_CTRLS ARRAY_SIZE(controls)
-@@ -1640,8 +1650,40 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return ret;
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+@@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 			break;
+ 		}
+ 	}
++
++	of_node_put(epn);
  }
  
-+static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct s5p_mfc_ctx *ctx = ctrl_to_ctx(ctrl);
-+	struct s5p_mfc_dev *dev = ctx->dev;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
-+		if (ctx->state >= MFCINST_HEAD_PARSED &&
-+		    ctx->state < MFCINST_ABORT) {
-+			ctrl->val = ctx->pb_count;
-+			break;
-+		} else if (ctx->state != MFCINST_INIT) {
-+			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
-+			return -EINVAL;
-+		}
-+		/* Should wait for the header to be produced */
-+		s5p_mfc_clean_ctx_int_flags(ctx);
-+		s5p_mfc_wait_for_done_ctx(ctx,
-+				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
-+		if (ctx->state >= MFCINST_HEAD_PARSED &&
-+		    ctx->state < MFCINST_ABORT) {
-+			ctrl->val = ctx->pb_count;
-+		} else {
-+			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
-+			return -EINVAL;
-+		}
-+		break;
-+	}
-+	return 0;
-+}
-+
- static const struct v4l2_ctrl_ops s5p_mfc_enc_ctrl_ops = {
- 	.s_ctrl = s5p_mfc_enc_s_ctrl,
-+	.g_volatile_ctrl = s5p_mfc_enc_g_v_ctrl,
- };
+ #else
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 293ed4b..f7a9aa8 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2070,8 +2070,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+  * @prev: previous endpoint node, or NULL to get first
+  *
+  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+- * of the passed @prev node is not decremented, the caller have to use
+- * of_node_put() on it when done.
++ * of the passed @prev node is decremented.
+  */
+ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 					struct device_node *prev)
+@@ -2107,12 +2106,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+ 			      __func__, prev->full_name))
+ 			return NULL;
+-
+-		/*
+-		 * Avoid dropping prev node refcount to 0 when getting the next
+-		 * child below.
+-		 */
+-		of_node_get(prev);
+ 	}
  
- static int vidioc_s_parm(struct file *file, void *priv,
+ 	while (1) {
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 6b22106..12303b3 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
+ 	return 0;
+ }
+ 
+-static struct device_node *imx_drm_of_get_next_endpoint(
+-		const struct device_node *parent, struct device_node *prev)
+-{
+-	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+-	of_node_put(prev);
+-	return node;
+-}
+-
+ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	struct drm_encoder *encoder, struct device_node *np)
+ {
+@@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	for (i = 0; ; i++) {
+ 		u32 mask;
+ 
+-		ep = imx_drm_of_get_next_endpoint(np, ep);
++		ep = of_graph_get_next_endpoint(np, ep);
+ 		if (!ep)
+ 			break;
+ 
+@@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+ 		return -EINVAL;
+ 
+ 	do {
+-		ep = imx_drm_of_get_next_endpoint(node, ep);
++		ep = of_graph_get_next_endpoint(node, ep);
+ 		if (!ep)
+ 			break;
+ 
 -- 
-1.7.9.5
+2.1.0
 
