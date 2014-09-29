@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 83-103-0-23.ip.fastwebnet.it ([83.103.0.23]:49153 "EHLO
-	motoko.logossrl.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750751AbaIBG2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Sep 2014 02:28:06 -0400
-Received: from aika.logos.lan ([192.168.0.99])
-	by motoko.logossrl.com with esmtpsa (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
-	(Exim 4.80.1)
-	(envelope-from <l.marcantonio@logossrl.com>)
-	id 1XOhZT-0005Sk-De
-	for linux-media@vger.kernel.org; Tue, 02 Sep 2014 08:28:03 +0200
-Date: Tue, 2 Sep 2014 08:28:23 +0200
-From: Lorenzo Marcantonio <l.marcantonio@logossrl.com>
-To: linux-media@vger.kernel.org
-Subject: Re: strange empia device
-Message-ID: <20140902062822.GA2805@aika.logos.lan>
-References: <20140825190109.GB3372@aika.discordia.loc>
- <5403358C.4070504@googlemail.com>
- <1409615932.1819.16.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1409615932.1819.16.camel@palomino.walls.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60502 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753152AbaI2Jpg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 05:45:36 -0400
+Message-ID: <1411983923.3050.1.camel@pengutronix.de>
+Subject: Re: [PATCH v4 1/8] [media] soc_camera: Do not decrement endpoint
+ node refcount in the loop
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Grant Likely <grant.likely@linaro.org>, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel@pengutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Mon, 29 Sep 2014 11:45:23 +0200
+In-Reply-To: <20140929091316.GA23154@mwanda>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+	 <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
+	 <20140929091316.GA23154@mwanda>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 01, 2014 at 07:58:52PM -0400, Andy Walls wrote:
-> A Merlin firmware of 16 kB strongly suggests that this chip has an
-> integarted Conexant CX25843 (Merlin Audio + Thresher Video = Mako)
-> Broadtcast A/V decoder core.  The chip might only have a Merlin
-> integrated, but so far I've never encountered that.  It will be easy
-> enough to tell, if the Thresher registers don't respond or only respond
-> with junk.
+Am Montag, den 29.09.2014, 12:13 +0300 schrieb Dan Carpenter:
+> On Mon, Sep 29, 2014 at 10:15:44AM +0200, Philipp Zabel wrote:
+> > In preparation for a following patch, stop decrementing the endpoint node
+> > refcount in the loop. This temporarily leaks a reference to the endpoint node,
+> > which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+> > of its prev argument instead.
+> 
+> Don't do this...
+> 
+> My understanding (and I haven't invested much time into trying to
+> understand this beyond glancing at the change) is that patch 1 and 2,
+> introduce small bugs that are fixed in patch 3?
+>
+> Just fold all three patches into one patch.  We need an Ack from Mauro
+> and Greg and then send the patch through Grant's tree.
 
-However I strongly suspect that these drivers are for a whole *family*
-of empia device. The oem ini by roxio talks about three different
-parts... probably they give one sys file for everyone and the oem
-customizes the ini.
+Yes. Patches 1 and 2 leak a reference on of_nodes touched by the loop.
+As far as I am aware, all users of this code don't use the reference
+counting (CONFIG_OF_DYNAMIC is disabled), so this bug should be
+theoretical.
 
-In short the merlin fw may not be actually used for *this* part but only
-for other empia devices/configurations.
+I'd be happy do as you suggest if Mauro and Greg agree.
 
-Otherwise I wonder *why* a fscking 1.5MB of sys driver for a mostly dumb
-capture device...
+regards
+Philipp
 
--- 
-Lorenzo Marcantonio
-Logos Srl
