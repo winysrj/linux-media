@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40061 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbaI2MyI (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2372 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621AbaI2Guy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 08:54:08 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 0/6] CODA fixes and NV12 support
-Date: Mon, 29 Sep 2014 14:53:41 +0200
-Message-Id: <1411995227-3623-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 29 Sep 2014 02:50:54 -0400
+Message-ID: <5429012A.3000406@xs4all.nl>
+Date: Mon, 29 Sep 2014 08:50:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: rdunlap@infradead.org
+Subject: [PATCH for v3.18] vivid: fix Kconfig FB dependency
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The vivid driver depends on FB, update the Kconfig accordingly.
 
-this series fixes restarting of streams, cleans up a superfluous error message,
-unifies the YUV buffer base pointer setup, disables the encoder rotator unit
-when copying input buffers into the internal frame memory if not needed,
-simplifies the frame memory control register handling (no need to clear magic
-bits if we wrote 0 in the first place), and adds support for the NV12 pixel
-format.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Jim Davis <jim.epost@gmail.com>
 
-regards
-Philipp
-
-Philipp Zabel (6):
-  [media] coda: clear aborting flag in stop_streaming
-  [media] coda: remove superfluous error message on devm_kzalloc failure
-  [media] coda: add coda_write_base helper
-  [media] coda: disable rotator if not needed
-  [media] coda: simplify frame memory control register handling
-  [media] coda: add support for partial interleaved YCbCr 4:2:0 (NV12)
-    format
-
- drivers/media/platform/coda/coda-bit.c    | 108 ++++++++++++------------------
- drivers/media/platform/coda/coda-common.c |  43 ++++++++++--
- drivers/media/platform/coda/coda.h        |   2 +
- 3 files changed, 82 insertions(+), 71 deletions(-)
-
--- 
-2.1.0
-
+diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+index d71139a..c309093 100644
+--- a/drivers/media/platform/vivid/Kconfig
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -1,8 +1,11 @@
+ config VIDEO_VIVID
+ 	tristate "Virtual Video Test Driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
++	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64 && FB
+ 	select FONT_SUPPORT
+ 	select FONT_8x16
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
+ 	select VIDEOBUF2_VMALLOC
+ 	default n
+ 	---help---
