@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35587 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404AbaI1RZb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Sep 2014 13:25:31 -0400
-Received: from dyn3-82-128-191-243.psoas.suomi.net ([82.128.191.243] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1XYIDx-0005hk-6x
-	for linux-media@vger.kernel.org; Sun, 28 Sep 2014 20:25:29 +0300
-Message-ID: <54284488.60404@iki.fi>
-Date: Sun, 28 Sep 2014 20:25:28 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: em28xx: Too many ISO frames scheduled when starting stream
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39718 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970AbaI2IQH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Sep 2014 04:16:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 1/8] [media] soc_camera: Do not decrement endpoint node refcount in the loop
+Date: Mon, 29 Sep 2014 10:15:44 +0200
+Message-Id: <1411978551-30480-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
+References: <1411978551-30480-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I want raise that bug:
-Too many ISO frames scheduled when starting stream
-https://bugzilla.kernel.org/show_bug.cgi?id=72891
+In preparation for a following patch, stop decrementing the endpoint node
+refcount in the loop. This temporarily leaks a reference to the endpoint node,
+which will be fixed by having of_graph_get_next_endpoint decrement the refcount
+of its prev argument instead.
 
-Is there anyone who cares to study it? It looks like em28xx driver bug 
-or USB host controller driver or both.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v3:
+ - Moved of_node_put for the break case after the loop
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-According to comments bug appeared on kernel 3.13.
-
-Is there anyone knowing em28xx internals who wants (non surely really 
-want, but hates less to start examine) to look it?
-
-It is very near I will fork em28xx to DVB only driver and move devices 
-there. Current em28xx is too complex for my taste and has had more bugs 
-than any other DVB driver I have ever seen.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f4308fe..619b2d4 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 		if (!i)
+ 			soc_of_bind(ici, epn, ren->parent);
+ 
+-		of_node_put(epn);
+ 		of_node_put(ren);
+ 
+ 		if (i) {
+@@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+ 			break;
+ 		}
+ 	}
++
++	of_node_put(epn);
+ }
+ 
+ #else
 -- 
-http://palosaari.fi/
+2.1.0
+
