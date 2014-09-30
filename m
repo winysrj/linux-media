@@ -1,79 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3994 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051AbaIHIlR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 04:41:17 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s888fCsk081464
-	for <linux-media@vger.kernel.org>; Mon, 8 Sep 2014 10:41:15 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E595B2A03DA
-	for <linux-media@vger.kernel.org>; Mon,  8 Sep 2014 10:41:10 +0200 (CEST)
-Message-ID: <540D6BA6.4080102@xs4all.nl>
-Date: Mon, 08 Sep 2014 10:41:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:38521 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751208AbaI3JO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 05:14:29 -0400
+Date: Tue, 30 Sep 2014 06:14:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/6] some fixes and cleanups for the em28xx-based
+ HVR-930C
+Message-ID: <20140930061418.101be1ff@concha.lan>
+In-Reply-To: <20140930073810.GA9128@linuxtv.org>
+References: <cover.1411956856.git.mchehab@osg.samsung.com>
+	<20140929174430.GA18967@linuxtv.org>
+	<20140929153018.2f701689@recife.lan>
+	<20140929184428.GA447@linuxtv.org>
+	<20140930073810.GA9128@linuxtv.org>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.18] Various fixes
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various fixes for 3.18.
+Em Tue, 30 Sep 2014 09:38:10 +0200
+Johannes Stezenbach <js@linuxtv.org> escreveu:
+
+> On Mon, Sep 29, 2014 at 08:44:28PM +0200, Johannes Stezenbach wrote:
+> > On Mon, Sep 29, 2014 at 03:30:18PM -0300, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 29 Sep 2014 19:44:30 +0200
+> > > Johannes Stezenbach <js@linuxtv.org> escreveu:
+> > > 
+> > > > Disregarding your mails from the "em28xx breaks after hibernate"
+> > > > that hibernate doesn't work for you, I decided to give these
+> > > > changes a try on top of today's media_tree.git
+> > > > (cf3167c -> 3.17.0-rc5-00741-g9a3fbd8), still inside qemu
+> > > > (can't upgrade/reboot my main machine right now).
+> > > 
+> > > Well, I think I was not clear: It doesn't work for me when 
+> > > I power down the USB or the machine after suspended. If I keep
+> > > the device energized, it works ;)
+> > 
+> > Ah, OK.  I'll try to test with power removed tomorrow.
+> 
+> I test again in qemu, but this time rmmod and blacklist em28xx
+> on the host, and unplug HVR-930C during hibernate.  As you
+> said, it breaks.  Log fter resume:
+> 
+> [   83.308267] usb 1-1: reset high-speed USB device number 2 using ehci-pci
+> [   83.598182] em2884 #0: Resuming extensions
+> [   83.599187] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
+> [   83.604115] xc5000: I2C read failed
+> [   83.607091] xc5000: I2C write failed (len=3)
+> [   83.607985] xc5000: firmware upload failed...
+> [   83.608766]  - too many retries. Giving up
+> [   83.609553] em2884 #0: fe0 resume -22
+> [   83.615533] PM: restore of devices complete after 937.567 msecs
+> [   83.617278] PM: Image restored successfully.
+> [   83.618262] PM: Basic memory bitmaps freed
+> [   83.619097] Restarting tasks ... done.
+> [   83.622320] xc5000: I2C read failed
+> [   83.623197] xc5000: I2C write failed (len=3)
+> [   83.623198] xc5000: firmware upload failed...
+> [   83.623198]  - too many retries. Giving up
+> [   83.624071] drxk: i2c read error at addr 0x29
+> [   83.624072] drxk: Error -6 on mpegts_stop
+> [   83.624073] drxk: Error -6 on start
+> [   84.621531] drxk: i2c read error at addr 0x29
+> [   84.623426] drxk: Error -6 on get_dvbt_lock_status
+> [   84.625477] drxk: Error -6 on get_lock_status
+
+Yeah, this is what I was expecting. I have already a patch that would fix
+the issue with xc5000 (the issue is actually at em28xx, that needs to do
+a full initialization of the device), but something else is needed to put
+drxk into a reliable state.
+
+I am traveling during this week (without the HVR-930C or RF generators).
+So, I can't touch on it. I'll seek for some time to try to fix this issue. 
 
 Regards,
-
-	Hans
-
-The following changes since commit 89fffac802c18caebdf4e91c0785b522c9f6399a:
-
-  [media] drxk_hard: fix bad alignments (2014-09-03 19:19:18 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.18b
-
-for you to fetch changes up to fa25ee4f45e712847caf678a63438c5311768ad8:
-
-  media: davinci: remove unneeded dependency ARCH_OMAP3 (2014-09-08 10:23:30 +0200)
-
-----------------------------------------------------------------
-Axel Lin (1):
-      tvp7002: Don't update device->streaming if write to register fails
-
-Hans Verkuil (1):
-      videobuf2-core: take mmap_sem before calling __qbuf_userptr
-
-Hans de Goede (1):
-      videobuf: Allow reqbufs(0) to free current buffers
-
-Himangi Saraogi (1):
-      radio-si470x-usb: use USB API functions rather than constants
-
-Prabhakar Lad (6):
-      media: davinci: vpif_display: drop setting of vb2 buffer state to ACTIVE
-      media: davinci: vpif_capture: drop setting of vb2 buffer state to ACTIVE
-      media: videobuf2-core.h: add a helper to get status of start_streaming()
-      media: davinci: vpif_display: fix the check on suspend/resume callbacks
-      media: davinci: vpif_capture: fix the check on suspend/resume callbacks
-      media: davinci: remove unneeded dependency ARCH_OMAP3
-
-Rasmus Villemoes (2):
-      drivers: media: b2c2: flexcop.h: Fix typo in include guard
-      drivers: media: i2c: adv7343_regs.h: Fix typo in #ifndef
-
- drivers/media/common/b2c2/flexcop.h           |  2 +-
- drivers/media/i2c/adv7343_regs.h              |  2 +-
- drivers/media/i2c/tvp7002.c                   | 21 ++++++++-------------
- drivers/media/platform/Makefile               |  2 --
- drivers/media/platform/davinci/Kconfig        |  2 +-
- drivers/media/platform/davinci/vpif_capture.c |  7 ++-----
- drivers/media/platform/davinci/vpif_display.c |  8 ++------
- drivers/media/radio/si470x/radio-si470x-usb.c |  4 +---
- drivers/media/v4l2-core/videobuf-core.c       | 11 ++++++-----
- drivers/media/v4l2-core/videobuf2-core.c      |  2 ++
- include/media/videobuf2-core.h                |  9 +++++++++
- 11 files changed, 33 insertions(+), 37 deletions(-)
+Mauro
