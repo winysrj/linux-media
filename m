@@ -1,224 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43840 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751885AbaIYFIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Sep 2014 01:08:23 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 05/12] cx231xx: Use symbolic constants for i2c ports
-Date: Thu, 25 Sep 2014 07:07:57 +0200
-Message-Id: <1411621684-8295-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
-References: <1411621684-8295-1-git-send-email-zzam@gentoo.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45532 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbaI3J5p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 05:57:45 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 01/10] [media] coda: add support for planar YCbCr 4:2:2 (YUV422P) format
+Date: Tue, 30 Sep 2014 11:57:02 +0200
+Message-Id: <1412071031-32016-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-use already existing I2C_0 ... I2C_3
+This patch adds support for the three-plane YUV422P format with one luma plane
+and two horizontally subsampled chroma planes.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
- drivers/media/usb/cx231xx/cx231xx.h       |  8 ++--
- 2 files changed, 35 insertions(+), 35 deletions(-)
+ drivers/media/platform/coda/coda-bit.c    | 14 +++++++++++++-
+ drivers/media/platform/coda/coda-common.c | 13 +++++++++++++
+ 2 files changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 092fb85..2f027c7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_PAL_M,
-@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_NTSC_M,
-@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_PAL,
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index fde7775..746a615 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1591,6 +1591,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	struct coda_q_data *q_data_dst;
+ 	struct vb2_buffer *dst_buf;
+ 	struct coda_timestamp *ts;
++	unsigned long payload;
+ 	int width, height;
+ 	int decoded_idx;
+ 	int display_idx;
+@@ -1776,7 +1777,18 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		dst_buf->v4l2_buf.timecode = ts->timecode;
+ 		dst_buf->v4l2_buf.timestamp = ts->timestamp;
  
- 		.input = {{
-@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_NTSC,
+-		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
++		switch (q_data_dst->fourcc) {
++		case V4L2_PIX_FMT_YUV420:
++		case V4L2_PIX_FMT_YVU420:
++		case V4L2_PIX_FMT_NV12:
++		default:
++			payload = width * height * 3 / 2;
++			break;
++		case V4L2_PIX_FMT_YUV422P:
++			payload = width * height * 2;
++			break;
++		}
++		vb2_set_plane_payload(dst_buf, 0, payload);
  
- 		.input = {{
-@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* request some modules */
- 	if (dev->board.decoder == CX231XX_AVDECODER) {
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--					&dev->i2c_bus[0].i2c_adap,
-+					&dev->i2c_bus[I2C_0].i2c_adap,
- 					"cx25840", 0x88 >> 1, NULL);
- 		if (dev->sd_cx25840 == NULL)
- 			cx231xx_info("cx25840 subdev registration failure\n");
-@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
+ 		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
+ 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 02d47fa..48be973 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -100,6 +100,9 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		base_cb = base_y + q_data->bytesperline * q_data->height;
++		base_cr = base_cb + q_data->bytesperline * q_data->height / 2;
+ 	}
  
- 			memset(&client, 0, sizeof(client));
--			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
- 			client.addr = 0xa0 >> 1;
- 
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index c92382f..3ab107a 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -322,10 +322,10 @@ enum cx231xx_decoder {
- };
- 
- enum CX231XX_I2C_MASTER_PORT {
--	I2C_0 = 0,
--	I2C_1 = 1,
--	I2C_2 = 2,
--	I2C_3 = 3
-+	I2C_0 = 0, /* master 0 - internal connection */
-+	I2C_1 = 1, /* master 1 - I2C_DEMOD_EN = 0    */
-+	I2C_2 = 2, /* master 2                       */
-+	I2C_3 = 3  /* master 1 - I2C_DEMOD_EN = 1    */
- };
- 
- struct cx231xx_board {
+ 	coda_write(ctx->dev, base_y, reg_y);
+@@ -124,6 +127,10 @@ static const struct coda_fmt coda_formats[] = {
+ 		.fourcc = V4L2_PIX_FMT_NV12,
+ 	},
+ 	{
++		.name = "YUV 4:2:2 Planar, YCbCr",
++		.fourcc = V4L2_PIX_FMT_YUV422P,
++	},
++	{
+ 		.name = "H264 Encoded Stream",
+ 		.fourcc = V4L2_PIX_FMT_H264,
+ 	},
+@@ -168,6 +175,7 @@ static bool coda_format_is_yuv(u32 fourcc)
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+ 	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_YUV422P:
+ 		return true;
+ 	default:
+ 		return false;
+@@ -393,6 +401,11 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+ 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+ 					f->fmt.pix.height * 3 / 2;
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
++		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
++					f->fmt.pix.height * 2;
++		break;
+ 	case V4L2_PIX_FMT_H264:
+ 	case V4L2_PIX_FMT_MPEG4:
+ 	case V4L2_PIX_FMT_JPEG:
 -- 
-2.1.1
+2.1.0
 
