@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41562 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbaIFHNV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Sep 2014 03:13:21 -0400
-Message-ID: <540AB40B.9020508@iki.fi>
-Date: Sat, 06 Sep 2014 10:13:15 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Akihiro TSUKADA <tskd08@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH v2 4/5] tc90522: add driver for Toshiba TC90522 quad demodulator
-References: <1409153356-1887-1-git-send-email-tskd08@gmail.com> <1409153356-1887-5-git-send-email-tskd08@gmail.com> <5402F91E.7000508@gentoo.org> <540323F0.90809@gmail.com> <54037BFE.60606@iki.fi> <5404423A.3020307@gmail.com> <540A6B27.2010704@iki.fi> <20140905232758.36946673.m.chehab@samsung.com> <540AA4FD.5000703@gmail.com>
-In-Reply-To: <540AA4FD.5000703@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45499 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996AbaI3J52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 05:57:28 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 00/10] CODA7 JPEG support
+Date: Tue, 30 Sep 2014 11:57:01 +0200
+Message-Id: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2014 09:09 AM, Akihiro TSUKADA wrote:
-> 3. Should I also use RegMap API for register access?
-> I tried using it but gave up,
-> because it does not fit well to one of my use-case,
-> where (only) reads must be done via 0xfb register, like
->     READ(reg, buf, len) -> [addr/w, 0xfb, reg], [addr/r, buf[0]...],
->     WRITE(reg, buf, len) -> [addr/w, reg, buf[0]...],
-> and regmap looked to me overkill for 8bit-reg, 8bit-val cases
-> and did not simplify the code.
-> so I'd like to go without RegMap if possible,
-> since I'm already puzzled enough by I2C binding, regmap, clock source,
-> as well as dvb-core, PCI ;)
+Hi,
 
-That is MaxLinear MxL301RF tuner I2C. Problem is there that it uses 
-write + STOP + write, so you should not even do that as a one I2C 
-i2c_transfer. All I2C messages send using i2c_transfer are send so 
-called REPEATED START condition.
-
-I ran that same problem ears ago in a case of, surprise, MxL5007 tuner.
-https://patchwork.linuxtv.org/patch/17847/
-
-I think you could just write wanted register to command register 0xfb. 
-And after that all the reads are coming from that active register until 
-you change it.
-
-RegMap API cannot handle I2C command format like that, it relies 
-repeated start for reads.
-
-Si2157 / Si2168 are using I2C access with STOP condition - but it is 
-otherwise bad example as there is firmware API, not register API. Look 
-still as a example.
+These patches add JPEG encoding and decoding support for CODA7541 (i.MX5).
+The encoder video device is split into one video device per codec, so that
+each video device can register only the relevant controls. The H.264/MPEG4
+decoder is kept as one video device, but the JPEG decoder video device is
+separate because it supports more uncompressed formats (currently YUV422P,
+in the future grayscale or YUV 4:4:4 support could be added).
 
 regards
-Antti
+Philipp
+
+Philipp Zabel (10):
+  [media] coda: add support for planar YCbCr 4:2:2 (YUV422P) format
+  [media] coda: identify platform device earlier
+  [media] coda: add coda_video_device descriptors
+  [media] coda: split out encoder control setup to specify controls per
+    video device
+  [media] coda: add JPEG register definitions for CODA7541
+  [media] coda: add CODA7541 JPEG support
+  [media] coda: store bitstream buffer position with buffer metadata
+  [media] coda: pad input stream for JPEG decoder
+  [media] coda: try to only queue a single JPEG into the bitstream
+  [media] coda: allow userspace to set compressed buffer size in a
+    certain range
+
+ drivers/media/platform/coda/Makefile      |   2 +-
+ drivers/media/platform/coda/coda-bit.c    | 204 +++++++---
+ drivers/media/platform/coda/coda-common.c | 608 +++++++++++++++++++-----------
+ drivers/media/platform/coda/coda-jpeg.c   | 225 +++++++++++
+ drivers/media/platform/coda/coda.h        |  21 +-
+ drivers/media/platform/coda/coda_regs.h   |   7 +
+ 6 files changed, 785 insertions(+), 282 deletions(-)
+ create mode 100644 drivers/media/platform/coda/coda-jpeg.c
 
 -- 
-http://palosaari.fi/
+2.1.0
+
