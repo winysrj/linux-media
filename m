@@ -1,57 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49618 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbaI2U2H (ORCPT
+Received: from mail-la0-f49.google.com ([209.85.215.49]:38078 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbaI3Ncs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 16:28:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Srikanth Thokala <sthokal@xilinx.com>,
-	dmaengine@vger.kernel.org
-Subject: [PATCH 06/11] dma: xilinx: vdma: Check if the segment list is empty in a descriptor
-Date: Mon, 29 Sep 2014 23:27:52 +0300
-Message-Id: <1412022477-28749-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 30 Sep 2014 09:32:48 -0400
+Received: by mail-la0-f49.google.com with SMTP id ge10so5514695lab.22
+        for <linux-media@vger.kernel.org>; Tue, 30 Sep 2014 06:32:46 -0700 (PDT)
+From: Tomas Melin <tomas.melin@iki.fi>
+To: m.chehab@samsung.com
+Cc: james.hogan@imgtec.com, david@hardeman.nu, a.seppala@gmail.com,
+	linux-media@vger.kernel.org, Tomas Melin <tomas.melin@iki.fi>
+Subject: [PATCH] [media] rc-main: fix lockdep splash for rc-main
+Date: Tue, 30 Sep 2014 16:32:08 +0300
+Message-Id: <1412083928-7255-1-git-send-email-tomas.melin@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srikanth Thokala <srikanth.thokala@xilinx.com>
+lockdep reports a potential circular dependecy deadlock when registering input device.
 
-The segment list in a descriptor should be checked for empty, else
-it will try to access invalid address for the first call.  This
-patch fixes this issue.
+Unlock mutex rc_dev->lock prior to calling ir_raw_event_register to avoid the circular
+dependency since that function also calls input_register_device and rc_open.
 
-Signed-off-by: Srikanth Thokala <sthokal@xilinx.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+ ======================================================
+ [ INFO: possible circular locking dependency detected ]
+ 3.17.0-rc7+ #24 Not tainted
+ -------------------------------------------------------
+ modprobe/647 is trying to acquire lock:
+  (input_mutex){+.+.+.}, at: [<ffffffff812ed81c>] input_register_device+0x2ba/0x381
+
+ but task is already holding lock:
+  (ir_raw_handler_lock){+.+.+.}, at: [<ffffffff813186ed>] ir_raw_event_register+0x102/0x190
+
+ which lock already depends on the new lock.
+
+[cut text]
+
+ other info that might help us debug this:
+
+ Chain exists of:
+   input_mutex --> &dev->lock --> ir_raw_handler_lock
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(ir_raw_handler_lock);
+                                lock(&dev->lock);
+                                lock(ir_raw_handler_lock);
+   lock(input_mutex);
+
+  *** DEADLOCK ***
+
+ 4 locks held by modprobe/647:
+  #0:  (&dev->mutex){......}, at: [<ffffffff812d19f3>] device_lock+0xf/0x11
+  #1:  (&dev->mutex){......}, at: [<ffffffff812d19f3>] device_lock+0xf/0x11
+  #2:  (&dev->lock){+.+.+.}, at: [<ffffffff81317fff>] rc_register_device+0x55d/0x58a
+  #3:  (ir_raw_handler_lock){+.+.+.}, at: [<ffffffff813186ed>] ir_raw_event_register+0x102/0x190
+
+ stack backtrace:
+ CPU: 0 PID: 647 Comm: modprobe Not tainted 3.17.0-rc7+ #24
+
+ Call Trace:
+  [<ffffffff81489d6a>] dump_stack+0x46/0x58
+  [<ffffffff81487699>] print_circular_bug+0x1f8/0x209
+  [<ffffffff81074353>] __lock_acquire+0xb54/0xeda
+  [<ffffffff81080f17>] ? console_unlock+0x34d/0x399
+  [<ffffffff81074c01>] lock_acquire+0xd9/0x111
+  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
+  [<ffffffff8148e650>] mutex_lock_interruptible_nested+0x57/0x381
+  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
+  [<ffffffff81124e03>] ? kfree+0x7c/0x96
+  [<ffffffff812ed81c>] ? input_register_device+0x2ba/0x381
+  [<ffffffff81072531>] ? trace_hardirqs_on+0xd/0xf
+  [<ffffffff812ed81c>] input_register_device+0x2ba/0x381
+  [<ffffffff8131a537>] ir_mce_kbd_register+0x109/0x139
+  [<ffffffff81318728>] ir_raw_event_register+0x13d/0x190
+  [<ffffffff81317e40>] rc_register_device+0x39e/0x58a
+  [<ffffffff81072531>] ? trace_hardirqs_on+0xd/0xf
+  [<ffffffffa00cf2e3>] nvt_probe+0x5ad/0xd52 [nuvoton_cir]
+  [<ffffffffa00ced36>] ? nvt_resume+0x80/0x80 [nuvoton_cir]
+  [<ffffffff81296003>] pnp_device_probe+0x8c/0xa9
+  [<ffffffff812d1b94>] ? driver_sysfs_add+0x6e/0x93
+  [<ffffffff812d203a>] driver_probe_device+0xa1/0x1e3
+  [<ffffffff812d217c>] ? driver_probe_device+0x1e3/0x1e3
+  [<ffffffff812d21ca>] __driver_attach+0x4e/0x6f
+  [<ffffffff812d075b>] bus_for_each_dev+0x5a/0x8c
+  [<ffffffff812d1b24>] driver_attach+0x19/0x1b
+  [<ffffffff812d1879>] bus_add_driver+0xf1/0x1d6
+  [<ffffffff812d2817>] driver_register+0x87/0xbe
+  [<ffffffffa0120000>] ? 0xffffffffa0120000
+  [<ffffffff81295da4>] pnp_register_driver+0x1c/0x1e
+  [<ffffffffa0120010>] nvt_init+0x10/0x1000 [nuvoton_cir]
+  [<ffffffff8100030e>] do_one_initcall+0xea/0x18c
+  [<ffffffff8111497f>] ? __vunmap+0x9d/0xc7
+  [<ffffffff810a3ca1>] load_module+0x1c21/0x1f2c
+  [<ffffffff810a0bce>] ? show_initstate+0x44/0x44
+  [<ffffffff810a404e>] SyS_init_module+0xa2/0xb1
+  [<ffffffff81490ed2>] system_call_fastpath+0x16/0x1b
+
+Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
 ---
- drivers/dma/xilinx/xilinx_vdma.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/media/rc/rc-main.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Cc: dmaengine@vger.kernel.org
-
-diff --git a/drivers/dma/xilinx/xilinx_vdma.c b/drivers/dma/xilinx/xilinx_vdma.c
-index 42a13e8..8e9f2a6 100644
---- a/drivers/dma/xilinx/xilinx_vdma.c
-+++ b/drivers/dma/xilinx/xilinx_vdma.c
-@@ -971,9 +971,11 @@ xilinx_vdma_dma_prep_interleaved(struct dma_chan *dchan,
- 		hw->buf_addr = xt->src_start;
- 
- 	/* Link the previous next descriptor to current */
--	prev = list_last_entry(&desc->segments,
--				struct xilinx_vdma_tx_segment, node);
--	prev->hw.next_desc = segment->phys;
-+	if (!list_empty(&desc->segments)) {
-+		prev = list_last_entry(&desc->segments,
-+				       struct xilinx_vdma_tx_segment, node);
-+		prev->hw.next_desc = segment->phys;
-+	}
- 
- 	/* Insert the segment into the descriptor segments list. */
- 	list_add_tail(&segment->node, &desc->segments);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index a7991c7..296de85 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1414,7 +1414,10 @@ int rc_register_device(struct rc_dev *dev)
+ 			ir_raw_init();
+ 			raw_init = true;
+ 		}
++		/* calls ir_register_device so unlock mutex here*/
++		mutex_unlock(&dev->lock);
+ 		rc = ir_raw_event_register(dev);
++		mutex_lock(&dev->lock);
+ 		if (rc < 0)
+ 			goto out_input;
+ 	}
 -- 
-1.8.5.5
+1.7.10.4
 
