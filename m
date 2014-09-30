@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34241 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940AbaIXW17 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>
-Subject: [PATCH 07/18] [media] radio-sf16fmr2: declare some structs as static
-Date: Wed, 24 Sep 2014 19:27:07 -0300
-Message-Id: <d1a2f5374a7b3441b0103a0639eda18fb351031e.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:62843 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751245AbaI3Q3g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 12:29:36 -0400
+Message-ID: <542ADA66.3040905@redhat.com>
+Date: Tue, 30 Sep 2014 18:29:26 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Gregor Jasny <gjasny@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?B?QW5kcsOpIFJvdGg=?= <neolynx@gmail.com>
+Subject: Re: Upcoming v4l-utils 1.6.0 release
+References: <20140925213820.1bbf43c2@recife.lan>	<54269807.50109@googlemail.com> <20140927085455.5b0baf89@recife.lan> <542ACA32.3050403@googlemail.com>
+In-Reply-To: <542ACA32.3050403@googlemail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/radio/radio-sf16fmr2.c:308:19: warning: symbol 'fmr2_isa_driver' was not declared. Should it be static?
-drivers/media/radio/radio-sf16fmr2.c:316:19: warning: symbol 'fmr2_pnp_driver' was not declared. Should it be static?
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 09/30/2014 05:20 PM, Gregor Jasny wrote:
+> Hello,
+>
+> On 27/09/14 13:54, Mauro Carvalho Chehab wrote:
+>> Em Sat, 27 Sep 2014 12:57:11 +0200
+>> Gregor Jasny <gjasny@googlemail.com> escreveu:
+>>> As far as I understand the service_location feature should work but is
+>>> an extension to the standard. Does it harm if we keep it until we have
+>>> something better in place to handle extensions?
+>>>
+>>> The service list descriptor feature is unimplemented (and thus broken).
+>>> Would it help if we return -1 from dvb_desc_service_list_init to reflect
+>>> that fact or does it break something else? But I'd keep the symbol in
+>>> the library to maintain ABI compatibility.
+>
+>> I would actually prefer if we could get rid of those two broken
+>> descriptors on some release, and to re-add them only when they're
+>> actually working.
+>
+> I have sent a patch series to remove the public headers of this two
+> descriptors and provide stubs to maintain SONAME compatibility.
+>
+> Could you please ACK it?
 
-diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
-index 93d864eb8306..b8d61cbc18cb 100644
---- a/drivers/media/radio/radio-sf16fmr2.c
-+++ b/drivers/media/radio/radio-sf16fmr2.c
-@@ -305,7 +305,7 @@ static void fmr2_pnp_remove(struct pnp_dev *pdev)
- 	pnp_set_drvdata(pdev, NULL);
- }
- 
--struct isa_driver fmr2_isa_driver = {
-+static struct isa_driver fmr2_isa_driver = {
- 	.match		= fmr2_isa_match,
- 	.remove		= fmr2_isa_remove,
- 	.driver		= {
-@@ -313,7 +313,7 @@ struct isa_driver fmr2_isa_driver = {
- 	},
- };
- 
--struct pnp_driver fmr2_pnp_driver = {
-+static struct pnp_driver fmr2_pnp_driver = {
- 	.name		= "radio-sf16fmr2",
- 	.id_table	= fmr2_pnp_ids,
- 	.probe		= fmr2_pnp_probe,
--- 
-1.9.3
+About the 1.6.0 release, please do not release it until the series
+fixing the regression in 1.4.0 with gstreamer which I've posted
+today. A review of that series would be appreciated. If you're ok
+with the series feel free to push it to master.
 
+Regards,
+
+Hans
