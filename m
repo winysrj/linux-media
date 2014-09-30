@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f50.google.com ([209.85.213.50]:49015 "EHLO
-	mail-yh0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322AbaIHO6D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 10:58:03 -0400
-From: Morgan Phillips <winter2718@gmail.com>
-To: brijohn@gmail.com
-Cc: hdegoede@redhat.com, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Morgan Phillips <winter2718@gmail.com>
-Subject: [PATCH v2] [media]: sn9c20x.c: fix checkpatch error: that open brace { should be on the previous line
-Date: Mon,  8 Sep 2014 09:55:58 -0500
-Message-Id: <1410188158-6560-1-git-send-email-winter2718@gmail.com>
-In-Reply-To: <1410179542-3272-1-git-send-email-winter2718@gmail.com>
-References: <1410179542-3272-1-git-send-email-winter2718@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52820 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbaI3OFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 10:05:14 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/3] libv4l2: Fix restoring of original dest-fmt after a VIDIOC_S_DV_TIMING
+Date: Tue, 30 Sep 2014 16:04:59 +0200
+Message-Id: <1412085901-18528-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change array initialization format to fix style error.
-	from:
-		u8 foo[] =
-			{1, 2, 3};
-	to:
-		u8 foo[] = {
-			1, 2, 3
-		};
+Read the original pixelformat from dest_fmt, before overwriting dest_fmt with
+the new src_fmt.
 
-Signed-off-by: Morgan Phillips <winter2718@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- Changes since v2:
-   * adds a more verbose commit message
+ lib/libv4l2/libv4l2.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
- drivers/media/usb/gspca/sn9c20x.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-index 41a9a89..95467f0 100644
---- a/drivers/media/usb/gspca/sn9c20x.c
-+++ b/drivers/media/usb/gspca/sn9c20x.c
-@@ -1787,8 +1787,9 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
- 	u8 value;
--	u8 i2c_init[9] =
--		{0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-+	u8 i2c_init[9] = {
-+		0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03
-+	};
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index fe513d7..22ed984 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1245,6 +1245,8 @@ no_capture_request:
+ 	case VIDIOC_S_INPUT:
+ 	case VIDIOC_S_DV_TIMINGS: {
+ 		struct v4l2_format src_fmt = { 0 };
++		unsigned int orig_dest_pixelformat =
++			devices[index].dest_fmt.fmt.pix.pixelformat;
  
- 	for (i = 0; i < ARRAY_SIZE(bridge_init); i++) {
- 		value = bridge_init[i][1];
-@@ -2242,8 +2243,9 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int avg_lum, is_jpeg;
--	static const u8 frame_header[] =
--		{0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96};
-+	static const u8 frame_header[] = {
-+		0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96
-+	};
- 
- 	is_jpeg = (sd->fmt & 0x03) == 0;
- 	if (len >= 64 && memcmp(data, frame_header, 6) == 0) {
+ 		result = devices[index].dev_ops->ioctl(
+ 				devices[index].dev_ops_priv,
+@@ -1274,8 +1276,7 @@ no_capture_request:
+ 		devices[index].src_fmt  = src_fmt;
+ 		devices[index].dest_fmt = src_fmt;
+ 		/* and try to restore the last set destination pixelformat. */
+-		src_fmt.fmt.pix.pixelformat =
+-			devices[index].dest_fmt.fmt.pix.pixelformat;
++		src_fmt.fmt.pix.pixelformat = orig_dest_pixelformat;
+ 		result = v4l2_s_fmt(index, &src_fmt);
+ 		if (result) {
+ 			V4L2_LOG_WARN("restoring destination pixelformat after %s failed\n",
 -- 
-1.9.1
+2.1.0
 
