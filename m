@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:25245 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754283AbaIWWRM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 18:17:12 -0400
-Date: Wed, 24 Sep 2014 06:16:17 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Guoxiong Yan <yanguoxiong@huawei.com>
-Cc: Zhangfei Gao <zhangfei.gao@linaro.org>,
-	linux-media@vger.kernel.org,
+Received: from top.free-electrons.com ([176.31.233.9]:52845 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751195AbaI3HiB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 03:38:01 -0400
+Date: Tue, 30 Sep 2014 09:37:57 +0200
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:devel-3.17-rc6-1 499/499]
- drivers/media/rc/ir-hix5hd2.c:94:2: error: implicit declaration of function 'writel_relaxed'
-Message-ID: <5421f131.3CUmNezRckqaswAe%fengguang.wu@intel.com>
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more
+ standard place
+Message-ID: <20140930093757.003741ac@bbrezillon>
+In-Reply-To: <3849580.CgKEmcV7as@avalon>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
+	<3849580.CgKEmcV7as@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git devel-3.17-rc6-1
-head:   f4bbac39a84f72120579feeade95c0a7a9f0191b
-commit: f4bbac39a84f72120579feeade95c0a7a9f0191b [499/499] [media] rc: Introduce hix5hd2 IR transmitter driver
-config: ia64-allmodconfig
-reproduce:
-  wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-  chmod +x ~/bin/make.cross
-  git checkout f4bbac39a84f72120579feeade95c0a7a9f0191b
-  make.cross ARCH=ia64  allmodconfig
-  make.cross ARCH=ia64 
+On Mon, 29 Sep 2014 23:41:09 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
 
-All error/warnings:
+> Hi Boris,
+> 
+> Thank you for the patch.
+> 
+> On Monday 29 September 2014 16:02:39 Boris Brezillon wrote:
+> > Rename mediabus formats and move the enum into a separate header file so
+> > that it can be used by DRM/KMS subsystem without any reference to the V4L2
+> > subsystem.
+> > 
+> > Old V4L2_MBUS_FMT_ definitions are now macros that points to VIDEO_BUS_FMT_
+> > definitions.
+> > 
+> > Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  include/uapi/linux/Kbuild             |   1 +
+> >  include/uapi/linux/v4l2-mediabus.h    | 183 +++++++++++++------------------
+> >  include/uapi/linux/video-bus-format.h | 127 +++++++++++++++++++++++
+> >  3 files changed, 207 insertions(+), 104 deletions(-)
+> >  create mode 100644 include/uapi/linux/video-bus-format.h
+> 
+> One of the self-inflicted rules in V4L2 is to properly document every new 
+> media bus format when adding it to the kernel. The documentation is located in 
+> Documentation/DocBook/media/v4l/subdev-formats.xml. If we move the formats to 
+> a centralized header (which I believe is a good idea), we should also update 
+> the documentation, and possibly its location. I really want to avoid getting 
+> undocumented formats merged, and this will happen if we don't make the rule 
+> clear and/or don't make the documentation easily accessible.
 
-   drivers/media/rc/ir-hix5hd2.c: In function 'hix5hd2_ir_config':
->> drivers/media/rc/ir-hix5hd2.c:94:2: error: implicit declaration of function 'writel_relaxed' [-Werror=implicit-function-declaration]
-     writel_relaxed(0x01, priv->base + IR_ENABLE);
-     ^
-   drivers/media/rc/ir-hix5hd2.c: At top level:
-   drivers/media/rc/ir-hix5hd2.c:293:12: warning: 'hix5hd2_ir_suspend' defined but not used [-Wunused-function]
-    static int hix5hd2_ir_suspend(struct device *dev)
-               ^
-   drivers/media/rc/ir-hix5hd2.c:303:12: warning: 'hix5hd2_ir_resume' defined but not used [-Wunused-function]
-    static int hix5hd2_ir_resume(struct device *dev)
-               ^
-   cc1: some warnings being treated as errors
+Any idea where this new documentation should go
+(Documentation/DocBook/video/video-bus-formats.xml) ?
 
-vim +/writel_relaxed +94 drivers/media/rc/ir-hix5hd2.c
+> 
+> Incidentally, patch 2/5 in this series is missing a documentation update ;-)
 
-    88	
-    89	static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
-    90	{
-    91		int timeout = 10000;
-    92		u32 val, rate;
-    93	
-  > 94		writel_relaxed(0x01, priv->base + IR_ENABLE);
-    95		while (readl_relaxed(priv->base + IR_BUSY)) {
-    96			if (timeout--) {
-    97				udelay(1);
+Yep, regarding this patch, I wonder if it's really necessary to add
+new formats to the v4l2_mbus_pixelcode enum.
+If we want to move to this new common definition (across the video
+related subsytems), we should deprecate the old enum
+v4l2_mbus_pixelcode, and this start by not adding new formats, don't
+you think ?
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+Best Regards,
+
+Boris
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
