@@ -1,81 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:51444 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660AbaIRJkO (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:55144 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbaI3PR3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Sep 2014 05:40:14 -0400
-Received: by mail-pd0-f169.google.com with SMTP id fp1so1060621pdb.14
-        for <linux-media@vger.kernel.org>; Thu, 18 Sep 2014 02:40:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <25198985.8uoHdSYb8S@avalon>
-References: <CAH9_wRM_wd_GkS=j-7pkYTFRg4U1oN=NO+Wfhp56vKturYb+cg@mail.gmail.com>
-	<25198985.8uoHdSYb8S@avalon>
-Date: Thu, 18 Sep 2014 15:10:13 +0530
-Message-ID: <CAH9_wRPyqXWa7-sP2u2BXeM5ecwT8ZBpid6xWQ6aiWDQq-4jEQ@mail.gmail.com>
-Subject: Re: OMAP3 Multiple camera support
-From: Sriram V <vshrirama@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 30 Sep 2014 11:17:29 -0400
+Received: by mail-wi0-f173.google.com with SMTP id bs8so4577187wib.6
+        for <linux-media@vger.kernel.org>; Tue, 30 Sep 2014 08:17:27 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH 0/3] libdvbv5: Remove broken descriptor parsers
+Date: Tue, 30 Sep 2014 17:17:05 +0200
+Message-Id: <1412090228-19996-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-What you are essentially saying is
+this patch series removes the service_list and service_location
+descriptors. It breaks API compatibility by removing the public
+header files but maintains ABI compatibility by providing stub
+implementations.
 
-CSI2A => Smart Sensor (YUV422)
-CSI2C => Sensor that gives out RAW Bayer.
+Thanks,
+Gregor
 
-I guess this is a driver limitation? Am i correct?
+Gregor Jasny (3):
+  libdvbv5: Add todo file
+  libdvbv5: remove service_location descriptor
+  libdvbv5: remove service_list descriptor
 
-Also, Can i have something like this?
-
-SMART Sensor => CSI2A => H3A => MEM (Can i have this)
-CSI2C => ISP => H3A => MEM
-
-Can't i have H3A for both the pipelines?
-Or
-
-Can i enable H3A on the fly for both the sensors? One After the other?
-
-Regards,
-Sriram
-
-
-On Thu, Sep 18, 2014 at 1:55 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sriram,
->
-> On Wednesday 17 September 2014 23:06:42 Sriram V wrote:
->> Hi
->>
->> Does OMAP3 camera driver support multiple cameras at the same time.
->>
->> As i understand - You can have simultaneous YUV422 (Directly to memory)
->> and another one passing through camera controller ISP?
->>
->> I Also, wanted to check if anyone has tried having multiple cameras on omap3
->> with the existing driver.
->
-> The driver does support capturing from multiple cameras at the same time,
-> provided one of them is connected to the CSI2A receiver. You can then capture
-> raw frames from the CSI2A receiver output while processing frames from the
-> other camera (connected to CSI1/CCP2, CSI2C or parallel interface) using the
-> whole ISP pipeline.
->
-> Please note that the consumer OMAP3 variants are documented by TI as not
-> including the CSI receivers. However, several developers have reported that
-> the receivers are present and usable at least in some of the chips.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-
+ TODO.libdvbv5                                    |   3 +
+ doxygen_libdvbv5.cfg                             |   1 -
+ lib/include/libdvbv5/desc_service_list.h         | 119 -----------------------
+ lib/include/libdvbv5/desc_service_location.h     | 107 --------------------
+ lib/libdvbv5/Makefile.am                         |   5 +-
+ lib/libdvbv5/compat-soname.c                     |  44 +++++++++
+ lib/libdvbv5/descriptors.c                       |   8 --
+ lib/libdvbv5/descriptors/desc_service_list.c     |  56 -----------
+ lib/libdvbv5/descriptors/desc_service_location.c |  80 ---------------
+ 9 files changed, 48 insertions(+), 375 deletions(-)
+ create mode 100644 TODO.libdvbv5
+ delete mode 100644 lib/include/libdvbv5/desc_service_list.h
+ delete mode 100644 lib/include/libdvbv5/desc_service_location.h
+ create mode 100644 lib/libdvbv5/compat-soname.c
+ delete mode 100644 lib/libdvbv5/descriptors/desc_service_list.c
+ delete mode 100644 lib/libdvbv5/descriptors/desc_service_location.c
 
 -- 
-Regards,
-Sriram
+2.1.0
+
