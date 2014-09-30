@@ -1,158 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:16243 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558AbaIVPWH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:22:07 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v6 2/2] exynos4-is: Add support for v4l2-flash subdevs
-Date: Mon, 22 Sep 2014 17:21:49 +0200
-Message-id: <1411399309-16418-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1411399309-16418-1-git-send-email-j.anaszewski@samsung.com>
-References: <1411399309-16418-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40256 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751830AbaI3OFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 10:05:18 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/3] libv4l2: Move alignment of dest_fmt resolution to v4l2_set_src_and_dest_format
+Date: Tue, 30 Sep 2014 16:05:01 +0200
+Message-Id: <1412085901-18528-3-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1412085901-18528-1-git-send-email-hdegoede@redhat.com>
+References: <1412085901-18528-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds suppport for external v4l2-flash devices.
-The support includes parsing camera-flash DT property
-and asynchronous subdevice registration.
+So that we always do the alignment, this is necessary because there are
+several code paths where dest_fmt gets set to a fmt which has not been
+passed through libv4lconvert_try_fmt, and thus is not aligned.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Also call v4lconvert_fixup_fmt when aligment has changed the height / width,
+so that bytesperline and sizeimage get set correctly.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/platform/exynos4-is/media-dev.c |   36 +++++++++++++++++++++++--
- drivers/media/platform/exynos4-is/media-dev.h |   13 ++++++++-
- 2 files changed, 46 insertions(+), 3 deletions(-)
+ lib/include/libv4lconvert.h |  3 +++
+ lib/libv4l2/libv4l2.c       | 25 ++++++++++++++-----------
+ 2 files changed, 17 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 344718d..9758b59 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -451,6 +451,25 @@ rpm_put:
- 	return ret;
+diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
+index e94d3bd..d425c51 100644
+--- a/lib/include/libv4lconvert.h
++++ b/lib/include/libv4lconvert.h
+@@ -147,6 +147,9 @@ LIBV4L_PUBLIC int v4lconvert_supported_dst_format(unsigned int pixelformat);
+ LIBV4L_PUBLIC int v4lconvert_get_fps(struct v4lconvert_data *data);
+ LIBV4L_PUBLIC void v4lconvert_set_fps(struct v4lconvert_data *data, int fps);
+ 
++/* Fixup bytesperline and sizeimage for supported destination formats */
++LIBV4L_PUBLIC void v4lconvert_fixup_fmt(struct v4l2_format *fmt);
++
+ #ifdef __cplusplus
  }
+ #endif /* __cplusplus */
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index bdfb2fe..966a000 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -765,16 +765,6 @@ no_capture:
+ 	v4l2_set_src_and_dest_format(index, &devices[index].src_fmt,
+ 				     &devices[index].dest_fmt);
  
-+static void fimc_md_register_flash_entities(struct fimc_md *fmd)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node;
-+	struct device_node *np;
-+	int i = 0;
-+
-+	do {
-+		np = of_parse_phandle(parent, "flashes", i);
-+		if (np) {
-+			fmd->flash[fmd->num_flashes].asd.match_type =
-+							V4L2_ASYNC_MATCH_OF;
-+			fmd->flash[fmd->num_flashes].asd.match.of.node = np;
-+			fmd->num_flashes++;
-+			fmd->async_subdevs[fmd->num_sensors + i] =
-+						&fmd->flash[i].asd;
-+		}
-+	} while (np && (++i < FIMC_MAX_FLASHES));
-+}
-+
- static int __of_get_csis_id(struct device_node *np)
+-	/* When a user does a try_fmt with the current dest_fmt and the dest_fmt
+-	   is a supported one we will align the resolution (see try_fmt for why).
+-	   Do the same here now, so that a try_fmt on the result of a get_fmt done
+-	   immediately after open leaves the fmt unchanged. */
+-	if (v4lconvert_supported_dst_format(
+-				devices[index].dest_fmt.fmt.pix.pixelformat)) {
+-		devices[index].dest_fmt.fmt.pix.width &= ~7;
+-		devices[index].dest_fmt.fmt.pix.height &= ~1;
+-	}
+-
+ 	pthread_mutex_init(&devices[index].stream_lock, NULL);
+ 
+ 	devices[index].no_frames = 0;
+@@ -948,6 +938,18 @@ static int v4l2_pix_fmt_identical(struct v4l2_format *a, struct v4l2_format *b)
+ static void v4l2_set_src_and_dest_format(int index,
+ 		struct v4l2_format *src_fmt, struct v4l2_format *dest_fmt)
  {
- 	u32 reg = 0;
-@@ -1273,6 +1292,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
- 	struct fimc_sensor_info *si = NULL;
- 	int i;
- 
-+	/* Register flash subdev if detected any */
-+	for (i = 0; i < ARRAY_SIZE(fmd->flash); i++) {
-+		if (fmd->flash[i].asd.match.of.node == subdev->dev->of_node) {
-+			fmd->flash[i].subdev = subdev;
-+			fmd->num_flashes++;
-+			return 0;
-+		}
++	/*
++	 * When a user does a try_fmt with the current dest_fmt and the
++	 * dest_fmt is a supported one we will align the resolution (see
++	 * libv4lconvert_try_fmt). We do this here too, in case dest_fmt gets
++	 * set without having gone through libv4lconvert_try_fmt, so that a
++	 * try_fmt on the result of a get_fmt always returns the same result.
++	 */
++	if (v4lconvert_supported_dst_format(dest_fmt->fmt.pix.pixelformat)) {
++		dest_fmt->fmt.pix.width &= ~7;
++		dest_fmt->fmt.pix.height &= ~1;
 +	}
 +
- 	/* Find platform data for this sensor subdev */
- 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
- 		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
-@@ -1383,6 +1411,8 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_m_ent;
- 	}
+ 	/* Sigh some drivers (pwc) do not properly reflect what one really gets
+ 	   after a s_fmt in their try_fmt answer. So update dest format (which we
+ 	   report as result from s_fmt / g_fmt to the app) with all info from the src
+@@ -958,7 +960,8 @@ static void v4l2_set_src_and_dest_format(int index,
+ 	if (v4l2_pix_fmt_compat(src_fmt, dest_fmt)) {
+ 		dest_fmt->fmt.pix.bytesperline = src_fmt->fmt.pix.bytesperline;
+ 		dest_fmt->fmt.pix.sizeimage = src_fmt->fmt.pix.sizeimage;
+-	}
++	} else
++		v4lconvert_fixup_fmt(dest_fmt);
  
-+	fimc_md_register_flash_entities(fmd);
-+
- 	mutex_unlock(&fmd->media_dev.graph_mutex);
- 
- 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
-@@ -1399,12 +1429,14 @@ static int fimc_md_probe(struct platform_device *pdev)
- 		goto err_attr;
- 	}
- 
--	if (fmd->num_sensors > 0) {
-+	if (fmd->num_sensors > 0 || fmd->num_flashes > 0) {
- 		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
--		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
-+		fmd->subdev_notifier.num_subdevs = fmd->num_sensors +
-+							fmd->num_flashes;
- 		fmd->subdev_notifier.bound = subdev_notifier_bound;
- 		fmd->subdev_notifier.complete = subdev_notifier_complete;
- 		fmd->num_sensors = 0;
-+		fmd->num_flashes = 0;
- 
- 		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
- 						&fmd->subdev_notifier);
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index 0321454..feff9c8 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -34,6 +34,8 @@
- 
- #define FIMC_MAX_SENSORS	4
- #define FIMC_MAX_CAMCLKS	2
-+#define FIMC_MAX_FLASHES	2
-+#define FIMC_MAX_ASYNC_SUBDEVS (FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
- #define DEFAULT_SENSOR_CLK_FREQ	24000000U
- 
- /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-@@ -93,6 +95,11 @@ struct fimc_sensor_info {
- 	struct fimc_dev *host;
- };
- 
-+struct fimc_flash_info {
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev asd;
-+};
-+
- struct cam_clk {
- 	struct clk_hw hw;
- 	struct fimc_md *fmd;
-@@ -104,6 +111,8 @@ struct cam_clk {
-  * @csis: MIPI CSIS subdevs data
-  * @sensor: array of registered sensor subdevs
-  * @num_sensors: actual number of registered sensors
-+ * @flash: array of registered flash subdevs
-+ * @num_flashes: actual number of registered flashes
-  * @camclk: external sensor clock information
-  * @fimc: array of registered fimc devices
-  * @fimc_is: fimc-is data structure
-@@ -123,6 +132,8 @@ struct fimc_md {
- 	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
- 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
- 	int num_sensors;
-+	struct fimc_flash_info flash[FIMC_MAX_FLASHES];
-+	int num_flashes;
- 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
- 	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
-@@ -149,7 +160,7 @@ struct fimc_md {
- 	} clk_provider;
- 
- 	struct v4l2_async_notifier subdev_notifier;
--	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
-+	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_ASYNC_SUBDEVS];
- 
- 	bool user_subdev_api;
- 	spinlock_t slock;
+ 	devices[index].src_fmt = *src_fmt;
+ 	devices[index].dest_fmt = *dest_fmt;
 -- 
-1.7.9.5
+2.1.0
 
