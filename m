@@ -1,124 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:38818 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754745AbaI2Tik (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45518 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbaI3J5h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 15:38:40 -0400
-Received: by mail-vc0-f170.google.com with SMTP id hy10so1687554vcb.29
-        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 12:38:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
-References: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
-Date: Mon, 29 Sep 2014 21:38:39 +0200
-Message-ID: <CA+gwMccqt9zP4bOdDKyiZa=S+xPuZgcpg4aWcdUCyqwobAnKfQ@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR
- tracker to grayscale
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 30 Sep 2014 05:57:37 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 07/10] [media] coda: store bitstream buffer position with buffer metadata
+Date: Tue, 30 Sep 2014 11:57:08 +0200
+Message-Id: <1412071031-32016-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Storing the buffer position in the bitstream with the buffer metadata
+allows to later use that information to drop metadata for skipped buffers
+and to determine whether bitstream padding has to be applied.
 
-On Wed, Aug 6, 2014 at 10:50 PM, Philipp Zabel <philipp.zabel@gmail.com> wrote:
-> This patch adds a quirk to force Y8 pixel format even if the camera reports
-> half-width YUYV.
->
-> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+This patch also renames struct coda_timestamp to struct coda_buffer_meta
+to make clear that it contains more than only the buffer timestamp.
 
-do you have any further comments on this patch?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 53 ++++++++++++++++++-------------
+ drivers/media/platform/coda/coda-common.c | 14 ++++----
+ drivers/media/platform/coda/coda.h        |  8 +++--
+ 3 files changed, 43 insertions(+), 32 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 931248d..d1ecda5 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -217,11 +217,16 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
+ void coda_fill_bitstream(struct coda_ctx *ctx)
+ {
+ 	struct vb2_buffer *src_buf;
+-	struct coda_timestamp *ts;
++	struct coda_buffer_meta *meta;
++	u32 start;
+ 
+ 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
+ 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 
++		/* Buffer start position */
++		start = ctx->bitstream_fifo.kfifo.in &
++			ctx->bitstream_fifo.kfifo.mask;
++
+ 		if (coda_bitstream_try_queue(ctx, src_buf)) {
+ 			/*
+ 			 * Source buffer is queued in the bitstream ringbuffer;
+@@ -229,12 +234,16 @@ void coda_fill_bitstream(struct coda_ctx *ctx)
+ 			 */
+ 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 
+-			ts = kmalloc(sizeof(*ts), GFP_KERNEL);
+-			if (ts) {
+-				ts->sequence = src_buf->v4l2_buf.sequence;
+-				ts->timecode = src_buf->v4l2_buf.timecode;
+-				ts->timestamp = src_buf->v4l2_buf.timestamp;
+-				list_add_tail(&ts->list, &ctx->timestamp_list);
++			meta = kmalloc(sizeof(*meta), GFP_KERNEL);
++			if (meta) {
++				meta->sequence = src_buf->v4l2_buf.sequence;
++				meta->timecode = src_buf->v4l2_buf.timecode;
++				meta->timestamp = src_buf->v4l2_buf.timestamp;
++				meta->start = start;
++				meta->end = ctx->bitstream_fifo.kfifo.in &
++					    ctx->bitstream_fifo.kfifo.mask;
++				list_add_tail(&meta->list,
++					      &ctx->buffer_meta_list);
+ 			}
+ 
+ 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+@@ -1629,7 +1638,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	struct coda_q_data *q_data_src;
+ 	struct coda_q_data *q_data_dst;
+ 	struct vb2_buffer *dst_buf;
+-	struct coda_timestamp *ts;
++	struct coda_buffer_meta *meta;
+ 	unsigned long payload;
+ 	int width, height;
+ 	int decoded_idx;
+@@ -1757,23 +1766,23 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
+ 		val -= ctx->sequence_offset;
+ 		mutex_lock(&ctx->bitstream_mutex);
+-		if (!list_empty(&ctx->timestamp_list)) {
+-			ts = list_first_entry(&ctx->timestamp_list,
+-					      struct coda_timestamp, list);
+-			list_del(&ts->list);
+-			if (val != (ts->sequence & 0xffff)) {
++		if (!list_empty(&ctx->buffer_meta_list)) {
++			meta = list_first_entry(&ctx->buffer_meta_list,
++					      struct coda_buffer_meta, list);
++			list_del(&meta->list);
++			if (val != (meta->sequence & 0xffff)) {
+ 				v4l2_err(&dev->v4l2_dev,
+ 					 "sequence number mismatch (%d(%d) != %d)\n",
+ 					 val, ctx->sequence_offset,
+-					 ts->sequence);
++					 meta->sequence);
+ 			}
+-			ctx->frame_timestamps[decoded_idx] = *ts;
+-			kfree(ts);
++			ctx->frame_metas[decoded_idx] = *meta;
++			kfree(meta);
+ 		} else {
+ 			v4l2_err(&dev->v4l2_dev, "empty timestamp list!\n");
+-			memset(&ctx->frame_timestamps[decoded_idx], 0,
+-			       sizeof(struct coda_timestamp));
+-			ctx->frame_timestamps[decoded_idx].sequence = val;
++			memset(&ctx->frame_metas[decoded_idx], 0,
++			       sizeof(struct coda_buffer_meta));
++			ctx->frame_metas[decoded_idx].sequence = val;
+ 		}
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 
+@@ -1812,9 +1821,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 					     V4L2_BUF_FLAG_PFRAME |
+ 					     V4L2_BUF_FLAG_BFRAME);
+ 		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
+-		ts = &ctx->frame_timestamps[ctx->display_idx];
+-		dst_buf->v4l2_buf.timecode = ts->timecode;
+-		dst_buf->v4l2_buf.timestamp = ts->timestamp;
++		meta = &ctx->frame_metas[ctx->display_idx];
++		dst_buf->v4l2_buf.timecode = meta->timecode;
++		dst_buf->v4l2_buf.timestamp = meta->timestamp;
+ 
+ 		switch (q_data_dst->fourcc) {
+ 		case V4L2_PIX_FMT_YUV420:
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 53304d5..53791d4 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1295,14 +1295,14 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ 	}
+ 
+ 	if (!ctx->streamon_out && !ctx->streamon_cap) {
+-		struct coda_timestamp *ts;
++		struct coda_buffer_meta *meta;
+ 
+ 		mutex_lock(&ctx->bitstream_mutex);
+-		while (!list_empty(&ctx->timestamp_list)) {
+-			ts = list_first_entry(&ctx->timestamp_list,
+-					      struct coda_timestamp, list);
+-			list_del(&ts->list);
+-			kfree(ts);
++		while (!list_empty(&ctx->buffer_meta_list)) {
++			meta = list_first_entry(&ctx->buffer_meta_list,
++						struct coda_buffer_meta, list);
++			list_del(&meta->list);
++			kfree(meta);
+ 		}
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 		kfifo_init(&ctx->bitstream_fifo,
+@@ -1664,7 +1664,7 @@ static int coda_open(struct file *file)
+ 		ctx->bitstream.vaddr, ctx->bitstream.size);
+ 	mutex_init(&ctx->bitstream_mutex);
+ 	mutex_init(&ctx->buffer_mutex);
+-	INIT_LIST_HEAD(&ctx->timestamp_list);
++	INIT_LIST_HEAD(&ctx->buffer_meta_list);
+ 
+ 	coda_lock(ctx);
+ 	list_add(&ctx->list, &dev->instances);
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index c14dee8..8dd81a7 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -130,11 +130,13 @@ struct coda_params {
+ 	u32			slice_max_mb;
+ };
+ 
+-struct coda_timestamp {
++struct coda_buffer_meta {
+ 	struct list_head	list;
+ 	u32			sequence;
+ 	struct v4l2_timecode	timecode;
+ 	struct timeval		timestamp;
++	u32			start;
++	u32			end;
+ };
+ 
+ /* Per-queue, driver-specific private data */
+@@ -220,9 +222,9 @@ struct coda_ctx {
+ 	struct coda_aux_buf		slicebuf;
+ 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
+ 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
+-	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
++	struct coda_buffer_meta		frame_metas[CODA_MAX_FRAMEBUFFERS];
+ 	u32				frame_errors[CODA_MAX_FRAMEBUFFERS];
+-	struct list_head		timestamp_list;
++	struct list_head		buffer_meta_list;
+ 	struct coda_aux_buf		workbuf;
+ 	int				num_internal_frames;
+ 	int				idx;
+-- 
+2.1.0
 
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 29 ++++++++++++++++++++++++++++-
->  drivers/media/usb/uvc/uvcvideo.h   |  1 +
->  2 files changed, 29 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-> index c3bb250..90a8f10 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
->         struct uvc_format_desc *fmtdesc;
->         struct uvc_frame *frame;
->         const unsigned char *start = buffer;
-> +       bool force_yuy2_to_y8 = false;
->         unsigned int interval;
->         unsigned int i, n;
->         __u8 ftype;
-> @@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device *dev,
->                 /* Find the format descriptor from its GUID. */
->                 fmtdesc = uvc_format_by_guid(&buffer[5]);
->
-> +               format->bpp = buffer[21];
-> +
-> +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
-> +                       if (fmtdesc && fmtdesc->fcc == V4L2_PIX_FMT_YUYV &&
-> +                           format->bpp == 16) {
-> +                               force_yuy2_to_y8 = true;
-> +                               fmtdesc = &uvc_fmts[9];
-> +                               format->bpp = 8;
-> +                       } else {
-> +                               uvc_printk(KERN_WARNING,
-> +                                       "Forcing %d-bit %s to %s not supported",
-> +                                       format->bpp, fmtdesc->name,
-> +                                       uvc_fmts[9].name);
-> +                       }
-> +               }
-> +
->                 if (fmtdesc != NULL) {
->                         strlcpy(format->name, fmtdesc->name,
->                                 sizeof format->name);
-> @@ -345,7 +362,6 @@ static int uvc_parse_format(struct uvc_device *dev,
->                         format->fcc = 0;
->                 }
->
-> -               format->bpp = buffer[21];
->                 if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
->                         ftype = UVC_VS_FRAME_UNCOMPRESSED;
->                 } else {
-> @@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
->                 frame->bFrameIndex = buffer[3];
->                 frame->bmCapabilities = buffer[4];
->                 frame->wWidth = get_unaligned_le16(&buffer[5]);
-> +               if (force_yuy2_to_y8)
-> +                       frame->wWidth *= 2;
->                 frame->wHeight = get_unaligned_le16(&buffer[7]);
->                 frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
->                 frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
-> @@ -2467,6 +2485,15 @@ static struct usb_device_id uvc_ids[] = {
->           .bInterfaceProtocol   = 0,
->           .driver_info          = UVC_QUIRK_PROBE_MINMAX
->                                 | UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-> +       /* Oculus VR Positional Tracker DK2 */
-> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
-> +         .idVendor             = 0x2833,
-> +         .idProduct            = 0x0201,
-> +         .bInterfaceClass      = USB_CLASS_VIDEO,
-> +         .bInterfaceSubClass   = 1,
-> +         .bInterfaceProtocol   = 0,
-> +         .driver_info          = UVC_QUIRK_FORCE_Y8 },
->         /* Generic USB Video Class */
->         { USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
->         {}
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-> index 9e35982..1dd78c0 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -137,6 +137,7 @@
->  #define UVC_QUIRK_FIX_BANDWIDTH                0x00000080
->  #define UVC_QUIRK_PROBE_DEF            0x00000100
->  #define UVC_QUIRK_RESTRICT_FRAME_RATE  0x00000200
-> +#define UVC_QUIRK_FORCE_Y8             0x00000400
->
->  /* Format flags */
->  #define UVC_FMT_FLAG_COMPRESSED                0x00000001
-> --
-> 2.0.1
->
