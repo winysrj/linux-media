@@ -1,131 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1800 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237AbaIOLPd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Sep 2014 07:15:33 -0400
-Message-ID: <5416CA2B.1080004@xs4all.nl>
-Date: Mon, 15 Sep 2014 13:14:51 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from bar.sig21.net ([80.81.252.164]:48968 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755215AbaI3HiT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 03:38:19 -0400
+Date: Tue, 30 Sep 2014 09:38:10 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/6] some fixes and cleanups for the em28xx-based HVR-930C
+Message-ID: <20140930073810.GA9128@linuxtv.org>
+References: <cover.1411956856.git.mchehab@osg.samsung.com>
+ <20140929174430.GA18967@linuxtv.org>
+ <20140929153018.2f701689@recife.lan>
+ <20140929184428.GA447@linuxtv.org>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient
- buffer underruns
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <53918EDB.3090908@redhat.com> <539190BA.8060006@xs4all.nl> <2394481.2zcs5YKt7z@avalon>
-In-Reply-To: <2394481.2zcs5YKt7z@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140929184428.GA447@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2014 03:42 PM, Laurent Pinchart wrote:
-> On Friday 06 June 2014 11:58:18 Hans Verkuil wrote:
->> On 06/06/2014 11:50 AM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 06/05/2014 02:23 PM, Laurent Pinchart wrote:
->>>> The V4L2 specification states that
->>>>
->>>> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
->>>> the poll() function succeeds, but sets the POLLERR flag in the revents
->>>> field."
->>>>
->>>> The vb2_poll() function sets POLLERR when the queued buffers list is
->>>> empty, regardless of whether this is caused by the stream not being
->>>> active yet, or by a transient buffer underrun.
->>>>
->>>> Bring the implementation in line with the specification by returning
->>>> POLLERR only when the queue is not streaming. Buffer underruns during
->>>> streaming are not treated specially anymore and just result in poll()
->>>> blocking until the next event.
->>>
->>> After your patch the implementation is still not inline with the spec,
->>> queuing buffers, then starting a thread doing the poll, then doing the
->>> streamon in the main thread will still cause the poll to return POLLERR,
->>> even though buffers are queued, which according to the spec should be
->>> enough for the poll to block.
->>>
->>> The correct check would be:
->>>
->>> if (list_empty(&q->queued_list) && !vb2_is_streaming(q))
->>>
->>> 	eturn res | POLLERR;
->>
->> Good catch! I should have seen that :-(
-
-Urgh. This breaks vbi capture tools like alevt and mtt. These rely on poll
-returning POLLERR if buffers are queued but STREAMON has not been called yet.
-
-See bug report https://bugzilla.kernel.org/show_bug.cgi?id=84401
-
-The spec also clearly says that poll should return POLLERR if STREAMON
-was not called.
-
-But that would clash with this multi-thread example.
-
-Hans, was this based on actual code that needed this?
-
-I am inclined to update alevt and mtt: all that is needed to make it work
-is a single line that explicitly calls the vbi handler before entering the
-main loop. This is effectively the same as what happens when the first
-select gets a POLLERR.
-
-We maintain alevt (dvb-apps) and mtt (xawtv3), so that's easy enough to
-fix.
-
-Note that the spec is now definitely out-of-sync since poll no longer returns
-POLLERR if buffers are queued but STREAMON wasn't called.
-
-Regards,
-
-	Hans
-
+On Mon, Sep 29, 2014 at 08:44:28PM +0200, Johannes Stezenbach wrote:
+> On Mon, Sep 29, 2014 at 03:30:18PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Mon, 29 Sep 2014 19:44:30 +0200
+> > Johannes Stezenbach <js@linuxtv.org> escreveu:
+> > 
+> > > Disregarding your mails from the "em28xx breaks after hibernate"
+> > > that hibernate doesn't work for you, I decided to give these
+> > > changes a try on top of today's media_tree.git
+> > > (cf3167c -> 3.17.0-rc5-00741-g9a3fbd8), still inside qemu
+> > > (can't upgrade/reboot my main machine right now).
+> > 
+> > Well, I think I was not clear: It doesn't work for me when 
+> > I power down the USB or the machine after suspended. If I keep
+> > the device energized, it works ;)
 > 
-> I'll update the patch accordingly.
-> 
->> v4l2-compliance should certainly be extended to test this as well.
->>
->> Regards,
->>
->> 	Hans
->>
->>> Regards,
->>>
->>> Hans
->>>
->>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>
->>>>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
->>>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->>>> b/drivers/media/v4l2-core/videobuf2-core.c index 349e659..fd428e0 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>> @@ -2533,9 +2533,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
->>>> file *file, poll_table *wait)>> 
->>>>  	}
->>>>  	
->>>>  	/*
->>>>
->>>> -	 * There is nothing to wait for if no buffers have already been 
-> queued.
->>>> +	 * There is nothing to wait for if the queue isn't streaming.
->>>>
->>>>  	 */
->>>>
->>>> -	if (list_empty(&q->queued_list))
->>>> +	if (!vb2_is_streaming(q))
->>>>
->>>>  		return res | POLLERR;
->>>>  	
->>>>  	if (list_empty(&q->done_list))
-> 
+> Ah, OK.  I'll try to test with power removed tomorrow.
 
+I test again in qemu, but this time rmmod and blacklist em28xx
+on the host, and unplug HVR-930C during hibernate.  As you
+said, it breaks.  Log fter resume:
+
+[   83.308267] usb 1-1: reset high-speed USB device number 2 using ehci-pci
+[   83.598182] em2884 #0: Resuming extensions
+[   83.599187] em2884 #0: Resuming video extensionem2884 #0: Resuming DVB extension
+[   83.604115] xc5000: I2C read failed
+[   83.607091] xc5000: I2C write failed (len=3)
+[   83.607985] xc5000: firmware upload failed...
+[   83.608766]  - too many retries. Giving up
+[   83.609553] em2884 #0: fe0 resume -22
+[   83.615533] PM: restore of devices complete after 937.567 msecs
+[   83.617278] PM: Image restored successfully.
+[   83.618262] PM: Basic memory bitmaps freed
+[   83.619097] Restarting tasks ... done.
+[   83.622320] xc5000: I2C read failed
+[   83.623197] xc5000: I2C write failed (len=3)
+[   83.623198] xc5000: firmware upload failed...
+[   83.623198]  - too many retries. Giving up
+[   83.624071] drxk: i2c read error at addr 0x29
+[   83.624072] drxk: Error -6 on mpegts_stop
+[   83.624073] drxk: Error -6 on start
+[   84.621531] drxk: i2c read error at addr 0x29
+[   84.623426] drxk: Error -6 on get_dvbt_lock_status
+[   84.625477] drxk: Error -6 on get_lock_status
+
+
+Johannes
