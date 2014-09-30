@@ -1,75 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47025 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753967AbaI2OMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Sep 2014 10:12:55 -0400
-Message-ID: <542968E4.6020308@iki.fi>
-Date: Mon, 29 Sep 2014 17:12:52 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] af9033: fix signal strength value not correct issue
-References: <1411980225.1747.10.camel@ite-desktop> <54294A66.30703@iki.fi>
-In-Reply-To: <54294A66.30703@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50791 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159AbaI3Vm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 17:42:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] v4l: uvcvideo: Fix buffer completion size check
+Date: Wed,  1 Oct 2014 00:42:51 +0300
+Message-Id: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Commit e93e7fd9f5a3fffec7792dbcc4c3574653effda7 ("v4l2: uvcvideo: Allow
+using larger buffers") reworked the buffer size sanity check at buffer
+completion time to use the frame size instead of the allocated buffer
+size. However, it introduced two bugs in doing so:
 
-On 09/29/2014 03:02 PM, Antti Palosaari wrote:
-> On 09/29/2014 11:43 AM, Bimow Chen wrote:
->> Register 0x800048 is not dB measure but relative scale. Fix it and
->> conform to NorDig specifications.
->
-> eh, 0x800048 register returned strength normalized to 0-100 %. But that
-> was earlier when older firmwares used. I have seen it does not return
-> anything anymore, so I am very fine it is replaced with something
-> meaningful.
->
-> But the issues is that this patches changes current DVBv5 signal
-> reporting from dBm to relative. I indeed implemented it is as a dBm and
-> I checked it using modulator RF strength it really is dBm. Now you add
-> some glue which converts dBm to relative value between 0-0xffff.
->
-> I encourage you to use modulator yourself to generate signals. Then use
-> dvbv5-zap to see values DVBv5 API reports.
->
-> If you really want return 0-0xffff values, then do it for old DVBv3
-> read_signal_strength(), but do not change new DVBv5 statistics to
-> relative. dBm, as a clearly defined unit, is always preferred over
-> relative. Relative was added to API for cases we cannot report well
-> known units.
->
-> Could you tell which is unit NorDig specification defines for signal
-> strength?
+- it assigned the allocated buffer size to the frame_size field, instead
+  of assigning the correct frame size
 
-According to latest NorDig specification, page 39
-http://www.nordig.org/pdf/NorDig-Unified_ver_2.5.1.pdf
-there is two kind of reports, basic and advanced. Normal report is (%) 
-which suits well for relative scale.
+- it performed the assignment in the S_FMT handler, resulting in the
+  frame_size field being uninitialized if the userspace application
+  doesn't call S_FMT.
 
-The basic status check shall include:
-* channel id, according to Annex B.2
-* centre frequency
-* Signal Strength Indicator, SSI (%), according to section 3.4.4.6
-* Signal Quality Indicator, SQI (%), according to section 3.4.4.7
+Fix both issues by removing the frame_size field and validating the
+buffer size against the UVC video control dwMaxFrameSize.
 
+Fixes: e93e7fd9f5a3 ("v4l2: uvcvideo: Allow using larger buffers")
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
+ drivers/media/usb/uvc/uvc_video.c | 2 +-
+ drivers/media/usb/uvc/uvcvideo.h  | 1 -
+ 3 files changed, 1 insertion(+), 3 deletions(-)
 
-The terrestrial NorDig IRD should provide an advanced status check 
-function (accessible through the Navigator) that presents the following 
-information:
-* channel id, according to Annex B.2
-* centre frequency
-* signal strength (dBm or dBμV)
-* signal strength indicator, SSI (%), according to section 3.4.4.6
-* signal quality indicator, SQI (%), according to section 3.4.4.7
-* C/N (dB)
-* BER before Reed Solomon decoding (DVB-T) or BCH decoding (DVB-T2)
-* Uncorrected packets
+Guennadi, could you please test and ack this ASAP, as the bug needs to be
+fixed for v3.18-rc1 if possible ?
 
-
-regards
-Antti
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index f205934..f33a067 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -318,7 +318,6 @@ static int uvc_v4l2_set_format(struct uvc_streaming *stream,
+ 	stream->ctrl = probe;
+ 	stream->cur_format = format;
+ 	stream->cur_frame = frame;
+-	stream->frame_size = fmt->fmt.pix.sizeimage;
+ 
+ done:
+ 	mutex_unlock(&stream->mutex);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 9ace520..df81b9c 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1143,7 +1143,7 @@ static int uvc_video_encode_data(struct uvc_streaming *stream,
+ static void uvc_video_validate_buffer(const struct uvc_streaming *stream,
+ 				      struct uvc_buffer *buf)
+ {
+-	if (stream->frame_size != buf->bytesused &&
++	if (stream->ctrl.dwMaxVideoFrameSize != buf->bytesused &&
+ 	    !(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
+ 		buf->error = 1;
+ }
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index f585c08..897cfd8 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -458,7 +458,6 @@ struct uvc_streaming {
+ 	struct uvc_format *def_format;
+ 	struct uvc_format *cur_format;
+ 	struct uvc_frame *cur_frame;
+-	size_t frame_size;
+ 
+ 	/* Protect access to ctrl, cur_format, cur_frame and hardware video
+ 	 * probe control.
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
