@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:63210 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185AbaIHMek (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Sep 2014 08:34:40 -0400
-From: Morgan Phillips <winter2718@gmail.com>
-To: brijohn@gmail.com
-Cc: hdegoede@redhat.com, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	wolfram@the-dreams.de, Morgan Phillips <winter2718@gmail.com>
-Subject: [PATCH] [media]: sn9c20x.c: fix checkpatch error: that open brace { should be on the previous line
-Date: Mon,  8 Sep 2014 07:32:22 -0500
-Message-Id: <1410179542-3272-1-git-send-email-winter2718@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55577 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbaI3OEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 10:04:54 -0400
+Message-ID: <542AB87C.1070306@redhat.com>
+Date: Tue, 30 Sep 2014 16:04:44 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Regression: in v4l2 converter does not set the buffer.length
+ anymore
+References: <5429CDD6.9050809@collabora.com>
+In-Reply-To: <5429CDD6.9050809@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Morgan Phillips <winter2718@gmail.com>
----
- drivers/media/usb/gspca/sn9c20x.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Hi,
 
-diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-index 41a9a89..95467f0 100644
---- a/drivers/media/usb/gspca/sn9c20x.c
-+++ b/drivers/media/usb/gspca/sn9c20x.c
-@@ -1787,8 +1787,9 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int i;
- 	u8 value;
--	u8 i2c_init[9] =
--		{0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-+	u8 i2c_init[9] = {
-+		0x80, sd->i2c_addr, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03
-+	};
- 
- 	for (i = 0; i < ARRAY_SIZE(bridge_init); i++) {
- 		value = bridge_init[i][1];
-@@ -2242,8 +2243,9 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	int avg_lum, is_jpeg;
--	static const u8 frame_header[] =
--		{0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96};
-+	static const u8 frame_header[] = {
-+		0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96
-+	};
- 
- 	is_jpeg = (sd->fmt & 0x03) == 0;
- 	if (len >= 64 && memcmp(data, frame_header, 6) == 0) {
--- 
-1.9.1
+On 09/29/2014 11:23 PM, Nicolas Dufresne wrote:
+> This was initially reported to GStreamer project:
+> https://bugzilla.gnome.org/show_bug.cgi?id=737521
+> 
+> We track this down to be a regression introduced in v4l2-utils from version 1.4.0. In recent GStreamer we make sure the buffer.length field (retreived with QUERYBUF) is bigger or equal to the expected sizeimage (as obtained in S_FMT). This is to fail cleanly and avoid buffer overflow if a driver (or libv4l2) endup doing a short allocation. Since 1.4.0, this field is always 0 if an emulated format is selected.
+> 
+> Reverting patch 10213c brings back normal behaviour:
+> http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=10213c975afdfcc90aa7de39e66c40cd7e8a57f7
+> 
+> This currently makes use of any emulated format impossible in GStreamer. v4l2-utils 1.4.0 is being shipped at least in debian/unstable at the moment.
 
+Oops, thanks for the bug report.
+
+I've created a 3 patch patch-set fixing this, which I'll send right after
+this mail. The actual fix is in the 2nd patch, the first patch and third
+patches fix 2 unrelated bugs which I noticed while working on this.
+
+Regards,
+
+Hans
