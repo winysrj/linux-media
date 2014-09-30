@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:23015 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990AbaIZE7y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Sep 2014 00:59:54 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCH001ROSJREB80@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Sep 2014 13:59:51 +0900 (KST)
-From: Kiran AVND <avnd.kiran@samsung.com>
+Received: from nat-warsl417-01.aon.at ([195.3.96.119]:11453 "EHLO email.aon.at"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751832AbaI3R32 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 13:29:28 -0400
+Received: from unknown (HELO email.aon.at) ([172.18.1.196])
+          (envelope-sender <klammerj@a1.net>)
+          by fallback44.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 30 Sep 2014 17:22:38 -0000
+Received: from 80-123-5-59.adsl.highway.telekom.at (HELO [192.168.0.2]) ([80.123.5.59])
+          (envelope-sender <klammerj@a1.net>)
+          by smarthub76.res.a1.net (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 30 Sep 2014 17:21:42 -0000
+Message-ID: <542AE6A6.9000504@a1.net>
+Date: Tue, 30 Sep 2014 19:21:42 +0200
+From: Johann Klammer <klammerj@a1.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	arun.kk@samsung.com, kiran@chromium.org
-Subject: [PATCH v2 09/14] [media] s5p-mfc: De-init MFC when watchdog kicks in
-Date: Fri, 26 Sep 2014 10:22:17 +0530
-Message-id: <1411707142-4881-10-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+Subject: saa7146_wait_for_debi_done_sleep timed out
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arun Mankuzhi <arun.m@samsung.com>
+Hello,
 
-If the software watchdog kicks in, we need to de-init MFC
-before reloading firmware and re-intializing it again.
+After updating the kernel to 3.14.15 I am seeing these messages:
 
-Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+[273684.964081] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273690.020061] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273695.076082] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273700.132077] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273705.188070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273710.244066] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273715.300187] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273720.356068] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273725.412188] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273730.468094] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273735.524070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
+[273740.580176] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep 
+timed out while waiting for registers getting programmed
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8d5da0c..21b6006 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -159,6 +159,10 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 	}
- 	clear_bit(0, &dev->hw_lock);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
-+
-+	/* De-init MFC */
-+	s5p_mfc_deinit_hw(dev);
-+
- 	/* Double check if there is at least one instance running.
- 	 * If no instance is in memory than no firmware should be present */
- 	if (dev->num_inst > 0) {
--- 
-1.7.9.5
+filling up the logs(one about every 5 seconds).
+
+The TV card is a Terratec Cinergy 1200 DVBS (I believe.. it's rather old).
+
+I can not observe any erratic behavior, just those pesky messages...
+
+I see there was an earlier post here in 2008 about a similar 
+problem...(Cinergy 1200 DVB-C... a coincidence?)
+
+What does it mean?
+Do I need to be worried?
+
+I am using a debian testing on a 32 bit box.
+The previous kernel was linux-image-3.12-1-486.
+It did not show those messages, but maybe due to some configure 
+options... I built this one from linux-source-3.14...
 
