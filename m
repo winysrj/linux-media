@@ -1,183 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34130 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645AbaIXW1y (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:64495 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbaI3GAT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Sep 2014 18:27:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 14/18] [media] s5p_mfc_opr_v6: get rid of warnings when compiled with 64 bits
-Date: Wed, 24 Sep 2014 19:27:14 -0300
-Message-Id: <dda7cdbd99166519fd47e676915573ced63ec488.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-In-Reply-To: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
-References: <c8634fac0c56cfaa9bdad29d541e95b17c049c0a.1411597610.git.mchehab@osg.samsung.com>
+	Tue, 30 Sep 2014 02:00:19 -0400
+Received: by mail-wi0-f172.google.com with SMTP id ex7so3089945wid.17
+        for <linux-media@vger.kernel.org>; Mon, 29 Sep 2014 23:00:17 -0700 (PDT)
+Message-ID: <542A46E1.3010107@gmail.com>
+Date: Tue, 30 Sep 2014 08:00:01 +0200
+From: =?UTF-8?B?R2HDq3RhbiBDYXJsaWVy?= <gcembed@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: javier Martin <javier.martin@vista-silicon.com>,
+	Fabio Estevam <festevam@gmail.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [coda6] Error while decoding second h.264 chunk
+References: <54228C77.7040004@gmail.com> <1411998818.3050.4.camel@pengutronix.de>
+In-Reply-To: <1411998818.3050.4.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several errors related to size_t size and the usage of
-unsigned int for pointers:
+Hi Philipp and Fabio,
+First of all, thanks a lot for your reply.
 
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_alloc_codec_buffers_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:103:3: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat=]
-   mfc_debug(2, "recon luma size: %d chroma size: %d\n",
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:103:3: warning: format ‘%d’ expects argument of type ‘int’, but argument 5 has type ‘size_t’ [-Wformat=]
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_set_dec_frame_buffer_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:472:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘size_t’ [-Wformat=]
-   mfc_debug(2, "Luma %d: %x\n", i,
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:476:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘size_t’ [-Wformat=]
-   mfc_debug(2, "\tChroma %d: %x\n", i,
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:490:4: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘size_t’ [-Wformat=]
-    mfc_debug(2, "\tBuf1: %x, size: %d\n",
-    ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:498:2: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘size_t’ [-Wformat=]
-  mfc_debug(2, "Buf1: %u, buf_size1: %d (frames %d)\n",
-  ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_set_enc_ref_buffer_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:596:2: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘size_t’ [-Wformat=]
-  mfc_debug(2, "Buf1: %u, buf_size1: %d (ref frames %d)\n",
-  ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_write_info_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:1883:15: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  writel(data, (volatile void __iomem *)ofs);
-               ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_read_info_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:1893:14: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-  ret = readl((volatile void __iomem *)ofs);
-              ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_get_pic_type_top_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2022:3: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-   (__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_top);
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_get_pic_type_bot_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2028:3: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-   (__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_bot);
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_get_crop_info_h_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2034:3: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-   (__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info1);
-   ^
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c: In function ‘s5p_mfc_get_crop_info_v_v6’:
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:2040:3: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-   (__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info2);
+On 09/29/2014 03:53 PM, Philipp Zabel wrote:
+> Hi Gaëtan,
+>
+> Am Mittwoch, den 24.09.2014, 11:18 +0200 schrieb Gaëtan Carlier:
+>> Hello Dears,
+>> I am back with my Coda6 (i.MX27). I have ported decoding from libvpu
+>> code to kernel 3.6 but I have a little problem. DEC_SEQ_INIT runs fine,
+>> the internal RdPtr increases by 512 bytes but when I run the DEC_PIC_RUN
+>> (PRESCAN disabled), the RdPTr has increased to 1024 (0x400), but
+>> macroblock error are reported and next DEC_PIC_RUN does not increase
+>> anymore the internal RdPtr.
+>> If I enable PRESCAN, the first DEC_PIC_RUN does not event finish (timeout).
+>
+> where is the PC pointer at when it times out? Maybe do a complete
+> register dump before DEC_PIC_RUN and after the timeout to see if
+> something stands out.
+I will do that and post reply today (I really don't know what to do with 
+Program Counter of the FW. I hope you do :)).
+>
+>> I attach the kernel driver (+fw), the h264 raw file (encoded using this
+>> coda6 driver and played without error using ffplay), the userspace test
+>> program and the log file.
+>>
+>> Can you give me some advise to know where to search. I have tried to
+>> reset WrPtr and RdPtr before first DEC_PIC_RUN and reload h264 raw file
+>> from the beginning, let RdPtr and WrPtr unchanged and h264 raw file from
+>> the beginning but this is even worst...
+>
+> I don't think you are supposed to write RdPtr.
+That is what I think too but I have tried many things before asking help :)
+> It is under firmware
+> control, at least between SEQ_INIT and SEQ_END. There is a DEC_BUF_FLUSH
+> command, maybe that does what you need.
+I supposed that DEC_BUF_FLUSH command is needed after DEC_PIC_RUN 
+command in case of last chunk or one frame decoding. As my problem 
+occurs while this first DEC_PIC_RUN, I don't even try to implement this 
+command.
+> What happens if you queue a third ~1200 byte frame before calling the
+> first DEC_PIC_RUN?
+>
+I already try to increase v4l2buffer from userspace and queue upto 10 
+h.264 chunk in bitstreambuffer but same behaviour.
+>> The firmware is version 2.2.5.
+>>
+>> Thanks a lot for your help.
+>> Best regards,
+>> Gaëtan Carlier.
+>>
+>> ps: I do not post this on mailing list due to attachments that may not work
+>
+> You could extract the relevant parts of the log.
+I send this reply on mailing list, as people will already see your 
+advise and avoid duplication. Here is the log:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+...
+coda coda-imx27.0: Initialized CodaDx6.
+coda coda-imx27.0: Firmware version: 2.2.5
+coda coda-imx27.0: codec registered as /dev/video2
+...
+Chunk 0[6269] : key frame 67 (00000001674218D4)
+Chunk 1[1154] :     frame 41 (00000001419AFFBF)
+Chunk 2[1293] :     frame 41 (00000001419A8110)
+Chunk 3[1256] :     frame 41 (00000001419A7590)
+Chunk 4[1887] :     frame 41 (00000001419A0989)
+Chunk 5[2609] :     frame 41 (00000001419A6E54)
+Chunk 6[2463] :     frame 41 (00000001419A0865)
+Chunk 7[2087] :     frame 41 (00000001419AB42D)
+Chunk 8[2394] :     frame 41 (00000001419AB52F)
+Chunk 9[2210] :     frame 41 (00000001419A2CC2)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index e38d78f21726..89de7a6daa5b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -100,7 +100,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 						mb_width, mb_height),
- 						S5P_FIMV_ME_BUFFER_ALIGN_V6);
- 
--		mfc_debug(2, "recon luma size: %d chroma size: %d\n",
-+		mfc_debug(2, "recon luma size: %zd chroma size: %zd\n",
- 			  ctx->luma_dpb_size, ctx->chroma_dpb_size);
- 	} else {
- 		return -EINVAL;
-@@ -469,11 +469,11 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 
- 	for (i = 0; i < ctx->total_dpb_count; i++) {
- 		/* Bank2 */
--		mfc_debug(2, "Luma %d: %x\n", i,
-+		mfc_debug(2, "Luma %d: %zx\n", i,
- 					ctx->dst_bufs[i].cookie.raw.luma);
- 		writel(ctx->dst_bufs[i].cookie.raw.luma,
- 				mfc_regs->d_first_plane_dpb + i * 4);
--		mfc_debug(2, "\tChroma %d: %x\n", i,
-+		mfc_debug(2, "\tChroma %d: %zx\n", i,
- 					ctx->dst_bufs[i].cookie.raw.chroma);
- 		writel(ctx->dst_bufs[i].cookie.raw.chroma,
- 				mfc_regs->d_second_plane_dpb + i * 4);
-@@ -487,7 +487,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 			align_gap = buf_addr1 - align_gap;
- 			buf_size1 -= align_gap;
- 
--			mfc_debug(2, "\tBuf1: %x, size: %d\n",
-+			mfc_debug(2, "\tBuf1: %zx, size: %d\n",
- 					buf_addr1, buf_size1);
- 			writel(buf_addr1, mfc_regs->d_mv_buffer + i * 4);
- 			buf_addr1 += frame_size_mv;
-@@ -495,7 +495,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 		}
- 	}
- 
--	mfc_debug(2, "Buf1: %u, buf_size1: %d (frames %d)\n",
-+	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
- 			buf_addr1, buf_size1, ctx->total_dpb_count);
- 	if (buf_size1 < 0) {
- 		mfc_debug(2, "Not enough memory has been allocated.\n");
-@@ -593,7 +593,7 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	buf_addr1 += ctx->tmv_buffer_size >> 1;
- 	buf_size1 -= ctx->tmv_buffer_size;
- 
--	mfc_debug(2, "Buf1: %u, buf_size1: %d (ref frames %d)\n",
-+	mfc_debug(2, "Buf1: %zu, buf_size1: %d (ref frames %d)\n",
- 			buf_addr1, buf_size1, ctx->pb_count);
- 	if (buf_size1 < 0) {
- 		mfc_debug(2, "Not enough memory has been allocated.\n");
-@@ -1880,7 +1880,7 @@ static void s5p_mfc_write_info_v6(struct s5p_mfc_ctx *ctx, unsigned int data,
- 		unsigned int ofs)
- {
- 	s5p_mfc_clock_on();
--	writel(data, (volatile void __iomem *)ofs);
-+	writel(data, (volatile void __iomem *)((unsigned long)ofs));
- 	s5p_mfc_clock_off();
- }
- 
-@@ -1890,7 +1890,7 @@ s5p_mfc_read_info_v6(struct s5p_mfc_ctx *ctx, unsigned int ofs)
- 	int ret;
- 
- 	s5p_mfc_clock_on();
--	ret = readl((volatile void __iomem *)ofs);
-+	ret = readl((volatile void __iomem *)((unsigned long)ofs));
- 	s5p_mfc_clock_off();
- 
- 	return ret;
-@@ -2019,25 +2019,25 @@ static int s5p_mfc_get_mvc_view_id_v6(struct s5p_mfc_dev *dev)
- static unsigned int s5p_mfc_get_pic_type_top_v6(struct s5p_mfc_ctx *ctx)
- {
- 	return s5p_mfc_read_info_v6(ctx,
--		(__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_top);
-+		(__force unsigned long) ctx->dev->mfc_regs->d_ret_picture_tag_top);
- }
- 
- static unsigned int s5p_mfc_get_pic_type_bot_v6(struct s5p_mfc_ctx *ctx)
- {
- 	return s5p_mfc_read_info_v6(ctx,
--		(__force unsigned int) ctx->dev->mfc_regs->d_ret_picture_tag_bot);
-+		(__force unsigned long) ctx->dev->mfc_regs->d_ret_picture_tag_bot);
- }
- 
- static unsigned int s5p_mfc_get_crop_info_h_v6(struct s5p_mfc_ctx *ctx)
- {
- 	return s5p_mfc_read_info_v6(ctx,
--		(__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info1);
-+		(__force unsigned long) ctx->dev->mfc_regs->d_display_crop_info1);
- }
- 
- static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
- {
- 	return s5p_mfc_read_info_v6(ctx,
--		(__force unsigned int) ctx->dev->mfc_regs->d_display_crop_info2);
-+		(__force unsigned long) ctx->dev->mfc_regs->d_display_crop_info2);
- }
- 
- static struct s5p_mfc_regs mfc_regs;
--- 
-1.9.3
+coda_fill_decoder_bitstreambuf - c8c7f000 - 6269 bytes added - 6269 
+bytes bufferd
+	WrPtr @ a73c187d - RdPtr @ a73c0000
+		00000001674218D4
+coda coda-imx27.0: Int occurs : 00000002 (SEQ_INIT)
+coda coda-imx27.0: CODA_REG_DEC_FUNC_CTRL : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_SRC_SIZE : 000A01E0
+coda coda-imx27.0: CODA_RET_DEC_SEQ_SRC_F_RATE : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_FRAME_NEED : 00000003
+coda coda-imx27.0: CODA_RET_DEC_SEQ_FRAME_DELAY : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_INFO : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_CROP_LEFT_RIGHT : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_CROP_TOP_BOTTOM : 00000000
+coda coda-imx27.0: CODA_RET_DEC_SEQ_NEXT_FRAME_NUM : 00000001
+coda coda-imx27.0: CODA_REG_BIT_RUN_INDEX : 00000000
+coda coda-imx27.0: CODA_REG_BIT_RD_PTR0 : A73C0200
+coda coda-imx27.0: CODA_REG_BIT_WR_PTR0 : A73C187D
+Framebuffers allocated 10
+coda coda-imx27.0: Int occurs : 00000010 (SET_FRAME_BUF)
+coda_device_run_decoder
 
+coda_fill_decoder_bitstreambuf - c8d80000 - 1154 bytes added - 7423 
+bytes bufferd
+	WrPtr @ a73c1cff - RdPtr @ a73c0200
+		00000001419AFFBF
+coda coda-imx27.0: Int occurs : 00000008 (PIC_RUN)
+CODA_RET_DEC_PIC_FRAME_NUM : 00000001 size 460800
+CODA_RET_DEC_PIC_IDX : 00000000
+CODA_RET_DEC_PIC_ERR_MB_NUM : 00000442
+CODA_RET_DEC_PIC_TYPE : 00000000
+CODA_RET_DEC_PIC_SUCCESS : 00000001
+CODA_RET_DEC_PIC_OPTION : 00000002
+CODA_RET_DEC_PIC_CUR_IDX : 00000001
+CODA_RET_DEC_PIC_NEXT_IDX : 00000001
+coda_device_run_decoder
+
+coda_fill_decoder_bitstreambuf - c8e81000 - 1293 bytes added - 8716 
+bytes bufferd
+	WrPtr @ a73c220c - RdPtr @ a73c0400
+		00000001419A8110
+Image 1 decoded : 0
+Chunk 10[2841] :     frame 41 (00000001419A09A2)
+Chunk 11 loaded
+coda coda-imx27.0: Int occurs : 00000008
+CODA_RET_DEC_PIC_FRAME_NUM : 00000002 size 460800
+CODA_RET_DEC_PIC_IDX : 00000001
+CODA_RET_DEC_PIC_ERR_MB_NUM : 000000EA
+CODA_RET_DEC_PIC_TYPE : 00000001
+CODA_RET_DEC_PIC_SUCCESS : 00000001
+CODA_RET_DEC_PIC_OPTION : 00000002
+CODA_RET_DEC_PIC_CUR_IDX : 00000002
+CODA_RET_DEC_PIC_NEXT_IDX : 00000001
+coda_device_run_decoder
+...
+
+A log with PRESCAN enabled and register dump before/after the timeout 
+will be posted later.
+>
+> regards
+> Philipp
+>
+
+Best regards,
+Gaëtan.
