@@ -1,79 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42202 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757254AbaITSfK (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:40324 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610AbaI3PUV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Sep 2014 14:35:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] DocBook media: fix the poll() 'no QBUF' documentation
-Date: Sat, 20 Sep 2014 21:35:16 +0300
-Message-ID: <3467173.gE0lEHfa57@avalon>
-In-Reply-To: <1411203375-15310-3-git-send-email-hverkuil@xs4all.nl>
-References: <1411203375-15310-1-git-send-email-hverkuil@xs4all.nl> <1411203375-15310-3-git-send-email-hverkuil@xs4all.nl>
+	Tue, 30 Sep 2014 11:20:21 -0400
+Received: by mail-wi0-f177.google.com with SMTP id cc10so3742383wib.10
+        for <linux-media@vger.kernel.org>; Tue, 30 Sep 2014 08:20:20 -0700 (PDT)
+Message-ID: <542ACA32.3050403@googlemail.com>
+Date: Tue, 30 Sep 2014 17:20:18 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?B?QW5kcsOpIFJvdGg=?= <neolynx@gmail.com>
+Subject: Re: Upcoming v4l-utils 1.6.0 release
+References: <20140925213820.1bbf43c2@recife.lan>	<54269807.50109@googlemail.com> <20140927085455.5b0baf89@recife.lan>
+In-Reply-To: <20140927085455.5b0baf89@recife.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-Thank you for the patch.
+On 27/09/14 13:54, Mauro Carvalho Chehab wrote:
+> Em Sat, 27 Sep 2014 12:57:11 +0200
+> Gregor Jasny <gjasny@googlemail.com> escreveu:
+>> As far as I understand the service_location feature should work but is
+>> an extension to the standard. Does it harm if we keep it until we have
+>> something better in place to handle extensions?
+>>
+>> The service list descriptor feature is unimplemented (and thus broken).
+>> Would it help if we return -1 from dvb_desc_service_list_init to reflect
+>> that fact or does it break something else? But I'd keep the symbol in
+>> the library to maintain ABI compatibility.
 
-On Saturday 20 September 2014 10:56:14 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Clarify what poll() returns if STREAMON was called but not QBUF.
-> Make explicit the different behavior for this scenario for
-> capture and output devices.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/func-poll.xml | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/func-poll.xml
-> b/Documentation/DocBook/media/v4l/func-poll.xml index 85cad8b..b7ed9e8
-> 100644
-> --- a/Documentation/DocBook/media/v4l/func-poll.xml
-> +++ b/Documentation/DocBook/media/v4l/func-poll.xml
-> @@ -44,10 +44,18 @@ Capture devices set the <constant>POLLIN</constant> and
->  flags. When the function timed out it returns a value of zero, on
->  failure it returns <returnvalue>-1</returnvalue> and the
->  <varname>errno</varname> variable is set appropriately. When the
-> -application did not call &VIDIOC-QBUF; or &VIDIOC-STREAMON; yet the
-> +application did not call &VIDIOC-STREAMON; the
->  <function>poll()</function> function succeeds, but sets the
->  <constant>POLLERR</constant> flag in the
-> -<structfield>revents</structfield> field.</para>
-> +<structfield>revents</structfield> field. When the
-> +application calls &VIDIOC-STREAMON; for a capture device without a
-> +preceeding &VIDIOC-QBUF; the <function>poll()</function> function
-> +succeeds, but sets the <constant>POLLERR</constant> flag in the
-> +<structfield>revents</structfield> field.
+> I would actually prefer if we could get rid of those two broken
+> descriptors on some release, and to re-add them only when they're
+> actually working.
 
-Nitpicking here, I would word it as
+I have sent a patch series to remove the public headers of this two
+descriptors and provide stubs to maintain SONAME compatibility.
 
-When the application has called &VIDIOC-STREAMON; for a capture device but 
-hasn't called &VIDIOC-QBUF; yet the <function>poll()</function> function
-succeeds and sets the <constant>POLLERR</constant> flag in the
-<structfield>revents</structfield> field.
+Could you please ACK it?
 
-> For output devices this
-> +same situation will cause <function>poll()</function> to succeed
-> +as well, but it sets the <constant>POLLOUT</constant> and
-> +<constant>POLLWRNORM</constant> flags in the
-> <structfield>revents</structfield>
-> +field.</para>
-> 
->      <para>When use of the <function>read()</function> function has
->  been negotiated and the driver does not capture yet, the
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Gregor
