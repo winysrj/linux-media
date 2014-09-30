@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42168 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbaIXBk1 (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:39726 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017AbaI3Ij5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Sep 2014 21:40:27 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH] [media] tc90522: fix compilation on 32 bits
-Date: Tue, 23 Sep 2014 22:40:02 -0300
-Message-Id: <7503795adf7d327a41076e04a25c2cd47c99fac6.1411522795.git.mchehab@osg.samsung.com>
+	Tue, 30 Sep 2014 04:39:57 -0400
+Date: Tue, 30 Sep 2014 10:39:53 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] video: move mediabus format definition to a more
+ standard place
+Message-ID: <20140930083952.GA4059@ulmo>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1411999363-28770-2-git-send-email-boris.brezillon@free-electrons.com>
+ <3849580.CgKEmcV7as@avalon>
+ <20140930093757.003741ac@bbrezillon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
+Content-Disposition: inline
+In-Reply-To: <20140930093757.003741ac@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   drivers/built-in.o: In function `tc90522t_get_frontend':
->> tc90522.c:(.text+0x260b64c): undefined reference to `__divdi3'
->> tc90522.c:(.text+0x260b685): undefined reference to `__divdi3'
->> tc90522.c:(.text+0x260b6bb): undefined reference to `__divdi3'
->> tc90522.c:(.text+0x260b713): undefined reference to `__divdi3'
-   drivers/built-in.o:tc90522.c:(.text+0x260bb64): more undefined references to `__divdi3' follow
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
-index cdd9808c322c..d9905fb52f84 100644
---- a/drivers/media/dvb-frontends/tc90522.c
-+++ b/drivers/media/dvb-frontends/tc90522.c
-@@ -28,6 +28,7 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/math64.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_math.h"
- #include "tc90522.h"
-@@ -275,7 +276,7 @@ static int tc90522s_get_frontend(struct dvb_frontend *fe)
- 		/* cn = cnr << 3 */
- 		p = int_sqrt(cndat << 16);
- 		p4 = cndat * cndat;
--		cn = (-16346LL * p4 * p / 10) >> 35;
-+		cn = div64_s64(-16346LL * p4 * p, 10) >> 35;
- 		cn += (14341LL * p4) >> 21;
- 		cn -= (50259LL * cndat * p) >> 23;
- 		cn += (88977LL * cndat) >> 9;
-@@ -434,13 +435,13 @@ static int tc90522t_get_frontend(struct dvb_frontend *fe)
- 		p *= 10;
- 
- 		cn = 24772;
--		cn += ((43827LL * p) / 10) >> 24;
-+		cn += div64_s64(43827LL * p, 10) >> 24;
- 		tmp = p >> 8;
--		cn += ((3184LL * tmp * tmp) / 10) >> 32;
-+		cn += div64_s64(3184LL * tmp * tmp, 10) >> 32;
- 		tmp = p >> 13;
--		cn -= ((128LL * tmp * tmp * tmp) / 10) >> 33;
-+		cn -= div64_s64(128LL * tmp * tmp * tmp, 10) >> 33;
- 		tmp = p >> 18;
--		cn += ((192LL * tmp * tmp * tmp * tmp) / 1000) >> 24;
-+		cn += div64_s64(192LL * tmp * tmp * tmp * tmp, 1000) >> 24;
- 
- 		stats->stat[0].svalue = cn >> 3;
- 		stats->stat[0].scale = FE_SCALE_DECIBEL;
--- 
-1.9.3
+On Tue, Sep 30, 2014 at 09:37:57AM +0200, Boris Brezillon wrote:
+> On Mon, 29 Sep 2014 23:41:09 +0300
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+[...]
+> > Incidentally, patch 2/5 in this series is missing a documentation updat=
+e ;-)
+>=20
+> Yep, regarding this patch, I wonder if it's really necessary to add
+> new formats to the v4l2_mbus_pixelcode enum.
+> If we want to move to this new common definition (across the video
+> related subsytems), we should deprecate the old enum
+> v4l2_mbus_pixelcode, and this start by not adding new formats, don't
+> you think ?
 
+I agree in general, but I think it could prove problematic in practice.
+If somebody wants to use one of the new codes but is using the V4L2 enum
+they have a problem.
+
+That said, given that there is now a unified enum people will hopefully
+start converting drivers to it instead.
+
+Thierry
+
+--huq684BweRXVnRxX
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUKmxYAAoJEN0jrNd/PrOhrhIP/3jjnDqX/QImd1jjH7oGl5QJ
+ssO+yI2OHb6idNZKO/OMWWe60pPl/iBJ6nZhPJbOM4dbeWyOwxtp9jk7KXugP6kJ
+JJ/hlWMxZjLeccVVsxJHjnOP6yWuhyaiGnDvUP8K3V+6BAsWTxMxFlnTasxl5n4y
+flNVQ7RHVrNR8nsce3R7h/nX72h+2y8oIvNcU9FhZyQkPCrmPpGpJodMO2pvmjg4
+fZFadrG2fiYJUSNoTngkVPdOr9Xgd+dImUK7qd3XYsHpcWI7AYWT82LCyEdigwpq
+mplusaRFL5orDfKn9gq0a7Iq1jpQS1u7C1Yz0BVaBaiD1x2U0MDeaycmazDIkoai
+d6d/QW0rrVT2Tp9ytdYMfiJi9i+xbC96fAEQS6pocbWSla/joiAGg6GIlsjR5W2d
+U1tlWMXl2kU8hl15BQKxv+R0eBMd2LolpX61brZX7RrRch3xeH36XktHa8im/XNu
+TvI5Zw1lCVGn9PFf/bf3tNFfk8J6AZZ3ZaNUODzCkE1uAQ0EEeCMYYicjcut+RT2
+6zPYG0TxNNxAbHcVcz2iVlL46vuedtKtqDtQQPfEtIz/8KSgSPN3yhxEGn3F6FrN
+58llTcvzsj3/hdKVVNT13btt3/HBS4noBPiBtuMgFbFioyW/lgzYoK9OkEdOkI52
+DaZHF1mzvLdPHegfshX1
+=S5MJ
+-----END PGP SIGNATURE-----
+
+--huq684BweRXVnRxX--
