@@ -1,78 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:34937 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757026AbaIIPhE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Sep 2014 11:37:04 -0400
-Date: Tue, 09 Sep 2014 12:36:54 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Balaji T K <balajitk@ti.com>, Nishanth Menon <nm@ti.com>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Tony Lindgren <tony@atomide.com>,
-	linux-omap <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 1/3] omap-dma: Allow compile-testing omap1_camera driver
-Message-id: <20140909123654.37d60f38.m.chehab@samsung.com>
-In-reply-to: <20140909144157.GF12361@n2100.arm.linux.org.uk>
-References: <20140909124306.2d5a0d76@canb.auug.org.au>
- <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com>
- <20140909144157.GF12361@n2100.arm.linux.org.uk>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3214 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbaJACmt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Sep 2014 22:42:49 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s912gjKp056671
+	for <linux-media@vger.kernel.org>; Wed, 1 Oct 2014 04:42:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 68AFF2A03CF
+	for <linux-media@vger.kernel.org>; Wed,  1 Oct 2014 04:42:41 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141001024241.68AFF2A03CF@tschai.lan>
+Date: Wed,  1 Oct 2014 04:42:41 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 9 Sep 2014 15:41:58 +0100
-Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Tue, Sep 09, 2014 at 11:38:17AM -0300, Mauro Carvalho Chehab wrote:
-> > We want to be able to COMPILE_TEST the omap1_camera driver.
-> > It compiles fine, but it fails linkediting:
-> > 
-> > ERROR: "omap_stop_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_start_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_dma_link_lch" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_set_dma_dest_burst_mode" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_set_dma_src_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_request_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_set_dma_transfer_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_set_dma_dest_params" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > ERROR: "omap_free_dma" [drivers/media/platform/soc_camera/omap1_camera.ko] undefined!
-> > 
-> > So, add some stub functions to avoid it.
-> 
-> The real answer to this is to find someone who still uses it, and convert
-> it to the DMA engine API.  If there's no users, the driver might as well
-> be killed off.
+Results of the daily build of media_tree:
 
-Hmm... it seems that there are still several drivers still relying on
-the functions declared at: omap-dma.h:
+date:		Wed Oct  1 04:00:20 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.16-3.slh.1-amd64
 
-$ grep extern include/linux/omap-dma.h |perl -ne 'print "$1\n" if (m/extern\s\S+\s(.*)\(/)' >funcs && git grep -f funcs -l
-arch/arm/mach-omap1/pm.c
-arch/arm/mach-omap2/pm24xx.c
-arch/arm/plat-omap/dma.c
-drivers/dma/omap-dma.c
-drivers/media/platform/omap/omap_vout_vrfb.c
-drivers/media/platform/omap3isp/isphist.c
-drivers/media/platform/soc_camera/omap1_camera.c
-drivers/mtd/onenand/omap2.c
-drivers/usb/gadget/udc/omap_udc.c
-drivers/usb/musb/tusb6010_omap.c
-drivers/video/fbdev/omap/omapfb_main.c
-include/linux/omap-dma.h
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-rc1-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Perhaps we can remove the header and mark all the above as BROKEN.
+Detailed results are available here:
 
-If nobody fixes, we can strip all of them from the Kernel.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Regards,
-Mauro
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
