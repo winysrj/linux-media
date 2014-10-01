@@ -1,116 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:35822 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbaJNHQF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 03:16:05 -0400
-Received: by mail-lb0-f178.google.com with SMTP id w7so7814157lbi.9
-        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:16:04 -0700 (PDT)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Kevin Hilman <khilman@linaro.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Philipp Zabel <philipp.zabel@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Pavel Machek <pavel@ucw.cz>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 5/7] [media] exynos-gsc: Fixup system PM
-Date: Tue, 14 Oct 2014 09:15:38 +0200
-Message-Id: <1413270940-4378-6-git-send-email-ulf.hansson@linaro.org>
-In-Reply-To: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
-References: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
+Received: from smtp.gentoo.org ([140.211.166.183]:34776 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751308AbaJAFUr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Oct 2014 01:20:47 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH V2 10/13] cx231xx: change usage of I2C_1 to the real i2c port
+Date: Wed,  1 Oct 2014 07:20:18 +0200
+Message-Id: <1412140821-16285-11-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
+References: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We had several issues with the system PM support.
-1) It were depending on CONFIG_PM_RUNTIME.
-2) It unnecessarily tracked the suspend state in a flag.
-3) If userspace through sysfs prevents runtime PM operations, could
-cause the device to stay in low power after a system PM resume, which
-is not reflected properly.
+change almost all instances of I2C_1 to I2C_1_MUX_3
 
-Solve all the above issues by using pm_runtime_force_suspend|resume() as
-the system PM callbacks.
+Only these cases are changed to I2C_1_MUX_1:
+* All that have dont_use_port_3 set.
+* CX231XX_BOARD_HAUPPAUGE_EXETER, old code did explicitly not switch to port3.
+* eeprom access for 930C
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 41 ++--------------------------
- drivers/media/platform/exynos-gsc/gsc-core.h |  3 --
- 2 files changed, 2 insertions(+), 42 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 361a807..1b9f3d7 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1183,46 +1183,9 @@ static int gsc_runtime_suspend(struct device *dev)
- }
- #endif
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f5fb93a..4eb2057 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -104,7 +104,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -144,7 +144,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+@@ -184,7 +184,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -225,7 +225,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -297,7 +297,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -325,7 +325,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+@@ -353,7 +353,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_1,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -419,7 +419,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -457,7 +457,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -495,7 +495,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+ 		.has_dvb = 1,
+@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.norm = V4L2_STD_PAL,
  
--static int gsc_resume(struct device *dev)
--{
--	struct gsc_dev *gsc = dev_get_drvdata(dev);
--	unsigned long flags;
--
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
--
--	/* Do not resume if the device was idle before system suspend */
--	spin_lock_irqsave(&gsc->slock, flags);
--	if (!test_and_clear_bit(ST_SUSPEND, &gsc->state) ||
--	    !gsc_m2m_opened(gsc)) {
--		spin_unlock_irqrestore(&gsc->slock, flags);
--		return 0;
--	}
--	spin_unlock_irqrestore(&gsc->slock, flags);
--
--	if (!pm_runtime_suspended(dev))
--		return gsc_runtime_resume(dev);
--
--	return 0;
--}
--
--static int gsc_suspend(struct device *dev)
--{
--	struct gsc_dev *gsc = dev_get_drvdata(dev);
--
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
--
--	if (test_and_set_bit(ST_SUSPEND, &gsc->state))
--		return 0;
--
--	if (!pm_runtime_suspended(dev))
--		return gsc_runtime_suspend(dev);
--
--	return 0;
--}
--
- static const struct dev_pm_ops gsc_pm_ops = {
--	.suspend		= gsc_suspend,
--	.resume			= gsc_resume,
-+	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-+				pm_runtime_force_resume)
- 	SET_PM_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
- };
+ 		.input = {{
+@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.norm = V4L2_STD_NTSC,
  
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index ef0a656..2dbaa20 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -48,9 +48,6 @@
- #define	GSC_CTX_ABORT			(1 << 7)
+ 		.input = {{
+@@ -718,7 +718,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -757,7 +757,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -1064,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 			struct i2c_client client;
  
- enum gsc_dev_flags {
--	/* for global */
--	ST_SUSPEND,
--
- 	/* for m2m node */
- 	ST_M2M_OPEN,
- 	ST_M2M_RUN,
+ 			memset(&client, 0, sizeof(client));
+-			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
++			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1_MUX_1);
+ 			client.addr = 0xa0 >> 1;
+ 
+ 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
 -- 
-1.9.1
+2.1.1
 
