@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:61023 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052AbaJULHa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 07:07:30 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	kiran@chromium.org, arunkk.samsung@gmail.com
-Subject: [PATCH v3 02/13] [media] s5p-mfc: Fix REQBUFS(0) for encoder.
-Date: Tue, 21 Oct 2014 16:36:56 +0530
-Message-Id: <1413889627-8431-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
-References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:34762 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751238AbaJAFUj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Oct 2014 01:20:39 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH V2 05/13] cx231xx: Modifiy the symbolic constants for i2c ports and describe
+Date: Wed,  1 Oct 2014 07:20:13 +0200
+Message-Id: <1412140821-16285-6-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
+References: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Change to I2C_0 ... I2C_2 for the master ports
+and add I2C_1_MUX_1 and I2C_1_MUX_3 for the muxed ones.
 
-Handle REQBUFS(0) for CAPTURE queue as well. Also use the proper queue to call
-it on for OUTPUT.
+V2: Renamed mux adapters to seperate them from master adapters.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/media/usb/cx231xx/cx231xx.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4816f31..6a1c890 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1147,6 +1147,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 		(reqbufs->memory != V4L2_MEMORY_USERPTR))
- 		return -EINVAL;
- 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		if (reqbufs->count == 0) {
-+			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-+			ctx->capture_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		if (ctx->capture_state != QUEUE_FREE) {
- 			mfc_err("invalid capture state: %d\n",
- 							ctx->capture_state);
-@@ -1168,6 +1173,14 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -ENOMEM;
- 		}
- 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (reqbufs->count == 0) {
-+			mfc_debug(2, "Freeing buffers\n");
-+			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-+			s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers,
-+					ctx);
-+			ctx->output_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		if (ctx->output_state != QUEUE_FREE) {
- 			mfc_err("invalid output state: %d\n",
- 							ctx->output_state);
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index c92382f..377216b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -322,10 +322,11 @@ enum cx231xx_decoder {
+ };
+ 
+ enum CX231XX_I2C_MASTER_PORT {
+-	I2C_0 = 0,
+-	I2C_1 = 1,
+-	I2C_2 = 2,
+-	I2C_3 = 3
++	I2C_0 = 0,       /* master 0 - internal connection */
++	I2C_1 = 1,       /* master 1 - used with mux */
++	I2C_2 = 2,       /* master 2 */
++	I2C_1_MUX_1 = 3, /* master 1 - port 1 (I2C_DEMOD_EN = 0) */
++	I2C_1_MUX_3 = 4  /* master 1 - port 3 (I2C_DEMOD_EN = 1) */
+ };
+ 
+ struct cx231xx_board {
 -- 
-1.7.9.5
+2.1.1
 
