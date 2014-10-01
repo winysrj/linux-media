@@ -1,90 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47028 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751730AbaJ0AH4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 20:07:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 01/15] videobuf2-core.h: improve documentation
-Date: Mon, 27 Oct 2014 02:07:58 +0200
-Message-ID: <2367286.uK648OTWkn@avalon>
-In-Reply-To: <1414063302-26903-2-git-send-email-hverkuil@xs4all.nl>
-References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl> <1414063302-26903-2-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:38516 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799AbaJATMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Oct 2014 15:12:48 -0400
+Message-ID: <542C522C.1090303@iki.fi>
+Date: Wed, 01 Oct 2014 22:12:44 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH V2 05/13] cx231xx: Modifiy the symbolic constants for
+ i2c ports and describe
+References: <1412140821-16285-1-git-send-email-zzam@gentoo.org> <1412140821-16285-6-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412140821-16285-6-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Thank you for the patch.
+Antti
 
-On Thursday 23 October 2014 13:21:28 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Document that drivers can access/modify the buffer contents in buf_prepare
-> and buf_finish. That was not clearly stated before.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+On 10/01/2014 08:20 AM, Matthias Schwarzott wrote:
+> Change to I2C_0 ... I2C_2 for the master ports
+> and add I2C_1_MUX_1 and I2C_1_MUX_3 for the muxed ones.
+>
+> V2: Renamed mux adapters to seperate them from master adapters.
+>
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 > ---
->  include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
->  1 file changed, 17 insertions(+), 15 deletions(-)
-> 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 6ef2d01..70ace7c 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -270,22 +270,24 @@ struct vb2_buffer {
->   *			queue setup from completing successfully; optional.
->   * @buf_prepare:	called every time the buffer is queued from userspace
->   *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-> - *			perform any initialization required before each hardware
-> - *			operation in this callback; drivers that support
-> - *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-> - *			if an error is returned, the buffer will not be queued
-> - *			in driver; optional.
-> + *			perform any initialization required before each
-> + *			hardware operation in this callback; drivers can
-> + *			access/modify the buffer here as it is still synced for
-> + *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
-> + *			also validate the buffer size; if an error is returned,
-> + *			the buffer will not be queued in driver; optional.
->   * @buf_finish:		called before every dequeue of the buffer back to
-> - *			userspace; drivers may perform any operations required
-> - *			before userspace accesses the buffer; optional. The
-> - *			buffer state can be one of the following: DONE and
-> - *			ERROR occur while streaming is in progress, and the
-> - *			PREPARED state occurs when the queue has been canceled
-> - *			and all pending buffers are being returned to their
-> - *			default DEQUEUED state. Typically you only have to do
-> - *			something if the state is VB2_BUF_STATE_DONE, since in
-> - *			all other cases the buffer contents will be ignored
-> - *			anyway.
-> + *			userspace; the buffer is synced for the CPU, so drivers
-> + *			can access/modify the buffer contents; drivers may
-> + *			perform any operations required before userspace
-> + *			accesses the buffer; optional. The buffer state can be
-> + *			one of the following: DONE and ERROR occur while
-> + *			streaming is in progress, and the PREPARED state occurs
-> + *			when the queue has been canceled and all pending
-> + *			buffers are being returned to their default DEQUEUED
-> + *			state. Typically you only have to do something if the
-> + *			state is VB2_BUF_STATE_DONE, since in all other cases
-> + *			the buffer contents will be ignored anyway.
->   * @buf_cleanup:	called once before the buffer is freed; drivers may
->   *			perform any additional cleanup; optional.
->   * @start_streaming:	called once to enter 'streaming' state; the driver 
-may
+>   drivers/media/usb/cx231xx/cx231xx.h | 9 +++++----
+>   1 file changed, 5 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+> index c92382f..377216b 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx.h
+> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+> @@ -322,10 +322,11 @@ enum cx231xx_decoder {
+>   };
+>
+>   enum CX231XX_I2C_MASTER_PORT {
+> -	I2C_0 = 0,
+> -	I2C_1 = 1,
+> -	I2C_2 = 2,
+> -	I2C_3 = 3
+> +	I2C_0 = 0,       /* master 0 - internal connection */
+> +	I2C_1 = 1,       /* master 1 - used with mux */
+> +	I2C_2 = 2,       /* master 2 */
+> +	I2C_1_MUX_1 = 3, /* master 1 - port 1 (I2C_DEMOD_EN = 0) */
+> +	I2C_1_MUX_3 = 4  /* master 1 - port 3 (I2C_DEMOD_EN = 1) */
+>   };
+>
+>   struct cx231xx_board {
+>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
