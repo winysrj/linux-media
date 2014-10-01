@@ -1,43 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:32866 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377AbaJDSnU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 14:43:20 -0400
-Date: Sun, 5 Oct 2014 00:13:16 +0530
-From: Stevean Raja Kumar <rk.stevean@gmail.com>
-To: m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	rk.stevean@gmail.com, aybuke.147@gmail.com,
-	tapaswenipathak@gmail.com, paul.gortmaker@windriver.com,
-	monamagarwal123@gmail.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: media: Added semicolon.
-Message-ID: <20141004184316.GA6561@srkjfone>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp.gentoo.org ([140.211.166.183]:34764 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751238AbaJAFUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Oct 2014 01:20:41 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH V2 06/13] cx231xx: Use symbolic constants for i2c ports instead of numbers
+Date: Wed,  1 Oct 2014 07:20:14 +0200
+Message-Id: <1412140821-16285-7-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
+References: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added semicolon for the line usleep_range(10000, 11000);
+Replace numbers by the constants of same value and same meaning.
 
-Signed-off-by: Stevean Raja Kumar <rk.stevean@gmail.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/cxd2099/cxd2099.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-index cda1595..657ea48 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -527,7 +527,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
- 		u8 val;
- #endif
- 		for (i = 0; i < 100; i++) {
--			usleep_range(10000, 11000)
-+			usleep_range(10000, 11000);
- #if 0
- 			read_reg(ci, 0x06, &val);
- 			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 092fb85..2f027c7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+ 		.norm = V4L2_STD_NTSC,
+@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+ 		.norm = V4L2_STD_NTSC,
+@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_NTSC,
+@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_PAL_M,
+@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_NTSC_M,
+@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
++		.tuner_i2c_master = I2C_1,
+ 		.norm = V4L2_STD_PAL,
+ 
+ 		.input = {{
+@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
++		.tuner_i2c_master = I2C_1,
+ 		.norm = V4L2_STD_NTSC,
+ 
+ 		.input = {{
+@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_PAL,
+@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_PAL,
+@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	/* request some modules */
+ 	if (dev->board.decoder == CX231XX_AVDECODER) {
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-					&dev->i2c_bus[0].i2c_adap,
++					&dev->i2c_bus[I2C_0].i2c_adap,
+ 					"cx25840", 0x88 >> 1, NULL);
+ 		if (dev->sd_cx25840 == NULL)
+ 			cx231xx_info("cx25840 subdev registration failure\n");
+@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 			struct i2c_client client;
+ 
+ 			memset(&client, 0, sizeof(client));
+-			client.adapter = &dev->i2c_bus[1].i2c_adap;
++			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
+ 			client.addr = 0xa0 >> 1;
+ 
+ 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
 -- 
-1.9.1
+2.1.1
 
