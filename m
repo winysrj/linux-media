@@ -1,31 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:34402 "EHLO hardeman.nu"
+Received: from mail.kapsi.fi ([217.30.184.167]:41999 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751177AbaJTOJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 10:09:53 -0400
-To: Tomas Melin <tomas.melin@iki.fi>
-Subject: Re: [PATCH 1/2] [media] rc-core: fix =?UTF-8?Q?protocol=5Fchange?=  =?UTF-8?Q?=20regression=20in=20ir=5Fraw=5Fevent=5Fregister?=
+	id S1750954AbaJAT5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Oct 2014 15:57:22 -0400
+Message-ID: <542C5CA0.9020204@iki.fi>
+Date: Wed, 01 Oct 2014 22:57:20 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/5] sp2: fix incorrect struct
+References: <1411976660-19329-1-git-send-email-olli.salonen@iki.fi> <1411976660-19329-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1411976660-19329-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Date: Mon, 20 Oct 2014 16:09:50 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com, a.seppala@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tomas Melin <tomas.j.melin@gmail.com>
-In-Reply-To: <1413714113-7456-1-git-send-email-tomas.melin@iki.fi>
-References: <1413714113-7456-1-git-send-email-tomas.melin@iki.fi>
-Message-ID: <a751abe3b653291a69039c06dab5c496@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-10-19 12:21, Tomas Melin wrote:
-> IR reciever using nuvoton-cir and lirc was not working anymore after
-> upgrade from kernel 3.16 to 3.17-rcX.
-> Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
-> ("[media] rc-core: simplify sysfs code").
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-FWIW, I think "not working" is slightly misleading. "Required additional 
-configuration steps" is a better description, isn't it?
+Antti
 
+On 09/29/2014 10:44 AM, Olli Salonen wrote:
+> Incorrect struct used in the SP2 driver.
+>
+> Reported-by: Max Nibble <nibble.max@gmail.com>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/sp2.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+> index 9b684d5..1f4f250 100644
+> --- a/drivers/media/dvb-frontends/sp2.c
+> +++ b/drivers/media/dvb-frontends/sp2.c
+> @@ -407,7 +407,7 @@ err:
+>
+>   static int sp2_remove(struct i2c_client *client)
+>   {
+> -	struct si2157 *s = i2c_get_clientdata(client);
+> +	struct sp2 *s = i2c_get_clientdata(client);
+>
+>   	dev_dbg(&client->dev, "\n");
+>
+>
+
+-- 
+http://palosaari.fi/
