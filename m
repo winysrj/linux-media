@@ -1,96 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:38981 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755039AbaJULdx (ORCPT
+Received: from smtprelay0016.hostedemail.com ([216.40.44.16]:44467 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751648AbaJBQpz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 07:33:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <544633D3.5010805@cogentembedded.com>
-References: <1413868129-22121-1-git-send-email-ykaneko0929@gmail.com>
-	<544633D3.5010805@cogentembedded.com>
-Date: Tue, 21 Oct 2014 20:33:52 +0900
-Message-ID: <CAH1o70Jk=dCf3VWqdAJmGzd6TSQFeN=x+FCKExDzaf0BZF0L1A@mail.gmail.com>
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
- input support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Thu, 2 Oct 2014 12:45:55 -0400
+Message-ID: <1412268351.3247.68.camel@joe-AO725>
+Subject: Re: [PATCH] Fixed all coding style issues for
+ drivers/staging/media/lirc/
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Amber Thrall <amber.rose.thrall@gmail.com>, jarod@wilsonet.com,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Thu, 02 Oct 2014 09:45:51 -0700
+In-Reply-To: <20141002102938.2b762583@recife.lan>
+References: <1412224802-28431-1-git-send-email-amber.rose.thrall@gmail.com>
+	 <20141002102938.2b762583@recife.lan>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sergei,
+On Thu, 2014-10-02 at 10:29 -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 01 Oct 2014 21:40:02 -0700 Amber Thrall <amber.rose.thrall@gmail.com> escreveu:
+> > Fixed various coding style issues, including strings over 80 characters long and many 
+> > deprecated printk's have been replaced with proper methods.
+[]
+> > diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+[]
+> > @@ -623,8 +623,8 @@ static void imon_incoming_packet(struct imon_context *context,
+> >  	if (debug) {
+> >  		dev_info(dev, "raw packet: ");
+> >  		for (i = 0; i < len; ++i)
+> > -			printk("%02x ", buf[i]);
+> > -		printk("\n");
+> > +			dev_info(dev, "%02x ", buf[i]);
+> > +		dev_info(dev, "\n");
+> >  	}
+> 
+> This is wrong, as the second printk should be printk_cont.
+> 
+> The best here would be to change all above to use %*ph.
+> So, just:
+> 
+> 	dev_debug(dev, "raw packet: %*ph\n", len, buf);
 
-2014-10-21 19:22 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
-> Hello.
->
-> On 10/21/2014 9:08 AM, Yoshihiro Kaneko wrote:
->
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->
->
->> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->> ---
->
->
->> This patch is against master branch of linuxtv.org/media_tree.git.
->
->
->> v2 [Yoshihiro Kaneko]
->> * remove unused/useless definition as suggested by Sergei Shtylyov
->
->
->    I didn't say it's useless, I just suspected that you missed the necessary
-> test somewhere...
+Not quite.
 
-Sorry for my inaccurate description.
+%*ph is length limited and only useful for lengths < 30 or so.
+Even then, it's pretty ugly.
 
->
->>   drivers/media/platform/soc_camera/rcar_vin.c | 9 +++++++++
->>   1 file changed, 9 insertions(+)
->
->
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
->> b/drivers/media/platform/soc_camera/rcar_vin.c
->> index 20defcb..cb5e682 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -74,6 +74,7 @@
->>   #define VNMC_INF_YUV10_BT656  (2 << 16)
->>   #define VNMC_INF_YUV10_BT601  (3 << 16)
->>   #define VNMC_INF_YUV16                (5 << 16)
->> +#define VNMC_INF_RGB888                (6 << 16)
->>   #define VNMC_VUP              (1 << 10)
->>   #define VNMC_IM_ODD           (0 << 3)
->>   #define VNMC_IM_ODD_EVEN      (1 << 3)
->
-> [...]
->>
->> @@ -331,6 +336,9 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->>         if (output_is_yuv)
->>                 vnmc |= VNMC_BPS;
->>
->> +       if (vnmc & VNMC_INF_RGB888)
->> +               vnmc ^= VNMC_BPS;
->> +
->
->
->    Hm, this also changes the behavior for VNMC_INF_YUV16 and
-> VNMC_INF_YUV10_BT{601|656}. Is this actually intended?
+print_hex_dump_debug() is generally better.
 
-Probably this code is incorrect.
-Thank you for your review.
 
-Thanks,
-Kaneko
-
->
-> [...]
->
-> WBR, Sergei
->
