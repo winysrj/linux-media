@@ -1,49 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:62329 "EHLO
-	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751319AbaJFJIN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55564 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751778AbaJBWAB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 05:08:13 -0400
-Message-ID: <1412586485.4054.40.camel@x220>
-Subject: [PATCH 2/4] [media] exynos4-is: Remove optional dependency on
- PLAT_S5P
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 06 Oct 2014 11:08:05 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 2 Oct 2014 18:00:01 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1] of: Add a function to read 64-bit arrays
+Date: Fri,  3 Oct 2014 00:59:23 +0300
+Message-Id: <1412287163-10222-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
-removed the Kconfig symbol PLAT_S5P. Remove an optional dependency on
-that symbol from this Kconfig file too.
+Implement of_property_read_u64_array() for reading 64-bit arrays.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+This is needed for e.g. reading the valid link frequencies in the smiapp
+driver.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/platform/exynos4-is/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi,
 
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 77c951237744..775c3278d0eb 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -2,7 +2,7 @@
- config VIDEO_SAMSUNG_EXYNOS4_IS
- 	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
--	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
-+	depends on (ARCH_EXYNOS || COMPILE_TEST)
- 	depends on OF && COMMON_CLK
- 	help
- 	  Say Y here to enable camera host interface devices for
+While the smiapp (found in drivers/media/i2c/smiapp/) OF support which needs
+this isn't in yet, other drivers such as mt9v032 which would be reading the
+valid link frequency control values will need reading arrays. This might
+make it to v4l2-of.c in the end.
+
+ drivers/of/base.c  |   44 ++++++++++++++++++++++++++++++++++++--------
+ include/linux/of.h |    3 +++
+ 2 files changed, 39 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index d8574ad..35e24f4 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -1214,6 +1214,41 @@ int of_property_read_u32_array(const struct device_node *np,
+ EXPORT_SYMBOL_GPL(of_property_read_u32_array);
+ 
+ /**
++ * of_property_read_u64_array - Find and read an array of 64 bit integers
++ * from a property.
++ *
++ * @np:		device node from which the property value is to be read.
++ * @propname:	name of the property to be searched.
++ * @out_values:	pointer to return value, modified only if return value is 0.
++ * @sz:		number of array elements to read
++ *
++ * Search for a property in a device node and read 64-bit value(s) from
++ * it. Returns 0 on success, -EINVAL if the property does not exist,
++ * -ENODATA if property does not have a value, and -EOVERFLOW if the
++ * property data isn't large enough.
++ *
++ * The out_values is modified only if a valid u32 value can be decoded.
++ */
++int of_property_read_u64_array(const struct device_node *np,
++			       const char *propname, u64 *out_value, size_t sz)
++{
++	const __be32 *val = of_find_property_value_of_size(
++		np, propname, sz * sizeof(*out_value));
++
++	if (IS_ERR(val))
++		return PTR_ERR(val);
++
++	while (sz--) {
++		*out_value = of_read_number(val, 2);
++		out_value++;
++		val += 2;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_property_read_u64_array);
++
++/**
+  * of_property_read_u64 - Find and read a 64 bit integer from a property
+  * @np:		device node from which the property value is to be read.
+  * @propname:	name of the property to be searched.
+@@ -1229,14 +1264,7 @@ EXPORT_SYMBOL_GPL(of_property_read_u32_array);
+ int of_property_read_u64(const struct device_node *np, const char *propname,
+ 			 u64 *out_value)
+ {
+-	const __be32 *val = of_find_property_value_of_size(np, propname,
+-						sizeof(*out_value));
+-
+-	if (IS_ERR(val))
+-		return PTR_ERR(val);
+-
+-	*out_value = of_read_number(val, 2);
+-	return 0;
++	return of_property_read_u64_array(np, propname, out_value, 1);
+ }
+ EXPORT_SYMBOL_GPL(of_property_read_u64);
+ 
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 6c4363b..e84533f 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -263,6 +263,9 @@ extern int of_property_read_u32_array(const struct device_node *np,
+ 				      size_t sz);
+ extern int of_property_read_u64(const struct device_node *np,
+ 				const char *propname, u64 *out_value);
++extern int of_property_read_u64_array(const struct device_node *np,
++				      const char *propname, u64 *out_value,
++				      size_t sz);
+ 
+ extern int of_property_read_string(struct device_node *np,
+ 				   const char *propname,
 -- 
-1.9.3
+1.7.10.4
 
