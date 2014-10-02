@@ -1,83 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42600 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758311AbaJ3JGe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 05:06:34 -0400
-Date: Thu, 30 Oct 2014 07:06:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] si2157: Add support for delivery system SYS_ATSC
-Message-ID: <20141030070628.4f52e9da@recife.lan>
-In-Reply-To: <CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
-References: <1408253089-9487-1-git-send-email-olli.salonen@iki.fi>
-	<20141029070849.0a1c6d56@recife.lan>
-	<CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50523 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751304AbaJBIql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 04:46:41 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 04/18] smiapp-pll: Separate bounds checking into a separate function
+Date: Thu,  2 Oct 2014 11:45:54 +0300
+Message-Id: <1412239568-8524-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Oct 2014 08:04:29 +0200
-Olli Salonen <olli.salonen@iki.fi> escreveu:
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> Hi Mauro,
-> 
-> No, for ClearQAM the delivery_system should be set to 0x10 and this
-> patch does not include that. At the time of submission of that patch I
-> only had the trace from the ATSC case.
+Enough work for this function already.
 
-Ah, ok. Are you planning to submit a patch for it, and the patches adding
-support for HVR-955Q?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |  110 +++++++++++++++++++++-------------------
+ 1 file changed, 59 insertions(+), 51 deletions(-)
 
-> 
-> ATSC & ClearQAM USB sniffs here:
-> http://trsqr.net/olli/hvr955q/
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index d14af5c..bde8eb8 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -87,6 +87,64 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
+ 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
+ }
+ 
++static int check_all_bounds(struct device *dev,
++			    const struct smiapp_pll_limits *limits,
++			    struct smiapp_pll *pll)
++{
++	int rval;
++
++	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
++			    limits->min_pll_ip_freq_hz,
++			    limits->max_pll_ip_freq_hz,
++			    "pll_ip_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->pll_multiplier,
++			limits->min_pll_multiplier, limits->max_pll_multiplier,
++			"pll_multiplier");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->pll_op_clk_freq_hz,
++			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
++			"pll_op_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_sys_clk_div,
++			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
++			"op_sys_clk_div");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_pix_clk_div,
++			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
++			"op_pix_clk_div");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_sys_clk_freq_hz,
++			limits->op.min_sys_clk_freq_hz,
++			limits->op.max_sys_clk_freq_hz,
++			"op_sys_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->op_pix_clk_freq_hz,
++			limits->op.min_pix_clk_freq_hz,
++			limits->op.max_pix_clk_freq_hz,
++			"op_pix_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->vt_sys_clk_freq_hz,
++			limits->vt.min_sys_clk_freq_hz,
++			limits->vt.max_sys_clk_freq_hz,
++			"vt_sys_clk_freq_hz");
++	if (!rval)
++		rval = bounds_check(
++			dev, pll->vt_pix_clk_freq_hz,
++			limits->vt.min_pix_clk_freq_hz,
++			limits->vt.max_pix_clk_freq_hz,
++			"vt_pix_clk_freq_hz");
++
++	return rval;
++}
++
+ /*
+  * Heuristically guess the PLL tree for a given common multiplier and
+  * divisor. Begin with the operational timing and continue to video
+@@ -117,7 +175,6 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	uint32_t min_vt_div, max_vt_div, vt_div;
+ 	uint32_t min_sys_div, max_sys_div;
+ 	unsigned int i;
+-	int rval;
+ 
+ 	/*
+ 	 * Get pre_pll_clk_div so that our pll_op_clk_freq_hz won't be
+@@ -323,56 +380,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	pll->pixel_rate_csi =
+ 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
+ 
+-	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
+-			    limits->min_pll_ip_freq_hz,
+-			    limits->max_pll_ip_freq_hz,
+-			    "pll_ip_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->pll_multiplier,
+-			limits->min_pll_multiplier, limits->max_pll_multiplier,
+-			"pll_multiplier");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->pll_op_clk_freq_hz,
+-			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
+-			"pll_op_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_sys_clk_div,
+-			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
+-			"op_sys_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_pix_clk_div,
+-			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
+-			"op_pix_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_sys_clk_freq_hz,
+-			limits->op.min_sys_clk_freq_hz,
+-			limits->op.max_sys_clk_freq_hz,
+-			"op_sys_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->op_pix_clk_freq_hz,
+-			limits->op.min_pix_clk_freq_hz,
+-			limits->op.max_pix_clk_freq_hz,
+-			"op_pix_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->vt_sys_clk_freq_hz,
+-			limits->vt.min_sys_clk_freq_hz,
+-			limits->vt.max_sys_clk_freq_hz,
+-			"vt_sys_clk_freq_hz");
+-	if (!rval)
+-		rval = bounds_check(
+-			dev, pll->vt_pix_clk_freq_hz,
+-			limits->vt.min_pix_clk_freq_hz,
+-			limits->vt.max_pix_clk_freq_hz,
+-			"vt_pix_clk_freq_hz");
+-
+-	return rval;
++	return check_all_bounds(dev, limits, pll);
+ }
+ 
+ int smiapp_pll_calculate(struct device *dev,
+-- 
+1.7.10.4
 
-Thanks!
-
-Regards,
-Mauro
-
-> 
-> Cheers,
-> -olli
-> 
-> On 29 October 2014 11:08, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > Hi Olli,
-> >
-> > Em Sun, 17 Aug 2014 08:24:49 +0300
-> > Olli Salonen <olli.salonen@iki.fi> escreveu:
-> >
-> >> Set the property for delivery system also in case of SYS_ATSC. This
-> >> behaviour is observed in the sniffs taken with Hauppauge HVR-955Q
-> >> Windows driver.
-> >>
-> >> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-> >> ---
-> >>  drivers/media/tuners/si2157.c | 3 +++
-> >>  1 file changed, 3 insertions(+)
-> >>
-> >> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> >> index 6c53edb..3b86d59 100644
-> >> --- a/drivers/media/tuners/si2157.c
-> >> +++ b/drivers/media/tuners/si2157.c
-> >> @@ -239,6 +239,9 @@ static int si2157_set_params(struct dvb_frontend *fe)
-> >>               bandwidth = 0x0f;
-> >>
-> >>       switch (c->delivery_system) {
-> >> +     case SYS_ATSC:
-> >> +                     delivery_system = 0x00;
-> >> +                     break;
-> >
-> > Did you check if it uses the same delivery system also for clear-QAM?
-> >
-> > If so, this patch is missing SYS_DVBC_ANNEX_B inside this case.
-> >
-> > Ah, FYI, I merged the demod used on HVR-955Q at a separate topic branch
-> > upstream:
-> >         http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=lgdt3306a
-> >
-> > Regards,
-> > Mauro
