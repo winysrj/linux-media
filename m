@@ -1,46 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0252.hostedemail.com ([216.40.44.252]:44391 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752778AbaJ0FZ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 01:25:27 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 04/11] dvb-net: Fix probable mask then right shift defects
-Date: Sun, 26 Oct 2014 22:25:00 -0700
-Message-Id: <dd93cdd7254bc6405709e1e53b07e8555647a372.1414387334.git.joe@perches.com>
-In-Reply-To: <cover.1414387334.git.joe@perches.com>
-References: <cover.1414387334.git.joe@perches.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:42959 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbaJBFVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 01:21:17 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
+Subject: cx231xx: Use muxed i2c adapters instead of custom switching
+Date: Thu,  2 Oct 2014 07:20:52 +0200
+Message-Id: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Precedence of & and >> is not the same and is not left to right.
-shift has higher precedence and should be done after the mask.
+This series changes cx231xx driver to use standard muxed i2c busses.
+Everything works as before (tested with Hauppauge WinTV-930C-HD).
+Also the scanning is changed to these new busses, but still does not work (as before).
 
-Add parentheses around the mask.
+Change scanning to read 1 byte instead of 0 only works for one bus.
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/dvb-core/dvb_net.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 059e611..441814b 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -379,7 +379,9 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 			/* Check TS error conditions: sync_byte, transport_error_indicator, scrambling_control . */
- 			if ((ts[0] != TS_SYNC) || (ts[1] & TS_TEI) || ((ts[3] & TS_SC) != 0)) {
- 				printk(KERN_WARNING "%lu: Invalid TS cell: SYNC %#x, TEI %u, SC %#x.\n",
--				       priv->ts_count, ts[0], ts[1] & TS_TEI >> 7, ts[3] & 0xC0 >> 6);
-+				       priv->ts_count, ts[0],
-+				       (ts[1] & TS_TEI) >> 7,
-+				       (ts[3] & 0xC0) >> 6);
- 
- 				/* Drop partly decoded SNDU, reset state, resync on PUSI. */
- 				if (priv->ule_skb) {
--- 
-2.1.2
+V2: The constants are changed so muxed adapters are named I2C_1_MUX_1 and I2C_1_MUX_3.
+With I2C_1 the underlying adapter could be reached (not recommended).
+
+V3: Use snprintf for constructing i2c adapter names. Update comments for port_3 switch function.
+
+Regards
+Matthias
 
