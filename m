@@ -1,93 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54597 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750962AbaJBFeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:34:37 -0400
-Message-ID: <542CE3E8.2050705@iki.fi>
-Date: Thu, 02 Oct 2014 08:34:32 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52632 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346AbaJBSI1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 14:08:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: uvcvideo: Fix buffer completion size check
+Date: Thu, 02 Oct 2014 21:08:27 +0300
+Message-ID: <2530457.fbzKgqC21y@avalon>
+In-Reply-To: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH V3 08/13] cx231xx: remember status of i2c port_3 switch
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org> <1412227265-17453-9-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-9-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Guennadi,
 
+Ping ?
 
-On 10/02/2014 08:21 AM, Matthias Schwarzott wrote:
-> This is used later for is_tuner function that switches i2c behaviour for
-> some tuners.
->
-> V2: Add comments about possible improvements for port_3 switch function.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+On Wednesday 01 October 2014 00:42:51 Laurent Pinchart wrote:
+> Commit e93e7fd9f5a3fffec7792dbcc4c3574653effda7 ("v4l2: uvcvideo: Allow
+> using larger buffers") reworked the buffer size sanity check at buffer
+> completion time to use the frame size instead of the allocated buffer
+> size. However, it introduced two bugs in doing so:
+> 
+> - it assigned the allocated buffer size to the frame_size field, instead
+>   of assigning the correct frame size
+> 
+> - it performed the assignment in the S_FMT handler, resulting in the
+>   frame_size field being uninitialized if the userspace application
+>   doesn't call S_FMT.
+> 
+> Fix both issues by removing the frame_size field and validating the
+> buffer size against the UVC video control dwMaxFrameSize.
+> 
+> Fixes: e93e7fd9f5a3 ("v4l2: uvcvideo: Allow using larger buffers")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
->   drivers/media/usb/cx231xx/cx231xx-avcore.c | 10 ++++++++++
->   drivers/media/usb/cx231xx/cx231xx.h        |  1 +
->   2 files changed, 11 insertions(+)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> index 40a6987..148b5fa 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> @@ -1272,6 +1272,12 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
->
->   	if (dev->board.dont_use_port_3)
->   		is_port_3 = false;
-> +
-> +	/* Should this code check dev->port_3_switch_enabled first */
-> +	/* to skip unnecessary reading of the register? */
-> +	/* If yes, the flag dev->port_3_switch_enabled must be initialized */
-> +	/* correctly. */
-
-That multiline comment is violates Linux CodingStyle. See 
-Documentation/CodingStyle
-
-> +
->   	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
->   				       PWR_CTL_EN, value, 4);
->   	if (status < 0)
-> @@ -1294,6 +1300,10 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
->   	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
->   					PWR_CTL_EN, value, 4);
->
-> +	/* remember status of the switch for usage in is_tuner */
-> +	if (status >= 0)
-> +		dev->port_3_switch_enabled = is_port_3;
-> +
->   	return status;
->
->   }
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index f03338b..8a3c97b 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -629,6 +629,7 @@ struct cx231xx {
->   	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
->   	struct cx231xx_i2c i2c_bus[3];
->   	unsigned int xc_fw_load_done:1;
-> +	unsigned int port_3_switch_enabled:1;
->   	/* locks */
->   	struct mutex gpio_i2c_lock;
->   	struct mutex i2c_lock;
->
-
-I trust functionality is correct. However, I expected to see mux 
-switching logic inside mux select() / deselect(), maybe with caching mux 
-switch position in order to avoid I/O needed for checking mux switch 
-position.
-
-But as I don't know that driver internals very well, I am not adding 
-reviewed by tag, which does not mean that is wrong. It is simply because 
-I don't know.
-
-regards
-Antti
+>  drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
+>  drivers/media/usb/uvc/uvc_video.c | 2 +-
+>  drivers/media/usb/uvc/uvcvideo.h  | 1 -
+>  3 files changed, 1 insertion(+), 3 deletions(-)
+> 
+> Guennadi, could you please test and ack this ASAP, as the bug needs to be
+> fixed for v3.18-rc1 if possible ?
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index f205934..f33a067 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -318,7 +318,6 @@ static int uvc_v4l2_set_format(struct uvc_streaming
+> *stream, stream->ctrl = probe;
+>  	stream->cur_format = format;
+>  	stream->cur_frame = frame;
+> -	stream->frame_size = fmt->fmt.pix.sizeimage;
+> 
+>  done:
+>  	mutex_unlock(&stream->mutex);
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 9ace520..df81b9c 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1143,7 +1143,7 @@ static int uvc_video_encode_data(struct uvc_streaming
+> *stream, static void uvc_video_validate_buffer(const struct uvc_streaming
+> *stream, struct uvc_buffer *buf)
+>  {
+> -	if (stream->frame_size != buf->bytesused &&
+> +	if (stream->ctrl.dwMaxVideoFrameSize != buf->bytesused &&
+>  	    !(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
+>  		buf->error = 1;
+>  }
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index f585c08..897cfd8 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -458,7 +458,6 @@ struct uvc_streaming {
+>  	struct uvc_format *def_format;
+>  	struct uvc_format *cur_format;
+>  	struct uvc_frame *cur_frame;
+> -	size_t frame_size;
+> 
+>  	/* Protect access to ctrl, cur_format, cur_frame and hardware video
+>  	 * probe control.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
