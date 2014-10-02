@@ -1,118 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2682 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754386AbaJ1Dky (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50538 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751400AbaJBIqm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 23:40:54 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9S3enWE010614
-	for <linux-media@vger.kernel.org>; Tue, 28 Oct 2014 04:40:52 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E24E22A0377
-	for <linux-media@vger.kernel.org>; Tue, 28 Oct 2014 04:40:30 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 2 Oct 2014 04:46:42 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141028034030.E24E22A0377@tschai.lan>
-Date: Tue, 28 Oct 2014 04:40:30 +0100 (CET)
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 08/18] smiapp-pll: Don't validate OP clocks if there are none
+Date: Thu,  2 Oct 2014 11:45:58 +0300
+Message-Id: <1412239568-8524-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Results of the daily build of media_tree:
+For profile 0 sensors (which have no OP clocks), the OP limits are in fact
+VT limits. Do not verify them again.
 
-date:		Tue Oct 28 04:00:18 CET 2014
-git branch:	test
-git hash:	1ef24960ab78554fe7e8e77d8fc86524fbd60d3c
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-34-g71e642a
-host hardware:	x86_64
-host os:	3.17-0.slh.1-amd64
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index cac1407..862ca0c 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -131,6 +131,14 @@ static int check_all_bounds(struct device *dev,
+ 			op_limits->min_pix_clk_freq_hz,
+ 			op_limits->max_pix_clk_freq_hz,
+ 			"op_pix_clk_freq_hz");
++
++	/*
++	 * If there are no OP clocks, the VT clocks are contained in
++	 * the OP clock struct.
++	 */
++	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)
++		return rval;
++
+ 	if (!rval)
+ 		rval = bounds_check(
+ 			dev, pll->vt.sys_clk_freq_hz,
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
