@@ -1,30 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:33033 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953AbaJVOHS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50522 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751355AbaJBIql (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 10:07:18 -0400
-From: ayaka <ayaka@soulik.info>
+	Thu, 2 Oct 2014 04:46:41 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, kyungmin.park@samsung.com,
-	jtp.park@samsung.com, m.chehab@samsung.com,
-	ayaka <ayaka@soulik.info>
-Subject: RE: [PATCH] s5p-mfc: correct the formats info for encoder
-Date: Wed, 22 Oct 2014 22:07:00 +0800
-Message-Id: <1413986821-11463-1-git-send-email-ayaka@soulik.info>
-In-Reply-To: <0c7e01cfeded$cdd8c000$698a4000$%debski@samsung.com>
-References: <0c7e01cfeded$cdd8c000$698a4000$%debski@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 01/18] smiapp: Take mutex during PLL update in sensor initialisation
+Date: Thu,  2 Oct 2014 11:45:51 +0300
+Message-Id: <1412239568-8524-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am very sorry to forget the Sign-off again and thank you for
-reviewing.
-ayaka (1):
-  s5p-mfc: correct the formats info for encoder
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+The mutex does not serialise anything in this case but avoids a lockdep
+warning from the control framework.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 932ed9b..6174a59 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2677,7 +2677,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
+ 	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
+ 
++	mutex_lock(&sensor->mutex);
+ 	rval = smiapp_update_mode(sensor);
++	mutex_unlock(&sensor->mutex);
+ 	if (rval) {
+ 		dev_err(&client->dev, "update mode failed\n");
+ 		goto out_nvm_release;
 -- 
-1.9.3
+1.7.10.4
 
