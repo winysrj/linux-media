@@ -1,73 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:39606 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538AbaJTW5E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 18:57:04 -0400
-Received: by mail-lb0-f170.google.com with SMTP id u10so19509lbd.29
-        for <linux-media@vger.kernel.org>; Mon, 20 Oct 2014 15:57:01 -0700 (PDT)
-Message-ID: <54459339.8010009@einserver.de>
-Date: Tue, 21 Oct 2014 00:56:57 +0200
-From: Andreas Ruprecht <rupran@einserver.de>
-MIME-Version: 1.0
-To: Jim Davis <jim.epost@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	"m.chehab" <m.chehab@samsung.com>, hverkuil@xs4all.nl
-Subject: Re: randconfig build error with next-20141020, in drivers/media/platform/marvell-ccic/mcam-core.c
-References: <CA+r1ZhgyOubWFZE+B0LnOLJNA7VVvPDDSmUjnRW7=z9cZBb0rA@mail.gmail.com>
-In-Reply-To: <CA+r1ZhgyOubWFZE+B0LnOLJNA7VVvPDDSmUjnRW7=z9cZBb0rA@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:60118 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752309AbaJBIsO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 04:48:14 -0400
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] s5p-fimc: Only build suspend/resume for PM
+Date: Thu,  2 Oct 2014 10:48:11 +0200
+Message-Id: <1412239691-28719-1-git-send-email-thierry.reding@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Thierry Reding <treding@nvidia.com>
 
-after a lot of staring at the configuration it seems like this boils
-down to an issue within the Kconfig constraint description.
+If power management is disabled these functions become unused, so there
+is no reason to build them. This fixes a couple of build warnings when
+PM(_SLEEP,_RUNTIME) is not enabled.
 
-Broken down to the important bits:
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/media/platform/exynos4-is/fimc-core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-- CONFIG_VIDEO_TW68 and CONFIG_VIDEO_SAA7134 *select*
-CONFIG_VIDEOBUF2_DMA_SG
-
-- Both of these options are set to "*m*" in the configuration provided,
-which means that CONFIG_VIDEOBUF2_DMA_SG will also be selected as "m".
-According to Documentation/kbuild/kconfig-language.txt, line 101, "m" is
-set as the minimal value for CONFIG_VIDEOBUF2_DMA_SG by the selects, and
-as no other options select it as "y", it stays "m".
-
-- CONFIG_VIDEO_CAFE_CCIC is set to "*y*".
-The header file at drivers/media/platform/marvell-ccic/mcam-core.h then
-sets an internal preprocessor variable in line 28:
-
-#if IS_ENABLED(CONFIG_VIDEOBUF2_DMA_SG)
-#define MCAM_MODE_DMA_SG 1
-#endif
-
-The source code right around line 1299 in
-drivers/media/platform/marvell-ccic/mcam-core.c, where the undefined
-reference occurs, depends on MCAM_MODE_DMA_SG.
-
-This means that CONFIG_VIDEOBUF2_DMA_SG is compiled as an LKM, thus the
-reference for vb2_dma_sg_memops from mcam-core.c (which is statically
-compiled) can not be resolved in the builtin.o files and vmlinux.
-
-Unfortunately, I haven't got a solution on how to resolve that, but
-maybe this summary helps someone else to come up with one.
-
-Best regards,
-  Andreas
-
-On 20.10.2014 19:52, Jim Davis wrote:
-> Building with the attached random configuration file,
-> 
-> drivers/built-in.o: In function `mcam_setup_vb2':
-> /home/jim/linux/drivers/media/platform/marvell-ccic/mcam-core.c:1299: undefined
-> reference to `vb2_dma_sg_memops'
-> make: *** [vmlinux] Error 1
-> 
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index b70fd996d794..8e7435bfa1f9 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -832,6 +832,7 @@ err:
+ 	return -ENXIO;
+ }
+ 
++#if defined(CONFIG_PM_SLEEP) || defined(CONFIG_PM_RUNTIME)
+ static int fimc_m2m_suspend(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -870,6 +871,7 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static const struct of_device_id fimc_of_match[];
+ 
+-- 
+2.1.0
 
