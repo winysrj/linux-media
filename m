@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:43726 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751192AbaJBUpy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 16:45:54 -0400
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-To: m.chehab@samsung.com, jkosina@suse.cz
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] [media] doc: fix broken v4l-utils URL
-Date: Thu,  2 Oct 2014 22:45:48 +0200
-Message-Id: <1412282748-16204-1-git-send-email-michael.opdenacker@free-electrons.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45625 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751448AbaJBOTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 10:19:32 -0400
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: linux-kernel@vger.kernel.org
+Cc: trivial@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
+Subject: [RESEND PATCH] saa7146: Create a device name before it's used
+Date: Thu,  2 Oct 2014 16:19:15 +0200
+Message-Id: <1412259555-19242-1-git-send-email-lkundrak@v3.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This replaces http://git.linuxtv.org/v4l-utils/ (broken link)
-by http://git.linuxtv.org/cgit.cgi/v4l-utils.git/
+request_irq() uses it, tries to create a procfs file with an empty name
+otherwise.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=83771
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 ---
- Documentation/DocBook/media/v4l/common.xml | 2 +-
- drivers/media/rc/keymaps/Kconfig           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/saa7146/saa7146_core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 71f6bf9e735e..8b5e014224d6 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -110,7 +110,7 @@ makes no provisions to find these related devices. Some really
- complex devices use the Media Controller (see <xref linkend="media_controller" />)
- which can be used for this purpose. But most drivers do not use it,
- and while some code exists that uses sysfs to discover related devices
--(see libmedia_dev in the <ulink url="http://git.linuxtv.org/v4l-utils/">v4l-utils</ulink>
-+(see libmedia_dev in the <ulink url="http://git.linuxtv.org/cgit.cgi/v4l-utils.git/">v4l-utils</ulink>
- git repository), there is no library yet that can provide a single API towards
- both Media Controller-based devices and devices that do not use the Media Controller.
- If you want to work on this please write to the linux-media mailing list: &v4l-ml;.</para>
-diff --git a/drivers/media/rc/keymaps/Kconfig b/drivers/media/rc/keymaps/Kconfig
-index 8e615fd55852..767423bbbdd0 100644
---- a/drivers/media/rc/keymaps/Kconfig
-+++ b/drivers/media/rc/keymaps/Kconfig
-@@ -12,4 +12,4 @@ config RC_MAP
- 	   The ir-keytable program, available at v4l-utils package
- 	   provide the tool and the same RC maps for load from
- 	   userspace. Its available at
--			http://git.linuxtv.org/v4l-utils
-+		http://git.linuxtv.org/cgit.cgi/v4l-utils.git/
+diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
+index 97afee6..4418119 100644
+--- a/drivers/media/common/saa7146/saa7146_core.c
++++ b/drivers/media/common/saa7146/saa7146_core.c
+@@ -364,6 +364,9 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 		goto out;
+ 	}
+ 
++	/* create a nice device name */
++	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
++
+ 	DEB_EE("pci:%p\n", pci);
+ 
+ 	err = pci_enable_device(pci);
+@@ -438,9 +441,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 
+ 	/* the rest + print status message */
+ 
+-	/* create a nice device name */
+-	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
+-
+ 	pr_info("found saa7146 @ mem %p (revision %d, irq %d) (0x%04x,0x%04x)\n",
+ 		dev->mem, dev->revision, pci->irq,
+ 		pci->subsystem_vendor, pci->subsystem_device);
 -- 
-1.9.1
+1.9.3
 
