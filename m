@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:41292 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932334AbaJUMnS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 08:43:18 -0400
-Message-ID: <544654DF.4000201@collabora.com>
-Date: Tue, 21 Oct 2014 08:43:11 -0400
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39073 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752498AbaJBNn1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 09:43:27 -0400
+Date: Thu, 2 Oct 2014 10:43:21 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] s5p-fimc: Only build suspend/resume for PM
+Message-ID: <20141002104321.0b5b6aa2@recife.lan>
+In-Reply-To: <1412239691-28719-1-git-send-email-thierry.reding@gmail.com>
+References: <1412239691-28719-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	'Kiran AVND' <avnd.kiran@samsung.com>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	laurent.pinchart@ideasonboard.com
-CC: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
-	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
-	kiran@chromium.org, Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size
- to smaller than the request.
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com> <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com> <11f301cfe2e2$0cacc810$26065830$%debski@samsung.com> <54354B8D.8050208@collabora.com> <125301cfe3a8$acd561f0$068025d0$%debski@samsung.com> <544644D9.4020701@xs4all.nl>
-In-Reply-To: <544644D9.4020701@xs4all.nl>
-Content-Type: text/plain; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 02 Oct 2014 10:48:11 +0200
+Thierry Reding <thierry.reding@gmail.com> escreveu:
 
-Le 2014-10-21 07:34, Hans Verkuil a écrit :
->
-> I think we should add flags here as well. NEAREST (the default), 
-> ROUND_DOWN and
-> ROUND_UP. Existing calls will use NEAREST. I can think of use-cases 
-> for all
-> three of these, and I think the caller should just have to specify 
-> what is
-> needed.
->
-> Just replacing the algorithm used seems asking for problems, you want 
-> to be
-> able to select what you want to do. 
+> From: Thierry Reding <treding@nvidia.com>
+> 
+> If power management is disabled these functions become unused, so there
+> is no reason to build them. This fixes a couple of build warnings when
+> PM(_SLEEP,_RUNTIME) is not enabled.
+> 
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
+> ---
+>  drivers/media/platform/exynos4-is/fimc-core.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+> index b70fd996d794..8e7435bfa1f9 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-core.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
+> @@ -832,6 +832,7 @@ err:
+>  	return -ENXIO;
+>  }
+>  
+> +#if defined(CONFIG_PM_SLEEP) || defined(CONFIG_PM_RUNTIME)
+>  static int fimc_m2m_suspend(struct fimc_dev *fimc)
+>  {
+>  	unsigned long flags;
+> @@ -870,6 +871,7 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+>  
+>  	return 0;
+>  }
+> +#endif
 
-One more thing, we realize that in selection scenario, we do want 
-nearest or lowest, so indeed a flag that let user space choose is the best.
+The patch obviously is correct, but I'm wandering if aren't there a way
+to avoid the if/endif.
 
-Nicolas
+Not tested here, but perhaps if we mark those functions as inline, the
+C compiler would do the right thing without generating any warnings.
 
+If not, maybe we could use some macro like:
+
+#if defined(CONFIG_PM_SLEEP) || defined(CONFIG_PM_RUNTIME)
+	#define PM_SLEEP_FUNC
+#else
+	#define PM_SLEEP_FUNC	inline
+#endif
+
+And put it at pm.h.
+
+That should be enough to shut up to warning without adding any footprint
+if PM is disabled.
+
+Regards,
+Mauro
