@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:44561 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081AbaJ0QXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 12:23:04 -0400
-Date: Mon, 27 Oct 2014 17:22:52 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Michael Ira Krufky <mkrufky@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Richard Vollkommer <linux@hauppauge.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 1/3] xc5000: tuner firmware update
-Message-ID: <20141027162252.GA9984@linuxtv.org>
-References: <BLU437-SMTP74723F476D15D78EEEA959BA900@phx.gbl>
- <20141027094619.69851745.m.chehab@samsung.com>
- <CAOcJUbyK7Y5=fMfEGv5rhC3bPpeiiS3Mp1z+8cVfHoqy-opy5Q@mail.gmail.com>
- <20141027135727.297ba10a.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141027135727.297ba10a.m.chehab@samsung.com>
+Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:46646 "EHLO
+	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbaJBF3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 01:29:14 -0400
+Subject: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct
+ issue
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi
+Content-Type: multipart/mixed; boundary="=-fDVgPVWzsA3vkEAo3S6+"
+Date: Thu, 02 Oct 2014 13:32:34 +0800
+Message-ID: <1412227954.1699.2.camel@ite-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 27, 2014 at 01:57:27PM -0200, Mauro Carvalho Chehab wrote:
-> Em Mon, 27 Oct 2014 10:25:48 -0400
-> Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
-> 
-> > I like the idea of supporting older firmware revisions if the new one
-> > is not present, but, the established president for this sort of thing
-> > has always been to replace older firmware with newer firmware without
-> > backward compatibility support for older binaries.
-> 
-> No, we're actually adding backward support. There are some drivers
-> already with it. See for example xc4000 (changeset da7bfa2c5df).
-> 
-> > Although the current driver can work with both old and new firmware
-> > versions, this hasn't been the case in the past, and won't always be
-> > the case with future firmware revisions.
-> 
-> Yeah, we did a very crap job breaking backward firmware compat in
-> the past. We're not doing it anymore ;)
-> 
-> > Hauppauge has provided links to the new firmware for both the XC5000
-> > and XC5000C chips along with licensing.  Maybe instead, we can just
-> > upstream those into the linux-firmware packages for distribution.
-> 
-> Upstreaming to linux-firmware was done already for the previous firmwares.
-> The firmwares at linux-firmware for xc5000 and xc5000c were merged back 
-> there for 3.17 a few weeks ago.
-> 
-> Feel free to submit them a new version.
-> 
-> > I don't think supporting two different firmware versions is a good
-> > idea for the case of the xc5000 driver.
-> 
-> Why not? It should work as-is with either version. We can always add
-> some backward compat code if needed.
 
-FWIW, Linus recently addressed the topic wrt wireless firmware:
-http://article.gmane.org/gmane.linux.kernel.wireless.general/126794
+--=-fDVgPVWzsA3vkEAo3S6+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
+
+--=-fDVgPVWzsA3vkEAo3S6+
+Content-Disposition: attachment; filename*0=0001-af9033-fix-DVBv3-signal-strength-value-not-correct-i.pat; filename*1=ch
+Content-Type: text/x-patch; name="0001-af9033-fix-DVBv3-signal-strength-value-not-correct-i.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From 02ee7de4600a43a322f75cf04d273effa04d3a42 Mon Sep 17 00:00:00 2001
+From: Bimow Chen <Bimow.Chen@ite.com.tw>
+Date: Wed, 1 Oct 2014 18:28:54 +0800
+Subject: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct issue
+
+Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
+
+Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
+---
+ drivers/media/dvb-frontends/af9033.c      |   43 +++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/af9033_priv.h |    6 ++++
+ 2 files changed, 41 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 63a89c1..2b3d2f0 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -862,16 +862,43 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
+ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
+ 	struct af9033_dev *dev = fe->demodulator_priv;
+-	int ret;
+-	u8 strength2;
++	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
++	int ret, tmp, power_real;
++	u8 u8tmp, gain_offset, buf[7];
+ 
+-	/* read signal strength of 0-100 scale */
+-	ret = af9033_rd_reg(dev, 0x800048, &strength2);
+-	if (ret < 0)
+-		goto err;
++	if (dev->is_af9035) {
++		ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
++		/* scale value to 0x0000-0xffff */
++		*strength = u8tmp * 0xffff / 100;
++	} else {
++		ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
++		ret |= af9033_rd_regs(dev, 0x80f900, buf, 7);
++
++		if (c->frequency <= 300000000)
++			gain_offset = 7; /* VHF */
++		else
++			gain_offset = 4; /* UHF */
++
++		power_real = (u8tmp - 100 - gain_offset) -
++			power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
++
++		if (power_real < -15)
++			tmp = 0;
++		else if ((power_real >= -15) && (power_real < 0))
++			tmp = (2 * (power_real + 15)) / 3;
++		else if ((power_real >= 0) && (power_real < 20))
++			tmp = 4 * power_real + 10;
++		else if ((power_real >= 20) && (power_real < 35))
++			tmp = (2 * (power_real - 20)) / 3 + 90;
++		else
++			tmp = 100;
++
++		/* scale value to 0x0000-0xffff */
++		*strength = tmp * 0xffff / 100;
++	}
+ 
+-	/* scale value to 0x0000-0xffff */
+-	*strength = strength2 * 0xffff / 100;
++	if (ret)
++		goto err;
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index c12c92c..c9c8798 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -2051,4 +2051,10 @@ static const struct reg_val tuner_init_it9135_62[] = {
+ 	{ 0x80fd8b, 0x00 },
+ };
+ 
++/* NorDig power reference table */
++static const int power_reference[][5] = {
++	{-93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
++	{-87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
++	{-82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
++};
+ #endif /* AF9033_PRIV_H */
+-- 
+1.7.0.4
 
 
-HTH,
-Johannes
+--=-fDVgPVWzsA3vkEAo3S6+--
+
