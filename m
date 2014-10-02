@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51647 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759394AbaJaNyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:51 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id B0711217D1
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:40 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 01/11] v4l2: get/set prio using video_dev prio structure
-Date: Fri, 31 Oct 2014 15:54:47 +0200
-Message-Id: <1414763697-21166-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55431 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752489AbaJBFZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 01:25:08 -0400
+Message-ID: <542CE1B0.1000903@iki.fi>
+Date: Thu, 02 Oct 2014 08:25:04 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH V3 04/13] cx231xx: give each master i2c bus a seperate
+ name
+References: <1412227265-17453-1-git-send-email-zzam@gentoo.org> <1412227265-17453-5-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412227265-17453-5-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_device structure embed a v4l2_prio_state structure used by
-default for priority handling, but drivers can override that default by
-setting the video_dev prio pointer to a different v4l2_prio_state
-instance.
+On 10/02/2014 08:20 AM, Matthias Schwarzott wrote:
+> V2: Use snprintf to construct the complete name
+>
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>   drivers/media/usb/cx231xx/cx231xx-i2c.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> index a30d400..b10f482 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> @@ -506,13 +506,14 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
+>   int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>   {
+>   	struct cx231xx *dev = bus->dev;
+> +	char bus_name[3];
 
-However, the VIDIO_G_PRIORITY and VIDIOC_S_PRIORITY implementations use
-the prio state embedded in v4l2_device unconditionally, breaking drivers
-that need to override the default. Fix them.
+you don't need that variable anymore :]
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+>
+>   	BUG_ON(!dev->cx231xx_send_usb_command);
+>
+>   	bus->i2c_adap = cx231xx_adap_template;
+>   	bus->i2c_adap.dev.parent = &dev->udev->dev;
+>
+> -	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
+> +	snprintf(bus->i2c_adap.name, sizeof(bus->i2c_adap.name), "%s-%d", bus->dev->name, bus->nr);
+>
+>   	bus->i2c_adap.algo_data = bus;
+>   	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9ccb19a..1bf84a5 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1040,7 +1040,7 @@ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_g_priority)
- 		return ops->vidioc_g_priority(file, fh, arg);
- 	vfd = video_devdata(file);
--	*p = v4l2_prio_max(&vfd->v4l2_dev->prio);
-+	*p = v4l2_prio_max(vfd->prio);
- 	return 0;
- }
- 
-@@ -1055,7 +1055,7 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
- 		return ops->vidioc_s_priority(file, fh, *p);
- 	vfd = video_devdata(file);
- 	vfh = file->private_data;
--	return v4l2_prio_change(&vfd->v4l2_dev->prio, &vfh->prio, *p);
-+	return v4l2_prio_change(vfd->prio, &vfh->prio, *p);
- }
- 
- static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+With a correction for small mistake I mentioned:
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+
+regards
+Antti
+
 -- 
-2.0.4
-
+http://palosaari.fi/
