@@ -1,67 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dougal.woof94.com ([125.63.57.136]:41874 "EHLO
-	dougal.woof94.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbaJFBmh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 21:42:37 -0400
-Message-ID: <5431F382.3060101@cloud.net.au>
-Date: Mon, 06 Oct 2014 12:42:26 +1100
-From: Hamish Moffatt <hamish@cloud.net.au>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: leadtek dvb-t dongle dual not working if plugged in during boot via
- hub
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34122 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752916AbaJBRJJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:09:09 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 01/10] [media] coda: add support for planar YCbCr 4:2:2 (YUV422P) format
+Date: Thu,  2 Oct 2014 19:08:26 +0200
+Message-Id: <1412269715-28388-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds support for the three-plane YUV422P format with one luma plane
+and two horizontally subsampled chroma planes.
 
-I've found that the Leadtek dvb-t dongle dual (USB 0413:6a05) is not 
-initialised properly for me if it's plugged in at boot time through a 
-USB 2.0 hub. Plugging it in later is fine, and plugging it directly into 
-the PC is fine.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 14 +++++++++++++-
+ drivers/media/platform/coda/coda-common.c | 13 +++++++++++++
+ 2 files changed, 26 insertions(+), 1 deletion(-)
 
-[12:33PM] hamish@bandicoot:~ $ dmesg | grep 1-5\\.3
-[    2.073403] usb 1-5.3: new high-speed USB device number 6 using xhci_hcd
-[    2.165269] usb 1-5.3: New USB device found, idVendor=0413, 
-idProduct=6a05
-[    2.165274] usb 1-5.3: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=0
-[    2.165277] usb 1-5.3: Product: WinFast DTV Dongle Dual
-[    2.165279] usb 1-5.3: Manufacturer: Leadtek
-[    2.646295] usb 1-5.3: dvb_usb_af9035: prechip_version=83 
-chip_version=02 chip_type=9135
-[    2.647928] usb 1-5.3: dvb_usb_v2: found a 'Leadtek WinFast DTV 
-Dongle Dual' in cold state
-[    2.651821] usb 1-5.3: dvb_usb_v2: downloading firmware from file 
-'dvb-usb-it9135-02.fw'
-[    4.700733] usb 1-5.3: dvb_usb_v2: 2nd usb_bulk_msg() failed=-110
-[    4.700755] dvb_usb_af9035: probe of 1-5.3:1.0 failed with error -110
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index fde7775..746a615 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1591,6 +1591,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	struct coda_q_data *q_data_dst;
+ 	struct vb2_buffer *dst_buf;
+ 	struct coda_timestamp *ts;
++	unsigned long payload;
+ 	int width, height;
+ 	int decoded_idx;
+ 	int display_idx;
+@@ -1776,7 +1777,18 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		dst_buf->v4l2_buf.timecode = ts->timecode;
+ 		dst_buf->v4l2_buf.timestamp = ts->timestamp;
+ 
+-		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
++		switch (q_data_dst->fourcc) {
++		case V4L2_PIX_FMT_YUV420:
++		case V4L2_PIX_FMT_YVU420:
++		case V4L2_PIX_FMT_NV12:
++		default:
++			payload = width * height * 3 / 2;
++			break;
++		case V4L2_PIX_FMT_YUV422P:
++			payload = width * height * 2;
++			break;
++		}
++		vb2_set_plane_payload(dst_buf, 0, payload);
+ 
+ 		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
+ 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 02d47fa..48be973 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -100,6 +100,9 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		base_cb = base_y + q_data->bytesperline * q_data->height;
++		base_cr = base_cb + q_data->bytesperline * q_data->height / 2;
+ 	}
+ 
+ 	coda_write(ctx->dev, base_y, reg_y);
+@@ -124,6 +127,10 @@ static const struct coda_fmt coda_formats[] = {
+ 		.fourcc = V4L2_PIX_FMT_NV12,
+ 	},
+ 	{
++		.name = "YUV 4:2:2 Planar, YCbCr",
++		.fourcc = V4L2_PIX_FMT_YUV422P,
++	},
++	{
+ 		.name = "H264 Encoded Stream",
+ 		.fourcc = V4L2_PIX_FMT_H264,
+ 	},
+@@ -168,6 +175,7 @@ static bool coda_format_is_yuv(u32 fourcc)
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+ 	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_YUV422P:
+ 		return true;
+ 	default:
+ 		return false;
+@@ -393,6 +401,11 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+ 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+ 					f->fmt.pix.height * 3 / 2;
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
++		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
++					f->fmt.pix.height * 2;
++		break;
+ 	case V4L2_PIX_FMT_H264:
+ 	case V4L2_PIX_FMT_MPEG4:
+ 	case V4L2_PIX_FMT_JPEG:
+-- 
+2.1.0
 
-But directly to the PC;
-
-[    2.217824] usb 1-5: dvb_usb_af9035: prechip_version=83 
-chip_version=02 chip_type=9135
-[    2.218681] usb 1-5: dvb_usb_v2: found a 'Leadtek WinFast DTV Dongle 
-Dual' in cold state
-[    2.227318] usb 1-5: dvb_usb_v2: downloading firmware from file 
-'dvb-usb-it9135-02.fw'
-[    4.208169] usb 1-5: dvb_usb_af9035: firmware version=3.40.1.0
-[    4.208180] usb 1-5: dvb_usb_v2: found a 'Leadtek WinFast DTV Dongle 
-Dual' in warm state
-[    4.209733] usb 1-5: dvb_usb_af9035: [0] overriding tuner from 38 to 60
-[    4.210926] usb 1-5: dvb_usb_af9035: [1] overriding tuner from 38 to 60
-[    4.212191] usb 1-5: dvb_usb_v2: will pass the complete MPEG2 
-transport stream to the software demuxer
-[    4.244285] usb 1-5: dvb_usb_v2: will pass the complete MPEG2 
-transport stream to the software demuxer
-[    4.289986] usb 1-5: dvb_usb_v2: schedule remote query interval to 
-500 msecs
-[    4.289990] usb 1-5: dvb_usb_v2: 'Leadtek WinFast DTV Dongle Dual' 
-successfully initialized and connected
-[    4.290019] usbcore: registered new interface driver dvb_usb_af9035
-
-Easy to work around, but perhaps there's a bug. Or it's a timing issue.
-
-Hamish
