@@ -1,110 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2668 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbaJFH1I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 03:27:08 -0400
-Message-ID: <54324446.4080502@xs4all.nl>
-Date: Mon, 06 Oct 2014 09:27:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-out.m-online.net ([212.18.0.10]:33316 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388AbaJBRpG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:45:06 -0400
+Date: Thu, 2 Oct 2014 19:44:57 +0200
+From: Luc Verhaegen <libv@skynet.be>
+To: mesa-dev@lists.freedesktop.org, xorg-devel@lists.x.org,
+	dri-devel@lists.freedesktop.org, xorg@lists.x.org,
+	wayland-devel@lists.freedesktop.org,
+	xorg-announce@lists.freedesktop.org, mir-devel@lists.ubuntu.com,
+	directfb-dev@directfb.org, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: FOSDEM15: Graphics DevRoom: call for speakers.
+Message-ID: <20141002174457.GA11725@skynet.be>
 MIME-Version: 1.0
-To: stable@vger.kernel.org
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.10] media/vb2: fix VBI/poll regression
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a backport of mainline commit 58d75f4b1ce26324b4d809b18f94819843a98731
-for kernel 3.10.
+Hi,
 
-The recent conversion of saa7134 to vb2 uncovered a poll() bug that
-broke the teletext applications alevt and mtt. These applications
-expect that calling poll() without having called VIDIOC_STREAMON will
-cause poll() to return POLLERR. That did not happen in vb2.
+At FOSDEM on the 31st of january and the 1st of February 2015, there 
+will be another graphics DevRoom. URL: https://fosdem.org/2015/
 
-This patch fixes that behavior. It also fixes what should happen when
-poll() is called when STREAMON is called but no buffers have been
-queued. In that case poll() will also return POLLERR.
+The focus of this DevRoom is of course the same as last year, namely:
+* Graphics drivers: from display to media to 3d drivers, both in kernel 
+  or userspace. Be it part of DRM, KMS, (direct)FB, V4L, Xorg, Mesa...
+* Input drivers: kernel and userspace.
+* Windowing systems: X, Wayland, Mir, directFB, ...
+* Even colour management and other areas which i might have overlooked 
+  above are accepted.
 
-This brings the vb2 behavior in line with the old videobuf behavior.
+Slots are 50 minutes long, and scheduled hourly. This partly to avoid 
+confusion and people running all over the place all the time. As a 
+speaker, you do not have to fill your whole hour, gaps are never wasted 
+time.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Slots will be handed out on a first come, first serve basis. The best 
+slots will go to those who apply the earliest. The amount of slots is 
+currently not known yet, but i expect there to be around 16 available (8 
+on each day), so act quickly.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index e3bdc3b..5e47ba4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -666,6 +666,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * to the userspace.
- 	 */
- 	req->count = allocated_buffers;
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	return 0;
- }
-@@ -714,6 +715,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 		q->memory = create->memory;
-+		q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 	}
- 
- 	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
-@@ -1355,6 +1357,7 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	 * dequeued in dqbuf.
- 	 */
- 	list_add_tail(&vb->queued_entry, &q->queued_list);
-+	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
- 
- 	/*
-@@ -1724,6 +1727,7 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 * and videobuf, effectively returning control over them to userspace.
- 	 */
- 	__vb2_queue_cancel(q);
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	dprintk(3, "Streamoff successful\n");
- 	return 0;
-@@ -2009,9 +2013,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffers have already been queued.
-+	 * There is nothing to wait for if the queue isn't streaming.
- 	 */
--	if (list_empty(&q->queued_list))
-+	if (!vb2_is_streaming(q))
-+		return res | POLLERR;
-+	/*
-+	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize waiting_for_buffers to false.
-+	 */
-+	if (q->waiting_for_buffers)
- 		return res | POLLERR;
- 
- 	if (list_empty(&q->done_list))
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index d88a098..2cc4e0d 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -318,6 +318,9 @@ struct v4l2_fh;
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-  * @alloc_ctx:	memory type/allocator-specific contexts for each plane
-  * @streaming:	current streaming state
-+ * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
-+ *		buffers. Only set for capture queues if qbuf has not yet been
-+ *		called since poll() needs to return POLLERR in that situation.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  */
- struct vb2_queue {
-@@ -350,6 +353,7 @@ struct vb2_queue {
- 	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
- 
- 	unsigned int			streaming:1;
-+	unsigned int			waiting_for_buffers:1;
- 
- 	struct vb2_fileio_data		*fileio;
- };
+Talk Submission:
+----------------
+
+Like last year, the pentabarf system will be used for talk submission. 
+It is not perfect from a devroom organizer and talk submitters usability 
+point-of-view, but the fosdem organizers are working on it. It is 
+however workable and it ended up working out pretty well last year.
+
+https://penta.fosdem.org/submission/FOSDEM15
+
+Remember that FOSDEM is not like XDC, it's not some 50 odd people 
+meeting with a sliding schedule which only gets filled out on the last 
+day. Upwards of 8000 people are visiting this event, and most of them 
+get a printed booklet or use the schedule on the FOSDEM website or an 
+app for their phone to figure out what to watch or participate in next. 
+So please put some effort in your talk submission and details.
+
+Since this an open source community event, please refrain from turning 
+in a talk that is a pure corporate or product commercial. Also, if you 
+are unsure on whether you can come or not (this is FOSDEM, why are you 
+not there anyway?), please wait with submitting your talk. Submitting a 
+talk and then not turning up because you could not be bothered is a 
+sure-fire way to get larted and then to never be allowed to talk again.
+
+As for deadlines, i hope to have a pretty much complete schedule between 
+christmas and the new year. The rockhard printed schedule deadline is 
+probably January 9th, after that you will not be featured in the booklet 
+and you will have a lot less visitors. I will hopefully be able to lock 
+down entries and descriptions after that date.
+
+Don't count on this deadline: first come first serve! There are perhaps 
+only 16 slots. And the worst slots will be assigned to those who come 
+last. Do you really want to talk on saturday at 10:00 when people are 
+still in zombie mode after the beer event, if they are there at all?
+
+Use your account from last year, so you can try to recycle some of your 
+data from last year. If you have forgotten your password, then you can 
+reset it here: https://penta.fosdem.org/user/forgot_password
+
+Necessary information:
+----------------------
+
+Below is a list of what i need to see filled in when you apply for a 
+devroom before i consider it a valid submission. Remember: first come, 
+first serve. The best slots are for the earliest submissions and there 
+are only around 16 slots.
+
+On your personal page:
+* General:
+  * First and last name
+  * Nickname
+  * Image
+* Contact:
+  * email
+  * mobile number (this is a very hard requirement as there will be no 
+    other reliable form of emergency communication on the day)
+* Description:
+  * Abstract
+  * Description
+
+Create an event:
+* On the General page:
+  * Event title
+  * Event subtitle.
+  * Track: Graphics Devroom
+  * Event type: Lecture (talk) or Meeting (BoF)
+* Persons:
+  * Add yourself as speaker.
+* Description:
+  * Abstract:
+  * Full Description
+* Links:
+  * Add relevant links.
+
+Everything else can be ignored or will be filled in by me or the FOSDEM 
+organizers.
+
+That's about it. Hope to see you all at FOSDEM :)
+
+Luc Verhaegen.
