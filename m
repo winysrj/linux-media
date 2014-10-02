@@ -1,122 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:50852 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbaJJUI0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50543 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751554AbaJBIqo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 16:08:26 -0400
-Received: by mail-pd0-f176.google.com with SMTP id fp1so2210779pdb.21
-        for <linux-media@vger.kernel.org>; Fri, 10 Oct 2014 13:08:25 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFC 0/4] dma-buf Constraints-Enabled Allocation helpers
-Date: Sat, 11 Oct 2014 01:37:54 +0530
-Message-Id: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+	Thu, 2 Oct 2014 04:46:44 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 17/18] smiapp: Set valid link frequency range
+Date: Thu,  2 Oct 2014 11:46:07 +0300
+Message-Id: <1412239568-8524-18-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Set supported link frequencies in the menu in control initialisation and
+when the bpp changes.
 
-Why:
-====
- While sharing buffers using dma-buf, currently there's no mechanism to let
-devices share their memory access constraints with each other to allow for
-delayed allocation of backing storage.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-This RFC attempts to introduce the idea of memory constraints of a device,
-and how these constraints can be shared and used to help allocate buffers that
-can satisfy requirements of all devices attached to a particular dma-buf.
-
-How:
-====
- A constraints_mask is added to dma_parms of the device, and at the time of
-each device attachment to a dma-buf, the dma-buf uses this constraints_mask
-to calculate the access_mask for the dma-buf.
-
-Allocators can be defined for each of these constraints_masks, and then helper
-functions can be used to allocate the backing storage from the matching
-allocator satisfying the constraints of all devices interested.
-
-A new miscdevice, /dev/cenalloc [1] is created, which acts as the dma-buf
-exporter to make this transparent to the devices.
-
-More details in the patch description of "cenalloc: Constraint-Enabled
-Allocation helpers for dma-buf".
-
-
-At present, the constraint_mask is only a bitmask, but it should be possible to
-change it to a struct and adapt the constraint_mask calculation accordingly,
-based on discussion.
-
-
-Important requirement:
-======================
- Of course, delayed allocation can only work if all participating devices 
-will wait for other devices to have 'attached' before mapping the buffer
-for the first time.
-
-As of now, users of dma-buf(drm prime, v4l2 etc) call the attach() and then
-map_attachment() almost immediately after it. This would need to be changed if
-they were to benefit from constraints.
-
-
-What 'cenalloc' is not:
-=======================
-- not 'general' allocator helpers - useful only for constraints-enabled
-  devices that share buffers with others using dma-buf.
-- not a replacement for existing allocation mechanisms inside various
-  subsystems; merely a possible alternative.
-- no page-migration - it would be very complementary to the delayed allocation
-   suggested here.
-
-TODOs: 
-======
-- demonstration test cases
-- vma helpers for allocators
-- more sample allocators
-- userspace ioctl (It should be a simple one, and we have one ready, but wanted
-   to agree on the kernel side of things first)
-
-
-May the brickbats begin, please! :)
-
-Best regards,
-~Sumit.
-
-[1]: 'C'onstraints 'EN'abled 'ALLOC'ation helpers = cenalloc: it might not be a
-very appealing name, so suggestions are very welcome!
-
-
-Benjamin Gaignard (1):
-  cenalloc: a sample allocator for contiguous page allocation
-
-Sumit Semwal (3):
-  dma-buf: Add constraints sharing information
-  cenalloc: Constraint-Enabled Allocation helpers for dma-buf
-  cenalloc: Build files for constraint-enabled allocation helpers
-
- MAINTAINERS                               |   1 +
- drivers/Kconfig                           |   2 +
- drivers/Makefile                          |   1 +
- drivers/cenalloc/Kconfig                  |   8 +
- drivers/cenalloc/Makefile                 |   3 +
- drivers/cenalloc/cenalloc.c               | 597 ++++++++++++++++++++++++++++++
- drivers/cenalloc/cenalloc.h               |  99 +++++
- drivers/cenalloc/cenalloc_priv.h          | 188 ++++++++++
- drivers/cenalloc/cenalloc_system_contig.c | 225 +++++++++++
- drivers/dma-buf/dma-buf.c                 |  50 ++-
- include/linux/device.h                    |   7 +-
- include/linux/dma-buf.h                   |  14 +
- 12 files changed, 1189 insertions(+), 6 deletions(-)
- create mode 100644 drivers/cenalloc/Kconfig
- create mode 100644 drivers/cenalloc/Makefile
- create mode 100644 drivers/cenalloc/cenalloc.c
- create mode 100644 drivers/cenalloc/cenalloc.h
- create mode 100644 drivers/cenalloc/cenalloc_priv.h
- create mode 100644 drivers/cenalloc/cenalloc_system_contig.c
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index cf8eba8..87d4d5a 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -523,6 +523,8 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
++	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
++		sensor->csi_format->compressed - SMIAPP_COMPRESSED_BASE];
+ 	unsigned int max, i;
+ 	int rval;
+ 
+@@ -605,8 +607,8 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 
+ 	sensor->link_freq = v4l2_ctrl_new_int_menu(
+ 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
+-		V4L2_CID_LINK_FREQ, max, 0,
+-		sensor->platform_data->op_sys_clock);
++		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
++		__ffs(*valid_link_freqs), sensor->platform_data->op_sys_clock);
+ 
+ 	sensor->pixel_rate_csi = v4l2_ctrl_new_std(
+ 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
+@@ -1735,6 +1737,7 @@ static int smiapp_set_format_source(struct v4l2_subdev *subdev,
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+ 	const struct smiapp_csi_data_format *csi_format,
+ 		*old_csi_format = sensor->csi_format;
++	unsigned long *valid_link_freqs;
+ 	u32 code = fmt->format.code;
+ 	unsigned int i;
+ 	int rval;
+@@ -1761,6 +1764,18 @@ static int smiapp_set_format_source(struct v4l2_subdev *subdev,
+ 				sensor->test_data[i], 0,
+ 				(1 << csi_format->width) - 1, 1, 0);
+ 
++	if (csi_format->compressed == old_csi_format->compressed)
++		return 0;
++
++	valid_link_freqs = 
++		&sensor->valid_link_freqs[sensor->csi_format->compressed
++					  - SMIAPP_COMPRESSED_BASE];
++
++	__v4l2_ctrl_modify_range(
++		sensor->link_freq, 0,
++		__fls(*valid_link_freqs), ~*valid_link_freqs,
++		__ffs(*valid_link_freqs));
++
+ 	return 0;
+ }
+ 
 -- 
-1.9.1
+1.7.10.4
 
