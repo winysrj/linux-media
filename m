@@ -1,92 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42445 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932595AbaJ2NFk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 09:05:40 -0400
-Date: Wed, 29 Oct 2014 11:05:34 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Divneil Wadhawan <divneil.wadhawan@st.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
-Message-ID: <20141029110534.138af0ab@recife.lan>
-In-Reply-To: <8693824.jOpqngyjmV@avalon>
-References: <5437932A.7000706@xs4all.nl>
-	<5450BAF4.6050008@xs4all.nl>
-	<20141029104033.35f0d212@recife.lan>
-	<8693824.jOpqngyjmV@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50591 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752085AbaJBIrJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 04:47:09 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 10/18] smiapp: Remove validation of op_pix_clk_div
+Date: Thu,  2 Oct 2014 11:46:00 +0300
+Message-Id: <1412239568-8524-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Oct 2014 14:46:55 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> > > Hmm, so you think VIDEO_MAX_FRAME should just be updated to 64?
-> > 
-> > Yes.
-> > 
-> > > I am a bit afraid that that might break applications (especially if there
-> > > are any that use bits in a 32-bit unsigned variable).
-> > 
-> > What 32-bits have to do with that? This is just the maximum number of
-> > buffers, and not the number of bits.
-> 
-> Applications might use a bitmask to track buffers.
+op_pix_clk_div is directly assigned and not calculated. There's no need to
+verify it.
 
-True, but then it should be limiting the max buffer to 32, if the 
-implementation won't support more than 32 bits at its bitmask
-implementation.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-Anyway, we need to double check if nothing will break at the open
-source apps before being able to change its value.
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 862ca0c..0d5c503 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -116,11 +116,6 @@ static int check_all_bounds(struct device *dev,
+ 			"op_sys_clk_div");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, op_pll->pix_clk_div,
+-			op_limits->min_pix_clk_div, op_limits->max_pix_clk_div,
+-			"op_pix_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+ 			dev, op_pll->sys_clk_freq_hz,
+ 			op_limits->min_sys_clk_freq_hz,
+ 			op_limits->max_sys_clk_freq_hz,
+-- 
+1.7.10.4
 
-> 
-> > > Should userspace know about this at all? I think that the maximum number
-> > > of frames is driver dependent, and in fact one of the future vb2
-> > > improvements would be to stop hardcoding this and leave the maximum up to
-> > > the driver.
-> > 
-> > It is not driver dependent. It basically depends on the streaming logic.
-> > Both VB and VB2 are free to set whatever size it is needed. They can
-> > even change the logic to use a linked list, to avoid pre-allocating
-> > anything.
-> > 
-> > Ok, there's actually a hardware limit, with is the maximum amount of
-> > memory that could be used for DMA on a given hardware/architecture.
-> > 
-> > The 32 limit was just a random number that was chosen.
-> 
-> So, can't we just mark VIDEO_MAX_FRAME as deprecated ? We can't remove it as 
-> applications might depend on it, but it's pretty useless otherwise.
-
-As I pointed below, even the applications _we_ wrote at v4l-utils use
-it. The good news is that I double-checked xawtv3, xawtv4 and tvtime:
-none of them use it. Perhaps we're lucky enough, but I wouldn't count
-with that.
-
-Ok, we can always write a note there saying that this is deprecated,
-but the same symbol is still used internally on the drivers.
-
-If we're willing to deprecate, we should do something like:
-
-#ifndef __KERNEL__
-	/* This define is deprecated because (...) */
-	#define VIDEO_MAX_FRAME	32
-#endif
-
-And then remove all occurrences of it at Kernelspace.
-
-We should also first fix v4l-utils no not use it, as v4l-utils is
-currently the reference code for users. Please notice, however, that
-v4l-compliance depends on it. I suspect that it wants/needs to test
-the maximum buffer size. What would be a reasonable way to replace
-it, and still be able to test the maximum buffer limit?
-
-Regards,
-Mauro
