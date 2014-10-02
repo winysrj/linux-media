@@ -1,73 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:63455 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754546AbaJVKIf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 06:08:35 -0400
-Message-ID: <54478220.8050403@cisco.com>
-Date: Wed, 22 Oct 2014 12:08:32 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 2/5] [media] vivid: remove unused videobuf2-vmalloc headers
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-3-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34137 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753019AbaJBRJQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:09:16 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 04/10] [media] coda: split out encoder control setup to specify controls per video device
+Date: Thu,  2 Oct 2014 19:08:29 +0200
+Message-Id: <1412269715-28388-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
+References: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/22/2014 12:03 PM, Philipp Zabel wrote:
-> The videobuf2-vmalloc header is not used by the changed files, so remove it.
+This patch splits the encoder specific controls out of the main control setup
+function. This way each video device registers only relevant controls.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Kept both H.264 and MPEG4 v4l2 controls for bitstream encoder device
+---
+ drivers/media/platform/coda/coda-common.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/media/platform/vivid/vivid-kthread-cap.c | 1 -
->   drivers/media/platform/vivid/vivid-kthread-out.c | 1 -
->   drivers/media/platform/vivid/vivid-osd.c         | 1 -
->   3 files changed, 3 deletions(-)
->
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> index 39a67cf..65e5f76 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> @@ -31,7 +31,6 @@
->   #include <linux/random.h>
->   #include <linux/v4l2-dv-timings.h>
->   #include <asm/div64.h>
-> -#include <media/videobuf2-vmalloc.h>
->   #include <media/v4l2-dv-timings.h>
->   #include <media/v4l2-ioctl.h>
->   #include <media/v4l2-fh.h>
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-> index d9f36cc..6da0e01 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-out.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-> @@ -31,7 +31,6 @@
->   #include <linux/random.h>
->   #include <linux/v4l2-dv-timings.h>
->   #include <asm/div64.h>
-> -#include <media/videobuf2-vmalloc.h>
->   #include <media/v4l2-dv-timings.h>
->   #include <media/v4l2-ioctl.h>
->   #include <media/v4l2-fh.h>
-> diff --git a/drivers/media/platform/vivid/vivid-osd.c b/drivers/media/platform/vivid/vivid-osd.c
-> index 084d346..c90cf13 100644
-> --- a/drivers/media/platform/vivid/vivid-osd.c
-> +++ b/drivers/media/platform/vivid/vivid-osd.c
-> @@ -29,7 +29,6 @@
->   #include <linux/kthread.h>
->   #include <linux/freezer.h>
->   #include <linux/fb.h>
-> -#include <media/videobuf2-vmalloc.h>
->   #include <media/v4l2-device.h>
->   #include <media/v4l2-ioctl.h>
->   #include <media/v4l2-ctrls.h>
->
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 45db1da..7fc0dc0 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1334,14 +1334,8 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops = {
+ 	.s_ctrl = coda_s_ctrl,
+ };
+ 
+-static int coda_ctrls_setup(struct coda_ctx *ctx)
++static void coda_encode_ctrls(struct coda_ctx *ctx)
+ {
+-	v4l2_ctrl_handler_init(&ctx->ctrls, 9);
+-
+-	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_HFLIP, 0, 1, 1, 0);
+-	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+@@ -1385,6 +1379,18 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0,
+ 		1920 * 1088 / 256, 1, 0);
++}
++
++static int coda_ctrls_setup(struct coda_ctx *ctx)
++{
++	v4l2_ctrl_handler_init(&ctx->ctrls, 2);
++
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_VFLIP, 0, 1, 1, 0);
++	if (ctx->inst_type == CODA_INST_ENCODER)
++		coda_encode_ctrls(ctx);
+ 
+ 	if (ctx->ctrls.error) {
+ 		v4l2_err(&ctx->dev->v4l2_dev,
+-- 
+2.1.0
 
