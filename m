@@ -1,33 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:34981 "EHLO smtp.gentoo.org"
+Received: from smtp.gentoo.org ([140.211.166.183]:42977 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933386AbaJ3UMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:12:55 -0400
+	id S1750998AbaJBFV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 01:21:29 -0400
 From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Subject: [PATCH v4 00/14] cx231xx: Use muxed i2c adapters instead of custom switching
-Date: Thu, 30 Oct 2014 21:12:21 +0100
-Message-Id: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH V3 06/13] cx231xx: Use symbolic constants for i2c ports instead of numbers
+Date: Thu,  2 Oct 2014 07:20:58 +0200
+Message-Id: <1412227265-17453-7-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Replace numbers by the constants of same value and same meaning.
 
-This time the series got only small updates from Antti's review.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
-Additionally I added a patch to no longer directly modify
-the content of the port3 switch bit in PWR_CTL_EN (from function cx231xx_set_power_mode).
-
-Now there are two places where I wonder what happens:
-1. cx231xx_set_Colibri_For_LowIF writes a fixed number into all 8bit parts of PWR_CTL_EN
-   What is this for?
-2. I guess, cx231xx_demod_reset should reset the digital demod. For this it should toggle the bits 0 and 1 of PWR_CTL_EN. 
-   But instead it touches but 8 and 9.
-   Does someone know what this is?
-
-3. Is remembering the last status of the port3 bit working good enough?
-   Currently it is only used for the is_tuner hack function.
-
-Regards
-Matthias
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 092fb85..2f027c7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+ 		.norm = V4L2_STD_NTSC,
+@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+ 		.norm = V4L2_STD_PAL,
+@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+ 		.norm = V4L2_STD_NTSC,
+@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_NTSC,
+@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_PAL_M,
+@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+ 		.norm = V4L2_STD_NTSC_M,
+@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_scl_gpio = -1,
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 2,
+-		.demod_i2c_master = 1,
+-		.ir_i2c_master = 2,
++		.tuner_i2c_master = I2C_2,
++		.demod_i2c_master = I2C_1,
++		.ir_i2c_master = I2C_2,
+ 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
++		.tuner_i2c_master = I2C_1,
+ 		.norm = V4L2_STD_PAL,
+ 
+ 		.input = {{
+@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
++		.tuner_i2c_master = I2C_1,
+ 		.norm = V4L2_STD_NTSC,
+ 
+ 		.input = {{
+@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_PAL,
+@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = 1,
+-		.demod_i2c_master = 2,
++		.tuner_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+ 		.norm = V4L2_STD_PAL,
+@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	/* request some modules */
+ 	if (dev->board.decoder == CX231XX_AVDECODER) {
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+-					&dev->i2c_bus[0].i2c_adap,
++					&dev->i2c_bus[I2C_0].i2c_adap,
+ 					"cx25840", 0x88 >> 1, NULL);
+ 		if (dev->sd_cx25840 == NULL)
+ 			cx231xx_info("cx25840 subdev registration failure\n");
+@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 			struct i2c_client client;
+ 
+ 			memset(&client, 0, sizeof(client));
+-			client.adapter = &dev->i2c_bus[1].i2c_adap;
++			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
+ 			client.addr = 0xa0 >> 1;
+ 
+ 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
+-- 
+2.1.1
 
