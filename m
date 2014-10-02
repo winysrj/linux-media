@@ -1,79 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:46824 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932698AbaJVVmJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 17:42:09 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2] media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
-Date: Wed, 22 Oct 2014 22:42:01 +0100
-Message-Id: <1414014121-29908-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:40356 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751085AbaJBEbl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Oct 2014 00:31:41 -0400
+Message-ID: <542CD51E.6010401@gentoo.org>
+Date: Thu, 02 Oct 2014 06:31:26 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH V2 13/13] cx231xx: scan all four existing i2c busses instead
+ of the 3 masters
+References: <1412140821-16285-1-git-send-email-zzam@gentoo.org> <1412140821-16285-14-git-send-email-zzam@gentoo.org> <542C5A35.1040005@iki.fi>
+In-Reply-To: <542C5A35.1040005@iki.fi>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch adds support for vidioc_create_bufs. Along side
-remove unneeded member numbuffers.
+On 01.10.2014 21:47, Antti Palosaari wrote:
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+> 
+> btw. is there some reason you those on that order? I mean you scan I2C_2
+> between MUX segments?
+> 
+> Antti
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Changes for v2:
- a: return -EINVAL in queue_setup() callback if sizeimage is
-    less then current format size.
- b: removed unneeded member numbuffers.
- 
- drivers/media/platform/davinci/vpbe_display.c | 10 +++++++---
- include/media/davinci/vpbe_display.h          |  2 --
- 2 files changed, 7 insertions(+), 5 deletions(-)
+Hi Antti,
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 3b60749..78b9ffe 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -244,12 +244,15 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_buffer_setup\n");
- 
-+	if (fmt && fmt->fmt.pix.sizeimage < layer->pix_fmt.sizeimage)
-+		return -EINVAL;
-+
- 	/* Store number of buffers allocated in numbuffer member */
--	if (*nbuffers < VPBE_DEFAULT_NUM_BUFS)
--		*nbuffers = layer->numbuffers = VPBE_DEFAULT_NUM_BUFS;
-+	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
-+		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
- 
- 	*nplanes = 1;
--	sizes[0] = layer->pix_fmt.sizeimage;
-+	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : layer->pix_fmt.sizeimage;
- 	alloc_ctxs[0] = layer->alloc_ctx;
- 
- 	return 0;
-@@ -1241,6 +1244,7 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out  = vpbe_display_try_fmt,
- 
- 	.vidioc_reqbufs		 = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs	 = vb2_ioctl_create_bufs,
- 	.vidioc_querybuf	 = vb2_ioctl_querybuf,
- 	.vidioc_qbuf		 = vb2_ioctl_qbuf,
- 	.vidioc_dqbuf		 = vb2_ioctl_dqbuf,
-diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
-index 163a02b..fa0247a 100644
---- a/include/media/davinci/vpbe_display.h
-+++ b/include/media/davinci/vpbe_display.h
-@@ -70,8 +70,6 @@ struct vpbe_disp_buffer {
- 
- /* vpbe display object structure */
- struct vpbe_layer {
--	/* number of buffers in fbuffers */
--	unsigned int numbuffers;
- 	/* Pointer to the vpbe_display */
- 	struct vpbe_display *disp_dev;
- 	/* Pointer pointing to current v4l2_buffer */
--- 
-1.9.1
+the only reason is that this is the order of the physical ports.
+I can add a comment to the code.
+
+Regards
+Matthias
+> 
+> On 10/01/2014 08:20 AM, Matthias Schwarzott wrote:
+>> The scanning itself just fails (as before this series) but now the
+>> correct busses are scanned.
+>>
+>> V2: Changed to symbolic names where muxed adapters can be seen directly.
+>>
+>> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+>> ---
+>>   drivers/media/usb/cx231xx/cx231xx-core.c | 6 ++++++
+>>   drivers/media/usb/cx231xx/cx231xx-i2c.c  | 8 ++++----
+>>   2 files changed, 10 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c
+>> b/drivers/media/usb/cx231xx/cx231xx-core.c
+>> index c49022f..60dbbbb 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-core.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+>> @@ -1303,6 +1303,12 @@ int cx231xx_dev_init(struct cx231xx *dev)
+>>       cx231xx_i2c_mux_register(dev, 0);
+>>       cx231xx_i2c_mux_register(dev, 1);
+>>
+>> +    /* scan the real bus segments */
+>> +    cx231xx_do_i2c_scan(dev, I2C_0);
+>> +    cx231xx_do_i2c_scan(dev, I2C_1_MUX_1);
+>> +    cx231xx_do_i2c_scan(dev, I2C_2);
+>> +    cx231xx_do_i2c_scan(dev, I2C_1_MUX_3);
+>> +
+>>       /* init hardware */
+>>       /* Note : with out calling set power mode function,
+>>       afe can not be set up correctly */
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> index bb82e6d..0df50d3 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> @@ -492,6 +492,9 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int
+>> i2c_port)
+>>       int i, rc;
+>>       struct i2c_client client;
+>>
+>> +    if (!i2c_scan)
+>> +        return;
+>> +
+>>       memset(&client, 0, sizeof(client));
+>>       client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
+>>
+>> @@ -533,10 +536,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+>>       i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+>>       i2c_add_adapter(&bus->i2c_adap);
+>>
+>> -    if (0 == bus->i2c_rc) {
+>> -        if (i2c_scan)
+>> -            cx231xx_do_i2c_scan(dev, bus->nr);
+>> -    } else
+>> +    if (0 != bus->i2c_rc)
+>>           cx231xx_warn("%s: i2c bus %d register FAILED\n",
+>>                    dev->name, bus->nr);
+>>
+>>
+> 
 
