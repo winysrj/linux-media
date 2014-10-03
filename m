@@ -1,117 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51595 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbaJJXJ7 (ORCPT
+Received: from smtprelay0141.hostedemail.com ([216.40.44.141]:37177 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751965AbaJCBlb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 19:09:59 -0400
-Date: Fri, 10 Oct 2014 16:09:00 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linaro-kernel@lists.linaro.org
-Subject: Re: [RFC 2/4] cenalloc: Constraint-Enabled Allocation helpers for
- dma-buf
-Message-ID: <20141010230900.GA5069@kroah.com>
-References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
- <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org>
+	Thu, 2 Oct 2014 21:41:31 -0400
+Message-ID: <1412300487.3247.91.camel@joe-AO725>
+Subject: Re: [PATCH] Fixed all coding style issues for
+ drivers/staging/media/lirc/
+From: Joe Perches <joe@perches.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Amber Thrall <amber.rose.thrall@gmail.com>, jarod@wilsonet.com,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Thu, 02 Oct 2014 18:41:27 -0700
+In-Reply-To: <542DE6B5.1060906@iki.fi>
+References: <1412224802-28431-1-git-send-email-amber.rose.thrall@gmail.com>
+	 <20141002102938.2b762583@recife.lan> <1412268351.3247.68.camel@joe-AO725>
+	 <542DE6B5.1060906@iki.fi>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 11, 2014 at 01:37:56AM +0530, Sumit Semwal wrote:
-> Devices sharing buffers using dma-buf could benefit from sharing their
-> constraints via struct device, and dma-buf framework would manage the
-> common constraints for all attached devices per buffer.
+On Fri, 2014-10-03 at 02:58 +0300, Antti Palosaari wrote:
+> On 10/02/2014 07:45 PM, Joe Perches wrote:
+> > On Thu, 2014-10-02 at 10:29 -0300, Mauro Carvalho Chehab wrote:
+> >> Em Wed, 01 Oct 2014 21:40:02 -0700 Amber Thrall <amber.rose.thrall@gmail.com> escreveu:
+> >>> Fixed various coding style issues, including strings over 80 characters long and many
+> >>> deprecated printk's have been replaced with proper methods.
+> > []
+> >>> diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+> > []
+> >>> @@ -623,8 +623,8 @@ static void imon_incoming_packet(struct imon_context *context,
+> >>>   	if (debug) {
+> >>>   		dev_info(dev, "raw packet: ");
+> >>>   		for (i = 0; i < len; ++i)
+> >>> -			printk("%02x ", buf[i]);
+> >>> -		printk("\n");
+> >>> +			dev_info(dev, "%02x ", buf[i]);
+> >>> +		dev_info(dev, "\n");
+> >>>   	}
+> >>
+> >> This is wrong, as the second printk should be printk_cont.
+> >>
+> >> The best here would be to change all above to use %*ph.
+> >> So, just:
+> >>
+> >> 	dev_debug(dev, "raw packet: %*ph\n", len, buf);
+> >
+> > Not quite.
+> >
+> > %*ph is length limited and only useful for lengths < 30 or so.
+> > Even then, it's pretty ugly.
+> >
+> > print_hex_dump_debug() is generally better.
 > 
-> With that information, we could have a 'generic' allocator helper in
-> the form of a central dma-buf exporter, which can create dma-bufs, and
-> allocate backing storage at the time of first call to
-> dma_buf_map_attachment.
-> 
-> This allocation would utilise the constraint-mask by matching it to
-> the right allocator from a pool of allocators, and then allocating
-> buffer backing storage from this allocator.
-> 
-> The pool of allocators could be platform-dependent, allowing for
-> platforms to hide the specifics of these allocators from the devices
-> that access the dma-buf buffers.
-> 
-> A sample sequence could be:
-> - get handle to cenalloc_device,
-> - create a dmabuf using cenalloc_buffer_create;
-> - use this dmabuf to attach each device, which has its constraints
->    set in the constraints mask (dev->dma_params->access_constraints_mask)
->   - at each dma_buf_attach() call, dma-buf will check to see if the constraint
->     mask for the device requesting attachment is compatible with the constraints
->     of devices already attached to the dma-buf; returns an error if it isn't.
-> - after all devices have attached, the first call to dma_buf_map_attachment()
->   will allocate the backing storage for the buffer.
-> - follow the dma-buf api for map / unmap etc usage.
-> - detach all attachments,
-> - call cenalloc_buffer_free to free the buffer if refcount reaches zero;
-> 
-> ** IMPORTANT**
-> This mechanism of delayed allocation based on constraint-enablement will work
-> *ONLY IF* the first map_attachment() call is made AFTER all attach() calls are
-> done.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> ---
->  MAINTAINERS                      |   1 +
->  drivers/cenalloc/cenalloc.c      | 597 +++++++++++++++++++++++++++++++++++++++
->  drivers/cenalloc/cenalloc.h      |  99 +++++++
->  drivers/cenalloc/cenalloc_priv.h | 188 ++++++++++++
->  4 files changed, 885 insertions(+)
->  create mode 100644 drivers/cenalloc/cenalloc.c
->  create mode 100644 drivers/cenalloc/cenalloc.h
->  create mode 100644 drivers/cenalloc/cenalloc_priv.h
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 40d4796..e88ac81 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3039,6 +3039,7 @@ L:	linux-media@vger.kernel.org
->  L:	dri-devel@lists.freedesktop.org
->  L:	linaro-mm-sig@lists.linaro.org
->  F:	drivers/dma-buf/
-> +F:	drivers/cenalloc/
->  F:	include/linux/dma-buf*
->  F:	include/linux/reservation.h
->  F:	include/linux/*fence.h
-> diff --git a/drivers/cenalloc/cenalloc.c b/drivers/cenalloc/cenalloc.c
-> new file mode 100644
-> index 0000000..f278056
-> --- /dev/null
-> +++ b/drivers/cenalloc/cenalloc.c
-> @@ -0,0 +1,597 @@
-> +/*
-> + * Allocator helper framework for constraints-aware dma-buf backing storage
-> + * allocation.
-> + * This allows constraint-sharing devices to deferred-allocate buffers shared
-> + * via dma-buf.
-> + *
-> + * Copyright(C) 2014 Linaro Limited. All rights reserved.
-> + * Author: Sumit Semwal <sumit.semwal@linaro.org>
-> + *
-> + * Structure for management of clients, buffers etc heavily derived from
-> + * Android's ION framework.
+> That is place where you print 8 debug bytes, which are received remote 
+> controller code. IMHO %*ph format is just what you like in that case.
 
-Does that mean we can drop ION after this gets merged?
+Hi Antti.
 
-/me dreams
+I stand by my statement as I only looked at the
+patch snippet itself, not any function real code.
 
-Anyway, why a new directory?  Why not just put it in drivers/dma-buf ?
-Or a subdir below there?
+In the actual code, there's a test above it:
 
-thanks,
+	if (len != 8) {
+		dev_warn(dev, "imon %s: invalid incoming packet size (len = %d, intf%d)\n",
+			__func__, len, intf);
+		return;
+	}
 
-greg k-h
+So in my opinion, this would be better/smaller as:
+
+	dev_dbg(dev, "raw packet: %8ph\n", urb->transfer_buffer);
+
+> Why print_hex_dump_debug() is better? IIRC it could not be even 
+> controlled like those dynamic debug printings.
+
+Nope, it is. (from printk.h)
+
+#if defined(CONFIG_DYNAMIC_DEBUG)
+#define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
+			     groupsize, buf, len, ascii)	\
+	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
+			 groupsize, buf, len, ascii)
+#else
+#define print_hex_dump_debug(prefix_str, prefix_type, rowsize,		\
+			     groupsize, buf, len, ascii)		\
+	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, rowsize,	\
+		       groupsize, buf, len, ascii)
+#endif /* defined(CONFIG_DYNAMIC_DEBUG) */
+
+It prints multiple lines when the length is > 16.
+It prints the ascii along with the hex if desired.
+
+cheers, Joe
+
