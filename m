@@ -1,74 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52257 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752425AbaJUJgP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 05:36:15 -0400
-Date: Tue, 21 Oct 2014 12:26:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH/RFC v2 1/4] Add a media device configuration file parser.
-Message-ID: <20141021092623.GF15257@valkosipuli.retiisi.org.uk>
-References: <1413557682-20535-1-git-send-email-j.anaszewski@samsung.com>
- <1413557682-20535-2-git-send-email-j.anaszewski@samsung.com>
- <20141020214415.GE15257@valkosipuli.retiisi.org.uk>
- <5446086C.5030705@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39249 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799AbaJCSFu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Oct 2014 14:05:50 -0400
+Date: Fri, 3 Oct 2014 15:05:44 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.17] si2165 firmware changes
+Message-ID: <20141003150544.435e323f@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5446086C.5030705@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Linus,
 
-On Tue, Oct 21, 2014 at 09:17:00AM +0200, Jacek Anaszewski wrote:
-...
-> >>+ * The V4L2 control group format:
-> >>+ *
-> >>+ * v4l2-controls {
-> >>+ * <TAB><control1_name>: <entity_name><LF>
-> >>+ * <TAB><control2_name>: <entity_name><LF>
-> >>+ * ...
-> >>+ * <TAB><controlN_name>: <entity_name><LF>
-> >>+ * }
-> >
-> >I didn't know you were working on this.
-> 
-> Actually I did the main part of work around 1,5 year ago as a part
-> of familiarizing myself with V4L2 media controller API.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
 
-:-D
+For some changes at the si2165 firmware name and the removal of an extra
+unneeded header added artificially via the script that extracts it from
+the original driver provided by the manufacturer.
 
-I think it's about time we get things like this to libv4l.
+The si2165 is a new driver that was added for v3.17. There are two issues
+with the current firmware format:
 
-> >
-> >I have a small library which does essentially the same. The implementation
-> >is incomplete, that's why I hadn't posted it to the list. We could perhaps
-> >discuss this a little bit tomorrow. When would you be available, in case you
-> >are?
-> 
-> I will be available around 8 hours from now on.
+- The firmware only covers one specific revision of the chipset
+  (Rev. D). We'll be adding support for another revision for v3.18, so
+  it would be better to rename the firmware file to reflect the revision
+  on its name:
 
-I couldn't see you on #v4l, would an hour from now (13:30 Finnish time) be
-ok for you?
+	-#define SI2165_FIRMWARE "dvb-demod-si2165.fw"
+	+#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-d.fw"
 
-> >What would you think of using a little bit more condensed format for this,
-> >similar to that of libmediactl?
-> >
-> 
-> Could you spot a place where the format is defined?
+- Instead of containing a single blob with the firmware, the file
+  also contains some meta-data that could be determined on some other way
+  directly by the driver.
 
-At the moment there's none, but I thought of a similar format used by
-libmediactl.
+The script that gets the firmware from the Internet was also updated
+accordingly to not add the extra header.
 
--- 
-Cheers,
+Thanks!
+Mauro
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+
+The following changes since commit 90a5dbef1a66e9f55b76ccb83c0ef27c0bd87c27:
+
+  Revert "[media] media: em28xx - remove reset_resume interface" (2014-09-28 22:25:24 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
+
+for you to fetch changes up to 3173fbdce9e41fc4fabe0b3dedd99c615f47dbdd:
+
+  [media] [V2,2/2] si2165: do load firmware without extra header (2014-10-02 18:18:52 -0300)
+
+----------------------------------------------------------------
+topic/si2165 fixes for v3.17-rc8
+
+----------------------------------------------------------------
+Matthias Schwarzott (2):
+      [media] [V2, 1/2] get_dvb_firmware: si2165: drop the extra header from the firmware
+      [media] [V2,2/2] si2165: do load firmware without extra header
+
+ Documentation/dvb/get_dvb_firmware        |  20 ++----
+ drivers/media/dvb-frontends/Kconfig       |   1 +
+ drivers/media/dvb-frontends/si2165.c      | 107 ++++++++++++++++++------------
+ drivers/media/dvb-frontends/si2165_priv.h |   2 +-
+ 4 files changed, 71 insertions(+), 59 deletions(-)
+
+	
