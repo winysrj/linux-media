@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:64551 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808AbaJaSFu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 14:05:50 -0400
-Received: by mail-yk0-f180.google.com with SMTP id 9so3548304ykp.11
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 11:05:50 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52250 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752581AbaJCEyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Oct 2014 00:54:36 -0400
+Message-ID: <542E2BF6.2090800@iki.fi>
+Date: Fri, 03 Oct 2014 07:54:14 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAPz3gmkvr8e8hb8RTna6LZbm04rpKFiZRLc6xYvh27BkvzbQzg@mail.gmail.com>
-References: <CAPz3gmkvr8e8hb8RTna6LZbm04rpKFiZRLc6xYvh27BkvzbQzg@mail.gmail.com>
-Date: Fri, 31 Oct 2014 14:05:49 -0400
-Message-ID: <CALzAhNWDENxoeMivrmuW_A7GPWHKNSLwj-U2+UX-az7SELd_Zg@mail.gmail.com>
-Subject: Re: WinTV HVR 2200 radio
-From: Steven Toth <stoth@kernellabs.com>
-To: shacky <shacky83@gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: =?UTF-8?B?ItCR0YPQtNC4INCg0L7QvNCw0L3RgtC+LCBBcmVNYSBJbmMi?=
+	<info@are.ma>, linux-media@vger.kernel.org
+CC: =?UTF-8?B?ItCR0YPQtNC4INCg0L7QvNCw0L3RgtC+LCBBcmVNYSBJbmMi?=
+	<knightrider@are.ma>, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: Re: [PATCH] pt3 (pci, tc90522, mxl301rf, qm1d1c0042): pt3_unregister_subdev(),
+ pt3_unregister_subdev(), cleanups...
+References: <1412275758-31340-1-git-send-email-knightrider@are.ma>
+In-Reply-To: <1412275758-31340-1-git-send-email-knightrider@are.ma>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FM is not supported.
+On 10/02/2014 09:49 PM, Буди Романто, AreMa Inc wrote:
+> DVB driver for Earthsoft PT3 PCIE ISDB-S/T receiver
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>
+> Status: stable
+>
+> Changes:
+> - demod & tuners converted to I2C binding model
+> - i586 & x86_64 clean compile
+> - lightweight & yet precise CNR calculus
+> - raw CNR (DVBv3)
+> - DVBv5 CNR @ 0.0001 dB (ref: include/uapi/linux/dvb/frontend.h, not 1/1000 dB!)
+> - removed (unused?) tuner's *_release()
+> - demod/tuner binding: pt3_unregister_subdev(), pt3_unregister_subdev()
+> - some cleanups
+
+These drivers are already committed, like you have noticed. There is 
+surely a lot of issues that could be improved, but it cannot be done by 
+big patch which replaces everything. You need to just take one issue at 
+the time, fix/improve it, send patch to mailing list for review. One 
+patch per one logical change.
+
+regards
+Antti
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
-On Fri, Oct 31, 2014 at 2:01 PM, shacky <shacky83@gmail.com> wrote:
-> Hi.
->
-> I see that the Hauppauge WinTV-HVR-2200 is supported on Linux
-> (http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200) but I
-> cannot understand if its FM radio receiver is also supported by Linux.
->
-> I'm looking for a low profile PCI-Express FM receiver which works on
-> Linux with which I can listen and record FM programmings.
->
-> Could you help me please?
->
-> Thank you very much.
-> Bye
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://palosaari.fi/
