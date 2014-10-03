@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:36604 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077AbaJRSTF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Oct 2014 14:19:05 -0400
-Date: Sat, 18 Oct 2014 20:18:56 +0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Tomas Melin <tomas.melin@iki.fi>
-Cc: james.hogan@imgtec.com,
-	Antti =?ISO-8859-1?B?U2VwcORs5A==?= <a.seppala@gmail.com>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH resend] [media] rc-core: fix protocol_change regression in
- ir_raw_event_register
-Message-id: <20141018201856.6e7a8435.m.chehab@samsung.com>
-In-reply-to: <CACraW2pTb0avTdQCLFAZAWNm5ZuTmVDEOPgZGmY+prepLcRANg@mail.gmail.com>
-References: <1412879436-7513-1-git-send-email-tomas.melin@iki.fi>
- <20141016204920.GB16402@hardeman.nu>
- <CACraW2pTb0avTdQCLFAZAWNm5ZuTmVDEOPgZGmY+prepLcRANg@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:56204 "EHLO
+	mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852AbaJCK1p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Oct 2014 06:27:45 -0400
+Received: by mail-oi0-f52.google.com with SMTP id a3so554774oib.39
+        for <linux-media@vger.kernel.org>; Fri, 03 Oct 2014 03:27:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPW4HR0BJ7X0sMy78keEFtS6WXpbJjYCo75utKqWBtsDvrbUeg@mail.gmail.com>
+References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
+ <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
+ <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
+ <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
+ <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
+ <540F2AC1.20700@gmail.com> <CAL8zT=g6CXmLiW6VZwMFVDjKC8FtoPMPDPg7S37Czev+8YO+PA@mail.gmail.com>
+ <CAPW4HR0BJ7X0sMy78keEFtS6WXpbJjYCo75utKqWBtsDvrbUeg@mail.gmail.com>
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Fri, 3 Oct 2014 12:27:29 +0200
+Message-ID: <CAL8zT=hcTJpr68ugb7xAJiacNior63wbkrrh4rDRziwHG8tKhw@mail.gmail.com>
+Subject: Re: i.MX6 status for IPU/VPU/GPU
+To: =?UTF-8?Q?Carlos_Sanmart=C3=ADn_Bustos?= <carsanbu@gmail.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tim Harvey <tharvey@gateworks.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 18 Oct 2014 13:10:01 +0300
-Tomas Melin <tomas.melin@iki.fi> escreveu:
+2014-10-03 12:16 GMT+02:00 Carlos Sanmart√≠n Bustos <carsanbu@gmail.com>:
+> Hi all,
+>
+> I'm interested in this driver with MC support too. I join the conversation
+> and if I have time can try to develop some functionality.
+>
+> Only one question:
+>
+> 2014-10-02 16:50 GMT+02:00 Jean-Michel Hautbois
+> <jean-michel.hautbois@vodalys.com>:
+>>
+>> Hi Steve,
+>>
+>> 2014-09-09 18:28 GMT+02:00 Steve Longerbeam <slongerbeam@gmail.com>:
+>> > On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
+>> >> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam
+>> >> <steve_longerbeam@mentor.com>:
+>> >>
+>> >>> The complete driver I posted to the list does have some minor issues
+>> >>> mostly suggested by Hans Verkuil (switch to new selection API instead
+>> >>> of cropping API for example). It is a full featured driver but it does
+>> >>> not
+>> >>> implement the media device framework, i.e. user does not have direct
+>> >>> control of the video pipeline, rather the driver chooses the pipeline
+>> >>> based
+>> >>> on the traditional inputs from user (video format and controls).
+>>
+>> Here is my first step toward MC support from your work :
+>>
+>> https://github.com/Vodalys/linux-2.6-imx/commit/8f0318f53c48a9638a1963b395bc79fbd7ba4c07
+>>
+>> This is a WIP, so some parts of code are commented out awaiting a
+>> nicer solution.
+>> I also keep using your eplist array for the moment, and open will
+>> obviously fail when trying to power sensor.
+>> But what I wanted was a complete MC support with parsing links from DT
+>> and I used Laurent's work intensively :).
+>>
+>
+> You are forking the Freescale linux-2.6-imx repository if I understood well.
+> Why not fork the linux-media repository? It's closer to mainline kernel I
+> think it's better.
 
-> On Thu, Oct 16, 2014 at 11:49 PM, David H‰rdeman <david@hardeman.nu> wrote:
-> > I think this is already addressed in this thread:
-> > http://www.spinics.net/lists/linux-media/msg79865.html
-> The patch in that thread would have broken things since the
-> store_protocol function is not changed at the same time. The patch I
-> sent also takes that into account.
-> 
-> My concern is still that user space behaviour changes.
-> In my case, lirc simply does not work anymore.
+Well, this is kind of a mess in this github :).
+But the branch indicated is a clone of vanilla, not on linux-2.6-imx
+repository. I should have done a new repository, sorry for the
+confusion.
 
-Yeah, lirc should be enabled by default.
-
-> More generically,
-> anyone now using e.g. nuvoton-cir with anything other than RC6_MCE
-> will not get their devices working without first explictly enabling
-> the correct protocol from sysfs or with ir-keytable.
-
-The right behavior here is to enable the protocol as soon as the
-new keycode table is written by userspace.
-
-Except for LIRC and the protocol of the current table enabled is
-not a good idea because:
-
-	1) It misread the code from some other IR;
-	2) It will be just spending power without need, running
-	   several tasks (one for each IR type) with no reason, as the
-	   keytable won't match the codes for other IRs (and if it is
-	   currently matching, then this is a bad behavior).
-
-> Correct me if I'm wrong but the change_protocol function in struct
-> rc_dev is meant for changing hardware decoder protocols which means
-> only a few drivers actually use it.
-
-Actually, most drivers are for hardware decoders.
-
-> So the added empty function
-> change_protocol into rc-ir-raw.c doesnt really make sense in the first
-> place.
-> 
-> Tomas
-
-
--- 
-
-Cheers,
-Mauro
+JM
