@@ -1,110 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:43010 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456AbaJOJmm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Oct 2014 05:42:42 -0400
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:46103 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437AbaJCUEu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Oct 2014 16:04:50 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdWZ=G+oHMWLQasHXeCxVnYQkQ81owKBMiyfnjzgigUPYQ@mail.gmail.com>
-References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
-	<1413268013-8437-2-git-send-email-ykaneko0929@gmail.com>
-	<CAMuHMdWZ=G+oHMWLQasHXeCxVnYQkQ81owKBMiyfnjzgigUPYQ@mail.gmail.com>
-Date: Wed, 15 Oct 2014 18:42:41 +0900
-Message-ID: <CAH1o70Ko8d5xd6C-2oaSx7nMBvNNDtQ3dj-rKV_KPPUkri6wqA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: soc_camera: rcar_vin: Add scaling support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+In-Reply-To: <20141003150544.435e323f@recife.lan>
+References: <20141003150544.435e323f@recife.lan>
+Date: Fri, 3 Oct 2014 13:04:48 -0700
+Message-ID: <CA+55aFz+CRAP7UeuEpiOLJLBjZKLx_7qM0Tw=qG1RpZ=kXhAng@mail.gmail.com>
+Subject: Re: [GIT PULL for v3.17] si2165 firmware changes
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Geert,
+Yeah, this is pure crap. It doesn't even compile.
 
-Thanks for your comment.
-I'll update this patch.
+  drivers/media/dvb-frontends/si2165.c:1063:17: error: expected ‘,’ or
+‘;’ before ‘SI2165_FIRMWARE’
+   MODULE_FIRMWARE(SI2165_FIRMWARE);
 
-Thanks,
-Kaneko
+because it should presumably say "SI2165_FIRMWARE_REV_D" now.
 
-2014-10-15 4:25 GMT+09:00 Geert Uytterhoeven <geert@linux-m68k.org>:
-> Hi Kaneko-san, Matsuoka-san,
+Why the f*ck do you send me totally untested crap?
+
+                 Linus
+
+On Fri, Oct 3, 2014 at 11:05 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Hi Linus,
 >
-> On Tue, Oct 14, 2014 at 8:26 AM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Please pull from:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
 >
-> Thanks for our patch!
+> For some changes at the si2165 firmware name and the removal of an extra
+> unneeded header added artificially via the script that extracts it from
+> the original driver provided by the manufacturer.
 >
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> The si2165 is a new driver that was added for v3.17. There are two issues
+> with the current firmware format:
 >
->> @@ -120,6 +144,326 @@ enum chip_id {
->>         RCAR_E1,
->>  };
->>
->> +struct VIN_COEFF {
+> - The firmware only covers one specific revision of the chipset
+>   (Rev. D). We'll be adding support for another revision for v3.18, so
+>   it would be better to rename the firmware file to reflect the revision
+>   on its name:
 >
-> Please don't use upper case for struct names.
+>         -#define SI2165_FIRMWARE "dvb-demod-si2165.fw"
+>         +#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-d.fw"
 >
->> +       unsigned short xs_value;
->> +       unsigned long coeff_set[24];
+> - Instead of containing a single blob with the firmware, the file
+>   also contains some meta-data that could be determined on some other way
+>   directly by the driver.
 >
-> The actual size of "long" depends on the word size of the CPU.
-> On 32-bit builds it is 32-bit, on 64-bit builds it is 64-bit.
-> As all values in the table below are 32-bit, and the values are
-> written to register using iowrite32(), please use "u32" instead of
-> "unsigned long".
+> The script that gets the firmware from the Internet was also updated
+> accordingly to not add the extra header.
 >
->> +};
+> Thanks!
+> Mauro
 >
->> +#define VIN_COEFF_SET_COUNT (sizeof(vin_coeff_set) / sizeof(struct VIN_COEFF))
 >
-> There exists a convenience macro "ARRAY_SIZE()" for this.
-> Please just use "ARRAY_SIZE(vin_coeff_set)" instead of defining
-> "VIN_COEFF_SET_COUNT".
 >
->> @@ -677,6 +1024,61 @@ static void rcar_vin_clock_stop(struct soc_camera_host *ici)
->>         /* VIN does not have "mclk" */
->>  }
->>
->> +static void set_coeff(struct rcar_vin_priv *priv, unsigned long xs)
+> The following changes since commit 90a5dbef1a66e9f55b76ccb83c0ef27c0bd87c27:
 >
-> I think xs can be "unsigned short"?
+>   Revert "[media] media: em28xx - remove reset_resume interface" (2014-09-28 22:25:24 -0300)
 >
->> +{
->> +       int i;
->> +       struct VIN_COEFF *p_prev_set = NULL;
->> +       struct VIN_COEFF *p_set = NULL;
+> are available in the git repository at:
 >
-> If you add "const" to the two definitions above...
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
 >
->> +       /* Search the correspondence coefficient values */
->> +       for (i = 0; i < VIN_COEFF_SET_COUNT; i++) {
->> +               p_prev_set = p_set;
->> +               p_set = (struct VIN_COEFF *) &vin_coeff_set[i];
+> for you to fetch changes up to 3173fbdce9e41fc4fabe0b3dedd99c615f47dbdd:
 >
-> ... the above cast is no longer needed.
+>   [media] [V2,2/2] si2165: do load firmware without extra header (2014-10-02 18:18:52 -0300)
 >
->> @@ -686,6 +1088,7 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
->>         unsigned int left_offset, top_offset;
->>         unsigned char dsize = 0;
->>         struct v4l2_rect *cam_subrect = &cam->subrect;
->> +       unsigned long value;
+> ----------------------------------------------------------------
+> topic/si2165 fixes for v3.17-rc8
 >
-> "u32", as it's written to a 32-bit register later.
+> ----------------------------------------------------------------
+> Matthias Schwarzott (2):
+>       [media] [V2, 1/2] get_dvb_firmware: si2165: drop the extra header from the firmware
+>       [media] [V2,2/2] si2165: do load firmware without extra header
 >
-> Gr{oetje,eeting}s,
+>  Documentation/dvb/get_dvb_firmware        |  20 ++----
+>  drivers/media/dvb-frontends/Kconfig       |   1 +
+>  drivers/media/dvb-frontends/si2165.c      | 107 ++++++++++++++++++------------
+>  drivers/media/dvb-frontends/si2165_priv.h |   2 +-
+>  4 files changed, 71 insertions(+), 59 deletions(-)
 >
->                         Geert
 >
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
