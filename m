@@ -1,51 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.uli-eckhardt.de ([85.214.28.137]:44694 "EHLO
-	mail.uli-eckhardt.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753657AbaJHS2O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 14:28:14 -0400
-Message-ID: <5435823A.8000309@uli-eckhardt.de>
-Date: Wed, 08 Oct 2014 20:28:10 +0200
-From: Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:32866 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbaJDSnU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 14:43:20 -0400
+Date: Sun, 5 Oct 2014 00:13:16 +0530
+From: Stevean Raja Kumar <rk.stevean@gmail.com>
+To: m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	rk.stevean@gmail.com, aybuke.147@gmail.com,
+	tapaswenipathak@gmail.com, paul.gortmaker@windriver.com,
+	monamagarwal123@gmail.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: media: Added semicolon.
+Message-ID: <20141004184316.GA6561@srkjfone>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Tevii S480 on Unicable SCR System
-References: <542C4B14.8030708@uli-eckhardt.de> <54356BB9.5000609@uli-eckhardt.de> <20141008150038.4ca96c22.m.chehab@samsung.com>
-In-Reply-To: <20141008150038.4ca96c22.m.chehab@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.10.2014 um 20:00 schrieb Mauro Carvalho Chehab:
-> Em Wed, 08 Oct 2014 18:52:09 +0200
-> Ulrich Eckhardt <uli-lirc@uli-eckhardt.de> escreveu:
->>  
->>         /*
->> +        * Ensure that frontend voltage is switched off on initialization
->> +        */
->> +       if (dvb_powerdown_on_sleep) {
-> 
-> I'm wandering why to test if (dvb_powerdown_on_sleep) here...
-> 
-> MODULE_PARM_DESC(dvb_powerdown_on_sleep, "0: do not power down, 1: turn LNB voltage off on sleep (default)");
-> 
-> That controls what happens when the frontend's thread stops, and not
-> what happens during device initialization.
-> So, IMHO, it doesn't apply here.
+Added semicolon for the line usleep_range(10000, 11000);
 
-OK, I agree.
+Signed-off-by: Stevean Raja Kumar <rk.stevean@gmail.com>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> My vote is to fix it at the driver's level.
-
-So if no other opinions turns up the next days and this problem occurs only on 
-the Tevii card, I will reformat my patch in my first E-Mail correctly for 
-submission. 
- 
-Best Regards
-Uli
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index cda1595..657ea48 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -527,7 +527,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+ 		u8 val;
+ #endif
+ 		for (i = 0; i < 100; i++) {
+-			usleep_range(10000, 11000)
++			usleep_range(10000, 11000);
+ #if 0
+ 			read_reg(ci, 0x06, &val);
+ 			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
 -- 
-Ulrich Eckhardt                  http://www.uli-eckhardt.de
+1.9.1
 
-Ein Blitzableiter auf dem Kirchturm ist das denkbar stärkste 
-Misstrauensvotum gegen den lieben Gott. (Karl Krauss)
