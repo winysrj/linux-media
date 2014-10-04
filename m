@@ -1,51 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:39336 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbaJEJAQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 05:00:16 -0400
-From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
-	<info@are.ma>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:41217 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916AbaJDG7j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 02:59:39 -0400
+Received: by mail-la0-f41.google.com with SMTP id pn19so2171663lab.28
+        for <linux-media@vger.kernel.org>; Fri, 03 Oct 2014 23:59:37 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [PATCH 05/11] pt3: merge I2C & DMA handlers
-Date: Sun,  5 Oct 2014 17:59:41 +0900
-Message-Id: <ef2898c4479c9749d33769353cecbbe3410efeae.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv2 5/5] cx23855: add CI support for DVBSky T980C
+Date: Sat,  4 Oct 2014 09:59:30 +0300
+Message-Id: <1412405970-23740-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C & DMA handlers are merged into single file.
+Add CI support for DVBSky T980C card. The new host device independent CIMaX SP2 I2C driver was used to implement it.
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+IRQ handling is not implemented at this point. It could be used to detect the CAM insertion/removal instantly.
+
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/pci/pt3/Makefile | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/pci/cx23885/cx23885-dvb.c | 106 +++++++++++++++++++++++++++++++-
+ 1 file changed, 104 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/pt3/Makefile b/drivers/media/pci/pt3/Makefile
-index 396f146..56ebc9b 100644
---- a/drivers/media/pci/pt3/Makefile
-+++ b/drivers/media/pci/pt3/Makefile
-@@ -1,8 +1,4 @@
-+obj-$(CONFIG_DVB_PT3) += pt3.o
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index cc88997..31d51f8 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -71,6 +71,7 @@
+ #include "si2165.h"
+ #include "si2168.h"
+ #include "si2157.h"
++#include "sp2.h"
+ #include "m88ds3103.h"
+ #include "m88ts2022.h"
  
--earth-pt3-objs += pt3.o pt3_i2c.o pt3_dma.o
-+ccflags-y += -Idrivers/media/dvb-core -Idrivers/media/dvb-frontends -Idrivers/media/tuners
+@@ -616,6 +617,77 @@ static int dvbsky_t9580_set_voltage(struct dvb_frontend *fe,
+ 	return 0;
+ }
  
--obj-$(CONFIG_DVB_PT3) += earth-pt3.o
--
--ccflags-y += -Idrivers/media/dvb-core
--ccflags-y += -Idrivers/media/dvb-frontends
--ccflags-y += -Idrivers/media/tuners
++static int cx23885_sp2_ci_ctrl(void *priv, u8 read, int addr,
++				u8 data, int *mem)
++{
++	/* MC417 */
++	#define SP2_DATA              0x000000ff
++	#define SP2_WR                0x00008000
++	#define SP2_RD                0x00004000
++	#define SP2_ACK               0x00001000
++	#define SP2_ADHI              0x00000800
++	#define SP2_ADLO              0x00000400
++	#define SP2_CS1               0x00000200
++	#define SP2_CS0               0x00000100
++	#define SP2_EN_ALL            0x00001000
++	#define SP2_CTRL_OFF          (SP2_CS1 | SP2_CS0 | SP2_WR | SP2_RD)
++
++	struct cx23885_tsport *port = priv;
++	struct cx23885_dev *dev = port->dev;
++	int ret;
++	int tmp;
++	unsigned long timeout;
++
++	mutex_lock(&dev->gpio_lock);
++
++	/* write addr */
++	cx_write(MC417_OEN, SP2_EN_ALL);
++	cx_write(MC417_RWD, SP2_CTRL_OFF |
++				SP2_ADLO | (0xff & addr));
++	cx_clear(MC417_RWD, SP2_ADLO);
++	cx_write(MC417_RWD, SP2_CTRL_OFF |
++				SP2_ADHI | (0xff & (addr >> 8)));
++	cx_clear(MC417_RWD, SP2_ADHI);
++
++	if (read)
++		/* data in */
++		cx_write(MC417_OEN, SP2_EN_ALL | SP2_DATA);
++	else
++		/* data out */
++		cx_write(MC417_RWD, SP2_CTRL_OFF | data);
++
++	/* chip select 0 */
++	cx_clear(MC417_RWD, SP2_CS0);
++
++	/* read/write */
++	cx_clear(MC417_RWD, (read) ? SP2_RD : SP2_WR);
++
++	/* wait for a maximum of 1 msec */
++	timeout = jiffies + msecs_to_jiffies(1);
++	while (!time_after(jiffies, timeout)) {
++		tmp = cx_read(MC417_RWD);
++		if ((tmp & SP2_ACK) == 0)
++			break;
++		usleep_range(50, 100);
++	}
++
++	cx_set(MC417_RWD, SP2_CTRL_OFF);
++	*mem = tmp & 0xff;
++
++	mutex_unlock(&dev->gpio_lock);
++
++	if (!read) {
++		if (*mem < 0) {
++			ret = -EREMOTEIO;
++			goto err;
++		}
++	}
++
++	return 0;
++err:
++	return ret;
++}
++
+ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+@@ -944,11 +1016,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
+ 	struct si2168_config si2168_config;
+ 	struct si2157_config si2157_config;
++	struct sp2_config sp2_config;
+ 	struct m88ts2022_config m88ts2022_config;
+ 	struct i2c_board_info info;
+ 	struct i2c_adapter *adapter;
+-	struct i2c_client *client_demod;
+-	struct i2c_client *client_tuner;
++	struct i2c_client *client_demod, *client_tuner, *client_ci;
+ 	int mfe_shared = 0; /* bus not shared by default */
+ 	int ret;
+ 
+@@ -1683,6 +1755,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		break;
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 		i2c_bus = &dev->i2c_bus[1];
++		i2c_bus2 = &dev->i2c_bus[0];
+ 
+ 		/* attach frontend */
+ 		memset(&si2168_config, 0, sizeof(si2168_config));
+@@ -1820,6 +1893,35 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	case CX23885_BOARD_DVBSKY_T980C: {
+ 		u8 eeprom[256]; /* 24C02 i2c eeprom */
+ 
++		/* attach CI */
++		memset(&sp2_config, 0, sizeof(sp2_config));
++		sp2_config.dvb_adap = &port->frontends.adapter;
++		sp2_config.priv = port;
++		sp2_config.ci_control = cx23885_sp2_ci_ctrl;
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "sp2", I2C_NAME_SIZE);
++		info.addr = 0x40;
++		info.platform_data = &sp2_config;
++		request_module(info.type);
++		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
++		if (client_ci == NULL ||
++				client_ci->dev.driver == NULL) {
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			goto frontend_detach;
++		}
++		if (!try_module_get(client_ci->dev.driver->owner)) {
++			i2c_unregister_device(client_ci);
++			module_put(client_tuner->dev.driver->owner);
++			i2c_unregister_device(client_tuner);
++			module_put(client_demod->dev.driver->owner);
++			i2c_unregister_device(client_demod);
++			goto frontend_detach;
++		}
++		port->i2c_client_ci = client_ci;
++
+ 		if (port->nr != 1)
+ 			break;
+ 
 -- 
-1.8.4.5
+1.9.1
 
