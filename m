@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1850 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbaJKJXD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Oct 2014 05:23:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 09/10] vivid: enable vb2_expbuf support.
-Date: Sat, 11 Oct 2014 11:22:36 +0200
-Message-Id: <1413019357-12382-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
-References: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-qg0-f47.google.com ([209.85.192.47]:35121 "EHLO
+	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943AbaJDTlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 15:41:20 -0400
+Received: by mail-qg0-f47.google.com with SMTP id i50so2301382qgf.34
+        for <linux-media@vger.kernel.org>; Sat, 04 Oct 2014 12:41:19 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: m.chehab@samsung.com
+Cc: p.zabel@pengutronix.de, linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 1/3] [media] coda: Call v4l2_device_unregister() from a single location
+Date: Sat,  4 Oct 2014 16:40:50 -0300
+Message-Id: <1412451652-27220-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-Now that vb2 supports DMABUF export for dma-sg and vmalloc memory
-modes, we can enable the vb2_expbuf support in vivid.
+Instead of calling v4l2_device_unregister() in multiple locations within the
+error paths, let's call it from a single location to make the error handling
+simpler.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/coda/coda-common.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 2c61a62..7de8d9d 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -588,7 +588,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
--/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_streamon		= vb2_ioctl_streamon,
- 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index ced4760..7cd82e8 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1926,8 +1926,8 @@ static int coda_probe(struct platform_device *pdev)
+ 	} else if (pdev_id) {
+ 		dev->devtype = &coda_devdata[pdev_id->driver_data];
+ 	} else {
+-		v4l2_device_unregister(&dev->v4l2_dev);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err_v4l2_register;
+ 	}
  
+ 	dev->debugfs_root = debugfs_create_dir("coda", NULL);
+@@ -1941,8 +1941,7 @@ static int coda_probe(struct platform_device *pdev)
+ 					 dev->debugfs_root);
+ 		if (ret < 0) {
+ 			dev_err(&pdev->dev, "failed to allocate work buffer\n");
+-			v4l2_device_unregister(&dev->v4l2_dev);
+-			return ret;
++			goto err_v4l2_register;
+ 		}
+ 	}
+ 
+@@ -1952,8 +1951,7 @@ static int coda_probe(struct platform_device *pdev)
+ 					 dev->debugfs_root);
+ 		if (ret < 0) {
+ 			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
+-			v4l2_device_unregister(&dev->v4l2_dev);
+-			return ret;
++			goto err_v4l2_register;
+ 		}
+ 	}
+ 
+@@ -1988,6 +1986,10 @@ static int coda_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(&pdev->dev);
+ 
+ 	return coda_firmware_request(dev);
++
++err_v4l2_register:
++	v4l2_device_unregister(&dev->v4l2_dev);
++	return ret;
+ }
+ 
+ static int coda_remove(struct platform_device *pdev)
 -- 
-2.1.1
+1.9.1
 
