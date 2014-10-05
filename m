@@ -1,238 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35869 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153AbaJAF6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 01:58:32 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V2 2/2] si2165: do load firmware without extra header
-Date: Wed,  1 Oct 2014 07:58:18 +0200
-Message-Id: <1412143098-18293-2-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412143098-18293-1-git-send-email-zzam@gentoo.org>
-References: <1412143098-18293-1-git-send-email-zzam@gentoo.org>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:22222 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbaJELeM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 07:34:12 -0400
+Date: Sun, 05 Oct 2014 08:33:58 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?0JHRg9C00Lgg0KDQvtC80LDQvdGC0L4s?= AreMa Inc
+	<info@are.ma>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	crope@iki.fi, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: Re: [PATCH 02/11] tc90522 is a client
+Message-id: <20141005083358.072f5909.m.chehab@samsung.com>
+In-reply-to: <5bff3e029fe189f44222961dc04790d4f58a4659.1412497399.git.knightrider@are.ma>
+References: <cover.1412497399.git.knightrider@are.ma>
+ <5bff3e029fe189f44222961dc04790d4f58a4659.1412497399.git.knightrider@are.ma>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new file has a different name: dvb-demod-si2165-d.fw
+Em Sun, 05 Oct 2014 17:59:38 +0900
+"Буди Романто, AreMa Inc" <info@are.ma> escreveu:
 
-Count blocks instead of reading count from extra header.
-Calculate CRC during upload and compare result to what chip calcuated.
-Use 0x01 instead of real patch version, because this is only used to
-check if something was uploaded but not to check the version of it.
+> tc90522 is an I2C client functioning as a frontend
+> thus, it is enough to return the FE pointer.
+> 
+> Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+> ---
+>  drivers/media/dvb-frontends/tc90522.h | 41 ++++++++++++-----------------------
+>  1 file changed, 14 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/tc90522.h b/drivers/media/dvb-frontends/tc90522.h
+> index b1cbddf..c78a5b0 100644
+> --- a/drivers/media/dvb-frontends/tc90522.h
+> +++ b/drivers/media/dvb-frontends/tc90522.h
+> @@ -1,12 +1,12 @@
+>  /*
+> - * Toshiba TC90522 Demodulator
+> + * Earthsoft PT3 demodulator frontend Toshiba TC90522XBG OFDM(ISDB-T)/8PSK(ISDB-S)
+>   *
+> - * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+> - *
+> - * This program is free software; you can redistribute it and/or
+> - * modify it under the terms of the GNU General Public License as
+> - * published by the Free Software Foundation version 2.
+> + * Copyright (C) 2014 Budi Rachmanto, AreMa Inc. <info@are.ma>
+>   *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+>   *
+>   * This program is distributed in the hope that it will be useful,
+>   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> @@ -14,29 +14,16 @@
+>   * GNU General Public License for more details.
+>   */
+>  
+> -/*
+> - * The demod has 4 input (2xISDB-T and 2xISDB-S),
+> - * and provides independent sub modules for each input.
+> - * As the sub modules work in parallel and have the separate i2c addr's,
+> - * this driver treats each sub module as one demod device.
+> - */
 
-V2: change firmware filename to lower case.
+None of the above is related to the patch description. Also, we don't
+remove copyrights from the driver. 
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/Kconfig       |   1 +
- drivers/media/dvb-frontends/si2165.c      | 105 ++++++++++++++++++------------
- drivers/media/dvb-frontends/si2165_priv.h |   2 +-
- 3 files changed, 66 insertions(+), 42 deletions(-)
+> -
+> -#ifndef TC90522_H
+> -#define TC90522_H
+> +#ifndef	__TC90522_H__
+> +#define	__TC90522_H__
+>  
+> -#include <linux/i2c.h>
+> -#include "dvb_frontend.h"
+> -
+> -/* I2C device types */
+> -#define TC90522_I2C_DEV_SAT "tc90522sat"
+> -#define TC90522_I2C_DEV_TER "tc90522ter"
+> +#define TC90522_DRVNAME "tc90522"
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 5a13454..804da4e 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -66,6 +66,7 @@ config DVB_TDA18271C2DD
- config DVB_SI2165
- 	tristate "Silicon Labs si2165 based"
- 	depends on DVB_CORE && I2C
-+	select CRC_ITU_T
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  A DVB-C/T demodulator.
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 98ddb49..b64a59c 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -25,6 +25,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/firmware.h>
-+#include <linux/crc-itu-t.h>
- 
- #include "dvb_frontend.h"
- #include "dvb_math.h"
-@@ -327,8 +328,50 @@ static int si2165_wait_init_done(struct si2165_state *state)
- 	return ret;
- }
- 
-+static int si2165_count_fw_blocks(struct si2165_state *state, const u8 *data,
-+				  u32 len)
-+{
-+	int block_count = 0;
-+	u32 offset = 0;
-+
-+	if (len % 4 != 0) {
-+		dev_warn(&state->i2c->dev, "%s: firmware size is not multiple of 4\n",
-+				KBUILD_MODNAME);
-+		return -EINVAL;
-+	}
-+
-+	while (offset + 4 <= len) {
-+		u8 wordcount = data[offset];
-+
-+		if (wordcount < 1 || data[offset+1] ||
-+		    data[offset+2] || data[offset+3]) {
-+			dev_warn(&state->i2c->dev,
-+				 "%s: bad fw data[0..3] = %*ph at offset=%d\n",
-+				KBUILD_MODNAME, 4, data, offset);
-+			return -EINVAL;
-+		}
-+		offset += 8 + 4 * wordcount;
-+		++block_count;
-+	}
-+	if (offset != len) {
-+		dev_warn(&state->i2c->dev,
-+				"%s: firmware length does not match content, len=%d, offset=%d\n",
-+			KBUILD_MODNAME, len, offset);
-+		return -EINVAL;
-+	}
-+	if (block_count < 6) {
-+		dev_err(&state->i2c->dev, "%s: firmware is too short: Only %d blocks\n",
-+			KBUILD_MODNAME, block_count);
-+		return -EINVAL;
-+	}
-+	block_count -= 6;
-+	dev_info(&state->i2c->dev, "%s: si2165_upload_firmware counted %d main blocks\n",
-+		KBUILD_MODNAME, block_count);
-+	return block_count;
-+}
-+
- static int si2165_upload_firmware_block(struct si2165_state *state,
--	const u8 *data, u32 len, u32 *poffset, u32 block_count)
-+	const u8 *data, u32 len, u32 *poffset, u32 block_count, u16 *crc)
- {
- 	int ret;
- 	u8 buf_ctrl[4] = { 0x00, 0x00, 0x00, 0xc0 };
-@@ -374,6 +417,10 @@ static int si2165_upload_firmware_block(struct si2165_state *state,
- 		offset += 8;
- 
- 		while (wordcount > 0) {
-+			*crc = crc_itu_t_byte(*crc, *(data+offset+3));
-+			*crc = crc_itu_t_byte(*crc, *(data+offset+2));
-+			*crc = crc_itu_t_byte(*crc, *(data+offset+1));
-+			*crc = crc_itu_t_byte(*crc, *(data+offset+0));
- 			ret = si2165_write(state, 0x36c, data+offset, 4);
- 			if (ret < 0)
- 				goto error;
-@@ -408,10 +455,9 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	u8 *fw_file;
- 	const u8 *data;
- 	u32 len;
--	u32 offset;
--	u8 patch_version;
--	u8 block_count;
--	u16 crc_expected;
-+	u32 offset = 0;
-+	int main_block_count;
-+	u16 crc = 0;
- 
- 	switch (state->chip_revcode) {
- 	case 0x03: /* revision D */
-@@ -437,32 +483,13 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	dev_info(&state->i2c->dev, "%s: downloading firmware from file '%s' size=%d\n",
- 			KBUILD_MODNAME, fw_file, len);
- 
--	if (len % 4 != 0) {
--		dev_warn(&state->i2c->dev, "%s: firmware size is not multiple of 4\n",
--				KBUILD_MODNAME);
--		ret = -EINVAL;
--		goto error;
--	}
--
--	/* check header (8 bytes) */
--	if (len < 8) {
--		dev_warn(&state->i2c->dev, "%s: firmware header is missing\n",
--				KBUILD_MODNAME);
--		ret = -EINVAL;
--		goto error;
--	}
--
--	if (data[0] != 1 || data[1] != 0) {
--		dev_warn(&state->i2c->dev, "%s: firmware file version is wrong\n",
--				KBUILD_MODNAME);
--		ret = -EINVAL;
--		goto error;
-+	main_block_count = si2165_count_fw_blocks(state, data, len);
-+	if (main_block_count < 0) {
-+		dev_err(&state->i2c->dev, "%s: si2165_upload_firmware: cannot use firmware, skip\n",
-+			KBUILD_MODNAME);
-+		return main_block_count;
- 	}
- 
--	patch_version = data[2];
--	block_count = data[4];
--	crc_expected = data[7] << 8 | data[6];
--
- 	/* start uploading fw */
- 	/* boot/wdog status */
- 	ret = si2165_writereg8(state, 0x0341, 0x00);
-@@ -488,17 +515,12 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	if (ret < 0)
- 		goto error;
- 
--	/* start right after the header */
--	offset = 8;
--
--	dev_info(&state->i2c->dev, "%s: si2165_upload_firmware extracted patch_version=0x%02x, block_count=0x%02x, crc_expected=0x%04x\n",
--		KBUILD_MODNAME, patch_version, block_count, crc_expected);
--
--	ret = si2165_upload_firmware_block(state, data, len, &offset, 1);
-+	ret = si2165_upload_firmware_block(state, data, len, &offset, 1, &crc);
- 	if (ret < 0)
- 		goto error;
- 
--	ret = si2165_writereg8(state, 0x0344, patch_version);
-+	/* patch version, just write a number different from the default 0x00 */
-+	ret = si2165_writereg8(state, 0x0344, 0x01);
- 	if (ret < 0)
- 		goto error;
- 
-@@ -506,9 +528,10 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	ret = si2165_writereg8(state, 0x0379, 0x01);
- 	if (ret)
- 		return ret;
-+	crc = 0;
- 
- 	ret = si2165_upload_firmware_block(state, data, len,
--					   &offset, block_count);
-+					   &offset, main_block_count, &crc);
- 	if (ret < 0) {
- 		dev_err(&state->i2c->dev,
- 			"%s: firmare could not be uploaded\n",
-@@ -521,15 +544,15 @@ static int si2165_upload_firmware(struct si2165_state *state)
- 	if (ret)
- 		goto error;
- 
--	if (val16 != crc_expected) {
-+	if (val16 != crc) {
- 		dev_err(&state->i2c->dev,
- 			"%s: firmware crc mismatch %04x != %04x\n",
--			KBUILD_MODNAME, val16, crc_expected);
-+			KBUILD_MODNAME, val16, crc);
- 		ret = -EINVAL;
- 		goto error;
- 	}
- 
--	ret = si2165_upload_firmware_block(state, data, len, &offset, 5);
-+	ret = si2165_upload_firmware_block(state, data, len, &offset, 5, &crc);
- 	if (ret)
- 		goto error;
- 
-diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
-index 2b70cf1..52718c3 100644
---- a/drivers/media/dvb-frontends/si2165_priv.h
-+++ b/drivers/media/dvb-frontends/si2165_priv.h
-@@ -18,6 +18,6 @@
- #ifndef _DVB_SI2165_PRIV
- #define _DVB_SI2165_PRIV
- 
--#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165.fw"
-+#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-d.fw"
- 
- #endif /* _DVB_SI2165_PRIV */
--- 
-2.1.1
+This would break the driver, as the two macros above are used at
+tc90522.c.
 
+>  struct tc90522_config {
+> -	/* [OUT] frontend returned by driver */
+> -	struct dvb_frontend *fe;
+> -
+> -	/* [OUT] tuner I2C adapter returned by driver */
+> -	struct i2c_adapter *tuner_i2c;
+> +	fe_delivery_system_t	type;	/* IN	SYS_ISDBS or SYS_ISDBT */
+> +	bool			pwr;	/* IN	set only once after all demods initialized */
+> +	struct dvb_frontend	*fe;	/* OUT	allocated frontend */
+>  };
+
+A change like that at the struct would break the driver.
+
+There are several problems at the approach you're taking. It seems that
+you're just doing a diff from the driver that it is committed from the
+driver you have, without:
+	- splitting one change par patch;
+	- caring if a patch would break compilation.
+
+Instead, if you need, for example, to add a new field at the config struct,
+like "pwr", your patch would need to be touching both the header and the
+tc90522 to use this new field.
+
+For the same reasons, I can't apply the rest of your patch series, as it is
+not splitting the changes as one patch per functional changes.
+
+Regards,
+Mauro
