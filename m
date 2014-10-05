@@ -1,208 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60091 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759291AbaJ3KxT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 06:53:19 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Daniel Mack <zonque@gmail.com>,
-	Vlad Catoi <vladcatoi@gmail.com>, alsa-devel@alsa-project.org,
-	stable@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 1/2] [media] sound: simplify au0828 quirk table
-Date: Thu, 30 Oct 2014 08:53:04 -0200
-Message-Id: <63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:37487 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754AbaJERIc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 13:08:32 -0400
+Received: by mail-pd0-f176.google.com with SMTP id fp1so2058886pdb.7
+        for <linux-media@vger.kernel.org>; Sun, 05 Oct 2014 10:08:31 -0700 (PDT)
+Message-ID: <54317B0A.5070008@gmail.com>
+Date: Mon, 06 Oct 2014 02:08:26 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: "AreMa Inc." <info@are.ma>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media <linux-media@vger.kernel.org>, knightrider@are.ma
+Subject: Re: [PATCH 02/11] tc90522 is a client
+References: <cover.1412497399.git.knightrider@are.ma>	<5bff3e029fe189f44222961dc04790d4f58a4659.1412497399.git.knightrider@are.ma>	<20141005083358.072f5909.m.chehab@samsung.com> <CAKnK8-REGVgdgQM+2KP0ibrf_gHMm_UO3oLr0MRoiu=-7vXUPw@mail.gmail.com>
+In-Reply-To: <CAKnK8-REGVgdgQM+2KP0ibrf_gHMm_UO3oLr0MRoiu=-7vXUPw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+(some Cc:'s removed, to exclude those who are not directly involved)
 
-Add a macro to simplify au0828 quirk table. That makes easier
-to check it against the USB IDs at drivers/media/usb/au0828-card.c
+It seems that I should make some counterarguments.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 2014年10月05日 21:39, AreMa Inc. wrote:
+....
+> We started developing and publishing PT3 drivers (chardev and DVB versions)
+> on 2013 and have been submitting the patches to this community since then.
+> We were waiting for reviews.
 
-diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-index c657752a420c..5ae1d02d17a3 100644
---- a/sound/usb/quirks-table.h
-+++ b/sound/usb/quirks-table.h
-@@ -2804,133 +2804,37 @@ YAMAHA_DEVICE(0x7010, "UB99"),
- 	}
- },
- 
--/* Hauppauge HVR-950Q and HVR-850 */
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x7200),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x7210),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x7217),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x721b),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x721e),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x721f),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x7240),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-850",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x2040, 0x7280),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
--{
--	USB_DEVICE_VENDOR_SPEC(0x0fd9, 0x0008),
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL,
--	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) {
--		.vendor_name = "Hauppauge",
--		.product_name = "HVR-950Q",
--		.ifnum = QUIRK_ANY_INTERFACE,
--		.type = QUIRK_AUDIO_ALIGN_TRANSFER,
--	}
--},
-+/*
-+ * Auvitek au0828 devices with audio interface.
-+ * This should be kept in sync with drivers/media/usb/au0828-card.c
-+ * Please notice that some drivers are DVB only, and don't need to be
-+ * here. That's the case, for example, of DVICO_FUSIONHDTV7.
-+ */
-+
-+#define AU0828_DEVICE(vid, pid, vname, pname) { \
-+	USB_DEVICE_VENDOR_SPEC(vid, pid), \
-+	.match_flags = USB_DEVICE_ID_MATCH_DEVICE | \
-+		       USB_DEVICE_ID_MATCH_INT_CLASS | \
-+		       USB_DEVICE_ID_MATCH_INT_SUBCLASS, \
-+	.bInterfaceClass = USB_CLASS_AUDIO, \
-+	.bInterfaceSubClass = USB_SUBCLASS_AUDIOCONTROL, \
-+	.driver_info = (unsigned long) &(const struct snd_usb_audio_quirk) { \
-+		.vendor_name = vname, \
-+		.product_name = pname, \
-+		.ifnum = QUIRK_ANY_INTERFACE, \
-+		.type = QUIRK_AUDIO_ALIGN_TRANSFER, \
-+	} \
-+}
-+
-+AU0828_DEVICE(0x2040, 0x7200, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7210, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7217, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x721b, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x721e, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x721f, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
-+AU0828_DEVICE(0x2040, 0x7280, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x0fd9, 0x0008, "Hauppauge", "HVR-950Q"),
- 
- /* Digidesign Mbox */
- {
--- 
-1.9.3
+you haven't annouced any intent to merge this github project
+to the linux kernel until this April.
+It also has not acquired so many users that a bug in parallel streaming
+had been left unnoticed until just recently.
+So I disagree that your project is
+> a de facto standard,
+> well tested without any major/minor issues
+> reported
+, but it's a small thing anyway, comparted to the other claims by you.
 
+I read your first post this April in the ML,
+and exchanged some private emails after sending my reply to the ML,
+about the reviews on the original post.
+I waited 3 months, expecting you revise and re-post the patch,
+but you didn't.
+
+As I knew that your code did not well conform to the current DVB
+driver model/style nor kernel patch submission rules,
+I sent a private email that I was afraid that the patch you sent
+to the ML would not be accepted if left as it is,
+and asked if you would continue revising it, and if not,
+I would take over the submitting of PT3 driver.
+But you replied that you were reluctant to change the original code
+and clealy rejected some of the reviews incl. separating of the patch.
+
+I still waited one more week expecting you to revise the patch or
+at least express some counterarguments on the ML, but no responses.
+Thus I figured that you don't have a will to revise the patch anymore
+and gave up merging it, so I post my code with reference to your patch.
+But you didn't repsoned anything, again.
+
+> However this July, a man named Tsukada, who has been annoying us since
+> the beginning of development (we invited him to merge/join the project,
+> in other words, opted him to be co-author), interrupted our submission
+> and started
+> speaking ill of us that we didn't want to split the driver and stopped
+> the development, etc.
+plz don't lie. you just said that you would accept patches to your origianl
+code base at github if I would sent those.
+Never mentioned joining the project or co-writing.
+and I never spoke ill of you.
+I just pointed out the reason why I took over the driver,
+which is just same as you mentioned in the above paragraph.
+
+If you had an objection to my patch,
+Why you didn't express objections for well more than one month after my first post?
+Why you didn't respond to the first review to your patch for more than 3 months?
+Did you remember that you even "DECLINED" separting your patch later in September?
+(see 1409966878-22627-1-git-send-email-knightrider@are.ma in the ML)
+
+As I said in the private email to you, all those things made me believe that
+you would not update your patch to conform to the DVB driver model
+and thus it would not be accepted in the future,
+and that you had admitted my patch since you did not express any objections.
+--
+akihiro
