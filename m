@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51710 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933791AbaJaPJs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:48 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 24CCA217D5
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:35 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from beta.phas.ubc.ca ([142.103.236.75]:46297 "EHLO beta.phas.ubc.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799AbaJETZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Oct 2014 15:25:54 -0400
+Date: Sun, 5 Oct 2014 12:03:57 -0700 (PDT)
+From: Carl Michal <michal@phas.ubc.ca>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v3 05/10] uvcvideo: Add function to convert from queue to stream
-Date: Fri, 31 Oct 2014 17:09:46 +0200
-Message-Id: <1414768191-4536-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: spurious remote control events
+Message-ID: <alpine.LNX.2.00.1410051147280.26572@tristan>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Factorize the container_of() call into an inline function and update
-callers.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+I'm using a cubox-i, which has a gpio remote receiver built in. The remote 
+I'm using is a universal remote, using an RC-6 protocol. This is using 
+kernel 3.14.14 (from geexbox)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 6e92d20..9703655 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -36,6 +36,12 @@
-  * the driver.
-  */
- 
-+static inline struct uvc_streaming *
-+uvc_queue_to_stream(struct uvc_video_queue *queue)
-+{
-+	return container_of(queue, struct uvc_streaming, queue);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * videobuf2 queue operations
-  */
-@@ -45,8 +51,7 @@ static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 			   unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--	struct uvc_streaming *stream =
--			container_of(queue, struct uvc_streaming, queue);
-+	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
- 
- 	/* Make sure the image size is large enough. */
- 	if (fmt && fmt->fmt.pix.sizeimage < stream->ctrl.dwMaxVideoFrameSize)
-@@ -109,8 +114,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
- static void uvc_buffer_finish(struct vb2_buffer *vb)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
--	struct uvc_streaming *stream =
--			container_of(queue, struct uvc_streaming, queue);
-+	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
- 	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
- 
- 	if (vb->state == VB2_BUF_STATE_DONE)
--- 
-2.0.4
+What happens is that if you press key1, key1, key2 with spaces between the 
+presses that are larger than IR_KEYPRESS_TIMEOUT but shorter than the 
+repeat delay, then the driver often delivers four down/up pairs of events: 
+key1, key1, key1, key2.
+
+Similarly, key1, key2, key2 gives key1, key2, key2, key2
+and key1, key2, key1 gives key1, key2, key2, key1
+Strangely, key1, key1, key1 gives only the three expected events.
+
+If I set the repeat delay to be equal to the IR_KEYPRESS_TIMEOUT 
+(using ir-keytable --delay) then the problem goes away (or is hidden).
+
+I've been looking though the relevant kernel code, and while I don't think 
+I fully understand all the subtleties, one thing I noticed that seems
+odd is that in ir_raw_event_store_edge in ir-raw.c, the repeat delay is 
+used to determine if an edge is part of a new event or not. It seems to me 
+that this might be way too long. Shouldn't it be something more like 
+IR_KEYPRESS_TIMEOUT ? Or even shorter - like just longer than the longest 
+possible gap between edges in a code?
+
+I tried changing the "delay" value in ir_raw_event_store_edge to match the 
+IR_KEYPRESS_TIMEOUT, and it does seem to resolve the problem for me.
+
+Carl
+
+
 
