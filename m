@@ -1,106 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:37721 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbaJOJlf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Oct 2014 05:41:35 -0400
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:55436 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751612AbaJEJAa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 05:00:30 -0400
+From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
+	<info@are.ma>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [PATCH 08/11] qm1d1c0042: namespace cleanup
+Date: Sun,  5 Oct 2014 17:59:44 +0900
+Message-Id: <37bb3490954e27725cc9be5f1e44832c3907779a.1412497399.git.knightrider@are.ma>
+In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
+References: <cover.1412497399.git.knightrider@are.ma>
+In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
+References: <cover.1412497399.git.knightrider@are.ma>
 MIME-Version: 1.0
-In-Reply-To: <543D1DD1.2060700@cogentembedded.com>
-References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
-	<1413268013-8437-4-git-send-email-ykaneko0929@gmail.com>
-	<543D1DD1.2060700@cogentembedded.com>
-Date: Wed, 15 Oct 2014 18:41:34 +0900
-Message-ID: <CAH1o70J6mVoj6VTbU_3RXr38M-ftc7SLd7Z+UBxMCGykg-7=rA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal
- scaling-up support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sergei,
+minimize export
 
-Thank you for your comment.
-I'll update this patch.
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/tuners/qm1d1c0042.h | 34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
-Thanks,
-Kaneko
+diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
+index 4f5c188..65bca43 100644
+--- a/drivers/media/tuners/qm1d1c0042.h
++++ b/drivers/media/tuners/qm1d1c0042.h
+@@ -1,12 +1,12 @@
+ /*
+- * Sharp QM1D1C0042 8PSK tuner driver
++ * Sharp VA4M6JC2103 - Earthsoft PT3 ISDB-S tuner driver QM1D1C0042
+  *
+- * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
++ * Copyright (C) 2014 Budi Rachmanto, AreMa Inc. <info@are.ma>
+  *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+@@ -14,24 +14,10 @@
+  * GNU General Public License for more details.
+  */
+ 
+-#ifndef QM1D1C0042_H
+-#define QM1D1C0042_H
+-
+-#include "dvb_frontend.h"
+-
++#ifndef __QM1D1C0042_H__
++#define __QM1D1C0042_H__
+ 
+-struct qm1d1c0042_config {
+-	struct dvb_frontend *fe;
++#define QM1D1C0042_DRVNAME "qm1d1c0042"
+ 
+-	u32  xtal_freq;    /* [kHz] */ /* currently ignored */
+-	bool lpf;          /* enable LPF */
+-	bool fast_srch;    /* enable fast search mode, no LPF */
+-	u32  lpf_wait;         /* wait in tuning with LPF enabled. [ms] */
+-	u32  fast_srch_wait;   /* with fast-search mode, no LPF. [ms] */
+-	u32  normal_srch_wait; /* with no LPF/fast-search mode. [ms] */
+-};
+-/* special values indicating to use the default in qm1d1c0042_config */
+-#define QM1D1C0042_CFG_XTAL_DFLT 0
+-#define QM1D1C0042_CFG_WAIT_DFLT 0
++#endif
+ 
+-#endif /* QM1D1C0042_H */
+-- 
+1.8.4.5
 
-2014-10-14 21:57 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
-> Hello.
->
-> On 10/14/2014 10:26 AM, Yoshihiro Kaneko wrote:
->
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->
->
->> The scaling function had been forbidden for the capture format of
->> NV16 until now. With this patch, a horizontal scaling-up function
->> is supported to the capture format of NV16. a vertical scaling-up
->> by the capture format of NV16 is forbidden for the H/W specification.
->
->
->    s/for/by/?
->
->> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->> ---
->>   drivers/media/platform/soc_camera/rcar_vin.c | 19 +++++++++++++++----
->>   1 file changed, 15 insertions(+), 4 deletions(-)
->
->
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
->> b/drivers/media/platform/soc_camera/rcar_vin.c
->> index 00bc98d..bf3588f 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->
-> [...]
->>
->> @@ -1622,9 +1622,19 @@ static int rcar_vin_set_fmt(struct
->> soc_camera_device *icd,
->>         if (priv->error_flag == false)
->>                 priv->error_flag = true;
->>         else {
->> -               if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F))
->> {
->> -                       dev_err(icd->parent, "Specified width error in
->> NV16 format.\n");
->> -                       return -EINVAL;
->> +               if (pixfmt == V4L2_PIX_FMT_NV16) {
->> +                       if (pix->width & 0x1F) {
->> +                               dev_err(icd->parent,
->> +                               "Specified width error in NV16 format. "
->
->
->    You should indent the string more to the right, preferrably starting it
-> under 'icd'.
->
->> +                               "Please specify the multiple of 32.\n");
->
->
->    Do not break the string like this. scripts/checkpatch.pl has been taught
-> to not complain about long strings.
->
->> +                               return -EINVAL;
->> +                       }
->> +                       if (pix->height != cam->height) {
->> +                               dev_err(icd->parent,
->> +                               "Vertical scaling-up error in NV16 format.
->> "
->> +                               "Please specify input height size.\n");
->
->
->    Same here. Not breaking the lines helps to find the error messages in the
-> code.
->
-> [...]
->
-> WBR, Sergei
->
