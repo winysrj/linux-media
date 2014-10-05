@@ -1,245 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1080 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843AbaJ2H3f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 03:29:35 -0400
-Message-ID: <54509744.7090005@xs4all.nl>
-Date: Wed, 29 Oct 2014 08:29:08 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:39491 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751359AbaJEO06 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Oct 2014 10:26:58 -0400
+Date: Sun, 5 Oct 2014 11:26:51 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "AreMa Inc." <info@are.ma>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-kernel@vger.kernel.org, knightrider@are.ma
+Subject: Re: [PATCH] pt3 (pci, tc90522, mxl301rf, qm1d1c0042):
+ pt3_unregister_subdev(), pt3_unregister_subdev(), cleanups...
+Message-ID: <20141005112651.4aa60d91@recife.lan>
+In-Reply-To: <CAKnK8-RRXB73=UZRzndyuQ2S19kefYkiXGn7z7PpTqDUNpp6Ow@mail.gmail.com>
+References: <1412275758-31340-1-git-send-email-knightrider@are.ma>
+	<542E2BF6.2090800@iki.fi>
+	<CAKnK8-QOU7szWNcC1BsBZtNmHBLiLqZuCVYpjsVBkpfNCxGa-A@mail.gmail.com>
+	<20141003075206.331006bd@recife.lan>
+	<CAKnK8-QF7fWRzp24mhsUWuK610Ko7G=a4fEx0oyf+En+jRVoJA@mail.gmail.com>
+	<CAKnK8-REiZ+Y_cjf9Lpbc+QiSpp2JZKq1wCi9_3-BNjSopzRLQ@mail.gmail.com>
+	<20141005092913.1717dfc9@recife.lan>
+	<CAKnK8-RRXB73=UZRzndyuQ2S19kefYkiXGn7z7PpTqDUNpp6Ow@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Divneil Wadhawan <divneil.wadhawan@st.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
-References: <5437932A.7000706@xs4all.nl> <20141028162647.43c1946a@recife.lan>
-In-Reply-To: <20141028162647.43c1946a@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/28/2014 07:26 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 10 Oct 2014 10:04:58 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> (This patch is from Divneil except for the vivid changes which I added. He had
->> difficulties posting the patch without the mailer mangling it, so I'm reposting
->> it for him)
->>
->> - vb2 drivers to rely on VB2_MAX_FRAME.
->>
->> - VB2_MAX_FRAME bumps the value to 64 from current 32
-> 
-> Hmm... what's the point of announcing a maximum of 32 buffers to userspace,
-> but using internally 64?
+Please don't do top-posting.
 
-Where do we announce 32 buffers? The only place where a maximum is enforced is
-in REQBUFS/CREATE_BUFS. Most (all?) vb2 drivers leave enforcing the maximum to
-vb2, they only care about the minimum, so they will automatically use the new
-maximum.
+(moved your comments to the end of the email)
 
+Em Sun, 05 Oct 2014 22:04:32 +0900
+"AreMa Inc." <info@are.ma> escreveu:
 > 
-> Btw, wouldn't this change break for DaVinci:
-> 	include/media/davinci/vpfe_capture.h:   u8 *fbuffers[VIDEO_MAX_FRAME];
+> 2014-10-05 21:29 GMT+09:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> > Hi Bud,
+> >
+> > Em Sun, 05 Oct 2014 18:36:54 +0900
+> > "AreMa Inc." <info@are.ma> escreveu:
+> >
+> >> Dear Antti, Mauro & others,
+> >>
+> >> We don't want to flood the mailing lists with dirts.
+> >> It is regretful to send this kind of email, however
+> >> as we just received a "war declaration" from Tsukada Akihiro,
+> >> it is better to postpone delivering PT3 driver to the main kernel tree.
+> >>
+> >> A series proof of facts follow.
+> >>
+> >> Thanks again for your appreciation.
+> >> Bud @ AreMa Inc.
+> >>
+> >> official contacts:
+> >> +81 50 5552 1666
+> >> info@are.ma
+> >>
+> >>
+> >> 2014-10-04 16:16 GMT+09:00 AreMa Inc. <info@are.ma>:
+> >> > Hi Mauro,
+> >> >
+> >> > The biggest reason is that, the submitted driver, also published at
+> >> > https://github.com/knight-rider/ptx/tree/master/pt3_dvb
+> >> > is well proven to be running smoothly and already used by Japanese community
+> >> > for more than a year (i.e. de facto standard) without any major issues.
+> >> >
+> >> > The second is more about his personal reasons in violating the rules
+> >> > and we don't want to comment further unless there is no response from him
+> >> > within a week.
+> >> >
+> >> > Many patches will follow.
+> >> >
+> >> > Thanks again for your info.
+> >> > Regards
+> >> > -Bud
+> >
+> > Sorry, but the PT3 driver was already merged at the main tree and I can't
+> > simply remove the PT3 patches without causing problems for all other patches
+> > that are ready to be submitted.
+> >
+> > What might be done would be to remove the driver on a separate patch,
+> > but that would require a really strong reason for doing that.
+> >
+> > At least from where I sit, tens of thousands kilimeters away from you both,
+> > it sounds to me that we're talking about two different drivers for the
+> > same piece of hardware. The big diff between your driver and his shows
+> > that they're very different.
+> >
+> > That's the history of what happened with PT3 drivers submission:
+> >         https://patchwork.linuxtv.org/project/linux-media/list/?submitter=6259&state=*
+> >         https://patchwork.linuxtv.org/project/linux-media/list/?submitter=6368&state=*
+> >
+> > All the public e-mails are there, and I don't care (not I am aware) of
+> > any other e-mails exchanged in priv.
+> >
+> > Both drivers had issues when submitted, and both series were properly
+> > reviewed. Yet, Akihiro was fast to fix the pointed issues, and his patches
+> > followed the proper submission rules since the beginning. Also, the
+> > per-driver patch split helped the reviewers to better do their work.
+> > His series was discussed during the last 3-4 months without a single reply
+> > arguing against its merge, and all comments pointing to issues at the driver
+> > were fixed.
+> >
+> > As it followed all the submission rules and fixup requests, it got merged.
+> >
+> > So, I am unable to see any reason to remove his driver from the Kernel.
+> >
+> > Am I missing something?
+>
+> Yeah, sorry if we are not familiar with submission rules as it was the
+> first time for us.
+> We already splitted the FE and tuners as I2C drivers, according to your request.
+> 
+> Maybe Tsukada is very clever and we are too busy with daily business,
+> but it doesn't mean that backstabbing is tolerated.
+> We already asked him to join the project, in a very good manner.
+> 
+> The fact is that, our DVB driver is already published and used widely
+> at least in Japan since August 2013
+> (chardev version is far earlier) and has become a de facto standard,
+> well tested without any major/minor issues
+> reported. Our driver is simpler/slimmer and yet, stable. And, it
+> conforms the rules of DVB core.
 
-That driver still uses vb1, so this patch won't break it.
+While looking on what happened in the past would help us to improve
+future patch submissions, it won't solve the issues we're now facing,
+as we cannot go back in time and fix it.
+
+We need to move on, and the way for doing that is to submit incremental
+patches improving the driver.
+
+> Or, do you have the card with you?
+
+As I wrote on another reply to this thread:
+
+No, I don't have such card, nor I have any personal preference between
+your version or Tsukada's one.
+
+I might be ordering one and test here with my RF generators or ISDB-T
+live, but very likely I won't have any time for coding, as my duties
+as the maintainers require my attention on other things too. Also,
+the problem here is not the lack of a developer for it, but, instead,
+the lack of coordination between two developers.
+
+So, I very much prefer if you could agree one with another around
+a series of patches that would improve the driver without causing
+regressions.
 
 Regards,
-
-	Hans
-
-> 
-> Regards,
-> Mauro
-> 
->>
->> Signed-off-by: Divneil Wadhawan <divneil.wadhawan@st.com>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/pci/saa7134/saa7134-ts.c       | 4 ++--
->>   drivers/media/pci/saa7134/saa7134-vbi.c      | 4 ++--
->>   drivers/media/pci/saa7134/saa7134-video.c    | 2 +-
->>   drivers/media/platform/mem2mem_testdev.c     | 2 +-
->>   drivers/media/platform/ti-vpe/vpe.c          | 2 +-
->>   drivers/media/platform/vivid/vivid-core.h    | 2 +-
->>   drivers/media/platform/vivid/vivid-ctrls.c   | 2 +-
->>   drivers/media/platform/vivid/vivid-vid-cap.c | 2 +-
->>   drivers/media/v4l2-core/videobuf2-core.c     | 8 ++++----
->>   include/media/videobuf2-core.h               | 4 +++-
->>   10 files changed, 17 insertions(+), 15 deletions(-)
->>
->> diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
->> index bd25323..0d04995 100644
->> --- a/drivers/media/pci/saa7134/saa7134-ts.c
->> +++ b/drivers/media/pci/saa7134/saa7134-ts.c
->> @@ -227,8 +227,8 @@ int saa7134_ts_init1(struct saa7134_dev *dev)
->>   	/* sanitycheck insmod options */
->>   	if (tsbufs < 2)
->>   		tsbufs = 2;
->> -	if (tsbufs > VIDEO_MAX_FRAME)
->> -		tsbufs = VIDEO_MAX_FRAME;
->> +	if (tsbufs > VB2_MAX_FRAME)
->> +		tsbufs = VB2_MAX_FRAME;
->>   	if (ts_nr_packets < 4)
->>   		ts_nr_packets = 4;
->>   	if (ts_nr_packets > 312)
->> diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
->> index 4f0b101..2269837 100644
->> --- a/drivers/media/pci/saa7134/saa7134-vbi.c
->> +++ b/drivers/media/pci/saa7134/saa7134-vbi.c
->> @@ -203,8 +203,8 @@ int saa7134_vbi_init1(struct saa7134_dev *dev)
->>   
->>   	if (vbibufs < 2)
->>   		vbibufs = 2;
->> -	if (vbibufs > VIDEO_MAX_FRAME)
->> -		vbibufs = VIDEO_MAX_FRAME;
->> +	if (vbibufs > VB2_MAX_FRAME)
->> +		vbibufs = VB2_MAX_FRAME;
->>   	return 0;
->>   }
->>   
->> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
->> index fc4a427..c7f39be 100644
->> --- a/drivers/media/pci/saa7134/saa7134-video.c
->> +++ b/drivers/media/pci/saa7134/saa7134-video.c
->> @@ -2030,7 +2030,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
->>   	int ret;
->>   
->>   	/* sanitycheck insmod options */
->> -	if (gbuffers < 2 || gbuffers > VIDEO_MAX_FRAME)
->> +	if (gbuffers < 2 || gbuffers > VB2_MAX_FRAME)
->>   		gbuffers = 2;
->>   	if (gbufsize > gbufsize_max)
->>   		gbufsize = gbufsize_max;
->> diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
->> index c1b03cf..e1ff7e0 100644
->> --- a/drivers/media/platform/mem2mem_testdev.c
->> +++ b/drivers/media/platform/mem2mem_testdev.c
->> @@ -55,7 +55,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
->>   #define MEM2MEM_NAME		"m2m-testdev"
->>   
->>   /* Per queue */
->> -#define MEM2MEM_DEF_NUM_BUFS	VIDEO_MAX_FRAME
->> +#define MEM2MEM_DEF_NUM_BUFS	VB2_MAX_FRAME
->>   /* In bytes, per queue */
->>   #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
->>   
->> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
->> index 9a081c2..04e37c0 100644
->> --- a/drivers/media/platform/ti-vpe/vpe.c
->> +++ b/drivers/media/platform/ti-vpe/vpe.c
->> @@ -1971,7 +1971,7 @@ static const struct v4l2_ctrl_config vpe_bufs_per_job = {
->>   	.type = V4L2_CTRL_TYPE_INTEGER,
->>   	.def = VPE_DEF_BUFS_PER_JOB,
->>   	.min = 1,
->> -	.max = VIDEO_MAX_FRAME,
->> +	.max = VB2_MAX_FRAME,
->>   	.step = 1,
->>   };
->>   
->> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
->> index 811c286..c0375a1 100644
->> --- a/drivers/media/platform/vivid/vivid-core.h
->> +++ b/drivers/media/platform/vivid/vivid-core.h
->> @@ -346,7 +346,7 @@ struct vivid_dev {
->>   	/* video capture */
->>   	struct tpg_data			tpg;
->>   	unsigned			ms_vid_cap;
->> -	bool				must_blank[VIDEO_MAX_FRAME];
->> +	bool				must_blank[VB2_MAX_FRAME];
->>   
->>   	const struct vivid_fmt		*fmt_cap;
->>   	struct v4l2_fract		timeperframe_vid_cap;
->> diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
->> index d5cbf00..7162f97 100644
->> --- a/drivers/media/platform/vivid/vivid-ctrls.c
->> +++ b/drivers/media/platform/vivid/vivid-ctrls.c
->> @@ -332,7 +332,7 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
->>   		break;
->>   	case VIVID_CID_PERCENTAGE_FILL:
->>   		tpg_s_perc_fill(&dev->tpg, ctrl->val);
->> -		for (i = 0; i < VIDEO_MAX_FRAME; i++)
->> +		for (i = 0; i < VB2_MAX_FRAME; i++)
->>   			dev->must_blank[i] = ctrl->val < 100;
->>   		break;
->>   	case VIVID_CID_INSERT_SAV:
->> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
->> index 331c544..55e8158 100644
->> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
->> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
->> @@ -252,7 +252,7 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
->>   
->>   	dev->vid_cap_seq_count = 0;
->>   	dprintk(dev, 1, "%s\n", __func__);
->> -	for (i = 0; i < VIDEO_MAX_FRAME; i++)
->> +	for (i = 0; i < VB2_MAX_FRAME; i++)
->>   		dev->must_blank[i] = tpg_g_perc_fill(&dev->tpg) < 100;
->>   	if (dev->start_streaming_error) {
->>   		dev->start_streaming_error = false;
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 15b02f9..60354b4 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -911,7 +911,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->>   	/*
->>   	 * Make sure the requested values and current defaults are sane.
->>   	 */
->> -	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
->> +	num_buffers = min_t(unsigned int, req->count, VB2_MAX_FRAME);
->>   	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
->>   	memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
->>   	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
->> @@ -1015,7 +1015,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
->>   	unsigned int num_planes = 0, num_buffers, allocated_buffers;
->>   	int ret;
->>   
->> -	if (q->num_buffers == VIDEO_MAX_FRAME) {
->> +	if (q->num_buffers == VB2_MAX_FRAME) {
->>   		dprintk(1, "maximum number of buffers already allocated\n");
->>   		return -ENOBUFS;
->>   	}
->> @@ -1026,7 +1026,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
->>   		q->memory = create->memory;
->>   	}
->>   
->> -	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
->> +	num_buffers = min(create->count, VB2_MAX_FRAME - q->num_buffers);
->>   
->>   	/*
->>   	 * Ask the driver, whether the requested number of buffers, planes per
->> @@ -2725,7 +2725,7 @@ struct vb2_fileio_data {
->>   	struct v4l2_requestbuffers req;
->>   	struct v4l2_plane p;
->>   	struct v4l2_buffer b;
->> -	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
->> +	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
->>   	unsigned int cur_index;
->>   	unsigned int initial_index;
->>   	unsigned int q_count;
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index a8608ce..66dcc40 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -18,6 +18,8 @@
->>   #include <linux/videodev2.h>
->>   #include <linux/dma-buf.h>
->>   
->> +#define VB2_MAX_FRAME		64
->> +
->>   struct vb2_alloc_ctx;
->>   struct vb2_fileio_data;
->>   struct vb2_threadio_data;
->> @@ -402,7 +404,7 @@ struct vb2_queue {
->>   /* private: internal use only */
->>   	struct mutex			mmap_lock;
->>   	enum v4l2_memory		memory;
->> -	struct vb2_buffer		*bufs[VIDEO_MAX_FRAME];
->> +	struct vb2_buffer		*bufs[VB2_MAX_FRAME];
->>   	unsigned int			num_buffers;
->>   
->>   	struct list_head		queued_list;
-
+Mauro
