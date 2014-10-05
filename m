@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:39486 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074AbaJJIrS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 04:47:18 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND800CXK0ESOQA0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Oct 2014 17:47:16 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:41370 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648AbaJERhi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 13:37:38 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa1so4065742pad.33
+        for <linux-media@vger.kernel.org>; Sun, 05 Oct 2014 10:37:38 -0700 (PDT)
+From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
+	<info@are.ma>
 To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH] s5p-jpeg: Avoid -Wuninitialized warning in s5p_jpeg_parse_hdr
-Date: Fri, 10 Oct 2014 10:46:49 +0200
-Message-id: <1412930809-28722-1-git-send-email-j.anaszewski@samsung.com>
+Cc: crope@iki.fi, m.chehab@samsung.com, mchehab@osg.samsung.com,
+	hdegoede@redhat.com, laurent.pinchart@ideasonboard.com,
+	mkrufky@linuxtv.org, sylvester.nawrocki@gmail.com,
+	g.liakhovetski@gmx.de, peter.senna@gmail.com
+Subject: [PATCH 1/1] Kconfig: cosmetic improvement
+Date: Mon,  6 Oct 2014 02:37:34 +0900
+Message-Id: <766263dfa0c03ad90e912828fdd7e0cb391e5ae1.1412530212.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialize components variable in order to avoid
-the possibility of using it uninitialized.
+PT1 & PT3 are wrongly categorized, fix it
+Add comment that PT3 needs FE & tuners
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+This patch can be applied immediately
+
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-frontends/Kconfig | 4 ++--
+ drivers/media/pci/pt3/Kconfig       | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index e66acbc..91dc351 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -893,7 +893,7 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- 			       unsigned long buffer, unsigned long size,
- 			       struct s5p_jpeg_ctx *ctx)
- {
--	int c, components, notfound;
-+	int c, components = 0, notfound;
- 	unsigned int height, width, word, subsampling = 0;
- 	long length;
- 	struct s5p_jpeg_buffer jpeg_buffer;
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 5a13454..0c59825 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -621,7 +621,7 @@ config DVB_S5H1411
+ 	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
+ 	  to support this frontend.
+ 
+-comment "ISDB-T (terrestrial) frontends"
++comment "ISDB-S (satellite) & ISDB-T (terrestrial) frontends"
+ 	depends on DVB_CORE
+ 
+ config DVB_S921
+@@ -653,7 +653,7 @@ config DVB_TC90522
+ 	depends on DVB_CORE && I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+-	  A Toshiba TC90522 2xISDB-T + 2xISDB-S demodulator.
++	  Toshiba TC90522 2xISDB-S 8PSK + 2xISDB-T OFDM demodulator.
+ 	  Say Y when you want to support this frontend.
+ 
+ comment "Digital terrestrial only tuners/PLL"
+diff --git a/drivers/media/pci/pt3/Kconfig b/drivers/media/pci/pt3/Kconfig
+index 16c208a..f7b7210 100644
+--- a/drivers/media/pci/pt3/Kconfig
++++ b/drivers/media/pci/pt3/Kconfig
+@@ -6,5 +6,5 @@ config DVB_PT3
+ 	select MEDIA_TUNER_MXL301RF if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Support for Earthsoft PT3 PCIe cards.
+-
++	  You need to enable frontend (TC90522) & tuners (QM1D1C0042, MXL301RF)
+ 	  Say Y or M if you own such a device and want to use it.
 -- 
-1.7.9.5
+1.8.4.5
 
