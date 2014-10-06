@@ -1,86 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:47204 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752839AbaJLUET (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:04:19 -0400
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Carlo Caione <carlo@caione.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>,
-	Beniamino Galvani <b.galvani@gmail.com>
-Subject: [PATCH 3/3] ARM: dts: meson: add dts nodes for IR receiver
-Date: Sun, 12 Oct 2014 22:01:55 +0200
-Message-Id: <1413144115-23188-4-git-send-email-b.galvani@gmail.com>
-In-Reply-To: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
-References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39520 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751768AbaJFAZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Oct 2014 20:25:54 -0400
+Date: Sun, 5 Oct 2014 21:25:49 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Upcoming v4l-utils 1.6.0 release
+Message-ID: <20141005212549.55ea8afa@recife.lan>
+In-Reply-To: <54319E45.3050906@googlemail.com>
+References: <20140925213820.1bbf43c2@recife.lan>
+	<54269807.50109@googlemail.com>
+	<20140927085455.5b0baf89@recife.lan>
+	<542ACA32.3050403@googlemail.com>
+	<542ADA66.3040905@redhat.com>
+	<20141004112245.7a5de7de@recife.lan>
+	<54319E45.3050906@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
----
- arch/arm/boot/dts/meson.dtsi           | 7 +++++++
- arch/arm/boot/dts/meson8-vega-s89e.dts | 6 ++++++
- arch/arm/boot/dts/meson8.dtsi          | 7 +++++++
- 3 files changed, 20 insertions(+)
+Em Sun, 05 Oct 2014 21:38:45 +0200
+Gregor Jasny <gjasny@googlemail.com> escreveu:
 
-diff --git a/arch/arm/boot/dts/meson.dtsi b/arch/arm/boot/dts/meson.dtsi
-index 7d27f12..a14461c 100644
---- a/arch/arm/boot/dts/meson.dtsi
-+++ b/arch/arm/boot/dts/meson.dtsi
-@@ -108,5 +108,12 @@
- 			clocks = <&clk81>;
- 			status = "disabled";
- 		};
-+
-+		ir_receiver: ir-receiver@c8100480 {
-+			compatible= "amlogic,meson6-ir";
-+			reg = <0xc8100480 0x20>;
-+			interrupts = <0 15 1>;
-+			status = "disabled";
-+		};
- 	};
- }; /* end of / */
-diff --git a/arch/arm/boot/dts/meson8-vega-s89e.dts b/arch/arm/boot/dts/meson8-vega-s89e.dts
-index 70a05c1..5ea54c8 100644
---- a/arch/arm/boot/dts/meson8-vega-s89e.dts
-+++ b/arch/arm/boot/dts/meson8-vega-s89e.dts
-@@ -77,3 +77,9 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart_ao_a>;
- };
-+
-+&ir_receiver {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&ir_pins>;
-+};
-diff --git a/arch/arm/boot/dts/meson8.dtsi b/arch/arm/boot/dts/meson8.dtsi
-index 59c3af0..ea98ed3 100644
---- a/arch/arm/boot/dts/meson8.dtsi
-+++ b/arch/arm/boot/dts/meson8.dtsi
-@@ -122,6 +122,13 @@
- 				function = "uart_ao";
- 			};
- 		};
-+
-+		ir_pins: ir_pins {
-+			ir_pins {
-+				pins = "remote_input";
-+				function = "remote";
-+			};
-+		};
- 	};
- 
- }; /* end of / */
--- 
-1.9.1
+> Hello,
+> 
+> On 04/10/14 16:22, Mauro Carvalho Chehab wrote:
+> > Em Tue, 30 Sep 2014 18:29:26 +0200
+> > Hans de Goede <hdegoede@redhat.com> escreveu:
+> >> About the 1.6.0 release, please do not release it until the series
+> >> fixing the regression in 1.4.0 with gstreamer which I've posted
+> >> today. A review of that series would be appreciated. If you're ok
+> >> with the series feel free to push it to master.
+> 
+> I pushed the changes to master ans built a Debian package with the
+> changes. The bug reported verified that it properly fixed the bug.
+> 
+> > From my side, I'm happy with the changes made at libdvbv5 side.
+> > 
+> > I did several changes during this week:
+> > 
+> > - Added user pages for the 4 dvbv5 tools;
+> > - Cleaned up all Valgrind errors;
+> > - Cleaned up a nasty double-free bug;
+> > - Solved all the issues pointed for it at Coverity.
+> > - Added the package version on all section 1 man pages. Those are now
+> >   created during ./configure.
+> > 
+> > I also did some tests here with DVB-C and ISDB-T and everything seems to
+> > be working fine.
+> > 
+> > So, at least from dvbv5 utils and libdvbv5, I think we're ready for
+> > version 1.6.
+> 
+> I made some changes to the man pages to silence Lintian warnings and put
+> the release stamp on the tree.
 
+Seemed OK from my side. I also built the Fedora packages:
+
+	Fedora 22: http://koji.fedoraproject.org/koji/buildinfo?buildID=582762
+	Fedora 21: http://koji.fedoraproject.org/koji/buildinfo?buildID=582763
+	Fedora 20: http://koji.fedoraproject.org/koji/buildinfo?buildID=582802
+
+Regards,
+Mauro
