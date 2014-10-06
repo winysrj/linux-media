@@ -1,91 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:51451 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751825AbaJAVCo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 17:02:44 -0400
-Message-ID: <542C6BE9.40309@gentoo.org>
-Date: Wed, 01 Oct 2014 23:02:33 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:61316 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbaJFUlW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 16:41:22 -0400
+Received: by mail-vc0-f173.google.com with SMTP id ij19so3718892vcb.4
+        for <linux-media@vger.kernel.org>; Mon, 06 Oct 2014 13:41:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH V2 08/13] cx231xx: remember status of i2c port_3 switch
-References: <1412140821-16285-1-git-send-email-zzam@gentoo.org> <1412140821-16285-9-git-send-email-zzam@gentoo.org> <542C57D4.4000004@iki.fi>
-In-Reply-To: <542C57D4.4000004@iki.fi>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1510196.ldtLAThOeq@avalon>
+References: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com>
+ <1409791668-18715-1-git-send-email-vpalatin@chromium.org> <1510196.ldtLAThOeq@avalon>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Mon, 6 Oct 2014 13:41:01 -0700
+Message-ID: <CAP_ceTz8BRQoFxkgb085_gOh29x8anvQNodAGMkgOukk02x29g@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.10.2014 21:36, Antti Palosaari wrote:
-> I don't understand that patch. Commit message should explain it likely
-> better details.
-> 
-> You added flag 'port_3_switch_enabled' to device state. That is for I2C
-> mux, but what it means? Does it means mux is currently switched to to
-> port 3? Later you will use that flag to avoid unnecessary mux switching?
-> 
-You are right, it should be described better.
-Basically it is to be able to query the state of the mux.
+On Thu, Sep 4, 2014 at 1:29 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Vincent,
+>
+> Thank you for the patch.
+>
+> On Wednesday 03 September 2014 17:47:48 Vincent Palatin wrote:
+> > Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
+> >
+> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
+> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+> > Verified that it can pan and tilt at the same time in both directions.
+> >
+> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+>
+> Small comment here, as Pawel has reviewed the previous version, you could have
+> added his Reviewed-by tag to the patch.
+>
+> > ---
+> > Changes from v1/v2:
+> > - rebased
+> > Changes from v3:
+> > - removed gerrit-id
+> >
+> >  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
+> >  1 file changed, 55 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d703cb0 100644
+> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+> >               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> >               .index          = 12,
+> >               .size           = 4,
+> > -             .flags          = UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+> > -                             | UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+> > -                             | UVC_CTRL_FLAG_GET_DEF
+> > +             .flags          = UVC_CTRL_FLAG_SET_CUR
+> > +                             | UVC_CTRL_FLAG_GET_RANGE
+> >                               | UVC_CTRL_FLAG_AUTO_UPDATE,
+> >       },
+> >       {
+> > @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
+> > uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
+> >  }
+> >
+> > +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __u8 query, const __u8 *data)
+> > +{
+> > +     int first = mapping->offset / 8;
+>
+> Nitpicking, I would use unsigned int instead of int here, as the value can't
+> be negative (same comment for the next function).
+>
+> If you're fine with that there's no need to resubmit, I can modify this when
+> applying.
 
-This is in the next patch used for the hack that detects if a specific
-tuner on a specific bus is accessed.
 
-It is not used to suppress unnecessary switching.
-The switching function explicitly reads the switch register and only
-writes it if the value is different.
+Yes, I'm fine with that.
 
-But maybe it would be more consistent if in this case the code also
-reads the register.
 
-Regards
-Matthias
-
-> regards
-> Antti
-> 
-> 
-> 
-> On 10/01/2014 08:20 AM, Matthias Schwarzott wrote:
->> If remembering is not stable enough, this must be changed to query
->> from the register when needed.
->>
->> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
->> ---
->>   drivers/media/usb/cx231xx/cx231xx-avcore.c | 3 +++
->>   drivers/media/usb/cx231xx/cx231xx.h        | 1 +
->>   2 files changed, 4 insertions(+)
->>
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> b/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> index 40a6987..4c85b6f 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> @@ -1294,6 +1294,9 @@ int cx231xx_enable_i2c_port_3(struct cx231xx
->> *dev, bool is_port_3)
->>       status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
->>                       PWR_CTL_EN, value, 4);
->>
->> +    if (status >= 0)
->> +        dev->port_3_switch_enabled = is_port_3;
->> +
->>       return status;
->>
->>   }
->> diff --git a/drivers/media/usb/cx231xx/cx231xx.h
->> b/drivers/media/usb/cx231xx/cx231xx.h
->> index f03338b..8a3c97b 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx.h
->> +++ b/drivers/media/usb/cx231xx/cx231xx.h
->> @@ -629,6 +629,7 @@ struct cx231xx {
->>       /* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal
->> only) */
->>       struct cx231xx_i2c i2c_bus[3];
->>       unsigned int xc_fw_load_done:1;
->> +    unsigned int port_3_switch_enabled:1;
->>       /* locks */
->>       struct mutex gpio_i2c_lock;
->>       struct mutex i2c_lock;
->>
-> 
-
+>
+>
+> > +     __s8 rel = (__s8)data[first];
+> > +
+> > +     switch (query) {
+> > +     case UVC_GET_CUR:
+> > +             return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
+> > +                                              : -data[first+1]);
+> > +     case UVC_GET_MIN:
+> > +             return -data[first+1];
+> > +     case UVC_GET_MAX:
+> > +     case UVC_GET_RES:
+> > +     case UVC_GET_DEF:
+> > +     default:
+> > +             return data[first+1];
+> > +     }
+> > +}
+> > +
+> > +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __s32 value, __u8 *data)
+> > +{
+> > +     int first = mapping->offset / 8;
+> > +
+> > +     data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
+> > +     data[first+1] = min_t(int, abs(value), 0xff);
+> > +}
+> > +
+> >  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+> >       {
+> >               .id             = V4L2_CID_BRIGHTNESS,
+> > @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
+> > { .data_type  = UVC_CTRL_DATA_TYPE_SIGNED,
+> >       },
+> >       {
+> > +             .id             = V4L2_CID_PAN_SPEED,
+> > +             .name           = "Pan (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 0,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> > +             .id             = V4L2_CID_TILT_SPEED,
+> > +             .name           = "Tilt (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 16,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> >               .id             = V4L2_CID_PRIVACY,
+> >               .name           = "Privacy",
+> >               .entity         = UVC_GUID_UVC_CAMERA,
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
