@@ -1,155 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42995 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751887AbaJBFVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:37 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 11/13] cx231xx: register i2c mux adapters for master1 and use as I2C_1_MUX_1 and I2C_1_MUX_3
-Date: Thu,  2 Oct 2014 07:21:03 +0200
-Message-Id: <1412227265-17453-12-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:32850 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbaJFGVc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 02:21:32 -0400
+From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
+	<info@are.ma>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [PATCH 1/1] Kconfig: cosmetics, as Mauro suggested
+Date: Mon,  6 Oct 2014 15:21:27 +0900
+Message-Id: <62bede84374762a6a5a3081fb129b02014a66f6a.1412576221.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/Kconfig        |  1 +
- drivers/media/usb/cx231xx/cx231xx-core.c |  5 ++++
- drivers/media/usb/cx231xx/cx231xx-i2c.c  | 44 +++++++++++++++++++++++++++++++-
- drivers/media/usb/cx231xx/cx231xx.h      |  4 +++
- 4 files changed, 53 insertions(+), 1 deletion(-)
+PT3 is wrongly categorized, fix it
 
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 569aa29..173c0e2 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -7,6 +7,7 @@ config VIDEO_CX231XX
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_CX25840
- 	select VIDEO_CX2341X
-+	select I2C_MUX
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/dvb-frontends/Kconfig | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 5a13454..6c75418 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -648,12 +648,15 @@ config DVB_MB86A20S
+ 	  A driver for Fujitsu mb86a20s ISDB-T/ISDB-Tsb demodulator.
+ 	  Say Y when you want to support this frontend.
  
- 	---help---
- 	  This is a video4linux driver for Conexant 231xx USB based TV cards.
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 180103e..c8a6d20 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1300,6 +1300,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	cx231xx_i2c_register(&dev->i2c_bus[1]);
- 	cx231xx_i2c_register(&dev->i2c_bus[2]);
++comment "ISDB-S (satellite) & ISDB-T (terrestrial) frontends"
++	depends on DVB_CORE
++
+ config DVB_TC90522
+ 	tristate "Toshiba TC90522"
+ 	depends on DVB_CORE && I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+-	  A Toshiba TC90522 2xISDB-T + 2xISDB-S demodulator.
++	  Toshiba TC90522 2xISDB-S 8PSK + 2xISDB-T OFDM demodulator.
+ 	  Say Y when you want to support this frontend.
  
-+	cx231xx_i2c_mux_register(dev, 0);
-+	cx231xx_i2c_mux_register(dev, 1);
-+
- 	/* init hardware */
- 	/* Note : with out calling set power mode function,
- 	afe can not be set up correctly */
-@@ -1414,6 +1417,8 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
- void cx231xx_dev_uninit(struct cx231xx *dev)
- {
- 	/* Un Initialize I2C bus */
-+	cx231xx_i2c_mux_unregister(dev, 1);
-+	cx231xx_i2c_mux_unregister(dev, 0);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index effd12c..dc9c478 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -24,6 +24,7 @@
- #include <linux/kernel.h>
- #include <linux/usb.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-mux.h>
- #include <media/v4l2-common.h>
- #include <media/tuner.h>
- 
-@@ -548,6 +549,46 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
- 	return 0;
- }
- 
-+/*
-+ * cx231xx_i2c_mux_select()
-+ * switch i2c master number 1 between port1 and port3
-+ */
-+static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
-+			void *mux_priv, u32 chan_id)
-+{
-+	struct cx231xx *dev = mux_priv;
-+
-+	return cx231xx_enable_i2c_port_3(dev, chan_id);
-+}
-+
-+int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
-+{
-+	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
-+	/* what is the correct mux_dev? */
-+	struct device *mux_dev = &dev->udev->dev;
-+
-+	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
-+				mux_dev,
-+				dev /* mux_priv */,
-+				0,
-+				mux_no /* chan_id */,
-+				0 /* class */,
-+				&cx231xx_i2c_mux_select,
-+				NULL);
-+
-+	if (!dev->i2c_mux_adap[mux_no])
-+		cx231xx_warn("%s: i2c mux %d register FAILED\n",
-+			     dev->name, mux_no);
-+
-+	return 0;
-+}
-+
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
-+{
-+	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
-+	dev->i2c_mux_adap[mux_no] = NULL;
-+}
-+
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
- {
- 	switch (i2c_port) {
-@@ -558,8 +599,9 @@ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
- 	case I2C_2:
- 		return &dev->i2c_bus[2].i2c_adap;
- 	case I2C_1_MUX_1:
-+		return dev->i2c_mux_adap[0];
- 	case I2C_1_MUX_3:
--		return &dev->i2c_bus[1].i2c_adap;
-+		return dev->i2c_mux_adap[1];
- 	default:
- 		return NULL;
- 	}
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 8a3c97b..c90aa44 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -628,6 +628,8 @@ struct cx231xx {
- 
- 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
- 	struct cx231xx_i2c i2c_bus[3];
-+	struct i2c_adapter *i2c_mux_adap[2];
-+
- 	unsigned int xc_fw_load_done:1;
- 	unsigned int port_3_switch_enabled:1;
- 	/* locks */
-@@ -755,6 +757,8 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
- void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
- int cx231xx_i2c_register(struct cx231xx_i2c *bus);
- int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-+int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
- 
- /* Internal block control functions */
+ comment "Digital terrestrial only tuners/PLL"
 -- 
-2.1.1
+1.8.4.5
 
