@@ -1,74 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42969 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaJBFVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:24 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 03/13] cx231xx: delete i2c_client per bus
-Date: Thu,  2 Oct 2014 07:20:55 +0200
-Message-Id: <1412227265-17453-4-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from cpsmtpb-ews07.kpnxchange.com ([213.75.39.10]:52243 "EHLO
+	cpsmtpb-ews07.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752445AbaJFJHf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Oct 2014 05:07:35 -0400
+Message-ID: <1412586453.4054.39.camel@x220>
+Subject: [PATCH 1/4] [media] Remove optional dependencies on PLAT_S5P
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 06 Oct 2014 11:07:33 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For each i2c master there is a i2c_client allocated that could be
-deleted now that its only two users have been changed to use their
-own i2c_client.
+Commit d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
+removed the Kconfig symbol PLAT_S5P. Remove three optional dependencies
+on that symbol from this Kconfig file too.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 7 -------
- drivers/media/usb/cx231xx/cx231xx.h     | 1 -
- 2 files changed, 8 deletions(-)
+ drivers/media/platform/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 67a1391..a30d400 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -455,10 +455,6 @@ static struct i2c_adapter cx231xx_adap_template = {
- 	.algo = &cx231xx_algo,
- };
- 
--static struct i2c_client cx231xx_client_template = {
--	.name = "cx231xx internal",
--};
--
- /* ----------------------------------------------------------- */
- 
- /*
-@@ -514,7 +510,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	BUG_ON(!dev->cx231xx_send_usb_command);
- 
- 	bus->i2c_adap = cx231xx_adap_template;
--	bus->i2c_client = cx231xx_client_template;
- 	bus->i2c_adap.dev.parent = &dev->udev->dev;
- 
- 	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-@@ -523,8 +518,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	i2c_add_adapter(&bus->i2c_adap);
- 
--	bus->i2c_client.adapter = &bus->i2c_adap;
--
- 	if (0 == bus->i2c_rc) {
- 		if (i2c_scan)
- 			cx231xx_do_i2c_scan(dev, bus->nr);
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 5efc93e..c92382f 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -472,7 +472,6 @@ struct cx231xx_i2c {
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap;
--	struct i2c_client i2c_client;
- 	u32 i2c_rc;
- 
- 	/* different settings for each bus */
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index bee9074ebc13..19774b60ba38 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -166,7 +166,7 @@ config VIDEO_MEM2MEM_DEINTERLACE
+ config VIDEO_SAMSUNG_S5P_G2D
+ 	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2
+-	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
++	depends on ARCH_EXYNOS || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+@@ -178,7 +178,7 @@ config VIDEO_SAMSUNG_S5P_G2D
+ config VIDEO_SAMSUNG_S5P_JPEG
+ 	tristate "Samsung S5P/Exynos3250/Exynos4 JPEG codec driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2
+-	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
++	depends on ARCH_EXYNOS || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+@@ -189,7 +189,7 @@ config VIDEO_SAMSUNG_S5P_JPEG
+ config VIDEO_SAMSUNG_S5P_MFC
+ 	tristate "Samsung S5P MFC Video Codec"
+ 	depends on VIDEO_DEV && VIDEO_V4L2
+-	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
++	depends on ARCH_EXYNOS || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	default n
 -- 
-2.1.1
+1.9.3
 
