@@ -1,48 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.uli-eckhardt.de ([85.214.28.137]:40402 "EHLO
-	mail.uli-eckhardt.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751672AbaJJRTQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 13:19:16 -0400
-Message-ID: <54381510.5080301@uli-eckhardt.de>
-Date: Fri, 10 Oct 2014 19:19:12 +0200
-From: Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+Received: from mail-vc0-f178.google.com ([209.85.220.178]:65023 "EHLO
+	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213AbaJFUpQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 16:45:16 -0400
+Received: by mail-vc0-f178.google.com with SMTP id hq12so3752279vcb.37
+        for <linux-media@vger.kernel.org>; Mon, 06 Oct 2014 13:45:15 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, m.chehab@samsung.com
-Subject: [PATCH][media] Fix LNB supply voltage of Tevii S480 on initialization
-References: <542C4B14.8030708@uli-eckhardt.de>
-In-Reply-To: <542C4B14.8030708@uli-eckhardt.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3751957.rA6PG2ReCf@avalon>
+References: <CACHYQ-r-+czyEBySdjNWr-3XmY1C2ErDJV0dnL=GDJOYPi1asw@mail.gmail.com>
+ <1409791668-18715-1-git-send-email-vpalatin@chromium.org> <3751957.rA6PG2ReCf@avalon>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Mon, 6 Oct 2014 13:44:54 -0700
+Message-ID: <CAP_ceTy6XVmvTTAmvCp1YU2wxHwXqnarm69Yaz8K4FmpJqYxAg@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Tevii S480 outputs 18V on startup for the LNB supply voltage and does not 
-automatically power down. This blocks other receivers connected 
-to a satellite channel router (EN50494), since the receivers can not send the
-required DiSEqC sequences when the Tevii card is connected to a the same SCR.
-
-This patch switches off the LNB supply voltage on initialization of the frontend. 
-
-Signed-off-by: Ulrich Eckhardt <uli@uli-eckhardt.de>
-
-diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
---- a/drivers/media/dvb-frontends/ds3000.c
-+++ b/drivers/media/dvb-frontends/ds3000.c
-@@ -864,6 +864,7 @@
-        memcpy(&state->frontend.ops, &ds3000_ops,
-                        sizeof(struct dvb_frontend_ops));
-        state->frontend.demodulator_priv = state;
-+       ds3000_set_voltage (&state->frontend, SEC_VOLTAGE_OFF);
-        return &state->frontend;
- 
- error3:
+On Thu, Sep 4, 2014 at 1:35 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Vincent,
+>
+> On Wednesday 03 September 2014 17:47:48 Vincent Palatin wrote:
+> > Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
+> >
+> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
+> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+> > Verified that it can pan and tilt at the same time in both directions.
+>
+> By the way, what is the control value reported by the device after it stops
+> moving by itself due to reaching a limit position ?
 
 
+I don't know.
+I no longer have the device in hand, I will ask somebody who has one
+to experiment and check.
 
-
--- 
-Ulrich Eckhardt                  http://www.uli-eckhardt.de
-
-Ein Blitzableiter auf dem Kirchturm ist das denkbar stärkste 
-Misstrauensvotum gegen den lieben Gott. (Karl Krauss)
+>
+>
+> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+> > ---
+> > Changes from v1/v2:
+> > - rebased
+> > Changes from v3:
+> > - removed gerrit-id
+> >
+> >  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
+> >  1 file changed, 55 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d703cb0 100644
+> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+> >               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> >               .index          = 12,
+> >               .size           = 4,
+> > -             .flags          = UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+> > -                             | UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+> > -                             | UVC_CTRL_FLAG_GET_DEF
+> > +             .flags          = UVC_CTRL_FLAG_SET_CUR
+> > +                             | UVC_CTRL_FLAG_GET_RANGE
+> >
+> >                               | UVC_CTRL_FLAG_AUTO_UPDATE,
+> >
+> >       },
+> >       {
+> > @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
+> > uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
+> >  }
+> >
+> > +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __u8 query, const __u8 *data)
+> > +{
+> > +     int first = mapping->offset / 8;
+> > +     __s8 rel = (__s8)data[first];
+> > +
+> > +     switch (query) {
+> > +     case UVC_GET_CUR:
+> > +             return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
+> > +                                              : -data[first+1]);
+> > +     case UVC_GET_MIN:
+> > +             return -data[first+1];
+> > +     case UVC_GET_MAX:
+> > +     case UVC_GET_RES:
+> > +     case UVC_GET_DEF:
+> > +     default:
+> > +             return data[first+1];
+> > +     }
+> > +}
+> > +
+> > +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __s32 value, __u8 *data)
+> > +{
+> > +     int first = mapping->offset / 8;
+> > +
+> > +     data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
+> > +     data[first+1] = min_t(int, abs(value), 0xff);
+> > +}
+> > +
+> >  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+> >       {
+> >               .id             = V4L2_CID_BRIGHTNESS,
+> > @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
+> > { .data_type  = UVC_CTRL_DATA_TYPE_SIGNED,
+> >       },
+> >       {
+> > +             .id             = V4L2_CID_PAN_SPEED,
+> > +             .name           = "Pan (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 0,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> > +             .id             = V4L2_CID_TILT_SPEED,
+> > +             .name           = "Tilt (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 16,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> >               .id             = V4L2_CID_PRIVACY,
+> >               .name           = "Privacy",
+> >               .entity         = UVC_GUID_UVC_CAMERA,
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
