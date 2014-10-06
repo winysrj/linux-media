@@ -1,87 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42965 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaJBFVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:22 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 02/13] cx231xx: use own i2c_client for eeprom access
-Date: Thu,  2 Oct 2014 07:20:54 +0200
-Message-Id: <1412227265-17453-3-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56036 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbaJFXIf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 19:08:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR tracker to grayscale
+Date: Tue, 07 Oct 2014 02:08:41 +0300
+Message-ID: <32858417.QHo0V4RRE4@avalon>
+In-Reply-To: <CA+gwMccBfXtus7mEbGFXidqrNmrttFm24m=x78GRrtgEBC7zjA@mail.gmail.com>
+References: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com> <2999205.OqlimhFfiu@avalon> <CA+gwMccBfXtus7mEbGFXidqrNmrttFm24m=x78GRrtgEBC7zjA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preparation for deleting the otherwise useless i2c_clients
-that are allocated for all the i2c master adapters.
+Hi Philipp,
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+On Monday 06 October 2014 23:45:54 Philipp Zabel wrote:
+> On Mon, Oct 6, 2014 at 4:34 PM, Laurent Pinchart wrote:
+> >> > @@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+> >> >         struct uvc_format_desc *fmtdesc;
+> >> >         struct uvc_frame *frame;
+> >> >         const unsigned char *start = buffer;
+> >> > +       bool force_yuy2_to_y8 = false;
+> > 
+> > To keep things a bit more generic, how about an unsigned int
+> > width_multiplier initialized to 1 and set to 2 when the quirk applies ?
+> 
+> [...]
+> 
+> >> > @@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device
+> >> > *dev,
+> >> > 
+> >> >                 /* Find the format descriptor from its GUID. */
+> >> >                 fmtdesc = uvc_format_by_guid(&buffer[5]);
+> >> > 
+> >> > +               format->bpp = buffer[21];
+> >> > +
+> >> > +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
+> >> > +                       if (fmtdesc && fmtdesc->fcc ==
+> >> > V4L2_PIX_FMT_YUYV
+> >> > &&
+> >> > +                           format->bpp == 16) {
+> > 
+> > I wonder if that check is really needed, all YUYV formats should have
+> > 16bpp.
+> >
+> >> > +                               force_yuy2_to_y8 = true;
+> >> > +                               fmtdesc = &uvc_fmts[9];
+> > 
+> > The hardcoded index here is hair-raising :-) How about something like the
+> > following instead ?
+> > 
+> >                 }
+> >                 
+> >                 format->bpp = buffer[21];
+> > 
+> > +
+> > +               /* Some devices report a format that doesn't match what
+> > they
+> > +                * really send.
+> > +                */
+> > +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
+> > +                       if (format->fcc == V4L2_PIX_FMT_YUYV) {
+> > +                               strlcpy(format->name, "Greyscale 8-bit (Y8
+> >  )",
+> >  +                                       sizeof(format->name));
+> > +                               format->fcc = V4L2_PIX_FMT_GREY;
+> > +                               format->bpp = 8;
+> > +                               width_multiplier = 2;
+> > +                       }
+> > +               }
+> > +
+> > 
+> >                 if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+> >                         ftype = UVC_VS_FRAME_UNCOMPRESSED;
+> >                 } else {
+> > 
+> > I know it duplicates the format string, but as we're trying to move them
+> > to the V4L2 core anyway, I don't see that as being a big problem.
+> 
+> [...]
+> 
+> >> > @@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+> >> > 
+> >> >                 frame->bFrameIndex = buffer[3];
+> >> >                 frame->bmCapabilities = buffer[4];
+> >> >                 frame->wWidth = get_unaligned_le16(&buffer[5]);
+> >> > 
+> >> > +               if (force_yuy2_to_y8)
+> >> > +                       frame->wWidth *= 2;
+> > 
+> > This would become
+> > 
+> > +               frame->wWidth = get_unaligned_le16(&buffer[5])
+> > +                             * width_multiplier;
+> > 
+> > If you're fine with that there's no need to resubmit, I'll modify the
+> > patch when applying it to my tree.
+> 
+> Thank you, I'm fine with your suggested changes.
+> Especially the format setting part looks a lot more civilized now.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 791f00c..092fb85 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
- 
- }
- 
--static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
-+static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
-+		       u8 *eedata, int len)
- {
- 	int ret = 0;
--	u8 addr = 0xa0 >> 1;
- 	u8 start_offset = 0;
- 	int len_todo = len;
- 	u8 *eedata_cur = eedata;
- 	int i;
--	struct i2c_msg msg_write = { .addr = addr, .flags = 0,
-+	struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
- 		.buf = &start_offset, .len = 1 };
--	struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
--
--	/* mutex_lock(&dev->i2c_lock); */
--	cx231xx_enable_i2c_port_3(dev, false);
-+	struct i2c_msg msg_read = { .addr = client->addr, .flags = I2C_M_RD };
- 
- 	/* start reading at offset 0 */
--	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
-+	ret = i2c_transfer(client->adapter, &msg_write, 1);
- 	if (ret < 0) {
- 		cx231xx_err("Can't read eeprom\n");
- 		return ret;
-@@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
- 		msg_read.len = (len_todo > 64) ? 64 : len_todo;
- 		msg_read.buf = eedata_cur;
- 
--		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
-+		ret = i2c_transfer(client->adapter, &msg_read, 1);
- 		if (ret < 0) {
- 			cx231xx_err("Can't read eeprom\n");
- 			return ret;
-@@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 		{
- 			struct tveeprom tvee;
- 			static u8 eeprom[256];
-+			struct i2c_client client;
-+
-+			memset(&client, 0, sizeof(client));
-+			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.addr = 0xa0 >> 1;
- 
--			read_eeprom(dev, eeprom, sizeof(eeprom));
--			tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
-+			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-+			tveeprom_hauppauge_analog(&client,
- 						&tvee, eeprom + 0xc0);
- 			break;
- 		}
+Great. I'll add the patch to my next pull request. Thank you.
+
 -- 
-2.1.1
+Regards,
+
+Laurent Pinchart
 
