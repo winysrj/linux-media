@@ -1,52 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45625 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751448AbaJBOTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 10:19:32 -0400
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: linux-kernel@vger.kernel.org
-Cc: trivial@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
-Subject: [RESEND PATCH] saa7146: Create a device name before it's used
-Date: Thu,  2 Oct 2014 16:19:15 +0200
-Message-Id: <1412259555-19242-1-git-send-email-lkundrak@v3.sk>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:33399 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbaJFVpz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 17:45:55 -0400
+Received: by mail-vc0-f171.google.com with SMTP id hy10so3827906vcb.16
+        for <linux-media@vger.kernel.org>; Mon, 06 Oct 2014 14:45:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <2999205.OqlimhFfiu@avalon>
+References: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com>
+	<CA+gwMccqt9zP4bOdDKyiZa=S+xPuZgcpg4aWcdUCyqwobAnKfQ@mail.gmail.com>
+	<2999205.OqlimhFfiu@avalon>
+Date: Mon, 6 Oct 2014 23:45:54 +0200
+Message-ID: <CA+gwMccBfXtus7mEbGFXidqrNmrttFm24m=x78GRrtgEBC7zjA@mail.gmail.com>
+Subject: Re: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR
+ tracker to grayscale
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-request_irq() uses it, tries to create a procfs file with an empty name
-otherwise.
+Hi Laurent,
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=83771
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
----
- drivers/media/common/saa7146/saa7146_core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Mon, Oct 6, 2014 at 4:34 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> > @@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+>> >         struct uvc_format_desc *fmtdesc;
+>> >         struct uvc_frame *frame;
+>> >         const unsigned char *start = buffer;
+>> > +       bool force_yuy2_to_y8 = false;
+>
+> To keep things a bit more generic, how about an unsigned int width_multiplier
+> initialized to 1 and set to 2 when the quirk applies ?
+[...]
+>> > @@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device *dev,
+>> >
+>> >                 /* Find the format descriptor from its GUID. */
+>> >                 fmtdesc = uvc_format_by_guid(&buffer[5]);
+>> > +               format->bpp = buffer[21];
+>> > +
+>> > +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
+>> > +                       if (fmtdesc && fmtdesc->fcc == V4L2_PIX_FMT_YUYV
+>> > &&
+>> > +                           format->bpp == 16) {
+>
+> I wonder if that check is really needed, all YUYV formats should have 16bpp.
+>
+>> > +                               force_yuy2_to_y8 = true;
+>> > +                               fmtdesc = &uvc_fmts[9];
+>
+> The hardcoded index here is hair-raising :-) How about something like the
+> following instead ?
+>
+>                 }
+>
+>                 format->bpp = buffer[21];
+> +
+> +               /* Some devices report a format that doesn't match what they
+> +                * really send.
+> +                */
+> +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
+> +                       if (format->fcc == V4L2_PIX_FMT_YUYV) {
+> +                               strlcpy(format->name, "Greyscale 8-bit (Y8  )",
+> +                                       sizeof(format->name));
+> +                               format->fcc = V4L2_PIX_FMT_GREY;
+> +                               format->bpp = 8;
+> +                               width_multiplier = 2;
+> +                       }
+> +               }
+> +
+>                 if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+>                         ftype = UVC_VS_FRAME_UNCOMPRESSED;
+>                 } else {
+>
+> I know it duplicates the format string, but as we're trying to move them to
+> the V4L2 core anyway, I don't see that as being a big problem.
+[...]
+>> > @@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
+>> >                 frame->bFrameIndex = buffer[3];
+>> >                 frame->bmCapabilities = buffer[4];
+>> >                 frame->wWidth = get_unaligned_le16(&buffer[5]);
+>> > +               if (force_yuy2_to_y8)
+>> > +                       frame->wWidth *= 2;
+>
+> This would become
+>
+> +               frame->wWidth = get_unaligned_le16(&buffer[5])
+> +                             * width_multiplier;
+>
+> If you're fine with that there's no need to resubmit, I'll modify the patch
+> when applying it to my tree.
 
-diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
-index 97afee6..4418119 100644
---- a/drivers/media/common/saa7146/saa7146_core.c
-+++ b/drivers/media/common/saa7146/saa7146_core.c
-@@ -364,6 +364,9 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
- 		goto out;
- 	}
- 
-+	/* create a nice device name */
-+	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
-+
- 	DEB_EE("pci:%p\n", pci);
- 
- 	err = pci_enable_device(pci);
-@@ -438,9 +441,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
- 
- 	/* the rest + print status message */
- 
--	/* create a nice device name */
--	sprintf(dev->name, "saa7146 (%d)", saa7146_num);
--
- 	pr_info("found saa7146 @ mem %p (revision %d, irq %d) (0x%04x,0x%04x)\n",
- 		dev->mem, dev->revision, pci->irq,
- 		pci->subsystem_vendor, pci->subsystem_device);
--- 
-1.9.3
+Thank you, I'm fine with your suggested changes.
+Especially the format setting part looks a lot more civilized now.
 
+regards
+Philipp
