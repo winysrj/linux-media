@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:54066 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932331AbaJUPIE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 11:08:04 -0400
-From: Sebastian Reichel <sre@kernel.org>
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>
-Subject: [RFCv2 6/8] [media] si4713: add DT binding documentation
-Date: Tue, 21 Oct 2014 17:07:05 +0200
-Message-Id: <1413904027-16767-7-git-send-email-sre@kernel.org>
-In-Reply-To: <1413904027-16767-1-git-send-email-sre@kernel.org>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3703 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582AbaJFHz4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 03:55:56 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s967tq8f008787
+	for <linux-media@vger.kernel.org>; Mon, 6 Oct 2014 09:55:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 38BD42A0376
+	for <linux-media@vger.kernel.org>; Mon,  6 Oct 2014 09:55:51 +0200 (CEST)
+Message-ID: <54324B07.2080408@xs4all.nl>
+Date: Mon, 06 Oct 2014 09:55:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Various fixes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
-radio transmitter.
+Various fixes for v3.18.
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
-new file mode 100644
-index 0000000..5ee5552
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/si4713.txt
-@@ -0,0 +1,30 @@
-+* Silicon Labs FM Radio transmitter
-+
-+The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
-+supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
-+and a digital interface, which supports I2S, left-justified and a custom
-+DSP-mode format. It is programmable through an I2C interface.
-+
-+Required Properties:
-+- compatible: Should contain "silabs,si4713"
-+- reg: the I2C address of the device
-+
-+Optional Properties:
-+- interrupts-extended: Interrupt specifier for the chips interrupt
-+- reset-gpios: GPIO specifier for the chips reset line
-+- vdd-supply: phandle for Vdd regulator
-+- vio-supply: phandle for Vio regulator
-+
-+Example:
-+
-+&i2c2 {
-+        fmtx: si4713@63 {
-+                compatible = "silabs,si4713";
-+                reg = <0x63>;
-+
-+                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
-+                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
-+                vio-supply = <&vio>;
-+                vdd-supply = <&vaux1>;
-+        };
-+};
--- 
-2.1.1
+	Hans
 
+The following changes since commit cf3167cf1e969b17671a4d3d956d22718a8ceb85:
+
+  [media] pt3: fix DTV FE I2C driver load error paths (2014-09-28 22:23:42 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.18e
+
+for you to fetch changes up to 9bff252026c06ec42c60602c1cfc2ad7eb24d1bc:
+
+  saa7146: Create a device name before it's used (2014-10-06 09:48:54 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      vivid: fix Kconfig FB dependency
+      em28xx: fix uninitialized variable warning
+
+Lubomir Rintel (1):
+      saa7146: Create a device name before it's used
+
+ drivers/media/common/saa7146/saa7146_core.c | 6 +++---
+ drivers/media/platform/vivid/Kconfig        | 5 ++++-
+ drivers/media/usb/em28xx/em28xx-core.c      | 2 +-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
