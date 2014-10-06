@@ -1,79 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:63876 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932646AbaJaNOZ (ORCPT
+Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:52872 "EHLO
+	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750809AbaJFQgi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:14:25 -0400
-Received: by mail-pa0-f44.google.com with SMTP id bj1so7696916pad.17
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 06:14:24 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v3 4/7] v4l-utils/libdvbv5: add support for ISDB-S tuning
-Date: Fri, 31 Oct 2014 22:13:41 +0900
-Message-Id: <1414761224-32761-5-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
-References: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
+	Mon, 6 Oct 2014 12:36:38 -0400
+Message-ID: <1412613395.8561.1.camel@x220>
+Subject: Re: [PATCH v2] [media] Remove references to non-existent PLAT_S5P
+ symbol
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Date: Mon, 06 Oct 2014 18:36:35 +0200
+In-Reply-To: <1412611806-9346-1-git-send-email-s.nawrocki@samsung.com>
+References: <1412611806-9346-1-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+On Mon, 2014-10-06 at 18:10 +0200, Sylwester Nawrocki wrote:
+> The PLAT_S5P Kconfig symbol was removed in commit d78c16ccde96
+> ("ARM: SAMSUNG: Remove remaining legacy code"). However, there
+> are still some references to that symbol left, fix that by
+> substituting them with ARCH_S5PV210.
+> 
+> Reported-by: Paul Bolle <pebolle@tiscali.nl>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Added LNB support for Japanese satellites.
-Currently tested with dvbv5-zap, dvb-fe-tool.
-At least the charset conversion and the parser of
-extended event descriptors are not implemented now,
-as they require some ISDB-S(/T) specific modification.
+Thanks for picking this up!
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- lib/libdvbv5/dvb-sat.c    | 9 +++++++++
- lib/libdvbv5/dvb-v5-std.c | 4 ----
- 2 files changed, 9 insertions(+), 4 deletions(-)
+Should
+     Fixes: d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
 
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index e8df06b..010aebe 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -91,6 +91,13 @@ static const struct dvb_sat_lnb lnb[] = {
- 		.freqrange = {
- 			{ 12200, 12700 }
- 		}
-+	}, {
-+		.name = "Japan 110BS/CS LNBf",
-+		.alias = "110BS",
-+		.lowfreq = 10678,
-+		.freqrange = {
-+			{ 11710, 12751 }
-+		}
- 	},
- };
- 
-@@ -304,6 +311,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
- 		 */
- 		pol_v = 0;
- 		high_band = 1;
-+		if (parms->p.current_sys == SYS_ISDBS)
-+			vol_high = 1;
- 	} else {
- 		/* Adjust voltage/tone accordingly */
- 		if (parms->p.sat_number < 2) {
-diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
-index 871de95..50365cb 100644
---- a/lib/libdvbv5/dvb-v5-std.c
-+++ b/lib/libdvbv5/dvb-v5-std.c
-@@ -154,11 +154,7 @@ const unsigned int sys_turbo_props[] = {
- 
- const unsigned int sys_isdbs_props[] = {
- 	DTV_FREQUENCY,
--	DTV_INVERSION,
--	DTV_SYMBOL_RATE,
--	DTV_INNER_FEC,
- 	DTV_STREAM_ID,
--	DTV_POLARIZATION,
- 	0
- };
- 
--- 
-2.1.3
+be added so this will end up in stable for v3.17?
+
+>  drivers/media/platform/Kconfig            |    6 +++---
+>  drivers/media/platform/exynos4-is/Kconfig |    2 +-
+>  drivers/media/platform/s5p-tv/Kconfig     |    2 +-
+>  3 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index bee9074..3aac88f 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -166,7 +166,7 @@ config VIDEO_MEM2MEM_DEINTERLACE
+>  config VIDEO_SAMSUNG_S5P_G2D
+>  	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2
+> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	depends on HAS_DMA
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+> @@ -178,7 +178,7 @@ config VIDEO_SAMSUNG_S5P_G2D
+>  config VIDEO_SAMSUNG_S5P_JPEG
+>  	tristate "Samsung S5P/Exynos3250/Exynos4 JPEG codec driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2
+> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	depends on HAS_DMA
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+> @@ -189,7 +189,7 @@ config VIDEO_SAMSUNG_S5P_JPEG
+>  config VIDEO_SAMSUNG_S5P_MFC
+>  	tristate "Samsung S5P MFC Video Codec"
+>  	depends on VIDEO_DEV && VIDEO_V4L2
+> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	depends on HAS_DMA
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	default n
+> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+> index 77c9512..b7b2e47 100644
+> --- a/drivers/media/platform/exynos4-is/Kconfig
+> +++ b/drivers/media/platform/exynos4-is/Kconfig
+> @@ -2,7 +2,7 @@
+>  config VIDEO_SAMSUNG_EXYNOS4_IS
+>  	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	depends on OF && COMMON_CLK
+>  	help
+>  	  Say Y here to enable camera host interface devices for
+> diff --git a/drivers/media/platform/s5p-tv/Kconfig b/drivers/media/platform/s5p-tv/Kconfig
+> index a9d56f8..beb180e 100644
+> --- a/drivers/media/platform/s5p-tv/Kconfig
+> +++ b/drivers/media/platform/s5p-tv/Kconfig
+> @@ -9,7 +9,7 @@
+>  config VIDEO_SAMSUNG_S5P_TV
+>  	bool "Samsung TV driver for S5P platform"
+>  	depends on PM_RUNTIME
+> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	default n
+>  	---help---
+>  	  Say Y here to enable selecting the TV output devices for
+
+
+Paul Bolle
 
