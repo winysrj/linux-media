@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2781 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751059AbaJKQOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Oct 2014 12:14:51 -0400
-From: Vinod Koul <vinod.koul@intel.com>
-To: dmaengine@vger.kernel.org
-Cc: Vinod Koul <vinod.koul@intel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:27929 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814AbaJFNFo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 09:05:44 -0400
+Message-id: <543293A5.1090506@samsung.com>
+Date: Mon, 06 Oct 2014 15:05:41 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 03/12] [media] V4L2: mx3_camer: use dmaengine_pause() API
-Date: Sat, 11 Oct 2014 21:10:31 +0530
-Message-Id: <1413042040-28222-3-git-send-email-vinod.koul@intel.com>
-In-Reply-To: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
-References: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
+	Kukjin Kim <kgene.kim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Valentin Rothberg <valentinrothberg@gmail.com>
+Subject: Re: [PATCH 2/4] [media] exynos4-is: Remove optional dependency on
+ PLAT_S5P
+References: <1412586485.4054.40.camel@x220>
+ <54328D18.2000606@cogentembedded.com>
+In-reply-to: <54328D18.2000606@cogentembedded.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The drivers should use dmaengine_pause() API instead of
-accessing the device_control which will be deprecated soon
+On 06/10/14 14:37, Sergei Shtylyov wrote:
+>> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+>> index 77c951237744..775c3278d0eb 100644
+>> --- a/drivers/media/platform/exynos4-is/Kconfig
+>> +++ b/drivers/media/platform/exynos4-is/Kconfig
+>> @@ -2,7 +2,7 @@
+>>   config VIDEO_SAMSUNG_EXYNOS4_IS
+>>   	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
+>>   	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+>> +	depends on (ARCH_EXYNOS || COMPILE_TEST)
+> 
+>     Perhaps it's time to drop the useless parens?
 
-Signed-off-by: Vinod Koul <vinod.koul@intel.com>
----
- drivers/media/platform/soc_camera/mx3_camera.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+Good point, let me prepare patches to clean that up.
 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 83315df..7696a87 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -415,10 +415,8 @@ static void mx3_stop_streaming(struct vb2_queue *q)
- 	struct mx3_camera_buffer *buf, *tmp;
- 	unsigned long flags;
- 
--	if (ichan) {
--		struct dma_chan *chan = &ichan->dma_chan;
--		chan->device->device_control(chan, DMA_PAUSE, 0);
--	}
-+	if (ichan)
-+		dmaengine_pause(&ichan->dma_chan);
- 
- 	spin_lock_irqsave(&mx3_cam->lock, flags);
- 
--- 
-1.7.0.4
+--
+Thanks,
+Sylwester
+
 
