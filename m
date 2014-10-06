@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:34499 "EHLO smtp.outflux.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753861AbaJTVtQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 17:49:16 -0400
-Date: Mon, 20 Oct 2014 14:49:04 -0700
-From: Kees Cook <keescook@chromium.org>
-To: linux-kernel@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] anysee: make sure loading modules is const
-Message-ID: <20141020214904.GA32437@www.outflux.net>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:51383 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267AbaJFMhq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 08:37:46 -0400
+Received: by mail-lb0-f169.google.com with SMTP id 10so4158331lbg.0
+        for <linux-media@vger.kernel.org>; Mon, 06 Oct 2014 05:37:44 -0700 (PDT)
+Message-ID: <54328D18.2000606@cogentembedded.com>
+Date: Mon, 06 Oct 2014 16:37:44 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Paul Bolle <pebolle@tiscali.nl>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+CC: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Valentin Rothberg <valentinrothberg@gmail.com>
+Subject: Re: [PATCH 2/4] [media] exynos4-is: Remove optional dependency on
+ PLAT_S5P
+References: <1412586485.4054.40.camel@x220>
+In-Reply-To: <1412586485.4054.40.camel@x220>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure that loaded modules are const char strings so we don't
-load arbitrary modules in the future, nor allow for format string
-leaks in the module request call.
+Hello.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/media/usb/dvb-usb-v2/anysee.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On 10/6/2014 1:08 PM, Paul Bolle wrote:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
-index d3c5f230e97a..ae917c042a52 100644
---- a/drivers/media/usb/dvb-usb-v2/anysee.c
-+++ b/drivers/media/usb/dvb-usb-v2/anysee.c
-@@ -630,8 +630,8 @@ error:
- 	return ret;
- }
- 
--static int anysee_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
--		void *platform_data)
-+static int anysee_add_i2c_dev(struct dvb_usb_device *d, const char *type,
-+		u8 addr, void *platform_data)
- {
- 	int ret, num;
- 	struct anysee_state *state = d_to_priv(d);
-@@ -659,7 +659,7 @@ static int anysee_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
- 		goto err;
- 	}
- 
--	request_module(board_info.type);
-+	request_module("%s", board_info.type);
- 
- 	/* register I2C device */
- 	client = i2c_new_device(adapter, &board_info);
--- 
-1.9.1
+> Commit d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
+> removed the Kconfig symbol PLAT_S5P. Remove an optional dependency on
+> that symbol from this Kconfig file too.
 
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+>   drivers/media/platform/exynos4-is/Kconfig | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Kees Cook
-Chrome OS Security
+> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+> index 77c951237744..775c3278d0eb 100644
+> --- a/drivers/media/platform/exynos4-is/Kconfig
+> +++ b/drivers/media/platform/exynos4-is/Kconfig
+> @@ -2,7 +2,7 @@
+>   config VIDEO_SAMSUNG_EXYNOS4_IS
+>   	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
+>   	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+> +	depends on (ARCH_EXYNOS || COMPILE_TEST)
+
+    Perhaps it's time to drop the useless parens?
+
+WBR, Sergei
+
