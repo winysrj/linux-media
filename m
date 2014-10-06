@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:56841 "EHLO
-	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbaJDLXH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 07:23:07 -0400
-Received: by mail-oi0-f50.google.com with SMTP id i138so1866753oig.9
-        for <linux-media@vger.kernel.org>; Sat, 04 Oct 2014 04:23:07 -0700 (PDT)
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1140 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086AbaJFHpz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 03:45:55 -0400
+Message-ID: <5432489A.60202@xs4all.nl>
+Date: Mon, 06 Oct 2014 09:45:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Sat, 4 Oct 2014 13:23:07 +0200
-Message-ID: <CAEVwYfjyCU4N-3-Z9BbZpePNxpdkQ=n5ch+HPg4JpZxTnVKmQQ@mail.gmail.com>
-Subject: Hauppauge HVR-5500, studder/lag with HD Channels
-From: beta992 <beta992@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Stevean Raja Kumar <rk.stevean@gmail.com>, m.chehab@samsung.com,
+	gregkh@linuxfoundation.org, aybuke.147@gmail.com,
+	tapaswenipathak@gmail.com, paul.gortmaker@windriver.com,
+	monamagarwal123@gmail.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: Added semicolon.
+References: <20141004184316.GA6561@srkjfone>
+In-Reply-To: <20141004184316.GA6561@srkjfone>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yesterday I upgraded to the Linux kernel 3.17RC7 and build & installed
-the latest drivers from the media-tree (devel-3.17-rc6 branch).
+On 10/04/2014 08:43 PM, Stevean Raja Kumar wrote:
+> Added semicolon for the line usleep_range(10000, 11000);
 
-When switching to HD channels I'm getting a lot of lag, switching back
-to SD channels, it works without any lag/issues.
-It's not a GPU problem, because it worked (great) before and
-everything else is smooth.
+Against which kernel is this patch? I don't see a usleep_range in either the mainline
+kernel or the media_tree.git kernel.
 
-I can't see any debug output (e.g. dmesg) thought, but on TVHeadend I
-get a lot of stream errors.
-When playing a stream over HTTP (with TVHeadend) on another computer,
-it works OK.
+Regards,
 
-Could it be an issue with the processing on the TV-card that happens
-when decoding HD-channels for ouput (on the same computer/display)?
+	Hans
 
+> 
+> Signed-off-by: Stevean Raja Kumar <rk.stevean@gmail.com>
+> ---
+>  drivers/staging/media/cxd2099/cxd2099.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+> index cda1595..657ea48 100644
+> --- a/drivers/staging/media/cxd2099/cxd2099.c
+> +++ b/drivers/staging/media/cxd2099/cxd2099.c
+> @@ -527,7 +527,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+>  		u8 val;
+>  #endif
+>  		for (i = 0; i < 100; i++) {
+> -			usleep_range(10000, 11000)
+> +			usleep_range(10000, 11000);
+>  #if 0
+>  			read_reg(ci, 0x06, &val);
+>  			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
+> 
 
-Hope you guys can take a look,
-
-If more debug info is needed, please let me know.
-
-
-Thanks!
