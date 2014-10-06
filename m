@@ -1,107 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:57522 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbaJLKDw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 06:03:52 -0400
-Received: by mail-la0-f46.google.com with SMTP id gi9so5343505lab.19
-        for <linux-media@vger.kernel.org>; Sun, 12 Oct 2014 03:03:50 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: nibble.max@gmail.com, Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 3/4] dvbsky: clean logging
-Date: Sun, 12 Oct 2014 13:03:10 +0300
-Message-Id: <1413108191-32510-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
-References: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1251 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750888AbaJFHQw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 03:16:52 -0400
+Message-ID: <543241DE.6090507@xs4all.nl>
+Date: Mon, 06 Oct 2014 09:16:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: stable@vger.kernel.org
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] media/vb2: fix VBI/poll regression
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev_err includes the function name in the log printout, so there is no need to include it manually. While here, fix a small grammatical error in the i2c error message.
+This is a backport of mainline commit 58d75f4b1ce26324b4d809b18f94819843a98731
+for kernels 3.15 and 3.16. 
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+The recent conversion of saa7134 to vb2 uncovered a poll() bug that
+broke the teletext applications alevt and mtt. These applications
+expect that calling poll() without having called VIDIOC_STREAMON will
+cause poll() to return POLLERR. That did not happen in vb2.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index fabe3f5..5c7387a 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -101,8 +101,7 @@ static int dvbsky_gpio_ctrl(struct dvb_usb_device *d, u8 gport, u8 value)
- 	obuf[2] = value;
- 	ret = dvbsky_usb_generic_rw(d, obuf, 3, ibuf, 1);
- 	if (ret)
--		dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
--			KBUILD_MODNAME, __func__, ret);
-+		dev_err(&d->udev->dev, "failed=%d\n", ret);
- 	return ret;
+This patch fixes that behavior. It also fixes what should happen when
+poll() is called when STREAMON is called but no buffers have been
+queued. In that case poll() will also return POLLERR.
+
+This brings the vb2 behavior in line with the old videobuf behavior.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7c4489c..ad4dd2d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -967,6 +967,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	 * to the userspace.
+ 	 */
+ 	req->count = allocated_buffers;
++	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 
+ 	return 0;
  }
- 
-@@ -119,7 +118,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 
- 	if (num > 2) {
- 		dev_err(&d->udev->dev,
--		"dvbsky_usb: too many i2c messages[%d] than 2.", num);
-+		"too many i2c messages[%d], max 2.", num);
- 		ret = -EOPNOTSUPP;
- 		goto i2c_error;
+@@ -1014,6 +1015,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
+ 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
+ 		q->memory = create->memory;
++		q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
  	}
-@@ -127,7 +126,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 	if (num == 1) {
- 		if (msg[0].len > 60) {
- 			dev_err(&d->udev->dev,
--			"dvbsky_usb: too many i2c bytes[%d] than 60.",
-+			"too many i2c bytes[%d], max 60.",
- 			msg[0].len);
- 			ret = -EOPNOTSUPP;
- 			goto i2c_error;
-@@ -141,8 +140,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 			ret = dvbsky_usb_generic_rw(d, obuf, 4,
- 					ibuf, msg[0].len + 1);
- 			if (ret)
--				dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
--					KBUILD_MODNAME, __func__, ret);
-+				dev_err(&d->udev->dev, "failed=%d\n", ret);
- 			if (!ret)
- 				memcpy(msg[0].buf, &ibuf[1], msg[0].len);
- 		} else {
-@@ -154,13 +152,12 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 			ret = dvbsky_usb_generic_rw(d, obuf,
- 					msg[0].len + 3, ibuf, 1);
- 			if (ret)
--				dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
--					KBUILD_MODNAME, __func__, ret);
-+				dev_err(&d->udev->dev, "failed=%d\n", ret);
- 		}
- 	} else {
- 		if ((msg[0].len > 60) || (msg[1].len > 60)) {
- 			dev_err(&d->udev->dev,
--			"dvbsky_usb: too many i2c bytes[w-%d][r-%d] than 60.",
-+			"too many i2c bytes[w-%d][r-%d], max 60.",
- 			msg[0].len, msg[1].len);
- 			ret = -EOPNOTSUPP;
- 			goto i2c_error;
-@@ -174,8 +171,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 		ret = dvbsky_usb_generic_rw(d, obuf,
- 			msg[0].len + 4, ibuf, msg[1].len + 1);
- 		if (ret)
--			dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
--				KBUILD_MODNAME, __func__, ret);
-+			dev_err(&d->udev->dev, "failed=%d\n", ret);
  
- 		if (!ret)
- 			memcpy(msg[1].buf, &ibuf[1], msg[1].len);
-@@ -206,8 +202,7 @@ static int dvbsky_rc_query(struct dvb_usb_device *d)
- 	obuf[0] = 0x10;
- 	ret = dvbsky_usb_generic_rw(d, obuf, 1, ibuf, 2);
- 	if (ret)
--		dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
--			KBUILD_MODNAME, __func__, ret);
-+		dev_err(&d->udev->dev, "failed=%d\n", ret);
- 	if (ret == 0)
- 		code = (ibuf[0] << 8) | ibuf[1];
- 	if (code != 0xffff) {
--- 
-1.9.1
+ 	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
+@@ -1807,6 +1809,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	 */
+ 	list_add_tail(&vb->queued_entry, &q->queued_list);
+ 	q->queued_count++;
++	q->waiting_for_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+ 		/*
+@@ -2239,6 +2242,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ 	 * their normal dequeued state.
+ 	 */
+ 	__vb2_queue_cancel(q);
++	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 
+ 	dprintk(3, "successful\n");
+ 	return 0;
+@@ -2557,9 +2561,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
+ 
+ 	/*
+-	 * There is nothing to wait for if no buffers have already been queued.
++	 * There is nothing to wait for if the queue isn't streaming.
+ 	 */
+-	if (list_empty(&q->queued_list))
++	if (!vb2_is_streaming(q))
++		return res | POLLERR;
++	/*
++	 * For compatibility with vb1: if QBUF hasn't been called yet, then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize waiting_for_buffers to false.
++	 */
++	if (q->waiting_for_buffers)
+ 		return res | POLLERR;
+ 
+ 	if (list_empty(&q->done_list))
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8fab6fa..d6f010c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -375,6 +375,9 @@ struct v4l2_fh;
+  * @streaming:	current streaming state
+  * @start_streaming_called: start_streaming() was called successfully and we
+  *		started streaming.
++ * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
++ *		buffers. Only set for capture queues if qbuf has not yet been
++ *		called since poll() needs to return POLLERR in that situation.
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -411,6 +414,7 @@ struct vb2_queue {
+ 
+ 	unsigned int			streaming:1;
+ 	unsigned int			start_streaming_called:1;
++	unsigned int			waiting_for_buffers:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
 
