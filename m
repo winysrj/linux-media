@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5204 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932560AbaJWNOD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 09:14:03 -0400
-Message-ID: <5448FF10.5080204@redhat.com>
-Date: Thu, 23 Oct 2014 15:13:52 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:50348 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaJFPwL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 11:52:11 -0400
+Message-ID: <5432BAA7.4010008@gmail.com>
+Date: Mon, 06 Oct 2014 17:52:07 +0200
+From: Tomasz Figa <tomasz.figa@gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: Jacek Anaszewski <j.anaszewski@samsung.com>,
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [v4l-utils RFC 0/2] libmediatext library
-References: <1413888015-26649-1-git-send-email-sakari.ailus@linux.intel.com> <5448CB0B.7090606@redhat.com> <5448CCFC.5080606@linux.intel.com> <4925721.xPZdUSiM3q@avalon>
-In-Reply-To: <4925721.xPZdUSiM3q@avalon>
+CC: pebolle@tiscali.nl, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] [media] Remove references to non-existent PLAT_S5P symbol
+References: <1412609947-8358-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1412609947-8358-1-git-send-email-s.nawrocki@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06.10.2014 17:39, Sylwester Nawrocki wrote:
+> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+> index 77c9512..b3b270a 100644
+> --- a/drivers/media/platform/exynos4-is/Kconfig
+> +++ b/drivers/media/platform/exynos4-is/Kconfig
+> @@ -2,7 +2,7 @@
+>  config VIDEO_SAMSUNG_EXYNOS4_IS
+>  	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+>  	depends on OF && COMMON_CLK
+>  	help
+>  	  Say Y here to enable camera host interface devices for
+> @@ -57,7 +57,7 @@ endif
+>  
+>  config VIDEO_EXYNOS4_FIMC_IS
+>  	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
+> -	depends on HAS_DMA
+> +	depends on HAS_DMA && !ARCH_S5PV210
 
-On 10/23/2014 12:01 PM, Laurent Pinchart wrote:
-> On Thursday 23 October 2014 12:40:12 Sakari Ailus wrote:
->> Hi Hans,
->>
->> Hans de Goede wrote:
->>> Maybe we should merge libmediactl into v4l-utils then ? Rather then
->>> v4l-utils growing an external dependency on it. Sakari ?
->>
->> libmediactl is already a part of v4l-utils, but it's under utils rather
->> than lib directory. Cc Laurent.
+Hmm, does this change really do the intended thing?
 
-Ah.
+Since both S5PV210 and Exynos are multiplatform-aware, now whenever
+ARCH_S5PV210 is enabled, it isn't possible to enable
+VIDEO_EXYNOS4_FIMC_IS, even though ARCH_EXYNOS can be enabled as well at
+the same time.
 
-> I'm fine with moving the libraries to lib, but I'm still not 100% sure the ABI 
-> can be considered stable.
-
-As long as the ABI is not stable lets keep it in utils and statically link it
-into the plugin Jacek is working on for now.
-
-Regards,
-
-Hans
+Best regards,
+Tomasz
