@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42974 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaJBFV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:27 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 05/13] cx231xx: Modifiy the symbolic constants for i2c ports and describe
-Date: Thu,  2 Oct 2014 07:20:57 +0200
-Message-Id: <1412227265-17453-6-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from mailrelay011.isp.belgacom.be ([195.238.6.178]:18845 "EHLO
+	mailrelay011.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753019AbaJFPgs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Oct 2014 11:36:48 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Fabian Frederick <fabf@skynet.be>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/7 linux-next] tw68: remove deprecated IRQF_DISABLED
+Date: Mon,  6 Oct 2014 17:35:50 +0200
+Message-Id: <1412609755-28627-4-git-send-email-fabf@skynet.be>
+In-Reply-To: <1412609755-28627-1-git-send-email-fabf@skynet.be>
+References: <1412609755-28627-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change to I2C_0 ... I2C_2 for the master ports
-and add I2C_1_MUX_1 and I2C_1_MUX_3 for the muxed ones.
+See include/linux/interrupt.h:
+"This flag is a NOOP and scheduled to be removed"
 
-V2: Renamed mux adapters to seperate them from master adapters.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/media/usb/cx231xx/cx231xx.h | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/pci/tw68/tw68-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index c92382f..377216b 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -322,10 +322,11 @@ enum cx231xx_decoder {
- };
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index a6fb48c..63f0b64 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -306,7 +306,7 @@ static int tw68_initdev(struct pci_dev *pci_dev,
  
- enum CX231XX_I2C_MASTER_PORT {
--	I2C_0 = 0,
--	I2C_1 = 1,
--	I2C_2 = 2,
--	I2C_3 = 3
-+	I2C_0 = 0,       /* master 0 - internal connection */
-+	I2C_1 = 1,       /* master 1 - used with mux */
-+	I2C_2 = 2,       /* master 2 */
-+	I2C_1_MUX_1 = 3, /* master 1 - port 1 (I2C_DEMOD_EN = 0) */
-+	I2C_1_MUX_3 = 4  /* master 1 - port 3 (I2C_DEMOD_EN = 1) */
- };
- 
- struct cx231xx_board {
+ 	/* get irq */
+ 	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw68_irq,
+-			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
++			  IRQF_SHARED, dev->name, dev);
+ 	if (err < 0) {
+ 		pr_err("%s: can't get IRQ %d\n",
+ 		       dev->name, pci_dev->irq);
 -- 
-2.1.1
+1.9.3
 
