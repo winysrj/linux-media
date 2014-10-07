@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:33788 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750867AbaJPU6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 16:58:15 -0400
-Date: Thu, 16 Oct 2014 22:49:20 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Tomas Melin <tomas.melin@iki.fi>
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com, a.seppala@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH resend] [media] rc-core: fix protocol_change regression
- in ir_raw_event_register
-Message-ID: <20141016204920.GB16402@hardeman.nu>
-References: <1412879436-7513-1-git-send-email-tomas.melin@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3553 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056AbaJGMJd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 08:09:33 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s97C9UUr065516
+	for <linux-media@vger.kernel.org>; Tue, 7 Oct 2014 14:09:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id E4D3B2A009F
+	for <linux-media@vger.kernel.org>; Tue,  7 Oct 2014 14:09:26 +0200 (CEST)
+Message-ID: <5433D7D7.3090705@xs4all.nl>
+Date: Tue, 07 Oct 2014 14:08:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1412879436-7513-1-git-send-email-tomas.melin@iki.fi>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.18] Various fixes (v2)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 09, 2014 at 09:30:36PM +0300, Tomas Melin wrote:
->IR reciever using nuvoton-cir and lirc was not working anymore after
->upgrade from kernel 3.16 to 3.17-rcX.
->Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
->("[media] rc-core: simplify sysfs code").
->
->The regression comes from adding function change_protocol in
->ir-raw.c. During registration, ir_raw_event_register enables all protocols
->by default. Later, rc_register_device also tests dev->change_protocol and
->changes the enabled protocols based on rc_map type. However, rc_map type
->only defines a single specific protocol, so in the case of a more generic
->driver, this disables all protocols but the one defined by the map.
->
->Changed back to original behaviour by removing empty function
->change_protocol in ir-raw.c. Instead only calling change_protocol for
->drivers that actually have the function set up.
+Various fixes for v3.18.
 
-I think this is already addressed in this thread:
-http://www.spinics.net/lists/linux-media/msg79865.html
+It supersedes this pull request: https://patchwork.linuxtv.org/patch/26348/
+The only change is the addition of the vivid buffer overrun fix.
 
+Regards,
+
+	Hans
+
+The following changes since commit cf3167cf1e969b17671a4d3d956d22718a8ceb85:
+
+  [media] pt3: fix DTV FE I2C driver load error paths (2014-09-28 22:23:42 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.18e
+
+for you to fetch changes up to d3c3935f2e9964f96b93e2239870dc26c6723fd4:
+
+  vivid: fix buffer overrun (2014-10-07 14:03:46 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      vivid: fix Kconfig FB dependency
+      em28xx: fix uninitialized variable warning
+      vivid: fix buffer overrun
+
+Lubomir Rintel (1):
+      saa7146: Create a device name before it's used
+
+ drivers/media/common/saa7146/saa7146_core.c | 6 +++---
+ drivers/media/platform/vivid/Kconfig        | 5 ++++-
+ drivers/media/platform/vivid/vivid-tpg.c    | 2 +-
+ drivers/media/usb/em28xx/em28xx-core.c      | 2 +-
+ 4 files changed, 9 insertions(+), 6 deletions(-)
