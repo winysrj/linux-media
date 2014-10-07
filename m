@@ -1,96 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:34764 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932542AbaJNO7a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 10:59:30 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: m.chehab@samsung.com, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
-	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, perex@perex.cz, tiwai@suse.de,
-	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
-	linux@eikelenboom.it
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 4/6] media: dvb-core changes to use media token api
-Date: Tue, 14 Oct 2014 08:58:40 -0600
-Message-Id: <6053de8c5ffb036ef5c4d4813072ceec6e57e326.1413246372.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1413246370.git.shuahkh@osg.samsung.com>
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1413246370.git.shuahkh@osg.samsung.com>
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+Received: from mail-vc0-f177.google.com ([209.85.220.177]:57190 "EHLO
+	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752654AbaJGQlh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 12:41:37 -0400
+Received: by mail-vc0-f177.google.com with SMTP id hq11so5013276vcb.8
+        for <linux-media@vger.kernel.org>; Tue, 07 Oct 2014 09:41:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <3718548.sH2BZ4J8RZ@avalon>
+References: <CAP_ceTz8BRQoFxkgb085_gOh29x8anvQNodAGMkgOukk02x29g@mail.gmail.com>
+ <1412629559-16624-1-git-send-email-vpalatin@chromium.org> <3718548.sH2BZ4J8RZ@avalon>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Tue, 7 Oct 2014 09:41:16 -0700
+Message-ID: <CAP_ceTymjiPAcRQ1jBbnM20iLiwhqm20wM197VOfVLat-ZUbvA@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Olof Johansson <olofj@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change dvb_frontend_open() to hold tuner and audio tokens
-when frontend is opened in R/W mode. Tuner and audio tokens
-are released when frontend is released in frontend exit state.
-This change allows main dvb application process to hold the
-tokens for all threads it creates and be able to handle channel
-change requests without releasing the tokens thereby risking
-loosing tokens to another application.
+On Tue, Oct 7, 2014 at 9:36 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Vincent,
+>
+> Thank you for the patch. Mauro has already merged this in his tree, it should
+> appear in v3.18-rc1.
+>
 
-Note that media_get_tuner_tkn() will do a get on audio token
-and return with both tuner and audio tokens locked. When tuner
-token released using media_put_tuner_tkn() , audio token is
-released. Initialize dev_parent field struct video_device to
-enable media tuner token lookup from v4l2-core.
+Great ! I missed the merge.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index b8579ee..fcf5f08 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -41,6 +41,7 @@
- #include <linux/jiffies.h>
- #include <linux/kthread.h>
- #include <asm/processor.h>
-+#include <linux/media_tknres.h>
- 
- #include "dvb_frontend.h"
- #include "dvbdev.h"
-@@ -2499,9 +2500,15 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
- 		fepriv->tone = -1;
- 		fepriv->voltage = -1;
- 
-+		/* get tuner and audio tokens - device is opened in R/W */
-+		ret = media_get_tuner_tkn(fe->dvb->device);
-+		if (ret == -EBUSY) {
-+			dev_info(fe->dvb->device, "dvb: Tuner is busy\n");
-+			goto err2;
-+		}
- 		ret = dvb_frontend_start (fe);
- 		if (ret)
--			goto err2;
-+			goto start_err;
- 
- 		/*  empty event queue */
- 		fepriv->events.eventr = fepriv->events.eventw = 0;
-@@ -2511,6 +2518,8 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
- 		mutex_unlock (&adapter->mfe_lock);
- 	return ret;
- 
-+start_err:
-+	media_put_tuner_tkn(fe->dvb->device);
- err2:
- 	dvb_generic_release(inode, file);
- err1:
-@@ -2542,6 +2551,9 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
- 		wake_up(&fepriv->wait_queue);
- 		if (fe->exit != DVB_FE_NO_EXIT)
- 			wake_up(&dvbdev->wait_queue);
-+		/* release token if fe is in exit state */
-+		else
-+			media_put_tuner_tkn(fe->dvb->device);
- 		if (fe->ops.ts_bus_ctrl)
- 			fe->ops.ts_bus_ctrl(fe, 0);
- 	}
+Thanks,
 -- 
-1.7.10.4
+Vincent
 
+>
+> On Monday 06 October 2014 14:05:59 Vincent Palatin wrote:
+> > Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
+> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
+> >
+> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
+> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+> > Verified that it can pan and tilt at the same time in both directions.
+> >
+> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+> > Reviewed-by: Pawel Osciak <posciak@chromium.org>
+> > ---
+> > Changes from v1/v2:
+> > - rebased
+> > Changes from v3:
+> > - removed gerrit-id
+> > Chnages from v4:
+> > - switched "offset" to unsigned int
+> >
+> >  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
+> >  1 file changed, 55 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d2d1755 100644
+> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+> >               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> >               .index          = 12,
+> >               .size           = 4,
+> > -             .flags          = UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+> > -                             | UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+> > -                             | UVC_CTRL_FLAG_GET_DEF
+> > +             .flags          = UVC_CTRL_FLAG_SET_CUR
+> > +                             | UVC_CTRL_FLAG_GET_RANGE
+> >
+> >                               | UVC_CTRL_FLAG_AUTO_UPDATE,
+> >
+> >       },
+> >       {
+> > @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
+> > uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
+> >  }
+> >
+> > +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __u8 query, const __u8 *data)
+> > +{
+> > +     unsigned int first = mapping->offset / 8;
+> > +     __s8 rel = (__s8)data[first];
+> > +
+> > +     switch (query) {
+> > +     case UVC_GET_CUR:
+> > +             return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
+> > +                                              : -data[first+1]);
+> > +     case UVC_GET_MIN:
+> > +             return -data[first+1];
+> > +     case UVC_GET_MAX:
+> > +     case UVC_GET_RES:
+> > +     case UVC_GET_DEF:
+> > +     default:
+> > +             return data[first+1];
+> > +     }
+> > +}
+> > +
+> > +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
+> > +     __s32 value, __u8 *data)
+> > +{
+> > +     unsigned int first = mapping->offset / 8;
+> > +
+> > +     data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
+> > +     data[first+1] = min_t(int, abs(value), 0xff);
+> > +}
+> > +
+> >  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+> >       {
+> >               .id             = V4L2_CID_BRIGHTNESS,
+> > @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
+> > { .data_type  = UVC_CTRL_DATA_TYPE_SIGNED,
+> >       },
+> >       {
+> > +             .id             = V4L2_CID_PAN_SPEED,
+> > +             .name           = "Pan (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 0,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> > +             .id             = V4L2_CID_TILT_SPEED,
+> > +             .name           = "Tilt (Speed)",
+> > +             .entity         = UVC_GUID_UVC_CAMERA,
+> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
+> > +             .size           = 16,
+> > +             .offset         = 16,
+> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
+> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
+> > +             .get            = uvc_ctrl_get_rel_speed,
+> > +             .set            = uvc_ctrl_set_rel_speed,
+> > +     },
+> > +     {
+> >               .id             = V4L2_CID_PRIVACY,
+> >               .name           = "Privacy",
+> >               .entity         = UVC_GUID_UVC_CAMERA,
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
