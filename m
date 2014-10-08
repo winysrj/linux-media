@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:16100 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759274AbaJ3NEU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 09:04:20 -0400
-Date: Thu, 30 Oct 2014 11:04:13 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Behan Webster <behanw@converseincode.com>
-Cc: archit@ti.com, b.zolnierkie@samsung.com, hans.verkuil@cisco.com,
-	k.debski@samsung.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] media, platform,
- LLVMLinux: Remove nested function from ti-vpe
-Message-id: <20141030110413.6a71631e.m.chehab@samsung.com>
-In-reply-to: <1411780305-5685-1-git-send-email-behanw@converseincode.com>
-References: <1411780305-5685-1-git-send-email-behanw@converseincode.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57211 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755174AbaJHKWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 06:22:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Artem S. Tashkinov" <t.artem@lycos.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: Re: Intermittent Logitech C510 problems (with kernel OOPSes)
+Date: Wed, 08 Oct 2014 13:22:43 +0300
+Message-ID: <4947599.bpC5FBQtce@avalon>
+In-Reply-To: <af04e00ec71b9b27b3e30a61f3ca608c@lycos.com>
+References: <af04e00ec71b9b27b3e30a61f3ca608c@lycos.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Sep 2014 18:11:45 -0700
-Behan Webster <behanw@converseincode.com> escreveu:
+Hi Artem,
 
-> Replace the use of nested functions where a normal function will suffice.
+On Tuesday 07 October 2014 11:48:48 Artem S. Tashkinov wrote:
+> Hi,
 > 
-> Nested functions are not liked by upstream kernel developers in general. Their
-> use breaks the use of clang as a compiler, and doesn't make the code any
-> better.
+> I posted a bug report almost a year ago and since it's got zero
+> attention so far I'm writing to this mailing list.
+
+I've CC'ed the linux-media mailing list, as it wasn't in the recipients list 
+of your e-mail.
+
+> My problem is that video capturing doesn't work on Logitech C510 webcam
+> in some cases.
 > 
-> This code now works for both gcc and clang.
+> Mind that audio input always works.
+> 
+> Video capturing is guaranteed not to work after I reboot from Windows 7.
+> 
+> In rare cases it doesn't work when I cold boot straight into Linux.
+> 
+> When I try to capture - either there's no signal and capturing fails to
+> initiate or I get a black screen (a LED on the webcam doesn't turn on in
+> both cases).
+> 
+> If I rmmod ehci_hcd and then modprobe ehci_hcd and uvcvideo, then
+> everything starts working again.
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=67551
 
-I'm ok with this patch, as it makes the code cleaner, but in a few
-cases, such functions could be useful, for example for doing things
-like typecasting or when we need to use multiple versions of the same
-code, one to be used internally and another to be used externally
-with a different set of arguments inside the function call
-(none of this applies here, it seems).
+The kernel log warning message is caused by an issue I'm aware of. I'll try to 
+fix it ASAP, but due to attending conferences next week I might get a bit 
+delayed.
 
-So, I think clang should be fixed anyway to support it.
-
-Anyway, I'll be applying this patch.
-
+-- 
 Regards,
-Mauro
 
-> 
-> Signed-off-by: Behan Webster <behanw@converseincode.com>
-> Suggested-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/platform/ti-vpe/csc.c | 8 ++------
->  drivers/media/platform/ti-vpe/sc.c  | 8 ++------
->  2 files changed, 4 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
-> index 940df40..44fbf41 100644
-> --- a/drivers/media/platform/ti-vpe/csc.c
-> +++ b/drivers/media/platform/ti-vpe/csc.c
-> @@ -93,12 +93,8 @@ void csc_dump_regs(struct csc_data *csc)
->  {
->  	struct device *dev = &csc->pdev->dev;
->  
-> -	u32 read_reg(struct csc_data *csc, int offset)
-> -	{
-> -		return ioread32(csc->base + offset);
-> -	}
-> -
-> -#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(csc, CSC_##r))
-> +#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
-> +	ioread32(csc->base + CSC_##r))
->  
->  	DUMPREG(CSC00);
->  	DUMPREG(CSC01);
-> diff --git a/drivers/media/platform/ti-vpe/sc.c b/drivers/media/platform/ti-vpe/sc.c
-> index 6314171..1088381 100644
-> --- a/drivers/media/platform/ti-vpe/sc.c
-> +++ b/drivers/media/platform/ti-vpe/sc.c
-> @@ -24,12 +24,8 @@ void sc_dump_regs(struct sc_data *sc)
->  {
->  	struct device *dev = &sc->pdev->dev;
->  
-> -	u32 read_reg(struct sc_data *sc, int offset)
-> -	{
-> -		return ioread32(sc->base + offset);
-> -	}
-> -
-> -#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(sc, CFG_##r))
-> +#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
-> +	ioread32(sc->base + CFG_##r))
->  
->  	DUMPREG(SC0);
->  	DUMPREG(SC1);
+Laurent Pinchart
