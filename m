@@ -1,63 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:34425 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751882AbaJTOMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 10:12:55 -0400
-To: Tomas Melin <tomas.melin@iki.fi>
-Subject: Re: [PATCH 2/2] [media] rc-core: change =?UTF-8?Q?enabled=5Fproto?=  =?UTF-8?Q?col=20default=20setting?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Mon, 20 Oct 2014 16:12:54 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com, a.seppala@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tomas Melin <tomas.j.melin@gmail.com>
-In-Reply-To: <1413714113-7456-2-git-send-email-tomas.melin@iki.fi>
-References: <1413714113-7456-1-git-send-email-tomas.melin@iki.fi>
- <1413714113-7456-2-git-send-email-tomas.melin@iki.fi>
-Message-ID: <5ee64319b16d00f8fb800607b1e304a1@hardeman.nu>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36061 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755981AbaJHKYe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 06:24:34 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND400K8SFPMIC70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Oct 2014 11:27:22 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Kiran AVND' <avnd.kiran@samsung.com>, linux-media@vger.kernel.org
+Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
+	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
+	kiran@chromium.org, Andrzej Hajda <a.hajda@samsung.com>
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+ <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com>
+Subject: RE: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size to
+ smaller than the request.
+Date: Wed, 08 Oct 2014 12:24:30 +0200
+Message-id: <11f301cfe2e2$0cacc810$26065830$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-10-19 12:21, Tomas Melin wrote:
-> Change default setting for enabled protocols.
-> Instead of enabling all protocols, disable all except lirc during 
-> registration.
-> Reduces overhead since all protocols not handled by default.
-> Protocol to use will be enabled when keycode table is written by 
-> userspace.
+Hi,
 
-I can see the appeal in this, but now you've disabled automatic decoding 
-for the protocol specified by the keymap for raw drivers? So this would 
-also be a change, right?
+This patch seems complicated and I do not understand your motives.
 
-I agree with Mauro that the "proper" long-term fix would be to teach the 
-LIRC userspace daemon to enable the lirc protocol as/when necessary, but 
-something similar to the patch below (but lirc + keymap protocol...if 
-that's possible to implement in a non-intrusive manner, I haven't 
-checked TBH) might be a good idea as an interim measure?
+Could you explain what is the problem with the current aligning of the
+values?
+Is this a hardware problem? Which MFC version does it affect?
+Is it a software problem? If so, maybe the user space application should
+take extra care on what value it passes/receives to try_fmt?
 
-
+> From: Kiran AVND [mailto:avnd.kiran@samsung.com]
+> Sent: Friday, September 26, 2014 6:52 AM
+> To: linux-media@vger.kernel.org
+> Cc: k.debski@samsung.com; wuchengli@chromium.org; posciak@chromium.org;
+> arun.m@samsung.com; ihf@chromium.org; prathyush.k@samsung.com;
+> arun.kk@samsung.com; kiran@chromium.org
+> Subject: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size
+> to smaller than the request.
 > 
-> Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
+> From: Wu-Cheng Li <wuchengli@chromium.org>
+> 
+> Use the requested size as the minimum bound, unless it's less than the
+> required hardware minimum. The bound align function will align to the
+> closest value but we do not want to adjust below the requested size.
+
+This patch does also change the alignment. This is not mentioned in the
+commit
+message (!). It was 2, now it enforces 16. Could you justify this?
+If I remember correctly having even number was enough for MFC v5 encoder
+to work properly.
+
+> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
 > ---
->  drivers/media/rc/rc-ir-raw.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/rc/rc-ir-raw.c 
-> b/drivers/media/rc/rc-ir-raw.c
-> index a118539..63d23d0 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -256,7 +256,8 @@ int ir_raw_event_register(struct rc_dev *dev)
->  		return -ENOMEM;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 407dc63..7b48180 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -1056,6 +1056,7 @@ static int vidioc_try_fmt(struct file *file, void
+> *priv, struct v4l2_format *f)
+>  	struct s5p_mfc_dev *dev = video_drvdata(file);
+>  	struct s5p_mfc_fmt *fmt;
+>  	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
+> +	u32 min_w, min_h;
 > 
->  	dev->raw->dev = dev;
-> -	dev->enabled_protocols = ~0;
-> +	/* by default, disable all but lirc*/
-> +	dev->enabled_protocols = RC_BIT_LIRC;
->  	rc = kfifo_alloc(&dev->raw->kfifo,
->  			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
->  			 GFP_KERNEL);
+>  	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>  		fmt = find_format(f, MFC_FMT_ENC);
+> @@ -1090,8 +1091,16 @@ static int vidioc_try_fmt(struct file *file,
+> void *priv, struct v4l2_format *f)
+>  			return -EINVAL;
+>  		}
+> 
+> -		v4l_bound_align_image(&pix_fmt_mp->width, 8, 1920, 1,
+> -			&pix_fmt_mp->height, 4, 1080, 1, 0);
+> +		/*
+> +		 * Use the requested size as the minimum bound, unless it's
+> less
+> +		 * than the required hardware minimum. The bound align
+> function
+> +		 * will align to the closest value but we do not want to
+> adjust
+> +		 * below the requested size.
+
+Other drivers use v4l2_bound_align and user space apps can cope with
+the driver returning a value that is below the requested value.
+
+> +		 */
+> +		min_w = min(max(16u, pix_fmt_mp->width), 1920u);
+> +		min_h = min(max(16u, pix_fmt_mp->height), 1088u);
+> +		v4l_bound_align_image(&pix_fmt_mp->width, min_w, 1920, 4,
+> +			&pix_fmt_mp->height, min_h, 1088, 4, 0);
+>  	} else {
+>  		mfc_err("invalid buf type\n");
+>  		return -EINVAL;
+> --
+> 1.7.9.5
+
+
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
