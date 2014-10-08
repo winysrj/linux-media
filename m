@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:33907 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753468AbaJMQQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Oct 2014 12:16:12 -0400
-MIME-Version: 1.0
-In-Reply-To: <1412234489-1330-1-git-send-email-thierry.reding@gmail.com>
-References: <1412234489-1330-1-git-send-email-thierry.reding@gmail.com>
-Date: Mon, 13 Oct 2014 18:16:10 +0200
-Message-ID: <CAMuHMdXG1pD1-O2m1NXp6gr4aVqyqV=-x-nPoWQJMWr_0XF42w@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5p-jpeg: Only build suspend/resume for PM
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:62860 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755174AbaJHMKM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 08:10:12 -0400
+Received: by mail-pa0-f54.google.com with SMTP id ey11so9044071pad.13
+        for <linux-media@vger.kernel.org>; Wed, 08 Oct 2014 05:10:12 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Subject: [PATCH 1/4] v4l-utils/libdvbv5: avoid crash when failed to get a channel name
+Date: Wed,  8 Oct 2014 21:09:38 +0900
+Message-Id: <1412770181-5420-2-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
+References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 2, 2014 at 9:21 AM, Thierry Reding <thierry.reding@gmail.com> wrote:
-> From: Thierry Reding <treding@nvidia.com>
->
-> If power management is disabled these function become unused, so there
-> is no reason to build them. This fixes a couple of build warnings when
-> PM(_SLEEP,_RUNTIME) is not enabled.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Thanks!
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ lib/libdvbv5/dvb-file.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-Despite the availability of your patch, this build warning has
-migrated to mainline.
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index 27d9a63..bcb1762 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -1121,20 +1121,21 @@ static int get_program_and_store(struct dvb_v5_fe_parms_priv *parms,
+ 		if (rc)
+ 			dvb_logerr("Couldn't get frontend props");
+ 	}
+-	if (!*channel) {
+-		r = asprintf(&channel, "%.2fMHz#%d", freq/1000000., service_id);
+-		if (r < 0)
+-			dvb_perror("asprintf");
+-		if (parms->p.verbose)
+-			dvb_log("Storing as: '%s'", channel);
+-	}
+ 	for (j = 0; j < parms->n_props; j++) {
+ 		entry->props[j].cmd = parms->dvb_prop[j].cmd;
+ 		entry->props[j].u.data = parms->dvb_prop[j].u.data;
+ 
+-		if (!*channel && entry->props[j].cmd == DTV_FREQUENCY)
++		if ((!channel || !*channel) &&
++		    entry->props[j].cmd == DTV_FREQUENCY)
+ 			freq = parms->dvb_prop[j].u.data;
+ 	}
++	if (!channel || !*channel) {
++		r = asprintf(&channel, "%.2fMHz#%d", freq/1000000., service_id);
++		if (r < 0)
++			dvb_perror("asprintf");
++		if (parms->p.verbose)
++			dvb_log("Storing as: '%s'", channel);
++	}
+ 	entry->n_props = parms->n_props;
+ 	entry->channel = channel;
+ 
+-- 
+2.1.2
 
-> Signed-off-by: Thierry Reding <treding@nvidia.com>
-
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-
-> @@ -2681,7 +2682,9 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
->
->         return 0;
->  }
-> +#endif
-
-I'd add a comment "/* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */" here,
-as above is a big block of code.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
