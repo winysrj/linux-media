@@ -1,69 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:53443 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbaJEI76 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 04:59:58 -0400
-From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
-	<info@are.ma>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:39277 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756304AbaJHMKQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 08:10:16 -0400
+Received: by mail-pd0-f182.google.com with SMTP id y10so6832068pdj.13
+        for <linux-media@vger.kernel.org>; Wed, 08 Oct 2014 05:10:15 -0700 (PDT)
+From: tskd08@gmail.com
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [PATCH 01/11] tc90522: better chip description
-Date: Sun,  5 Oct 2014 17:59:37 +0900
-Message-Id: <e12c8e2e2e0f84035f58d8a7848dd6f64746a0ba.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: m.chehab@samsung.com
+Subject: [PATCH 2/4] v4l-utils/libdvbv5: add support for ISDB-S tuning
+Date: Wed,  8 Oct 2014 21:09:39 +0900
+Message-Id: <1412770181-5420-3-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
+References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tc90522 has both satellite & terrestrial demodulators,
-thus change the category description
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+Added LNB support for Japanese satellites.
+Currently tested with dvbv5-zap, dvb-fe-tool.
+
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
 ---
- drivers/media/dvb-frontends/Kconfig  | 4 ++--
- drivers/media/dvb-frontends/Makefile | 1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ lib/libdvbv5/dvb-sat.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 5a13454..0c59825 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -621,7 +621,7 @@ config DVB_S5H1411
- 	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
- 	  to support this frontend.
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index e8df06b..70b1021 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -91,6 +91,13 @@ static const struct dvb_sat_lnb lnb[] = {
+ 		.freqrange = {
+ 			{ 12200, 12700 }
+ 		}
++	}, {
++		.name = "Japan 110BS/CS LNBf",
++		.alias = "110BS",
++		.lowfreq = 10678,
++		.freqrange = {
++			{ 11727, 12731 }
++		}
+ 	},
+ };
  
--comment "ISDB-T (terrestrial) frontends"
-+comment "ISDB-S (satellite) & ISDB-T (terrestrial) frontends"
- 	depends on DVB_CORE
+@@ -304,6 +311,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+ 		 */
+ 		pol_v = 0;
+ 		high_band = 1;
++		if (lnb == &lnb[8])
++			vol_high = 1;
+ 	} else {
+ 		/* Adjust voltage/tone accordingly */
+ 		if (parms->p.sat_number < 2) {
+@@ -316,6 +325,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+ 	rc = dvb_fe_sec_voltage(&parms->p, 1, vol_high);
+ 	if (rc)
+ 		return rc;
++	if (parms->p.current_sys == SYS_ISDBS)
++		return 0;
  
- config DVB_S921
-@@ -653,7 +653,7 @@ config DVB_TC90522
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
--	  A Toshiba TC90522 2xISDB-T + 2xISDB-S demodulator.
-+	  Toshiba TC90522 2xISDB-S 8PSK + 2xISDB-T OFDM demodulator.
- 	  Say Y when you want to support this frontend.
- 
- comment "Digital terrestrial only tuners/PLL"
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index ba59df6..6f05615 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -116,3 +116,4 @@ obj-$(CONFIG_DVB_M88RS2000) += m88rs2000.o
- obj-$(CONFIG_DVB_AF9033) += af9033.o
- obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
- obj-$(CONFIG_DVB_TC90522) += tc90522.o
-+
+ 	if (parms->p.sat_number > 0) {
+ 		rc = dvb_fe_sec_tone(&parms->p, SEC_TONE_OFF);
 -- 
-1.8.4.5
+2.1.2
 
