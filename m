@@ -1,118 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42399 "EHLO lists.s-osg.org"
+Received: from smtp208.alice.it ([82.57.200.104]:3395 "EHLO smtp208.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755630AbaJ2Imo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 04:42:44 -0400
-Date: Wed, 29 Oct 2014 06:42:39 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 02/16] cx88: drop the bogus 'queue' list in dmaqueue.
-Message-ID: <20141029064239.329fcb7f@recife.lan>
-In-Reply-To: <54509D2C.5080901@xs4all.nl>
-References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
-	<1411216911-7950-3-git-send-email-hverkuil@xs4all.nl>
-	<20141028165823.5b34cd2a@recife.lan>
-	<54509D2C.5080901@xs4all.nl>
-MIME-Version: 1.0
+	id S1753917AbaJHPzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Oct 2014 11:55:35 -0400
+Date: Wed, 8 Oct 2014 17:49:57 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 1/1] Add a libv4l plugin for Exynos4 camera
+Message-Id: <20141008174957.8451ebb426619d88d7a30cfd@ao2.it>
+In-Reply-To: <54353AA3.3040506@samsung.com>
+References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+	<1412757980-23570-2-git-send-email-j.anaszewski@samsung.com>
+	<54353124.1060704@redhat.com>
+	<54353AA3.3040506@samsung.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Oct 2014 08:54:20 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Wed, 08 Oct 2014 15:22:43 +0200
+Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
 
-> On 10/28/2014 07:58 PM, Mauro Carvalho Chehab wrote:
-> > Em Sat, 20 Sep 2014 14:41:37 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Hi Hans,
+> 
+> On 10/08/2014 02:42 PM, Hans de Goede wrote:
+> > Hi,
+> >
+> > On 10/08/2014 10:46 AM, Jacek Anaszewski wrote:
+> >> The plugin provides support for the media device on Exynos4 SoC.
+> >> Added is also a media device configuration file parser.
+> >> The media configuration file is used for conveying information
+> >> about media device links that need to be established as well
+> >> as V4L2 user control ioctls redirection to a particular
+> >> sub-device.
 > >>
-> >> This list is used some buffers have a different format, but that can
-> >> never happen. Remove it and all associated code.
-> 
-> Urgh. Can you fix the commit log to:
-> 
-> "This list is only used if the width, height and/or format of a buffer has
-> changed, but that can never happen. Remove it and all associated code."
-> 
-> At least that's proper English :-)
-
-Well, change it and resubmit ;) - After our discussions, of course.
-
-> 
+> >> The plugin performs single plane <-> multi plane API conversion,
+> >> video pipeline linking and takes care of automatic data format
+> >> negotiation for the whole pipeline, after intercepting
+> >> VIDIOC_S_FMT or VIDIOC_TRY_FMT ioctls.
 > >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 > >> ---
-> >>  drivers/media/pci/cx88/cx88-mpeg.c  | 31 -----------------------------
-> >>  drivers/media/pci/cx88/cx88-video.c | 39 +++----------------------------------
-> >>  drivers/media/pci/cx88/cx88.h       |  1 -
-> >>  3 files changed, 3 insertions(+), 68 deletions(-)
-> >>
-> >> diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-> >> index 2803b6f..5f59901 100644
-> >> --- a/drivers/media/pci/cx88/cx88-mpeg.c
-> >> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
-> >> @@ -210,37 +210,7 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
-> >>  
-> >>  	dprintk( 1, "cx8802_restart_queue\n" );
-> >>  	if (list_empty(&q->active))
-> >> -	{
-> >> -		struct cx88_buffer *prev;
-> >> -		prev = NULL;
-> >> -
-> >> -		dprintk(1, "cx8802_restart_queue: queue is empty\n" );
-> > 
-> > This is not bogus code. What happens here is that sometimes the DMA 
-> > engine stops on cx88 and it needs to be restarted under some temporary
-> > errors.
-> > 
-> > I don't remember the exact condition, as I don't touch on cx88 on
-> > several years, but I think it happens when the signal drops (for
-> > example, if the antenna cable gets removed, but not 100% sure).
-> > 
-> > So, removing this code will cause regressions.
+> >>   configure.ac                                       |    1 +
+> >>   lib/Makefile.am                                    |    5 +-
+> >>   lib/libv4l-exynos4-camera/Makefile.am              |    7 +
+> >>   .../libv4l-devconfig-parser.h                      |  145 ++
+> >>   lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c  | 2486 ++++++++++++++++++++
+> >>   5 files changed, 2642 insertions(+), 2 deletions(-)
+> >>   create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+> >>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-devconfig-parser.h
+> >>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+> >
+> > Ugh, that is a big plugin. Can you please split out the parser stuff
+> > into a separate file ?
 > 
-> No, it won't. Read carefully how the 'queued' list is used: the only time
-> that an element is added to that list is in buffer_queue() if the width, height
-> or format has changed while streaming. But that can never happen (at least,
-> not after REQBUFS) and that case was removed in patch 01/16. So after patch
-> 01/16 nobody is ever adding buffers to the queued list anymore and it can be
-> removed.
+> Yes, I tried to split it, but spent so much time fighting with
+> autotools, that I decided to submit it in this form and ask
+> more experienced v4l-utils build system maintainers for the advice.
+> I mentioned this in the cover letter.
 > 
-> This patch has nothing to do with restarting DMA. Patch 04/16 is the one that
-> removes the restarting of DMA.
-> 
-> I did a fair amount of regression and duration testing to see if I could
-> reproduce a stopped DMA without being able to. I'm fairly certain that included
-> switching frequency between valid/invalid channels, but I can retry that just to
-> be sure.
 
-If I remember well, it is not switching between valid/invalid. That 
-happens if the signal is not too stable (e. g., either the chrominance
-or luminance or audio carrier is not properly detected). You would likely
-need a life weak signal and/or too much interference to be able to get it.
+What autotools issue in particular?
+The following change followed by "automake && ./configure" should be
+enough to add a new file libv4l-devconfig-parser.c:
 
-I'm pretty sure I got those "cx8802_restart_queue: " from time to time
-without changing any parameters, during "normal" reception of some weak
-channels where I used to live (basically, using internal antennas).
+diff --git a/lib/libv4l-exynos4-camera/Makefile.am b/lib/libv4l-exynos4-camera/Makefile.am
+index 3552ec8..14d461a 100644
+--- a/lib/libv4l-exynos4-camera/Makefile.am
++++ b/lib/libv4l-exynos4-camera/Makefile.am
+@@ -2,6 +2,6 @@ if WITH_V4L_PLUGINS
+ libv4l2plugin_LTLIBRARIES = libv4l-exynos4-camera.la
+ endif
 
-> I am very skeptical that this really has to do with DMA issues: it looks much more
-> like a poorly written driver. As my commit log to patch 04 says the cx88 driver
-> allows userspace to drain all buffers and at that moment it has to halt the DMA
-> and restart when a new buffer is queued up. But it is much simpler and more
-> robust to just keep streaming by always keeping one buffer around, just as almost
-> all other non-usb drivers do.
-> 
-> I have not been able to find any reports that actually mention that the DMA can
-> stop. The same change was done to cx23885 and no reports of any DMA problems have
-> been reported for that either, and I expect that both devices use very similar
-> DMA IP.
+-libv4l_exynos4_camera_la_SOURCES = libv4l-exynos4-camera.c
++libv4l_exynos4_camera_la_SOURCES = libv4l-exynos4-camera.c libv4l-devconfig-parser.c
+ libv4l_exynos4_camera_la_CPPFLAGS = -fvisibility=hidden -std=gnu99
+ libv4l_exynos4_camera_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -lpthread
 
-Hmm... could be. I may try to test it with an internal antenna, but this can
-take some time, as I'm currently trying to get rid of the patch backlog,
-and I have other priorities to work after handling the backlog.
 
-Regards,
-Mauro
+If you wanted to completely reset the build environment you could
+even use "git clean", FWIW I have this "git distclean" alias in
+~/.gitconfig:
+
+[alias]
+	distclean = clean -f -d -X
+
+You'll need to rerun "autoreconf -i" after such a cleanup.
+
+Ciao,
+   Antonio
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
