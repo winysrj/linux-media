@@ -1,30 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:41438 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014AbaJUFKj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 01:10:39 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Received: from ns.uli-eckhardt.de ([85.214.28.137]:38035 "EHLO
+	mail.uli-eckhardt.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751749AbaJHQwP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 12:52:15 -0400
+Message-ID: <54356BB9.5000609@uli-eckhardt.de>
+Date: Wed, 08 Oct 2014 18:52:09 +0200
+From: Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v3 0/3] media: soc_camera: rcar_vin: Add scaling support
-Date: Tue, 21 Oct 2014 14:10:26 +0900
-Message-Id: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
+CC: m.chehab@samsung.com
+Subject: Re: Tevii S480 on Unicable SCR System
+References: <542C4B14.8030708@uli-eckhardt.de>
+In-Reply-To: <542C4B14.8030708@uli-eckhardt.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series is against master branch of linuxtv.org/media_tree.git.
+Hi,
 
-Koji Matsuoka (3):
-  media: soc_camera: rcar_vin: Add scaling support
-  media: soc_camera: rcar_vin: Add capture width check for NV16 format
-  media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
+I have digged a little bit deeper in the code and hopefully found a more general solution 
+by initializing the voltage in dvb_frontend.c in the function dvb_register_frontend.
+This should be a more global approach which may also fix this type of problems
+with other cards. I will test this patch the next days on a different system with a 
+CineS2 V5.5 card.
 
- drivers/media/platform/soc_camera/rcar_vin.c | 478 ++++++++++++++++++++++++++-
- 1 file changed, 468 insertions(+), 10 deletions(-)
+Any opinions about this patch or is my first attempt with patching only the code
+for the Tevii S480 a better solution?
 
+-----------------------------------------------------------------------------
+diff -r f62f56c648b0 drivers/media/dvb-core/dvb_frontend.c
+--- a/drivers/media/dvb-core/dvb_frontend.c     Wed Oct 08 17:30:52 2014 +0200
++++ b/drivers/media/dvb-core/dvb_frontend.c     Wed Oct 08 17:40:20 2014 +0200
+@@ -2622,6 +2622,14 @@
+                             fe, DVB_DEVICE_FRONTEND);
+ 
+        /*
++        * Ensure that frontend voltage is switched off on initialization
++        */
++       if (dvb_powerdown_on_sleep) {
++               if (fe->ops.set_voltage)
++                       fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
++       }
++
++       /*
+         * Initialize the cache to the proper values according with the
+         * first supported delivery system (ops->delsys[0])
+         */
+
+-----------------------------------------------------------------------------
+
+Am 01.10.2014 um 20:42 schrieb Ulrich Eckhardt:
+> Hi,
+> 
+> i have a development computer with a Tevii S480 connected to a Satellite channel
+> router (EN50494). As long as I haven't started a video application this
+> computers blocks any other receiver connected to this cable. I have measured the
+> output of the Tevii card and found, that after start of the computer, the output
+> is set to 18V. This is not reset after loading and initializing the drivers. So
+> no other receiver could sent DiSEqC commands to the SCR until
+> a video application at this computer initializes the voltage correctly. I think
+> the voltage needs to be switched off until this card is really in use by an
+> application.
+> 
+> I have patched the file drivers/media/dvb-frontends/ds3000.c to initialize the
+> voltage to OFF, which works for me. But I am not sure, if this is really the
+> correct solution:
 -- 
-1.9.1
+Ulrich Eckhardt                  http://www.uli-eckhardt.de
+
+Ein Blitzableiter auf dem Kirchturm ist das denkbar stärkste 
+Misstrauensvotum gegen den lieben Gott. (Karl Krauss)
 
