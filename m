@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:41396 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbaJISMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 14:12:47 -0400
-Received: by mail-pd0-f173.google.com with SMTP id g10so193042pdj.32
-        for <linux-media@vger.kernel.org>; Thu, 09 Oct 2014 11:12:47 -0700 (PDT)
-Message-ID: <5436BAD4.80207@gmail.com>
-Date: Fri, 10 Oct 2014 01:41:56 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33247 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756130AbaJHLdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Oct 2014 07:33:38 -0400
+Date: Wed, 8 Oct 2014 14:33:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: omap3isp Device Tree support status
+Message-ID: <20141008113303.GY2939@valkosipuli.retiisi.org.uk>
+References: <20140928221341.GQ2939@valkosipuli.retiisi.org.uk>
+ <54330499.50905@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/4] v4l-utils:libdvbv5,dvb: add basic support for ISDB-S
-References: <1412770181-5420-1-git-send-email-tskd08@gmail.com> <20141008132207.2afc6ff8.m.chehab@samsung.com>
-In-Reply-To: <20141008132207.2afc6ff8.m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54330499.50905@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Mauro,
-thanks for the review.
+Hi Alaganjar,
 
-I'll update the patch soon.
-And I wrote some comments and questions as a reply to
-your each review mail.
-
-On 2014年10月09日 01:22, Mauro Carvalho Chehab wrote:
-
-> Yeah, it will likely require a table just like the one we've added
-> for EN 300 468 specific charset with the euro sign.
+On Tue, Oct 07, 2014 at 02:37:37AM +0530, Alaganraj Sandhanam wrote:
+> Hi Sakari,
 > 
-> There are some patches for charset decoding like this one:
+> Thanks for the patches.
+> On Monday 29 September 2014 03:43 AM, Sakari Ailus wrote:
+> > Hi,
+> > 
+> > I managed to find some time for debugging my original omap3isp DT support
+> > patchset (which includes smiapp DT support as well), and found a few small
+> > but important bugs.
+> > 
+> > The status is now that images can be captured using the Nokia N9 camera, in
+> > which the sensor is connected to the CSI-2 interface. Laurent confirmed that
+> > the parallel interface worked for him (Beagleboard, mt9p031 sensor on
+> > Leopard imaging's li-5m03 board).
+> Good news!
+> > 
+> > These patches (on top of the smiapp patches I recently sent for review which
+> > are in much better shape) are still experimental and not ready for review. I
+> > continue to clean them up and post them to the list when that is done. For
+> > now they can be found here:
+> > 
+> > <URL:http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt>
+> > 
+> I couldn't clone the repo, getting "remote corrupt" error.
 > 
-> http://marc.info/?l=mplayer-dev-eng&m=125642040004816
+> $ git remote -v
+> media-sakari	git://linuxtv.org/sailus/media_tree.git (fetch)
+> media-sakari	git://linuxtv.org/sailus/media_tree.git (push)
+> origin	git://linuxtv.org/media_tree.git (fetch)
+> origin	git://linuxtv.org/media_tree.git (push)
+> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (fetch)
+> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (push)
+> 
+> $ git fetch media-sakari
+> warning: cannot parse SRV response: Message too long
+> remote: error: Could not read 5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+> remote: fatal: revision walk setup failed
+> remote: aborting due to possible repository corruption on the remote side.
+> fatal: protocol error: bad pack header
 
-I already looked over other examples in some Japan local patches
-to the applications like mplayer,gstreamer, mythtv...,
-( https://github.com/0p1pp1?tab=repositories
-  https://github.com/takaakis62/mythtv_isdb )
-so I'm going to reuse those code.
+I'm not sure what this could be related. Can you fetch from other trees,
+e.g. your origin remote? Do you get the same error from the remote on
+vihersipuli, and by using http instead?
 
-regards,
-akihiro
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
