@@ -1,76 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:58784 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbaJQGoe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 02:44:34 -0400
-MIME-Version: 1.0
-In-Reply-To: <20141017060248.GA7166@verge.net.au>
-References: <1413271224-9792-1-git-send-email-ykaneko0929@gmail.com>
-	<Pine.LNX.4.64.1410162222550.16927@axis700.grange>
-	<20141017060248.GA7166@verge.net.au>
-Date: Fri, 17 Oct 2014 15:44:34 +0900
-Message-ID: <CAH1o70+s4xTfQKbBRCRdgHibAWG5NTBP-PnhVqotB_HLpSBbGQ@mail.gmail.com>
-Subject: Re: [PATCH 0/2] media: soc_camera: rcar_vin: Add r8a7794, r8a7793
- device support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Simon Horman <horms@verge.net.au>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:10132 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755288AbaJHK0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 06:26:12 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND400I8YFSD8170@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Oct 2014 11:29:01 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Kiran AVND' <avnd.kiran@samsung.com>, linux-media@vger.kernel.org
+Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
+	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
+	kiran@chromium.org
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
+ <1411707142-4881-8-git-send-email-avnd.kiran@samsung.com>
+In-reply-to: <1411707142-4881-8-git-send-email-avnd.kiran@samsung.com>
+Subject: RE: [PATCH v2 07/14] [media] s5p-mfc: Don't crash the kernel if the
+ watchdog kicks in.
+Date: Wed, 08 Oct 2014 12:26:08 +0200
+Message-id: <11f401cfe2e2$46d42bf0$d47c83d0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-10-17 15:02 GMT+09:00 Simon Horman <horms@verge.net.au>:
-> Hi Guennadi,
->
-> On Thu, Oct 16, 2014 at 10:27:13PM +0200, Guennadi Liakhovetski wrote:
->> Hello,
->>
->> Thanks for the patches. Could you please fold these two into one - they
->> really don't deserve to be separated.
->
-> Thanks. Kaneko-san could you squash these patches and repost?
+Hi,
 
-Sure, will do.
+This patch does not apply to the current media tree.
 
->
->> As for your other series - patches
->> there look mostly good - from just a formal review. If you don't mind,
->> I'll adjust a couple of cosmetic issues like missing curly braces in
->>
->>       if (a)
->>               x();
->>       else {
->>               y();
->>               z();
->>       }
->>
->> or multiline comments or similar minor things.
->
-> Feel free to make any minor updates.
->
->> Thanks
->> Guennadi
->>
->> On Tue, 14 Oct 2014, Yoshihiro Kaneko wrote:
->>
->> > This series is against master branch of linuxtv.org/media_tree.git.
->> >
->> > Koji Matsuoka (2):
->> >   media: soc_camera: rcar_vin: Add r8a7794 device support
->> >   media: soc_camera: rcar_vin: Add r8a7793 device support
->> >
->> >  drivers/media/platform/soc_camera/rcar_vin.c | 2 ++
->> >  1 file changed, 2 insertions(+)
->> >
->> > --
->> > 1.9.1
->> >
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+commit cf3167cf1e969b17671a4d3d956d22718a8ceb85)
+Author: Antti Palosaari <crope@iki.fi>
+Date:   Fri Sep 26 22:45:36 2014 -0300
+
+    [media] pt3: fix DTV FE I2C driver load error paths
+    
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: Kiran AVND [mailto:avnd.kiran@samsung.com]
+> Sent: Friday, September 26, 2014 6:52 AM
+> To: linux-media@vger.kernel.org
+> Cc: k.debski@samsung.com; wuchengli@chromium.org; posciak@chromium.org;
+> arun.m@samsung.com; ihf@chromium.org; prathyush.k@samsung.com;
+> arun.kk@samsung.com; kiran@chromium.org
+> Subject: [PATCH v2 07/14] [media] s5p-mfc: Don't crash the kernel if
+> the watchdog kicks in.
+> 
+> From: Pawel Osciak <posciak@chromium.org>
+> 
+> If the software watchdog kicks in, the watchdog worker is not
+> synchronized with hardware interrupts and does not block other
+> instances. It's possible for it to clear the hw_lock, making other
+> instances trigger a BUG() on hw_lock checks. Since it's not fatal to
+> clear the hw_lock to zero twice, just WARN in those cases for now. We
+> should not explode, as firmware will return errors as needed for other
+> instances after it's reloaded, or they will time out.
+> 
+> A clean fix should involve killing other instances when watchdog kicks
+> in, but requires a major redesign of locking in the driver.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c |   25 +++++++---------------
+> ---
+>  1 file changed, 7 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 3fc2f8a..8d5da0c 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -337,8 +337,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
+> *ctx,
+>  		ctx->state = MFCINST_RES_CHANGE_INIT;
+>  		s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+>  		wake_up_ctx(ctx, reason, err);
+> -		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -			BUG();
+> +		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  		s5p_mfc_clock_off();
+>  		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+>  		return;
+> @@ -410,8 +409,7 @@ leave_handle_frame:
+>  		clear_work_bit(ctx);
+>  	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+>  	wake_up_ctx(ctx, reason, err);
+> -	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -		BUG();
+> +	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  	s5p_mfc_clock_off();
+>  	/* if suspending, wake up device and do not try_run again*/
+>  	if (test_bit(0, &dev->enter_suspend))
+> @@ -458,8 +456,7 @@ static void s5p_mfc_handle_error(struct s5p_mfc_dev
+> *dev,
+>  			break;
+>  		}
+>  	}
+> -	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -		BUG();
+> +	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+>  	s5p_mfc_clock_off();
+>  	wake_up_dev(dev, reason, err);
+> @@ -513,8 +510,7 @@ static void s5p_mfc_handle_seq_done(struct
+> s5p_mfc_ctx *ctx,
+>  	}
+>  	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+>  	clear_work_bit(ctx);
+> -	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -		BUG();
+> +	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  	s5p_mfc_clock_off();
+>  	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+>  	wake_up_ctx(ctx, reason, err);
+> @@ -552,19 +548,13 @@ static void s5p_mfc_handle_init_buffers(struct
+> s5p_mfc_ctx *ctx,
+>  		} else {
+>  			ctx->dpb_flush_flag = 0;
+>  		}
+> -		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -			BUG();
+> -
+> +		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  		s5p_mfc_clock_off();
+> -
+>  		wake_up(&ctx->queue);
+>  		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+>  	} else {
+> -		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -			BUG();
+> -
+> +		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  		s5p_mfc_clock_off();
+> -
+>  		wake_up(&ctx->queue);
+>  	}
+>  }
+> @@ -638,8 +628,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+>  				mfc_err("post_frame_start() failed\n");
+>  			s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+>  			wake_up_ctx(ctx, reason, err);
+> -			if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+> -				BUG();
+> +			WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+>  			s5p_mfc_clock_off();
+>  			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+>  		} else {
+> --
+> 1.7.9.5
+
