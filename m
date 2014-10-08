@@ -1,88 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f170.google.com ([209.85.216.170]:35463 "EHLO
-	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755329AbaJWMPD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 08:15:03 -0400
-Received: by mail-qc0-f170.google.com with SMTP id l6so856362qcy.1
-        for <linux-media@vger.kernel.org>; Thu, 23 Oct 2014 05:15:02 -0700 (PDT)
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:52495 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035AbaJHOe7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 10:34:59 -0400
+Message-ID: <54354B8D.8050208@collabora.com>
+Date: Wed, 08 Oct 2014 10:34:53 -0400
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <1414065430.3854.3.camel@pengutronix.de>
-References: <1411401956-29330-1-git-send-email-p.zabel@pengutronix.de>
-	<CAPDyKFqSgpOCvXp0aVVTFDj5X6fYkigThXM1VKK_vTWrjhpx6A@mail.gmail.com>
-	<1414065430.3854.3.camel@pengutronix.de>
-Date: Thu, 23 Oct 2014 14:15:02 +0200
-Message-ID: <CAPDyKFropocTuz-3rsQU_Ft-eTQAavn+P4ef4d2Qd0kuhSK3WQ@mail.gmail.com>
-Subject: Re: [PATCH v2] [media] coda: Improve runtime PM support
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	"linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Kevin Hilman <khilman@linaro.org>,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Content-Type: text/plain; charset=UTF-8
+To: Kamil Debski <k.debski@samsung.com>,
+	'Kiran AVND' <avnd.kiran@samsung.com>,
+	linux-media@vger.kernel.org
+CC: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
+	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
+	kiran@chromium.org, Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size
+ to smaller than the request.
+References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com> <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com> <11f301cfe2e2$0cacc810$26065830$%debski@samsung.com>
+In-Reply-To: <11f301cfe2e2$0cacc810$26065830$%debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 October 2014 13:57, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Ulf,
->
-> Am Montag, den 22.09.2014, 20:44 +0200 schrieb Ulf Hansson:
->> On 22 September 2014 18:05, Philipp Zabel <p.zabel@pengutronix.de> wrote:
->> > From: Ulf Hansson <ulf.hansson@linaro.org>
->> >
->> > For several reasons it's good practice to leave devices in runtime PM
->> > active state while those have been probed.
->> >
->> > In this cases we also want to prevent the device from going inactive,
->> > until the firmware has been completely installed, especially when using
->> > a PM domain.
->> >
->> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
->> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->>
->> Thanks for moving this to the next version, I have been a bit busy the
->> last week.
->>
->> Changes looking good!
->
-> If I load the coda module on v3.18-rc1 with the GPC power domain patch
-> applied (at this point the power domain is disabled), the domain's
-> poweron callback is never called. It does work tough if I switch back to
-> explicitly calling pm_runtime_get_sync:
->
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index ac71e11..5421969 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -2393,9 +2393,8 @@ static int coda_probe(struct platform_device *pdev)
->          * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
->          * enabled or whether the device is associated with a PM domain.
->          */
-> -       pm_runtime_get_noresume(&pdev->dev);
-> -       pm_runtime_set_active(&pdev->dev);
->         pm_runtime_enable(&pdev->dev);
-> +       pm_runtime_get_sync(&pdev->dev);
->
->         return coda_firmware_request(dev);
->  }
->
-> At what point is the pm domain supposed to be enabled when I load the
-> module?
 
-Hi Philipp,
+Le 2014-10-08 06:24, Kamil Debski a écrit :
+> Hi,
+>
+> This patch seems complicated and I do not understand your motives.
+>
+> Could you explain what is the problem with the current aligning of the
+> values?
+> Is this a hardware problem? Which MFC version does it affect?
+> Is it a software problem? If so, maybe the user space application should
+> take extra care on what value it passes/receives to try_fmt?
+This looks like something I wanted to bring here as an RFC but never 
+manage to get the time. In an Odroid Integration we have started using 
+the following simple patch to work around this:
 
-The PM domain shall be powered on prior your driver starts probing.
-This is a common problem when using the generic PM domain. The
-workaround, which is causing other issues, is a pm_runtime_get_sync().
+https://github.com/dsd/linux-odroid/commit/c76b38c1d682b9870ea3b00093ad6500a9c5f5f6
 
-Now, could you please try to apply the below patchset, that should
-hopefully fix your issue:
+The context is that right now we have decided that alignment in s_fmt 
+shall be done with a closest rounding. So the format returned may be 
+bigger, or smaller, that's basically random. I've been digging through a 
+lot, and so far I have found no rational that explains this choice other 
+that this felt right.
 
-[PATCH v3 0/9] PM / Domains: Fix race conditions during boot
-http://marc.info/?l=linux-pm&m=141320895122707&w=2
+In real life, whenever the resulting format is smaller then request, 
+there is little we can do other then fail or try again blindly other 
+sizes. But with bigger raw buffers, we can use zero-copy  cropping 
+techniques to keep going. Here's a example:
 
-Kind regards
-Uffe
+image_generator -> hw_converter -> display
+
+As hw_converter is a V4L2 M2M, an ideal use case here would be for 
+image_generator to use buffers from the hw_converter. For the scenario, 
+it is likely that a fixed video size is wanted, but this size is also 
+likely not to match HW requirement. If hw_converter decide to give back 
+something smaller, there is nothing image_generator can do. It would 
+have to try again with random size to find out that best match. It's a 
+bit silly to force that on application, as the hw_converter know the 
+closest best match, which is simply the next valid bigger size if that 
+exist.
+
+hope that helps,
+Nicolas
