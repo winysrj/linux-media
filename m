@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:38970 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758162AbaJ3Keh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 06:34:37 -0400
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] [media] rc5-decoder: BZ#85721: Fix RC5-SZ decoding
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 30 Oct 2014 11:34:34 +0100
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?Q?=5C=22Antti_Sepp=C3=A4l=C3=A4=5C=22?=
-	<a.seppala@gmail.com>
-In-Reply-To: <799eec4754378141225f1997a581fb42818fcfb4.1414662837.git.mchehab@osg.samsung.com>
-References: <799eec4754378141225f1997a581fb42818fcfb4.1414662837.git.mchehab@osg.samsung.com>
-Message-ID: <4f58bcf7d137c89be08e70f12c2a55e5@hardeman.nu>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:40460 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755174AbaJHMKF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 08:10:05 -0400
+Received: by mail-pd0-f178.google.com with SMTP id y10so6883300pdj.9
+        for <linux-media@vger.kernel.org>; Wed, 08 Oct 2014 05:10:05 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Subject: [PATCH 0/4] v4l-utils:libdvbv5,dvb: add basic support for ISDB-S 
+Date: Wed,  8 Oct 2014 21:09:37 +0900
+Message-Id: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-10-30 10:54, Mauro Carvalho Chehab wrote:
-> changeset e87b540be2dd broke RC5-SZ decoding, as it forgot to add
-> the extra bit check for the enabled protocols at the beginning of
-> the logic.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: David Härdeman <david@hardeman.nu>
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-> 
-> diff --git a/drivers/media/rc/ir-rc5-decoder.c
-> b/drivers/media/rc/ir-rc5-decoder.c
-> index 2ef763928ca4..84fa6e9b59a1 100644
-> --- a/drivers/media/rc/ir-rc5-decoder.c
-> +++ b/drivers/media/rc/ir-rc5-decoder.c
-> @@ -53,7 +53,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct
-> ir_raw_event ev)
->  	u32 scancode;
->  	enum rc_type protocol;
-> 
-> -	if (!(dev->enabled_protocols & (RC_BIT_RC5 | RC_BIT_RC5X)))
-> +	if (!(dev->enabled_protocols & (RC_BIT_RC5 | RC_BIT_RC5X | 
-> RC_BIT_RC5_SZ)))
->  		return 0;
-> 
->  	if (!is_timing_event(ev)) {
+This patch series adds tuning and scanning features for ISDB-S.
+Other part of the libdvbv5 API may not work for ISDB-S.
+At least the charset conversion and the parser for extended
+event descriptors do not work now,
+as they require some ISDB-S(/T) specific modifications.
+
+Akihiro Tsukada (4):
+  v4l-utils/libdvbv5: avoid crash when failed to get a channel name
+  v4l-utils/libdvbv5: add support for ISDB-S tuning
+  v4l-utils/libdvbv5: add support for ISDB-S scanning
+  v4l-utils/dvbv5-scan: add support for ISDB-S scanning
+
+ lib/include/libdvbv5/dvb-scan.h |   2 +
+ lib/libdvbv5/dvb-fe.c           |   6 +-
+ lib/libdvbv5/dvb-file.c         |  32 +++++++---
+ lib/libdvbv5/dvb-sat.c          |  11 ++++
+ lib/libdvbv5/dvb-scan.c         | 125 +++++++++++++++++++++++++++++++++++++++-
+ lib/libdvbv5/parse_string.c     |  23 ++++++++
+ utils/dvb/dvb-format-convert.c  |   3 +-
+ utils/dvb/dvbv5-scan.c          |  14 +++++
+ 8 files changed, 203 insertions(+), 13 deletions(-)
+
+-- 
+2.1.2
+
