@@ -1,558 +1,409 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2383 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754917AbaJWLWU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 07:22:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 07/15] vb2: replace 'write' by 'dma_dir'
-Date: Thu, 23 Oct 2014 13:21:34 +0200
-Message-Id: <1414063302-26903-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:21257 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932405AbaJHP7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 11:59:22 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND400JZQV2WZN60@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Oct 2014 11:59:20 -0400 (EDT)
+Date: Wed, 08 Oct 2014 12:59:16 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: tskd08@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] v4l-utils/libdvbv5: add support for ISDB-S scanning
+Message-id: <20141008125916.14ad58cb.m.chehab@samsung.com>
+In-reply-to: <1412770181-5420-4-git-send-email-tskd08@gmail.com>
+References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
+ <1412770181-5420-4-git-send-email-tskd08@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 08 Oct 2014 21:09:40 +0900
+tskd08@gmail.com escreveu:
 
-The 'write' argument is very ambiguous. I first assumed that if it is 1,
-then we're doing video output but instead it meant the reverse.
+> From: Akihiro Tsukada <tskd08@gmail.com>
+> 
+> added NIT scan for ISDB-S,
+> fixed wrong/too-close frequency of the scanned entries,
+> when freq_offset/bandwith was not set properly.
+> 
+> ISDB-S/T specific charset conversion is separeted off
+> as an iconv module, and not implemented in this lib.
+> 
+> Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+> ---
+>  lib/include/libdvbv5/dvb-scan.h |   2 +
+>  lib/libdvbv5/dvb-fe.c           |   6 +-
+>  lib/libdvbv5/dvb-file.c         |  21 +++++--
+>  lib/libdvbv5/dvb-scan.c         | 125 +++++++++++++++++++++++++++++++++++++++-
+>  lib/libdvbv5/parse_string.c     |  23 ++++++++
+>  5 files changed, 170 insertions(+), 7 deletions(-)
+> 
+> diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
+> index fe50687..e3a0d24 100644
+> --- a/lib/include/libdvbv5/dvb-scan.h
+> +++ b/lib/include/libdvbv5/dvb-scan.h
+> @@ -387,6 +387,8 @@ int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *parms);
+>  
+>  int dvb_new_freq_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+>  			   uint32_t freq, enum dvb_sat_polarization pol, int shift);
+> +int dvb_new_ts_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> +			   uint32_t freq, int shift, uint32_t ts_id);
+>  
+>  struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *parms,
+>  				     struct dvb_entry *first_entry,
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index f535311..93c0b9b 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -372,6 +372,8 @@ int dvb_set_sys(struct dvb_v5_fe_parms *p, fe_delivery_system_t sys)
+>  	parms->p.current_sys = sys;
+>  	parms->n_props = rc;
+>  
+> +	if (sys == SYS_ISDBS /* || sys == SYS_ISDBT */)
+> +		parms->p.default_charset = "arib-std-b24";
 
-Since it is used to setup the dma_dir value anyway it is now replaced by
-the correct dma_dir value which is unambiguous.
+Actually, the best would be to add a Country property at the library
+for this kind of adjustment. If you take a look at page 12 of:
+	http://www.dibeg.org/techp/aribstd/harmonization/090918_Harmonization_volume8_Receivers.pdf
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 15 +++++----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 46 ++++++++++++++------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 46 ++++++++++++--------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 20 ++++++-----
- include/media/videobuf2-core.h                 | 11 +++---
- 5 files changed, 73 insertions(+), 65 deletions(-)
+You'll see that the charset definition is different between JP and BR.
+Also, there are several other things that are different among the
+descriptors used in Japan (ARIB specs) and South America (NBR specs).
+I don't doubt that some other Countries will end by deciding to apply
+some different definitions.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 490defb..7aed8f2 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -189,7 +189,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	void *mem_priv;
- 	int plane;
- 
-@@ -201,7 +202,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
- 
- 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
--				      size, write, q->gfp_flags);
-+				      size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
- 
-@@ -1359,7 +1360,8 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1401,7 +1403,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
- 				      planes[plane].m.userptr,
--				      planes[plane].length, write);
-+				      planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1462,7 +1464,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret;
--	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	enum dma_data_direction dma_dir =
-+		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1510,7 +1513,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
--			dbuf, planes[plane].length, write);
-+			dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 6675f12..c4305bf 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -155,8 +155,8 @@ static void vb2_dc_put(void *buf_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
--			  gfp_t gfp_flags)
-+static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
-+			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct device *dev = conf->dev;
-@@ -177,7 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dc_put;
-@@ -231,7 +231,7 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 
- struct vb2_dc_attachment {
- 	struct sg_table sgt;
--	enum dma_data_direction dir;
-+	enum dma_data_direction dma_dir;
- };
- 
- static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-@@ -266,7 +266,7 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
- 		wr = sg_next(wr);
- 	}
- 
--	attach->dir = DMA_NONE;
-+	attach->dma_dir = DMA_NONE;
- 	dbuf_attach->priv = attach;
- 
- 	return 0;
-@@ -284,16 +284,16 @@ static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
- 	sgt = &attach->sgt;
- 
- 	/* release the scatterlist cache */
--	if (attach->dir != DMA_NONE)
-+	if (attach->dma_dir != DMA_NONE)
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
-+			attach->dma_dir);
- 	sg_free_table(sgt);
- 	kfree(attach);
- 	db_attach->priv = NULL;
- }
- 
- static struct sg_table *vb2_dc_dmabuf_ops_map(
--	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_attachment *attach = db_attach->priv;
- 	/* stealing dmabuf mutex to serialize map/unmap operations */
-@@ -305,27 +305,27 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- 
- 	sgt = &attach->sgt;
- 	/* return previously mapped sg table */
--	if (attach->dir == dir) {
-+	if (attach->dma_dir == dma_dir) {
- 		mutex_unlock(lock);
- 		return sgt;
- 	}
- 
- 	/* release any previous cache */
--	if (attach->dir != DMA_NONE) {
-+	if (attach->dma_dir != DMA_NONE) {
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
--		attach->dir = DMA_NONE;
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
- 	}
- 
- 	/* mapping to the client with new direction */
--	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
- 	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		mutex_unlock(lock);
- 		return ERR_PTR(-EIO);
- 	}
- 
--	attach->dir = dir;
-+	attach->dma_dir = dma_dir;
- 
- 	mutex_unlock(lock);
- 
-@@ -333,7 +333,7 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- }
- 
- static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
--	struct sg_table *sgt, enum dma_data_direction dir)
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
- {
- 	/* nothing to be done here */
- }
-@@ -462,7 +462,8 @@ static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
- }
- 
- static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
--	int n_pages, struct vm_area_struct *vma, int write)
-+	int n_pages, struct vm_area_struct *vma,
-+	enum dma_data_direction dma_dir)
- {
- 	if (vma_is_io(vma)) {
- 		unsigned int i;
-@@ -484,7 +485,7 @@ static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
- 		int n;
- 
- 		n = get_user_pages(current, current->mm, start & PAGE_MASK,
--			n_pages, write, 1, pages, NULL);
-+			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
- 		/* negative error means that no page was pinned */
- 		n = max(n, 0);
- 		if (n != n_pages) {
-@@ -553,7 +554,7 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
- #endif
- 
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-@@ -584,7 +585,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		return ERR_PTR(-ENOMEM);
- 
- 	buf->dev = conf->dev;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 
- 	start = vaddr & PAGE_MASK;
- 	offset = vaddr & ~PAGE_MASK;
-@@ -620,7 +621,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	}
- 
- 	/* extract page list from userspace mapping */
--	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
-+	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma,
-+				    dma_dir == DMA_FROM_DEVICE);
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-@@ -784,7 +786,7 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-@@ -806,7 +808,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return dba;
- 	}
- 
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 	buf->db_attach = dba;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index ca28a50..49ba502 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,7 +38,6 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
--	int				write;
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -96,8 +95,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 	return 0;
- }
- 
--static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
--			      gfp_t gfp_flags)
-+static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
-+			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -112,12 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->write = write;
- 	buf->offset = 0;
- 	buf->size = size;
- 	/* size is already page aligned */
- 	buf->num_pages = size >> PAGE_SHIFT;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->dma_sgt = &buf->sg_table;
- 
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
-@@ -217,7 +215,8 @@ static inline int vma_is_io(struct vm_area_struct *vma)
- }
- 
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
--				    unsigned long size, int write)
-+				    unsigned long size,
-+				    enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -231,10 +230,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->write = write;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->dma_sgt = &buf->sg_table;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
-@@ -280,7 +278,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		num_pages_from_user = get_user_pages(current, current->mm,
- 					     vaddr & PAGE_MASK,
- 					     buf->num_pages,
--					     write,
-+					     buf->dma_dir == DMA_FROM_DEVICE,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-@@ -335,7 +333,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
- 	sg_free_table(buf->dma_sgt);
- 	while (--i >= 0) {
--		if (buf->write)
-+		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
- 		if (!vma_is_io(buf->vma))
- 			put_page(buf->pages[i]);
-@@ -412,7 +410,7 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- 
- struct vb2_dma_sg_attachment {
- 	struct sg_table sgt;
--	enum dma_data_direction dir;
-+	enum dma_data_direction dma_dir;
- };
- 
- static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-@@ -447,7 +445,7 @@ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev
- 		wr = sg_next(wr);
- 	}
- 
--	attach->dir = DMA_NONE;
-+	attach->dma_dir = DMA_NONE;
- 	dbuf_attach->priv = attach;
- 
- 	return 0;
-@@ -465,16 +463,16 @@ static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
- 	sgt = &attach->sgt;
- 
- 	/* release the scatterlist cache */
--	if (attach->dir != DMA_NONE)
-+	if (attach->dma_dir != DMA_NONE)
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
-+			attach->dma_dir);
- 	sg_free_table(sgt);
- 	kfree(attach);
- 	db_attach->priv = NULL;
- }
- 
- static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
--	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_attachment *attach = db_attach->priv;
- 	/* stealing dmabuf mutex to serialize map/unmap operations */
-@@ -486,27 +484,27 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
- 
- 	sgt = &attach->sgt;
- 	/* return previously mapped sg table */
--	if (attach->dir == dir) {
-+	if (attach->dma_dir == dma_dir) {
- 		mutex_unlock(lock);
- 		return sgt;
- 	}
- 
- 	/* release any previous cache */
--	if (attach->dir != DMA_NONE) {
-+	if (attach->dma_dir != DMA_NONE) {
- 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
--			attach->dir);
--		attach->dir = DMA_NONE;
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
- 	}
- 
- 	/* mapping to the client with new direction */
--	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
- 	if (ret <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		mutex_unlock(lock);
- 		return ERR_PTR(-EIO);
- 	}
- 
--	attach->dir = dir;
-+	attach->dma_dir = dma_dir;
- 
- 	mutex_unlock(lock);
- 
-@@ -514,7 +512,7 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
- }
- 
- static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
--	struct sg_table *sgt, enum dma_data_direction dir)
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
- {
- 	/* nothing to be done here */
- }
-@@ -640,7 +638,7 @@ static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-@@ -662,7 +660,7 @@ static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return dba;
- 	}
- 
--	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 	buf->db_attach = dba;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 437fbcd..0f79f8d 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -25,7 +25,7 @@ struct vb2_vmalloc_buf {
- 	void				*vaddr;
- 	struct page			**pages;
- 	struct vm_area_struct		*vma;
--	int				write;
-+	enum dma_data_direction		dma_dir;
- 	unsigned long			size;
- 	unsigned int			n_pages;
- 	atomic_t			refcount;
-@@ -38,8 +38,8 @@ struct vb2_vmalloc_buf {
- 
- static void vb2_vmalloc_put(void *buf_priv);
- 
--static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
--			       gfp_t gfp_flags)
-+static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
-+			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-@@ -74,7 +74,8 @@ static void vb2_vmalloc_put(void *buf_priv)
- }
- 
- static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--				     unsigned long size, int write)
-+				     unsigned long size,
-+				     enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
- 	unsigned long first, last;
-@@ -86,7 +87,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf)
- 		return NULL;
- 
--	buf->write = write;
-+	buf->dma_dir = dma_dir;
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
-@@ -111,7 +112,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		/* current->mm->mmap_sem is taken by videobuf2 core */
- 		n_pages = get_user_pages(current, current->mm,
- 					 vaddr & PAGE_MASK, buf->n_pages,
--					 write, 1, /* force */
-+					 dma_dir == DMA_FROM_DEVICE,
-+					 1, /* force */
- 					 buf->pages, NULL);
- 		if (n_pages != buf->n_pages)
- 			goto fail_get_user_pages;
-@@ -148,7 +150,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 		if (vaddr)
- 			vm_unmap_ram((void *)vaddr, buf->n_pages);
- 		for (i = 0; i < buf->n_pages; ++i) {
--			if (buf->write)
-+			if (buf->dma_dir == DMA_FROM_DEVICE)
- 				set_page_dirty_lock(buf->pages[i]);
- 			put_page(buf->pages[i]);
- 		}
-@@ -414,7 +416,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
- }
- 
- static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
--	unsigned long size, int write)
-+	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
- 
-@@ -426,7 +428,7 @@ static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 		return ERR_PTR(-ENOMEM);
- 
- 	buf->dbuf = dbuf;
--	buf->write = write;
-+	buf->dma_dir = dma_dir;
- 	buf->size = size;
- 
- 	return buf;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 49e278b..fcd2af6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -82,20 +82,23 @@ struct vb2_threadio_data;
-  *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
--	void		*(*alloc)(void *alloc_ctx, unsigned long size, int write,
--				  gfp_t gfp_flags);
-+	void		*(*alloc)(void *alloc_ctx, unsigned long size,
-+				enum dma_data_direction dma_dir,
-+				gfp_t gfp_flags);
- 	void		(*put)(void *buf_priv);
- 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
--					unsigned long size, int write);
-+					unsigned long size,
-+					enum dma_data_direction dma_dir);
- 	void		(*put_userptr)(void *buf_priv);
- 
- 	void		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
--				unsigned long size, int write);
-+					  unsigned long size,
-+					  enum dma_data_direction dma_dir);
- 	void		(*detach_dmabuf)(void *buf_priv);
- 	int		(*map_dmabuf)(void *buf_priv);
- 	void		(*unmap_dmabuf)(void *buf_priv);
--- 
-2.1.1
+So, the best is to add a Country field and use it to handle those
+differences. We'll need a new parameter at dvbv5 tools to handle the
+Country code. Btw, wscan has an interesting logic of guessing it
+from the locale vars. We could use something like that at the userspace
+tools as a hint (that could, of course, be overriden).
 
+>  	return 0;
+>  }
+>  
+> @@ -683,8 +685,10 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *p)
+>  			dvb_logdbg("LNA is %s", parms->p.lna ? "ON" : "OFF");
+>  	}
+>  
+> -	if (dvb_fe_is_satellite(tmp_parms.p.current_sys))
+> +	if (dvb_fe_is_satellite(tmp_parms.p.current_sys)) {
+>  		dvb_sat_set_parms(&tmp_parms.p);
+> +		parms->freq_offset = tmp_parms.freq_offset;
+> +	}
+>  
+>  	/* Filter out any user DTV_foo property such as DTV_POLARIZATION */
+>  	tmp_parms.n_props = dvb_copy_fe_props(tmp_parms.dvb_prop,
+> diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+> index bcb1762..0a0e41a 100644
+> --- a/lib/libdvbv5/dvb-file.c
+> +++ b/lib/libdvbv5/dvb-file.c
+> @@ -1125,12 +1125,25 @@ static int get_program_and_store(struct dvb_v5_fe_parms_priv *parms,
+>  		entry->props[j].cmd = parms->dvb_prop[j].cmd;
+>  		entry->props[j].u.data = parms->dvb_prop[j].u.data;
+>  
+> -		if ((!channel || !*channel) &&
+> -		    entry->props[j].cmd == DTV_FREQUENCY)
+> -			freq = parms->dvb_prop[j].u.data;
+> +		if (entry->props[j].cmd == DTV_STREAM_ID &&
+> +		    entry->props[j].u.data == 0 &&
+> +		    parms->p.current_sys == SYS_ISDBS)
+> +			entry->props[j].u.data = dvb_scan_handler->pat->header.id;
+
+Hmm... I don't like very much the idea of having a code here accessing the
+pat->header.id, just for ISDB-S.
+
+All the standard-specific issues should have already being solved here.
+
+It probably makes more sense to fill it at dvb-scan.c, while handling the
+standard-specifi stuff, for example, at the function
+__dvb_add_update_transponders(). It will likely need a parser for
+the ISDB-S descriptor too, at least when we start to have some code that
+would allow to force the demod to not use the TMCC data.
+
+> +
+> +		if (entry->props[j].cmd != DTV_FREQUENCY)
+> +			continue;
+> +
+> +		if (dvb_fe_is_satellite(parms->p.current_sys) &&
+> +		    entry->props[j].u.data < parms->freq_offset)
+> +			entry->props[j].u.data += parms->freq_offset;
+> +
+> +		if (!channel || !*channel)
+> +			freq = entry->props[j].u.data;
+>  	}
+
+>  	if (!channel || !*channel) {
+> -		r = asprintf(&channel, "%.2fMHz#%d", freq/1000000., service_id);
+> +		r = asprintf(&channel, "%.2f%cHz#%d", freq / 1000000.,
+> +			dvb_fe_is_satellite(parms->p.current_sys) ? 'G' : 'M',
+> +			service_id);
+
+Good catch! better to put it into a separate patch, as it is actually
+unrelated and also affects DVB-S.
+
+>  		if (r < 0)
+>  			dvb_perror("asprintf");
+>  		if (parms->p.verbose)
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index 3b70f5a..470ef61 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -635,7 +635,7 @@ int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *__p)
+>  		rolloff = 115;
+>  		break;
+>  	case SYS_DVBS:
+> -	case SYS_ISDBS:	/* FIXME: not sure if this rollof is right for ISDB-S */
+> +	case SYS_ISDBS:
+>  		divisor = 100000;
+>  		rolloff = 135;
+>  		break;
+> @@ -672,11 +672,14 @@ int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *__p)
+>  		 * purposes of estimating a max frequency shift here.
+>  		 */
+>  		dvb_fe_retrieve_parm(&parms->p, DTV_SYMBOL_RATE, &symbol_rate);
+> +		if (parms->p.current_sys == SYS_ISDBS)
+> +			symbol_rate = 28800;
+
+Better to add it at the switch, splitting DVBS and ISDBS, like:
+
+	case SYS_ISDBS:
+		symbol_rate = 28800;
+		/* fall though */
+	case SYS_ISDBS:
+ 		divisor = 100000;
+ 		rolloff = 135;
+ 		break;
+
+Btw, we should likely be adding a similar code at the Kernel, as it
+provides already a symbol rate estimation for other Satellite and Cable
+standards.
+
+>  		bw = (symbol_rate * rolloff) / divisor;
+>  	}
+>  	if (!bw)
+>  		dvb_fe_retrieve_parm(&parms->p, DTV_BANDWIDTH_HZ, &bw);
+> -
+> +	if (!bw && parms->p.current_sys == SYS_ISDBT)
+> +		bw = 6000000;
+
+No, this is wrong, as the specs allow other bandwidths.
+
+Btw, according with: http://www.soumu.go.jp/main_sosiki/joho_tsusin/eng/Releases/Telecommunications/111019_c.html
+(link obtained from http://en.wikipedia.org/wiki/ISDB-T_International),
+Maldives is using ISDB-T with 8MHz.
+
+>  	/*
+>  	 * If the max frequency shift between two frequencies is below
+>  	 * than the used bandwidth / 8, it should be the same channel.
+> @@ -758,6 +761,87 @@ struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *__p,
+>  	return NULL;
+>  }
+>  
+> +int dvb_new_ts_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> +			 uint32_t freq, int shift, uint32_t ts_id)
+> +{
+> +	int i;
+> +	uint32_t data;
+> +
+> +	for (; entry != last_entry; entry = entry->next) {
+> +		for (i = 0; i < entry->n_props; i++) {
+> +			data = entry->props[i].u.data;
+> +			if (entry->props[i].cmd == DTV_STREAM_ID) {
+> +				if (data != ts_id)
+> +					break;
+> +			}
+> +			if (entry->props[i].cmd == DTV_FREQUENCY) {
+> +				if (freq < data - shift || freq > data + shift)
+> +					break;
+> +			}
+> +		}
+> +		if (i == entry->n_props && entry->n_props > 0)
+> +			return 0;
+> +	}
+> +
+> +	return 1;
+> +}
+> +
+> +static struct dvb_entry *
+> +dvb_scan_add_entry_isdbs(struct dvb_v5_fe_parms *__p,
+> +			 struct dvb_entry *first_entry, struct dvb_entry *entry,
+> +			 uint32_t freq, uint32_t shift, uint32_t ts_id)
+> +{
+> +	struct dvb_v5_fe_parms_priv *parms = (void *)__p;
+> +	struct dvb_entry *new_entry;
+> +	int i, n = 2;
+> +
+> +	if (!dvb_new_ts_is_needed(first_entry, NULL, freq, shift, ts_id))
+> +		return NULL;
+> +
+> +	/* Clone the current entry into a new entry */
+> +	new_entry = calloc(sizeof(*new_entry), 1);
+> +	if (!new_entry) {
+> +		dvb_perror("not enough memory for a new scanning frequency/TS");
+> +		return NULL;
+> +	}
+> +
+> +	memcpy(new_entry, entry, sizeof(*entry));
+> +	if (entry->channel)
+> +		new_entry->channel = strdup(entry->channel);
+> +	if (entry->vchannel)
+> +		new_entry->vchannel = strdup(entry->vchannel);
+> +	if (entry->location)
+> +		new_entry->location = strdup(entry->location);
+> +	if (entry->lnb)
+> +		new_entry->lnb = strdup(entry->lnb);
+> +
+> +	/*
+> +	 * The frequency should change to the new one. Seek for it and
+> +	 * replace its value to the desired one.
+> +	 */
+> +	for (i = 0; i < new_entry->n_props; i++) {
+> +		if (new_entry->props[i].cmd == DTV_FREQUENCY) {
+> +			new_entry->props[i].u.data = freq;
+> +			/* Navigate to the end of the entry list */
+> +			while (entry->next) {
+> +				entry = entry->next;
+> +				n++;
+> +			}
+> +			dvb_log("New transponder/channel found: #%d: %d",
+> +			        n, freq);
+> +			entry->next = new_entry;
+> +			new_entry->next = NULL;
+> +			return new_entry;
+> +		}
+> +	}
+> +
+> +	/* This should never happen */
+> +	dvb_logerr("BUG: Couldn't add %d to the scan frequency list.", freq);
+> +	free(new_entry);
+> +
+> +	return NULL;
+> +}
+> +
+>  struct update_transponders {
+>  	struct dvb_v5_fe_parms *parms;
+>  	struct dvb_v5_descriptors *dvb_scan_handler;
+> @@ -987,6 +1071,36 @@ static void add_update_nit_dvbs(struct dvb_table_nit *nit,
+>  				     SYS_DVBS2);
+>  }
+>  
+> +static void add_update_nit_isdbs(struct dvb_table_nit *nit,
+> +				 struct dvb_table_nit_transport *tran,
+> +				 struct dvb_desc *desc,
+> +				 void *priv)
+> +{
+> +	struct update_transponders *tr = priv;
+> +	struct dvb_entry *new;
+> +	struct dvb_desc_sat *d = (void *)desc;
+
+Hmm... this looks wrong... please add a FIXME here, as we'll need to handle
+it better, as the Satellite descriptor at ARIB STB-B10 is not quite the
+same as the one defined at ETSI EN 300 468.
+
+At DVB, we have (lib/include/libdvbv5/desc_sat.h):
+
+        uint8_t modulation_type:2;
+        uint8_t modulation_system:1;
+       	uint8_t roll_off:2;
+
+However, for ISDB-S, this should be, instead:
+
+	uint8_t modulation:5;
+
+The fec field for ISDB-S is also 4 bits, but has a different meaning:
+On EN300468, 1000b means 4/5 conv. code rate, while it means ISDB-S 
+at STD B10. Upper codes there are also different.
+
+> +	uint32_t ts_id;
+> +
+> +	if (tr->update)
+> +		return;
+> +
+> +        ts_id = tran->transport_id;
+> +	new = dvb_scan_add_entry_isdbs(tr->parms, tr->first_entry, tr->entry,
+> +				       d->frequency, tr->shift, ts_id);
+> +	if (!new)
+> +		return;
+> +
+> +	/* Set NIT ISDB-S props for the transponder */
+> +	/* modulation is not defined here but in TMCC. */
+> +	/* skip setting it since no "AUTO" value in fe_modulation_t */
+> +	dvb_store_entry_prop(new, DTV_POLARIZATION,
+> +			     dvbs_polarization[d->polarization]);
+> +	dvb_store_entry_prop(new, DTV_SYMBOL_RATE,
+> +			     d->symbol_rate);
+> +	dvb_store_entry_prop(new, DTV_INNER_FEC,
+> +			     dvbs_dvbc_dvbs_freq_inner[d->fec]);
+> +}
+> +
+>  
+>  static void __dvb_add_update_transponders(struct dvb_v5_fe_parms_priv *parms,
+>  					  struct dvb_v5_descriptors *dvb_scan_handler,
+> @@ -1045,6 +1159,13 @@ static void __dvb_add_update_transponders(struct dvb_v5_fe_parms_priv *parms,
+>  				satellite_delivery_system_descriptor,
+>  				NULL, add_update_nit_dvbs, &tr);
+>  		return;
+> +	case SYS_ISDBS:
+> +		dvb_table_nit_descriptor_handler(
+> +				&parms->p, dvb_scan_handler->nit,
+> +				satellite_delivery_system_descriptor,
+> +				NULL, add_update_nit_isdbs, &tr);
+> +		return;
+> +
+>  	default:
+>  		dvb_log("Transponders detection not implemented for this standard yet.");
+>  		return;
+> diff --git a/lib/libdvbv5/parse_string.c b/lib/libdvbv5/parse_string.c
+> index 3750d04..6a4de2b 100644
+> --- a/lib/libdvbv5/parse_string.c
+> +++ b/lib/libdvbv5/parse_string.c
+> @@ -366,6 +366,22 @@ static void charset_conversion(struct dvb_v5_fe_parms *parms, char **dest, const
+>  				     parms->output_charset);
+>  }
+>  
+> +static void isdb_parse_string(struct dvb_v5_fe_parms *parms, char **dest,
+> +			      const unsigned char *src, size_t len)
+> +{
+> +	int destlen;
+> +
+> +	destlen = len * 4;
+> +	*dest = malloc(destlen + 1);
+> +	dvb_iconv_to_charset(parms, *dest, destlen, src, len,
+> +			     "ARIB-STD-B24", parms->output_charset);
+
+Hmm... I don't think that iconv supports it. We'll need to add a handler
+for it, just like we had to do for EN 300 468 table.
+
+Anyway, you don't need a separate function here. Just 
+parms->default_charset needs to be filled properly.
+
+> +	/* The code had over-sized the space. Fix it. */
+> +	if (*dest)
+> +		*dest = realloc(*dest, strlen(*dest) + 1);
+> +	return;
+> +}
+> +
+> +
+>  void dvb_parse_string(struct dvb_v5_fe_parms *parms, char **dest, char **emph,
+>  		      const unsigned char *src, size_t len)
+>  {
+> @@ -386,6 +402,13 @@ void dvb_parse_string(struct dvb_v5_fe_parms *parms, char **dest, char **emph,
+>  	if (!len)
+>  		return;
+>  
+> +	/* Strings in ISDB-S/T do not start with a charset identifier, */
+> +	/*  and can start with a control character. */
+> +	if (!strcasecmp(type, "ARIB-STD-B24")) {
+> +		isdb_parse_string(parms, dest, src, len);
+> +		return;
+> +	}
+> +
+>  	if (*src < 0x20) {
+>  		switch (*src) {
+>  		case 0x00:	type = "ISO-6937";		break;
