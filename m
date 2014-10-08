@@ -1,109 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:46339 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932764AbaJVMQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 08:16:51 -0400
-Received: by mail-pa0-f43.google.com with SMTP id lf10so3597508pab.30
-        for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 05:16:50 -0700 (PDT)
-Date: Wed, 22 Oct 2014 20:16:49 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	"Olli Salonen" <olli.salonen@iki.fi>
-References: <201410131444110937756@gmail.com>
-Subject: Re: Re: [PATCH 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103for supporting the demod of M88RS6000
-Message-ID: <201410222016467965475@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+Received: from bombadil.infradead.org ([198.137.202.9]:60741 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751976AbaJHRNk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 13:13:40 -0400
+Message-ID: <543570C3.9080207@infradead.org>
+Date: Wed, 08 Oct 2014 10:13:39 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+CC: linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
+References: <20141008174923.76786a03@canb.auug.org.au>
+In-Reply-To: <20141008174923.76786a03@canb.auug.org.au>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-10-22 05:24:02, Antti Palosaari wrote:
->
->
->On 10/13/2014 09:44 AM, Nibble Max wrote:
->> M88RS6000 is the integrated chip, which includes tuner and demod.
->> Its internal demod is similar with M88DS3103 except some registers definition.
->> The main different part of this internal demod from others is its clock/pll generation IP block sitting inside the tuner die.
->> So clock/pll functions should be configed through its tuner i2c bus, NOT its demod i2c bus.
->> The demod of M88RS6000 need the firmware: dvb-demod-m88rs6000.fw
->> firmware download link: http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz
->
->> @@ -250,6 +251,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   	u16 u16tmp, divide_ratio;
->>   	u32 tuner_frequency, target_mclk;
->>   	s32 s32tmp;
->> +	struct m88rs6000_mclk_config mclk_cfg;
->>
->>   	dev_dbg(&priv->i2c->dev,
->>   			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
->> @@ -291,6 +293,26 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   	if (ret)
->>   		goto err;
->>
->> +	if (priv->chip_id == M88RS6000_CHIP_ID) {
->> +		ret = m88ds3103_wr_reg(priv, 0x06, 0xe0);
->> +		if (ret)
->> +			goto err;
->> +		if (fe->ops.tuner_ops.set_config) {
->> +			/* select main mclk */
->> +			mclk_cfg.config_op = 0;
->> +			mclk_cfg.TunerfreqMHz = c->frequency / 1000;
->> +			mclk_cfg.SymRateKSs = c->symbol_rate / 1000;
->> +			ret = fe->ops.tuner_ops.set_config(fe, &mclk_cfg);
->> +			if (ret)
->> +				goto err;
->> +			priv->mclk_khz = mclk_cfg.MclkKHz;
->> +		}
->> +		ret = m88ds3103_wr_reg(priv, 0x06, 0x00);
->> +		if (ret)
->> +			goto err;
->> +		usleep_range(10000, 20000);
->> +	}
->
->That looks odd and also ugly. You pass some values from demod to tuner 
->using set_config callback. Tuner driver can get symbol_rate and 
->frequency just similarly from property cache than demod. Why you do it 
->like that?
->
->Clock is provided by tuner as you mention. I see you use that to pass 
->used clock frequency from tuner to demod. This does not look nice and I 
->would like to see clock framework instead. Or calculate clock on both 
->drivers. Does the demod clock even needs to be changed? I think it is 
->only TS stream size which defines used clock frequency - smaller the TS 
->bitstream, the smaller the clock frequency needed => optimizes power 
->consumption a little. But TS clock is calculated on tuner driver in any 
->case?
->
-Yes, M88RS6000 looks odd. This integrated chip has two part die, tuner die and demod die.
-Its demod's clock(PLL) block is sitting insided the tuner die. The demod has no PLL ip block that makes demod die smaller.
-The demod's clock can be adjusted according to the transponder's frequency and symbol rate.
-So that the demod's clock and its harmonic frequency will not overlap with the transponder's frequency range.
-It will improve its tuner's sensitivity.
+On 10/07/14 23:49, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Please do not add any material intended for v3.19 to you linux-next
+> included trees until after v3.18-rc1 has been released.
+> 
+> Changes since 20141007:
+> 
 
-However the tuner driver can get the values from property cache.
-Tuner driver does not know when need adjust this demod pll
-and return the current demod pll value to the demod driver.
-in "struct dvb_tuner_ops", there is no call back to do this directly.
-So I select the general "set_config" call back.
-TS main clock of demdod also need to be controlled in the tuner die.
+I saw these build errors in gspca when CONFIG_INPUT=m but the gspca
+sub-drivers are builtin:
 
-These demod's PLL registers have no relationship with tuner at all.
-Logically, These demod's PLL registers should go with demod die as usual.
-But in this case they goes with the tuner die physically and controlled through tuner i2c bus.
+drivers/built-in.o: In function `gspca_dev_probe2':
+(.text+0x10ef43): undefined reference to `input_allocate_device'
+drivers/built-in.o: In function `gspca_dev_probe2':
+(.text+0x10efdd): undefined reference to `input_register_device'
+drivers/built-in.o: In function `gspca_dev_probe2':
+(.text+0x10f002): undefined reference to `input_free_device'
+drivers/built-in.o: In function `gspca_dev_probe2':
+(.text+0x10f0ac): undefined reference to `input_unregister_device'
+drivers/built-in.o: In function `gspca_disconnect':
+(.text+0x10f186): undefined reference to `input_unregister_device'
+drivers/built-in.o: In function `sd_int_pkt_scan':
+se401.c:(.text+0x11373d): undefined reference to `input_event'
+se401.c:(.text+0x11374e): undefined reference to `input_event'
+drivers/built-in.o: In function `sd_pkt_scan':
+t613.c:(.text+0x119f0e): undefined reference to `input_event'
+t613.c:(.text+0x119f1f): undefined reference to `input_event'
+drivers/built-in.o: In function `sd_stopN':
+t613.c:(.text+0x11a047): undefined reference to `input_event'
+drivers/built-in.o:t613.c:(.text+0x11a058): more undefined references to `input_event' follow
 
-The current dvb-frontend driver requires the tuner and demod to split into the seperate drivers.
-The demod driver will not access tuner i2c bus directly.
-But this integrate chip has more tighter relationship of its tuner and demod die.
-That is reason why these odd call backs happen.
-BR,
-Max
->regards
->Antti
->
->-- 
->http://palosaari.fi/
+These could be fixed in Kconfig by something like (for each sub-driver that tests
+CONFIG_INPUT):
 
+	depends on INPUT || INPUT=n
+
+Do you have another preference for fixing this?
+
+thanks,
+-- 
+~Randy
