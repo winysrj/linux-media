@@ -1,171 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55519 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaJFOes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 10:34:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2] [media] uvcvideo: Add quirk to force the Oculus DK2 IR tracker to grayscale
-Date: Mon, 06 Oct 2014 17:34:54 +0300
-Message-ID: <2999205.OqlimhFfiu@avalon>
-In-Reply-To: <CA+gwMccqt9zP4bOdDKyiZa=S+xPuZgcpg4aWcdUCyqwobAnKfQ@mail.gmail.com>
-References: <1407358249-19605-1-git-send-email-philipp.zabel@gmail.com> <CA+gwMccqt9zP4bOdDKyiZa=S+xPuZgcpg4aWcdUCyqwobAnKfQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:31025 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbaJIHvm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 03:51:42 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND6000FX3AR6500@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Oct 2014 08:54:27 +0100 (BST)
+Message-id: <54363E8A.2020201@samsung.com>
+Date: Thu, 09 Oct 2014 09:51:38 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Antonio Ospite <ao2@ao2.it>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 1/1] Add a libv4l plugin for Exynos4 camera
+References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+ <1412757980-23570-2-git-send-email-j.anaszewski@samsung.com>
+ <54353124.1060704@redhat.com> <54353AA3.3040506@samsung.com>
+ <20141008174957.8451ebb426619d88d7a30cfd@ao2.it>
+In-reply-to: <20141008174957.8451ebb426619d88d7a30cfd@ao2.it>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 10/08/2014 05:49 PM, Antonio Ospite wrote:
+> On Wed, 08 Oct 2014 15:22:43 +0200
+> Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
+>
+>> Hi Hans,
+>>
+>> On 10/08/2014 02:42 PM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 10/08/2014 10:46 AM, Jacek Anaszewski wrote:
+>>>> The plugin provides support for the media device on Exynos4 SoC.
+>>>> Added is also a media device configuration file parser.
+>>>> The media configuration file is used for conveying information
+>>>> about media device links that need to be established as well
+>>>> as V4L2 user control ioctls redirection to a particular
+>>>> sub-device.
+>>>>
+>>>> The plugin performs single plane <-> multi plane API conversion,
+>>>> video pipeline linking and takes care of automatic data format
+>>>> negotiation for the whole pipeline, after intercepting
+>>>> VIDIOC_S_FMT or VIDIOC_TRY_FMT ioctls.
+>>>>
+>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> ---
+>>>>    configure.ac                                       |    1 +
+>>>>    lib/Makefile.am                                    |    5 +-
+>>>>    lib/libv4l-exynos4-camera/Makefile.am              |    7 +
+>>>>    .../libv4l-devconfig-parser.h                      |  145 ++
+>>>>    lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c  | 2486 ++++++++++++++++++++
+>>>>    5 files changed, 2642 insertions(+), 2 deletions(-)
+>>>>    create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+>>>>    create mode 100644 lib/libv4l-exynos4-camera/libv4l-devconfig-parser.h
+>>>>    create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+>>>
+>>> Ugh, that is a big plugin. Can you please split out the parser stuff
+>>> into a separate file ?
+>>
+>> Yes, I tried to split it, but spent so much time fighting with
+>> autotools, that I decided to submit it in this form and ask
+>> more experienced v4l-utils build system maintainers for the advice.
+>> I mentioned this in the cover letter.
+>>
+>
+> What autotools issue in particular?
+> The following change followed by "automake && ./configure" should be
+> enough to add a new file libv4l-devconfig-parser.c:
 
-On Monday 29 September 2014 21:38:39 Philipp Zabel wrote:
-> On Wed, Aug 6, 2014 at 10:50 PM, Philipp Zabel wrote:
-> > This patch adds a quirk to force Y8 pixel format even if the camera
-> > reports half-width YUYV.
-> > 
-> > Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-> 
-> do you have any further comments on this patch?
+The same modifications produced libv4l-exynos4-camera.so without parser 
+symbols, when I applied them previously, but when I tried them again
+everything is ok. Probably I wasn't doing proper cleanup.
+Thanks for the hints.
 
-Sorry for the late reply. Please see below for a couple of small comments.
-
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_driver.c | 29 ++++++++++++++++++++++++++++-
-> >  drivers/media/usb/uvc/uvcvideo.h   |  1 +
-> >  2 files changed, 29 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index c3bb250..90a8f10 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -311,6 +311,7 @@ static int uvc_parse_format(struct uvc_device *dev,
-> >         struct uvc_format_desc *fmtdesc;
-> >         struct uvc_frame *frame;
-> >         const unsigned char *start = buffer;
-> > +       bool force_yuy2_to_y8 = false;
-
-To keep things a bit more generic, how about an unsigned int width_multiplier 
-initialized to 1 and set to 2 when the quirk applies ?
-
-> >         unsigned int interval;
-> >         unsigned int i, n;
-> >         __u8 ftype;
-> > @@ -333,6 +334,22 @@ static int uvc_parse_format(struct uvc_device *dev,
-> > 
-> >                 /* Find the format descriptor from its GUID. */
-> >                 fmtdesc = uvc_format_by_guid(&buffer[5]);
-> > +               format->bpp = buffer[21];
-> > +
-> > +               if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
-> > +                       if (fmtdesc && fmtdesc->fcc == V4L2_PIX_FMT_YUYV
-> > &&
-> > +                           format->bpp == 16) {
-
-I wonder if that check is really needed, all YUYV formats should have 16bpp.
-
-> > +                               force_yuy2_to_y8 = true;
-> > +                               fmtdesc = &uvc_fmts[9];
-
-The hardcoded index here is hair-raising :-) How about something like the 
-following instead ?
-
- 		}
- 
- 		format->bpp = buffer[21];
-+
-+		/* Some devices report a format that doesn't match what they
-+		 * really send.
-+		 */
-+		if (dev->quirks & UVC_QUIRK_FORCE_Y8) {
-+			if (format->fcc == V4L2_PIX_FMT_YUYV) {
-+				strlcpy(format->name, "Greyscale 8-bit (Y8  )",
-+					sizeof(format->name));
-+				format->fcc = V4L2_PIX_FMT_GREY;
-+				format->bpp = 8;
-+				width_multiplier = 2;
-+			}
-+		}
-+
- 		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
- 			ftype = UVC_VS_FRAME_UNCOMPRESSED;
- 		} else {
-
-I know it duplicates the format string, but as we're trying to move them to 
-the V4L2 core anyway, I don't see that as being a big problem.
-
-
-> > +                               format->bpp = 8;
-> > +                       } else {
-> > +                               uvc_printk(KERN_WARNING,
-> > +                                       "Forcing %d-bit %s to %s not
-> > supported",
-> > +                                       format->bpp, fmtdesc->name,
-> > +                                       uvc_fmts[9].name);
-> > +                       }
-> > +               }
-> > +
-> >                 if (fmtdesc != NULL) {
-> >                         strlcpy(format->name, fmtdesc->name,
-> >                                 sizeof format->name);
-> > @@ -345,7 +362,6 @@ static int uvc_parse_format(struct uvc_device *dev,
-> >                         format->fcc = 0;
-> >                 }
-> > 
-> > -               format->bpp = buffer[21];
-> >                 if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
-> >                         ftype = UVC_VS_FRAME_UNCOMPRESSED;
-> >                 } else {
-> > @@ -455,6 +471,8 @@ static int uvc_parse_format(struct uvc_device *dev,
-> >                 frame->bFrameIndex = buffer[3];
-> >                 frame->bmCapabilities = buffer[4];
-> >                 frame->wWidth = get_unaligned_le16(&buffer[5]);
-> > +               if (force_yuy2_to_y8)
-> > +                       frame->wWidth *= 2;
-
-This would become
-
-+		frame->wWidth = get_unaligned_le16(&buffer[5])
-+			      * width_multiplier;
-
-If you're fine with that there's no need to resubmit, I'll modify the patch 
-when applying it to my tree.
-
-> >                 frame->wHeight = get_unaligned_le16(&buffer[7]);
-> >                 frame->dwMinBitRate = get_unaligned_le32(&buffer[9]);
-> >                 frame->dwMaxBitRate = get_unaligned_le32(&buffer[13]);
-> > @@ -2467,6 +2485,15 @@ static struct usb_device_id uvc_ids[] = {
-> >           .bInterfaceProtocol   = 0,
-> >           .driver_info          = UVC_QUIRK_PROBE_MINMAX
-> >                                 | UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-> > +       /* Oculus VR Positional Tracker DK2 */
-> > +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> > +                               | USB_DEVICE_ID_MATCH_INT_INFO,
-> > +         .idVendor             = 0x2833,
-> > +         .idProduct            = 0x0201,
-> > +         .bInterfaceClass      = USB_CLASS_VIDEO,
-> > +         .bInterfaceSubClass   = 1,
-> > +         .bInterfaceProtocol   = 0,
-> > +         .driver_info          = UVC_QUIRK_FORCE_Y8 },
-> >         /* Generic USB Video Class */
-> >         { USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
-> >         {}
-> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> > b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..1dd78c0 100644
-> > --- a/drivers/media/usb/uvc/uvcvideo.h
-> > +++ b/drivers/media/usb/uvc/uvcvideo.h
-> > @@ -137,6 +137,7 @@
-> >  #define UVC_QUIRK_FIX_BANDWIDTH                0x00000080
-> >  #define UVC_QUIRK_PROBE_DEF            0x00000100
-> >  #define UVC_QUIRK_RESTRICT_FRAME_RATE  0x00000200
-> > +#define UVC_QUIRK_FORCE_Y8             0x00000400
-> > 
-> >  /* Format flags */
-> >  #define UVC_FMT_FLAG_COMPRESSED                0x00000001
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Best Regards,
+Jacek Anaszewski
