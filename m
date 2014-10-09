@@ -1,56 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsec102.isp.belgacom.be ([195.238.20.98]:47661 "EHLO
-	mailsec102.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753256AbaJFTX4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 15:23:56 -0400
-Date: Mon, 6 Oct 2014 21:23:54 +0200 (CEST)
-From: Fabian Frederick <fabf@skynet.be>
-Reply-To: Fabian Frederick <fabf@skynet.be>
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
-	iss_storagedev@hp.com
-Message-ID: <1381855926.311014.1412623434854.open-xchange@webmail.nmp.skynet.be>
-In-Reply-To: <20141006184623.GC20739@pd.tnic>
-References: <1412609755-28627-1-git-send-email-fabf@skynet.be> <20141006174050.GA20739@pd.tnic> <2020432291.307101.1412620380646.open-xchange@webmail.nmp.skynet.be> <20141006184623.GC20739@pd.tnic>
-Subject: Re: [PATCH 0/7 linux-next] drivers: remove deprecated IRQF_DISABLED
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:61188 "EHLO
+	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751007AbaJIL0N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Oct 2014 07:26:13 -0400
+Message-ID: <1412853970.21441.32.camel@x220>
+Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 09 Oct 2014 13:26:10 +0200
+In-Reply-To: <20141009073052.0ddc3e97@recife.lan>
+References: <20141008174923.76786a03@canb.auug.org.au>
+	 <543570C3.9080207@infradead.org> <20141008153105.2fe82fca@recife.lan>
+	 <5435A44D.2050609@infradead.org> <20141008225011.2d034c1e@recife.lan>
+	 <1412837128.21441.9.camel@x220> <20141009073052.0ddc3e97@recife.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 2014-10-09 at 07:30 -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 09 Oct 2014 08:45:28 +0200
+> Paul Bolle <pebolle@tiscali.nl> escreveu:
+> > The above discussion meanders a bit, and I just stumbled onto it, but
+> > would
+> >     #if IS_BUILTIN(CONFIG_INPUT) || (IS_MODULE(CONFIG_INPUT) && defined(MODULE))
+> > 
+> > cover your requirements when using macros?
+> 
+> No. What we need to do, for all gspca sub-drivers that have optional
+> support for buttons is to only enable the buttons support if:
+> 
+> 	CONFIG_INPUT=y
+> or
+> 	CONFIG_INPUT=m and CONFIG_USB_GSPCA_submodule=m
+> 
+> If we use a reverse logic, we need to disable the code if:
+> 	# CONFIG_INPUT is not set
+> or
+> 	CONFIG_INPUT=m and CONFIG_USB_GSPCA_submodule=y
+> 
+> The rationale for disabling the code on the last expression is that a
+> builtin code cannot call a function inside a module.
+> 
+> Also, as the submodule is already being compiled, we know that
+> CONFIG_USB_GSPCA_submodule is either module or builtin.
+> 
+> So, either one of those expressions should work:
+> 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_submodule))
+> or
+> 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_MODULE(CONFIG_INPUT) && IS_MODULE(CONFIG_USB_GSPCA_submodule) && defined(MODULE))
+
+I thought MODULE was only defined for code that will be part of a
+module. So "IS_MODULE(CONFIG_USB_GSPCA_submodule)" and "defined(MODULE)"
+should be equal when used _inside_ [...]/usb/gspca/that_submodule.c,
+shouldn't they? That would make this option basically identical to my
+suggestion. Or are you thinking about using these tests outside of these
+submodules themselves?
+
+> or
+> 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && IS_MODULE(CONFIG_USB_GSPCA_submodule))
+
+I think it's clearer to use
+    IS_BUILTIN(CONFIG_FOO) || (IS_MODULE(CONFIG_FOO) && [...])
+
+Ditto above. Perhaps just a matter of taste.
+
+(Depending on INPUT is apparently not possible for these submodules. So
+obviously any solution needs to check whether input is available, say
+like
+    if (IS_MODULE(CONFIG_INPUT))
+        if (!is_input_loaded())
+            goto no_input;
+
+Doesn't it?)
+
+Thanks,
 
 
-> On 06 October 2014 at 20:46 Borislav Petkov <bp@alien8.de> wrote:
->
->
-> On Mon, Oct 06, 2014 at 08:33:00PM +0200, Fabian Frederick wrote:
-> >    You're right, I guess we can forget this patchset.
-> > I didn't see it was already done. (nothing in linux-next yet).
->
-> Not the whole patchset - I was replying only to your two patches
-> touching code in drivers/edac/. I don't know about the rest but yeah,
-> checking linux-next is always a good idea.
->
-> Also, did you CC the proper maintainers for the rest of your patches? If
-> not, do that and see what they have to say.
->
-> HTH.
->
+Paul Bolle
 
-CC list was ok. I'll keep an eye on linux-next and see with Michael
-if he has other patches approved in the list.
-
-Regards,
-Fabian
- 
-
-> --
-> Regards/Gruss,
->     Boris.
->
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
