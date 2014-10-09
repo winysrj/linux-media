@@ -1,49 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static.88-198-24-112.clients.your-server.de ([88.198.24.112]:46876
-	"EHLO nbd.name" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751703AbaJJS7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 14:59:52 -0400
-From: John Crispin <blogic@openwrt.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] [media] uvcvideo: add support for iPassion iP2970
-Date: Fri, 10 Oct 2014 20:41:13 +0200
-Message-Id: <1412966473-5407-2-git-send-email-blogic@openwrt.org>
-In-Reply-To: <1412966473-5407-1-git-send-email-blogic@openwrt.org>
-References: <1412966473-5407-1-git-send-email-blogic@openwrt.org>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:36589 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855AbaJIRqK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 13:46:10 -0400
+Received: by mail-wg0-f42.google.com with SMTP id z12so1931835wgg.25
+        for <linux-media@vger.kernel.org>; Thu, 09 Oct 2014 10:46:08 -0700 (PDT)
+Message-ID: <5436C9DF.8090001@googlemail.com>
+Date: Thu, 09 Oct 2014 19:46:07 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
+MIME-Version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media@vger.kernel.org
+CC: kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC 0/1] Libv4l: Add a plugin for the Exynos4 camera
+References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This camera chip can be found on D-Link DIR-930 IP cameras.
+Hi,
 
-Signed-off-by: John Crispin <blogic@openwrt.org>
----
- drivers/media/usb/uvc/uvc_driver.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+On 08/10/14 10:46, Jacek Anaszewski wrote:
+> This patch adds a plugin for the Exynos4 camera. I wanted to split
+> at least the parser part to the separate module but encountered
+> some problems with autotools configuration and therefore I'd like
+> to ask for an instruction on how to adjust the Makefile.am files
+> to achieve this.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f8135f4..abf8bf2 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2486,6 +2486,17 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
- 				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-+	/* iPassion iP2970 */
-+	{ .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x1B3B,
-+	  .idProduct		= 0x2970,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
-+				| UVC_QUIRK_STREAM_NO_FID
-+				| UVC_QUIRK_SINGLE_ISO },
- 	/* Generic USB Video Class */
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
- 	{}
--- 
-1.7.10.4
+I was the one who authored the v4l-utils build system. It looks a little
+bit messy because of all the supported configurations and toolchain
+capabilities.
 
+Feel free to ask if you have any questions.
+
+Thanks,
+Gregor
