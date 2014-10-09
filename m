@@ -1,73 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33247 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756130AbaJHLdi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Oct 2014 07:33:38 -0400
-Date: Wed, 8 Oct 2014 14:33:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: omap3isp Device Tree support status
-Message-ID: <20141008113303.GY2939@valkosipuli.retiisi.org.uk>
-References: <20140928221341.GQ2939@valkosipuli.retiisi.org.uk>
- <54330499.50905@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54330499.50905@gmail.com>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:14192 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751043AbaJISf0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 14:35:26 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND6002F8WZ0VE70@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Oct 2014 14:35:24 -0400 (EDT)
+Date: Thu, 09 Oct 2014 15:35:20 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] v4l-utils/dvbv5-scan: add support for ISDB-S scanning
+Message-id: <20141009153520.281def64.m.chehab@samsung.com>
+In-reply-to: <5436CFD4.4090400@gmail.com>
+References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
+ <1412770181-5420-5-git-send-email-tskd08@gmail.com>
+ <20141008130426.792d7bb7.m.chehab@samsung.com> <5436CFD4.4090400@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alaganjar,
+Em Fri, 10 Oct 2014 03:11:32 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-On Tue, Oct 07, 2014 at 02:37:37AM +0530, Alaganraj Sandhanam wrote:
-> Hi Sakari,
+> On 2014年10月09日 01:04, Mauro Carvalho Chehab wrote:
+> >> @@ -251,6 +251,16 @@ static int run_scan(struct arguments *args,
+> >>  		if (dvb_retrieve_entry_prop(entry, DTV_POLARIZATION, &pol))
+> >>  			pol = POLARIZATION_OFF;
+> >>  
+> >> +		if (parms->current_sys == SYS_ISDBS) {
+> >> +			uint32_t tsid = 0;
+> >> +
+> >> +			dvb_store_entry_prop(entry, DTV_POLARIZATION, POLARIZATION_R);
+> >> +
+> >> +			dvb_retrieve_entry_prop(entry, DTV_STREAM_ID, &tsid);
+> >> +			if (!dvb_new_ts_is_needed(dvb_file->first_entry, entry,
+> >> +						  freq, shift, tsid))
+> >> +				continue;
+> > 
+> > This is likely needed for DVB-T2 and DVB-S2 too.
 > 
-> Thanks for the patches.
-> On Monday 29 September 2014 03:43 AM, Sakari Ailus wrote:
-> > Hi,
-> > 
-> > I managed to find some time for debugging my original omap3isp DT support
-> > patchset (which includes smiapp DT support as well), and found a few small
-> > but important bugs.
-> > 
-> > The status is now that images can be captured using the Nokia N9 camera, in
-> > which the sensor is connected to the CSI-2 interface. Laurent confirmed that
-> > the parallel interface worked for him (Beagleboard, mt9p031 sensor on
-> > Leopard imaging's li-5m03 board).
-> Good news!
-> > 
-> > These patches (on top of the smiapp patches I recently sent for review which
-> > are in much better shape) are still experimental and not ready for review. I
-> > continue to clean them up and post them to the list when that is done. For
-> > now they can be found here:
-> > 
-> > <URL:http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt>
-> > 
-> I couldn't clone the repo, getting "remote corrupt" error.
-> 
-> $ git remote -v
-> media-sakari	git://linuxtv.org/sailus/media_tree.git (fetch)
-> media-sakari	git://linuxtv.org/sailus/media_tree.git (push)
-> origin	git://linuxtv.org/media_tree.git (fetch)
-> origin	git://linuxtv.org/media_tree.git (push)
-> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (fetch)
-> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (push)
-> 
-> $ git fetch media-sakari
-> warning: cannot parse SRV response: Message too long
-> remote: error: Could not read 5ea878796f0a1d9649fe43a6a09df53d3915c0ef
-> remote: fatal: revision walk setup failed
-> remote: aborting due to possible repository corruption on the remote side.
-> fatal: protocol error: bad pack header
+> Should we compare channel entries by (freq, stream_id, polarization) triplet
+> instead of by the current (freq, polarization) or (freq, stream_id)?
 
-I'm not sure what this could be related. Can you fetch from other trees,
-e.g. your origin remote? Do you get the same error from the remote on
-vihersipuli, and by using http instead?
+For DVB-S2, it should likely  be (freq, stream_id, polarization) triplet
+(tests needed).
 
--- 
-Kind regards,
+For DVB-T2, (freq, stream_id) pair should work;
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+For ISDB-S, you likely need the (freq, stream_id, polarization) triplet
+too, as you may have two polarizations there, right?
+
+> >> @@ -258,6 +268,10 @@ static int run_scan(struct arguments *args,
+> >>  		count++;
+> >>  		dvb_log("Scanning frequency #%d %d", count, freq);
+> >>  
+> >> +		if (!args->lnb_name && entry->lnb &&
+> >> +		    (!parms->lnb || strcasecmp(entry->lnb, parms->lnb->alias)))
+> > 
+> > Shouldn't it be: !strcasecmp(entry->lnb, parms->lnb->alias)? Or maybe just
+> > remove this test.
+> I want to update parms->lnb (which was set from the prev entry)
+> only if it differs from entry->lnb (current one),
+> and don't want to linear-search all LNB types for every entries,
+> as lots of entries are expected to have the same LNB types.
+
+Ah, ok. Please add a comment then.
+
+> --
+> akihiro 
