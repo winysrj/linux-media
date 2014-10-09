@@ -1,83 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:58829 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014AbaJUFKp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 01:10:45 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v3 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
-Date: Tue, 21 Oct 2014 14:10:29 +0900
-Message-Id: <1413868229-22205-4-git-send-email-ykaneko0929@gmail.com>
-In-Reply-To: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
-References: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:47399 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758075AbaJIVOm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 17:14:42 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] br-sp-SaoPaulo: Remove an invalid channel
+Date: Thu,  9 Oct 2014 18:14:16 -0300
+Message-Id: <827802523c09b7ba1da1a9a191865792df7c9c34.1412889202.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Channel 12 is currently not valid for ISDB-T in Brazil.
 
-Up until now scaling has been forbidden for the NV16 capture format.
-This patch adds support for horizontal scaling-up for NV16. Vertical
-scaling-up for NV16 is forbidden by the H/W specification.
+Also, due to an error FREQUENCY ended by not being filled here.
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
-v3 [Yoshihiro Kaneko]
-* no changes
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-v2 [Yoshihiro Kaneko]
-* Updated change log text from Simon Horman
-* Code-style fixes as suggested by Sergei Shtylyov
-
- drivers/media/platform/soc_camera/rcar_vin.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index ecdbd48..fd2207a 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -644,7 +644,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	/* output format */
- 	switch (icd->current_fmt->host_fmt->fourcc) {
- 	case V4L2_PIX_FMT_NV16:
--		iowrite32(ALIGN(ALIGN(cam->width, 0x20) * cam->height, 0x80),
-+		iowrite32(ALIGN((cam->out_width * cam->out_height), 0x80),
- 			  priv->base + VNUVAOF_REG);
- 		dmr = VNDMR_DTMD_YCSEP;
- 		output_is_yuv = true;
-@@ -1614,9 +1614,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	 * At the time of NV16 capture format, the user has to specify the
- 	 * width of the multiple of 32 for H/W specification.
- 	 */
--	if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
--		dev_err(icd->parent, "Specified width error in NV16 format.\n");
--		return -EINVAL;
-+	if (pixfmt == V4L2_PIX_FMT_NV16) {
-+		if (pix->width & 0x1F) {
-+			dev_err(icd->parent,
-+				"Specified width error in NV16 format. Please specify the multiple of 32.\n");
-+			return -EINVAL;
-+		}
-+		if (pix->height != cam->height) {
-+			dev_err(icd->parent,
-+				"Vertical scaling-up error in NV16 format. Please specify input height size.\n");
-+			return -EINVAL;
-+		}
- 	}
+diff --git a/isdb-t/br-sp-SaoPaulo b/isdb-t/br-sp-SaoPaulo
+index 2f4d8d77662b..215e596caf2a 100644
+--- a/isdb-t/br-sp-SaoPaulo
++++ b/isdb-t/br-sp-SaoPaulo
+@@ -1,35 +1,6 @@
+ # Channel table for São Paulo - SP - Brazil
+ # Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1
  
- 	switch (pix->field) {
-@@ -1661,6 +1669,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_RGB565:
- 	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_NV16: /* horizontal scaling-up only is supported */
- 		can_scale = true;
- 		break;
- 	default:
+-# Physical channel 12
+-[TV Mackenzie]
+-	DELIVERY_SYSTEM = ISDBT
+-	BANDWIDTH_HZ = 6000000
+-	FREQUENCY = 
+-	INVERSION = AUTO
+-	GUARD_INTERVAL = AUTO
+-	TRANSMISSION_MODE = AUTO
+-	INVERSION = AUTO
+-	GUARD_INTERVAL = AUTO
+-	TRANSMISSION_MODE = AUTO
+-	ISDBT_LAYER_ENABLED = 7
+-	ISDBT_SOUND_BROADCASTING = 0
+-	ISDBT_SB_SUBCHANNEL_ID = 0
+-	ISDBT_SB_SEGMENT_IDX = 0
+-	ISDBT_SB_SEGMENT_COUNT = 0
+-	ISDBT_LAYERA_FEC = AUTO
+-	ISDBT_LAYERA_MODULATION = QAM/AUTO
+-	ISDBT_LAYERA_SEGMENT_COUNT = 0
+-	ISDBT_LAYERA_TIME_INTERLEAVING = 0
+-	ISDBT_LAYERB_FEC = AUTO
+-	ISDBT_LAYERB_MODULATION = QAM/AUTO
+-	ISDBT_LAYERB_SEGMENT_COUNT = 0
+-	ISDBT_LAYERB_TIME_INTERLEAVING = 0
+-	ISDBT_LAYERC_FEC = AUTO
+-	ISDBT_LAYERC_MODULATION = QAM/AUTO
+-	ISDBT_LAYERC_SEGMENT_COUNT = 0
+-	ISDBT_LAYERC_TIME_INTERLEAVING = 0
+-
+ # Physical channel 15
+ [Mega TV]
+ 	DELIVERY_SYSTEM = ISDBT
 -- 
-1.9.1
+1.9.3
 
