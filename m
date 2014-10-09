@@ -1,119 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:35832 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881AbaJ2Lbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 07:31:45 -0400
-Received: by mail-la0-f42.google.com with SMTP id gq15so2344417lab.29
-        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 04:31:43 -0700 (PDT)
-Message-ID: <5450D01D.9060701@cogentembedded.com>
-Date: Wed, 29 Oct 2014 14:31:41 +0300
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1105 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbaJIMrh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 08:47:37 -0400
+Message-ID: <543683B6.1040104@xs4all.nl>
+Date: Thu, 09 Oct 2014 14:46:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Simon Horman <horms@verge.net.au>,
-	Yoshihiro Kaneko <ykaneko0929@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
- input support
-References: <1413868129-22121-1-git-send-email-ykaneko0929@gmail.com> <544633D3.5010805@cogentembedded.com> <CAH1o70Jk=dCf3VWqdAJmGzd6TSQFeN=x+FCKExDzaf0BZF0L1A@mail.gmail.com> <20141029041103.GB29787@verge.net.au>
-In-Reply-To: <20141029041103.GB29787@verge.net.au>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com
+Subject: Re: [RFC PATCH 00/11] Add configuration store support
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <20141009115542.GZ2939@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141009115542.GZ2939@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On 10/09/14 13:55, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Thank you for the set, and my apologies for taking a look only now.
+> 
+> On Sun, Sep 21, 2014 at 04:48:18PM +0200, Hans Verkuil wrote:
+>> This patch series adds support for configuration stores to the control
+>> framework. This allows you to store control values for a particular
+>> configuration (up to VIDEO_MAX_FRAME configuration stores are currently
+>> supported). When you queue a new buffer you can supply the store ID and
+>> the driver will apply all controls for that configuration store.
+>>
+>> When you set a new value for a configuration store then you can choose
+>> whether this is 'fire and forget', i.e. after the driver applies the
+>> control value for that store it won't be applied again until a new value
+>> is set. Or you can set the value every time that configuration store is
+>> applied.
+> 
+> This does work for video device nodes but not for sub-device nodes which
+> have no buffer queues.
 
-On 10/29/2014 7:11 AM, Simon Horman wrote:
+The subdevices may not have buffer queues, but the high-level media driver
+will know when a subdevice has to apply a specific configuration store and
+can tell the subdev to do so. That's the way I expect it to work.
 
->>>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Also if you think of using just a value from the
+> closest video buffer queue, that doesn't work either since there could be
+> more than one of those.
 
->>>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->>>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->>>> ---
+Good point. One solution might be to allow for a larger range of config
+store IDs (i.e., more than just 1-32, where 32 is the current maximum number
+of buffers). That way different buffer queues can use unique config store
+IDs. This does make the internal data structures a bit more complex, but it's
+not a big deal.
 
->>>> This patch is against master branch of linuxtv.org/media_tree.git.
+> 
+> Most of the time the controls that need to be applied on per-frame basis are
+> present in embedded systems with complex media pipelines where most of the
+> controls are present on sub-device nodes.
+> 
+> In other words this approach alone is not sufficient to bind control related
+> configurations to individual frames. For preparing and applying
+> configurations it is applicable.
+> 
+> Thinking about the Android camera API v3, controls are a part of the picture
+> only: capture requests contain buffer sets as well. I think the concept
+> makes sense also outside Android. Let's discuss this further at the Media
+> summit.
 
->>>> v2 [Yoshihiro Kaneko]
->>>> * remove unused/useless definition as suggested by Sergei Shtylyov
+Let's do that.
 
->>>     I didn't say it's useless, I just suspected that you missed the necessary
->>> test somewhere...
+Regards,
 
->> Sorry for my inaccurate description.
-
->>>>    drivers/media/platform/soc_camera/rcar_vin.c | 9 +++++++++
->>>>    1 file changed, 9 insertions(+)
-
->>>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
->>>> b/drivers/media/platform/soc_camera/rcar_vin.c
->>>> index 20defcb..cb5e682 100644
->>>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->>>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->>>> @@ -74,6 +74,7 @@
->>>>    #define VNMC_INF_YUV10_BT656  (2 << 16)
->>>>    #define VNMC_INF_YUV10_BT601  (3 << 16)
->>>>    #define VNMC_INF_YUV16                (5 << 16)
->>>> +#define VNMC_INF_RGB888                (6 << 16)
->>>>    #define VNMC_VUP              (1 << 10)
->>>>    #define VNMC_IM_ODD           (0 << 3)
->>>>    #define VNMC_IM_ODD_EVEN      (1 << 3)
-
->>> [...]
-
->>>> @@ -331,6 +336,9 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->>>>          if (output_is_yuv)
->>>>                  vnmc |= VNMC_BPS;
->>>>
->>>> +       if (vnmc & VNMC_INF_RGB888)
->>>> +               vnmc ^= VNMC_BPS;
->>>> +
-
->>>     Hm, this also changes the behavior for VNMC_INF_YUV16 and
->>> VNMC_INF_YUV10_BT{601|656}. Is this actually intended?
-
->> Probably this code is incorrect.
->> Thank you for your review.
-
-> Thanks, I have confirmed with Matsuoka-san that there is a problem here.
-
-> He has provided the following fix. Could you see about squashing it into
-> the above patch and reposting?
-
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-
-> [PATCH] media: soc_camera: rcar_vin: Fix bit field check
-
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 013d75c..da62d94 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -94,7 +94,7 @@
->   #define VNMC_INF_YUV8_BT601	(1 << 16)
->   #define VNMC_INF_YUV16		(5 << 16)
->   #define VNMC_INF_RGB888		(6 << 16)
-> -#define VNMC_INF_RGB_MASK	(6 << 16)
-> +#define VNMC_INF_MASK		(7 << 16)
-
-    #define it above VNMC_INF_YUV8_BT656 please.
-
->   #define VNMC_VUP		(1 << 10)
->   #define VNMC_IM_ODD		(0 << 3)
->   #define VNMC_IM_ODD_EVEN	(1 << 3)
-> @@ -675,7 +675,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->   	if (output_is_yuv)
->   		vnmc |= VNMC_BPS;
->
-> -	if (vnmc & VNMC_INF_RGB_MASK)
-> +	if ((vnmc & VNMC_INF_MASK) == VNMC_INF_RGB888)
-
-    Is he sure it shouldn't be (vnmc & VNMC_INF_RGB888) == VNMC_INF_RGB888 to 
-also cover 16-bit RGB666 and 12-bit RGB88?
-
-WBR, Sergei
+	Hans
 
