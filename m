@@ -1,159 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f54.google.com ([209.85.192.54]:44660 "EHLO
-	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbaJDHQp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 03:16:45 -0400
-Received: by mail-qg0-f54.google.com with SMTP id z107so1859902qgd.41
-        for <linux-media@vger.kernel.org>; Sat, 04 Oct 2014 00:16:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20141003075206.331006bd@recife.lan>
-References: <1412275758-31340-1-git-send-email-knightrider@are.ma>
-	<542E2BF6.2090800@iki.fi>
-	<CAKnK8-QOU7szWNcC1BsBZtNmHBLiLqZuCVYpjsVBkpfNCxGa-A@mail.gmail.com>
-	<20141003075206.331006bd@recife.lan>
-Date: Sat, 4 Oct 2014 16:16:45 +0900
-Message-ID: <CAKnK8-QF7fWRzp24mhsUWuK610Ko7G=a4fEx0oyf+En+jRVoJA@mail.gmail.com>
-Subject: Re: [PATCH] pt3 (pci, tc90522, mxl301rf, qm1d1c0042):
- pt3_unregister_subdev(), pt3_unregister_subdev(), cleanups...
-From: "AreMa Inc." <info@are.ma>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1275 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922AbaJIClv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 22:41:51 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s992fl2h005587
+	for <linux-media@vger.kernel.org>; Thu, 9 Oct 2014 04:41:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D8C762A0432
+	for <linux-media@vger.kernel.org>; Thu,  9 Oct 2014 04:41:45 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141009024145.D8C762A0432@tschai.lan>
+Date: Thu,  9 Oct 2014 04:41:45 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The biggest reason is that, the submitted driver, also published at
-https://github.com/knight-rider/ptx/tree/master/pt3_dvb
-is well proven to be running smoothly and already used by Japanese community
-for more than a year (i.e. de facto standard) without any major issues.
+Results of the daily build of media_tree:
 
-The second is more about his personal reasons in violating the rules
-and we don't want to comment further unless there is no response from him
-within a week.
+date:		Thu Oct  9 04:00:28 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
-Many patches will follow.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Thanks again for your info.
-Regards
--Bud
+Detailed results are available here:
 
-2014-10-03 19:52 GMT+09:00 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> Em Fri, 03 Oct 2014 14:45:19 +0900
-> "AreMa Inc." <info@are.ma> escreveu:
->
->> Mauro & Antti
->>
->> Please drop & replace Tsukada's PT3 patches.
->
-> It doesn't work like that. We don't simply drop a driver and replace by
-> some other one.
->
-> The way most open source project works with regards to patch reviewing
-> process work is via lazy consensus. The maintainer could, of course,
-> override it, but this is only done on exceptional cases and when there
-> is a strong reason for doing that.
->
-> The lazy consensus works like that: someone publish a patch at a public
-> mailing list. During a reasonable amount of time, everybody that
-> participates at the community can review the patch, and submit their
-> review publicly. After that time, it is assumed that everybody was happy
-> with the patch. The maintainers will then take it and merge.
->
-> The PT3 patches are floating around for at least 2 merge windows, with is
-> a more than reasonable time. There were requests to change some bad things
-> there, to split the big patches into a series of patches, etc. All of them
-> were satisfied. So, as everybody lazily agreed with the code, it got merged.
->
-> In other words, if you had anything against the merge of the PT3 driver,
-> you should have manifested before the merge during the ~2 months that this
-> was discussed, and not after that.
->
-> Yet, if the driver is not fully functional or if it have some issues, we do
-> accept and we do want incremental patches fixing it. Of course, those changes
-> should be properly described. The patch descriptions should answer three
-> questions:
->         - What each patch is doing;
->         - Why that patch is needed;
->         - How the change was done.
->
-> As Antti stated, those incremental patches should be done with one logical
-> change per patch. That will allow us to better understand what's happening.
->
-> In other words, you could, for example, send us a patch inside a series that
-> would be doing (from your previous patch):
->         - lightweight & yet precise CNR calculus
->
-> Such patch should look like:
->
-> Subject: pt3: improve and cleanup CNR calculus
-> From: your real name <your@email>
->
-> The current code uses a too complex logic to do CNR calculus.
-> Simplify the logic by doing ....
-> That keeps the CNR calculus precise, but makes the calculus
-> (quicker|easier to read|...).
->
-> Signed-off-by: your real name <your@email>
->
-> Please read what's written on our Wiki for more details, at:
->         http://linuxtv.org/wiki/index.php/Developer_Section
-> Starting with:
->         http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches
->
->> There are too many weird & violating codes in it.
->
-> You need to provide us a way more detailed descriptions than just the
-> above statement, as the above example
->
-> E. g.: What is weird and where? What's being violated and where? What
-> you're proposing to solve it?
->
-> Regards,
-> Mauro
->
->>
->> Thanks
->> -Bud
->>
->>
->> 2014-10-03 13:54 GMT+09:00 Antti Palosaari <crope@iki.fi>:
->> > On 10/02/2014 09:49 PM, Буди Романто, AreMa Inc wrote:
->> >>
->> >> DVB driver for Earthsoft PT3 PCIE ISDB-S/T receiver
->> >> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->> >>
->> >> Status: stable
->> >>
->> >> Changes:
->> >> - demod & tuners converted to I2C binding model
->> >> - i586 & x86_64 clean compile
->> >> - lightweight & yet precise CNR calculus
->> >> - raw CNR (DVBv3)
->> >> - DVBv5 CNR @ 0.0001 dB (ref: include/uapi/linux/dvb/frontend.h, not
->> >> 1/1000 dB!)
->> >> - removed (unused?) tuner's *_release()
->> >> - demod/tuner binding: pt3_unregister_subdev(), pt3_unregister_subdev()
->> >> - some cleanups
->> >
->> >
->> > These drivers are already committed, like you have noticed. There is surely
->> > a lot of issues that could be improved, but it cannot be done by big patch
->> > which replaces everything. You need to just take one issue at the time,
->> > fix/improve it, send patch to mailing list for review. One patch per one
->> > logical change.
->> >
->> > regards
->> > Antti
->> >
->> > --
->> > http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
