@@ -1,326 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46458 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751337AbaJAT2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 15:28:47 -0400
-Message-ID: <542C55EB.5040605@iki.fi>
-Date: Wed, 01 Oct 2014 22:28:43 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH V2 07/13] cx231xx: add wrapper to get the i2c_adapter
- pointer
-References: <1412140821-16285-1-git-send-email-zzam@gentoo.org> <1412140821-16285-8-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412140821-16285-8-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:55562 "EHLO
+	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750896AbaJIGpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Oct 2014 02:45:32 -0400
+Message-ID: <1412837128.21441.9.camel@x220>
+Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 09 Oct 2014 08:45:28 +0200
+In-Reply-To: <20141008225011.2d034c1e@recife.lan>
+References: <20141008174923.76786a03@canb.auug.org.au>
+	 <543570C3.9080207@infradead.org> <20141008153105.2fe82fca@recife.lan>
+	 <5435A44D.2050609@infradead.org> <20141008225011.2d034c1e@recife.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+On Wed, 2014-10-08 at 22:50 -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 08 Oct 2014 13:53:33 -0700
+> Randy Dunlap <rdunlap@infradead.org> escreveu:
+> > On 10/08/14 11:31, Mauro Carvalho Chehab wrote:
+> > > From gpsca's PoV, IMHO, it should be fine to disable the webcam buttons if
+> > > the webcam was compiled as builtin and the input subsystem is compiled as 
+> > > module. The core feature expected on a camera is to capture streams. 
+> > > Buttons are just a plus.
+> > > 
+> > > Also, most cams don't even have buttons. The gspca subdriver has support 
+> > > for buttons for the few models that have it.
+> > > 
+> > > So, IMHO, it should be ok to have GSPCA=y and INPUT=m, provided that 
+> > > the buttons will be disabled.
+> > 
+> > Then all of the sub-drivers that use IS_ENABLED(CONFIG_INPUT) should be
+> > changed to use IS_BUILTIN(CONFIG_INPUT).
+> > 
+> > But that is too restrictive IMO.  The input subsystem will work fine when
+> > CONFIG_INPUT=m and the GSPCA drivers are also loadable modules.
+> 
+> Agreed.
+> 
+> Maybe the solution would be something more complex like 
+> (for drivers/media/usb/gspca/zc3xx.c):
+> 
+> #if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_ZC3XX))
 
-Antti
+The above discussion meanders a bit, and I just stumbled onto it, but
+would
+    #if IS_BUILTIN(CONFIG_INPUT) || (IS_MODULE(CONFIG_INPUT) && defined(MODULE))
 
-On 10/01/2014 08:20 AM, Matthias Schwarzott wrote:
-> This is a preparation for mapping I2C_1_MUX_1 and I2C_1_MUX_3 later to the seperate
-> muxed i2c adapters.
->
-> Map mux adapters to I2C_1 for now.
->
-> Add local variables for i2c_adapters in dvb_init to get line lengths
-> shorter.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-cards.c |  8 +++---
->   drivers/media/usb/cx231xx/cx231xx-dvb.c   | 42 +++++++++++++++++--------------
->   drivers/media/usb/cx231xx/cx231xx-i2c.c   | 20 ++++++++++++++-
->   drivers/media/usb/cx231xx/cx231xx-input.c |  3 ++-
->   drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->   5 files changed, 50 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 2f027c7..f5fb93a 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
->   	/* request some modules */
->   	if (dev->board.decoder == CX231XX_AVDECODER) {
->   		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -					&dev->i2c_bus[I2C_0].i2c_adap,
-> +					cx231xx_get_i2c_adap(dev, I2C_0),
->   					"cx25840", 0x88 >> 1, NULL);
->   		if (dev->sd_cx25840 == NULL)
->   			cx231xx_info("cx25840 subdev registration failure\n");
-> @@ -1043,8 +1043,10 @@ void cx231xx_card_setup(struct cx231xx *dev)
->
->   	/* Initialize the tuner */
->   	if (dev->board.tuner_type != TUNER_ABSENT) {
-> +		struct i2c_adapter *tuner_i2c = cx231xx_get_i2c_adap(dev,
-> +						dev->board.tuner_i2c_master);
->   		dev->sd_tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -						    &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +						    tuner_i2c,
->   						    "tuner",
->   						    dev->tuner_addr, NULL);
->   		if (dev->sd_tuner == NULL)
-> @@ -1062,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
->   			struct i2c_client client;
->
->   			memset(&client, 0, sizeof(client));
-> -			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
-> +			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
->   			client.addr = 0xa0 >> 1;
->
->   			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 6c7b5e2..869c433 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -378,7 +378,7 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
->   	struct xc5000_config cfg;
->
->   	memset(&cfg, 0, sizeof(cfg));
-> -	cfg.i2c_adap = &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap;
-> +	cfg.i2c_adap = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
->   	cfg.i2c_addr = addr;
->
->   	if (!dev->dvb->frontend) {
-> @@ -583,6 +583,8 @@ static int dvb_init(struct cx231xx *dev)
->   {
->   	int result = 0;
->   	struct cx231xx_dvb *dvb;
-> +	struct i2c_adapter *tuner_i2c;
-> +	struct i2c_adapter *demod_i2c;
->
->   	if (!dev->board.has_dvb) {
->   		/* This device does not support the extension */
-> @@ -599,6 +601,8 @@ static int dvb_init(struct cx231xx *dev)
->   	dev->cx231xx_set_analog_freq = cx231xx_set_analog_freq;
->   	dev->cx231xx_reset_analog_tuner = cx231xx_reset_analog_tuner;
->
-> +	tuner_i2c = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
-> +	demod_i2c = cx231xx_get_i2c_adap(dev, dev->board.demod_i2c_master);
->   	mutex_lock(&dev->lock);
->   	cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
->   	cx231xx_demod_reset(dev);
-> @@ -609,7 +613,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1432_attach,
->   					&dvico_s5h1432_config,
-> -					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -622,7 +626,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
-> -			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       tuner_i2c,
->   			       &cnxt_rde250_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -634,7 +638,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1411_attach,
->   					       &xc5000_s5h1411_config,
-> -					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					       demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -647,7 +651,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
-> -			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       tuner_i2c,
->   			       &cnxt_rdu250_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -657,7 +661,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1432_attach,
->   					&dvico_s5h1432_config,
-> -					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -670,7 +674,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       0x60, tuner_i2c,
->   			       &cnxt_rde253s_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -681,7 +685,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(s5h1411_attach,
->   					       &tda18271_s5h1411_config,
-> -					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +					       demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -694,7 +698,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			       0x60, tuner_i2c,
->   			       &cnxt_rde253s_tunerconfig)) {
->   			result = -EINVAL;
->   			goto out_free;
-> @@ -703,11 +707,11 @@ static int dvb_init(struct cx231xx *dev)
->   	case CX231XX_BOARD_HAUPPAUGE_EXETER:
->
->   		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
-> -		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-> +		       __func__, i2c_adapter_id(tuner_i2c));
->
->   		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
->   						&hcw_lgdt3305_config,
-> -						&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap);
-> +						tuner_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -720,7 +724,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			   0x60, tuner_i2c,
->   			   &hcw_tda18271_config);
->   		break;
->
-> @@ -728,7 +732,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(si2165_attach,
->   			&hauppauge_930C_HD_1113xx_si2165_config,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-> +			tuner_i2c
->   			);
->
->   		if (dev->dvb->frontend == NULL) {
-> @@ -745,7 +749,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
->   			0x60,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			tuner_i2c,
->   			&hcw_tda18271_config);
->
->   		dev->cx231xx_reset_analog_tuner = NULL;
-> @@ -761,7 +765,7 @@ static int dvb_init(struct cx231xx *dev)
->
->   		dev->dvb->frontend = dvb_attach(si2165_attach,
->   			&pctv_quatro_stick_1114xx_si2165_config,
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-> +			tuner_i2c
->   			);
->
->   		if (dev->dvb->frontend == NULL) {
-> @@ -786,7 +790,7 @@ static int dvb_init(struct cx231xx *dev)
->   		request_module("si2157");
->
->   		client = i2c_new_device(
-> -			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			tuner_i2c,
->   			&info);
->   		if (client == NULL || client->dev.driver == NULL) {
->   			dvb_frontend_detach(dev->dvb->frontend);
-> @@ -811,11 +815,11 @@ static int dvb_init(struct cx231xx *dev)
->   	case CX231XX_BOARD_KWORLD_UB430_USB_HYBRID:
->
->   		printk(KERN_INFO "%s: looking for demod on i2c bus: %d\n",
-> -		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-> +		       __func__, i2c_adapter_id(tuner_i2c));
->
->   		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
->   						&pv_mb86a20s_config,
-> -						&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-> +						demod_i2c);
->
->   		if (dev->dvb->frontend == NULL) {
->   			printk(DRIVER_NAME
-> @@ -828,7 +832,7 @@ static int dvb_init(struct cx231xx *dev)
->   		dvb->frontend->callback = cx231xx_tuner_callback;
->
->   		dvb_attach(tda18271_attach, dev->dvb->frontend,
-> -			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-> +			   0x60, tuner_i2c,
->   			   &pv_tda18271_config);
->   		break;
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 178fa48..6a871e0 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -483,7 +483,7 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
->   	struct i2c_client client;
->
->   	memset(&client, 0, sizeof(client));
-> -	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
-> +	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
->
->   	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
->   	for (i = 0; i < 128; i++) {
-> @@ -542,3 +542,21 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
->   	i2c_del_adapter(&bus->i2c_adap);
->   	return 0;
->   }
-> +
-> +struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
-> +{
-> +	switch (i2c_port) {
-> +	case I2C_0:
-> +		return &dev->i2c_bus[0].i2c_adap;
-> +	case I2C_1:
-> +		return &dev->i2c_bus[1].i2c_adap;
-> +	case I2C_2:
-> +		return &dev->i2c_bus[2].i2c_adap;
-> +	case I2C_1_MUX_1:
-> +	case I2C_1_MUX_3:
-> +		return &dev->i2c_bus[1].i2c_adap;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(cx231xx_get_i2c_adap);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
-> index 05f0434..5ae2ce3 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-input.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-input.c
-> @@ -100,7 +100,8 @@ int cx231xx_ir_init(struct cx231xx *dev)
->   	ir_i2c_bus = cx231xx_boards[dev->model].ir_i2c_master;
->   	dev_dbg(&dev->udev->dev, "Trying to bind ir at bus %d, addr 0x%02x\n",
->   		ir_i2c_bus, info.addr);
-> -	dev->ir_i2c_client = i2c_new_device(&dev->i2c_bus[ir_i2c_bus].i2c_adap, &info);
-> +	dev->ir_i2c_client = i2c_new_device(
-> +		cx231xx_get_i2c_adap(dev, ir_i2c_bus), &info);
->
->   	return 0;
->   }
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 377216b..f03338b 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -754,6 +754,7 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
->   void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus);
->   int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-> +struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
->
->   /* Internal block control functions */
->   int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
->
+cover your requirements when using macros?
 
--- 
-http://palosaari.fi/
+> Probably the best would be to write another macro that would evaluate
+> like the above.
+
+
+Paul Bolle
+
