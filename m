@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:41370 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbaJERhi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 13:37:38 -0400
-Received: by mail-pa0-f46.google.com with SMTP id fa1so4065742pad.33
-        for <linux-media@vger.kernel.org>; Sun, 05 Oct 2014 10:37:38 -0700 (PDT)
-From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
-	<info@are.ma>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi, m.chehab@samsung.com, mchehab@osg.samsung.com,
-	hdegoede@redhat.com, laurent.pinchart@ideasonboard.com,
-	mkrufky@linuxtv.org, sylvester.nawrocki@gmail.com,
-	g.liakhovetski@gmx.de, peter.senna@gmail.com
-Subject: [PATCH 1/1] Kconfig: cosmetic improvement
-Date: Mon,  6 Oct 2014 02:37:34 +0900
-Message-Id: <766263dfa0c03ad90e912828fdd7e0cb391e5ae1.1412530212.git.knightrider@are.ma>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35404 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751030AbaJIWIR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Oct 2014 18:08:17 -0400
+Date: Thu, 9 Oct 2014 17:08:16 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>
+Subject: Re: v4l2-compliance revision vs Kernel version
+Message-ID: <20141009220816.GG973@ti.com>
+References: <20141009214536.GF973@ti.com>
+ <54370615.9030107@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <54370615.9030107@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PT1 & PT3 are wrongly categorized, fix it
-Add comment that PT3 needs FE & tuners
+Hi Hans,
 
-This patch can be applied immediately
+Hans Verkuil <hverkuil@xs4all.nl> wrote on Fri [2014-Oct-10 00:03:01 +0200]:
+> Hi Benoit,
+> 
+> On 10/09/2014 11:45 PM, Benoit Parrot wrote:
+> >Hi,
+> >
+> >Can someone point me toward a mapping of v4l2-compliance release vs kernel version?
+> 
+> There isn't any. It's trial and error, I'm afraid. The primary use-case of v4l2-compliance is
+> testing drivers in the bleeding-edge media_tree.git repo.
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
----
- drivers/media/dvb-frontends/Kconfig | 4 ++--
- drivers/media/pci/pt3/Kconfig       | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Thanks for the quick reply.
+I had a feeling that was going to be the case, but had to check.
+> 
+> >
+> >I am currently working with a 3.14 kernel and would like to find the matching v4l2-compliance version.
+> >I am  using git://linuxtv.org/v4l-utils.git commit id:
+> >3719cef libdvbv5: reimplement the logic that gets a full section
+> >
+> >But on 3.14 running that version against vivi.ko shows a few failures and a bunch of "Not Supported".
+> 
+> "Not Supported" is not an error. It just means that the driver doesn't support that ioctl, so
+> no compliance tests for that ioctl are done.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 5a13454..0c59825 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -621,7 +621,7 @@ config DVB_S5H1411
- 	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
- 	  to support this frontend.
+Yeah I know but i am getting those even for simple stuff like:
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK (Not Supported)
+	test read/write: OK
+	test MMAP: OK (Not Supported)
+	test USERPTR: OK (Not Supported)
+	test DMABUF: OK (Not Supported)
+
  
--comment "ISDB-T (terrestrial) frontends"
-+comment "ISDB-S (satellite) & ISDB-T (terrestrial) frontends"
- 	depends on DVB_CORE
- 
- config DVB_S921
-@@ -653,7 +653,7 @@ config DVB_TC90522
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
--	  A Toshiba TC90522 2xISDB-T + 2xISDB-S demodulator.
-+	  Toshiba TC90522 2xISDB-S 8PSK + 2xISDB-T OFDM demodulator.
- 	  Say Y when you want to support this frontend.
- 
- comment "Digital terrestrial only tuners/PLL"
-diff --git a/drivers/media/pci/pt3/Kconfig b/drivers/media/pci/pt3/Kconfig
-index 16c208a..f7b7210 100644
---- a/drivers/media/pci/pt3/Kconfig
-+++ b/drivers/media/pci/pt3/Kconfig
-@@ -6,5 +6,5 @@ config DVB_PT3
- 	select MEDIA_TUNER_MXL301RF if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Support for Earthsoft PT3 PCIe cards.
--
-+	  You need to enable frontend (TC90522) & tuners (QM1D1C0042, MXL301RF)
- 	  Say Y or M if you own such a device and want to use it.
--- 
-1.8.4.5
-
+Regards,
+Benoit
