@@ -1,75 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:36688 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052AbaJULHj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 07:07:39 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
-	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
-	kiran@chromium.org, arunkk.samsung@gmail.com
-Subject: [PATCH v3 04/13] [media] s5p-mfc: Only set timestamp/timecode for new frames.
-Date: Tue, 21 Oct 2014 16:36:58 +0530
-Message-Id: <1413889627-8431-5-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
-References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:40019 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751370AbaJIBuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Oct 2014 21:50:19 -0400
+Date: Wed, 8 Oct 2014 22:50:11 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
+Message-ID: <20141008225011.2d034c1e@recife.lan>
+In-Reply-To: <5435A44D.2050609@infradead.org>
+References: <20141008174923.76786a03@canb.auug.org.au>
+	<543570C3.9080207@infradead.org>
+	<20141008153105.2fe82fca@recife.lan>
+	<5435A44D.2050609@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ilja Friedel <ihf@chromium.org>
+Em Wed, 08 Oct 2014 13:53:33 -0700
+Randy Dunlap <rdunlap@infradead.org> escreveu:
 
-Timestamp i of a previously decoded buffer was overwritten for some
-H.264 streams with timestamp i+1 of the next buffer. This happened when
-encountering frame_type S5P_FIMV_DECODE_FRAME_SKIPPED, indicating no
-new frame.
+> On 10/08/14 11:31, Mauro Carvalho Chehab wrote:
+> > Em Wed, 08 Oct 2014 10:13:39 -0700
+> > Randy Dunlap <rdunlap@infradead.org> escreveu:
+> > 
+> >> On 10/07/14 23:49, Stephen Rothwell wrote:
+> >>> Hi all,
+> >>>
+> >>> Please do not add any material intended for v3.19 to you linux-next
+> >>> included trees until after v3.18-rc1 has been released.
+> >>>
+> >>> Changes since 20141007:
+> >>>
+> >>
+> >> I saw these build errors in gspca when CONFIG_INPUT=m but the gspca
+> >> sub-drivers are builtin:
+> >>
+> >> drivers/built-in.o: In function `gspca_dev_probe2':
+> >> (.text+0x10ef43): undefined reference to `input_allocate_device'
+> >> drivers/built-in.o: In function `gspca_dev_probe2':
+> >> (.text+0x10efdd): undefined reference to `input_register_device'
+> >> drivers/built-in.o: In function `gspca_dev_probe2':
+> >> (.text+0x10f002): undefined reference to `input_free_device'
+> >> drivers/built-in.o: In function `gspca_dev_probe2':
+> >> (.text+0x10f0ac): undefined reference to `input_unregister_device'
+> >> drivers/built-in.o: In function `gspca_disconnect':
+> >> (.text+0x10f186): undefined reference to `input_unregister_device'
+> >> drivers/built-in.o: In function `sd_int_pkt_scan':
+> >> se401.c:(.text+0x11373d): undefined reference to `input_event'
+> >> se401.c:(.text+0x11374e): undefined reference to `input_event'
+> >> drivers/built-in.o: In function `sd_pkt_scan':
+> >> t613.c:(.text+0x119f0e): undefined reference to `input_event'
+> >> t613.c:(.text+0x119f1f): undefined reference to `input_event'
+> >> drivers/built-in.o: In function `sd_stopN':
+> >> t613.c:(.text+0x11a047): undefined reference to `input_event'
+> >> drivers/built-in.o:t613.c:(.text+0x11a058): more undefined references to `input_event' follow
+> >>
+> >> These could be fixed in Kconfig by something like (for each sub-driver that tests
+> >> CONFIG_INPUT):
+> >>
+> >> 	depends on INPUT || INPUT=n
+> >>
+> >> Do you have another preference for fixing this?
+> > 
+> > Hmm... The code at the gspca subdrivers looks like:
+> > 
+> > #if IS_ENABLED(CONFIG_INPUT)
+> 
+> For builtin only, that should be
+> 
+> #if IS_BUILTIN(CONFIG_INPUT)
+> 
+> > 		if (data[0] & 0x20) {
+> > 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
+> > 			input_sync(gspca_dev->input_dev);
+> > 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+> > 			input_sync(gspca_dev->input_dev);
+> > 		}
+> > #endif
+> > 
+> > As we never got any report about such bug, and this is there for a long
+> > time, I suspect that maybe the IS_ENABLED() macro had some changes on
+> > its behavior. So, IMHO, we should first check if something changed there.
+> 
+> I don't see any changes in <linux/kconfig.h>.
 
-In most cases this wrong indexing might not have been noticed except
-for a one frame delay in frame presentation. For H.264 streams though
-that require reordering of frames for presentation, it caused a slightly
-erratic presentation time lookup and consequently dropped frames in the
-Pepper Flash plugin.
+Perhaps some changes at the Kbuild source code or scripts badly affected it.
 
-Signed-off-by: Ilja H. Friedel <ihf@google.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> > From gpsca's PoV, IMHO, it should be fine to disable the webcam buttons if
+> > the webcam was compiled as builtin and the input subsystem is compiled as 
+> > module. The core feature expected on a camera is to capture streams. 
+> > Buttons are just a plus.
+> > 
+> > Also, most cams don't even have buttons. The gspca subdriver has support 
+> > for buttons for the few models that have it.
+> > 
+> > So, IMHO, it should be ok to have GSPCA=y and INPUT=m, provided that 
+> > the buttons will be disabled.
+> 
+> Then all of the sub-drivers that use IS_ENABLED(CONFIG_INPUT) should be
+> changed to use IS_BUILTIN(CONFIG_INPUT).
+> 
+> But that is too restrictive IMO.  The input subsystem will work fine when
+> CONFIG_INPUT=m and the GSPCA drivers are also loadable modules.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 79c9537..eb71055 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -220,11 +220,14 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 	size_t dec_y_addr;
- 	unsigned int frame_type;
- 
--	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
-+	/* Make sure we actually have a new frame before continuing. */
- 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
-+	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
-+		return;
-+	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
- 
- 	/* Copy timestamp / timecode from decoded src to dst and set
--	   appropriate flags */
-+	   appropriate flags. */
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
- 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
-@@ -250,6 +253,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 				dst_buf->b->v4l2_buf.flags |=
- 						V4L2_BUF_FLAG_BFRAME;
- 				break;
-+			default:
-+				/* Don't know how to handle
-+				   S5P_FIMV_DECODE_FRAME_OTHER_FRAME. */
-+				mfc_debug(2, "Unexpected frame type: %d\n",
-+						frame_type);
- 			}
- 			break;
- 		}
--- 
-1.7.9.5
+Agreed.
 
+Maybe the solution would be something more complex like 
+(for drivers/media/usb/gspca/zc3xx.c):
+
+#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_ZC3XX))
+
+Probably the best would be to write another macro that would evaluate
+like the above.
+
+> That's simple to express in Kconfig language but probly more messy in CPP.
+> 
+> 
+> Thanks.
+> 
+> 
