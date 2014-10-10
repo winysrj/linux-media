@@ -1,47 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-102.synserver.de ([212.40.185.102]:1399 "EHLO
-	smtp-out-102.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbaJPMHs (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46357 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751601AbaJJHvW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 08:07:48 -0400
-Message-ID: <543FB374.8020604@metafoo.de>
-Date: Thu, 16 Oct 2014 14:00:52 +0200
-From: Lars-Peter Clausen <lars@metafoo.de>
+	Fri, 10 Oct 2014 03:51:22 -0400
+Date: Fri, 10 Oct 2014 10:51:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: omap3isp Device Tree support status
+Message-ID: <20141010075112.GA2939@valkosipuli.retiisi.org.uk>
+References: <20140928221341.GQ2939@valkosipuli.retiisi.org.uk>
+ <54330499.50905@gmail.com>
+ <20141008113303.GY2939@valkosipuli.retiisi.org.uk>
+ <5436F253.7060203@gmail.com>
 MIME-Version: 1.0
-To: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
-	hverkuil@xs4all.nl, ramakrmu@cisco.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	perex@perex.cz, tiwai@suse.de, prabhakar.csengg@gmail.com,
-	tim.gardner@canonical.com, linux@eikelenboom.it
-CC: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
- token api
-References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5436F253.7060203@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2014 04:58 PM, Shuah Khan wrote:
-[...]
->   	switch (cmd) {
->   	case SNDRV_PCM_TRIGGER_START:
-> +		err = media_get_audio_tkn(&subs->dev->dev);
-> +		if (err == -EBUSY) {
-> +			dev_info(&subs->dev->dev, "%s device is busy\n",
-> +					__func__);
+Hi Alaganjar,
 
-In my opinion this should not dev_info() as this is out of band error 
-signaling and also as the potential to spam the log. The userspace 
-application is already properly notified by the return code.
+On Fri, Oct 10, 2014 at 02:08:43AM +0530, Alaganraj Sandhanam wrote:
+> Hi Sakari,
+> 
+> On Wednesday 08 October 2014 05:03 PM, Sakari Ailus wrote:
+> > Hi Alaganjar,
+> > 
+> > On Tue, Oct 07, 2014 at 02:37:37AM +0530, Alaganraj Sandhanam wrote:
+> >> Hi Sakari,
+> >>
+> >> Thanks for the patches.
+> >> On Monday 29 September 2014 03:43 AM, Sakari Ailus wrote:
+> >>> Hi,
+> >>>
+> >>> I managed to find some time for debugging my original omap3isp DT support
+> >>> patchset (which includes smiapp DT support as well), and found a few small
+> >>> but important bugs.
+> >>>
+> >>> The status is now that images can be captured using the Nokia N9 camera, in
+> >>> which the sensor is connected to the CSI-2 interface. Laurent confirmed that
+> >>> the parallel interface worked for him (Beagleboard, mt9p031 sensor on
+> >>> Leopard imaging's li-5m03 board).
+> >> Good news!
+> >>>
+> >>> These patches (on top of the smiapp patches I recently sent for review which
+> >>> are in much better shape) are still experimental and not ready for review. I
+> >>> continue to clean them up and post them to the list when that is done. For
+> >>> now they can be found here:
+> >>>
+> >>> <URL:http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt>
+> >>>
+> >> I couldn't clone the repo, getting "remote corrupt" error.
+> >>
+> >> $ git remote -v
+> >> media-sakari	git://linuxtv.org/sailus/media_tree.git (fetch)
+> >> media-sakari	git://linuxtv.org/sailus/media_tree.git (push)
+> >> origin	git://linuxtv.org/media_tree.git (fetch)
+> >> origin	git://linuxtv.org/media_tree.git (push)
+> >> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (fetch)
+> >> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (push)
+> >>
+> >> $ git fetch media-sakari
+> >> warning: cannot parse SRV response: Message too long
+> >> remote: error: Could not read 5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+> >> remote: fatal: revision walk setup failed
+> >> remote: aborting due to possible repository corruption on the remote side.
+> >> fatal: protocol error: bad pack header
+> > 
+> > I'm not sure what this could be related. Can you fetch from other trees,
+> > e.g. your origin remote? Do you get the same error from the remote on
+> > vihersipuli, and by using http instead?
+> > 
+> I'm able to fetch from "origin" and "vihersipuli" remotes.
+> problem with only "git://linuxtv.org/sailus/media_tree.git" remote.
 
-> +			return err;
-> +		}
->   		err = start_endpoints(subs, false);
->   		if (err < 0)
->   			return err;
+Then you can get the same branch (or later) from vihersipuli. It's available
+there as well.
 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
