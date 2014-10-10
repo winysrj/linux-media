@@ -1,51 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:49049 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbaJLUkw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:40:52 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 00/15] media: davinci: vpbe enhancements
-Date: Sun, 12 Oct 2014 21:40:30 +0100
-Message-Id: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-bn1bon0147.outbound.protection.outlook.com ([157.56.111.147]:19584
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751128AbaJJD0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Oct 2014 23:26:17 -0400
+From: Fancy Fang <chen.fang@freescale.com>
+To: <m.szyprowski@samsung.com>, <hverkuil@xs4all.nl>,
+	<m.chehab@samsung.com>
+CC: <shawn.guo@freescale.com>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v2] [media] videobuf-dma-contig: set vm_pgoff to be zero to pass the sanity check in vm_iomap_memory().
+Date: Fri, 10 Oct 2014 10:21:22 +0800
+Message-ID: <1412907682-26086-1-git-send-email-chen.fang@freescale.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds following support:-
-1: moves the vb2 queue init to probe.
-2: uses vb2_fop_* helpers.
-3: adds support for VB2_DMABUF.
-4: adds support for VIDIOC_CREATE_BUFS and VIDIOC_EXPBUF.
-5: Uses fh provided by v4l core.
-6: And some cleanups.
+When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
+will assign the corresponding offset to the 'boff' field of the
+videobuf_buffer for each requested buffer sequentially. Later, user
+may call mmap() to map one or all of the buffers with the 'offset'
+parameter which is equal to its 'boff' value. Obviously, the 'offset'
+value is only used to find the matched buffer instead of to be the
+real offset from the buffer's physical start address as used by
+vm_iomap_memory(). So, in some case that if the offset is not zero,
+vm_iomap_memory() will fail.
 
-Lad, Prabhakar (15):
-  media: davinci: vpbe: initialize vb2 queue and DMA context in probe
-  media: davinci: vpbe: drop buf_init() callback
-  media: davinci: vpbe: use vb2_ops_wait_prepare/finish helper functions
-  media: davinci: vpbe: drop buf_cleanup() callback
-  media: davinci: vpbe: improve vpbe_buffer_prepare() callback
-  media: davinci: vpbe: use vb2_fop_mmap/poll
-  media: davinci: vpbe: use fh handling provided by v4l
-  media: davinci: vpbe: use vb2_ioctl_* helpers
-  media: davinci: vpbe: add support for VB2_DMABUF
-  media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
-  media: davinci: vpbe: add support for VIDIOC_EXPBUF
-  media: davinci: vpbe: use helpers provided by core if streaming is
-    started
-  media: davinci: vpbe: drop unused member memory from vpbe_layer
-  media: davinci: vpbe: group v4l2_ioctl_ops
-  media: davinci: vpbe: return -ENODATA for *dv_timings/*_std calls
+Signed-off-by: Fancy Fang <chen.fang@freescale.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- drivers/media/platform/davinci/vpbe.c         |  18 +-
- drivers/media/platform/davinci/vpbe_display.c | 607 ++++++--------------------
- include/media/davinci/vpbe_display.h          |  19 -
- 3 files changed, 159 insertions(+), 485 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index bf80f0f..e02353e 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -305,6 +305,15 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	/* Try to remap memory */
+ 	size = vma->vm_end - vma->vm_start;
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++
++	/* the "vm_pgoff" is just used in v4l2 to find the
++	 * corresponding buffer data structure which is allocated
++	 * earlier and it does not mean the offset from the physical
++	 * buffer start address as usual. So set it to 0 to pass
++	 * the sanity check in vm_iomap_memory().
++	 */
++	vma->vm_pgoff = 0;
++
+ 	retval = vm_iomap_memory(vma, mem->dma_handle, size);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ",
 -- 
 1.9.1
 
