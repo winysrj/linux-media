@@ -1,81 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:37041 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933113AbaJVLq0 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:37627 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492AbaJJIHt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 07:46:26 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
+	Fri, 10 Oct 2014 04:07:49 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NDU00IRUGU364A0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Oct 2014 12:49:15 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'ayaka' <ayaka@soulik.info>, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
-	m.chehab@samsung.com
-References: <1406132104-6430-1-git-send-email-ayaka@soulik.info>
- <1406132104-6430-2-git-send-email-ayaka@soulik.info>
-In-reply-to: <1406132104-6430-2-git-send-email-ayaka@soulik.info>
-Subject: RE: [PATCH] s5p-mfc: correct the formats info for encoder
-Date: Wed, 22 Oct 2014 13:46:22 +0200
-Message-id: <0c7e01cfeded$cdd8c000$698a4000$%debski@samsung.com>
+ 17 2011)) with ESMTP id <0ND700C16YP4FV60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Oct 2014 09:10:16 +0100 (BST)
+Message-id: <543793B9.4020100@samsung.com>
+Date: Fri, 10 Oct 2014 10:07:21 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 1/1] Add a libv4l plugin for Exynos4 camera
+References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+ <1412757980-23570-2-git-send-email-j.anaszewski@samsung.com>
+ <54353124.1060704@redhat.com> <54353AA3.3040506@samsung.com>
+ <54364566.9030102@redhat.com>
+In-reply-to: <54364566.9030102@redhat.com>
+Content-type: text/plain; charset=windows-1252; format=flowed
 Content-transfer-encoding: 7bit
-Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ayaka,
+Hi,
 
-Could you resend this patch with your sign-off?
+On 10/09/2014 10:20 AM, Hans de Goede wrote:
+> Hi,
+>
+> On 10/08/2014 03:22 PM, Jacek Anaszewski wrote:
+>> Hi Hans,
+>>
+>> On 10/08/2014 02:42 PM, Hans de Goede wrote:
+>
+> <snip>
+>
+>>>> +    }
+>>>> +
+>>>> +    /* refresh device topology data after linking */
+>>>> +    release_entities(mdev);
+>>>> +
+>>>> +    ret = get_device_topology(mdev);
+>>>> +
+>>>> +    /* close media device fd as it won't be longer required */
+>>>> +    close(mdev->media_fd);
+>>>> +
+>>>> +    if (ret < 0)
+>>>> +        goto err_get_dev_topology;
+>>>> +
+>>>> +    /* discover a pipeline for the capture device */
+>>>> +    ret = discover_pipeline_by_fd(mdev, fd);
+>>>> +    if (ret < 0)
+>>>> +        goto err_discover_pipeline;
+>>>
+>>> There does not seem to be any code here to ensure that this plugin does
+>>> not bind to non exonys4 fimc devices. Please fix that.
+>>
+>> There is. Please look above at the
+>>
+>> "if (!capture_entity(media_entity_name))" condition above.
+>
+> I already checked that, that just checks for the string "capture", which is
+> way too generic, please add a more narrow guard.
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+While making cleanup I mistakenly removed checking for the driver name
+after QUERYCAP in the beginning of plugin_init. Will fix it in the next
+version.
 
-
-> -----Original Message-----
-> From: ayaka [mailto:ayaka@soulik.info]
-> Sent: Wednesday, July 23, 2014 6:15 PM
-> To: linux-media@vger.kernel.org
-> Cc: kyungmin.park@samsung.com; k.debski@samsung.com;
-> jtp.park@samsung.com; m.chehab@samsung.com; ayaka
-> Subject: [PATCH] s5p-mfc: correct the formats info for encoder
-> 
-> The NV12M is supported by all the version of MFC, so it is better to
-> use it as default OUTPUT format.
-> MFC v5 doesn't support NV21, I have tested it, for the SEC doc it is
-> not supported either.
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index d26b248..4ea3796 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -32,7 +32,7 @@
->  #include "s5p_mfc_intr.h"
->  #include "s5p_mfc_opr.h"
-> 
-> -#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12MT
-> +#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12M
->  #define DEF_DST_FMT_ENC	V4L2_PIX_FMT_H264
-> 
->  static struct s5p_mfc_fmt formats[] = { @@ -67,8 +67,7 @@ static
-> struct s5p_mfc_fmt formats[] = {
->  		.codec_mode	= S5P_MFC_CODEC_NONE,
->  		.type		= MFC_FMT_RAW,
->  		.num_planes	= 2,
-> -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
-> -								MFC_V8_BIT,
-> +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
->  	},
->  	{
->  		.name		= "H264 Encoded Stream",
-> --
-> 1.9.3
-
+Regards,
+Jacek
