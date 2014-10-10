@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1782 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932164AbaJWLWX (ORCPT
+Received: from ns.uli-eckhardt.de ([85.214.28.137]:40402 "EHLO
+	mail.uli-eckhardt.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751672AbaJJRTQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 07:22:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 08/15] vivid: enable vb2_expbuf support.
-Date: Thu, 23 Oct 2014 13:21:35 +0200
-Message-Id: <1414063302-26903-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 10 Oct 2014 13:19:16 -0400
+Message-ID: <54381510.5080301@uli-eckhardt.de>
+Date: Fri, 10 Oct 2014 19:19:12 +0200
+From: Ulrich Eckhardt <uli-lirc@uli-eckhardt.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: [PATCH][media] Fix LNB supply voltage of Tevii S480 on initialization
+References: <542C4B14.8030708@uli-eckhardt.de>
+In-Reply-To: <542C4B14.8030708@uli-eckhardt.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Tevii S480 outputs 18V on startup for the LNB supply voltage and does not 
+automatically power down. This blocks other receivers connected 
+to a satellite channel router (EN50494), since the receivers can not send the
+required DiSEqC sequences when the Tevii card is connected to a the same SCR.
 
-Now that vb2 supports DMABUF export for dma-sg and vmalloc memory
-modes, we can enable the vb2_expbuf support in vivid.
+This patch switches off the LNB supply voltage on initialization of the frontend. 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Signed-off-by: Ulrich Eckhardt <uli@uli-eckhardt.de>
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 2c61a62..7de8d9d 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -588,7 +588,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
--/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_streamon		= vb2_ioctl_streamon,
- 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+--- a/drivers/media/dvb-frontends/ds3000.c
++++ b/drivers/media/dvb-frontends/ds3000.c
+@@ -864,6 +864,7 @@
+        memcpy(&state->frontend.ops, &ds3000_ops,
+                        sizeof(struct dvb_frontend_ops));
+        state->frontend.demodulator_priv = state;
++       ds3000_set_voltage (&state->frontend, SEC_VOLTAGE_OFF);
+        return &state->frontend;
  
--- 
-2.1.1
+ error3:
 
+
+
+
+-- 
+Ulrich Eckhardt                  http://www.uli-eckhardt.de
+
+Ein Blitzableiter auf dem Kirchturm ist das denkbar stärkste 
+Misstrauensvotum gegen den lieben Gott. (Karl Krauss)
