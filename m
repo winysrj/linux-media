@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53029 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755656AbaJUQSP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 12:18:15 -0400
-From: Takashi Iwai <tiwai@suse.de>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-doc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] DocBook: Reduce noise from make cleandocs
-Date: Tue, 21 Oct 2014 18:18:12 +0200
-Message-Id: <1413908292-26560-1-git-send-email-tiwai@suse.de>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38086 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948AbaJJIOp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Oct 2014 04:14:45 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ND700CAXZ1DG060@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Oct 2014 09:17:37 +0100 (BST)
+Message-id: <54379572.10900@samsung.com>
+Date: Fri, 10 Oct 2014 10:14:42 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH/RFC 0/1] Libv4l: Add a plugin for the Exynos4 camera
+References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
+ <5436C9DF.8090001@googlemail.com>
+In-reply-to: <5436C9DF.8090001@googlemail.com>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've got a harmless warning when running make cleandocs on an already
-cleaned tree:
-  Documentation/DocBook/media/Makefile:28: recipe for target 'cleanmediadocs' failed
-  make[1]: [cleanmediadocs] Error 1 (ignored)
+Hi,
 
-Suppress this by passing -f to rm.
+On 10/09/2014 07:46 PM, Gregor Jasny wrote:
+> Hi,
+>
+> On 08/10/14 10:46, Jacek Anaszewski wrote:
+>> This patch adds a plugin for the Exynos4 camera. I wanted to split
+>> at least the parser part to the separate module but encountered
+>> some problems with autotools configuration and therefore I'd like
+>> to ask for an instruction on how to adjust the Makefile.am files
+>> to achieve this.
+>
+> I was the one who authored the v4l-utils build system. It looks a little
+> bit messy because of all the supported configurations and toolchain
+> capabilities.
+>
+> Feel free to ask if you have any questions.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- Documentation/DocBook/media/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks, I will certainly make use of your expertise, when in need.
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index df2962d9e11e..8bf7c6191296 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -25,7 +25,7 @@ GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
- PHONY += cleanmediadocs
- 
- cleanmediadocs:
--	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
-+	-@rm -f `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
- 
- $(obj)/media_api.xml: $(GENFILES) FORCE
- 
--- 
-2.1.2
-
+Regards,
+Jacek
