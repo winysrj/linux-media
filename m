@@ -1,61 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:60785 "EHLO
-	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbaJBOuz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 10:50:55 -0400
-Received: by mail-oi0-f47.google.com with SMTP id a141so1997460oig.20
-        for <linux-media@vger.kernel.org>; Thu, 02 Oct 2014 07:50:54 -0700 (PDT)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4658 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbaJJIFR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Oct 2014 04:05:17 -0400
+Message-ID: <5437932A.7000706@xs4all.nl>
+Date: Fri, 10 Oct 2014 10:04:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <540F2AC1.20700@gmail.com>
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
- <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
- <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
- <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
- <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
- <540F2AC1.20700@gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Thu, 2 Oct 2014 16:50:39 +0200
-Message-ID: <CAL8zT=g6CXmLiW6VZwMFVDjKC8FtoPMPDPg7S37Czev+8YO+PA@mail.gmail.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	linux-media@vger.kernel.org,
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Divneil Wadhawan <divneil.wadhawan@st.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+(This patch is from Divneil except for the vivid changes which I added. He had
+difficulties posting the patch without the mailer mangling it, so I'm reposting
+it for him)
 
-2014-09-09 18:28 GMT+02:00 Steve Longerbeam <slongerbeam@gmail.com>:
-> On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
->> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
->>
->>> The complete driver I posted to the list does have some minor issues
->>> mostly suggested by Hans Verkuil (switch to new selection API instead
->>> of cropping API for example). It is a full featured driver but it does not
->>> implement the media device framework, i.e. user does not have direct
->>> control of the video pipeline, rather the driver chooses the pipeline based
->>> on the traditional inputs from user (video format and controls).
+- vb2 drivers to rely on VB2_MAX_FRAME.
 
-Here is my first step toward MC support from your work :
-https://github.com/Vodalys/linux-2.6-imx/commit/8f0318f53c48a9638a1963b395bc79fbd7ba4c07
+- VB2_MAX_FRAME bumps the value to 64 from current 32
 
-This is a WIP, so some parts of code are commented out awaiting a
-nicer solution.
-I also keep using your eplist array for the moment, and open will
-obviously fail when trying to power sensor.
-But what I wanted was a complete MC support with parsing links from DT
-and I used Laurent's work intensively :).
+Signed-off-by: Divneil Wadhawan <divneil.wadhawan@st.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+  drivers/media/pci/saa7134/saa7134-ts.c       | 4 ++--
+  drivers/media/pci/saa7134/saa7134-vbi.c      | 4 ++--
+  drivers/media/pci/saa7134/saa7134-video.c    | 2 +-
+  drivers/media/platform/mem2mem_testdev.c     | 2 +-
+  drivers/media/platform/ti-vpe/vpe.c          | 2 +-
+  drivers/media/platform/vivid/vivid-core.h    | 2 +-
+  drivers/media/platform/vivid/vivid-ctrls.c   | 2 +-
+  drivers/media/platform/vivid/vivid-vid-cap.c | 2 +-
+  drivers/media/v4l2-core/videobuf2-core.c     | 8 ++++----
+  include/media/videobuf2-core.h               | 4 +++-
+  10 files changed, 17 insertions(+), 15 deletions(-)
 
->>> I've also worked out what I think is a workable video pipeline graph for i.MX,
->>> suitable for defining the entities, pads, and links. Unfortunately I haven't
->>> been able to spend as much time as I'd like on it.
+diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
+index bd25323..0d04995 100644
+--- a/drivers/media/pci/saa7134/saa7134-ts.c
++++ b/drivers/media/pci/saa7134/saa7134-ts.c
+@@ -227,8 +227,8 @@ int saa7134_ts_init1(struct saa7134_dev *dev)
+  	/* sanitycheck insmod options */
+  	if (tsbufs < 2)
+  		tsbufs = 2;
+-	if (tsbufs > VIDEO_MAX_FRAME)
+-		tsbufs = VIDEO_MAX_FRAME;
++	if (tsbufs > VB2_MAX_FRAME)
++		tsbufs = VB2_MAX_FRAME;
+  	if (ts_nr_packets < 4)
+  		ts_nr_packets = 4;
+  	if (ts_nr_packets > 312)
+diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
+index 4f0b101..2269837 100644
+--- a/drivers/media/pci/saa7134/saa7134-vbi.c
++++ b/drivers/media/pci/saa7134/saa7134-vbi.c
+@@ -203,8 +203,8 @@ int saa7134_vbi_init1(struct saa7134_dev *dev)
+  
+  	if (vbibufs < 2)
+  		vbibufs = 2;
+-	if (vbibufs > VIDEO_MAX_FRAME)
+-		vbibufs = VIDEO_MAX_FRAME;
++	if (vbibufs > VB2_MAX_FRAME)
++		vbibufs = VB2_MAX_FRAME;
+  	return 0;
+  }
+  
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index fc4a427..c7f39be 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2030,7 +2030,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+  	int ret;
+  
+  	/* sanitycheck insmod options */
+-	if (gbuffers < 2 || gbuffers > VIDEO_MAX_FRAME)
++	if (gbuffers < 2 || gbuffers > VB2_MAX_FRAME)
+  		gbuffers = 2;
+  	if (gbufsize > gbufsize_max)
+  		gbufsize = gbufsize_max;
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index c1b03cf..e1ff7e0 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -55,7 +55,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
+  #define MEM2MEM_NAME		"m2m-testdev"
+  
+  /* Per queue */
+-#define MEM2MEM_DEF_NUM_BUFS	VIDEO_MAX_FRAME
++#define MEM2MEM_DEF_NUM_BUFS	VB2_MAX_FRAME
+  /* In bytes, per queue */
+  #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
+  
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 9a081c2..04e37c0 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1971,7 +1971,7 @@ static const struct v4l2_ctrl_config vpe_bufs_per_job = {
+  	.type = V4L2_CTRL_TYPE_INTEGER,
+  	.def = VPE_DEF_BUFS_PER_JOB,
+  	.min = 1,
+-	.max = VIDEO_MAX_FRAME,
++	.max = VB2_MAX_FRAME,
+  	.step = 1,
+  };
+  
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 811c286..c0375a1 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -346,7 +346,7 @@ struct vivid_dev {
+  	/* video capture */
+  	struct tpg_data			tpg;
+  	unsigned			ms_vid_cap;
+-	bool				must_blank[VIDEO_MAX_FRAME];
++	bool				must_blank[VB2_MAX_FRAME];
+  
+  	const struct vivid_fmt		*fmt_cap;
+  	struct v4l2_fract		timeperframe_vid_cap;
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index d5cbf00..7162f97 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -332,7 +332,7 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
+  		break;
+  	case VIVID_CID_PERCENTAGE_FILL:
+  		tpg_s_perc_fill(&dev->tpg, ctrl->val);
+-		for (i = 0; i < VIDEO_MAX_FRAME; i++)
++		for (i = 0; i < VB2_MAX_FRAME; i++)
+  			dev->must_blank[i] = ctrl->val < 100;
+  		break;
+  	case VIVID_CID_INSERT_SAV:
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 331c544..55e8158 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -252,7 +252,7 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
+  
+  	dev->vid_cap_seq_count = 0;
+  	dprintk(dev, 1, "%s\n", __func__);
+-	for (i = 0; i < VIDEO_MAX_FRAME; i++)
++	for (i = 0; i < VB2_MAX_FRAME; i++)
+  		dev->must_blank[i] = tpg_g_perc_fill(&dev->tpg) < 100;
+  	if (dev->start_streaming_error) {
+  		dev->start_streaming_error = false;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 15b02f9..60354b4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -911,7 +911,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+  	/*
+  	 * Make sure the requested values and current defaults are sane.
+  	 */
+-	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
++	num_buffers = min_t(unsigned int, req->count, VB2_MAX_FRAME);
+  	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
+  	memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
+  	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
+@@ -1015,7 +1015,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+  	unsigned int num_planes = 0, num_buffers, allocated_buffers;
+  	int ret;
+  
+-	if (q->num_buffers == VIDEO_MAX_FRAME) {
++	if (q->num_buffers == VB2_MAX_FRAME) {
+  		dprintk(1, "maximum number of buffers already allocated\n");
+  		return -ENOBUFS;
+  	}
+@@ -1026,7 +1026,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+  		q->memory = create->memory;
+  	}
+  
+-	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
++	num_buffers = min(create->count, VB2_MAX_FRAME - q->num_buffers);
+  
+  	/*
+  	 * Ask the driver, whether the requested number of buffers, planes per
+@@ -2725,7 +2725,7 @@ struct vb2_fileio_data {
+  	struct v4l2_requestbuffers req;
+  	struct v4l2_plane p;
+  	struct v4l2_buffer b;
+-	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
++	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
+  	unsigned int cur_index;
+  	unsigned int initial_index;
+  	unsigned int q_count;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a8608ce..66dcc40 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -18,6 +18,8 @@
+  #include <linux/videodev2.h>
+  #include <linux/dma-buf.h>
+  
++#define VB2_MAX_FRAME		64
++
+  struct vb2_alloc_ctx;
+  struct vb2_fileio_data;
+  struct vb2_threadio_data;
+@@ -402,7 +404,7 @@ struct vb2_queue {
+  /* private: internal use only */
+  	struct mutex			mmap_lock;
+  	enum v4l2_memory		memory;
+-	struct vb2_buffer		*bufs[VIDEO_MAX_FRAME];
++	struct vb2_buffer		*bufs[VB2_MAX_FRAME];
+  	unsigned int			num_buffers;
+  
+  	struct list_head		queued_list;
+-- 
+2.1.1
 
-Did you find some time to write the pdf you mentioned ?
-
-Thanks for your work again,
-JM
