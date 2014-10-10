@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:49603 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759386AbaJ3NPd (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:48262 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108AbaJJWmt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 09:15:33 -0400
-Received: by mail-qg0-f42.google.com with SMTP id i50so3007341qgf.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 06:15:31 -0700 (PDT)
+	Fri, 10 Oct 2014 18:42:49 -0400
+Received: by mail-wi0-f169.google.com with SMTP id cc10so5498622wib.0
+        for <linux-media@vger.kernel.org>; Fri, 10 Oct 2014 15:42:48 -0700 (PDT)
+Received: from [192.168.20.30] (optiplexnetworks.plus.com. [212.159.80.17])
+        by mx.google.com with ESMTPSA id om1sm8361754wjc.42.2014.10.10.15.42.47
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 10 Oct 2014 15:42:47 -0700 (PDT)
+Message-ID: <543860E6.4070802@gmail.com>
+Date: Fri, 10 Oct 2014 23:42:46 +0100
+From: Kaya Saman <kayasaman@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <678fa12fb8e75c6dc1e781a02e3ddbbba7e1a904.1414668341.git.mchehab@osg.samsung.com>
-References: <cover.1414668341.git.mchehab@osg.samsung.com>
-	<678fa12fb8e75c6dc1e781a02e3ddbbba7e1a904.1414668341.git.mchehab@osg.samsung.com>
-Date: Thu, 30 Oct 2014 09:15:31 -0400
-Message-ID: <CAGoCfizkcdU1fgfLjFHwnH34HgpJBcznO+3RrqOMHpLUYKCNPg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] [media] sound: Update au0828 quirks table
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Daniel Mack <zonque@gmail.com>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Vlad Catoi <vladcatoi@gmail.com>, alsa-devel@alsa-project.org,
-	stable@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: Composite input seems cropped using Hauppauge WinTV-HVR 1900?
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-> Syncronize it and put them on the same order as found at au0828
-> driver, as all the au0828 devices with analog TV need the
-> same quirks.
+got a weird issue here.....
 
-The MXL and Woodbury boards don't support analog under Linux, so
-probably shouldn't be included in the list of quirks.
+Trying to run my satellite box through my media center and all is good.
 
-That said, the MXL and Woodbury versions of the PCBs were prototypes
-that never made it into production (and since the Auvitek chips are
-EOL, they never will).  I wouldn't object to a patch which removed the
-board profiles entirely in the interest of removing dead code.
+Slight issue when viewing though is that the capture stream seems to 
+crop the height of the input? Basically the bottom of what's shown using 
+the capture device is not the same as direct output from the satellite box.
 
-It was certainly nice of Mike Krufky to work to get support into the
-open source driver before the product was released, but after four
-years it probably makes sense to remove the entries for products that
-never actually shipped.
 
-Devin
+It's almost like taking a 800x600 screen size yet only displaying 
+800x550 or so?? Not sure if the horizontal is cropping too but vertical 
+is definitely doing so.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+Is there a v4l2-ctl command to get round it?
+
+
+Basically what I'm doing is:
+
+v4l2-ctl --set-input=1 (Composite)
+mplayer /dev/video0 -fs
+
+
+Could anyone help?
+
+
+Thanks.
+
+
+Kaya
