@@ -1,66 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:55562 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbaJIGpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Oct 2014 02:45:32 -0400
-Message-ID: <1412837128.21441.9.camel@x220>
-Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Thu, 09 Oct 2014 08:45:28 +0200
-In-Reply-To: <20141008225011.2d034c1e@recife.lan>
-References: <20141008174923.76786a03@canb.auug.org.au>
-	 <543570C3.9080207@infradead.org> <20141008153105.2fe82fca@recife.lan>
-	 <5435A44D.2050609@infradead.org> <20141008225011.2d034c1e@recife.lan>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mx02.posteo.de ([89.146.194.165]:50071 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752421AbaJKPpa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Oct 2014 11:45:30 -0400
+Date: Sat, 11 Oct 2014 17:45:25 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: JPT <j-p-t@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: technisat-usb2: i2c-error
+Message-ID: <20141011174525.30fde69f@vdr>
+In-Reply-To: <5437B048.4090100@gmx.net>
+References: <5434226B.3010804@gmx.net>
+	<20141009172614.5e16f240@vdr>
+	<5437B048.4090100@gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-10-08 at 22:50 -0300, Mauro Carvalho Chehab wrote:
-> Em Wed, 08 Oct 2014 13:53:33 -0700
-> Randy Dunlap <rdunlap@infradead.org> escreveu:
-> > On 10/08/14 11:31, Mauro Carvalho Chehab wrote:
-> > > From gpsca's PoV, IMHO, it should be fine to disable the webcam buttons if
-> > > the webcam was compiled as builtin and the input subsystem is compiled as 
-> > > module. The core feature expected on a camera is to capture streams. 
-> > > Buttons are just a plus.
-> > > 
-> > > Also, most cams don't even have buttons. The gspca subdriver has support 
-> > > for buttons for the few models that have it.
-> > > 
-> > > So, IMHO, it should be ok to have GSPCA=y and INPUT=m, provided that 
-> > > the buttons will be disabled.
+On Fri, 10 Oct 2014 12:09:12 +0200
+JPT <j-p-t@gmx.net> wrote:
+
+> Hi Patrick,
+> 
+> Am 09.10.2014 um 17:26 schrieb Patrick Boettcher:
+> > Hi Jan,
 > > 
-> > Then all of the sub-drivers that use IS_ENABLED(CONFIG_INPUT) should be
-> > changed to use IS_BUILTIN(CONFIG_INPUT).
+> >> What exactly do the i2c-errors mean? 
 > > 
-> > But that is too restrictive IMO.  The input subsystem will work fine when
-> > CONFIG_INPUT=m and the GSPCA drivers are also loadable modules.
+> > I can't tell you exactly what happens in the device, but I can tell
+> > you that I have the same problem with my device on my PC sometimes. 
+> > 
+> > In addition to this I2c-failures from time to time the box is quite
+> > sensitive regarding: repowering, replugging and host-rebooting.
+> > This is a USB-device-firmware problem which makes the device crash
+> > and all subsequent USB-transfers are failed. Reloading the module
+> > or replugging the device will make it work again.
 > 
-> Agreed.
+> That's bad news. Could you please add this info on the Wikipage?
+> http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
 > 
-> Maybe the solution would be something more complex like 
-> (for drivers/media/usb/gspca/zc3xx.c):
+> > How many days without interruption did you use the device?
 > 
-> #if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_ZC3XX))
+> Well, this was about 2 days and 1.5 ;) recordings
 
-The above discussion meanders a bit, and I just stumbled onto it, but
-would
-    #if IS_BUILTIN(CONFIG_INPUT) || (IS_MODULE(CONFIG_INPUT) && defined(MODULE))
+Matches my experience.
 
-cover your requirements when using macros?
+> > I was following quietly you're discussion with Antti. Has someone
+> > taken care of the your changes regarding the transfer-size?
+> 
+> No. Since I don't understand anything about what I did ;)
 
-> Probably the best would be to write another macro that would evaluate
-> like the above.
+Could you resent the changes figured out by you and Antti ? (ideally in
+a form of a patch).
 
+> And I don't know the process of officially working on the kernel...
+> (Just wondered if I will ever learn that much about kernel
+> programming;)
 
-Paul Bolle
+There you can be helped: http://eudyptula-challenge.org/
 
+> > I think it should included.
+> 
+> Then someone with more insight should change the buffers and create a
+> patch. o.O
+
+Create the patch, I will try it with my box and when it's ok after some
+time we'll get it in.
+
+regards,
+-- 
+Patrick.
