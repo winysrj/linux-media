@@ -1,98 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:40551 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752889AbaJLUlB (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2958 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831AbaJKJW6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:41:01 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 06/15] media: davinci: vpbe: use vb2_fop_mmap/poll
-Date: Sun, 12 Oct 2014 21:40:36 +0100
-Message-Id: <1413146445-7304-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sat, 11 Oct 2014 05:22:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 01/10] videobuf2-core.h: improve documentation
+Date: Sat, 11 Oct 2014 11:22:28 +0200
+Message-Id: <1413019357-12382-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
+References: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch teaches vpbe driver to use vb2_fop_mmap/poll helpers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Document that drivers can access/modify the buffer contents in buf_prepare
+and buf_finish. That was not clearly stated before.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpbe_display.c | 44 ++-------------------------
- 1 file changed, 3 insertions(+), 41 deletions(-)
+ include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 524e1fd..fc3bdb6 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -1341,45 +1341,6 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
- }
- 
- /*
-- * vpbe_display_mmap()
-- * It is used to map kernel space buffers into user spaces
-- */
--static int vpbe_display_mmap(struct file *filep, struct vm_area_struct *vma)
--{
--	/* Get the layer object and file handle object */
--	struct vpbe_fh *fh = filep->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--	int ret;
--
--	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_mmap\n");
--
--	if (mutex_lock_interruptible(&layer->opslock))
--		return -ERESTARTSYS;
--	ret = vb2_mmap(&layer->buffer_queue, vma);
--	mutex_unlock(&layer->opslock);
--	return ret;
--}
--
--/* vpbe_display_poll(): It is used for select/poll system call
-- */
--static unsigned int vpbe_display_poll(struct file *filep, poll_table *wait)
--{
--	struct vpbe_fh *fh = filep->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--	unsigned int err = 0;
--
--	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_poll\n");
--	if (layer->started) {
--		mutex_lock(&layer->opslock);
--		err = vb2_poll(&layer->buffer_queue, filep, wait);
--		mutex_unlock(&layer->opslock);
--	}
--	return err;
--}
--
--/*
-  * vpbe_display_open()
-  * It creates object of file handle structure and stores it in private_data
-  * member of filepointer
-@@ -1527,8 +1488,8 @@ static struct v4l2_file_operations vpbe_fops = {
- 	.open = vpbe_display_open,
- 	.release = vpbe_display_release,
- 	.unlocked_ioctl = video_ioctl2,
--	.mmap = vpbe_display_mmap,
--	.poll = vpbe_display_poll
-+	.mmap = vb2_fop_mmap,
-+	.poll =  vb2_fop_poll,
- };
- 
- static int vpbe_device_get(struct device *dev, void *data)
-@@ -1608,6 +1569,7 @@ static int register_device(struct vpbe_layer *vpbe_display_layer,
- 		  (int)vpbe_display_layer,
- 		  (int)&vpbe_display_layer->video_dev);
- 
-+	vpbe_display_layer->video_dev.queue = &vpbe_display_layer->buffer_queue;
- 	err = video_register_device(&vpbe_display_layer->video_dev,
- 				    VFL_TYPE_GRABBER,
- 				    -1);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 5a10d8d..029d099 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -270,22 +270,24 @@ struct vb2_buffer {
+  *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+- *			perform any initialization required before each hardware
+- *			operation in this callback; drivers that support
+- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+- *			if an error is returned, the buffer will not be queued
+- *			in driver; optional.
++ *			perform any initialization required before each
++ *			hardware operation in this callback; drivers can
++ *			access/modify the buffer here as it is still synced for
++ *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
++ *			also validate the buffer size; if an error is returned,
++ *			the buffer will not be queued in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+- *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional. The
+- *			buffer state can be one of the following: DONE and
+- *			ERROR occur while streaming is in progress, and the
+- *			PREPARED state occurs when the queue has been canceled
+- *			and all pending buffers are being returned to their
+- *			default DEQUEUED state. Typically you only have to do
+- *			something if the state is VB2_BUF_STATE_DONE, since in
+- *			all other cases the buffer contents will be ignored
+- *			anyway.
++ *			userspace; the buffer is synced for the CPU, so drivers
++ *			can access/modify the buffer contents; drivers may
++ *			perform any operations required before userspace
++ *			accesses the buffer; optional. The buffer state can be
++ *			one of the following: DONE and ERROR occur while
++ *			streaming is in progress, and the PREPARED state occurs
++ *			when the queue has been canceled and all pending
++ *			buffers are being returned to their default DEQUEUED
++ *			state. Typically you only have to do something if the
++ *			state is VB2_BUF_STATE_DONE, since in all other cases
++ *			the buffer contents will be ignored anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+  *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
 -- 
-1.9.1
+2.1.1
 
