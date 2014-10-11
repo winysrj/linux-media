@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:39423 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932605AbaJVVso (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:46045 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276AbaJKFrF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 17:48:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <5447946B.9020007@xs4all.nl>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
- <1413146445-7304-11-git-send-email-prabhakar.csengg@gmail.com> <5447946B.9020007@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 22 Oct 2014 22:48:12 +0100
-Message-ID: <CA+V-a8tazN0u9kH085KyBZ3d3mc50kefAntkcuA84+yZtLK61A@mail.gmail.com>
-Subject: Re: [PATCH 10/15] media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Content-Type: text/plain; charset=UTF-8
+	Sat, 11 Oct 2014 01:47:05 -0400
+From: Tsung-Han Lin <tsunghan.tw@gmail.com>
+To: m.chehab@samsung.com
+Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging: media: omap24xx: fix missing asterisk
+Date: Sat, 11 Oct 2014 13:46:49 +0800
+Message-Id: <1413006409-11237-1-git-send-email-tsunghan.tw@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Fix missing asterisk in one V4L2_INT_WRAPPER_1 usage.
+Reported by checkpatch.pl as:
 
-On Wed, Oct 22, 2014 at 12:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> This patch series looks good, except for this one.
->
-> If you add create_bufs support, then you should also update queue_setup.
->
-> If the fmt argument to queue_setup is non-NULL, then check that the
-> fmt.pix.sizeimage field is >= the current format's sizeimage. If not,
-> return -EINVAL.
->
-> This prevents userspace from creating additional buffers that are smaller
-> than
-> the minimum required size.
->
-> I'm just skipping this patch and queuing all the others for 3.19. Just post
-> an
-> updated version for this one and I'll pick it up later.
->
-I fixed it and posted the patch. To avoid conflicts I have rebased the patch on
-for-v3.19a branch of your tree.
+ERROR: space prohibited before that close parenthesis ')'
++V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
 
-Thanks,
---Prabhakar Lad
+Signed-off-by: Tsung-Han Lin <tsunghan.tw@gmail.com>
+---
+ drivers/staging/media/omap24xx/v4l2-int-device.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/omap24xx/v4l2-int-device.h b/drivers/staging/media/omap24xx/v4l2-int-device.h
+index 0286c95814ff..94905951245c 100644
+--- a/drivers/staging/media/omap24xx/v4l2-int-device.h
++++ b/drivers/staging/media/omap24xx/v4l2-int-device.h
+@@ -292,7 +292,7 @@ V4L2_INT_WRAPPER_1(s_video_routing, struct v4l2_routing, *);
+ 
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+-V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
++V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, *);
+ V4L2_INT_WRAPPER_1(g_priv, void, *);
+ V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+ V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+-- 
+1.9.1
+
