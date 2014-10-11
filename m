@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsec102.isp.belgacom.be ([195.238.20.98]:20441 "EHLO
-	mailsec102.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753227AbaJFSdC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 14:33:02 -0400
-Date: Mon, 6 Oct 2014 20:33:00 +0200 (CEST)
-From: Fabian Frederick <fabf@skynet.be>
-Reply-To: Fabian Frederick <fabf@skynet.be>
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
-	iss_storagedev@hp.com
-Message-ID: <2020432291.307101.1412620380646.open-xchange@webmail.nmp.skynet.be>
-In-Reply-To: <20141006174050.GA20739@pd.tnic>
-References: <1412609755-28627-1-git-send-email-fabf@skynet.be> <20141006174050.GA20739@pd.tnic>
-Subject: Re: [PATCH 0/7 linux-next] drivers: remove deprecated IRQF_DISABLED
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1025 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbaJKJXA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Oct 2014 05:23:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 02/10] vb2-dma-contig: sync mem for cpu after mapping
+Date: Sat, 11 Oct 2014 11:22:29 +0200
+Message-Id: <1413019357-12382-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
+References: <1413019357-12382-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The driver might touch the data after mapping in buf_prepare, so make sure it
+is synced for cpu.
 
-> On 06 October 2014 at 19:40 Borislav Petkov <bp@alien8.de> wrote:
->
->
-> On Mon, Oct 06, 2014 at 05:35:47PM +0200, Fabian Frederick wrote:
-> > This small patchset removes IRQF_DISABLED from drivers branch.
-> >
-> > See include/linux/interrupt.h:
-> > "This flag is a NOOP and scheduled to be removed"
-> >
-> > Note: (cross)compiled but untested.
-> >
-> > Fabian Frederick (7):
-> >   mv64x60_edac: remove deprecated IRQF_DISABLED
-> >   ppc4xx_edac: remove deprecated IRQF_DISABLED
->
-> For the EDAC bits already applied Michael's patch:
->
-> https://lkml.kernel.org/r/1412159043-7348-1-git-send-email-michael.opdenacker@free-electrons.com
->
-> --
-> Regards/Gruss,
->     Boris.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Hi Borislav,
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 4a02ade..dd39651 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -666,6 +666,12 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		goto fail_map_sg;
+ 	}
+ 
++	/*
++	 * After mapping the buffer we have to sync it for cpu since the
++	 * buf_prepare() callback might need to access/modify the buffer.
++	 */
++	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++
+ 	buf->dma_addr = sg_dma_address(sgt->sgl);
+ 	buf->size = size;
+ 	buf->dma_sgt = sgt;
+-- 
+2.1.1
 
-   You're right, I guess we can forget this patchset.
-I didn't see it was already done. (nothing in linux-next yet).
-Sorry for the noise. 
- 
-Regards,
-Fabian
-
->
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
