@@ -1,62 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:62860 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755174AbaJHMKM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 08:10:12 -0400
-Received: by mail-pa0-f54.google.com with SMTP id ey11so9044071pad.13
-        for <linux-media@vger.kernel.org>; Wed, 08 Oct 2014 05:10:12 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [PATCH 1/4] v4l-utils/libdvbv5: avoid crash when failed to get a channel name
-Date: Wed,  8 Oct 2014 21:09:38 +0900
-Message-Id: <1412770181-5420-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
-References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:2781 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751059AbaJKQOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Oct 2014 12:14:51 -0400
+From: Vinod Koul <vinod.koul@intel.com>
+To: dmaengine@vger.kernel.org
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 03/12] [media] V4L2: mx3_camer: use dmaengine_pause() API
+Date: Sat, 11 Oct 2014 21:10:31 +0530
+Message-Id: <1413042040-28222-3-git-send-email-vinod.koul@intel.com>
+In-Reply-To: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
+References: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+The drivers should use dmaengine_pause() API instead of
+accessing the device_control which will be deprecated soon
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Vinod Koul <vinod.koul@intel.com>
 ---
- lib/libdvbv5/dvb-file.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/media/platform/soc_camera/mx3_camera.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index 27d9a63..bcb1762 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -1121,20 +1121,21 @@ static int get_program_and_store(struct dvb_v5_fe_parms_priv *parms,
- 		if (rc)
- 			dvb_logerr("Couldn't get frontend props");
- 	}
--	if (!*channel) {
--		r = asprintf(&channel, "%.2fMHz#%d", freq/1000000., service_id);
--		if (r < 0)
--			dvb_perror("asprintf");
--		if (parms->p.verbose)
--			dvb_log("Storing as: '%s'", channel);
--	}
- 	for (j = 0; j < parms->n_props; j++) {
- 		entry->props[j].cmd = parms->dvb_prop[j].cmd;
- 		entry->props[j].u.data = parms->dvb_prop[j].u.data;
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 83315df..7696a87 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -415,10 +415,8 @@ static void mx3_stop_streaming(struct vb2_queue *q)
+ 	struct mx3_camera_buffer *buf, *tmp;
+ 	unsigned long flags;
  
--		if (!*channel && entry->props[j].cmd == DTV_FREQUENCY)
-+		if ((!channel || !*channel) &&
-+		    entry->props[j].cmd == DTV_FREQUENCY)
- 			freq = parms->dvb_prop[j].u.data;
- 	}
-+	if (!channel || !*channel) {
-+		r = asprintf(&channel, "%.2fMHz#%d", freq/1000000., service_id);
-+		if (r < 0)
-+			dvb_perror("asprintf");
-+		if (parms->p.verbose)
-+			dvb_log("Storing as: '%s'", channel);
-+	}
- 	entry->n_props = parms->n_props;
- 	entry->channel = channel;
+-	if (ichan) {
+-		struct dma_chan *chan = &ichan->dma_chan;
+-		chan->device->device_control(chan, DMA_PAUSE, 0);
+-	}
++	if (ichan)
++		dmaengine_pause(&ichan->dma_chan);
+ 
+ 	spin_lock_irqsave(&mx3_cam->lock, flags);
  
 -- 
-2.1.2
+1.7.0.4
 
