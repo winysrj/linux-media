@@ -1,76 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:37730 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbaJ1Thp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 15:37:45 -0400
-Date: Tue, 28 Oct 2014 20:37:43 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Tomas Melin <tomas.melin@iki.fi>
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com, a.seppala@gmail.com,
-	bay@hackerdom.ru, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] [media] rc-core: fix protocol_change regression in
- ir_raw_event_register
-Message-ID: <20141028193743.GC15486@hardeman.nu>
-References: <1414521794-7776-1-git-send-email-tomas.melin@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1414521794-7776-1-git-send-email-tomas.melin@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3752 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727AbaJKCld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Oct 2014 22:41:33 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9B2fTXl053043
+	for <linux-media@vger.kernel.org>; Sat, 11 Oct 2014 04:41:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F036D2A002F
+	for <linux-media@vger.kernel.org>; Sat, 11 Oct 2014 04:41:24 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141011024124.F036D2A002F@tschai.lan>
+Date: Sat, 11 Oct 2014 04:41:24 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 28, 2014 at 08:43:14PM +0200, Tomas Melin wrote:
->IR receiver using nuvoton-cir and lirc required additional configuration
->steps after upgrade from kernel 3.16 to 3.17-rcX.
->Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
->("[media] rc-core: simplify sysfs code").
->
->The regression comes from adding function change_protocol in
->ir-raw.c. It changes behaviour so that only the protocol enabled by driver's
->map_name will be active after registration. This breaks user space behaviour,
->lirc does not get key press signals anymore.
->
->Enable lirc protocol by default for ir raw decoders to restore original behaviour.
->
->Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: David Härdeman <david@hardeman.nu>
+Results of the daily build of media_tree:
 
->---
-> drivers/media/rc/rc-ir-raw.c |    1 -
-> drivers/media/rc/rc-main.c   |    2 ++
-> 2 files changed, 2 insertions(+), 1 deletion(-)
->
->diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
->index e8fff2a..b732ac6 100644
->--- a/drivers/media/rc/rc-ir-raw.c
->+++ b/drivers/media/rc/rc-ir-raw.c
->@@ -262,7 +262,6 @@ int ir_raw_event_register(struct rc_dev *dev)
-> 		return -ENOMEM;
-> 
-> 	dev->raw->dev = dev;
->-	dev->enabled_protocols = ~0;
-> 	dev->change_protocol = change_protocol;
-> 	rc = kfifo_alloc(&dev->raw->kfifo,
-> 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
->diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->index a7991c7..8d3b74c 100644
->--- a/drivers/media/rc/rc-main.c
->+++ b/drivers/media/rc/rc-main.c
->@@ -1421,6 +1421,8 @@ int rc_register_device(struct rc_dev *dev)
-> 
-> 	if (dev->change_protocol) {
-> 		u64 rc_type = (1 << rc_map->rc_type);
->+		if (dev->driver_type == RC_DRIVER_IR_RAW)
->+			rc_type |= RC_BIT_LIRC;
-> 		rc = dev->change_protocol(dev, &rc_type);
-> 		if (rc < 0)
-> 			goto out_raw;
->-- 
->1.7.10.4
->
+date:		Sat Oct 11 04:00:17 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
--- 
-David Härdeman
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
