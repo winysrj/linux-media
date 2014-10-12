@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:24125 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989AbaJPH5z (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:37180 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752575AbaJLUEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 03:57:55 -0400
-Date: Thu, 16 Oct 2014 10:57:21 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] usbvision-video: two use after frees
-Message-ID: <20141016075721.GC29096@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Sun, 12 Oct 2014 16:04:12 -0400
+From: Beniamino Galvani <b.galvani@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Carlo Caione <carlo@caione.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH 0/3] media: rc: add support for Amlogic Meson IR receiver
+Date: Sun, 12 Oct 2014 22:01:52 +0200
+Message-Id: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lock has been freed in usbvision_release() so there is no need to
-call mutex_unlock() here.
+Hi,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+this is a driver for the IR receiver available in Amlogic Meson6 and
+Meson8 SoCs. The device can operate in two modes: in "NEC" mode the
+hardware can decode frames using the NEC IR protocol, while in
+"general" mode the receiver simply reports the duration of pulses and
+spaces for software decoding.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index 68bc961..9bfa041 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -446,6 +446,7 @@ static int usbvision_v4l2_close(struct file *file)
- 	if (usbvision->remove_pending) {
- 		printk(KERN_INFO "%s: Final disconnect\n", __func__);
- 		usbvision_release(usbvision);
-+		return 0;
- 	}
- 	mutex_unlock(&usbvision->v4l2_lock);
- 
-@@ -1221,6 +1222,7 @@ static int usbvision_radio_close(struct file *file)
- 	if (usbvision->remove_pending) {
- 		printk(KERN_INFO "%s: Final disconnect\n", __func__);
- 		usbvision_release(usbvision);
-+		return err_code;
- 	}
- 
- 	mutex_unlock(&usbvision->v4l2_lock);
+In order to have the maximum compatibility with different protocols
+the driver implements software decoding.
+
+The third patch (dts files) depends on some other patchsets [1][2]
+that are still under review, so at the moment is not meant to be
+merged.
+
+[1] https://lkml.org/lkml/2014/10/5/162
+[2] https://lkml.org/lkml/2014/10/7/712
+
+Beniamino Galvani (3):
+  media: rc: add driver for Amlogic Meson IR remote receiver
+  media: rc: meson: document device tree bindings
+  ARM: dts: meson: add dts nodes for IR receiver
+
+ .../devicetree/bindings/media/meson-ir.txt         |  14 ++
+ arch/arm/boot/dts/meson.dtsi                       |   7 +
+ arch/arm/boot/dts/meson8-vega-s89e.dts             |   6 +
+ arch/arm/boot/dts/meson8.dtsi                      |   7 +
+ drivers/media/rc/Kconfig                           |  11 ++
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/meson-ir.c                        | 214 +++++++++++++++++++++
+ 7 files changed, 260 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
+ create mode 100644 drivers/media/rc/meson-ir.c
+
+-- 
+1.9.1
+
