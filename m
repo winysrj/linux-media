@@ -1,317 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42980 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaJBFVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:31 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 07/13] cx231xx: add wrapper to get the i2c_adapter pointer
-Date: Thu,  2 Oct 2014 07:20:59 +0200
-Message-Id: <1412227265-17453-8-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:57522 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbaJLKDw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 06:03:52 -0400
+Received: by mail-la0-f46.google.com with SMTP id gi9so5343505lab.19
+        for <linux-media@vger.kernel.org>; Sun, 12 Oct 2014 03:03:50 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: nibble.max@gmail.com, Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/4] dvbsky: clean logging
+Date: Sun, 12 Oct 2014 13:03:10 +0300
+Message-Id: <1413108191-32510-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
+References: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preparation for mapping I2C_1_MUX_1 and I2C_1_MUX_3 later to the seperate
-muxed i2c adapters.
+dev_err includes the function name in the log printout, so there is no need to include it manually. While here, fix a small grammatical error in the i2c error message.
 
-Map mux adapters to I2C_1 for now.
-
-Add local variables for i2c_adapters in dvb_init to get line lengths
-shorter.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c |  8 +++---
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 42 +++++++++++++++++--------------
- drivers/media/usb/cx231xx/cx231xx-i2c.c   | 20 ++++++++++++++-
- drivers/media/usb/cx231xx/cx231xx-input.c |  3 ++-
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 5 files changed, 50 insertions(+), 24 deletions(-)
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 2f027c7..f5fb93a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* request some modules */
- 	if (dev->board.decoder == CX231XX_AVDECODER) {
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--					&dev->i2c_bus[I2C_0].i2c_adap,
-+					cx231xx_get_i2c_adap(dev, I2C_0),
- 					"cx25840", 0x88 >> 1, NULL);
- 		if (dev->sd_cx25840 == NULL)
- 			cx231xx_info("cx25840 subdev registration failure\n");
-@@ -1043,8 +1043,10 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 
- 	/* Initialize the tuner */
- 	if (dev->board.tuner_type != TUNER_ABSENT) {
-+		struct i2c_adapter *tuner_i2c = cx231xx_get_i2c_adap(dev,
-+						dev->board.tuner_i2c_master);
- 		dev->sd_tuner = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--						    &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+						    tuner_i2c,
- 						    "tuner",
- 						    dev->tuner_addr, NULL);
- 		if (dev->sd_tuner == NULL)
-@@ -1062,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
- 
- 			memset(&client, 0, sizeof(client));
--			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
-+			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
- 			client.addr = 0xa0 >> 1;
- 
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 6c7b5e2..869c433 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -378,7 +378,7 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
- 	struct xc5000_config cfg;
- 
- 	memset(&cfg, 0, sizeof(cfg));
--	cfg.i2c_adap = &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap;
-+	cfg.i2c_adap = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
- 	cfg.i2c_addr = addr;
- 
- 	if (!dev->dvb->frontend) {
-@@ -583,6 +583,8 @@ static int dvb_init(struct cx231xx *dev)
- {
- 	int result = 0;
- 	struct cx231xx_dvb *dvb;
-+	struct i2c_adapter *tuner_i2c;
-+	struct i2c_adapter *demod_i2c;
- 
- 	if (!dev->board.has_dvb) {
- 		/* This device does not support the extension */
-@@ -599,6 +601,8 @@ static int dvb_init(struct cx231xx *dev)
- 	dev->cx231xx_set_analog_freq = cx231xx_set_analog_freq;
- 	dev->cx231xx_reset_analog_tuner = cx231xx_reset_analog_tuner;
- 
-+	tuner_i2c = cx231xx_get_i2c_adap(dev, dev->board.tuner_i2c_master);
-+	demod_i2c = cx231xx_get_i2c_adap(dev, dev->board.demod_i2c_master);
- 	mutex_lock(&dev->lock);
- 	cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
- 	cx231xx_demod_reset(dev);
-@@ -609,7 +613,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
- 					&dvico_s5h1432_config,
--					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-+					demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -622,7 +626,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
--			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			       tuner_i2c,
- 			       &cnxt_rde250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -634,7 +638,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
- 					       &xc5000_s5h1411_config,
--					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-+					       demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -647,7 +651,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
--			       &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			       tuner_i2c,
- 			       &cnxt_rdu250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -657,7 +661,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1432_attach,
- 					&dvico_s5h1432_config,
--					&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-+					demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -670,7 +674,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
--			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			       0x60, tuner_i2c,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -681,7 +685,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(s5h1411_attach,
- 					       &tda18271_s5h1411_config,
--					       &dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-+					       demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -694,7 +698,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		if (!dvb_attach(tda18271_attach, dev->dvb->frontend,
--			       0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			       0x60, tuner_i2c,
- 			       &cnxt_rde253s_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -703,11 +707,11 @@ static int dvb_init(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
- 
- 		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
--		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-+		       __func__, i2c_adapter_id(tuner_i2c));
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
- 						&hcw_lgdt3305_config,
--						&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap);
-+						tuner_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -720,7 +724,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend,
--			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			   0x60, tuner_i2c,
- 			   &hcw_tda18271_config);
- 		break;
- 
-@@ -728,7 +732,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(si2165_attach,
- 			&hauppauge_930C_HD_1113xx_si2165_config,
--			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-+			tuner_i2c
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
-@@ -745,7 +749,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend,
- 			0x60,
--			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			tuner_i2c,
- 			&hcw_tda18271_config);
- 
- 		dev->cx231xx_reset_analog_tuner = NULL;
-@@ -761,7 +765,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(si2165_attach,
- 			&pctv_quatro_stick_1114xx_si2165_config,
--			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-+			tuner_i2c
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
-@@ -786,7 +790,7 @@ static int dvb_init(struct cx231xx *dev)
- 		request_module("si2157");
- 
- 		client = i2c_new_device(
--			&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			tuner_i2c,
- 			&info);
- 		if (client == NULL || client->dev.driver == NULL) {
- 			dvb_frontend_detach(dev->dvb->frontend);
-@@ -811,11 +815,11 @@ static int dvb_init(struct cx231xx *dev)
- 	case CX231XX_BOARD_KWORLD_UB430_USB_HYBRID:
- 
- 		printk(KERN_INFO "%s: looking for demod on i2c bus: %d\n",
--		       __func__, i2c_adapter_id(&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap));
-+		       __func__, i2c_adapter_id(tuner_i2c));
- 
- 		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
- 						&pv_mb86a20s_config,
--						&dev->i2c_bus[dev->board.demod_i2c_master].i2c_adap);
-+						demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			printk(DRIVER_NAME
-@@ -828,7 +832,7 @@ static int dvb_init(struct cx231xx *dev)
- 		dvb->frontend->callback = cx231xx_tuner_callback;
- 
- 		dvb_attach(tda18271_attach, dev->dvb->frontend,
--			   0x60, &dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-+			   0x60, tuner_i2c,
- 			   &pv_tda18271_config);
- 		break;
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index b10f482..13bf2d7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -483,7 +483,7 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
- 	struct i2c_client client;
- 
- 	memset(&client, 0, sizeof(client));
--	client.adapter = &dev->i2c_bus[i2c_port].i2c_adap;
-+	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
- 
- 	cx231xx_info(": Checking for I2C devices on port=%d ..\n", i2c_port);
- 	for (i = 0; i < 128; i++) {
-@@ -538,3 +538,21 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
- 	i2c_del_adapter(&bus->i2c_adap);
- 	return 0;
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index fabe3f5..5c7387a 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -101,8 +101,7 @@ static int dvbsky_gpio_ctrl(struct dvb_usb_device *d, u8 gport, u8 value)
+ 	obuf[2] = value;
+ 	ret = dvbsky_usb_generic_rw(d, obuf, 3, ibuf, 1);
+ 	if (ret)
+-		dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
+-			KBUILD_MODNAME, __func__, ret);
++		dev_err(&d->udev->dev, "failed=%d\n", ret);
+ 	return ret;
  }
-+
-+struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
-+{
-+	switch (i2c_port) {
-+	case I2C_0:
-+		return &dev->i2c_bus[0].i2c_adap;
-+	case I2C_1:
-+		return &dev->i2c_bus[1].i2c_adap;
-+	case I2C_2:
-+		return &dev->i2c_bus[2].i2c_adap;
-+	case I2C_1_MUX_1:
-+	case I2C_1_MUX_3:
-+		return &dev->i2c_bus[1].i2c_adap;
-+	default:
-+		return NULL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(cx231xx_get_i2c_adap);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
-index 05f0434..5ae2ce3 100644
---- a/drivers/media/usb/cx231xx/cx231xx-input.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-input.c
-@@ -100,7 +100,8 @@ int cx231xx_ir_init(struct cx231xx *dev)
- 	ir_i2c_bus = cx231xx_boards[dev->model].ir_i2c_master;
- 	dev_dbg(&dev->udev->dev, "Trying to bind ir at bus %d, addr 0x%02x\n",
- 		ir_i2c_bus, info.addr);
--	dev->ir_i2c_client = i2c_new_device(&dev->i2c_bus[ir_i2c_bus].i2c_adap, &info);
-+	dev->ir_i2c_client = i2c_new_device(
-+		cx231xx_get_i2c_adap(dev, ir_i2c_bus), &info);
  
- 	return 0;
- }
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 377216b..f03338b 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -754,6 +754,7 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
- void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
- int cx231xx_i2c_register(struct cx231xx_i2c *bus);
- int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-+struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
+@@ -119,7 +118,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
  
- /* Internal block control functions */
- int cx231xx_read_i2c_master(struct cx231xx *dev, u8 dev_addr, u16 saddr,
+ 	if (num > 2) {
+ 		dev_err(&d->udev->dev,
+-		"dvbsky_usb: too many i2c messages[%d] than 2.", num);
++		"too many i2c messages[%d], max 2.", num);
+ 		ret = -EOPNOTSUPP;
+ 		goto i2c_error;
+ 	}
+@@ -127,7 +126,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 	if (num == 1) {
+ 		if (msg[0].len > 60) {
+ 			dev_err(&d->udev->dev,
+-			"dvbsky_usb: too many i2c bytes[%d] than 60.",
++			"too many i2c bytes[%d], max 60.",
+ 			msg[0].len);
+ 			ret = -EOPNOTSUPP;
+ 			goto i2c_error;
+@@ -141,8 +140,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			ret = dvbsky_usb_generic_rw(d, obuf, 4,
+ 					ibuf, msg[0].len + 1);
+ 			if (ret)
+-				dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
+-					KBUILD_MODNAME, __func__, ret);
++				dev_err(&d->udev->dev, "failed=%d\n", ret);
+ 			if (!ret)
+ 				memcpy(msg[0].buf, &ibuf[1], msg[0].len);
+ 		} else {
+@@ -154,13 +152,12 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			ret = dvbsky_usb_generic_rw(d, obuf,
+ 					msg[0].len + 3, ibuf, 1);
+ 			if (ret)
+-				dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
+-					KBUILD_MODNAME, __func__, ret);
++				dev_err(&d->udev->dev, "failed=%d\n", ret);
+ 		}
+ 	} else {
+ 		if ((msg[0].len > 60) || (msg[1].len > 60)) {
+ 			dev_err(&d->udev->dev,
+-			"dvbsky_usb: too many i2c bytes[w-%d][r-%d] than 60.",
++			"too many i2c bytes[w-%d][r-%d], max 60.",
+ 			msg[0].len, msg[1].len);
+ 			ret = -EOPNOTSUPP;
+ 			goto i2c_error;
+@@ -174,8 +171,7 @@ static int dvbsky_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 		ret = dvbsky_usb_generic_rw(d, obuf,
+ 			msg[0].len + 4, ibuf, msg[1].len + 1);
+ 		if (ret)
+-			dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
+-				KBUILD_MODNAME, __func__, ret);
++			dev_err(&d->udev->dev, "failed=%d\n", ret);
+ 
+ 		if (!ret)
+ 			memcpy(msg[1].buf, &ibuf[1], msg[1].len);
+@@ -206,8 +202,7 @@ static int dvbsky_rc_query(struct dvb_usb_device *d)
+ 	obuf[0] = 0x10;
+ 	ret = dvbsky_usb_generic_rw(d, obuf, 1, ibuf, 2);
+ 	if (ret)
+-		dev_err(&d->udev->dev, "%s: %s() failed=%d\n",
+-			KBUILD_MODNAME, __func__, ret);
++		dev_err(&d->udev->dev, "failed=%d\n", ret);
+ 	if (ret == 0)
+ 		code = (ibuf[0] << 8) | ibuf[1];
+ 	if (code != 0xffff) {
 -- 
-2.1.1
+1.9.1
 
