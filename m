@@ -1,252 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:40145 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334AbaJBIOL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 04:14:11 -0400
-Date: Thu, 2 Oct 2014 11:13:53 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Amber Thrall <amber.rose.thrall@gmail.com>
-Cc: greg@kroah.com, jarod@wilsonet.com, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Fixed all coding style issues for
- drivers/staging/media/lirc/
-Message-ID: <20141002081353.GG5865@mwanda>
-References: <1412217351-27091-1-git-send-email-amber.rose.thrall@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1412217351-27091-1-git-send-email-amber.rose.thrall@gmail.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:42636 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920AbaJLUlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 16:41:04 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 08/15] media: davinci: vpbe: use vb2_ioctl_* helpers
+Date: Sun, 12 Oct 2014 21:40:38 +0100
+Message-Id: <1413146445-7304-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 01, 2014 at 07:35:51PM -0700, Amber Thrall wrote:
-> Fixed various coding sytles.
-> 
+this patch adds support for using vb2_ioctl_* helpers.
 
-Fix one type of thing at a time.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c | 178 ++------------------------
+ 1 file changed, 14 insertions(+), 164 deletions(-)
 
-> Signed-off-by: Amber Thrall <amber.rose.thrall@gmail.com>
-> ---
->  drivers/staging/media/lirc/lirc_bt829.c  |  2 +-
->  drivers/staging/media/lirc/lirc_imon.c   |  4 +-
->  drivers/staging/media/lirc/lirc_sasem.c  |  6 +--
->  drivers/staging/media/lirc/lirc_serial.c | 29 ++++++--------
->  drivers/staging/media/lirc/lirc_sir.c    |  3 +-
->  drivers/staging/media/lirc/lirc_zilog.c  | 69 +++++++++++++++-----------------
->  6 files changed, 52 insertions(+), 61 deletions(-)
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
-> index 4c806ba..c70ca68 100644
-> --- a/drivers/staging/media/lirc/lirc_bt829.c
-> +++ b/drivers/staging/media/lirc/lirc_bt829.c
-> @@ -59,7 +59,7 @@ static bool debug;
->  #define dprintk(fmt, args...)						 \
->  	do {								 \
->  		if (debug)						 \
-> -			printk(KERN_DEBUG DRIVER_NAME ": "fmt, ## args); \
-> +			dev_dbg(DRIVER_NAME, ": "fmt, ##args); \
-
-I think we need to pass a dev pointer to the dev_dbg() functions.  Does
-this even compile?  I can't test it myself at this minute.
-
-My guess is the reason this compiles is because dprintk() is #ifdefed
-out of the actual code.
-
->  	} while (0)
->  
->  static int atir_minor;
-> diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-> index 7aca44f..bce0408 100644
-> --- a/drivers/staging/media/lirc/lirc_imon.c
-> +++ b/drivers/staging/media/lirc/lirc_imon.c
-> @@ -623,8 +623,8 @@ static void imon_incoming_packet(struct imon_context *context,
->  	if (debug) {
->  		dev_info(dev, "raw packet: ");
->  		for (i = 0; i < len; ++i)
-> -			printk("%02x ", buf[i]);
-> -		printk("\n");
-> +			dev_info(dev, "%02x ", buf[i]);
-> +		dev_info(dev, "\n");
-
-This doesn't work.  The dev_ functions can't really be split across more
-than one line.  The try to put stuff at the start of the line but
-we're putting it all on the same line they're putting a bunch of garbage
-in the middle of the line.
-
->  	}
->  
->  	/*
-> diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-> index c20ef56..e88e246 100644
-> --- a/drivers/staging/media/lirc/lirc_sasem.c
-> +++ b/drivers/staging/media/lirc/lirc_sasem.c
-> @@ -583,10 +583,10 @@ static void incoming_packet(struct sasem_context *context,
->  	}
->  
->  	if (debug) {
-> -		printk(KERN_INFO "Incoming data: ");
-> +		pr_info("Incoming data: ");
->  		for (i = 0; i < 8; ++i)
-> -			printk(KERN_CONT "%02x ", buf[i]);
-> -		printk(KERN_CONT "\n");
-> +			pr_cont("%02x", buf[i]);
-> +		pr_cont("\n");
-
-The debug variable really isn't needed if we're going to use the
-standard debugging printks.
-
->  	}
->  
->  	/*
-> diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-> index 181b92b..b07671b 100644
-> --- a/drivers/staging/media/lirc/lirc_serial.c
-> +++ b/drivers/staging/media/lirc/lirc_serial.c
-> @@ -116,8 +116,7 @@ static bool txsense;	/* 0 = active high, 1 = active low */
->  #define dprintk(fmt, args...)					\
->  	do {							\
->  		if (debug)					\
-> -			printk(KERN_DEBUG LIRC_DRIVER_NAME ": "	\
-> -			       fmt, ## args);			\
-> +			dev_dbg(LIRC_DRIVER_NAME, ": "fmt, ##args); \
->  	} while (0)
->  
->  /* forward declarations */
-> @@ -356,9 +355,8 @@ static int init_timing_params(unsigned int new_duty_cycle,
->  	/* Derive pulse and space from the period */
->  	pulse_width = period * duty_cycle / 100;
->  	space_width = period - pulse_width;
-> -	dprintk("in init_timing_params, freq=%d, duty_cycle=%d, "
-> -		"clk/jiffy=%ld, pulse=%ld, space=%ld, "
-> -		"conv_us_to_clocks=%ld\n",
-> +	dprintk("in init_timing_params, freq=%d, duty_cycle=%d, clk/jiffy=%ld,
-> +			pulse=%ld, space=%ld, conv_us_to_clocks=%ld\n",
->  		freq, duty_cycle, __this_cpu_read(cpu_info.loops_per_jiffy),
->  		pulse_width, space_width, conv_us_to_clocks);
->  	return 0;
-> @@ -1075,7 +1073,7 @@ static int __init lirc_serial_init(void)
->  
->  	result = platform_driver_register(&lirc_serial_driver);
->  	if (result) {
-> -		printk("lirc register returned %d\n", result);
-> +		dprintk("lirc register returned %d\n", result);
-
-Check to see what printks platform_driver_register() will print on
-failure.  People add printks all over the place out of helpfulness but
-a lot of the time they aren't needed.
-
->  		goto exit_buffer_free;
->  	}
->  
-> @@ -1166,22 +1164,20 @@ module_init(lirc_serial_init_module);
->  module_exit(lirc_serial_exit_module);
->  
->  MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
-> -MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
-> -	      "Christoph Bartelmus, Andrei Tanas");
-> +MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, Christoph Bartelmus, Andrei Tanas");
->  MODULE_LICENSE("GPL");
->  
->  module_param(type, int, S_IRUGO);
-> -MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo,"
-> -		 " 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,"
-> -		 " 5 = NSLU2 RX:CTS2/TX:GreenLED)");
-> +MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo,
-> +	2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,
-> +	5 = NSLU2 RX:CTS2/TX:GreenLED)");
-
-The formatting is messed up now.
-
->  
->  module_param(io, int, S_IRUGO);
->  MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
->  
->  /* some architectures (e.g. intel xscale) have memory mapped registers */
->  module_param(iommap, bool, S_IRUGO);
-> -MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
-> -		" (0 = no memory mapped io)");
-> +MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
->  
->  /*
->   * some architectures (e.g. intel xscale) align the 8bit serial registers
-> @@ -1198,13 +1194,12 @@ module_param(share_irq, bool, S_IRUGO);
->  MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
->  
->  module_param(sense, int, S_IRUGO);
-> -MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit"
-> -		 " (0 = active high, 1 = active low )");
-> +MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit
-> +		(0 = active high, 1 = active low )");
-
-This messes up the formatting.
-
->  
->  #ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
->  module_param(txsense, bool, S_IRUGO);
-> -MODULE_PARM_DESC(txsense, "Sense of transmitter circuit"
-> -		 " (0 = active high, 1 = active low )");
-> +MODULE_PARM_DESC(txsense, "Sense of transmitter circuit (0 = active high, 1 = active low )");
->  #endif
->  
->  module_param(softcarrier, bool, S_IRUGO);
-> diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-> index 2ee55ea..cdbb71f 100644
-> --- a/drivers/staging/media/lirc/lirc_sir.c
-> +++ b/drivers/staging/media/lirc/lirc_sir.c
-> @@ -143,8 +143,7 @@ static bool debug;
->  #define dprintk(fmt, args...)						\
->  	do {								\
->  		if (debug)						\
-> -			printk(KERN_DEBUG LIRC_DRIVER_NAME ": "		\
-> -				fmt, ## args);				\
-> +			dev_dbg(LIRC_DRIVER_NAME, ": "fmt, ## args); \
->  	} while (0)
->  
->  /* SECTION: Prototypes */
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> index 567feba..9c3a3d7 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> @@ -152,10 +152,9 @@ struct tx_data_struct {
->  static struct tx_data_struct *tx_data;
->  static struct mutex tx_data_lock;
->  
-> -#define zilog_notify(s, args...) printk(KERN_NOTICE KBUILD_MODNAME ": " s, \
-> -					## args)
-> -#define zilog_error(s, args...) printk(KERN_ERR KBUILD_MODNAME ": " s, ## args)
-> -#define zilog_info(s, args...) printk(KERN_INFO KBUILD_MODNAME ": " s, ## args)
-> +#define zilog_notify(s, args...) dev_notice(KBUILD_MODNAME, ": " s, ## args)
-> +#define zilog_error(s, args...) dev_err(KBUILD_MODNAME, ": " s, ## args)
-> +#define zilog_info(s, args...) dev_info(KBUILD_MODNAME, ": " s, ## args)
-
-These defines are rubbish and pointless.  Just delete them all.
-
->  
->  /* module parameters */
->  static bool debug;	/* debug output */
-> @@ -165,8 +164,7 @@ static int minor = -1;	/* minor number */
->  #define dprintk(fmt, args...)						\
->  	do {								\
->  		if (debug)						\
-> -			printk(KERN_DEBUG KBUILD_MODNAME ": " fmt,	\
-> -				 ## args);				\
-> +			pr_dbg(KBUILD_MODNAME, ": " fmt, ## args); \
->  	} while (0)
->  
->  
-> @@ -382,14 +380,14 @@ static int add_to_buf(struct IR *ir)
->  			zilog_error("i2c_master_send failed with %d\n",	ret);
->  			if (failures >= 3) {
->  				mutex_unlock(&ir->ir_lock);
-> -				zilog_error("unable to read from the IR chip "
-> -					    "after 3 resets, giving up\n");
-> +				zilog_error("unable to read from the IR chip
-> +						after 3 resets, giving up\n");
-
-
-Formatting messed up for everything else beyond this point.  We don't
-want to print all those tabs in dmesg.
-
-regards,
-dan carpenter
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 970242c..76450aa 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -281,8 +281,11 @@ static void vpbe_buffer_queue(struct vb2_buffer *vb)
+ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
++	struct osd_state *osd_device = layer->disp_dev->osd_device;
+ 	int ret;
+ 
++	 osd_device->ops.disable_layer(osd_device, layer->layer_info.id);
++
+ 	/* Get the next frame from the buffer queue */
+ 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
+ 				struct vpbe_disp_buffer, list);
+@@ -320,12 +323,15 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ static void vpbe_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
++	struct osd_state *osd_device = layer->disp_dev->osd_device;
+ 	struct vpbe_display *disp = layer->disp_dev;
+ 	unsigned long flags;
+ 
+ 	if (!vb2_is_streaming(vq))
+ 		return;
+ 
++	osd_device->ops.disable_layer(osd_device, layer->layer_info.id);
++
+ 	/* release all active buffers */
+ 	spin_lock_irqsave(&disp->dma_queue_lock, flags);
+ 	if (layer->cur_frm == layer->next_frm) {
+@@ -1144,164 +1150,6 @@ vpbe_display_g_dv_timings(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vpbe_display_streamoff(struct file *file, void *priv,
+-				enum v4l2_buf_type buf_type)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-	struct osd_state *osd_device = layer->disp_dev->osd_device;
+-	int ret;
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-			"VIDIOC_STREAMOFF,layer id = %d\n",
+-			layer->device_id);
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != buf_type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-
+-	/* If streaming is not started, return error */
+-	if (!layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "streaming not started in layer"
+-			" id = %d\n", layer->device_id);
+-		return -EINVAL;
+-	}
+-
+-	osd_device->ops.disable_layer(osd_device,
+-			layer->layer_info.id);
+-	layer->started = 0;
+-	ret = vb2_streamoff(&layer->buffer_queue, buf_type);
+-
+-	return ret;
+-}
+-
+-static int vpbe_display_streamon(struct file *file, void *priv,
+-			 enum v4l2_buf_type buf_type)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_display *disp_dev = layer->disp_dev;
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-	struct osd_state *osd_device = disp_dev->osd_device;
+-	int ret;
+-
+-	osd_device->ops.disable_layer(osd_device,
+-			layer->layer_info.id);
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_STREAMON, layerid=%d\n",
+-						layer->device_id);
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != buf_type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-
+-	/* If Streaming is already started, return error */
+-	if (layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "layer is already streaming\n");
+-		return -EBUSY;
+-	}
+-
+-	/*
+-	 * Call vb2_streamon to start streaming
+-	 * in videobuf
+-	 */
+-	ret = vb2_streamon(&layer->buffer_queue, buf_type);
+-	if (ret) {
+-		v4l2_err(&vpbe_dev->v4l2_dev,
+-		"error in vb2_streamon\n");
+-		return ret;
+-	}
+-	return ret;
+-}
+-
+-static int vpbe_display_dqbuf(struct file *file, void *priv,
+-		      struct v4l2_buffer *buf)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-	int ret;
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-		"VIDIOC_DQBUF, layer id = %d\n",
+-		layer->device_id);
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != buf->type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-	if (file->f_flags & O_NONBLOCK)
+-		/* Call videobuf_dqbuf for non blocking mode */
+-		ret = vb2_dqbuf(&layer->buffer_queue, buf, 1);
+-	else
+-		/* Call videobuf_dqbuf for blocking mode */
+-		ret = vb2_dqbuf(&layer->buffer_queue, buf, 0);
+-
+-	return ret;
+-}
+-
+-static int vpbe_display_qbuf(struct file *file, void *priv,
+-		     struct v4l2_buffer *p)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-		"VIDIOC_QBUF, layer id = %d\n",
+-		layer->device_id);
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != p->type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-
+-	return vb2_qbuf(&layer->buffer_queue, p);
+-}
+-
+-static int vpbe_display_querybuf(struct file *file, void *priv,
+-			 struct v4l2_buffer *buf)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+-		"VIDIOC_QUERYBUF, layer id = %d\n",
+-		layer->device_id);
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != buf->type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-	/* Call vb2_querybuf to get information */
+-	return vb2_querybuf(&layer->buffer_queue, buf);
+-}
+-
+-static int vpbe_display_reqbufs(struct file *file, void *priv,
+-			struct v4l2_requestbuffers *req_buf)
+-{
+-	struct vpbe_layer *layer = video_drvdata(file);
+-	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
+-
+-	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_reqbufs\n");
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != req_buf->type) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
+-		return -EINVAL;
+-	}
+-
+-	/* If io users of the layer is not zero, return error */
+-	if (0 != layer->io_usrs) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "not IO user\n");
+-		return -EBUSY;
+-	}
+-	/* Increment io usrs member of layer object to 1 */
+-	layer->io_usrs = 1;
+-	/* Store type of memory requested in layer object */
+-	layer->memory = req_buf->memory;
+-	/* Allocate buffers */
+-	return vb2_reqbufs(&layer->buffer_queue, req_buf);
+-}
+-
+ /*
+  * vpbe_display_open()
+  * It creates object of file handle structure and stores it in private_data
+@@ -1405,12 +1253,14 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_enum_fmt_vid_out = vpbe_display_enum_fmt,
+ 	.vidioc_s_fmt_vid_out    = vpbe_display_s_fmt,
+ 	.vidioc_try_fmt_vid_out  = vpbe_display_try_fmt,
+-	.vidioc_reqbufs		 = vpbe_display_reqbufs,
+-	.vidioc_querybuf	 = vpbe_display_querybuf,
+-	.vidioc_qbuf		 = vpbe_display_qbuf,
+-	.vidioc_dqbuf		 = vpbe_display_dqbuf,
+-	.vidioc_streamon	 = vpbe_display_streamon,
+-	.vidioc_streamoff	 = vpbe_display_streamoff,
++
++	.vidioc_reqbufs		 = vb2_ioctl_reqbufs,
++	.vidioc_querybuf	 = vb2_ioctl_querybuf,
++	.vidioc_qbuf		 = vb2_ioctl_qbuf,
++	.vidioc_dqbuf		 = vb2_ioctl_dqbuf,
++	.vidioc_streamon	 = vb2_ioctl_streamon,
++	.vidioc_streamoff	 = vb2_ioctl_streamoff,
++
+ 	.vidioc_cropcap		 = vpbe_display_cropcap,
+ 	.vidioc_g_crop		 = vpbe_display_g_crop,
+ 	.vidioc_s_crop		 = vpbe_display_s_crop,
+-- 
+1.9.1
 
