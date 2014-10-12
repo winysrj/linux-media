@@ -1,65 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:50593 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbaJMTx2 (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:41032 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752575AbaJLUEQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Oct 2014 15:53:28 -0400
-MIME-Version: 1.0
-In-Reply-To: <20141013182423.39feb60f.m.chehab@samsung.com>
-References: <1412234489-1330-1-git-send-email-thierry.reding@gmail.com>
-	<CAMuHMdXG1pD1-O2m1NXp6gr4aVqyqV=-x-nPoWQJMWr_0XF42w@mail.gmail.com>
-	<20141013182423.39feb60f.m.chehab@samsung.com>
-Date: Mon, 13 Oct 2014 21:53:26 +0200
-Message-ID: <CAMuHMdUwPhr7J8Zh2eNFJa4DmJ8005qGvJWhu7Sv8X6Q4po5aA@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5p-jpeg: Only build suspend/resume for PM
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+	Sun, 12 Oct 2014 16:04:16 -0400
+From: Beniamino Galvani <b.galvani@gmail.com>
 To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Carlo Caione <carlo@caione.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH 2/3] media: rc: meson: document device tree bindings
+Date: Sun, 12 Oct 2014 22:01:54 +0200
+Message-Id: <1413144115-23188-3-git-send-email-b.galvani@gmail.com>
+In-Reply-To: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
+References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This adds binding documentation for the infrared remote control
+receiver available in Amlogic Meson SoCs.
 
-On Mon, Oct 13, 2014 at 6:24 PM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Mon, 13 Oct 2014 18:16:10 +0200
-> Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
->> On Thu, Oct 2, 2014 at 9:21 AM, Thierry Reding <thierry.reding@gmail.com> wrote:
->> > From: Thierry Reding <treding@nvidia.com>
->> >
->> > If power management is disabled these function become unused, so there
->> > is no reason to build them. This fixes a couple of build warnings when
->> > PM(_SLEEP,_RUNTIME) is not enabled.
->>
->> Thanks!
->>
->> Despite the availability of your patch, this build warning has
->> migrated to mainline.
->
-> That's because I didn't have any time yet to backport the fixes for
-> 3.18 and send those to -next. Also, while warnings are annoying,
-> a warning like that is not really an urgent matter, as gcc should
-> remove the dead code anyway.
+Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+---
+ Documentation/devicetree/bindings/media/meson-ir.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
 
-Understood.
+diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
+new file mode 100644
+index 0000000..407848e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/meson-ir.txt
+@@ -0,0 +1,14 @@
++* Amlogic Meson IR remote control receiver
++
++Required properties:
++ - compatible	: should be "amlogic,meson6-ir"
++ - reg		: physical base address and length of the device registers
++ - interrupts	: a single specifier for the interrupt from the device
++
++Example:
++
++	ir-receiver@c8100480 {
++		compatible= "amlogic,meson6-ir";
++		reg = <0xc8100480 0x20>;
++		interrupts = <0 15 1>;
++	};
+-- 
+1.9.1
 
-> I should be handling fixes next week, after my return from LinuxCon EU,
-> gstreamer conf, audio mini-summit and media summit. This will be a too
-> busy week.
-
-I hope you'll enjoy the busy conference week. We're all hamsters in the same
-threadmill, CU ;-)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
