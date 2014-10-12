@@ -1,88 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout02.highway.telekom.at ([195.3.96.113]:35277 "EHLO
-	email.aon.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752969AbaJ0NpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 09:45:05 -0400
-Message-ID: <544E4C57.9080302@a1.net>
-Date: Mon, 27 Oct 2014 14:44:55 +0100
-From: Johann Klammer <klammerj@a1.net>
-MIME-Version: 1.0
-To: hverkuil@xs4all.nl
-CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, trivial@kernel.org
-Subject: [PATCH][RESEND][TRIVIAL] Turn bothersome error into a debug message
-References: <542AE6A6.9000504@a1.net>
-In-Reply-To: <542AE6A6.9000504@a1.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:62706 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752835AbaJLUk7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 16:40:59 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 05/15] media: davinci: vpbe: improve vpbe_buffer_prepare() callback
+Date: Sun, 12 Oct 2014 21:40:35 +0100
+Message-Id: <1413146445-7304-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's see if that works now...
+this patch improve vpbe_buffer_prepare() callback, as buf_prepare()
+callback is never called with invalid state and check for
+vb2_plane_vaddr(vb, 0) is dropped as payload check should
+be done unconditionally.
 
-On 09/30/2014 07:21 PM, Johann Klammer wrote:
-> Hello,
-> 
-> After updating the kernel to 3.14.15 I am seeing these messages:
-> 
-> [273684.964081] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273690.020061] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273695.076082] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273700.132077] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273705.188070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273710.244066] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273715.300187] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273720.356068] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273725.412188] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273730.468094] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273735.524070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> [273740.580176] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
-> timed out while waiting for registers getting programmed
-> 
-> filling up the logs(one about every 5 seconds).
-> 
-> The TV card is a Terratec Cinergy 1200 DVBS (I believe.. it's rather old).
-> 
-> I can not observe any erratic behavior, just those pesky messages...
-> 
-> I see there was an earlier post here in 2008 about a similar
-> problem...(Cinergy 1200 DVB-C... a coincidence?)
-> 
-> What does it mean?
-> Do I need to be worried?
-> 
-> I am using a debian testing on a 32 bit box.
-> The previous kernel was linux-image-3.12-1-486.
-> It did not show those messages, but maybe due to some configure
-> options... I built this one from linux-source-3.14...
-> 
-Answering my own question:
-Other posts suggests that it is not actually an error on cards without a
-CI interface. Here's a patch that turns it into a debug message, so it
-does not clobber the logs.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-Signed-off-by: Johann Klammer <klammerj@a1.net>
---- linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c.orig  2014-07-31 23:51:43.000000000 +0200
-+++ linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c 2014-10-06 18:57:54.000000000 +0200
-@@ -71,7 +71,7 @@ static inline int saa7146_wait_for_debi_
-    if (saa7146_read(dev, MC2) & 2)
-      break;
-    if (err) {
--     pr_err("%s: %s timed out while waiting for registers getting programmed\n",
-+     pr_debug("%s: %s timed out while waiting for registers getting programmed\n",
-             dev->name, __func__);
-      return -ETIMEDOUT;
-    }
-
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 491b832..524e1fd 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -215,22 +215,15 @@ static int vpbe_buffer_prepare(struct vb2_buffer *vb)
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+ 				"vpbe_buffer_prepare\n");
+ 
+-	if (vb->state != VB2_BUF_STATE_ACTIVE &&
+-		vb->state != VB2_BUF_STATE_PREPARED) {
+-		vb2_set_plane_payload(vb, 0, layer->pix_fmt.sizeimage);
+-		if (vb2_plane_vaddr(vb, 0) &&
+-		vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+-			return -EINVAL;
++	vb2_set_plane_payload(vb, 0, layer->pix_fmt.sizeimage);
++	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
++		return -EINVAL;
+ 
+-		addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+-		if (q->streaming) {
+-			if (!IS_ALIGNED(addr, 8)) {
+-				v4l2_err(&vpbe_dev->v4l2_dev,
+-					"buffer_prepare:offset is \
+-					not aligned to 32 bytes\n");
+-				return -EINVAL;
+-			}
+-		}
++	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++	if (!IS_ALIGNED(addr, 8)) {
++		v4l2_err(&vpbe_dev->v4l2_dev,
++			 "buffer_prepare:offset is not aligned to 32 bytes\n");
++		return -EINVAL;
+ 	}
+ 	return 0;
+ }
+-- 
+1.9.1
 
