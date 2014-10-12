@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41563 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398AbaJAPkZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Oct 2014 11:40:25 -0400
-Message-ID: <1412178011.3077.10.camel@pengutronix.de>
-Subject: Re: [PATCH 00/10] CODA7 JPEG support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Wed, 01 Oct 2014 17:40:11 +0200
-In-Reply-To: <542C02C5.8090806@collabora.com>
-References: <1412071031-32016-1-git-send-email-p.zabel@pengutronix.de>
-	 <542AB39B.9010006@xs4all.nl> <1412086849.3692.3.camel@pengutronix.de>
-	 <542ABD1F.9000701@xs4all.nl>
-	 <0d2c01cfdcbb$98df2670$ca9d7350$%debski@samsung.com>
-	 <542C02C5.8090806@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:53128 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753017AbaJLUlL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 16:41:11 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 14/15] media: davinci: vpbe: group v4l2_ioctl_ops
+Date: Sun, 12 Oct 2014 21:40:44 +0100
+Message-Id: <1413146445-7304-15-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 01.10.2014, 09:33 -0400 schrieb Nicolas Dufresne:
-> Le 2014-09-30 10:34, Kamil Debski a écrit :
-> > I agree with you Hans. MFC has a single encoder node that supports multiple
-> > codecs and I think this design works well.
-> >
-> > JPEG should be separated into separate device.
-> Having combined encoders and combines decoders works well from 
-> application / gstreamer point of view too. It's only combine encoder and 
-> decoder that causes issues with our ability to probe what the HW is 
-> capable (without a need to know about the platform). Exynos has split 
-> JPEG decoder because it's not the same HW backing it.
+this patch groups the v4l2_ioctl_ops.
 
-Alright, I'll merge the H.264 and MPEG4 encoder devices again and resend
-the series tomorrow.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-thanks
-Philipp
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index b57fa68..17c965d 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1252,11 +1252,14 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_cropcap		 = vpbe_display_cropcap,
+ 	.vidioc_g_crop		 = vpbe_display_g_crop,
+ 	.vidioc_s_crop		 = vpbe_display_s_crop,
++
+ 	.vidioc_s_std		 = vpbe_display_s_std,
+ 	.vidioc_g_std		 = vpbe_display_g_std,
++
+ 	.vidioc_enum_output	 = vpbe_display_enum_output,
+ 	.vidioc_s_output	 = vpbe_display_s_output,
+ 	.vidioc_g_output	 = vpbe_display_g_output,
++
+ 	.vidioc_s_dv_timings	 = vpbe_display_s_dv_timings,
+ 	.vidioc_g_dv_timings	 = vpbe_display_g_dv_timings,
+ 	.vidioc_enum_dv_timings	 = vpbe_display_enum_dv_timings,
+-- 
+1.9.1
 
