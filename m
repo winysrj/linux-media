@@ -1,77 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:36076 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbaJUDa3 (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:41499 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959AbaJLUlG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 23:30:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <544280E4.20101@cogentembedded.com>
-References: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
-	<544280E4.20101@cogentembedded.com>
-Date: Tue, 21 Oct 2014 12:30:29 +0900
-Message-ID: <CAH1o70JoiJhec6thnQZnQ_99DLjhMrYhypFubkDYNnTcP_02ZQ@mail.gmail.com>
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 12 Oct 2014 16:41:06 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 10/15] media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
+Date: Sun, 12 Oct 2014 21:40:40 +0100
+Message-Id: <1413146445-7304-11-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sergei,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Thank you for your comments.
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index c33b77e..fd8d4f0 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1260,6 +1260,7 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_dqbuf		 = vb2_ioctl_dqbuf,
+ 	.vidioc_streamon	 = vb2_ioctl_streamon,
+ 	.vidioc_streamoff	 = vb2_ioctl_streamoff,
++	.vidioc_create_bufs	 = vb2_ioctl_create_bufs,
+ 
+ 	.vidioc_cropcap		 = vpbe_display_cropcap,
+ 	.vidioc_g_crop		 = vpbe_display_g_crop,
+-- 
+1.9.1
 
-2014-10-19 0:01 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
-> Hello.
->
-> On 10/14/2014 10:25 AM, Yoshihiro Kaneko wrote:
->
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->
->
->> By applying this patch, it sets to VSYNC field toggle mode not only
->> at the time of progressive mode but at the time of an interlace mode.
->
->
->> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->> ---
->
->
->> This patch is against master branch of linuxtv.org/media_tree.git.
->
->
->>   drivers/media/platform/soc_camera/rcar_vin.c | 3 ++-
->>   1 file changed, 2 insertions(+), 1 deletion(-)
->
->
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
->> b/drivers/media/platform/soc_camera/rcar_vin.c
->> index 5196c81..bf97ed6 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -108,6 +108,7 @@
->>   #define VNDMR2_VPS            (1 << 30)
->>   #define VNDMR2_HPS            (1 << 29)
->>   #define VNDMR2_FTEV           (1 << 17)
->> +#define VNDMR2_VLV_1           (1 << 12)
->
->
->    Please instead do:
->
-> #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
-
-It's unclear to me why the style of the new #define should differ
-from those of the existing ones.
-
-Thanks,
-Kaneko
-
->
-> WBR, Sergei
->
