@@ -1,200 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51648 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759926AbaJaNyz (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:33901 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbaJLKDk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:55 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 0C39F217D5
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:41 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sun, 12 Oct 2014 06:03:40 -0400
+Received: by mail-la0-f51.google.com with SMTP id ge10so5347886lab.10
+        for <linux-media@vger.kernel.org>; Sun, 12 Oct 2014 03:03:38 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 05/11] uvcvideo: Separate video and queue enable/disable operations
-Date: Fri, 31 Oct 2014 15:54:51 +0200
-Message-Id: <1414763697-21166-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: nibble.max@gmail.com, Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/4] dvbsky: added debug logging
+Date: Sun, 12 Oct 2014 13:03:09 +0300
+Message-Id: <1413108191-32510-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
+References: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to make use of the vb2 queue start/stop_streaming operations
-the video and queue enable/disable operations need to be split, as the
-vb2 queue will need to enable and disable video instead of the other way
-around.
+Added debug logging using dev_dgb.
 
-Also move buffer queue disable outside of uvc_video_resume() to remove
-all queue disable operations out of uvc_video.c.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++----
- drivers/media/usb/uvc/uvc_v4l2.c   | 15 ++++++++++++---
- drivers/media/usb/uvc/uvc_video.c  | 22 ++--------------------
- 3 files changed, 26 insertions(+), 27 deletions(-)
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 1cae974..a0b163a 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1735,6 +1735,11 @@ static int uvc_register_video(struct uvc_device *dev,
- 	struct video_device *vdev;
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 502b52c..fabe3f5 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -68,6 +68,9 @@ static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+ 	u8 obuf_pre[3] = { 0x37, 0, 0 };
+ 	u8 obuf_post[3] = { 0x36, 3, 0 };
+ 
++	dev_dbg(&d->udev->dev, "state: %s\n", (onoff == 1)
++			? "on" : "off");
++
+ 	mutex_lock(&state->stream_mutex);
+ 	ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
+ 	if (!ret && onoff) {
+@@ -91,6 +94,8 @@ static int dvbsky_gpio_ctrl(struct dvb_usb_device *d, u8 gport, u8 value)
+ 	int ret;
+ 	u8 obuf[3], ibuf[2];
+ 
++	dev_dbg(&d->udev->dev, "gport: %d, value: %d\n", gport, value);
++
+ 	obuf[0] = 0x0e;
+ 	obuf[1] = gport;
+ 	obuf[2] = value;
+@@ -234,6 +239,9 @@ static int dvbsky_usb_set_voltage(struct dvb_frontend *fe,
+ 	struct dvbsky_state *state = d_to_priv(d);
+ 	u8 value;
+ 
++	dev_dbg(&d->udev->dev, "voltage: %s\n",
++			(voltage == SEC_VOLTAGE_OFF) ? "off" : "on");
++
+ 	if (voltage == SEC_VOLTAGE_OFF)
+ 		value = 0;
+ 	else
+@@ -262,8 +270,10 @@ static int dvbsky_read_mac_addr(struct dvb_usb_adapter *adap, u8 mac[6])
+ 		}
+ 	};
+ 
+-	if (i2c_transfer(&d->i2c_adap, msg, 2) == 2)
++	if (i2c_transfer(&d->i2c_adap, msg, 2) == 2) {
+ 		memcpy(mac, ibuf, 6);
++		dev_dbg(&d->udev->dev, "MAC: %pM\n", ibuf);
++	}
+ 
+ 	return 0;
+ }
+@@ -274,6 +284,8 @@ static int dvbsky_usb_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct dvbsky_state *state = d_to_priv(d);
  	int ret;
  
-+	/* Initialize the video buffers queue. */
-+	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
-+	if (ret)
-+		return ret;
++	dev_dbg(&d->udev->dev, "\n");
 +
- 	/* Initialize the streaming interface with default streaming
- 	 * parameters.
- 	 */
-@@ -2010,14 +2015,13 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ 	ret = state->fe_read_status(fe, status);
+ 
+ 	/* it need resync slave fifo when signal change from unlock to lock.*/
+@@ -309,6 +321,9 @@ static int dvbsky_s960_attach(struct dvb_usb_adapter *adap)
+ 	struct m88ts2022_config m88ts2022_config = {
+ 			.clock = 27000000,
+ 		};
++
++	dev_dbg(&d->udev->dev, "\n");
++
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 
+ 	/* attach demod */
+@@ -362,6 +377,8 @@ fail_attach:
+ 
+ static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
  {
- 	struct uvc_device *dev = usb_get_intfdata(intf);
- 	struct uvc_streaming *stream;
-+	int ret = 0;
- 
- 	uvc_trace(UVC_TRACE_SUSPEND, "Resuming interface %u\n",
- 		intf->cur_altsetting->desc.bInterfaceNumber);
- 
- 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
- 	    UVC_SC_VIDEOCONTROL) {
--		int ret = 0;
--
- 		if (reset) {
- 			ret = uvc_ctrl_restore_values(dev);
- 			if (ret < 0)
-@@ -2033,8 +2037,12 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
--		if (stream->intf == intf)
--			return uvc_video_resume(stream, reset);
-+		if (stream->intf == intf) {
-+			ret = uvc_video_resume(stream, reset);
-+			if (ret < 0)
-+				uvc_queue_enable(&stream->queue, 0);
-+			return ret;
-+		}
- 	}
- 
- 	uvc_trace(UVC_TRACE_SUSPEND, "Resume: video streaming USB interface "
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index a16fe21..e8bf4f1 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -532,6 +532,7 @@ static int uvc_v4l2_release(struct file *file)
- 	/* Only free resources if this is a privileged handle. */
- 	if (uvc_has_privileges(handle)) {
- 		uvc_video_enable(stream, 0);
-+		uvc_queue_enable(&stream->queue, 0);
- 		uvc_free_buffers(&stream->queue);
- 	}
- 
-@@ -766,7 +767,15 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
-+	ret = uvc_queue_enable(&stream->queue, 1);
-+	if (ret < 0)
-+		goto done;
++	dev_dbg(&d->udev->dev, "\n");
 +
- 	ret = uvc_video_enable(stream, 1);
-+	if (ret < 0)
-+		uvc_queue_enable(&stream->queue, 0);
-+
-+done:
- 	mutex_unlock(&stream->mutex);
- 
- 	return ret;
-@@ -777,7 +786,6 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ 	dvbsky_gpio_ctrl(d, 0x04, 1);
+ 	msleep(20);
+ 	dvbsky_gpio_ctrl(d, 0x83, 0);
+@@ -378,6 +395,8 @@ static int dvbsky_init(struct dvb_usb_device *d)
  {
- 	struct uvc_fh *handle = fh;
- 	struct uvc_streaming *stream = handle->stream;
--	int ret;
+ 	struct dvbsky_state *state = d_to_priv(d);
  
- 	if (type != stream->type)
- 		return -EINVAL;
-@@ -786,10 +794,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
- 		return -EBUSY;
++	dev_dbg(&d->udev->dev, "\n");
++
+ 	/* use default interface */
+ 	/*
+ 	ret = usb_set_interface(d->udev, 0, 0);
+@@ -396,6 +415,8 @@ static void dvbsky_exit(struct dvb_usb_device *d)
+ 	struct dvbsky_state *state = d_to_priv(d);
+ 	struct i2c_client *client;
  
- 	mutex_lock(&stream->mutex);
--	ret = uvc_video_enable(stream, 0);
-+	uvc_video_enable(stream, 0);
-+	uvc_queue_enable(&stream->queue, 0);
- 	mutex_unlock(&stream->mutex);
- 
--	return ret;
-+	return 0;
- }
- 
- static int uvc_ioctl_enum_input(struct file *file, void *fh,
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index b9c7dee..9637e8b 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1735,19 +1735,13 @@ int uvc_video_resume(struct uvc_streaming *stream, int reset)
- 	uvc_video_clock_reset(stream);
- 
- 	ret = uvc_commit_video(stream, &stream->ctrl);
--	if (ret < 0) {
--		uvc_queue_enable(&stream->queue, 0);
-+	if (ret < 0)
- 		return ret;
--	}
- 
- 	if (!uvc_queue_streaming(&stream->queue))
- 		return 0;
- 
--	ret = uvc_init_video(stream, GFP_NOIO);
--	if (ret < 0)
--		uvc_queue_enable(&stream->queue, 0);
--
--	return ret;
-+	return uvc_init_video(stream, GFP_NOIO);
- }
- 
- /* ------------------------------------------------------------------------
-@@ -1779,11 +1773,6 @@ int uvc_video_init(struct uvc_streaming *stream)
- 
- 	atomic_set(&stream->active, 0);
- 
--	/* Initialize the video buffers queue. */
--	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
--	if (ret)
--		return ret;
--
- 	/* Alternate setting 0 should be the default, yet the XBox Live Vision
- 	 * Cam (and possibly other devices) crash or otherwise misbehave if
- 	 * they don't receive a SET_INTERFACE request before any other video
-@@ -1890,7 +1879,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
- 			usb_clear_halt(stream->dev->udev, pipe);
- 		}
- 
--		uvc_queue_enable(&stream->queue, 0);
- 		uvc_video_clock_cleanup(stream);
- 		return 0;
- 	}
-@@ -1899,10 +1887,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = uvc_queue_enable(&stream->queue, 1);
--	if (ret < 0)
--		goto error_queue;
--
- 	/* Commit the streaming parameters. */
- 	ret = uvc_commit_video(stream, &stream->ctrl);
- 	if (ret < 0)
-@@ -1917,8 +1901,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
- error_video:
- 	usb_set_interface(stream->dev->udev, stream->intfnum, 0);
- error_commit:
--	uvc_queue_enable(&stream->queue, 0);
--error_queue:
- 	uvc_video_clock_cleanup(stream);
- 
- 	return ret;
++	dev_dbg(&d->udev->dev, "\n");
++
+ 	client = state->i2c_client_tuner;
+ 	/* remove I2C tuner */
+ 	if (client) {
 -- 
-2.0.4
+1.9.1
 
