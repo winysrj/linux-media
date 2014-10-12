@@ -1,51 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56656 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101AbaJGQWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 12:22:03 -0400
-Received: from avalon.localnet (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 693C120115
-	for <linux-media@vger.kernel.org>; Tue,  7 Oct 2014 18:20:26 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:33028 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbaJLKDg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 06:03:36 -0400
+Received: by mail-lb0-f169.google.com with SMTP id 10so5145050lbg.0
+        for <linux-media@vger.kernel.org>; Sun, 12 Oct 2014 03:03:30 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.18] uvcvideo fix
-Date: Tue, 07 Oct 2014 19:22:13 +0300
-Message-ID: <1612006.gTirVuyUTl@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: nibble.max@gmail.com, Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/4] dvbsky: don't print MAC address from read_mac_address
+Date: Sun, 12 Oct 2014 13:03:08 +0300
+Message-Id: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The dvb-usb-v2 already prints out the MAC address, no need to print it out also here.
 
-The following changes since commit cf3167cf1e969b17671a4d3d956d22718a8ceb85:
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-  [media] pt3: fix DTV FE I2C driver load error paths (2014-09-28 22:23:42 
--0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git uvcvideo/fixes
-
-for you to fetch changes up to a7f053c67c357c4b68c1be21976a1d464f97916b:
-
-  v4l: uvcvideo: Fix buffer completion size check (2014-10-07 19:16:16 +0300)
-
-This fixes a bug introduced by commit e93e7fd9f5a3 ("v4l2: uvcvideo: Allow 
-using larger buffers") scheduled for merge in v3.18.
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: uvcvideo: Fix buffer completion size check
-
- drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
- drivers/media/usb/uvc/uvc_video.c | 2 +-
- drivers/media/usb/uvc/uvcvideo.h  | 1 -
- 3 files changed, 1 insertion(+), 3 deletions(-)
-
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 34688c8..502b52c 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -265,8 +265,6 @@ static int dvbsky_read_mac_addr(struct dvb_usb_adapter *adap, u8 mac[6])
+ 	if (i2c_transfer(&d->i2c_adap, msg, 2) == 2)
+ 		memcpy(mac, ibuf, 6);
+ 
+-	dev_info(&d->udev->dev, "dvbsky_usb MAC address=%pM\n", mac);
+-
+ 	return 0;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
