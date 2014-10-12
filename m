@@ -1,74 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:29990 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbaJELUb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 07:20:31 -0400
-Date: Sun, 05 Oct 2014 08:20:23 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?0JHRg9C00Lgg0KDQvtC80LDQvdGC0L4s?= AreMa Inc
-	<info@are.ma>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	crope@iki.fi, mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: Re: [PATCH 01/11] tc90522: better chip description
-Message-id: <20141005082023.4d364154.m.chehab@samsung.com>
-In-reply-to: <e12c8e2e2e0f84035f58d8a7848dd6f64746a0ba.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
- <e12c8e2e2e0f84035f58d8a7848dd6f64746a0ba.1412497399.git.knightrider@are.ma>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:49049 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbaJLUkw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 16:40:52 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 00/15] media: davinci: vpbe enhancements
+Date: Sun, 12 Oct 2014 21:40:30 +0100
+Message-Id: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 05 Oct 2014 17:59:37 +0900
-"Буди Романто, AreMa Inc" <info@are.ma> escreveu:
+This patch series adds following support:-
+1: moves the vb2 queue init to probe.
+2: uses vb2_fop_* helpers.
+3: adds support for VB2_DMABUF.
+4: adds support for VIDIOC_CREATE_BUFS and VIDIOC_EXPBUF.
+5: Uses fh provided by v4l core.
+6: And some cleanups.
 
-> tc90522 has both satellite & terrestrial demodulators,
-> thus change the category description
-> 
-> Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
-> ---
->  drivers/media/dvb-frontends/Kconfig  | 4 ++--
->  drivers/media/dvb-frontends/Makefile | 1 +
->  2 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> index 5a13454..0c59825 100644
-> --- a/drivers/media/dvb-frontends/Kconfig
-> +++ b/drivers/media/dvb-frontends/Kconfig
-> @@ -621,7 +621,7 @@ config DVB_S5H1411
->  	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
->  	  to support this frontend.
->  
-> -comment "ISDB-T (terrestrial) frontends"
-> +comment "ISDB-S (satellite) & ISDB-T (terrestrial) frontends"
->  	depends on DVB_CORE
->  
->  config DVB_S921
-> @@ -653,7 +653,7 @@ config DVB_TC90522
->  	depends on DVB_CORE && I2C
->  	default m if !MEDIA_SUBDRV_AUTOSELECT
->  	help
-> -	  A Toshiba TC90522 2xISDB-T + 2xISDB-S demodulator.
-> +	  Toshiba TC90522 2xISDB-S 8PSK + 2xISDB-T OFDM demodulator.
->  	  Say Y when you want to support this frontend.
->  
->  comment "Digital terrestrial only tuners/PLL"
-> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-> index ba59df6..6f05615 100644
-> --- a/drivers/media/dvb-frontends/Makefile
-> +++ b/drivers/media/dvb-frontends/Makefile
-> @@ -116,3 +116,4 @@ obj-$(CONFIG_DVB_M88RS2000) += m88rs2000.o
->  obj-$(CONFIG_DVB_AF9033) += af9033.o
->  obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
->  obj-$(CONFIG_DVB_TC90522) += tc90522.o
-> +
+Lad, Prabhakar (15):
+  media: davinci: vpbe: initialize vb2 queue and DMA context in probe
+  media: davinci: vpbe: drop buf_init() callback
+  media: davinci: vpbe: use vb2_ops_wait_prepare/finish helper functions
+  media: davinci: vpbe: drop buf_cleanup() callback
+  media: davinci: vpbe: improve vpbe_buffer_prepare() callback
+  media: davinci: vpbe: use vb2_fop_mmap/poll
+  media: davinci: vpbe: use fh handling provided by v4l
+  media: davinci: vpbe: use vb2_ioctl_* helpers
+  media: davinci: vpbe: add support for VB2_DMABUF
+  media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
+  media: davinci: vpbe: add support for VIDIOC_EXPBUF
+  media: davinci: vpbe: use helpers provided by core if streaming is
+    started
+  media: davinci: vpbe: drop unused member memory from vpbe_layer
+  media: davinci: vpbe: group v4l2_ioctl_ops
+  media: davinci: vpbe: return -ENODATA for *dv_timings/*_std calls
 
-Why to add a blank line here?
+ drivers/media/platform/davinci/vpbe.c         |  18 +-
+ drivers/media/platform/davinci/vpbe_display.c | 607 ++++++--------------------
+ include/media/davinci/vpbe_display.h          |  19 -
+ 3 files changed, 159 insertions(+), 485 deletions(-)
 
-Regards,
-Mauro
+-- 
+1.9.1
 
