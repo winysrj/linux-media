@@ -1,103 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:56213 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbaJISbV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 14:31:21 -0400
-From: Tomas Melin <tomas.melin@iki.fi>
-To: m.chehab@samsung.com, david@hardeman.nu
-Cc: james.hogan@imgtec.com, a.seppala@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tomas Melin <tomas.melin@iki.fi>
-Subject: [PATCH resend] [media] rc-core: fix protocol_change regression in ir_raw_event_register
-Date: Thu,  9 Oct 2014 21:30:36 +0300
-Message-Id: <1412879436-7513-1-git-send-email-tomas.melin@iki.fi>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:49767 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751179AbaJLUlJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 16:41:09 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 12/15] media: davinci: vpbe: use helpers provided by core if streaming is started
+Date: Sun, 12 Oct 2014 21:40:42 +0100
+Message-Id: <1413146445-7304-13-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR reciever using nuvoton-cir and lirc was not working anymore after
-upgrade from kernel 3.16 to 3.17-rcX.
-Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
-("[media] rc-core: simplify sysfs code").
+this patch uses vb2_is_busy() helper to check if streaming is
+actually started, instead of driver managing it.
 
-The regression comes from adding function change_protocol in
-ir-raw.c. During registration, ir_raw_event_register enables all protocols
-by default. Later, rc_register_device also tests dev->change_protocol and
-changes the enabled protocols based on rc_map type. However, rc_map type
-only defines a single specific protocol, so in the case of a more generic
-driver, this disables all protocols but the one defined by the map.
-
-Changed back to original behaviour by removing empty function
-change_protocol in ir-raw.c. Instead only calling change_protocol for
-drivers that actually have the function set up.
-
-Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/rc/rc-ir-raw.c |    7 -------
- drivers/media/rc/rc-main.c   |   19 ++++++++-----------
- 2 files changed, 8 insertions(+), 18 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c | 34 ++++++++-------------------
+ include/media/davinci/vpbe_display.h          |  4 ----
+ 2 files changed, 10 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index e8fff2a..a118539 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -240,12 +240,6 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 378f31b..b57fa68 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -152,8 +152,8 @@ static irqreturn_t venc_isr(int irq, void *arg)
  
--static int change_protocol(struct rc_dev *dev, u64 *rc_type)
--{
--	/* the caller will update dev->enabled_protocols */
--	return 0;
--}
--
- /*
-  * Used to (un)register raw event clients
-  */
-@@ -263,7 +257,6 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+ 		layer = disp_dev->dev[i];
+-		/* If streaming is started in this layer */
+-		if (!layer->started)
++
++		if (!vb2_start_streaming_called(&layer->buffer_queue))
+ 			continue;
  
- 	dev->raw->dev = dev;
- 	dev->enabled_protocols = ~0;
--	dev->change_protocol = change_protocol;
- 	rc = kfifo_alloc(&dev->raw->kfifo,
- 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
- 			 GFP_KERNEL);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a7991c7..633c682 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1001,11 +1001,6 @@ static ssize_t store_protocols(struct device *device,
- 		set_filter = dev->s_wakeup_filter;
- 	}
+ 		if (layer->layer_first_int) {
+@@ -314,7 +314,6 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	 * if request format is yuv420 semiplanar, need to
+ 	 * enable both video windows
+ 	 */
+-	layer->started = 1;
+ 	layer->layer_first_int = 1;
  
--	if (!change_protocol) {
--		IR_dprintk(1, "Protocol switching not supported\n");
--		return -EINVAL;
+ 	return ret;
+@@ -829,11 +828,9 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
+ 			"VIDIOC_S_FMT, layer id = %d\n",
+ 			layer->device_id);
+ 
+-	/* If streaming is started, return error */
+-	if (layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
++	if (vb2_is_busy(&layer->buffer_queue))
+ 		return -EBUSY;
 -	}
--
- 	mutex_lock(&dev->lock);
++
+ 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
+ 		v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "invalid type\n");
+ 		return -EINVAL;
+@@ -937,11 +934,9 @@ static int vpbe_display_s_std(struct file *file, void *priv,
  
- 	old_protocols = *current_protocols;
-@@ -1013,12 +1008,14 @@ static ssize_t store_protocols(struct device *device,
- 	rc = parse_protocol_change(&new_protocols, buf);
- 	if (rc < 0)
- 		goto out;
--
--	rc = change_protocol(dev, &new_protocols);
--	if (rc < 0) {
--		IR_dprintk(1, "Error setting protocols to 0x%llx\n",
--			   (long long)new_protocols);
--		goto out;
-+	/* Only if protocol change set up in driver */
-+	if (change_protocol) {
-+		rc = change_protocol(dev, &new_protocols);
-+		if (rc < 0) {
-+			IR_dprintk(1, "Error setting protocols to 0x%llx\n",
-+				   (long long)new_protocols);
-+			goto out;
-+		}
- 	}
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_STD\n");
  
- 	if (new_protocols == old_protocols) {
+-	/* If streaming is started, return error */
+-	if (layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
++	if (vb2_is_busy(&layer->buffer_queue))
+ 		return -EBUSY;
+-	}
++
+ 	if (NULL != vpbe_dev->ops.s_std) {
+ 		ret = vpbe_dev->ops.s_std(vpbe_dev, std_id);
+ 		if (ret) {
+@@ -1021,11 +1016,10 @@ static int vpbe_display_s_output(struct file *file, void *priv,
+ 	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_S_OUTPUT\n");
+-	/* If streaming is started, return error */
+-	if (layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
++
++	if (vb2_is_busy(&layer->buffer_queue))
+ 		return -EBUSY;
+-	}
++
+ 	if (NULL == vpbe_dev->ops.set_output)
+ 		return -EINVAL;
+ 
+@@ -1102,12 +1096,8 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_DV_TIMINGS\n");
+ 
+-
+-	/* If streaming is started, return error */
+-	if (layer->started) {
+-		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
++	if (vb2_is_busy(&layer->buffer_queue))
+ 		return -EBUSY;
+-	}
+ 
+ 	/* Set the given standard in the encoder */
+ 	if (!vpbe_dev->ops.s_dv_timings)
+@@ -1212,13 +1202,9 @@ static int vpbe_display_release(struct file *file)
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_release\n");
+ 
+ 	mutex_lock(&layer->opslock);
+-	/* Reset io_usrs member of layer object */
+-	layer->io_usrs = 0;
+ 
+ 	osd_device->ops.disable_layer(osd_device,
+ 			layer->layer_info.id);
+-	layer->started = 0;
+-
+ 	/* Decrement layer usrs counter */
+ 	layer->usrs--;
+ 	/* If this file handle has initialize encoder device, reset it */
+diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
+index 06ea815..de0843d 100644
+--- a/include/media/davinci/vpbe_display.h
++++ b/include/media/davinci/vpbe_display.h
+@@ -106,12 +106,8 @@ struct vpbe_layer {
+ 	unsigned char window_enable;
+ 	/* number of open instances of the layer */
+ 	unsigned int usrs;
+-	/* number of users performing IO */
+-	unsigned int io_usrs;
+ 	/* Indicates id of the field which is being displayed */
+ 	unsigned int field_id;
+-	/* Indicates whether streaming started */
+-	unsigned char started;
+ 	/* Identifies device object */
+ 	enum vpbe_display_device_id device_id;
+ 	/* facilitation of ioctl ops lock by v4l2*/
 -- 
-1.7.10.4
+1.9.1
 
