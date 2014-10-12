@@ -1,57 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:40982 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751752AbaJETis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 15:38:48 -0400
-Received: by mail-wi0-f177.google.com with SMTP id fb4so2791618wid.16
-        for <linux-media@vger.kernel.org>; Sun, 05 Oct 2014 12:38:46 -0700 (PDT)
-Message-ID: <54319E45.3050906@googlemail.com>
-Date: Sun, 05 Oct 2014 21:38:45 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:56805 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115AbaJLLbl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Oct 2014 07:31:41 -0400
+Received: by mail-lb0-f182.google.com with SMTP id z11so5047733lbi.41
+        for <linux-media@vger.kernel.org>; Sun, 12 Oct 2014 04:31:40 -0700 (PDT)
+Date: Sun, 12 Oct 2014 14:31:38 +0300 (EEST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+cc: crope@iki.fi
+Subject: [PATCHv2 4/4] dvbsky: add option to disable IR receiver
+In-Reply-To: <543A5D7B.8020401@iki.fi>
+Message-ID: <alpine.DEB.2.10.1410121427480.6205@olli-desktop>
+References: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi> <1413108191-32510-4-git-send-email-olli.salonen@iki.fi> <543A540A.2010507@iki.fi> <543A5D7B.8020401@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Upcoming v4l-utils 1.6.0 release
-References: <20140925213820.1bbf43c2@recife.lan>	<54269807.50109@googlemail.com>	<20140927085455.5b0baf89@recife.lan>	<542ACA32.3050403@googlemail.com>	<542ADA66.3040905@redhat.com> <20141004112245.7a5de7de@recife.lan>
-In-Reply-To: <20141004112245.7a5de7de@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add an option to disable remote controller for DVBSky devices by specifying the disable_rc option at modprobe.
 
-On 04/10/14 16:22, Mauro Carvalho Chehab wrote:
-> Em Tue, 30 Sep 2014 18:29:26 +0200
-> Hans de Goede <hdegoede@redhat.com> escreveu:
->> About the 1.6.0 release, please do not release it until the series
->> fixing the regression in 1.4.0 with gstreamer which I've posted
->> today. A review of that series would be appreciated. If you're ok
->> with the series feel free to push it to master.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-I pushed the changes to master ans built a Debian package with the
-changes. The bug reported verified that it properly fixed the bug.
+---
 
-> From my side, I'm happy with the changes made at libdvbv5 side.
-> 
-> I did several changes during this week:
-> 
-> - Added user pages for the 4 dvbv5 tools;
-> - Cleaned up all Valgrind errors;
-> - Cleaned up a nasty double-free bug;
-> - Solved all the issues pointed for it at Coverity.
-> - Added the package version on all section 1 man pages. Those are now
->   created during ./configure.
-> 
-> I also did some tests here with DVB-C and ISDB-T and everything seems to
-> be working fine.
-> 
-> So, at least from dvbv5 utils and libdvbv5, I think we're ready for
-> version 1.6.
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 5c7387a..f2d0eb7 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -25,6 +25,10 @@
+ #define DVBSKY_MSG_DELAY	0/*2000*/
+ #define DVBSKY_BUF_LEN	64
+ 
++static int dvb_usb_dvbsky_disable_rc;
++module_param_named(disable_rc, dvb_usb_dvbsky_disable_rc, int, 0644);
++MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
++
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct dvbsky_state {
+@@ -218,6 +222,11 @@ static int dvbsky_rc_query(struct dvb_usb_device *d)
+ 
+ static int dvbsky_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ {
++	if (dvb_usb_dvbsky_disable_rc) {
++		rc->map_name = NULL;
++		return 0;
++	}
++
+ 	rc->allowed_protos = RC_BIT_RC5;
+ 	rc->query          = dvbsky_rc_query;
+ 	rc->interval       = 300;
 
-I made some changes to the man pages to silence Lintian warnings and put
-the release stamp on the tree.
-
-Thanks,
-Gregor
