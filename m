@@ -1,67 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34688 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754693AbaJVKED (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:47204 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752839AbaJLUET (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 06:04:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 2/5] [media] vivid: remove unused videobuf2-vmalloc headers
-Date: Wed, 22 Oct 2014 12:03:38 +0200
-Message-Id: <1413972221-13669-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
+	Sun, 12 Oct 2014 16:04:19 -0400
+From: Beniamino Galvani <b.galvani@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+	Carlo Caione <carlo@caione.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH 3/3] ARM: dts: meson: add dts nodes for IR receiver
+Date: Sun, 12 Oct 2014 22:01:55 +0200
+Message-Id: <1413144115-23188-4-git-send-email-b.galvani@gmail.com>
+In-Reply-To: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
+References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The videobuf2-vmalloc header is not used by the changed files, so remove it.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
 ---
- drivers/media/platform/vivid/vivid-kthread-cap.c | 1 -
- drivers/media/platform/vivid/vivid-kthread-out.c | 1 -
- drivers/media/platform/vivid/vivid-osd.c         | 1 -
- 3 files changed, 3 deletions(-)
+ arch/arm/boot/dts/meson.dtsi           | 7 +++++++
+ arch/arm/boot/dts/meson8-vega-s89e.dts | 6 ++++++
+ arch/arm/boot/dts/meson8.dtsi          | 7 +++++++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index 39a67cf..65e5f76 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -31,7 +31,6 @@
- #include <linux/random.h>
- #include <linux/v4l2-dv-timings.h>
- #include <asm/div64.h>
--#include <media/videobuf2-vmalloc.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-index d9f36cc..6da0e01 100644
---- a/drivers/media/platform/vivid/vivid-kthread-out.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-@@ -31,7 +31,6 @@
- #include <linux/random.h>
- #include <linux/v4l2-dv-timings.h>
- #include <asm/div64.h>
--#include <media/videobuf2-vmalloc.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-diff --git a/drivers/media/platform/vivid/vivid-osd.c b/drivers/media/platform/vivid/vivid-osd.c
-index 084d346..c90cf13 100644
---- a/drivers/media/platform/vivid/vivid-osd.c
-+++ b/drivers/media/platform/vivid/vivid-osd.c
-@@ -29,7 +29,6 @@
- #include <linux/kthread.h>
- #include <linux/freezer.h>
- #include <linux/fb.h>
--#include <media/videobuf2-vmalloc.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
+diff --git a/arch/arm/boot/dts/meson.dtsi b/arch/arm/boot/dts/meson.dtsi
+index 7d27f12..a14461c 100644
+--- a/arch/arm/boot/dts/meson.dtsi
++++ b/arch/arm/boot/dts/meson.dtsi
+@@ -108,5 +108,12 @@
+ 			clocks = <&clk81>;
+ 			status = "disabled";
+ 		};
++
++		ir_receiver: ir-receiver@c8100480 {
++			compatible= "amlogic,meson6-ir";
++			reg = <0xc8100480 0x20>;
++			interrupts = <0 15 1>;
++			status = "disabled";
++		};
+ 	};
+ }; /* end of / */
+diff --git a/arch/arm/boot/dts/meson8-vega-s89e.dts b/arch/arm/boot/dts/meson8-vega-s89e.dts
+index 70a05c1..5ea54c8 100644
+--- a/arch/arm/boot/dts/meson8-vega-s89e.dts
++++ b/arch/arm/boot/dts/meson8-vega-s89e.dts
+@@ -77,3 +77,9 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart_ao_a>;
+ };
++
++&ir_receiver {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&ir_pins>;
++};
+diff --git a/arch/arm/boot/dts/meson8.dtsi b/arch/arm/boot/dts/meson8.dtsi
+index 59c3af0..ea98ed3 100644
+--- a/arch/arm/boot/dts/meson8.dtsi
++++ b/arch/arm/boot/dts/meson8.dtsi
+@@ -122,6 +122,13 @@
+ 				function = "uart_ao";
+ 			};
+ 		};
++
++		ir_pins: ir_pins {
++			ir_pins {
++				pins = "remote_input";
++				function = "remote";
++			};
++		};
+ 	};
+ 
+ }; /* end of / */
 -- 
-2.1.1
+1.9.1
 
