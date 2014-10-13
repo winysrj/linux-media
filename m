@@ -1,312 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:33313 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752761AbaJLUky (ORCPT
+Received: from blu004-omc2s31.hotmail.com ([65.55.111.106]:60583 "EHLO
+	BLU004-OMC2S31.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751343AbaJMXLb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:40:54 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 01/15] media: davinci: vpbe: initialize vb2 queue and DMA context in probe
-Date: Sun, 12 Oct 2014 21:40:31 +0100
-Message-Id: <1413146445-7304-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 13 Oct 2014 19:11:31 -0400
+Message-ID: <BLU437-SMTP32BE04CD60AF807B75686C5AC0@phx.gbl>
+Date: Tue, 14 Oct 2014 09:11:24 +1000
+From: serrin <serrin19@outlook.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Hauppauge HVR-2200 (saa7164) problems (on Linux Mint 17)
+References: <543C5B34.5090002@outlook.com>
+In-Reply-To: <543C5B34.5090002@outlook.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch moves the initialization of vb2 queue and the DMA
-context to probe() and clean up in remove() callback respectively.
+Hello,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c | 128 ++++++++++++--------------
- 1 file changed, 60 insertions(+), 68 deletions(-)
+I recently built a HTPC/NAS server with linux mint 17. I reused my old 
+DVB-T card from my desktop which was a Hauppauge HVR-2200 with NXP 
+saa7164 IC. This is my first (serious) attempt at installing linux on a 
+computer and everything went well until it came to getting this TV tuner 
+to work.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 73496d9..ff9eac4 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -207,10 +207,9 @@ static irqreturn_t venc_isr(int irq, void *arg)
-  */
- static int vpbe_buffer_prepare(struct vb2_buffer *vb)
- {
--	struct vpbe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vb2_queue *q = vb->vb2_queue;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(q);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	unsigned long addr;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -247,9 +246,8 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- {
- 	/* Get the file handle object and layer object */
--	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_buffer_setup\n");
- 
-@@ -271,12 +269,11 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- static void vpbe_buffer_queue(struct vb2_buffer *vb)
- {
- 	/* Get the file handle object and layer object */
--	struct vpbe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vpbe_disp_buffer *buf = container_of(vb,
- 				struct vpbe_disp_buffer, vb);
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_display *disp = fh->disp_dev;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vpbe_display *disp = layer->disp_dev;
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	unsigned long flags;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -296,9 +293,8 @@ static void vpbe_buffer_queue(struct vb2_buffer *vb)
- static void vpbe_buf_cleanup(struct vb2_buffer *vb)
- {
- 	/* Get the file handle object and layer object */
--	struct vpbe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	struct vpbe_disp_buffer *buf = container_of(vb,
- 					struct vpbe_disp_buffer, vb);
- 	unsigned long flags;
-@@ -314,16 +310,14 @@ static void vpbe_buf_cleanup(struct vb2_buffer *vb)
- 
- static void vpbe_wait_prepare(struct vb2_queue *vq)
- {
--	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
--	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
- 
- 	mutex_unlock(&layer->opslock);
- }
- 
- static void vpbe_wait_finish(struct vb2_queue *vq)
- {
--	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
--	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
- 
- 	mutex_lock(&layer->opslock);
- }
-@@ -339,8 +333,7 @@ static int vpbe_buffer_init(struct vb2_buffer *vb)
- 
- static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
--	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
--	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
- 	int ret;
- 
- 	/* Get the next frame from the buffer queue */
-@@ -354,7 +347,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	layer->field_id = 0;
- 
- 	/* Set parameters in OSD and VENC */
--	ret = vpbe_set_osd_display_params(fh->disp_dev, layer);
-+	ret = vpbe_set_osd_display_params(layer->disp_dev, layer);
- 	if (ret < 0) {
- 		struct vpbe_disp_buffer *buf, *tmp;
- 
-@@ -379,9 +372,8 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- static void vpbe_stop_streaming(struct vb2_queue *vq)
- {
--	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_display *disp = fh->disp_dev;
-+	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
-+	struct vpbe_display *disp = layer->disp_dev;
- 	unsigned long flags;
- 
- 	if (!vb2_is_streaming(vq))
-@@ -1380,8 +1372,7 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
- 	struct vpbe_fh *fh = file->private_data;
- 	struct vpbe_layer *layer = fh->layer;
- 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--	struct vb2_queue *q;
--	int ret;
-+
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_reqbufs\n");
- 
- 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != req_buf->type) {
-@@ -1394,39 +1385,14 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
- 		v4l2_err(&vpbe_dev->v4l2_dev, "not IO user\n");
- 		return -EBUSY;
- 	}
--	/* Initialize videobuf queue as per the buffer type */
--	layer->alloc_ctx = vb2_dma_contig_init_ctx(vpbe_dev->pdev);
--	if (IS_ERR(layer->alloc_ctx)) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to get the context\n");
--		return PTR_ERR(layer->alloc_ctx);
--	}
--	q = &layer->buffer_queue;
--	memset(q, 0, sizeof(*q));
--	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	q->io_modes = VB2_MMAP | VB2_USERPTR;
--	q->drv_priv = fh;
--	q->ops = &video_qops;
--	q->mem_ops = &vb2_dma_contig_memops;
--	q->buf_struct_size = sizeof(struct vpbe_disp_buffer);
--	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--	q->min_buffers_needed = 1;
--
--	ret = vb2_queue_init(q);
--	if (ret) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "vb2_queue_init() failed\n");
--		vb2_dma_contig_cleanup_ctx(layer->alloc_ctx);
--		return ret;
--	}
- 	/* Set io allowed member of file handle to TRUE */
- 	fh->io_allowed = 1;
- 	/* Increment io usrs member of layer object to 1 */
- 	layer->io_usrs = 1;
- 	/* Store type of memory requested in layer object */
- 	layer->memory = req_buf->memory;
--	/* Initialize buffer queue */
--	INIT_LIST_HEAD(&layer->dma_queue);
- 	/* Allocate buffers */
--	return vb2_reqbufs(q, req_buf);
-+	return vb2_reqbufs(&layer->buffer_queue, req_buf);
- }
- 
- /*
-@@ -1551,9 +1517,6 @@ static int vpbe_display_release(struct file *file)
- 		osd_device->ops.disable_layer(osd_device,
- 				layer->layer_info.id);
- 		layer->started = 0;
--		/* Free buffers allocated */
--		vb2_queue_release(&layer->buffer_queue);
--		vb2_dma_contig_cleanup_ctx(&layer->buffer_queue);
- 	}
- 
- 	/* Decrement layer usrs counter */
-@@ -1724,9 +1687,10 @@ static int register_device(struct vpbe_layer *vpbe_display_layer,
-  */
- static int vpbe_display_probe(struct platform_device *pdev)
- {
--	struct vpbe_layer *vpbe_display_layer;
- 	struct vpbe_display *disp_dev;
-+	struct v4l2_device *v4l2_dev;
- 	struct resource *res = NULL;
-+	struct vb2_queue *q;
- 	int k;
- 	int i;
- 	int err;
-@@ -1748,13 +1712,14 @@ static int vpbe_display_probe(struct platform_device *pdev)
- 			vpbe_device_get);
- 	if (err < 0)
- 		return err;
-+
-+	v4l2_dev = &disp_dev->vpbe_dev->v4l2_dev;
- 	/* Initialize the vpbe display controller */
- 	if (NULL != disp_dev->vpbe_dev->ops.initialize) {
- 		err = disp_dev->vpbe_dev->ops.initialize(&pdev->dev,
- 							 disp_dev->vpbe_dev);
- 		if (err) {
--			v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
--					"Error initing vpbe\n");
-+			v4l2_err(v4l2_dev, "Error initing vpbe\n");
- 			err = -ENOMEM;
- 			goto probe_out;
- 		}
-@@ -1769,8 +1734,7 @@ static int vpbe_display_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!res) {
--		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
--			 "Unable to get VENC interrupt resource\n");
-+		v4l2_err(v4l2_dev, "Unable to get VENC interrupt resource\n");
- 		err = -ENODEV;
- 		goto probe_out;
- 	}
-@@ -1779,30 +1743,57 @@ static int vpbe_display_probe(struct platform_device *pdev)
- 	err = devm_request_irq(&pdev->dev, irq, venc_isr, 0,
- 			       VPBE_DISPLAY_DRIVER, disp_dev);
- 	if (err) {
--		v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
--				"Unable to request interrupt\n");
-+		v4l2_err(v4l2_dev, "VPBE IRQ request failed\n");
- 		goto probe_out;
- 	}
- 
- 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
-+		/* initialize vb2 queue */
-+		q = &disp_dev->dev[i]->buffer_queue;
-+		memset(q, 0, sizeof(*q));
-+		q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		q->io_modes = VB2_MMAP | VB2_USERPTR;
-+		q->drv_priv = disp_dev->dev[i];
-+		q->ops = &video_qops;
-+		q->mem_ops = &vb2_dma_contig_memops;
-+		q->buf_struct_size = sizeof(struct vpbe_disp_buffer);
-+		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+		q->min_buffers_needed = 1;
-+
-+		err = vb2_queue_init(q);
-+		if (err) {
-+			v4l2_err(v4l2_dev, "vb2_queue_init() failed\n");
-+			goto probe_out;
-+		}
-+
-+		disp_dev->dev[i]->alloc_ctx =
-+			vb2_dma_contig_init_ctx(disp_dev->vpbe_dev->pdev);
-+		if (IS_ERR(disp_dev->dev[i]->alloc_ctx)) {
-+			v4l2_err(v4l2_dev, "Failed to get the context\n");
-+			err = PTR_ERR(disp_dev->dev[i]->alloc_ctx);
-+			goto probe_out;
-+		}
-+
-+		INIT_LIST_HEAD(&disp_dev->dev[i]->dma_queue);
-+
- 		if (register_device(disp_dev->dev[i], disp_dev, pdev)) {
- 			err = -ENODEV;
- 			goto probe_out;
- 		}
- 	}
- 
--	printk(KERN_DEBUG "Successfully completed the probing of vpbe v4l2 device\n");
-+	v4l2_dbg(1, debug, v4l2_dev,
-+		 "Successfully completed the probing of vpbe v4l2 device\n");
-+
- 	return 0;
- 
- probe_out:
- 	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
--		/* Get the pointer to the layer object */
--		vpbe_display_layer = disp_dev->dev[k];
- 		/* Unregister video device */
--		if (vpbe_display_layer) {
--			video_unregister_device(
--				&vpbe_display_layer->video_dev);
--				kfree(disp_dev->dev[k]);
-+		if (disp_dev->dev[k] != NULL) {
-+			vb2_dma_contig_cleanup_ctx(disp_dev->dev[k]->alloc_ctx);
-+			video_unregister_device(&disp_dev->dev[k]->video_dev);
-+			kfree(disp_dev->dev[k]);
- 		}
- 	}
- 	return err;
-@@ -1828,6 +1819,7 @@ static int vpbe_display_remove(struct platform_device *pdev)
- 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
- 		/* Get the pointer to the layer object */
- 		vpbe_display_layer = disp_dev->dev[i];
-+		vb2_dma_contig_cleanup_ctx(vpbe_display_layer->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(&vpbe_display_layer->video_dev);
- 
--- 
-1.9.1
+I followed the instructions on the wiki 
+(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200) 
+initially doing the "making it work easily" instructions as it looked 
+simplier than compiling my own drivers.
 
+Using the NXP7164-2010-03-10.1.fw firmware gave me the dreaded 
+"saa7164_downloadimage() image corrupt" errors in the dmesg though (I 
+figured out the card number using the instructions, it was 6), so I 
+resigned myself to compiling the linuxtv drivers using the Steven Toth's 
+patch and v4l-saa7164-1.0.2-3.fw.
+
+I couldn't figure out how to apply the patch using the patch file, so I 
+manually edited the file (drivers/media/pci/saa7164/saa7164-fw.c), but I 
+kept getting the image corrupt message.
+
+I deleted NXP7164-2010-03-10.1.fw as I figured and options from 
+/etc/modprobe.d as the "making it work" set of instructions didn't 
+mention either of them. However, it now was asking for 
+NXP7164-2010-03-10.1.fw:
+
+[    6.271462] saa7164 driver loaded
+[    6.271499] saa7164 0000:01:00.0: enabling device (0000 -> 0002)
+[    6.271587] CORE saa7164[0]: subsystem: 0070:8901, board: Hauppauge 
+WinTV-HVR2200 [card=6,autodetected]
+[    6.271590] saa7164[0]/0: found at 0000:01:00.0, rev: 129, irq: 16, 
+latency: 0, mmio: 0xf7800000
+[    6.287504] input: Xbox 360 Wireless Receiver (XBOX) as 
+/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.0/input/input18
+[    6.287649] input: Xbox 360 Wireless Receiver (XBOX) as 
+/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.2/input/input19
+[    6.287773] input: Xbox 360 Wireless Receiver (XBOX) as 
+/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.4/input/input20
+[    6.287885] input: Xbox 360 Wireless Receiver (XBOX) as 
+/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.6/input/input21
+[    6.287954] usbcore: registered new interface driver xpad
+[    6.431062] saa7164_downloadfirmware() no first image
+[    6.431069] saa7164_downloadfirmware() Waiting for firmware upload 
+(NXP7164-2010-03-10.1.fw)
+[    6.431088] saa7164 0000:01:00.0: Direct firmware load failed with 
+error -2
+[    6.431089] saa7164 0000:01:00.0: Falling back to user helper
+[    6.553871] BTRFS info (device sda3): disk space caching is enabled
+[    6.568484] AVX2 version of gcm_enc/dec engaged.
+[    6.761377] BTRFS info (device sdf): disk space caching is enabled
+[    6.929024] device-mapper: multipath: version 1.7.0 loaded
+[    7.085935] iwlwifi 0000:04:00.0: request for firmware file 
+'iwlwifi-7260-9.ucode' failed.
+[    7.106496] saa7164_downloadfirmware() Upload failed. (file not found?)
+[    7.106499] Failed to boot firmware, no features registered
+
+Which was quite weird, so I put back NXP7164-2010-03-10.1.fw (without 
+the options file) but then it just gave me the image corrupt error.
+
+I was quite confused at this point, so I figured I'd try again with a 
+fresh kernel file, ignoring the "making it work easily" instructions and 
+just go with "making it work", so I upgraded to 3.16.3 (prior to this I 
+was running 3.14 that came with LM17 Qiana but I decided to throw 
+caution to the wind and use the latest stable kernel instead) and 
+recompiled the linux TV drivers, this time changing both rev 2 and rev 3 
+to v4l-saa7164-1.0.2-3.fw (and the file sizes as well) instead of the 
+NXP file (I did a cursory search of all the other files in the linuxtv 
+source files but there was no mention of the NXP7164 file in any of the 
+files with saa7164 in their names) but once again, it was asking where 
+the NXP file is (similar file not found? error).
+
+Putting the NXP file in /lib/firmware/ folder gives me image corrupt 
+error, which I thought was strange, as I didn't once mention the NXP 
+file in the v4l drivers I compiled. I assume that the need for the NXP 
+file has since been encorporated into the kernel without the need to 
+compile linuxtv drivers?
+
+I tried renaming v4l-saa7164-1.0.2-3.fw to NXP7164-2010-03-10.1.fw but 
+it checks the file size and booting and refuses it:
+
+[    7.214637] saa7164_downloadfirmware() firmware read 4038864 bytes.
+[    7.214639] xc5000: firmware incorrect size
+[    7.214720] Failed to boot firmware, no features registered
+
+I tried renaming a few files actually, including HcwWiltF103.bin from 
+the latest windows drivers (which Stephen Toth's extract.sh renames as 
+v4l-saa7164-1.0.3.fw from an old set of windows drivers, from what I can 
+tell of the code? I'm not 100% sure of this though, I also tried 
+HcwWiltF.bin which becomes v4l-saa7164-1.0.2.fw) but none of them are 
+the same size and they all get rejected.
+
+I'm out of ideas, can anybody help me? All I want to do is record some 
+TV. Also is any of my trouble shooting incorrect? Should I not have 
+renamed those files? I'm pretty new to Linux so I have no idea what I'm 
+doing. What is the purpose of the /etc/modprobe.d/ folder, or rather 
+what does puting the options file in that folder do? I can provide more 
+details if needed. Thank you for your time.
+
+Yours sincerely
+
+serrin
