@@ -1,154 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1180 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067AbaJWLW0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 07:22:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 14/15] vb2: drop the unused vb2_plane_vaddr function.
-Date: Thu, 23 Oct 2014 13:21:41 +0200
-Message-Id: <1414063302-26903-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtpout01.highway.telekom.at ([195.3.96.112]:55037 "EHLO
+	email.aon.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751937AbaJMHMW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Oct 2014 03:12:22 -0400
+Message-ID: <543B7B4A.6060004@a1.net>
+Date: Mon, 13 Oct 2014 09:12:10 +0200
+From: Johann Klammer <klammerj@a1.net>
+MIME-Version: 1.0
+To: hverkuil@xs4all.nl
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, trivial@kernel.org
+Subject: [PATCH] Turn bothersome error into a debug message
+References: <542AE6A6.9000504@a1.net>
+In-Reply-To: <542AE6A6.9000504@a1.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Once again...
 
-Now that all drivers have been converted, this function can be dropped.
+On 09/30/2014 07:21 PM, Johann Klammer wrote:
+> Hello,
+> 
+> After updating the kernel to 3.14.15 I am seeing these messages:
+> 
+> [273684.964081] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273690.020061] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273695.076082] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273700.132077] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273705.188070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273710.244066] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273715.300187] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273720.356068] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273725.412188] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273730.468094] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273735.524070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> [273740.580176] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
+> timed out while waiting for registers getting programmed
+> 
+> filling up the logs(one about every 5 seconds).
+> 
+> The TV card is a Terratec Cinergy 1200 DVBS (I believe.. it's rather old).
+> 
+> I can not observe any erratic behavior, just those pesky messages...
+> 
+> I see there was an earlier post here in 2008 about a similar
+> problem...(Cinergy 1200 DVB-C... a coincidence?)
+> 
+> What does it mean?
+> Do I need to be worried?
+> 
+> I am using a debian testing on a 32 bit box.
+> The previous kernel was linux-image-3.12-1-486.
+> It did not show those messages, but maybe due to some configure
+> options... I built this one from linux-source-3.14...
+> 
+Answering my own question:
+Other posts suggests that it is not actually an error on cards without a
+CI interface. Here's a patch that turns it into a debug message, so it
+does not clobber the logs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c       |  8 +-------
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 11 -----------
- drivers/media/v4l2-core/videobuf2-dma-sg.c     |  1 -
- drivers/media/v4l2-core/videobuf2-vmalloc.c    |  1 -
- include/media/videobuf2-core.h                 |  6 +-----
- 5 files changed, 2 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 036b947..5138a9f 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1129,15 +1129,9 @@ void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no)
- 		return NULL;
- 
- 	return call_ptr_memop(vb, begin_cpu_access, vb->planes[plane_no].mem_priv);
--}
--EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
- 
--/* Keep this for backwards compatibility. Will be removed soon. */
--void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
--{
--	return vb2_plane_begin_cpu_access(vb, plane_no);
- }
--EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
-+EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
- 
- /**
-  * vb2_plane_end_cpu_access() - Return a kernel virtual address of a given plane
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 58a4bf2..629ca2e 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -94,16 +94,6 @@ static void *vb2_dc_cookie(void *buf_priv)
- 	return &buf->dma_addr;
- }
- 
--static void *vb2_dc_vaddr(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	if (!buf->vaddr && buf->db_attach)
--		buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
--
--	return buf->vaddr;
--}
--
- static unsigned int vb2_dc_num_users(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
-@@ -895,7 +885,6 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.put		= vb2_dc_put,
- 	.get_dmabuf	= vb2_dc_get_dmabuf,
- 	.cookie		= vb2_dc_cookie,
--	.vaddr		= vb2_dc_vaddr,
- 	.mmap		= vb2_dc_mmap,
- 	.get_userptr	= vb2_dc_get_userptr,
- 	.put_userptr	= vb2_dc_put_userptr,
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 954ce74..0281a85 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -769,7 +769,6 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.put_userptr	= vb2_dma_sg_put_userptr,
- 	.prepare	= vb2_dma_sg_prepare,
- 	.finish		= vb2_dma_sg_finish,
--	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
- 	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 8623752..5c21190 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -478,7 +478,6 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
- 	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
- 	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
--	.vaddr		= vb2_vmalloc_vaddr,
- 	.begin_cpu_access = vb2_vmalloc_begin_cpu_access,
- 	.end_cpu_access = vb2_vmalloc_end_cpu_access,
- 	.mmap		= vb2_vmalloc_mmap,
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 91c1216..4632341 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -63,7 +63,6 @@ struct vb2_threadio_data;
-  *		driver, useful for cache synchronisation, optional.
-  * @finish:	called every time the buffer is passed back from the driver
-  *		to the userspace, also optional.
-- * @vaddr:	return a kernel virtual address to a given memory buffer
-  * @begin_cpu_access: return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists. This memory buffer can be written by the
-@@ -80,7 +79,7 @@ struct vb2_threadio_data;
-  *
-  * Required ops for USERPTR types: get_userptr, put_userptr.
-  * Required ops for MMAP types: alloc, put, num_users, mmap.
-- * Required ops for read/write access types: alloc, put, num_users, vaddr,
-+ * Required ops for read/write access types: alloc, put, num_users,
-  * 			begin_cpu_access, end_cpu_access.
-  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
-  *			unmap_dmabuf, begin_cpu_access, end_cpu_access.
-@@ -109,7 +108,6 @@ struct vb2_mem_ops {
- 	void		*(*begin_cpu_access)(void *buf_priv);
- 	void		(*end_cpu_access)(void *buf_priv);
- 
--	void		*(*vaddr)(void *buf_priv);
- 	void		*(*cookie)(void *buf_priv);
- 
- 	unsigned int	(*num_users)(void *buf_priv);
-@@ -231,7 +229,6 @@ struct vb2_buffer {
- 	u32		cnt_mem_detach_dmabuf;
- 	u32		cnt_mem_map_dmabuf;
- 	u32		cnt_mem_unmap_dmabuf;
--	u32		cnt_mem_vaddr;
- 	u32		cnt_mem_begin_cpu_access;
- 	u32		cnt_mem_end_cpu_access;
- 	u32		cnt_mem_cookie;
-@@ -454,7 +451,6 @@ struct vb2_queue {
- #endif
- };
- 
--void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
- void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
- void vb2_plane_end_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
- void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
--- 
-2.1.1
+--- linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c.orig
+2014-07-31 23:51:43.000000000 +0200
++++ linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c
+2014-10-06 18:57:54.000000000 +0200
+@@ -71,7 +71,7 @@ static inline int saa7146_wait_for_debi_
+    if (saa7146_read(dev, MC2) & 2)
+      break;
+    if (err) {
+-     pr_err("%s: %s timed out while waiting for registers getting
+programmed\n",
++     pr_debug("%s: %s timed out while waiting for registers getting
+programmed\n",
+             dev->name, __func__);
+      return -ETIMEDOUT;
+    }
 
