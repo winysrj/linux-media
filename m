@@ -1,119 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 219-87-157-213.static.tfn.net.tw ([219.87.157.213]:46646 "EHLO
-	ironport.ite.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbaJBF3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 01:29:14 -0400
-Subject: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct
- issue
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi
-Content-Type: multipart/mixed; boundary="=-fDVgPVWzsA3vkEAo3S6+"
-Date: Thu, 02 Oct 2014 13:32:34 +0800
-Message-ID: <1412227954.1699.2.camel@ite-desktop>
-Mime-Version: 1.0
+Received: from smtp.codeaurora.org ([198.145.11.231]:37459 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752204AbaJMIMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Oct 2014 04:12:37 -0400
+Message-ID: <543B896E.4030600@codeaurora.org>
+Date: Mon, 13 Oct 2014 01:12:30 -0700
+From: Laura Abbott <lauraa@codeaurora.org>
+MIME-Version: 1.0
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-kernel@vger.kernel.org
+CC: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [RFC 0/4] dma-buf Constraints-Enabled Allocation
+ helpers
+References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/10/2014 1:07 PM, Sumit Semwal wrote:
+> Hi,
+>
+> Why:
+> ====
+>   While sharing buffers using dma-buf, currently there's no mechanism to let
+> devices share their memory access constraints with each other to allow for
+> delayed allocation of backing storage.
+>
+> This RFC attempts to introduce the idea of memory constraints of a device,
+> and how these constraints can be shared and used to help allocate buffers that
+> can satisfy requirements of all devices attached to a particular dma-buf.
+>
+> How:
+> ====
+>   A constraints_mask is added to dma_parms of the device, and at the time of
+> each device attachment to a dma-buf, the dma-buf uses this constraints_mask
+> to calculate the access_mask for the dma-buf.
+>
+> Allocators can be defined for each of these constraints_masks, and then helper
+> functions can be used to allocate the backing storage from the matching
+> allocator satisfying the constraints of all devices interested.
+>
+> A new miscdevice, /dev/cenalloc [1] is created, which acts as the dma-buf
+> exporter to make this transparent to the devices.
+>
+> More details in the patch description of "cenalloc: Constraint-Enabled
+> Allocation helpers for dma-buf".
+>
+>
+> At present, the constraint_mask is only a bitmask, but it should be possible to
+> change it to a struct and adapt the constraint_mask calculation accordingly,
+> based on discussion.
+>
+>
+> Important requirement:
+> ======================
+>   Of course, delayed allocation can only work if all participating devices
+> will wait for other devices to have 'attached' before mapping the buffer
+> for the first time.
+>
+> As of now, users of dma-buf(drm prime, v4l2 etc) call the attach() and then
+> map_attachment() almost immediately after it. This would need to be changed if
+> they were to benefit from constraints.
+>
+>
+> What 'cenalloc' is not:
+> =======================
+> - not 'general' allocator helpers - useful only for constraints-enabled
+>    devices that share buffers with others using dma-buf.
+> - not a replacement for existing allocation mechanisms inside various
+>    subsystems; merely a possible alternative.
+> - no page-migration - it would be very complementary to the delayed allocation
+>     suggested here.
+>
+> TODOs:
+> ======
+> - demonstration test cases
+> - vma helpers for allocators
+> - more sample allocators
+> - userspace ioctl (It should be a simple one, and we have one ready, but wanted
+>     to agree on the kernel side of things first)
+>
+>
 
---=-fDVgPVWzsA3vkEAo3S6+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I'm interested to see the userspace ioctl. The mask based approach of
+Ion does not scale well to a userspace ABI so I'm curious if cenalloc
+does better.
 
-Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
+Thanks,
+Laura
 
---=-fDVgPVWzsA3vkEAo3S6+
-Content-Disposition: attachment; filename*0=0001-af9033-fix-DVBv3-signal-strength-value-not-correct-i.pat; filename*1=ch
-Content-Type: text/x-patch; name="0001-af9033-fix-DVBv3-signal-strength-value-not-correct-i.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From 02ee7de4600a43a322f75cf04d273effa04d3a42 Mon Sep 17 00:00:00 2001
-From: Bimow Chen <Bimow.Chen@ite.com.tw>
-Date: Wed, 1 Oct 2014 18:28:54 +0800
-Subject: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct issue
-
-Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
-
-Signed-off-by: Bimow Chen <Bimow.Chen@ite.com.tw>
----
- drivers/media/dvb-frontends/af9033.c      |   43 +++++++++++++++++++++++-----
- drivers/media/dvb-frontends/af9033_priv.h |    6 ++++
- 2 files changed, 41 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 63a89c1..2b3d2f0 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -862,16 +862,43 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
- static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct af9033_dev *dev = fe->demodulator_priv;
--	int ret;
--	u8 strength2;
-+	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
-+	int ret, tmp, power_real;
-+	u8 u8tmp, gain_offset, buf[7];
- 
--	/* read signal strength of 0-100 scale */
--	ret = af9033_rd_reg(dev, 0x800048, &strength2);
--	if (ret < 0)
--		goto err;
-+	if (dev->is_af9035) {
-+		ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
-+		/* scale value to 0x0000-0xffff */
-+		*strength = u8tmp * 0xffff / 100;
-+	} else {
-+		ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
-+		ret |= af9033_rd_regs(dev, 0x80f900, buf, 7);
-+
-+		if (c->frequency <= 300000000)
-+			gain_offset = 7; /* VHF */
-+		else
-+			gain_offset = 4; /* UHF */
-+
-+		power_real = (u8tmp - 100 - gain_offset) -
-+			power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
-+
-+		if (power_real < -15)
-+			tmp = 0;
-+		else if ((power_real >= -15) && (power_real < 0))
-+			tmp = (2 * (power_real + 15)) / 3;
-+		else if ((power_real >= 0) && (power_real < 20))
-+			tmp = 4 * power_real + 10;
-+		else if ((power_real >= 20) && (power_real < 35))
-+			tmp = (2 * (power_real - 20)) / 3 + 90;
-+		else
-+			tmp = 100;
-+
-+		/* scale value to 0x0000-0xffff */
-+		*strength = tmp * 0xffff / 100;
-+	}
- 
--	/* scale value to 0x0000-0xffff */
--	*strength = strength2 * 0xffff / 100;
-+	if (ret)
-+		goto err;
- 
- 	return 0;
- 
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index c12c92c..c9c8798 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -2051,4 +2051,10 @@ static const struct reg_val tuner_init_it9135_62[] = {
- 	{ 0x80fd8b, 0x00 },
- };
- 
-+/* NorDig power reference table */
-+static const int power_reference[][5] = {
-+	{-93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
-+	{-87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
-+	{-82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
-+};
- #endif /* AF9033_PRIV_H */
 -- 
-1.7.0.4
-
-
---=-fDVgPVWzsA3vkEAo3S6+--
-
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
