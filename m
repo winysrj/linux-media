@@ -1,156 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46458 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbaJZMq5 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.11.231]:38991 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbaJMIff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 08:46:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 1/1] yavta: Add --queue-late option for delay queueing buffers over streaming start
-Date: Sun, 26 Oct 2014 14:47 +0200
-Message-ID: <26687548.xFURFqytIV@avalon>
-In-Reply-To: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
+	Mon, 13 Oct 2014 04:35:35 -0400
+Message-ID: <543B8ED2.4000207@codeaurora.org>
+Date: Mon, 13 Oct 2014 01:35:30 -0700
+From: Laura Abbott <lauraa@codeaurora.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-kernel@vger.kernel.org
+CC: linaro-kernel@lists.linaro.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [RFC 2/4] cenalloc: Constraint-Enabled Allocation
+ helpers for dma-buf
+References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org> <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 10/10/2014 1:07 PM, Sumit Semwal wrote:
+> Devices sharing buffers using dma-buf could benefit from sharing their
+> constraints via struct device, and dma-buf framework would manage the
+> common constraints for all attached devices per buffer.
+>
+> With that information, we could have a 'generic' allocator helper in
+> the form of a central dma-buf exporter, which can create dma-bufs, and
+> allocate backing storage at the time of first call to
+> dma_buf_map_attachment.
+>
+> This allocation would utilise the constraint-mask by matching it to
+> the right allocator from a pool of allocators, and then allocating
+> buffer backing storage from this allocator.
+>
+> The pool of allocators could be platform-dependent, allowing for
+> platforms to hide the specifics of these allocators from the devices
+> that access the dma-buf buffers.
+>
+> A sample sequence could be:
+> - get handle to cenalloc_device,
+> - create a dmabuf using cenalloc_buffer_create;
+> - use this dmabuf to attach each device, which has its constraints
+>     set in the constraints mask (dev->dma_params->access_constraints_mask)
+>    - at each dma_buf_attach() call, dma-buf will check to see if the constraint
+>      mask for the device requesting attachment is compatible with the constraints
+>      of devices already attached to the dma-buf; returns an error if it isn't.
+> - after all devices have attached, the first call to dma_buf_map_attachment()
+>    will allocate the backing storage for the buffer.
+> - follow the dma-buf api for map / unmap etc usage.
+> - detach all attachments,
+> - call cenalloc_buffer_free to free the buffer if refcount reaches zero;
+>
+> ** IMPORTANT**
+> This mechanism of delayed allocation based on constraint-enablement will work
+> *ONLY IF* the first map_attachment() call is made AFTER all attach() calls are
+> done.
+>
 
-Thank you for the patch. I've pushed it to the yavta git tree.
+My first instinct is 'I wonder which drivers will call map_attachment at
+the wrong time and screw things up'. Are there any plans for
+synchronization and/or debugging output to catch drivers violating this
+requirement?
 
-On Friday 24 October 2014 17:23:58 Sakari Ailus wrote:
-> Queue buffers to the device after VIDIOC_STREAMON, not before. This does not
-> affect queueing behaviour otherwise.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  yavta.c | 29 +++++++++++++++++++++++++----
->  1 file changed, 25 insertions(+), 4 deletions(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index 20bbe29..7f9e814 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -1429,7 +1429,6 @@ static int video_prepare_capture(struct device *dev,
-> int nbufs, unsigned int off const char *filename, enum buffer_fill_mode
-> fill)
->  {
->  	unsigned int padding;
-> -	unsigned int i;
->  	int ret;
-> 
->  	/* Allocate and map buffers. */
-> @@ -1443,6 +1442,14 @@ static int video_prepare_capture(struct device *dev,
-> int nbufs, unsigned int off return ret;
->  	}
-> 
-> +	return 0;
-> +}
-> +
-> +static int video_queue_all_buffers(struct device *dev, enum
-> buffer_fill_mode fill) +{
-> +	unsigned int i;
+[...]
+> +int cenalloc_phys(struct dma_buf *dmabuf,
+> +	     phys_addr_t *addr, size_t *len)
+> +{
+> +	struct cenalloc_buffer *buffer;
 > +	int ret;
 > +
->  	/* Queue the buffers. */
->  	for (i = 0; i < dev->nbufs; ++i) {
->  		ret = video_queue_buffer(dev, i, fill);
-> @@ -1554,7 +1561,7 @@ static void video_save_image(struct device *dev,
-> struct v4l2_buffer *buf,
-> 
->  static int video_do_capture(struct device *dev, unsigned int nframes,
->  	unsigned int skip, unsigned int delay, const char *pattern,
-> -	int do_requeue_last, enum buffer_fill_mode fill)
-> +	int do_requeue_last, int do_queue_late, enum buffer_fill_mode fill)
->  {
->  	struct v4l2_plane planes[VIDEO_MAX_PLANES];
->  	struct v4l2_buffer buf;
-> @@ -1572,6 +1579,9 @@ static int video_do_capture(struct device *dev,
-> unsigned int nframes, if (ret < 0)
->  		goto done;
-> 
-> +	if (do_queue_late)
-> +		video_queue_all_buffers(dev, fill);
+> +	if (is_cenalloc_buffer(dmabuf))
+> +		buffer = (struct cenalloc_buffer *)dmabuf->priv;
+> +	else
+> +		return -EINVAL;
 > +
->  	size = 0;
->  	clock_gettime(CLOCK_MONOTONIC, &start);
->  	last.tv_sec = start.tv_sec;
-> @@ -1712,6 +1722,7 @@ static void usage(const char *argv0)
->  	printf("    --no-query			Don't query capabilities on open\n");
->  	printf("    --offset			User pointer buffer offset from page 
-start\n");
->  	printf("    --premultiplied		Color components are premultiplied by 
-alpha
-> value\n"); +	printf("    --queue-late		Queue buffers after streamon, 
-not
-> before\n"); printf("    --requeue-last		Requeue the last buffers before
-> streamoff\n"); printf("    --timestamp-source		Set timestamp source on
-> output buffers [eof, soe]\n"); printf("    --skip n			Skip the first 
-n
-> frames\n");
-> @@ -1733,6 +1744,7 @@ static void usage(const char *argv0)
->  #define OPT_LOG_STATUS		267
->  #define OPT_BUFFER_SIZE		268
->  #define OPT_PREMULTIPLIED	269
-> +#define OPT_QUEUE_LATE		270
-> 
->  static struct option opts[] = {
->  	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
-> @@ -1757,6 +1769,7 @@ static struct option opts[] = {
->  	{"pause", 0, 0, 'p'},
->  	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
->  	{"quality", 1, 0, 'q'},
-> +	{"queue-late", 0, 0, OPT_QUEUE_LATE},
->  	{"get-control", 1, 0, 'r'},
->  	{"requeue-last", 0, 0, OPT_REQUEUE_LAST},
->  	{"realtime", 2, 0, 'R'},
-> @@ -1788,7 +1801,7 @@ int main(int argc, char *argv[])
->  	int do_list_controls = 0, do_get_control = 0, do_set_control = 0;
->  	int do_sleep_forever = 0, do_requeue_last = 0;
->  	int do_rt = 0, do_log_status = 0;
-> -	int no_query = 0;
-> +	int no_query = 0, do_queue_late = 0;
->  	char *endptr;
->  	int c;
-> 
-> @@ -1971,6 +1984,9 @@ int main(int argc, char *argv[])
->  		case OPT_PREMULTIPLIED:
->  			fmt_flags |= V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
->  			break;
-> +		case OPT_QUEUE_LATE:
-> +			do_queue_late = 1;
-> +			break;
->  		case OPT_REQUEUE_LAST:
->  			do_requeue_last = 1;
->  			break;
-> @@ -2107,6 +2123,11 @@ int main(int argc, char *argv[])
->  		return 1;
->  	}
-> 
-> +	if (!do_queue_late && video_queue_all_buffers(&dev, fill_mode)) {
-> +		video_close(&dev);
-> +		return 1;
+> +	if (!buffer->allocator->ops->phys) {
+> +		pr_err("%s: cenalloc_phys is not implemented by this allocator.\n",
+> +		       __func__);
+> +		return -ENODEV;
 > +	}
+> +	mutex_lock(&buffer->lock);
+> +	ret = buffer->allocator->ops->phys(buffer->allocator, buffer, addr,
+> +						len);
+> +	mutex_lock(&buffer->lock);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(cenalloc_phys);
 > +
->  	if (do_pause) {
->  		printf("Press enter to start capture\n");
->  		getchar();
-> @@ -2122,7 +2143,7 @@ int main(int argc, char *argv[])
->  	}
-> 
->  	if (video_do_capture(&dev, nframes, skip, delay, filename,
-> -			     do_requeue_last, fill_mode) < 0) {
-> +			     do_requeue_last, do_queue_late, fill_mode) < 0) {
->  		video_close(&dev);
->  		return 1;
->  	}
+
+The .phys operation makes it difficult to have drivers which can
+handle both contiguous and non contiguous memory (too much special
+casing). Any chance we could drop this API and just have drivers
+treat an sg_table with 1 entry as contiguous memory?
+
+Thanks,
+Laura
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
