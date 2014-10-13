@@ -1,61 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f172.google.com ([209.85.220.172]:37695 "EHLO
-	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbaJTQHP (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:50593 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbaJMTx2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 12:07:15 -0400
-Received: by mail-vc0-f172.google.com with SMTP id lf12so3784033vcb.31
-        for <linux-media@vger.kernel.org>; Mon, 20 Oct 2014 09:07:14 -0700 (PDT)
+	Mon, 13 Oct 2014 15:53:28 -0400
 MIME-Version: 1.0
-In-Reply-To: <544475D5.6080903@infradead.org>
-References: <544475D5.6080903@infradead.org>
-From: Vincent Palatin <vpalatin@chromium.org>
-Date: Mon, 20 Oct 2014 09:06:54 -0700
-Message-ID: <CAP_ceTxY945D6vuPDz3gPUXN-YwnXX5zG6=GpBuohCcd+YTb=g@mail.gmail.com>
-Subject: Re: [PATCH] DocBook: fix media build error
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
+In-Reply-To: <20141013182423.39feb60f.m.chehab@samsung.com>
+References: <1412234489-1330-1-git-send-email-thierry.reding@gmail.com>
+	<CAMuHMdXG1pD1-O2m1NXp6gr4aVqyqV=-x-nPoWQJMWr_0XF42w@mail.gmail.com>
+	<20141013182423.39feb60f.m.chehab@samsung.com>
+Date: Mon, 13 Oct 2014 21:53:26 +0200
+Message-ID: <CAMuHMdUwPhr7J8Zh2eNFJa4DmJ8005qGvJWhu7Sv8X6Q4po5aA@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-jpeg: Only build suspend/resume for PM
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 19, 2014 at 7:39 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
->
-> Fix media DocBook build errors by making the orderedlist balanced.
->
-> DOC1/Documentation/DocBook/compat.xml:2576: parser error : Opening and ending tag mismatch: orderedlist line 2560 and section
-> DOC1/Documentation/DocBook/compat.xml:2726: parser error : Premature end of data in tag section line 884
-> DOC1/Documentation/DocBook/compat.xml:2726: parser error : chunk is not well balanced
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Vincent Palatin <vpalatin@chromium.org>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml |    1 +
->  1 file changed, 1 insertion(+)
->
-> --- lnx-318-rc1.orig/Documentation/DocBook/media/v4l/compat.xml
-> +++ lnx-318-rc1/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2566,6 +2566,7 @@ fields changed from _s32 to _u32.
->           <para>Added compound control types and &VIDIOC-QUERY-EXT-CTRL;.
->           </para>
->          </listitem>
-> +      </orderedlist>
->        <title>V4L2 in Linux 3.18</title>
->        <orderedlist>
->         <listitem>
+Hi Mauro,
 
-Compared to the original patch, it's actually also missing the
- </section>
+On Mon, Oct 13, 2014 at 6:24 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> Em Mon, 13 Oct 2014 18:16:10 +0200
+> Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+>> On Thu, Oct 2, 2014 at 9:21 AM, Thierry Reding <thierry.reding@gmail.com> wrote:
+>> > From: Thierry Reding <treding@nvidia.com>
+>> >
+>> > If power management is disabled these function become unused, so there
+>> > is no reason to build them. This fixes a couple of build warnings when
+>> > PM(_SLEEP,_RUNTIME) is not enabled.
+>>
+>> Thanks!
+>>
+>> Despite the availability of your patch, this build warning has
+>> migrated to mainline.
+>
+> That's because I didn't have any time yet to backport the fixes for
+> 3.18 and send those to -next. Also, while warnings are annoying,
+> a warning like that is not really an urgent matter, as gcc should
+> remove the dead code anyway.
 
-<section>
-which were lost in the merge.
+Understood.
 
+> I should be handling fixes next week, after my return from LinuxCon EU,
+> gstreamer conf, audio mini-summit and media summit. This will be a too
+> busy week.
 
--- 
-Vincent
+I hope you'll enjoy the busy conference week. We're all hamsters in the same
+threadmill, CU ;-)
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
