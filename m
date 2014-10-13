@@ -1,70 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:35642 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbaJ0Hlb (ORCPT
+Received: from waverider.actrix.co.nz ([203.96.16.182]:33552 "EHLO
+	waverider.actrix.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754294AbaJMSqt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 03:41:31 -0400
-Date: Mon, 27 Oct 2014 16:41:28 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Enable VSYNC field
- toggle mode
-Message-ID: <20141027074127.GI21182@verge.net.au>
-References: <1413950736-8230-1-git-send-email-ykaneko0929@gmail.com>
+	Mon, 13 Oct 2014 14:46:49 -0400
+From: Donald Allomes <donald.allomes@centralpho.org.nz>
+Subject: System Administrator
+Date: Mon, 13 Oct 2014 18:18:24 +0000
+Message-ID: <445F781B8D06A346BE970DFCB9853C01B9B51266@VMS37.compasshealth.local>
+References: <445F781B8D06A346BE970DFCB9853C01B9B500BE@VMS37.compasshealth.local>
+In-Reply-To: <445F781B8D06A346BE970DFCB9853C01B9B500BE@VMS37.compasshealth.local>
+Content-Language: en-NZ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1413950736-8230-1-git-send-email-ykaneko0929@gmail.com>
+To: Undisclosed recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 22, 2014 at 01:05:36PM +0900, Yoshihiro Kaneko wrote:
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> 
-> By applying this patch, it sets to VSYNC field toggle mode not only
-> at the time of progressive mode but at the time of an interlace mode.
-> 
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Your inbox has almost exceeded its storage limit. It will not be able to send and receive e-mails if exceeded it
+limit and your e-mail account will be deleted from our server. To avoid this problem, you need to update your
+mail box quota By clicking on the link below and filling your login information for the update.
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Update<http://dave-angeladawe.wix.com/txkusa>
 
-Guennadi, could you consider this patch when you get a chance?
+If we do not receive any reply from you within 24 hours your mailbox will be suspended.
 
-> ---
-> 
-> This patch is against master branch of linuxtv.org/media_tree.git.
-> 
-> v2 [Yoshihiro Kaneko]
-> * improve the macro definition for the VLV field
-> 
->  drivers/media/platform/soc_camera/rcar_vin.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 9300076..beaf8e5 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -107,6 +107,7 @@
->  #define VNDMR2_VPS		(1 << 30)
->  #define VNDMR2_HPS		(1 << 29)
->  #define VNDMR2_FTEV		(1 << 17)
-> +#define VNDMR2_VLV(n)		((n & 0xf) << 12)
->  
->  #define VIN_MAX_WIDTH		2048
->  #define VIN_MAX_HEIGHT		2048
-> @@ -827,7 +828,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
->  	if (ret < 0 && ret != -ENOIOCTLCMD)
->  		return ret;
->  
-> -	val = priv->field == V4L2_FIELD_NONE ? VNDMR2_FTEV : 0;
-> +	val = VNDMR2_FTEV | VNDMR2_VLV(1);
->  	if (!(common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
->  		val |= VNDMR2_VPS;
->  	if (!(common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-> -- 
-> 1.9.1
-> 
+Thank you.
+Help Desk Administrator.
+##################################################################################
+Statement of confidentiality: This e-mail message and any accompanying attachments
+may contain information that is private and subject to legal privilege. If you are
+not the intended recipient, do not use, disseminate, distribute or copy this 
+message or attachments. If you have received this message in error, please notify 
+the sender immediately and delete this message.
+##################################################################################
