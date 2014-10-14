@@ -1,112 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:52180 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755317AbaJaO0v (ORCPT
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:60321 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932176AbaJNO7W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 10:26:51 -0400
-Received: by mail-wi0-f174.google.com with SMTP id d1so1460526wiv.13
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 07:26:50 -0700 (PDT)
-Date: Fri, 31 Oct 2014 16:26:45 +0200
-From: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
- with dev_* and pr_*
-Message-ID: <20141031142644.GA4166@localhost.localdomain>
-References: <20141031130600.GA16310@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141031130600.GA16310@mwanda>
+	Tue, 14 Oct 2014 10:59:22 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: m.chehab@samsung.com, akpm@linux-foundation.org,
+	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
+	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
+	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, perex@perex.cz, tiwai@suse.de,
+	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
+	linux@eikelenboom.it
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/6] media token resource framework 
+Date: Tue, 14 Oct 2014 08:58:36 -0600
+Message-Id: <cover.1413246370.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 31, 2014 at 04:06:00PM +0300, Dan Carpenter wrote:
-> Hello Aya Mahfouz,
-> 
+Add media token device resource framework to allow sharing
+resources such as tuner, dma, audio etc. across media drivers
+and non-media sound drivers that control media hardware. The
+Media token resource is created at the main struct device that
+is common to all drivers that claim various pieces of the main
+media device, which allows them to find the resource using the
+main struct device. As an example, digital, analog, and
+snd-usb-audio drivers can use the media token resource API
+using the main struct device for the interface the media device
+is attached to.
 
-Hello Dan, 
+This patch series consists of media token resource framework
+and changes to use it in dvb-core, v4l2-core, au0828 driver,
+and snd-usb-audio driver.
 
-> The patch be4aa8157c98: "staging: media: lirc: lirc_zilog.c: replace
-> custom print macros with dev_* and pr_*" from Oct 26, 2014, leads to
-> the following static checker warning:
-> 
-> 	drivers/staging/media/lirc/lirc_zilog.c:1340 close()
-> 	error: we previously assumed 'ir' could be null (see line 1339)
-> 
-> drivers/staging/media/lirc/lirc_zilog.c
->   1333  /* Close the IR device */
->   1334  static int close(struct inode *node, struct file *filep)
->   1335  {
->   1336          /* find our IR struct */
->   1337          struct IR *ir = filep->private_data;
->   1338  
->   1339          if (ir == NULL) {
->                     ^^^^^^^^^^
->   1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
->                                 ^^^^^^^^^
-> 
-> I suggest you just delete the error message.  Can "ir" actually be NULL
-> here anyway?
->
+With these changes dvb and v4l2 can share the tuner without
+disrupting each other. Used tvtime, xawtv, kaffeine, and vlc,
+vlc audio capture option, arecord/aplay during development to
+identify v4l2 vb2 and vb1 ioctls and file operations that
+disrupt the digital stream and would require changes to check
+tuner ownership prior to changing the tuner configuration.
+vb2 changes are made in the v4l2-core and vb1 changes are made
+in the au0828 driver to encourage porting drivers to vb2 to
+advantage of the new media token resource framework with changes
+in the core.
 
-Since I'm a newbie and this is not my code, I prefer to use pr_err().
- 
->   1341                  return -ENODEV;
->   1342          }
->   1343  
-> 
-> 	drivers/staging/media/lirc/lirc_zilog.c:1636 ir_probe()
-> 	error: potential null dereference 'ir'.  (kzalloc returns null)
-> 
-> drivers/staging/media/lirc/lirc_zilog.c
->   1614          dev_info(ir->l.dev, "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
->   1615                     adap->name, adap->nr, ir->l.minor);
->   1616  
->   1617  out_ok:
->   1618          if (rx != NULL)
->   1619                  put_ir_rx(rx, true);
->   1620          if (tx != NULL)
->   1621                  put_ir_tx(tx, true);
->   1622          put_ir_device(ir, true);
->   1623          dev_info(ir->l.dev, "probe of IR %s on %s (i2c-%d) done\n",
->   1624                     tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
->   1625          mutex_unlock(&ir_devices_lock);
->   1626          return 0;
->   1627  
->   1628  out_put_xx:
->   1629          if (rx != NULL)
->   1630                  put_ir_rx(rx, true);
->                         ^^^^^^^^^^^^^^^^^^^
-> Btw, I think this is a double free?  On some paths we call put_ir_rx()
-> before the goto out_put_xx;.
-> 
+In this patch v2 series, fixed problems identified in the
+patch v1 series. Important ones are changing snd-usb-audio
+to use media tokens, holding tuner lock in VIDIOC_ENUMINPUT,
+and VIDIOC_QUERYSTD.
 
-I'll read about this and see how to fix it.
+Shuah Khan (6):
+  media: add media token device resource framework
+  media: v4l2-core changes to use media token api
+  media: au0828-video changes to use media token api
+  media: dvb-core changes to use media token api
+  sound/usb: pcm changes to use media token api
+  media: au0828-core changes to create and destroy media
 
->   1631          if (tx != NULL)
->   1632                  put_ir_tx(tx, true);
->   1633  out_put_ir:
->   1634          put_ir_device(ir, true);
->   1635  out_no_ir:
->   1636          dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
->                         ^^^^^^^^^
-> Null dereference.
-> 
->   1637                      __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
->   1638                     ret);
->   1639          mutex_unlock(&ir_devices_lock);
->   1640          return ret;
->   1641  }
-> 
+ MAINTAINERS                             |    2 +
+ drivers/media/dvb-core/dvb_frontend.c   |   14 +-
+ drivers/media/usb/au0828/au0828-core.c  |   23 +++
+ drivers/media/usb/au0828/au0828-video.c |   42 +++++-
+ drivers/media/v4l2-core/v4l2-fh.c       |    7 +
+ drivers/media/v4l2-core/v4l2-ioctl.c    |   61 ++++++++
+ include/linux/media_tknres.h            |   50 +++++++
+ lib/Makefile                            |    2 +
+ lib/media_tknres.c                      |  237 +++++++++++++++++++++++++++++++
+ sound/usb/pcm.c                         |    9 ++
+ 10 files changed, 445 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/media_tknres.h
+ create mode 100644 lib/media_tknres.c
 
-In general, I can send a new patch to fix the aforementioned warnings.
-Kindly let me know if you prefer that I send a second version of this
-patch.
+-- 
+1.7.10.4
 
-> regards,
-> dan carpenter
-
-Kind Regards,
-Aya Saif El-yazal Mahfouz
