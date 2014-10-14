@@ -1,139 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46265 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754060AbaJ1PA7 (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:49292 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176AbaJNOMU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 11:00:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	Fred Richter <frichter@hauppauge.com>
-Subject: [PATCH 08/13] [media] lbdt3306a: simplify the lock status check
-Date: Tue, 28 Oct 2014 13:00:43 -0200
-Message-Id: <2cf3f13aa583cf9f7454b88ea9953cc3a5f297fe.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
+	Tue, 14 Oct 2014 10:12:20 -0400
+Received: by mail-oi0-f44.google.com with SMTP id x69so16664895oia.31
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 07:12:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <543B8ED2.4000207@codeaurora.org>
+References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+ <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org> <543B8ED2.4000207@codeaurora.org>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Tue, 14 Oct 2014 19:41:59 +0530
+Message-ID: <CAO_48GHeiVXB1RimJrgQ9SaTdf39FcKb6W+DJx8gpqUndZbDvQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC 2/4] cenalloc: Constraint-Enabled Allocation
+ helpers for dma-buf
+To: Laura Abbott <lauraa@codeaurora.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	linaro-kernel@lists.linaro.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic there is too complex and it looks like an inifite
-loop.
+Hi Laura,
 
-So, simplify the logic and implement it as a for loop.
 
-This gets rid of the following checkpatch.pl warnings:
+On 13 October 2014 14:05, Laura Abbott <lauraa@codeaurora.org> wrote:
+> On 10/10/2014 1:07 PM, Sumit Semwal wrote:
+>>
+>> Devices sharing buffers using dma-buf could benefit from sharing their
+>> constraints via struct device, and dma-buf framework would manage the
+>> common constraints for all attached devices per buffer.
+>>
+>> With that information, we could have a 'generic' allocator helper in
+>> the form of a central dma-buf exporter, which can create dma-bufs, and
+>> allocate backing storage at the time of first call to
+>> dma_buf_map_attachment.
+>>
+>> This allocation would utilise the constraint-mask by matching it to
+>> the right allocator from a pool of allocators, and then allocating
+>> buffer backing storage from this allocator.
+>>
+>> The pool of allocators could be platform-dependent, allowing for
+>> platforms to hide the specifics of these allocators from the devices
+>> that access the dma-buf buffers.
+>>
+>> A sample sequence could be:
+>> - get handle to cenalloc_device,
+>> - create a dmabuf using cenalloc_buffer_create;
+>> - use this dmabuf to attach each device, which has its constraints
+>>     set in the constraints mask (dev->dma_params->access_constraints_mask)
+>>    - at each dma_buf_attach() call, dma-buf will check to see if the
+>> constraint
+>>      mask for the device requesting attachment is compatible with the
+>> constraints
+>>      of devices already attached to the dma-buf; returns an error if it
+>> isn't.
+>> - after all devices have attached, the first call to
+>> dma_buf_map_attachment()
+>>    will allocate the backing storage for the buffer.
+>> - follow the dma-buf api for map / unmap etc usage.
+>> - detach all attachments,
+>> - call cenalloc_buffer_free to free the buffer if refcount reaches zero;
+>>
+>> ** IMPORTANT**
+>> This mechanism of delayed allocation based on constraint-enablement will
+>> work
+>> *ONLY IF* the first map_attachment() call is made AFTER all attach() calls
+>> are
+>> done.
+>>
+>
+> My first instinct is 'I wonder which drivers will call map_attachment at
+> the wrong time and screw things up'. Are there any plans for
+> synchronization and/or debugging output to catch drivers violating this
+> requirement?
 
-WARNING: else is not generally useful after a break or return
-+			return LG3306_UNLOCK;
-+		} else {
+Well, of course you're right - at the moment, no mechanism to do so.
+That will certainly be the next step - we could discuss it sometime
+this week at LPC to see what makes better sense.
+>
+> [...]
+>>
+>> +int cenalloc_phys(struct dma_buf *dmabuf,
+>> +            phys_addr_t *addr, size_t *len)
+>> +{
+>> +       struct cenalloc_buffer *buffer;
+>> +       int ret;
+>> +
+>> +       if (is_cenalloc_buffer(dmabuf))
+>> +               buffer = (struct cenalloc_buffer *)dmabuf->priv;
+>> +       else
+>> +               return -EINVAL;
+>> +
+>> +       if (!buffer->allocator->ops->phys) {
+>> +               pr_err("%s: cenalloc_phys is not implemented by this
+>> allocator.\n",
+>> +                      __func__);
+>> +               return -ENODEV;
+>> +       }
+>> +       mutex_lock(&buffer->lock);
+>> +       ret = buffer->allocator->ops->phys(buffer->allocator, buffer,
+>> addr,
+>> +                                               len);
+>> +       mutex_lock(&buffer->lock);
+>> +       return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(cenalloc_phys);
+>> +
+>
+>
+> The .phys operation makes it difficult to have drivers which can
+> handle both contiguous and non contiguous memory (too much special
+> casing). Any chance we could drop this API and just have drivers
+> treat an sg_table with 1 entry as contiguous memory?
+I am not sure I understand how having a .phys makes it more difficult
+- and also, for cases where you're sharing buffers between CPU and a
+co-processor like DSP, my understanding is that we'd need an
+equivalent of a phys address.
 
-WARNING: else is not generally useful after a break or return
-+			return LG3306_UNLOCK;
-+		} else {
+>
+> Thanks,
+> Laura
+>
+> --
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> hosted by The Linux Foundation
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 85fc9c63e3ca..0356810da444 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -1461,64 +1461,52 @@ static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state
- 	u8 packet_error;
- 	u32 snr;
- 
--	while (1) {
-+	for (cnt = 0; cnt < 10; cnt++) {
- 		if (lgdt3306a_sync_lock_poll(state) == LG3306_UNLOCK) {
- 			dbg_info("no sync lock!\n");
- 			return LG3306_UNLOCK;
--		} else {
--			msleep(20);
--			ret = lgdt3306a_pre_monitoring(state);
--			if (ret)
--				return LG3306_UNLOCK;
--
--			packet_error = lgdt3306a_get_packet_error(state);
--			snr = lgdt3306a_calculate_snr_x100(state);
--			dbg_info("cnt=%d errors=%d snr=%d\n",
--			       cnt, packet_error, snr);
--
--			if ((snr < 1500) || (packet_error >= 0xff))
--				cnt++;
--			else
--				return LG3306_LOCK;
--
--			if (cnt >= 10) {
--				dbg_info("not locked!\n");
--				return LG3306_UNLOCK;
--			}
- 		}
-+
-+		msleep(20);
-+		ret = lgdt3306a_pre_monitoring(state);
-+		if (ret)
-+			break;
-+
-+		packet_error = lgdt3306a_get_packet_error(state);
-+		snr = lgdt3306a_calculate_snr_x100(state);
-+		dbg_info("cnt=%d errors=%d snr=%d\n", cnt, packet_error, snr);
-+
-+		if ((snr >= 1500) && (packet_error < 0xff))
-+			return LG3306_LOCK;
- 	}
-+
-+	dbg_info("not locked!\n");
- 	return LG3306_UNLOCK;
- }
- 
- static enum lgdt3306a_lock_status lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
- {
--	u8 cnt = 0;
-+	u8 cnt;
- 	u8 packet_error;
- 	u32	snr;
- 
--	while (1) {
-+	for (cnt = 0; cnt < 10; cnt++) {
- 		if (lgdt3306a_fec_lock_poll(state) == LG3306_UNLOCK) {
- 			dbg_info("no fec lock!\n");
- 			return LG3306_UNLOCK;
--		} else {
--			msleep(20);
--
--			packet_error = lgdt3306a_get_packet_error(state);
--			snr = lgdt3306a_calculate_snr_x100(state);
--			dbg_info("cnt=%d errors=%d snr=%d\n",
--			       cnt, packet_error, snr);
--
--			if ((snr < 1500) || (packet_error >= 0xff))
--				cnt++;
--			else
--				return LG3306_LOCK;
--
--			if (cnt >= 10) {
--				dbg_info("not locked!\n");
--				return LG3306_UNLOCK;
--			}
- 		}
-+
-+		msleep(20);
-+
-+		packet_error = lgdt3306a_get_packet_error(state);
-+		snr = lgdt3306a_calculate_snr_x100(state);
-+		dbg_info("cnt=%d errors=%d snr=%d\n", cnt, packet_error, snr);
-+
-+		if ((snr >= 1500) && (packet_error < 0xff))
-+			return LG3306_LOCK;
- 	}
-+
-+	dbg_info("not locked!\n");
- 	return LG3306_UNLOCK;
- }
- 
+
 -- 
-1.9.3
+Thanks and regards,
 
+Sumit Semwal
+Kernel Team Lead - Linaro Mobile Group
+Linaro.org │ Open source software for ARM SoCs
