@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:46045 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbaJKFrF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Oct 2014 01:47:05 -0400
-From: Tsung-Han Lin <tsunghan.tw@gmail.com>
-To: m.chehab@samsung.com
-Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH] staging: media: omap24xx: fix missing asterisk
-Date: Sat, 11 Oct 2014 13:46:49 +0800
-Message-Id: <1413006409-11237-1-git-send-email-tsunghan.tw@gmail.com>
+Received: from mx.ippe.ru ([212.193.160.5]:35390 "EHLO mx.ippe.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751307AbaJNF4U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Oct 2014 01:56:20 -0400
+Message-ID: <96b9b32564e91e3b5dbcd5513432eb4f.squirrel@webmail.ippe.ru>
+Date: Tue, 14 Oct 2014 06:20:28 +0400
+Subject: =?utf-8?B?ICAgS2VkdmVzIEUtbWFpbCBPbHZhc8OzaW5rOyA=?=
+From: "WebMail Administrator" <seregin@ippe.ru>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix missing asterisk in one V4L2_INT_WRAPPER_1 usage.
-Reported by checkpatch.pl as:
 
-ERROR: space prohibited before that close parenthesis ')'
-+V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
 
-Signed-off-by: Tsung-Han Lin <tsunghan.tw@gmail.com>
----
- drivers/staging/media/omap24xx/v4l2-int-device.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Kedves E-mail Olvasóink;
 
-diff --git a/drivers/staging/media/omap24xx/v4l2-int-device.h b/drivers/staging/media/omap24xx/v4l2-int-device.h
-index 0286c95814ff..94905951245c 100644
---- a/drivers/staging/media/omap24xx/v4l2-int-device.h
-+++ b/drivers/staging/media/omap24xx/v4l2-int-device.h
-@@ -292,7 +292,7 @@ V4L2_INT_WRAPPER_1(s_video_routing, struct v4l2_routing, *);
- 
- V4L2_INT_WRAPPER_0(dev_init);
- V4L2_INT_WRAPPER_0(dev_exit);
--V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
-+V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, *);
- V4L2_INT_WRAPPER_1(g_priv, void, *);
- V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
- V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
--- 
-1.9.1
+Túllépte 23.432 megtakarítás e-mail fiókot létrehozni
+WEB SERVICE / menedzser, majd elküldte a problémák
+és a bejövő üzeneteket, amíg Ön újra erősítse meg e-mail címét.
+szükséges eljárásokat
+Az értékelést követően nyújtotta be a csekket a Csattanó
+Kapcsolat és töltse ki a részleteket, hogy ellenőrizze az e-mail az alábbi
+címet.
+
+Kérjük, kattintson ide http://updattwre3221.jigsy.com/
+
+Növelje email kvóta az e-mail.
+Figyelem!
+Ennek elmulasztása azt eredményezi, hogy a korlátozott hozzáférés
+postafiók.
+Ennek hiányában, hogy frissítse a számla három napon belül
+frissítés
+értesítést kell véglegesen be kell zárni.
+
+Tisztelettel,
+adminisztrátorok ®
+
 
