@@ -1,55 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:33372 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672AbaJNHPy (ORCPT
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:53383 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754489AbaJNG1O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 03:15:54 -0400
-Received: by mail-la0-f50.google.com with SMTP id s18so7965041lam.37
-        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:15:52 -0700 (PDT)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Kevin Hilman <khilman@linaro.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Philipp Zabel <philipp.zabel@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Pavel Machek <pavel@ucw.cz>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 0/7] [media] exynos-gsc: Fixup PM support
-Date: Tue, 14 Oct 2014 09:15:33 +0200
-Message-Id: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
+	Tue, 14 Oct 2014 02:27:14 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 2/3] media: soc_camera: rcar_vin: Add capture width check for NV16 format
+Date: Tue, 14 Oct 2014 15:26:52 +0900
+Message-Id: <1413268013-8437-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
+References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset fixup the PM support and adds some minor improvements to
-potentially save some more power at runtime PM suspend.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Some background to this patchset, which are related to the generic PM domain:
-http://marc.info/?l=linux-pm&m=141217452218592&w=2
-http://marc.info/?t=141217462200011&r=1&w=2
+At the time of NV16 capture format, the user has to specify the
+capture output width of the multiple of 32 for H/W specification.
+At the time of using NV16 format by ioctl of VIDIOC_S_FMT,
+this patch adds align check and the error handling to forbid
+specification of the capture output width which is not a multiple of 32.
 
-The conserns from the above discussions are intended to be solved by a reworked
-approach for the generic PM domain, link below.
-http://marc.info/?l=linux-pm&m=141320895122707&w=2
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
-Ulf Hansson (7):
-  [media] exynos-gsc: Simplify clock management
-  [media] exynos-gsc: Convert gsc_m2m_resume() from int to void
-  [media] exynos-gsc: Make driver functional without CONFIG_PM_RUNTIME
-  [media] exynos-gsc: Make runtime PM callbacks available for CONFIG_PM
-  [media] exynos-gsc: Fixup system PM
-  [media] exynos-gsc: Fixup clock management at ->remove()
-  [media] exynos-gsc: Do full clock gating at runtime PM suspend
-
- drivers/media/platform/exynos-gsc/gsc-core.c | 127 ++++++++-------------------
- drivers/media/platform/exynos-gsc/gsc-core.h |   3 -
- 2 files changed, 36 insertions(+), 94 deletions(-)
-
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 746f03f..00bc98d 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -488,6 +488,7 @@ struct rcar_vin_priv {
+ 	bool				request_to_stop;
+ 	struct completion		capture_stop;
+ 	enum chip_id			chip;
++	bool				error_flag;
+ };
+ 
+ #define is_continuous_transfer(priv)	(priv->vb_count > MAX_BUFFER_NUM)
+@@ -647,7 +648,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	/* output format */
+ 	switch (icd->current_fmt->host_fmt->fourcc) {
+ 	case V4L2_PIX_FMT_NV16:
+-		iowrite32(ALIGN(cam->width * cam->height, 0x80),
++		iowrite32(ALIGN(ALIGN(cam->width, 0x20) * cam->height, 0x80),
+ 			  priv->base + VNUVAOF_REG);
+ 		dmr = VNDMR_DTMD_YCSEP;
+ 		output_is_yuv = true;
+@@ -976,6 +977,8 @@ static int rcar_vin_add_device(struct soc_camera_device *icd)
+ 	dev_dbg(icd->parent, "R-Car VIN driver attached to camera %d\n",
+ 		icd->devnum);
+ 
++	priv->error_flag = false;
++
+ 	return 0;
+ }
+ 
+@@ -993,6 +996,7 @@ static void rcar_vin_remove_device(struct soc_camera_device *icd)
+ 
+ 	priv->state = STOPPED;
+ 	priv->request_to_stop = false;
++	priv->error_flag = false;
+ 
+ 	/* make sure active buffer is cancelled */
+ 	spin_lock_irq(&priv->lock);
+@@ -1089,6 +1093,7 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+ 	unsigned char dsize = 0;
+ 	struct v4l2_rect *cam_subrect = &cam->subrect;
+ 	unsigned long value;
++	unsigned long imgstr;
+ 
+ 	dev_dbg(icd->parent, "Crop %ux%u@%u:%u\n",
+ 		icd->user_width, icd->user_height, cam->vin_left, cam->vin_top);
+@@ -1166,7 +1171,11 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+ 		break;
+ 	}
+ 
+-	iowrite32(ALIGN(cam->out_width, 0x10), priv->base + VNIS_REG);
++	if (icd->current_fmt->host_fmt->fourcc == V4L2_PIX_FMT_NV16)
++		imgstr = ALIGN(cam->out_width, 0x20);
++	else
++		imgstr = ALIGN(cam->out_width, 0x10);
++	iowrite32(imgstr, priv->base + VNIS_REG);
+ 
+ 	return 0;
+ }
+@@ -1608,6 +1617,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+ 		pixfmt, pix->width, pix->height);
+ 
++	/* At the time of NV16 capture format, the user has to specify the
++	   width of the multiple of 32 for H/W specification. */
++	if (priv->error_flag == false)
++		priv->error_flag = true;
++	else {
++		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
++			dev_err(icd->parent, "Specified width error in NV16 format.\n");
++			return -EINVAL;
++		}
++	}
++
+ 	switch (pix->field) {
+ 	default:
+ 		pix->field = V4L2_FIELD_NONE;
 -- 
 1.9.1
 
