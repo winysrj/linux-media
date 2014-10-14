@@ -1,67 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:53543 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbaJAX0W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Oct 2014 19:26:22 -0400
-Message-ID: <542C8D93.8090008@infradead.org>
-Date: Wed, 01 Oct 2014 16:26:11 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Jim Davis <jim.epost@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>, wsa@the-dreams.de,
-	khali@linux-fr.org, Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-i2c@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	linux-can@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: randconfig build error with next-20141001, in drivers/i2c/algos/i2c-algo-bit.c
-References: <CA+r1ZhiL1y9aeLeJjpd_1DtzOG_oyoPg7XsTPJ9G-XY5G2DfCQ@mail.gmail.com>
-In-Reply-To: <CA+r1ZhiL1y9aeLeJjpd_1DtzOG_oyoPg7XsTPJ9G-XY5G2DfCQ@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:43873 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754555AbaJNHQK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Oct 2014 03:16:10 -0400
+Received: by mail-lb0-f171.google.com with SMTP id z12so7629799lbi.2
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:16:09 -0700 (PDT)
+From: Ulf Hansson <ulf.hansson@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Kevin Hilman <khilman@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Pavel Machek <pavel@ucw.cz>,
+	Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 7/7] [media] exynos-gsc: Do full clock gating at runtime PM suspend
+Date: Tue, 14 Oct 2014 09:15:40 +0200
+Message-Id: <1413270940-4378-8-git-send-email-ulf.hansson@linaro.org>
+In-Reply-To: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
+References: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/14 14:37, Jim Davis wrote:
-> Building with the attached random configuration file,
+To potentially save more power in runtime PM suspend state, let's also
+prepare/unprepare the clock from the runtime PM callbacks.
 
-Also:
-warning: (CAN_PEAK_PCIEC && SFC && IGB && VIDEO_TW68 && DRM && FB_DDC && FB_VIA) selects I2C_ALGOBIT which has unmet direct dependencies (I2C)
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> drivers/i2c/algos/i2c-algo-bit.c: In function ‘i2c_bit_add_bus’:
-> drivers/i2c/algos/i2c-algo-bit.c:658:33: error: ‘i2c_add_adapter’
-> undeclared (first use in this function)
->   return __i2c_bit_add_bus(adap, i2c_add_adapter);
->                                  ^
-> drivers/i2c/algos/i2c-algo-bit.c:658:33: note: each undeclared
-> identifier is reported only once for each function it appears in
-> drivers/i2c/algos/i2c-algo-bit.c: In function ‘i2c_bit_add_numbered_bus’:
-> drivers/i2c/algos/i2c-algo-bit.c:664:33: error:
-> ‘i2c_add_numbered_adapter’ undeclared (first use in this function)
->   return __i2c_bit_add_bus(adap, i2c_add_numbered_adapter);
->                                  ^
->   CC      net/openvswitch/actions.o
-> drivers/i2c/algos/i2c-algo-bit.c: In function ‘i2c_bit_add_bus’:
-> drivers/i2c/algos/i2c-algo-bit.c:659:1: warning: control reaches end of non-void
->  function [-Wreturn-type]
->  }
->  ^
-> drivers/i2c/algos/i2c-algo-bit.c: In function ‘i2c_bit_add_numbered_bus’:
-> drivers/i2c/algos/i2c-algo-bit.c:665:1: warning: control reaches end of non-void
->  function [-Wreturn-type]
->  }
->  ^
-> make[3]: *** [drivers/i2c/algos/i2c-algo-bit.o] Error 1
-
-In drivers/media/pci/tw68/Kconfig, VIDEO_TW68 should depend on I2C in order
-to make it safe to select I2C_ALGOBIT.
-
-In drivers/net/can/sja1000/Kconfig, CAN_PEAK_PCIEC should depend on I2C
-instead of selecting I2C (and change the help text).
-
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index e48aefa..e90ba09 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1161,7 +1161,7 @@ static int gsc_runtime_resume(struct device *dev)
+ 
+ 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
+ 
+-	ret = clk_enable(gsc->clock);
++	ret = clk_prepare_enable(gsc->clock);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1179,7 +1179,7 @@ static int gsc_runtime_suspend(struct device *dev)
+ 
+ 	ret = gsc_m2m_suspend(gsc);
+ 	if (!ret)
+-		clk_disable(gsc->clock);
++		clk_disable_unprepare(gsc->clock);
+ 
+ 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
+ 	return ret;
 -- 
-~Randy
+1.9.1
+
