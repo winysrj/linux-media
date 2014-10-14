@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:41032 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbaJLUEQ (ORCPT
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:62090 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754419AbaJNG0K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:04:16 -0400
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Carlo Caione <carlo@caione.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>,
-	Beniamino Galvani <b.galvani@gmail.com>
-Subject: [PATCH 2/3] media: rc: meson: document device tree bindings
-Date: Sun, 12 Oct 2014 22:01:54 +0200
-Message-Id: <1413144115-23188-3-git-send-email-b.galvani@gmail.com>
-In-Reply-To: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
-References: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
+	Tue, 14 Oct 2014 02:26:10 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
+Date: Tue, 14 Oct 2014 15:25:56 +0900
+Message-Id: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds binding documentation for the infrared remote control
-receiver available in Amlogic Meson SoCs.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+By applying this patch, it sets to VSYNC field toggle mode not only
+at the time of progressive mode but at the time of an interlace mode.
+
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
- Documentation/devicetree/bindings/media/meson-ir.txt | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
 
-diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
-new file mode 100644
-index 0000000..407848e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/meson-ir.txt
-@@ -0,0 +1,14 @@
-+* Amlogic Meson IR remote control receiver
-+
-+Required properties:
-+ - compatible	: should be "amlogic,meson6-ir"
-+ - reg		: physical base address and length of the device registers
-+ - interrupts	: a single specifier for the interrupt from the device
-+
-+Example:
-+
-+	ir-receiver@c8100480 {
-+		compatible= "amlogic,meson6-ir";
-+		reg = <0xc8100480 0x20>;
-+		interrupts = <0 15 1>;
-+	};
+This patch is against master branch of linuxtv.org/media_tree.git.
+
+ drivers/media/platform/soc_camera/rcar_vin.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 5196c81..bf97ed6 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -108,6 +108,7 @@
+ #define VNDMR2_VPS		(1 << 30)
+ #define VNDMR2_HPS		(1 << 29)
+ #define VNDMR2_FTEV		(1 << 17)
++#define VNDMR2_VLV_1		(1 << 12)
+ 
+ #define VIN_MAX_WIDTH		2048
+ #define VIN_MAX_HEIGHT		2048
+@@ -828,7 +829,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+ 		return ret;
+ 
+-	val = priv->field == V4L2_FIELD_NONE ? VNDMR2_FTEV : 0;
++	val = VNDMR2_FTEV | VNDMR2_VLV_1;
+ 	if (!(common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		val |= VNDMR2_VPS;
+ 	if (!(common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
 -- 
 1.9.1
 
