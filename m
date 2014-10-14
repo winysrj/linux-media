@@ -1,79 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:45324 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933829AbaJ2QEX (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:43466 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753915AbaJNHP4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 12:04:23 -0400
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Cc: ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com,
-	hverkuil@xs4all.nl, Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Subject: [PATCH 2/4] [media] solo6x10: free DMA allocation when releasing encoder
-Date: Wed, 29 Oct 2014 20:03:52 +0400
-Message-Id: <1414598634-13446-2-git-send-email-andrey.krieger.utkin@gmail.com>
-In-Reply-To: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
-References: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
+	Tue, 14 Oct 2014 03:15:56 -0400
+Received: by mail-la0-f48.google.com with SMTP id gi9so8054399lab.35
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:15:55 -0700 (PDT)
+From: Ulf Hansson <ulf.hansson@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Kevin Hilman <khilman@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Pavel Machek <pavel@ucw.cz>,
+	Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 1/7] [media] exynos-gsc: Simplify clock management
+Date: Tue, 14 Oct 2014 09:15:34 +0200
+Message-Id: <1413270940-4378-2-git-send-email-ulf.hansson@linaro.org>
+In-Reply-To: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
+References: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes this warning:
+Instead of having separate functions that fecthes, prepares and
+unprepares the clock, let's encapsulate this code into ->probe().
 
-[  956.730136] ------------[ cut here ]------------
-[  956.730143] WARNING: CPU: 1 PID: 10134 at lib/dma-debug.c:963 dma_debug_device_change+0x191/0x1f0()
-[  956.730146] pci 0000:07:05.0: DMA-API: device driver has pending DMA allocations while released from device [count=8]
-One of leaked entries details: [device address=0x00000000d3d57000] [size=512 bytes] [mapped with DMA_BIDIRECTIONAL] [mapped as coherent]
-[  956.730147] Modules linked in: solo6x10(-) videobuf2_dma_contig videobuf2_dma_sg videobuf2_memops videobuf2_core ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat videobuf_vmalloc videobuf_core v4l2_common videodev rt2800usb rt2800lib rt2x00usb rt2x00lib mac80211 cfg80211 crc_ccitt usbkbd hid_a4tech hid_generic usbhid snd_hda_codec_hdmi snd_hda_codec_via snd_hda_codec_generic snd_hda_intel snd_hda_controller snd_hda_codec snd_hwdep snd_pcm x86_pkg_temp_thermal snd_timer snd soundcore
-[  956.730172] CPU: 1 PID: 10134 Comm: rmmod Not tainted 3.18.0-rc1-next-20141023-zver-dirty #24
-[  956.730173] Hardware name: System manufacturer System Product Name/P8H77-V, BIOS 0501 02/28/2012
-[  956.730175]  0000000000000009 ffff8801df9e3c58 ffffffff817ffe6b 0000000000000001
-[  956.730177]  ffff8801df9e3ca8 ffff8801df9e3c98 ffffffff81091ec7 0000000000000046
-[  956.730180]  ffff880215457e90 0000000000000008 ffffffff81cbb10f ffff880215570098
-[  956.730183] Call Trace:
-[  956.730188]  [<ffffffff817ffe6b>] dump_stack+0x4f/0x7c
-[  956.730192]  [<ffffffff81091ec7>] warn_slowpath_common+0x87/0xb0
-[  956.730194]  [<ffffffff81091f91>] warn_slowpath_fmt+0x41/0x50
-[  956.730197]  [<ffffffff81412558>] ? dma_debug_device_change+0xb8/0x1f0
-[  956.730199]  [<ffffffff81412631>] dma_debug_device_change+0x191/0x1f0
-[  956.730203]  [<ffffffff810b14ad>] notifier_call_chain+0x4d/0x70
-[  956.730205]  [<ffffffff810b15f9>] __blocking_notifier_call_chain+0x59/0x80
-[  956.730207]  [<ffffffff810b1631>] blocking_notifier_call_chain+0x11/0x20
-[  956.730211]  [<ffffffff815873af>] __device_release_driver+0xcf/0xf0
-[  956.730213]  [<ffffffff81587ee8>] driver_detach+0xc8/0xd0
-[  956.730215]  [<ffffffff81587147>] bus_remove_driver+0x57/0xd0
-[  956.730218]  [<ffffffff815887e9>] driver_unregister+0x29/0x60
-[  956.730221]  [<ffffffff81420131>] pci_unregister_driver+0x21/0x90
-[  956.730225]  [<ffffffffa03219d7>] solo_pci_driver_exit+0x10/0x12 [solo6x10]
-[  956.730228]  [<ffffffff81112ee0>] SyS_delete_module+0x170/0x1f0
-[  956.730232]  [<ffffffff813eb76e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-[  956.730234]  [<ffffffff8180abd2>] system_call_fastpath+0x12/0x17
-[  956.730235] ---[ end trace e730af02713a6c53 ]---
-[  956.730237] Mapped at:
-[  956.730238]  [<ffffffff8141186c>] debug_dma_alloc_coherent+0x3c/0xb0
-[  956.730240]  [<ffffffffa03203f6>] solo_enc_v4l2_init+0x706/0xba0 [solo6x10]
-[  956.730243]  [<ffffffffa03165b3>] solo_pci_probe+0x503/0x700 [solo6x10]
-[  956.730245]  [<ffffffff81420459>] local_pci_probe+0x49/0xa0
-[  956.730248]  [<ffffffff814207a1>] pci_device_probe+0xd1/0x120
+This makes error handling easier and decreases the lines of code.
 
-Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/exynos-gsc/gsc-core.c | 49 ++++++++--------------------
+ 1 file changed, 14 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 6cd6a25..9afeb69 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -1385,6 +1385,9 @@ static void solo_enc_free(struct solo_enc_dev *solo_enc)
- 	if (solo_enc == NULL)
- 		return;
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index b4c9f1d..3fca4fd 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1000,36 +1000,6 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
+ 	return driver_data;
+ }
  
-+	pci_free_consistent(solo_enc->solo_dev->pdev,
-+			sizeof(struct solo_p2m_desc) * solo_enc->desc_nelts,
-+			solo_enc->desc_items, solo_enc->desc_dma);
- 	video_unregister_device(solo_enc->vfd);
- 	v4l2_ctrl_handler_free(&solo_enc->hdl);
- 	kfree(solo_enc);
+-static void gsc_clk_put(struct gsc_dev *gsc)
+-{
+-	if (!IS_ERR(gsc->clock))
+-		clk_unprepare(gsc->clock);
+-}
+-
+-static int gsc_clk_get(struct gsc_dev *gsc)
+-{
+-	int ret;
+-
+-	dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+-
+-	gsc->clock = devm_clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
+-	if (IS_ERR(gsc->clock)) {
+-		dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		return PTR_ERR(gsc->clock);
+-	}
+-
+-	ret = clk_prepare(gsc->clock);
+-	if (ret < 0) {
+-		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		gsc->clock = ERR_PTR(-EINVAL);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ static int gsc_m2m_suspend(struct gsc_dev *gsc)
+ {
+ 	unsigned long flags;
+@@ -1098,7 +1068,6 @@ static int gsc_probe(struct platform_device *pdev)
+ 	init_waitqueue_head(&gsc->irq_queue);
+ 	spin_lock_init(&gsc->slock);
+ 	mutex_init(&gsc->lock);
+-	gsc->clock = ERR_PTR(-EINVAL);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	gsc->regs = devm_ioremap_resource(dev, res);
+@@ -1111,9 +1080,19 @@ static int gsc_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
+-	ret = gsc_clk_get(gsc);
+-	if (ret)
++	gsc->clock = devm_clk_get(dev, GSC_CLOCK_GATE_NAME);
++	if (IS_ERR(gsc->clock)) {
++		dev_err(dev, "failed to get clock~~~: %s\n",
++			GSC_CLOCK_GATE_NAME);
++		return PTR_ERR(gsc->clock);
++	}
++
++	ret = clk_prepare(gsc->clock);
++	if (ret) {
++		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
++			GSC_CLOCK_GATE_NAME);
+ 		return ret;
++	}
+ 
+ 	ret = devm_request_irq(dev, res->start, gsc_irq_handler,
+ 				0, pdev->name, gsc);
+@@ -1154,7 +1133,7 @@ err_m2m:
+ err_v4l2:
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ err_clk:
+-	gsc_clk_put(gsc);
++	clk_unprepare(gsc->clock);
+ 	return ret;
+ }
+ 
+@@ -1167,7 +1146,7 @@ static int gsc_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
+ 	pm_runtime_disable(&pdev->dev);
+-	gsc_clk_put(gsc);
++	clk_unprepare(gsc->clock);
+ 
+ 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
+ 	return 0;
 -- 
-1.8.5.5
+1.9.1
 
