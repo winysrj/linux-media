@@ -1,183 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43010 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751743AbaJBFVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:39 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 12/13] cx231xx: drop unconditional port3 switching
-Date: Thu,  2 Oct 2014 07:21:04 +0200
-Message-Id: <1412227265-17453-13-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:33372 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672AbaJNHPy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Oct 2014 03:15:54 -0400
+Received: by mail-la0-f50.google.com with SMTP id s18so7965041lam.37
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:15:52 -0700 (PDT)
+From: Ulf Hansson <ulf.hansson@linaro.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Kevin Hilman <khilman@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Pavel Machek <pavel@ucw.cz>,
+	Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 0/7] [media] exynos-gsc: Fixup PM support
+Date: Tue, 14 Oct 2014 09:15:33 +0200
+Message-Id: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All switching should be done by i2c mux adapters.
-Drop explicit dont_use_port_3 flag.
-Drop info message about switch.
+This patchset fixup the PM support and adds some minor improvements to
+potentially save some more power at runtime PM suspend.
 
-Only the removed code in start_streaming is questionable:
-It did switch the port_3 flag without accessing i2c in between.
+Some background to this patchset, which are related to the generic PM domain:
+http://marc.info/?l=linux-pm&m=141217452218592&w=2
+http://marc.info/?t=141217462200011&r=1&w=2
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-avcore.c | 18 ------------------
- drivers/media/usb/cx231xx/cx231xx-cards.c  |  8 --------
- drivers/media/usb/cx231xx/cx231xx-core.c   |  4 +---
- drivers/media/usb/cx231xx/cx231xx-dvb.c    |  4 ----
- drivers/media/usb/cx231xx/cx231xx.h        |  1 -
- 5 files changed, 1 insertion(+), 34 deletions(-)
+The conserns from the above discussions are intended to be solved by a reworked
+approach for the generic PM domain, link below.
+http://marc.info/?l=linux-pm&m=141320895122707&w=2
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index 148b5fa..20bb96a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -1270,9 +1270,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
- 	int status = 0;
- 	bool current_is_port_3;
- 
--	if (dev->board.dont_use_port_3)
--		is_port_3 = false;
--
- 	/* Should this code check dev->port_3_switch_enabled first */
- 	/* to skip unnecessary reading of the register? */
- 	/* If yes, the flag dev->port_3_switch_enabled must be initialized */
-@@ -1294,9 +1291,6 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
- 	else
- 		value[0] &= ~I2C_DEMOD_EN;
- 
--	cx231xx_info("Changing the i2c master port to %d\n",
--		     is_port_3 ?  3 : 1);
--
- 	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
- 					PWR_CTL_EN, value, 4);
- 
-@@ -2327,9 +2321,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
- 		}
- 
- 		if (dev->board.tuner_type != TUNER_ABSENT) {
--			/* Enable tuner */
--			cx231xx_enable_i2c_port_3(dev, true);
--
- 			/* reset the Tuner */
- 			if (dev->board.tuner_gpio)
- 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
-@@ -2394,15 +2385,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
- 		}
- 
- 		if (dev->board.tuner_type != TUNER_ABSENT) {
--			/*
--			 * Enable tuner
--			 *	Hauppauge Exeter seems to need to do something different!
--			 */
--			if (dev->model == CX231XX_BOARD_HAUPPAUGE_EXETER)
--				cx231xx_enable_i2c_port_3(dev, false);
--			else
--				cx231xx_enable_i2c_port_3(dev, true);
--
- 			/* reset the Tuner */
- 			if (dev->board.tuner_gpio)
- 				cx231xx_gpio_set(dev, dev->board.tuner_gpio);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 4eb2057..432cbcf 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -262,7 +262,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_PAL,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		/* Actually, it has a 417, but it isn't working correctly.
- 		 * So set to 0 for now until someone can manage to get this
- 		 * to work reliably. */
-@@ -390,7 +389,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		.input = {{
- 			.type = CX231XX_VMUX_COMPOSITE1,
- 			.vmux = CX231XX_VIN_2_1,
-@@ -532,7 +530,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 
- 		.input = {{
- 				.type = CX231XX_VMUX_COMPOSITE1,
-@@ -656,7 +653,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		.input = {{
- 			.type = CX231XX_VMUX_COMPOSITE1,
- 			.vmux = CX231XX_VIN_2_1,
-@@ -683,7 +679,6 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.norm = V4L2_STD_NTSC,
- 		.no_alt_vanc = 1,
- 		.external_av = 1,
--		.dont_use_port_3 = 1,
- 		/*.has_417 = 1, */
- 		/* This board is believed to have a hardware encoding chip
- 		 * supporting mpeg1/2/4, but as the 417 is apparently not
-@@ -1012,9 +1007,6 @@ static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
- 		len_todo -= msg_read.len;
- 	}
- 
--	cx231xx_enable_i2c_port_3(dev, true);
--	/* mutex_unlock(&dev->i2c_lock); */
--
- 	for (i = 0; i + 15 < len; i += 16)
- 		cx231xx_info("i2c eeprom %02x: %*ph\n", i, 16, &eedata[i]);
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index c8a6d20..c49022f 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1407,9 +1407,7 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	if (dev->board.has_dvb)
- 		cx231xx_set_alt_setting(dev, INDEX_TS1, 0);
- 
--	/* set the I2C master port to 3 on channel 1 */
--	errCode = cx231xx_enable_i2c_port_3(dev, true);
--
-+	errCode = 0;
- 	return errCode;
- }
- EXPORT_SYMBOL_GPL(cx231xx_dev_init);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 869c433..2ea6946 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -266,11 +266,7 @@ static int start_streaming(struct cx231xx_dvb *dvb)
- 
- 	if (dev->USE_ISO) {
- 		cx231xx_info("DVB transfer mode is ISO.\n");
--		mutex_lock(&dev->i2c_lock);
--		cx231xx_enable_i2c_port_3(dev, false);
- 		cx231xx_set_alt_setting(dev, INDEX_TS1, 4);
--		cx231xx_enable_i2c_port_3(dev, true);
--		mutex_unlock(&dev->i2c_lock);
- 		rc = cx231xx_set_mode(dev, CX231XX_DIGITAL_MODE);
- 		if (rc < 0)
- 			return rc;
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index c90aa44..a0ec241 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -368,7 +368,6 @@ struct cx231xx_board {
- 	unsigned int valid:1;
- 	unsigned int no_alt_vanc:1;
- 	unsigned int external_av:1;
--	unsigned int dont_use_port_3:1;
- 
- 	unsigned char xclk, i2c_speed;
- 
+Ulf Hansson (7):
+  [media] exynos-gsc: Simplify clock management
+  [media] exynos-gsc: Convert gsc_m2m_resume() from int to void
+  [media] exynos-gsc: Make driver functional without CONFIG_PM_RUNTIME
+  [media] exynos-gsc: Make runtime PM callbacks available for CONFIG_PM
+  [media] exynos-gsc: Fixup system PM
+  [media] exynos-gsc: Fixup clock management at ->remove()
+  [media] exynos-gsc: Do full clock gating at runtime PM suspend
+
+ drivers/media/platform/exynos-gsc/gsc-core.c | 127 ++++++++-------------------
+ drivers/media/platform/exynos-gsc/gsc-core.h |   3 -
+ 2 files changed, 36 insertions(+), 94 deletions(-)
+
 -- 
-2.1.1
+1.9.1
 
