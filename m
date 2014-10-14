@@ -1,93 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52632 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbaJBSI1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 14:08:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: uvcvideo: Fix buffer completion size check
-Date: Thu, 02 Oct 2014 21:08:27 +0300
-Message-ID: <2530457.fbzKgqC21y@avalon>
-In-Reply-To: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1412113371-11485-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:36598 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754241AbaJNGW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Oct 2014 02:22:26 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+Date: Tue, 14 Oct 2014 15:22:10 +0900
+Message-Id: <1413267730-8172-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Ping ?
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
 
-On Wednesday 01 October 2014 00:42:51 Laurent Pinchart wrote:
-> Commit e93e7fd9f5a3fffec7792dbcc4c3574653effda7 ("v4l2: uvcvideo: Allow
-> using larger buffers") reworked the buffer size sanity check at buffer
-> completion time to use the frame size instead of the allocated buffer
-> size. However, it introduced two bugs in doing so:
-> 
-> - it assigned the allocated buffer size to the frame_size field, instead
->   of assigning the correct frame size
-> 
-> - it performed the assignment in the S_FMT handler, resulting in the
->   frame_size field being uninitialized if the userspace application
->   doesn't call S_FMT.
-> 
-> Fix both issues by removing the frame_size field and validating the
-> buffer size against the UVC video control dwMaxFrameSize.
-> 
-> Fixes: e93e7fd9f5a3 ("v4l2: uvcvideo: Allow using larger buffers")
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c  | 1 -
->  drivers/media/usb/uvc/uvc_video.c | 2 +-
->  drivers/media/usb/uvc/uvcvideo.h  | 1 -
->  3 files changed, 1 insertion(+), 3 deletions(-)
-> 
-> Guennadi, could you please test and ack this ASAP, as the bug needs to be
-> fixed for v3.18-rc1 if possible ?
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index f205934..f33a067 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -318,7 +318,6 @@ static int uvc_v4l2_set_format(struct uvc_streaming
-> *stream, stream->ctrl = probe;
->  	stream->cur_format = format;
->  	stream->cur_frame = frame;
-> -	stream->frame_size = fmt->fmt.pix.sizeimage;
-> 
->  done:
->  	mutex_unlock(&stream->mutex);
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 9ace520..df81b9c 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1143,7 +1143,7 @@ static int uvc_video_encode_data(struct uvc_streaming
-> *stream, static void uvc_video_validate_buffer(const struct uvc_streaming
-> *stream, struct uvc_buffer *buf)
->  {
-> -	if (stream->frame_size != buf->bytesused &&
-> +	if (stream->ctrl.dwMaxVideoFrameSize != buf->bytesused &&
->  	    !(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
->  		buf->error = 1;
->  }
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index f585c08..897cfd8 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -458,7 +458,6 @@ struct uvc_streaming {
->  	struct uvc_format *def_format;
->  	struct uvc_format *cur_format;
->  	struct uvc_frame *cur_frame;
-> -	size_t frame_size;
-> 
->  	/* Protect access to ctrl, cur_format, cur_frame and hardware video
->  	 * probe control.
+This patch is against master branch of linuxtv.org/media_tree.git.
 
+ drivers/media/platform/soc_camera/rcar_vin.c | 10 ++++++++++
+ include/linux/platform_data/camera-rcar.h    |  1 +
+ 2 files changed, 11 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 20defcb..7eb4f1e 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -74,6 +74,8 @@
+ #define VNMC_INF_YUV10_BT656	(2 << 16)
+ #define VNMC_INF_YUV10_BT601	(3 << 16)
+ #define VNMC_INF_YUV16		(5 << 16)
++#define VNMC_INF_RGB888		(6 << 16)
++#define VNMC_INF_RGB_MASK	(6 << 16)
+ #define VNMC_VUP		(1 << 10)
+ #define VNMC_IM_ODD		(0 << 3)
+ #define VNMC_IM_ODD_EVEN	(1 << 3)
+@@ -272,6 +274,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 
+ 	/* input interface */
+ 	switch (icd->current_fmt->code) {
++	case V4L2_MBUS_FMT_RGB888_1X24:
++		/* BT.601/BT.709 24-bit RGB-888 */
++		vnmc |= VNMC_INF_RGB888;
++		break;
+ 	case V4L2_MBUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -331,6 +337,9 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	if (output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
++	if (vnmc & VNMC_INF_RGB_MASK)
++		vnmc ^= VNMC_BPS;
++
+ 	/* progressive or interlaced mode */
+ 	interrupts = progressive ? VNIE_FIE | VNIE_EFE : VNIE_EFE;
+ 
+@@ -1013,6 +1022,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 	case V4L2_MBUS_FMT_YUYV8_1X16:
+ 	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 	case V4L2_MBUS_FMT_YUYV10_2X10:
++	case V4L2_MBUS_FMT_RGB888_1X24:
+ 		if (cam->extra_fmt)
+ 			break;
+ 
+diff --git a/include/linux/platform_data/camera-rcar.h b/include/linux/platform_data/camera-rcar.h
+index dfc83c5..03a9df6 100644
+--- a/include/linux/platform_data/camera-rcar.h
++++ b/include/linux/platform_data/camera-rcar.h
+@@ -17,6 +17,7 @@
+ #define RCAR_VIN_VSYNC_ACTIVE_LOW	(1 << 1)
+ #define RCAR_VIN_BT601			(1 << 2)
+ #define RCAR_VIN_BT656			(1 << 3)
++#define RCAR_VIN_BT709			(1 << 4)
+ 
+ struct rcar_vin_platform_data {
+ 	unsigned int flags;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
