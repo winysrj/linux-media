@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0147.outbound.protection.outlook.com ([157.56.111.147]:19584
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751128AbaJJD0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Oct 2014 23:26:17 -0400
-From: Fancy Fang <chen.fang@freescale.com>
-To: <m.szyprowski@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.chehab@samsung.com>
-CC: <shawn.guo@freescale.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v2] [media] videobuf-dma-contig: set vm_pgoff to be zero to pass the sanity check in vm_iomap_memory().
-Date: Fri, 10 Oct 2014 10:21:22 +0800
-Message-ID: <1412907682-26086-1-git-send-email-chen.fang@freescale.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35637 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755244AbaJNM6S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Oct 2014 08:58:18 -0400
+Received: by mail-wi0-f178.google.com with SMTP id h11so6700787wiw.11
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 05:58:17 -0700 (PDT)
+Message-ID: <543D1DD1.2060700@cogentembedded.com>
+Date: Tue, 14 Oct 2014 16:57:53 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal
+ scaling-up support
+References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com> <1413268013-8437-4-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413268013-8437-4-git-send-email-ykaneko0929@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When user requests V4L2_MEMORY_MMAP type buffers, the videobuf-core
-will assign the corresponding offset to the 'boff' field of the
-videobuf_buffer for each requested buffer sequentially. Later, user
-may call mmap() to map one or all of the buffers with the 'offset'
-parameter which is equal to its 'boff' value. Obviously, the 'offset'
-value is only used to find the matched buffer instead of to be the
-real offset from the buffer's physical start address as used by
-vm_iomap_memory(). So, in some case that if the offset is not zero,
-vm_iomap_memory() will fail.
+Hello.
 
-Signed-off-by: Fancy Fang <chen.fang@freescale.com>
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On 10/14/2014 10:26 AM, Yoshihiro Kaneko wrote:
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index bf80f0f..e02353e 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -305,6 +305,15 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	/* Try to remap memory */
- 	size = vma->vm_end - vma->vm_start;
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+
-+	/* the "vm_pgoff" is just used in v4l2 to find the
-+	 * corresponding buffer data structure which is allocated
-+	 * earlier and it does not mean the offset from the physical
-+	 * buffer start address as usual. So set it to 0 to pass
-+	 * the sanity check in vm_iomap_memory().
-+	 */
-+	vma->vm_pgoff = 0;
-+
- 	retval = vm_iomap_memory(vma, mem->dma_handle, size);
- 	if (retval) {
- 		dev_err(q->dev, "mmap: remap failed with error %d. ",
--- 
-1.9.1
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+
+> The scaling function had been forbidden for the capture format of
+> NV16 until now. With this patch, a horizontal scaling-up function
+> is supported to the capture format of NV16. a vertical scaling-up
+> by the capture format of NV16 is forbidden for the H/W specification.
+
+    s/for/by/?
+
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+>   drivers/media/platform/soc_camera/rcar_vin.c | 19 +++++++++++++++----
+>   1 file changed, 15 insertions(+), 4 deletions(-)
+
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 00bc98d..bf3588f 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> @@ -1622,9 +1622,19 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>   	if (priv->error_flag == false)
+>   		priv->error_flag = true;
+>   	else {
+> -		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+> -			dev_err(icd->parent, "Specified width error in NV16 format.\n");
+> -			return -EINVAL;
+> +		if (pixfmt == V4L2_PIX_FMT_NV16) {
+> +			if (pix->width & 0x1F) {
+> +				dev_err(icd->parent,
+> +				"Specified width error in NV16 format. "
+
+    You should indent the string more to the right, preferrably starting it 
+under 'icd'.
+
+> +				"Please specify the multiple of 32.\n");
+
+    Do not break the string like this. scripts/checkpatch.pl has been taught 
+to not complain about long strings.
+
+> +				return -EINVAL;
+> +			}
+> +			if (pix->height != cam->height) {
+> +				dev_err(icd->parent,
+> +				"Vertical scaling-up error in NV16 format. "
+> +				"Please specify input height size.\n");
+
+    Same here. Not breaking the lines helps to find the error messages in the 
+code.
+
+[...]
+
+WBR, Sergei
 
