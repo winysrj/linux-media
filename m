@@ -1,119 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3923 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbaJ3Dlq (ORCPT
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:50665 "EHLO
+	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932180AbaJNODb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 23:41:46 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9U3fdXb071699
-	for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 04:41:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 132302A008E
-	for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 04:41:38 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20141030034138.132302A008E@tschai.lan>
-Date: Thu, 30 Oct 2014 04:41:38 +0100 (CET)
+	Tue, 14 Oct 2014 10:03:31 -0400
+Received: by mail-oi0-f49.google.com with SMTP id a3so16631545oib.22
+        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 07:03:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20141011184030.GG26941@phenom.ffwll.local>
+References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+ <1412971678-4457-3-git-send-email-sumit.semwal@linaro.org>
+ <20141010230900.GA5069@kroah.com> <20141011184030.GG26941@phenom.ffwll.local>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Tue, 14 Oct 2014 19:33:10 +0530
+Message-ID: <CAO_48GFy4xD+mS_1YBfpQ5Q9eBBjBDz_VxZ+8hXKLwVPARY+ig@mail.gmail.com>
+Subject: Re: [RFC 2/4] cenalloc: Constraint-Enabled Allocation helpers for dma-buf
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Greg, Daniel!
 
-Results of the daily build of media_tree:
+On 12 October 2014 00:10, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Fri, Oct 10, 2014 at 04:09:00PM -0700, Greg Kroah-Hartman wrote:
+>> On Sat, Oct 11, 2014 at 01:37:56AM +0530, Sumit Semwal wrote:
+>> > Devices sharing buffers using dma-buf could benefit from sharing their
+>> > constraints via struct device, and dma-buf framework would manage the
+>> > common constraints for all attached devices per buffer.
+>> >
+>> > With that information, we could have a 'generic' allocator helper in
+>> > the form of a central dma-buf exporter, which can create dma-bufs, and
+>> > allocate backing storage at the time of first call to
+>> > dma_buf_map_attachment.
+>> >
+>> > This allocation would utilise the constraint-mask by matching it to
+>> > the right allocator from a pool of allocators, and then allocating
+>> > buffer backing storage from this allocator.
+>> >
+>> > The pool of allocators could be platform-dependent, allowing for
+>> > platforms to hide the specifics of these allocators from the devices
+>> > that access the dma-buf buffers.
+>> >
+>> > A sample sequence could be:
+>> > - get handle to cenalloc_device,
+>> > - create a dmabuf using cenalloc_buffer_create;
+>> > - use this dmabuf to attach each device, which has its constraints
+>> >    set in the constraints mask (dev->dma_params->access_constraints_mask)
+>> >   - at each dma_buf_attach() call, dma-buf will check to see if the constraint
+>> >     mask for the device requesting attachment is compatible with the constraints
+>> >     of devices already attached to the dma-buf; returns an error if it isn't.
+>> > - after all devices have attached, the first call to dma_buf_map_attachment()
+>> >   will allocate the backing storage for the buffer.
+>> > - follow the dma-buf api for map / unmap etc usage.
+>> > - detach all attachments,
+>> > - call cenalloc_buffer_free to free the buffer if refcount reaches zero;
+>> >
+>> > ** IMPORTANT**
+>> > This mechanism of delayed allocation based on constraint-enablement will work
+>> > *ONLY IF* the first map_attachment() call is made AFTER all attach() calls are
+>> > done.
+>> >
+>> > Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> > Cc: linux-kernel@vger.kernel.org
+>> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> > Cc: linux-media@vger.kernel.org
+>> > Cc: dri-devel@lists.freedesktop.org
+>> > Cc: linaro-mm-sig@lists.linaro.org
+>> > ---
+>> >  MAINTAINERS                      |   1 +
+>> >  drivers/cenalloc/cenalloc.c      | 597 +++++++++++++++++++++++++++++++++++++++
+>> >  drivers/cenalloc/cenalloc.h      |  99 +++++++
+>> >  drivers/cenalloc/cenalloc_priv.h | 188 ++++++++++++
+>> >  4 files changed, 885 insertions(+)
+>> >  create mode 100644 drivers/cenalloc/cenalloc.c
+>> >  create mode 100644 drivers/cenalloc/cenalloc.h
+>> >  create mode 100644 drivers/cenalloc/cenalloc_priv.h
+>> >
+>> > diff --git a/MAINTAINERS b/MAINTAINERS
+>> > index 40d4796..e88ac81 100644
+>> > --- a/MAINTAINERS
+>> > +++ b/MAINTAINERS
+>> > @@ -3039,6 +3039,7 @@ L:    linux-media@vger.kernel.org
+>> >  L: dri-devel@lists.freedesktop.org
+>> >  L: linaro-mm-sig@lists.linaro.org
+>> >  F: drivers/dma-buf/
+>> > +F: drivers/cenalloc/
+>> >  F: include/linux/dma-buf*
+>> >  F: include/linux/reservation.h
+>> >  F: include/linux/*fence.h
+>> > diff --git a/drivers/cenalloc/cenalloc.c b/drivers/cenalloc/cenalloc.c
+>> > new file mode 100644
+>> > index 0000000..f278056
+>> > --- /dev/null
+>> > +++ b/drivers/cenalloc/cenalloc.c
+>> > @@ -0,0 +1,597 @@
+>> > +/*
+>> > + * Allocator helper framework for constraints-aware dma-buf backing storage
+>> > + * allocation.
+>> > + * This allows constraint-sharing devices to deferred-allocate buffers shared
+>> > + * via dma-buf.
+>> > + *
+>> > + * Copyright(C) 2014 Linaro Limited. All rights reserved.
+>> > + * Author: Sumit Semwal <sumit.semwal@linaro.org>
+>> > + *
+>> > + * Structure for management of clients, buffers etc heavily derived from
+>> > + * Android's ION framework.
+>>
+>> Does that mean we can drop ION after this gets merged?
+>
+> Yeah, I hope so. Not sure whetether this hope is shared by google android
+> people ...
+Apologies for the delay in response; was travelling for LPC and so
+couldn't respond.
 
-date:		Thu Oct 30 04:00:19 CET 2014
-git branch:	test
-git hash:	7a7f1ab37dc8f66cf0ef10f3d3f1b79ac4bc67fc
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-34-g71e642a
-host hardware:	x86_64
-host os:	3.17-1.slh.5-amd64
+Yes, that is certainly the hope, but this is the first-step RFC which
+would need a few more things before ION can be replaced completely.
+>
+>> /me dreams
+>
+> I guess we can collectively dream about this next week at plumbers ;-)
+> I'll try to squeeze in some light review of Sumit's patches between
+> conference travels ...
+>
+> Cheers, Daniel
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-sparse: ERRORS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+-- 
+Thanks and regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sumit Semwal
+Kernel Team Lead - Linaro Mobile Group
+Linaro.org │ Open source software for ARM SoCs
