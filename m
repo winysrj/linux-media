@@ -1,100 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:32843 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754705AbaJNTZ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 15:25:27 -0400
-MIME-Version: 1.0
-In-Reply-To: <1413268013-8437-2-git-send-email-ykaneko0929@gmail.com>
-References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
-	<1413268013-8437-2-git-send-email-ykaneko0929@gmail.com>
-Date: Tue, 14 Oct 2014 21:25:25 +0200
-Message-ID: <CAMuHMdWZ=G+oHMWLQasHXeCxVnYQkQ81owKBMiyfnjzgigUPYQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: soc_camera: rcar_vin: Add scaling support
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mga02.intel.com ([134.134.136.20]:44283 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750994AbaJOQeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Oct 2014 12:34:05 -0400
+Date: Wed, 15 Oct 2014 21:28:00 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: dmaengine@vger.kernel.org
+Cc: Viresh Kumar <viresh.linux@gmail.com>, Tejun Heo <tj@kernel.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Dan Williams <dan.j.williams@intel.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	Mark Brown <broonie@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jslaby@suse.cz>, Felipe Balbi <balbi@ti.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Jingoo Han <jg1.han@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Denis Carikli <denis@eukrea.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Alexander Stein <alexander.stein@systec-electronic.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mtd@lists.infradead.org, netdev@vger.kernel.org,
+	linux-spi@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 00/12] dmaengine: remove users of device_control
+Message-ID: <20141015155800.GA1638@intel.com>
+References: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kaneko-san, Matsuoka-san,
+On Sat, Oct 11, 2014 at 09:09:33PM +0530, Vinod Koul wrote:
+> The recent discussion [1] on the API have resulted in moving away from
+> device_control ioctl method to proper channel APIs.
+> There are still few users on the device_control which should use the wrappers
+> existing rather than access device_control.
+> This will aid us in deprecating and removing device_control, possibly after
+> the merge window.
+> 
+> These can be merged thru respective subsystem tree or dmaengine tree. Either
+> way please just let me know.
 
-On Tue, Oct 14, 2014 at 8:26 AM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Applying to dmaengine-next with acks recived, dropping the ones which are
+applied by respective folks
 
-Thanks for our patch!
+-- 
+~Vinod
 
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> 
+> Feng's kbuild has tested these as well [2]
+> 
+> [1]: http://www.spinics.net/lists/dmaengine/msg02212.html
+> [2]: http://git.infradead.org/users/vkoul/slave-dma.git/shortlog/refs/heads/topic/dma_control_cleanup
+> 
+> Vinod Koul (12):
+>   pata_arasan_cf: use dmaengine_terminate_all() API
+>   dmaengine: coh901318: use dmaengine_terminate_all() API
+>   [media] V4L2: mx3_camer: use dmaengine_pause() API
+>   mtd: fsmc_nand: use dmaengine_terminate_all() API
+>   mtd: sh_flctl: use dmaengine_terminate_all() API
+>   net: ks8842: use dmaengine_terminate_all() API
+>   spi/atmel: use dmaengine_terminate_all() API
+>   spi/spi-dw-mid.c: use dmaengine_slave_config() API
+>   serial: sh-sci: use dmaengine_terminate_all() API
+>   usb: musb: ux500_dma: use dmaengine_xxx() APIs
+>   ASoC: txx9: use dmaengine_terminate_all() API
+>   video: mx3fb: use dmaengine_terminate_all() API
+> 
+>  drivers/ata/pata_arasan_cf.c                   |    5 ++---
+>  drivers/dma/coh901318.c                        |    2 +-
+>  drivers/media/platform/soc_camera/mx3_camera.c |    6 ++----
+>  drivers/mtd/nand/fsmc_nand.c                   |    2 +-
+>  drivers/mtd/nand/sh_flctl.c                    |    2 +-
+>  drivers/net/ethernet/micrel/ks8842.c           |    6 ++----
+>  drivers/spi/spi-atmel.c                        |    6 ++----
+>  drivers/spi/spi-dw-mid.c                       |    6 ++----
+>  drivers/tty/serial/sh-sci.c                    |    2 +-
+>  drivers/usb/musb/ux500_dma.c                   |    7 ++-----
+>  drivers/video/fbdev/mx3fb.c                    |    3 +--
+>  sound/soc/txx9/txx9aclc.c                      |    7 +++----
+>  12 files changed, 20 insertions(+), 34 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe dmaengine" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> @@ -120,6 +144,326 @@ enum chip_id {
->         RCAR_E1,
->  };
->
-> +struct VIN_COEFF {
-
-Please don't use upper case for struct names.
-
-> +       unsigned short xs_value;
-> +       unsigned long coeff_set[24];
-
-The actual size of "long" depends on the word size of the CPU.
-On 32-bit builds it is 32-bit, on 64-bit builds it is 64-bit.
-As all values in the table below are 32-bit, and the values are
-written to register using iowrite32(), please use "u32" instead of
-"unsigned long".
-
-> +};
-
-> +#define VIN_COEFF_SET_COUNT (sizeof(vin_coeff_set) / sizeof(struct VIN_COEFF))
-
-There exists a convenience macro "ARRAY_SIZE()" for this.
-Please just use "ARRAY_SIZE(vin_coeff_set)" instead of defining
-"VIN_COEFF_SET_COUNT".
-
-> @@ -677,6 +1024,61 @@ static void rcar_vin_clock_stop(struct soc_camera_host *ici)
->         /* VIN does not have "mclk" */
->  }
->
-> +static void set_coeff(struct rcar_vin_priv *priv, unsigned long xs)
-
-I think xs can be "unsigned short"?
-
-> +{
-> +       int i;
-> +       struct VIN_COEFF *p_prev_set = NULL;
-> +       struct VIN_COEFF *p_set = NULL;
-
-If you add "const" to the two definitions above...
-
-> +       /* Search the correspondence coefficient values */
-> +       for (i = 0; i < VIN_COEFF_SET_COUNT; i++) {
-> +               p_prev_set = p_set;
-> +               p_set = (struct VIN_COEFF *) &vin_coeff_set[i];
-
-... the above cast is no longer needed.
-
-> @@ -686,6 +1088,7 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
->         unsigned int left_offset, top_offset;
->         unsigned char dsize = 0;
->         struct v4l2_rect *cam_subrect = &cam->subrect;
-> +       unsigned long value;
-
-"u32", as it's written to a 32-bit register later.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
