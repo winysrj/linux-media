@@ -1,51 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50586 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751594AbaJBIrI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 04:47:08 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 02/18] smiapp-pll: Correct clock debug prints
-Date: Thu,  2 Oct 2014 11:45:52 +0300
-Message-Id: <1412239568-8524-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:40765 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775AbaJOUVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Oct 2014 16:21:37 -0400
+Message-ID: <543ED74E.1060500@osg.samsung.com>
+Date: Wed, 15 Oct 2014 14:21:34 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Takashi Iwai <tiwai@suse.de>
+CC: m.chehab@samsung.com, akpm@linux-foundation.org,
+	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
+	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
+	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, perex@perex.cz,
+	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
+	linux@eikelenboom.it, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 0/6] media token resource framework
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <s5ha94xwa7r.wl-tiwai@suse.de>
+In-Reply-To: <s5ha94xwa7r.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 10/15/2014 10:48 AM, Takashi Iwai wrote:
+> At Tue, 14 Oct 2014 08:58:36 -0600,
+> Shuah Khan wrote:
+>>
+>> Add media token device resource framework to allow sharing
+>> resources such as tuner, dma, audio etc. across media drivers
+>> and non-media sound drivers that control media hardware. The
+>> Media token resource is created at the main struct device that
+>> is common to all drivers that claim various pieces of the main
+>> media device, which allows them to find the resource using the
+>> main struct device. As an example, digital, analog, and
+>> snd-usb-audio drivers can use the media token resource API
+>> using the main struct device for the interface the media device
+>> is attached to.
+>>
+>> This patch series consists of media token resource framework
+>> and changes to use it in dvb-core, v4l2-core, au0828 driver,
+>> and snd-usb-audio driver.
+>>
+>> With these changes dvb and v4l2 can share the tuner without
+>> disrupting each other. Used tvtime, xawtv, kaffeine, and vlc,
+>> vlc audio capture option, arecord/aplay during development to
+>> identify v4l2 vb2 and vb1 ioctls and file operations that
+>> disrupt the digital stream and would require changes to check
+>> tuner ownership prior to changing the tuner configuration.
+>> vb2 changes are made in the v4l2-core and vb1 changes are made
+>> in the au0828 driver to encourage porting drivers to vb2 to
+>> advantage of the new media token resource framework with changes
+>> in the core.
+>>
+>> In this patch v2 series, fixed problems identified in the
+>> patch v1 series. Important ones are changing snd-usb-audio
+>> to use media tokens, holding tuner lock in VIDIOC_ENUMINPUT,
+>> and VIDIOC_QUERYSTD.
+> 
+> Just took a quick glance over the patches, and my first concern is why
+> this has to be lib/*.  This means it's always built-in as long as this
+> config is enabled (and will be so on distro kernel) even if it's not
+> used at all.
+> 
 
-The PLL flags were not used correctly.
+Right this module gets built when CONFIG_MEDIA_SUPPORT is enabled
+and stubs are in place when it is not enabled. The intent is for
+this feature to be enabled by default when media support is enabled.
+When a driver doesn't create the resource, it will simply not find it
+and for drivers like snd-usb-audio that aren't tried to media support,
+the stubs are in place and feature is essentially disabled.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I picked lib so this module can be included in non-media drivers
+e.g: snd-usb-audio.
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index 2335529..ab5d9a3 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -67,7 +67,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- {
- 	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
- 	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
--	if (pll->flags != SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
- 		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
- 	}
-@@ -77,7 +77,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
- 	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
- 	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
--	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
- 			pll->op_sys_clk_freq_hz);
- 		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
+Does this help explain the design? I didn't want to introduce a new
+config for this feature. If lib isn't right place, could you recommend
+another one that makes this modules available to non-media drivers?
+moving isn't a problem.
+
+thanks,
+-- Shuah
+
+
 -- 
-1.7.10.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
