@@ -1,49 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:42183 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbaJQHIk (ORCPT
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:37721 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408AbaJOJlf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 03:08:40 -0400
+	Wed, 15 Oct 2014 05:41:35 -0400
+MIME-Version: 1.0
+In-Reply-To: <543D1DD1.2060700@cogentembedded.com>
+References: <1413268013-8437-1-git-send-email-ykaneko0929@gmail.com>
+	<1413268013-8437-4-git-send-email-ykaneko0929@gmail.com>
+	<543D1DD1.2060700@cogentembedded.com>
+Date: Wed, 15 Oct 2014 18:41:34 +0900
+Message-ID: <CAH1o70J6mVoj6VTbU_3RXr38M-ftc7SLd7Z+UBxMCGykg-7=rA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal
+ scaling-up support
 From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v2] media: soc_camera: rcar_vin: Add r8a7794, r8a7793 device support
-Date: Fri, 17 Oct 2014 16:07:39 +0900
-Message-Id: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Hello Sergei,
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Thank you for your comment.
+I'll update this patch.
 
----
+Thanks,
+Kaneko
 
-This patch is against master branch of linuxtv.org/media_tree.git.
-
-v2 [Yoshihiro Kaneko]
-* Squashed r8a7793 and r8a7794 patches
-
- drivers/media/platform/soc_camera/rcar_vin.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 234cf86..4acae8f 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1881,6 +1881,8 @@ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
- #endif
- 
- static struct platform_device_id rcar_vin_id_table[] = {
-+	{ "r8a7794-vin",  RCAR_GEN2 },
-+	{ "r8a7793-vin",  RCAR_GEN2 },
- 	{ "r8a7791-vin",  RCAR_GEN2 },
- 	{ "r8a7790-vin",  RCAR_GEN2 },
- 	{ "r8a7779-vin",  RCAR_H1 },
--- 
-1.9.1
-
+2014-10-14 21:57 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
+> Hello.
+>
+> On 10/14/2014 10:26 AM, Yoshihiro Kaneko wrote:
+>
+>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>
+>
+>> The scaling function had been forbidden for the capture format of
+>> NV16 until now. With this patch, a horizontal scaling-up function
+>> is supported to the capture format of NV16. a vertical scaling-up
+>> by the capture format of NV16 is forbidden for the H/W specification.
+>
+>
+>    s/for/by/?
+>
+>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>> ---
+>>   drivers/media/platform/soc_camera/rcar_vin.c | 19 +++++++++++++++----
+>>   1 file changed, 15 insertions(+), 4 deletions(-)
+>
+>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>> b/drivers/media/platform/soc_camera/rcar_vin.c
+>> index 00bc98d..bf3588f 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>
+> [...]
+>>
+>> @@ -1622,9 +1622,19 @@ static int rcar_vin_set_fmt(struct
+>> soc_camera_device *icd,
+>>         if (priv->error_flag == false)
+>>                 priv->error_flag = true;
+>>         else {
+>> -               if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F))
+>> {
+>> -                       dev_err(icd->parent, "Specified width error in
+>> NV16 format.\n");
+>> -                       return -EINVAL;
+>> +               if (pixfmt == V4L2_PIX_FMT_NV16) {
+>> +                       if (pix->width & 0x1F) {
+>> +                               dev_err(icd->parent,
+>> +                               "Specified width error in NV16 format. "
+>
+>
+>    You should indent the string more to the right, preferrably starting it
+> under 'icd'.
+>
+>> +                               "Please specify the multiple of 32.\n");
+>
+>
+>    Do not break the string like this. scripts/checkpatch.pl has been taught
+> to not complain about long strings.
+>
+>> +                               return -EINVAL;
+>> +                       }
+>> +                       if (pix->height != cam->height) {
+>> +                               dev_err(icd->parent,
+>> +                               "Vertical scaling-up error in NV16 format.
+>> "
+>> +                               "Please specify input height size.\n");
+>
+>
+>    Same here. Not breaking the lines helps to find the error messages in the
+> code.
+>
+> [...]
+>
+> WBR, Sergei
+>
