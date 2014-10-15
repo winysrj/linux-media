@@ -1,142 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51711 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933439AbaJaPJt (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:48658 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745AbaJORD4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:49 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 7780D217D6
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:35 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 06/10] uvcvideo: Implement vb2 queue start and stop stream operations
-Date: Fri, 31 Oct 2014 17:09:47 +0200
-Message-Id: <1414768191-4536-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 15 Oct 2014 13:03:56 -0400
+Date: Wed, 15 Oct 2014 18:03:53 +0100 (BST)
+From: William Towle <william.towle@codethink.co.uk>
+To: g.liakhovetski@gmx.de
+cc: ian.molton@codethink.co.uk,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hans.verkuil@cisco.com, sylvester.nawrocki@gmail.com,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: RFC: soc_camera, rcar_vin, and adv7604
+In-Reply-To: <20140710111218.60572c1fc814de541b886147@codethink.co.uk>
+Message-ID: <alpine.DEB.2.02.1410151757420.5023@xk120>
+References: <20140709174225.63a742ce09418cff539bb70a@codethink.co.uk> <Pine.LNX.4.64.1407091955080.25501@axis700.grange> <20140710111218.60572c1fc814de541b886147@codethink.co.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To work propertly the videobuf2 core code needs to be in charge of
-stream start/stop control. Implement the start_streaming and
-stop_streaming vb2 operations and move video enable/disable code to
-them.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 43 +++++++++++++++++++++++++--------------
- drivers/media/usb/uvc/uvc_v4l2.c  | 10 ---------
- 2 files changed, 28 insertions(+), 25 deletions(-)
+   Earlier this year, a colleague and I sought advice on the
+combination of "soc_camera + rcar_vin for capture, and the mainline
+adv7604 driver (which we have modified to successfully drive the
+adv7612).", with reasonable results, noting that we might move
+towards "a soc_camera2 with pads support?".
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 9703655..7582470 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -135,6 +135,29 @@ static void uvc_wait_finish(struct vb2_queue *vq)
- 	mutex_lock(&queue->mutex);
- }
- 
-+static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-+	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
-+
-+	queue->buf_used = 0;
-+
-+	return uvc_video_enable(stream, 1);
-+}
-+
-+static void uvc_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-+	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
-+	unsigned long flags;
-+
-+	uvc_video_enable(stream, 0);
-+
-+	spin_lock_irqsave(&queue->irqlock, flags);
-+	INIT_LIST_HEAD(&queue->irqqueue);
-+	spin_unlock_irqrestore(&queue->irqlock, flags);
-+}
-+
- static struct vb2_ops uvc_queue_qops = {
- 	.queue_setup = uvc_queue_setup,
- 	.buf_prepare = uvc_buffer_prepare,
-@@ -142,6 +165,8 @@ static struct vb2_ops uvc_queue_qops = {
- 	.buf_finish = uvc_buffer_finish,
- 	.wait_prepare = uvc_wait_prepare,
- 	.wait_finish = uvc_wait_finish,
-+	.start_streaming = uvc_start_streaming,
-+	.stop_streaming = uvc_stop_streaming,
- };
- 
- int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
-@@ -310,27 +335,15 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
-  */
- int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
- {
--	unsigned long flags;
- 	int ret;
- 
- 	mutex_lock(&queue->mutex);
--	if (enable) {
--		ret = vb2_streamon(&queue->queue, queue->queue.type);
--		if (ret < 0)
--			goto done;
- 
--		queue->buf_used = 0;
--	} else {
-+	if (enable)
-+		ret = vb2_streamon(&queue->queue, queue->queue.type);
-+	else
- 		ret = vb2_streamoff(&queue->queue, queue->queue.type);
--		if (ret < 0)
--			goto done;
--
--		spin_lock_irqsave(&queue->irqlock, flags);
--		INIT_LIST_HEAD(&queue->irqqueue);
--		spin_unlock_irqrestore(&queue->irqlock, flags);
--	}
- 
--done:
- 	mutex_unlock(&queue->mutex);
- 	return ret;
- }
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index e8bf4f1..4619fd6 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -531,7 +531,6 @@ static int uvc_v4l2_release(struct file *file)
- 
- 	/* Only free resources if this is a privileged handle. */
- 	if (uvc_has_privileges(handle)) {
--		uvc_video_enable(stream, 0);
- 		uvc_queue_enable(&stream->queue, 0);
- 		uvc_free_buffers(&stream->queue);
- 	}
-@@ -768,14 +767,6 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
- 
- 	mutex_lock(&stream->mutex);
- 	ret = uvc_queue_enable(&stream->queue, 1);
--	if (ret < 0)
--		goto done;
--
--	ret = uvc_video_enable(stream, 1);
--	if (ret < 0)
--		uvc_queue_enable(&stream->queue, 0);
--
--done:
- 	mutex_unlock(&stream->mutex);
- 
- 	return ret;
-@@ -794,7 +785,6 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
--	uvc_video_enable(stream, 0);
- 	uvc_queue_enable(&stream->queue, 0);
- 	mutex_unlock(&stream->mutex);
- 
--- 
-2.0.4
+   For the next stage of work, we have created a test branch that
+contains an alternative version of rcar_vin.c, based on
+v4l2-pci-skeleton.c [from the Documentation tree] and with device
+tree initialisation code transplanted back into it.
 
+   This presently creates device nodes happily, and if code from
+soc_camera.c is transplanted, we observe appropriate low-level
+interaction with hardware prompted by code in adv7604.c.
+
+   I have not yet progressed to seeing calls to rcar_vin_irq()
+succeed, however, and wondered if you could shed light onto the places
+I might have overlooked?
+
+Cheers,
+   Wills.
+   (William Towle; william.towle@codethink.co.uk)
