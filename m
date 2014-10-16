@@ -1,141 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56671 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753169AbaJGQgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 12:36:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vincent Palatin <vpalatin@chromium.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v5 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
-Date: Tue, 07 Oct 2014 19:36:20 +0300
-Message-ID: <3718548.sH2BZ4J8RZ@avalon>
-In-Reply-To: <1412629559-16624-1-git-send-email-vpalatin@chromium.org>
-References: <CAP_ceTz8BRQoFxkgb085_gOh29x8anvQNodAGMkgOukk02x29g@mail.gmail.com> <1412629559-16624-1-git-send-email-vpalatin@chromium.org>
+Received: from icp-osb-irony-out4.external.iinet.net.au ([203.59.1.220]:17378
+	"EHLO icp-osb-irony-out4.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750765AbaJPHNJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 03:13:09 -0400
+From: Rodney Baker <rodney.baker@iinet.net.au>
+To: Linux-Media <linux-media@vger.kernel.org>
+Reply-To: rodney.baker@iinet.net.au
+Subject: Kernel 3.17.0 broke xc4000-based DTV1800h
+Date: Thu, 16 Oct 2014 17:33:51 +1030
+Message-ID: <1637119.5DTscVEVRC@mako>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vincent,
+Since installing kernel 3.17.0-1.gc467423-desktop (on openSuSE 13.1) my 
+xc4000/zl10353/cx88 based DTV card has failed to initialise on boot.
 
-Thank you for the patch. Mauro has already merged this in his tree, it should 
-appear in v3.18-rc1.
+The following messages are from dmesg; 
 
-On Monday 06 October 2014 14:05:59 Vincent Palatin wrote:
-> Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
-> CT_PANTILT_RELATIVE_CONTROL terminal control request.
-> 
-> Tested by plugging a Logitech ConferenceCam C3000e USB camera
-> and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-> Verified that it can pan and tilt at the same time in both directions.
-> 
-> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
-> Reviewed-by: Pawel Osciak <posciak@chromium.org>
-> ---
-> Changes from v1/v2:
-> - rebased
-> Changes from v3:
-> - removed gerrit-id
-> Chnages from v4:
-> - switched "offset" to unsigned int
-> 
->  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
->  1 file changed, 55 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d2d1755 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
->  		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
->  		.index		= 12,
->  		.size		= 4,
-> -		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
-> -				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
-> -				| UVC_CTRL_FLAG_GET_DEF
-> +		.flags		= UVC_CTRL_FLAG_SET_CUR
-> +				| UVC_CTRL_FLAG_GET_RANGE
-> 
->  				| UVC_CTRL_FLAG_AUTO_UPDATE,
-> 
->  	},
->  	{
-> @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
-> uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
->  }
-> 
-> +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
-> +	__u8 query, const __u8 *data)
-> +{
-> +	unsigned int first = mapping->offset / 8;
-> +	__s8 rel = (__s8)data[first];
-> +
-> +	switch (query) {
-> +	case UVC_GET_CUR:
-> +		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
-> +						 : -data[first+1]);
-> +	case UVC_GET_MIN:
-> +		return -data[first+1];
-> +	case UVC_GET_MAX:
-> +	case UVC_GET_RES:
-> +	case UVC_GET_DEF:
-> +	default:
-> +		return data[first+1];
-> +	}
-> +}
-> +
-> +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
-> +	__s32 value, __u8 *data)
-> +{
-> +	unsigned int first = mapping->offset / 8;
-> +
-> +	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
-> +	data[first+1] = min_t(int, abs(value), 0xff);
-> +}
-> +
->  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
->  	{
->  		.id		= V4L2_CID_BRIGHTNESS,
-> @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
-> { .data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
->  	},
->  	{
-> +		.id		= V4L2_CID_PAN_SPEED,
-> +		.name		= "Pan (Speed)",
-> +		.entity		= UVC_GUID_UVC_CAMERA,
-> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +		.size		= 16,
-> +		.offset		= 0,
-> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-> +		.get		= uvc_ctrl_get_rel_speed,
-> +		.set		= uvc_ctrl_set_rel_speed,
-> +	},
-> +	{
-> +		.id		= V4L2_CID_TILT_SPEED,
-> +		.name		= "Tilt (Speed)",
-> +		.entity		= UVC_GUID_UVC_CAMERA,
-> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +		.size		= 16,
-> +		.offset		= 16,
-> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-> +		.get		= uvc_ctrl_get_rel_speed,
-> +		.set		= uvc_ctrl_set_rel_speed,
-> +	},
-> +	{
->  		.id		= V4L2_CID_PRIVACY,
->  		.name		= "Privacy",
->  		.entity		= UVC_GUID_UVC_CAMERA,
+[   78.468221] xc4000: I2C read failed
+[   80.074604] xc4000: I2C read failed
+[   80.074605] Unable to read tuner registers.
+[   82.622062] Selecting best matching firmware (7 bits differ) for type=(0), 
+id 000000200000b700:
+[   82.626375] i2c i2c-0: sendbytes: NAK bailout.
+[  148.063594] xc4000: I2C read failed
+[  149.669994] xc4000: I2C read failed
+[  149.669995] Unable to read tuner registers.
+[  149.670198] cx88[0]/0: registered device video1 [v4l2]
+[  149.670287] cx88[0]/0: registered device vbi0
+[  149.670338] cx88[0]/0: registered device radio0
+[  149.670340] cx88[0]/0: failed to create cx88 audio thread, err=-4
+[  149.670382] cx88[0]/2: cx2388x based DVB/ATSC card
+[  149.670384] cx8802_alloc_frontends() allocating 1 frontend(s)
+[  149.670515] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+[  151.305364] zl10353_read_register: readreg error (reg=127, ret==-6)
+[  151.305367] cx88[0]/2: frontend initialization failed
+[  151.305369] cx88[0]/2: dvb_register failed (err = -22)
+[  151.305370] cx88[0]/2: cx8802 probe failed, err = -22
+
+It worked with 3.16.3-1.gd2bbe7f-desktop on the same machine.
+
+Regards,
+Rodney.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+==============================================================
+Rodney Baker VK5ZTV
+rodney.baker@iinet.net.au
+==============================================================
