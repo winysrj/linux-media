@@ -1,72 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:34783 "EHLO smtp.gentoo.org"
+Received: from lists.s-osg.org ([54.187.51.154]:40922 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbaJAFUv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 01:20:51 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V2 13/13] cx231xx: scan all four existing i2c busses instead of the 3 masters
-Date: Wed,  1 Oct 2014 07:20:21 +0200
-Message-Id: <1412140821-16285-14-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
-References: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
+	id S1750989AbaJPOjR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 10:39:17 -0400
+Message-ID: <543FD892.6010209@osg.samsung.com>
+Date: Thu, 16 Oct 2014 08:39:14 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Takashi Iwai <tiwai@suse.de>
+CC: Lars-Peter Clausen <lars@metafoo.de>, m.chehab@samsung.com,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	hverkuil@xs4all.nl, ramakrmu@cisco.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, prabhakar.csengg@gmail.com,
+	tim.gardner@canonical.com, linux@eikelenboom.it,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de>
+In-Reply-To: <s5hy4sgumjo.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scanning itself just fails (as before this series) but now the correct busses are scanned.
+On 10/16/2014 08:16 AM, Takashi Iwai wrote:
+> At Thu, 16 Oct 2014 08:10:52 -0600,
+> Shuah Khan wrote:
+>>
+>> On 10/16/2014 08:01 AM, Takashi Iwai wrote:
+>>> At Thu, 16 Oct 2014 07:10:37 -0600,
+>>> Shuah Khan wrote:
+>>>>
+>>>> On 10/16/2014 06:00 AM, Lars-Peter Clausen wrote:
+>>>>> On 10/14/2014 04:58 PM, Shuah Khan wrote:
+>>>>> [...]
+>>>>>>       switch (cmd) {
+>>>>>>       case SNDRV_PCM_TRIGGER_START:
+>>>>>> +        err = media_get_audio_tkn(&subs->dev->dev);
+>>>>>> +        if (err == -EBUSY) {
+>>>>>> +            dev_info(&subs->dev->dev, "%s device is busy\n",
+>>>>>> +                    __func__);
+>>>>>
+>>>>> In my opinion this should not dev_info() as this is out of band error
+>>>>> signaling and also as the potential to spam the log. The userspace
+>>>>> application is already properly notified by the return code.
+>>>>>
+>>>>
+>>>> Yes it has the potential to flood the dmesg especially with alsa,
+>>>> I will remove the dev_info().
+>>>
+>>> Yes.  And, I think doing this in the trigger isn't the best.
+>>> Why not in open & close?
+>>
+>> My first cut of this change was in open and close. I saw pulseaudio
+>> application go into this loop trying to open the device. To avoid
+>> such problems, I went with trigger stat and stop. That made all the
+>> pulseaudio continues attempts to open problems go away.
+> 
+> But now starting the stream gives the error, and PA would loop it
+> again, no?
+> 
+> 
+>>> Also, is this token restriction needed only for PCM?  No mixer or
+>>> other controls?
+>>
+>> snd_pcm_ops are the only ones media drivers implement and use. So
+>> I don't think mixer is needed. If it is needed, it is not to hard
+>> to add for that case.
+> 
+> Well, then I wonder what resource does actually conflict with
+> usb-audio and media drivers at all...?
+> 
 
-V2: Changed to symbolic names where muxed adapters can be seen directly.
+audio for dvb/v4l apps gets disrupted when audio app starts. For
+example, dvb or v4l app tuned to a channel, and when an audio app
+starts. audio path needs protected to avoid conflicts between
+digital and analog applications as well.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-core.c | 6 ++++++
- drivers/media/usb/cx231xx/cx231xx-i2c.c  | 8 ++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+-- Shuah
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index c49022f..60dbbbb 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1303,6 +1303,12 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	cx231xx_i2c_mux_register(dev, 0);
- 	cx231xx_i2c_mux_register(dev, 1);
- 
-+	/* scan the real bus segments */
-+	cx231xx_do_i2c_scan(dev, I2C_0);
-+	cx231xx_do_i2c_scan(dev, I2C_1_MUX_1);
-+	cx231xx_do_i2c_scan(dev, I2C_2);
-+	cx231xx_do_i2c_scan(dev, I2C_1_MUX_3);
-+
- 	/* init hardware */
- 	/* Note : with out calling set power mode function,
- 	afe can not be set up correctly */
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index bb82e6d..0df50d3 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -492,6 +492,9 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
- 	int i, rc;
- 	struct i2c_client client;
- 
-+	if (!i2c_scan)
-+		return;
-+
- 	memset(&client, 0, sizeof(client));
- 	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
- 
-@@ -533,10 +536,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	i2c_add_adapter(&bus->i2c_adap);
- 
--	if (0 == bus->i2c_rc) {
--		if (i2c_scan)
--			cx231xx_do_i2c_scan(dev, bus->nr);
--	} else
-+	if (0 != bus->i2c_rc)
- 		cx231xx_warn("%s: i2c bus %d register FAILED\n",
- 			     dev->name, bus->nr);
- 
+
 -- 
-2.1.1
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
