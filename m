@@ -1,71 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:39585 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbaJTRRc (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:41174 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819AbaJPGNU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 13:17:32 -0400
-Received: by mail-vc0-f170.google.com with SMTP id hy10so3907855vcb.15
-        for <linux-media@vger.kernel.org>; Mon, 20 Oct 2014 10:17:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <54454199.3070702@infradead.org>
-References: <544475D5.6080903@infradead.org> <CAP_ceTxY945D6vuPDz3gPUXN-YwnXX5zG6=GpBuohCcd+YTb=g@mail.gmail.com>
- <54454199.3070702@infradead.org>
-From: Vincent Palatin <vpalatin@chromium.org>
-Date: Mon, 20 Oct 2014 10:17:11 -0700
-Message-ID: <CAP_ceTw++2LVPsiM4em7bCg1T8RbDNHdKyLLNELPv9zHRjb-Og@mail.gmail.com>
-Subject: Re: [PATCH] DocBook: fix media build error
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
+	Thu, 16 Oct 2014 02:13:20 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v2 2/3] media: soc_camera: rcar_vin: Add capture width check for NV16 format
+Date: Thu, 16 Oct 2014 15:12:47 +0900
+Message-Id: <1413439968-6349-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com>
+References: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 20, 2014 at 10:08 AM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 10/20/14 09:06, Vincent Palatin wrote:
->> On Sun, Oct 19, 2014 at 7:39 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
->>> From: Randy Dunlap <rdunlap@infradead.org>
->>>
->>> Fix media DocBook build errors by making the orderedlist balanced.
->>>
->>> DOC1/Documentation/DocBook/compat.xml:2576: parser error : Opening and ending tag mismatch: orderedlist line 2560 and section
->>> DOC1/Documentation/DocBook/compat.xml:2726: parser error : Premature end of data in tag section line 884
->>> DOC1/Documentation/DocBook/compat.xml:2726: parser error : chunk is not well balanced
->>>
->>> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
->>> Cc: Vincent Palatin <vpalatin@chromium.org>
->>> ---
->>>  Documentation/DocBook/media/v4l/compat.xml |    1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> --- lnx-318-rc1.orig/Documentation/DocBook/media/v4l/compat.xml
->>> +++ lnx-318-rc1/Documentation/DocBook/media/v4l/compat.xml
->>> @@ -2566,6 +2566,7 @@ fields changed from _s32 to _u32.
->>>           <para>Added compound control types and &VIDIOC-QUERY-EXT-CTRL;.
->>>           </para>
->>>          </listitem>
->>> +      </orderedlist>
->>>        <title>V4L2 in Linux 3.18</title>
->>>        <orderedlist>
->>>         <listitem>
->>
->> Compared to the original patch, it's actually also missing the
->>  </section>
->>
->> <section>
->> which were lost in the merge.
->>
->>
->
-> Would you please send a complete fix for it?
-> then Mauro can drop my patch.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Sure, I will send it in 5 minutes,
-the docs are currently rebuilding with the patch ...
+At the time of NV16 capture format, the user has to specify the
+capture output width of the multiple of 32 for H/W specification.
+At the time of using NV16 format by ioctl of VIDIOC_S_FMT,
+this patch adds align check and the error handling to forbid
+specification of the capture output width which is not a multiple of 32.
 
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
+
+v2 [Yoshihiro Kaneko]
+* use u32 instead of unsigned long
+
+ drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 34d5b80..ff5f80a 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -486,6 +486,7 @@ struct rcar_vin_priv {
+ 	bool				request_to_stop;
+ 	struct completion		capture_stop;
+ 	enum chip_id			chip;
++	bool				error_flag;
+ };
+ 
+ #define is_continuous_transfer(priv)	(priv->vb_count > MAX_BUFFER_NUM)
+@@ -645,7 +646,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	/* output format */
+ 	switch (icd->current_fmt->host_fmt->fourcc) {
+ 	case V4L2_PIX_FMT_NV16:
+-		iowrite32(ALIGN(cam->width * cam->height, 0x80),
++		iowrite32(ALIGN(ALIGN(cam->width, 0x20) * cam->height, 0x80),
+ 			  priv->base + VNUVAOF_REG);
+ 		dmr = VNDMR_DTMD_YCSEP;
+ 		output_is_yuv = true;
+@@ -974,6 +975,8 @@ static int rcar_vin_add_device(struct soc_camera_device *icd)
+ 	dev_dbg(icd->parent, "R-Car VIN driver attached to camera %d\n",
+ 		icd->devnum);
+ 
++	priv->error_flag = false;
++
+ 	return 0;
+ }
+ 
+@@ -991,6 +994,7 @@ static void rcar_vin_remove_device(struct soc_camera_device *icd)
+ 
+ 	priv->state = STOPPED;
+ 	priv->request_to_stop = false;
++	priv->error_flag = false;
+ 
+ 	/* make sure active buffer is cancelled */
+ 	spin_lock_irq(&priv->lock);
+@@ -1087,6 +1091,7 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+ 	unsigned char dsize = 0;
+ 	struct v4l2_rect *cam_subrect = &cam->subrect;
+ 	u32 value;
++	u32 imgstr;
+ 
+ 	dev_dbg(icd->parent, "Crop %ux%u@%u:%u\n",
+ 		icd->user_width, icd->user_height, cam->vin_left, cam->vin_top);
+@@ -1164,7 +1169,11 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+ 		break;
+ 	}
+ 
+-	iowrite32(ALIGN(cam->out_width, 0x10), priv->base + VNIS_REG);
++	if (icd->current_fmt->host_fmt->fourcc == V4L2_PIX_FMT_NV16)
++		imgstr = ALIGN(cam->out_width, 0x20);
++	else
++		imgstr = ALIGN(cam->out_width, 0x10);
++	iowrite32(imgstr, priv->base + VNIS_REG);
+ 
+ 	return 0;
+ }
+@@ -1606,6 +1615,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+ 		pixfmt, pix->width, pix->height);
+ 
++	/* At the time of NV16 capture format, the user has to specify the
++	   width of the multiple of 32 for H/W specification. */
++	if (priv->error_flag == false)
++		priv->error_flag = true;
++	else {
++		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
++			dev_err(icd->parent, "Specified width error in NV16 format.\n");
++			return -EINVAL;
++		}
++	}
++
+ 	switch (pix->field) {
+ 	default:
+ 		pix->field = V4L2_FIELD_NONE;
 -- 
-Vincent
+1.9.1
+
