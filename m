@@ -1,115 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2946 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbaJGCl5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 22:41:57 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s972fsuH018416
-	for <linux-media@vger.kernel.org>; Tue, 7 Oct 2014 04:41:55 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B8B672A0376
-	for <linux-media@vger.kernel.org>; Tue,  7 Oct 2014 04:41:51 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:54081 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbaJPGNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 02:13:21 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141007024151.B8B672A0376@tschai.lan>
-Date: Tue,  7 Oct 2014 04:41:51 +0200 (CEST)
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v2 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
+Date: Thu, 16 Oct 2014 15:12:48 +0900
+Message-Id: <1413439968-6349-4-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com>
+References: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Results of the daily build of media_tree:
+Up until now scaling has been forbidden for the NV16 capture format.
+This patch adds support for horizontal scaling-up for NV16. Vertical
+scaling-up for NV16 is forbidden by the H/W specification.
 
-date:		Tue Oct  7 04:00:16 CEST 2014
-git branch:	test
-git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.16-3.slh.3-amd64
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+v2 [Yoshihiro Kaneko]
+* Updated change log text from Simon Horman
+* Code-style fixes as suggested by Sergei Shtylyov
 
-Detailed results are available here:
+ drivers/media/platform/soc_camera/rcar_vin.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index ff5f80a..234cf86 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -646,7 +646,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	/* output format */
+ 	switch (icd->current_fmt->host_fmt->fourcc) {
+ 	case V4L2_PIX_FMT_NV16:
+-		iowrite32(ALIGN(ALIGN(cam->width, 0x20) * cam->height, 0x80),
++		iowrite32(ALIGN((cam->out_width * cam->out_height), 0x80),
+ 			  priv->base + VNUVAOF_REG);
+ 		dmr = VNDMR_DTMD_YCSEP;
+ 		output_is_yuv = true;
+@@ -1619,9 +1619,15 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	   width of the multiple of 32 for H/W specification. */
+ 	if (priv->error_flag == false)
+ 		priv->error_flag = true;
+-	else {
+-		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+-			dev_err(icd->parent, "Specified width error in NV16 format.\n");
++	else if (pixfmt == V4L2_PIX_FMT_NV16) {
++		if (pix->width & 0x1F) {
++			dev_err(icd->parent,
++				"Specified width error in NV16 format. Please specify the multiple of 32.\n");
++			return -EINVAL;
++		}
++		if (pix->height != cam->height) {
++			dev_err(icd->parent,
++				"Vertical scaling-up error in NV16 format. Please specify input height size.\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -1668,6 +1674,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB555X:
++	case V4L2_PIX_FMT_NV16: /* horizontal scaling-up only is supported */
+ 		can_scale = true;
+ 		break;
+ 	default:
+-- 
+1.9.1
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
