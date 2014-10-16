@@ -1,37 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from waverider.actrix.co.nz ([203.96.16.182]:33552 "EHLO
-	waverider.actrix.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294AbaJMSqt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Oct 2014 14:46:49 -0400
-From: Donald Allomes <donald.allomes@centralpho.org.nz>
-Subject: System Administrator
-Date: Mon, 13 Oct 2014 18:18:24 +0000
-Message-ID: <445F781B8D06A346BE970DFCB9853C01B9B51266@VMS37.compasshealth.local>
-References: <445F781B8D06A346BE970DFCB9853C01B9B500BE@VMS37.compasshealth.local>
-In-Reply-To: <445F781B8D06A346BE970DFCB9853C01B9B500BE@VMS37.compasshealth.local>
-Content-Language: en-NZ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from arrakis.dune.hu ([78.24.191.176]:39746 "EHLO arrakis.dune.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751433AbaJPJQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 05:16:59 -0400
+Message-ID: <543F8D07.4050807@openwrt.org>
+Date: Thu, 16 Oct 2014 11:16:55 +0200
+From: John Crispin <blogic@openwrt.org>
 MIME-Version: 1.0
-To: Undisclosed recipients:;
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] uvcvideo: add a new quirk UVC_QUIRK_SINGLE_ISO
+References: <1412966473-5407-1-git-send-email-blogic@openwrt.org> <12847942.ZB1FmjiI8c@avalon>
+In-Reply-To: <12847942.ZB1FmjiI8c@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your inbox has almost exceeded its storage limit. It will not be able to send and receive e-mails if exceeded it
-limit and your e-mail account will be deleted from our server. To avoid this problem, you need to update your
-mail box quota By clicking on the link below and filling your login information for the update.
+Hi Laurent,
 
-Update<http://dave-angeladawe.wix.com/txkusa>
+On 11/10/2014 14:03, Laurent Pinchart wrote:
+> Hi John,
+>
+> On Friday 10 October 2014 20:41:12 John Crispin wrote:
+>> The following patch adds the usb ids for the iPassion chip. This chip is
+>> found on D-Link DIR-930 IP cameras. For them to work this patch needs to be
+>> applied. I am almost certain that this is the incorrect fix. Could someone
+>> shed a bit of light on how i should really implement the fix ?
+> First of all, could you explain how the camera misbehaves without this patch 
+> set ?
 
-If we do not receive any reply from you within 24 hours your mailbox will be suspended.
+good question, i created this patch 2 years ago. normally people will
+install mjpeg-streamer on these units and that just gave black frames if
+i remember correctly. digging through the GPL drop i found this patch.
+i will need a couple of days to get my test unit back. once i have it
+here i will do some tests and the let you know the exact symptoms.
 
-Thank you.
-Help Desk Administrator.
-##################################################################################
-Statement of confidentiality: This e-mail message and any accompanying attachments
-may contain information that is private and subject to legal privilege. If you are
-not the intended recipient, do not use, disseminate, distribute or copy this 
-message or attachments. If you have received this message in error, please notify 
-the sender immediately and delete this message.
-##################################################################################
+    John
+
+>> Signed-off-by: John Crispin <blogic@openwrt.org>
+>> ---
+>>  drivers/media/usb/uvc/uvc_video.c |    2 ++
+>>  drivers/media/usb/uvc/uvcvideo.h  |    1 +
+>>  2 files changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_video.c
+>> b/drivers/media/usb/uvc/uvc_video.c index 9144a2f..61381fd 100644
+>> --- a/drivers/media/usb/uvc/uvc_video.c
+>> +++ b/drivers/media/usb/uvc/uvc_video.c
+>> @@ -1495,6 +1495,8 @@ static int uvc_init_video_isoc(struct uvc_streaming
+>> *stream, if (npackets == 0)
+>>  		return -ENOMEM;
+>>
+>> +	if (stream->dev->quirks & UVC_QUIRK_SINGLE_ISO)
+>> +		npackets = 1;
+>>  	size = npackets * psize;
+>>
+>>  	for (i = 0; i < UVC_URBS; ++i) {
+>> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+>> b/drivers/media/usb/uvc/uvcvideo.h index b1f69a6..b6df4f8 100644
+>> --- a/drivers/media/usb/uvc/uvcvideo.h
+>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+>> @@ -147,6 +147,7 @@
+>>  #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
+>>  #define UVC_QUIRK_PROBE_DEF		0x00000100
+>>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+>> +#define UVC_QUIRK_SINGLE_ISO		0x00000400
+>>
+>>  /* Format flags */
+>>  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
