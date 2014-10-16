@@ -1,284 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:65256 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbaJZIwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 04:52:25 -0400
-Received: by mail-la0-f49.google.com with SMTP id gf13so3224874lab.8
-        for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 01:52:23 -0700 (PDT)
-Date: Sun, 26 Oct 2014 10:52:16 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Nibble Max <nibble.max@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>,
-	Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH 1/1] dvb-usb-dvbsky: add s960ci dvb-s/s2 usb ci box
- support
-In-Reply-To: <201410201805442813374@gmail.com>
-Message-ID: <alpine.DEB.2.10.1410261043370.25919@dl160.lan>
-References: <201410201805442813374@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:40901 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752452AbaJPOK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 10:10:56 -0400
+Message-ID: <543FD1EC.5010206@osg.samsung.com>
+Date: Thu, 16 Oct 2014 08:10:52 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Takashi Iwai <tiwai@suse.de>
+CC: Lars-Peter Clausen <lars@metafoo.de>, m.chehab@samsung.com,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	hverkuil@xs4all.nl, ramakrmu@cisco.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, prabhakar.csengg@gmail.com,
+	tim.gardner@canonical.com, linux@eikelenboom.it,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de>
+In-Reply-To: <s5h38aow1ub.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
+On 10/16/2014 08:01 AM, Takashi Iwai wrote:
+> At Thu, 16 Oct 2014 07:10:37 -0600,
+> Shuah Khan wrote:
+>>
+>> On 10/16/2014 06:00 AM, Lars-Peter Clausen wrote:
+>>> On 10/14/2014 04:58 PM, Shuah Khan wrote:
+>>> [...]
+>>>>       switch (cmd) {
+>>>>       case SNDRV_PCM_TRIGGER_START:
+>>>> +        err = media_get_audio_tkn(&subs->dev->dev);
+>>>> +        if (err == -EBUSY) {
+>>>> +            dev_info(&subs->dev->dev, "%s device is busy\n",
+>>>> +                    __func__);
+>>>
+>>> In my opinion this should not dev_info() as this is out of band error
+>>> signaling and also as the potential to spam the log. The userspace
+>>> application is already properly notified by the return code.
+>>>
+>>
+>> Yes it has the potential to flood the dmesg especially with alsa,
+>> I will remove the dev_info().
+> 
+> Yes.  And, I think doing this in the trigger isn't the best.
+> Why not in open & close?
 
-On Mon, 20 Oct 2014, Nibble Max wrote:
+My first cut of this change was in open and close. I saw pulseaudio
+application go into this loop trying to open the device. To avoid
+such problems, I went with trigger stat and stop. That made all the
+pulseaudio continues attempts to open problems go away.
 
-> DVBSky s960ci dvb-s/s2 usb ci box:
-> 1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
-> 2>usb controller: CY7C86013A
-> 3>ci controller: CIMAX SP2 or its clone.
->
-> Signed-off-by: Nibble Max <nibble.max@gmail.com>
-> ---
-> drivers/media/usb/dvb-usb-v2/Kconfig  |   1 +
-> drivers/media/usb/dvb-usb-v2/dvbsky.c | 188 ++++++++++++++++++++++++++++++++++
-> 2 files changed, 189 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index 5b34323..7423033 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-> @@ -146,5 +146,6 @@ config DVB_USB_DVBSKY
-> 	depends on DVB_USB_V2
-> 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
-> 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_SP2 if MEDIA_SUBDRV_AUTOSELECT
-> 	help
-> 	  Say Y here to support the USB receivers from DVBSky.
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> index 34688c8..e3439f6 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> @@ -21,6 +21,7 @@
-> #include "dvb_usb.h"
-> #include "m88ds3103.h"
-> #include "m88ts2022.h"
-> +#include "sp2.h"
->
-> #define DVBSKY_MSG_DELAY	0/*2000*/
-> #define DVBSKY_BUF_LEN	64
-> @@ -33,6 +34,7 @@ struct dvbsky_state {
-> 	u8 obuf[DVBSKY_BUF_LEN];
-> 	u8 last_lock;
-> 	struct i2c_client *i2c_client_tuner;
-> +	struct i2c_client *i2c_client_ci;
->
-> 	/* fe hook functions*/
-> 	int (*fe_set_voltage)(struct dvb_frontend *fe,
-> @@ -362,6 +364,157 @@ fail_attach:
-> 	return ret;
-> }
->
-> +static int dvbsky_usb_ci_set_voltage(struct dvb_frontend *fe,
-> +	fe_sec_voltage_t voltage)
-> +{
-> +	struct dvb_usb_device *d = fe_to_d(fe);
-> +	struct dvbsky_state *state = d_to_priv(d);
-> +	u8 value;
-> +
-> +	if (voltage == SEC_VOLTAGE_OFF)
-> +		value = 0;
-> +	else
-> +		value = 1;
-> +	dvbsky_gpio_ctrl(d, 0x00, value);
-> +
-> +	return state->fe_set_voltage(fe, voltage);
-> +}
-> +
-> +static int dvbsky_ci_ctrl(void *priv, u8 read, int addr,
-> +					u8 data, int *mem)
-> +{
-> +	struct dvb_usb_device *d = priv;
-> +	int ret = 0;
-> +	u8 command[4], respond[2], command_size, respond_size;
-> +
-> +	command[1] = (u8)((addr >> 8) & 0xff); /*high part of address*/
-> +	command[2] = (u8)(addr & 0xff); /*low part of address*/
-> +	if (read) {
-> +		command[0] = 0x71;
-> +		command_size = 3;
-> +		respond_size = 2;
-> +	} else {
-> +		command[0] = 0x70;
-> +		command[3] = data;
-> +		command_size = 4;
-> +		respond_size = 1;
-> +	}
-> +	ret = dvbsky_usb_generic_rw(d, command, command_size,
-> +			respond, respond_size);
-> +	if (ret)
-> +		goto err;
-> +	if (read)
-> +		*mem = respond[1];
-> +	return ret;
-> +err:
-> +	dev_err(&d->udev->dev, "ci control failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
-> +static const struct m88ds3103_config dvbsky_s960c_m88ds3103_config = {
-> +	.i2c_addr = 0x68,
-> +	.clock = 27000000,
-> +	.i2c_wr_max = 33,
-> +	.clock_out = 0,
-> +	.ts_mode = M88DS3103_TS_CI,
-> +	.ts_clk = 10000,
-> +	.ts_clk_pol = 1,
-> +	.agc = 0x99,
-> +	.lnb_hv_pol = 0,
-> +	.lnb_en_pol = 1,
-> +};
-> +
-> +static int dvbsky_s960c_attach(struct dvb_usb_adapter *adap)
-> +{
-> +	struct dvbsky_state *state = adap_to_priv(adap);
-> +	struct dvb_usb_device *d = adap_to_d(adap);
-> +	int ret = 0;
-> +	/* demod I2C adapter */
-> +	struct i2c_adapter *i2c_adapter;
-> +	struct i2c_client *client_tuner, *client_ci;
-> +	struct i2c_board_info info;
-> +	struct sp2_config sp2_config;
-> +	struct m88ts2022_config m88ts2022_config = {
-> +			.clock = 27000000,
-> +		};
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +
-> +	/* attach demod */
-> +	adap->fe[0] = dvb_attach(m88ds3103_attach,
-> +			&dvbsky_s960c_m88ds3103_config,
-> +			&d->i2c_adap,
-> +			&i2c_adapter);
-> +	if (!adap->fe[0]) {
-> +		dev_err(&d->udev->dev, "dvbsky_s960ci_attach fail.\n");
-> +		ret = -ENODEV;
-> +		goto fail_attach;
-> +	}
-> +
-> +	/* attach tuner */
-> +	m88ts2022_config.fe = adap->fe[0];
-> +	strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
-> +	info.addr = 0x60;
-> +	info.platform_data = &m88ts2022_config;
-> +	request_module("m88ts2022");
-> +	client_tuner = i2c_new_device(i2c_adapter, &info);
-> +	if (client_tuner == NULL || client_tuner->dev.driver == NULL) {
-> +		ret = -ENODEV;
-> +		goto fail_tuner_device;
-> +	}
-> +
-> +	if (!try_module_get(client_tuner->dev.driver->owner)) {
-> +		ret = -ENODEV;
-> +		goto fail_tuner_module;
-> +	}
-> +
-> +	/* attach ci controller */
-> +	memset(&sp2_config, 0, sizeof(sp2_config));
-> +	sp2_config.dvb_adap = &adap->dvb_adap;
-> +	sp2_config.priv = d;
-> +	sp2_config.ci_control = dvbsky_ci_ctrl;
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, "sp2", I2C_NAME_SIZE);
-> +	info.addr = 0x40;
-> +	info.platform_data = &sp2_config;
-> +	request_module("sp2");
-> +	client_ci = i2c_new_device(i2c_adapter, &info);
-> +	if (client_ci == NULL || client_ci->dev.driver == NULL) {
-> +		ret = -ENODEV;
-> +		goto fail_ci_device;
-> +	}
-> +
-> +	if (!try_module_get(client_ci->dev.driver->owner)) {
-> +		ret = -ENODEV;
-> +		goto fail_ci_module;
-> +	}
-> +
-> +	/* delegate signal strength measurement to tuner */
-> +	adap->fe[0]->ops.read_signal_strength =
-> +			adap->fe[0]->ops.tuner_ops.get_rf_strength;
-> +
-> +	/* hook fe: need to resync the slave fifo when signal locks. */
-> +	state->fe_read_status = adap->fe[0]->ops.read_status;
-> +	adap->fe[0]->ops.read_status = dvbsky_usb_read_status;
-> +
-> +	/* hook fe: LNB off/on is control by Cypress usb chip. */
-> +	state->fe_set_voltage = adap->fe[0]->ops.set_voltage;
-> +	adap->fe[0]->ops.set_voltage = dvbsky_usb_ci_set_voltage;
-> +
-> +	state->i2c_client_tuner = client_tuner;
-> +	state->i2c_client_ci = client_ci;
-> +	return ret;
-> +fail_ci_module:
-> +	i2c_unregister_device(client_ci);
-> +fail_ci_device:
-> +	module_put(client_tuner->dev.driver->owner);
-> +fail_tuner_module:
-> +	i2c_unregister_device(client_tuner);
-> +fail_tuner_device:
-> +	dvb_frontend_detach(adap->fe[0]);
-> +fail_attach:
-> +	return ret;
-> +}
-> +
-> static int dvbsky_identify_state(struct dvb_usb_device *d, const char **name)
-> {
-> 	dvbsky_gpio_ctrl(d, 0x04, 1);
-> @@ -404,6 +557,12 @@ static void dvbsky_exit(struct dvb_usb_device *d)
-> 		module_put(client->dev.driver->owner);
-> 		i2c_unregister_device(client);
-> 	}
-> +	client = state->i2c_client_ci;
-> +	/* remove I2C ci */
-> +	if (client) {
-> +		module_put(client->dev.driver->owner);
-> +		i2c_unregister_device(client);
-> +	}
-> }
->
-> /* DVB USB Driver stuff */
-> @@ -434,9 +593,38 @@ static struct dvb_usb_device_properties dvbsky_s960_props = {
-> 	}
-> };
->
-> +static struct dvb_usb_device_properties dvbsky_s960c_props = {
-> +	.driver_name = KBUILD_MODNAME,
-> +	.owner = THIS_MODULE,
-> +	.adapter_nr = adapter_nr,
-> +	.size_of_priv = sizeof(struct dvbsky_state),
-> +
-> +	.generic_bulk_ctrl_endpoint = 0x01,
-> +	.generic_bulk_ctrl_endpoint_response = 0x81,
-> +	.generic_bulk_ctrl_delay = DVBSKY_MSG_DELAY,
-> +
-> +	.i2c_algo         = &dvbsky_i2c_algo,
-> +	.frontend_attach  = dvbsky_s960c_attach,
-> +	.init             = dvbsky_init,
-> +	.get_rc_config    = dvbsky_get_rc_config,
-> +	.streaming_ctrl   = dvbsky_streaming_ctrl,
-> +	.identify_state	  = dvbsky_identify_state,
-> +	.exit             = dvbsky_exit,
-> +	.read_mac_address = dvbsky_read_mac_addr,
-> +
-> +	.num_adapters = 1,
-> +	.adapter = {
-> +		{
-> +			.stream = DVB_USB_STREAM_BULK(0x82, 8, 4096),
-> +		}
-> +	}
-> +};
-> +
-> static const struct usb_device_id dvbsky_id_table[] = {
-> 	{ DVB_USB_DEVICE(0x0572, 0x6831,
-> 		&dvbsky_s960_props, "DVBSky S960/S860", RC_MAP_DVBSKY) },
-> +	{ DVB_USB_DEVICE(0x0572, 0x960c,
-> +		&dvbsky_s960c_props, "DVBSky S960CI", RC_MAP_DVBSKY) },
-> 	{ }
-> };
-> MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
->
-> -- 
-> 1.9.1
->
->
+> 
+> Also, is this token restriction needed only for PCM?  No mixer or
+> other controls?
+
+snd_pcm_ops are the only ones media drivers implement and use. So
+I don't think mixer is needed. If it is needed, it is not to hard
+to add for that case.
+
+thanks,
+-- Shuah
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
