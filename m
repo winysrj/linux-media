@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37789 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbaJQIA4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 04:00:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add r8a7794, r8a7793 device support
-Date: Fri, 17 Oct 2014 11:01:07 +0300
-Message-ID: <2001400.nVOdqiCF3c@avalon>
-In-Reply-To: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
-References: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
+Received: from mout.gmx.net ([212.227.17.21]:51588 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751491AbaJPTlN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 15:41:13 -0400
+Date: Thu, 16 Oct 2014 21:40:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Vinod Koul <vinod.koul@intel.com>
+cc: dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 03/12] [media] V4L2: mx3_camer: use dmaengine_pause()
+ API
+In-Reply-To: <1413042040-28222-3-git-send-email-vinod.koul@intel.com>
+Message-ID: <Pine.LNX.4.64.1410162140390.16927@axis700.grange>
+References: <1413041973-28146-1-git-send-email-vinod.koul@intel.com>
+ <1413042040-28222-3-git-send-email-vinod.koul@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kaneko-san,
+On Sat, 11 Oct 2014, Vinod Koul wrote:
 
-Thank you for the patch.
-
-Could you please also update 
-Documentation/devicetree/bindings/media/rcar_vin.txt with the new compatible 
-strings ?
-
-On Friday 17 October 2014 16:07:39 Yoshihiro Kaneko wrote:
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> The drivers should use dmaengine_pause() API instead of
+> accessing the device_control which will be deprecated soon
 > 
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> Acked-by: Simon Horman <horms+renesas@verge.net.au>
-> 
+> Signed-off-by: Vinod Koul <vinod.koul@intel.com>
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
+
 > ---
+>  drivers/media/platform/soc_camera/mx3_camera.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
 > 
-> This patch is against master branch of linuxtv.org/media_tree.git.
+> diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+> index 83315df..7696a87 100644
+> --- a/drivers/media/platform/soc_camera/mx3_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx3_camera.c
+> @@ -415,10 +415,8 @@ static void mx3_stop_streaming(struct vb2_queue *q)
+>  	struct mx3_camera_buffer *buf, *tmp;
+>  	unsigned long flags;
+>  
+> -	if (ichan) {
+> -		struct dma_chan *chan = &ichan->dma_chan;
+> -		chan->device->device_control(chan, DMA_PAUSE, 0);
+> -	}
+> +	if (ichan)
+> +		dmaengine_pause(&ichan->dma_chan);
+>  
+>  	spin_lock_irqsave(&mx3_cam->lock, flags);
+>  
+> -- 
+> 1.7.0.4
 > 
-> v2 [Yoshihiro Kaneko]
-> * Squashed r8a7793 and r8a7794 patches
-> 
->  drivers/media/platform/soc_camera/rcar_vin.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
-> b/drivers/media/platform/soc_camera/rcar_vin.c index 234cf86..4acae8f
-> 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1881,6 +1881,8 @@ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
->  #endif
-> 
->  static struct platform_device_id rcar_vin_id_table[] = {
-> +	{ "r8a7794-vin",  RCAR_GEN2 },
-> +	{ "r8a7793-vin",  RCAR_GEN2 },
->  	{ "r8a7791-vin",  RCAR_GEN2 },
->  	{ "r8a7790-vin",  RCAR_GEN2 },
->  	{ "r8a7779-vin",  RCAR_H1 },
-
--- 
-Regards,
-
-Laurent Pinchart
-
