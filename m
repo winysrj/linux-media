@@ -1,94 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f180.google.com ([209.85.220.180]:46103 "EHLO
-	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437AbaJCUEu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Oct 2014 16:04:50 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:60472 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751528AbaJPFYZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Oct 2014 01:24:25 -0400
+Date: Thu, 16 Oct 2014 07:24:20 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add YUYV capture format
+ support
+Message-ID: <20141016052419.GH1265@verge.net.au>
+References: <1413267878-8222-1-git-send-email-ykaneko0929@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20141003150544.435e323f@recife.lan>
-References: <20141003150544.435e323f@recife.lan>
-Date: Fri, 3 Oct 2014 13:04:48 -0700
-Message-ID: <CA+55aFz+CRAP7UeuEpiOLJLBjZKLx_7qM0Tw=qG1RpZ=kXhAng@mail.gmail.com>
-Subject: Re: [GIT PULL for v3.17] si2165 firmware changes
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1413267878-8222-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yeah, this is pure crap. It doesn't even compile.
+[CC Mauro Carvalho Chehab]
 
-  drivers/media/dvb-frontends/si2165.c:1063:17: error: expected ‘,’ or
-‘;’ before ‘SI2165_FIRMWARE’
-   MODULE_FIRMWARE(SI2165_FIRMWARE);
+On Tue, Oct 14, 2014 at 03:24:38PM +0900, Yoshihiro Kaneko wrote:
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+> 
+> This patch is against master branch of linuxtv.org/media_tree.git.
+> 
+>  drivers/media/platform/soc_camera/rcar_vin.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 
-because it should presumably say "SI2165_FIRMWARE_REV_D" now.
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 
-Why the f*ck do you send me totally untested crap?
+If the series needs reposting to a different CC list -
+e.g. including Mauro - please let Kaneko-san or myself know.
 
-                 Linus
-
-On Fri, Oct 3, 2014 at 11:05 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Hi Linus,
->
-> Please pull from:
->   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
->
-> For some changes at the si2165 firmware name and the removal of an extra
-> unneeded header added artificially via the script that extracts it from
-> the original driver provided by the manufacturer.
->
-> The si2165 is a new driver that was added for v3.17. There are two issues
-> with the current firmware format:
->
-> - The firmware only covers one specific revision of the chipset
->   (Rev. D). We'll be adding support for another revision for v3.18, so
->   it would be better to rename the firmware file to reflect the revision
->   on its name:
->
->         -#define SI2165_FIRMWARE "dvb-demod-si2165.fw"
->         +#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-d.fw"
->
-> - Instead of containing a single blob with the firmware, the file
->   also contains some meta-data that could be determined on some other way
->   directly by the driver.
->
-> The script that gets the firmware from the Internet was also updated
-> accordingly to not add the extra header.
->
-> Thanks!
-> Mauro
->
->
->
-> The following changes since commit 90a5dbef1a66e9f55b76ccb83c0ef27c0bd87c27:
->
->   Revert "[media] media: em28xx - remove reset_resume interface" (2014-09-28 22:25:24 -0300)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
->
-> for you to fetch changes up to 3173fbdce9e41fc4fabe0b3dedd99c615f47dbdd:
->
->   [media] [V2,2/2] si2165: do load firmware without extra header (2014-10-02 18:18:52 -0300)
->
-> ----------------------------------------------------------------
-> topic/si2165 fixes for v3.17-rc8
->
-> ----------------------------------------------------------------
-> Matthias Schwarzott (2):
->       [media] [V2, 1/2] get_dvb_firmware: si2165: drop the extra header from the firmware
->       [media] [V2,2/2] si2165: do load firmware without extra header
->
->  Documentation/dvb/get_dvb_firmware        |  20 ++----
->  drivers/media/dvb-frontends/Kconfig       |   1 +
->  drivers/media/dvb-frontends/si2165.c      | 107 ++++++++++++++++++------------
->  drivers/media/dvb-frontends/si2165_priv.h |   2 +-
->  4 files changed, 71 insertions(+), 59 deletions(-)
->
->
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 7eb4f1e..61c36b0 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -889,6 +889,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+>  		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_C,
+>  	},
+>  	{
+> +		.fourcc			= V4L2_PIX_FMT_YUYV,
+> +		.name			= "YUYV",
+> +		.bits_per_sample	= 16,
+> +		.packing		= SOC_MBUS_PACKING_NONE,
+> +		.order			= SOC_MBUS_ORDER_LE,
+> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
+> +	},
+> +	{
+>  		.fourcc			= V4L2_PIX_FMT_UYVY,
+>  		.name			= "UYVY",
+>  		.bits_per_sample	= 16,
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
