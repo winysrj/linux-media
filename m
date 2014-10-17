@@ -1,37 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:44657 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755416AbaJ1JPl (ORCPT
+Received: from mail-yh0-f42.google.com ([209.85.213.42]:41856 "EHLO
+	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158AbaJQWeP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 05:15:41 -0400
-Received: by mail-qc0-f179.google.com with SMTP id o8so145455qcw.10
-        for <linux-media@vger.kernel.org>; Tue, 28 Oct 2014 02:15:40 -0700 (PDT)
+	Fri, 17 Oct 2014 18:34:15 -0400
+Received: by mail-yh0-f42.google.com with SMTP id t59so773666yho.15
+        for <linux-media@vger.kernel.org>; Fri, 17 Oct 2014 15:34:15 -0700 (PDT)
 MIME-Version: 1.0
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 28 Oct 2014 10:15:19 +0100
-Message-ID: <CAPybu_2SNomez4K+QOdnhwyMPJ5f6n08=n-cUuM9qTg+624kNQ@mail.gmail.com>
-Subject: Hardware for testing Dead Pixel API
-To: linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
+In-Reply-To: <54418EC5.4060408@riseup.net>
+References: <5440362F.5040306@riseup.net>
+	<CALzAhNW7szuUJK-as48dTHE6Acx_7Ka195MXKdk-V8AjRjfauA@mail.gmail.com>
+	<5440C555.2040308@riseup.net>
+	<CALzAhNXae0yz4xmUTHAApDrU6u5DdwDc59Xu7OG_CA6y83ubtA@mail.gmail.com>
+	<54418EC5.4060408@riseup.net>
+Date: Fri, 17 Oct 2014 18:34:14 -0400
+Message-ID: <CALzAhNVs2xzO2zeOehudd88AigD6kysbkgLrN0VHeyFtjv3ssg@mail.gmail.com>
+Subject: Re: GrabBee-HD
+From: Steven Toth <stoth@kernellabs.com>
+To: Dave Kimble <dave.kimble@riseup.net>
+Cc: Linux-Media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+> So I think this is going to be a very poor toy.
 
-As we discussed in the mini-summit I am interested in upstreaming an
-API for Dead Pixels.
+Its the kind of thing I usually like to throw into my collection for
+the long winter nights. If you can give me a url that I can purchase
+this from then I may pick a unit for future tweakery.
 
-Since it is not viable to push my camera code, I would like to add it
-to an already supported camera.
-
-On the summit somebody mention a board that also has hardware support
-for Dead Pixels, but the driver did not support it. If my memory is
-right it was a beagle board plus a sensor board.
-
-Could somebody point me to the right hardware to buy ?
-
-Thanks!
+- Steve
 
 -- 
-Ricardo Ribalda
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
