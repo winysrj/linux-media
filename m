@@ -1,169 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43236 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932666AbaJVXhq (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3479 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448AbaJQClR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 19:37:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	wsa@the-dreams.de, lars@metafoo.de
-Subject: Re: [PATCH 1/2] i2c: Add generic support passing secondary devices addresses
-Date: Thu, 23 Oct 2014 02:37:41 +0300
-Message-ID: <1923603.aWjhqbNgon@avalon>
-In-Reply-To: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com>
-References: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 16 Oct 2014 22:41:17 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9H2fCHx060271
+	for <linux-media@vger.kernel.org>; Fri, 17 Oct 2014 04:41:15 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BFCBE2A037E
+	for <linux-media@vger.kernel.org>; Fri, 17 Oct 2014 04:41:07 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141017024107.BFCBE2A037E@tschai.lan>
+Date: Fri, 17 Oct 2014 04:41:07 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Wednesday 22 October 2014 17:30:47 Jean-Michel Hautbois wrote:
-> Some I2C devices have multiple addresses assigned, for example each address
-> corresponding to a different internal register map page of the device.
-> So far drivers which need support for this have handled this with a driver
-> specific and non-generic implementation, e.g. passing the additional address
-> via platform data.
-> 
-> This patch provides a new helper function called i2c_new_secondary_device()
-> which is intended to provide a generic way to get the secondary address
-> as well as instantiate a struct i2c_client for the secondary address.
-> 
-> The function expects a pointer to the primary i2c_client, a name
-> for the secondary address and an optional default address. The name is used
-> as a handle to specify which secondary address to get.
-> 
-> The default address is used as a fallback in case no secondary address
-> was explicitly specified. In case no secondary address and no default
-> address were specified the function returns NULL.
-> 
-> For now the function only supports look-up of the secondary address
-> from devicetree, but it can be extended in the future
-> to for example support board files and/or ACPI.
+date:		Fri Oct 17 04:00:18 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
-As this is core code I believe the DT bindings should be documented somewhere 
-in Documentation/devicetree/bindings/i2c/.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> ---
->  drivers/i2c/i2c-core.c | 40 ++++++++++++++++++++++++++++++++++++++++
->  include/linux/i2c.h    |  8 ++++++++
->  2 files changed, 48 insertions(+)
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index 2f90ac6..fd3b07c 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -1166,6 +1166,46 @@ struct i2c_client *i2c_new_dummy(struct i2c_adapter
-> *adapter, u16 address) }
->  EXPORT_SYMBOL_GPL(i2c_new_dummy);
-> 
-> +/**
-> + * i2c_new_secondary_device - Helper to get the instantiated secondary
-> address
+Detailed results are available here:
 
-It does more than that, it also creates the device.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> + * @client: Handle to the primary client
-> + * @name: Handle to specify which secondary address to get
-> + * @default_addr: Used as a fallback if no secondary address was specified
-> + * Context: can sleep
-> + *
-> + * This returns an I2C client bound to the "dummy" driver based on DT
-> parsing.
+Full logs are available here:
 
-Could you elaborate on that ? I would explain that the address is retrieved 
-from the firmware based on the name, and that default_addr is used in case the 
-firmware doesn't provide any information.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-> + *
-> + * This returns the new i2c client, which should be saved for later use
-> with
-> + * i2c_unregister_device(); or NULL to indicate an error.
-> + */
-> +struct i2c_client *i2c_new_secondary_device(struct i2c_client *client,
-> +						const char *name,
-> +						u16 default_addr)
-> +{
-> +	int i;
-> +	u32 addr;
-> +	struct device_node *np;
-> +
-> +	np = client->dev.of_node;
-> +
-> +	if (np) {
-> +		i = of_property_match_string(np, "reg-names", name);
-> +		if (i >= 0)
-> +			of_property_read_u32_index(np, "reg", i, &addr);
+The Media Infrastructure API from this daily build is here:
 
-This call could fail in which case addr will be uninitialized.
-
-> +		else if (default_addr != 0)
-> +			addr = default_addr;
-> +		else
-> +			addr = NULL;
-
-addr isn't a pointer. I'm surprised the compiler hasn't warned you.
-
-> +	} else {
-> +		addr = default_addr;
-> +	}
-
-The whole logic can be simplified to
-
-	struct device_node *np = client->dev.of_node;
-	u32 addr = default_addr;
-	int i;
-
-	if (np) {
-		i = of_property_match_string(np, "reg-names", name);
-		if (i >= 0)
-			of_property_read_u32_index(np, "reg", i, &addr);
-	}
-
-
-> +
-> +	dev_dbg(&client->adapter->dev, "Address for %s : 0x%x\n", name, addr);
-> +	return i2c_new_dummy(client->adapter, addr);
-> +}
-> +EXPORT_SYMBOL_GPL(i2c_new_secondary_device);
-> +
-> +
->  /*
-> -------------------------------------------------------------------------
-> */
-> 
->  /* I2C bus adapters -- one roots each I2C or SMBUS segment */
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index b556e0a..8629287 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -322,6 +322,14 @@ extern int i2c_probe_func_quick_read(struct i2c_adapter
-> *, unsigned short addr); extern struct i2c_client *
->  i2c_new_dummy(struct i2c_adapter *adap, u16 address);
-> 
-> +/* Helper function providing a generic way to get the secondary address
-> + * as well as a client handle to this extra address.
-> + */
-
-The function is already documented in i2c-core.c, I would ditch this comment.
-
-> +extern struct i2c_client *
-> +i2c_new_secondary_device(struct i2c_client *client,
-> +				const char *name,
-> +				u16 default_addr);
-> +
->  extern void i2c_unregister_device(struct i2c_client *);
->  #endif /* I2C */
-
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
