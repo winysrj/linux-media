@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:60472 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751528AbaJPFYZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33479 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751846AbaJQO7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 01:24:25 -0400
-Date: Thu, 16 Oct 2014 07:24:20 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add YUYV capture format
- support
-Message-ID: <20141016052419.GH1265@verge.net.au>
-References: <1413267878-8222-1-git-send-email-ykaneko0929@gmail.com>
+	Fri, 17 Oct 2014 10:59:18 -0400
+Message-ID: <54412EC8.1080001@iki.fi>
+Date: Fri, 17 Oct 2014 17:59:20 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1413267878-8222-1-git-send-email-ykaneko0929@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: [RFC PATCH 09/11] videodev2.h: add v4l2_ctrl_selection
+ compound control type.
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1411310909-32825-10-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[CC Mauro Carvalho Chehab]
+Hi Hans,
 
-On Tue, Oct 14, 2014 at 03:24:38PM +0900, Yoshihiro Kaneko wrote:
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+(Cc Ricardo.)
+
+Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> This will be used by a new selection control.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
+>  include/media/v4l2-ctrls.h     | 2 ++
+>  include/uapi/linux/videodev2.h | 8 ++++++++
+>  2 files changed, 10 insertions(+)
 > 
-> This patch is against master branch of linuxtv.org/media_tree.git.
-> 
->  drivers/media/platform/soc_camera/rcar_vin.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 3005d88..c2fd050 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -46,6 +46,7 @@ struct poll_table_struct;
+>   * @p_u16:	Pointer to a 16-bit unsigned value.
+>   * @p_u32:	Pointer to a 32-bit unsigned value.
+>   * @p_char:	Pointer to a string.
+> + * @p_sel:	Pointer to a struct v4l2_ctrl_selection.
+>   * @p:		Pointer to a compound value.
+>   */
+>  union v4l2_ctrl_ptr {
+> @@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
+>  	u16 *p_u16;
+>  	u32 *p_u32;
+>  	char *p_char;
+> +	struct v4l2_ctrl_selection *p_sel;
+>  	void *p;
+>  };
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+In order to be usable on sub-devices, pad information should be added.
+That results in having a pad per rectangle, which probably doesn't make
+sense. Also, other controls may benefit from being pad related.
 
-If the series needs reposting to a different CC list -
-e.g. including Mauro - please let Kaneko-san or myself know.
+What would you think of including the pad information in struct
+v4l2_ext_control? That should be in a different patch. Would a flags
+field be needed to tell whether the pad field is valid? 16 bits should
+be good for both, but we anyway had just a single reserved field.
 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 7eb4f1e..61c36b0 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -889,6 +889,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
->  		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_C,
->  	},
->  	{
-> +		.fourcc			= V4L2_PIX_FMT_YUYV,
-> +		.name			= "YUYV",
-> +		.bits_per_sample	= 16,
-> +		.packing		= SOC_MBUS_PACKING_NONE,
-> +		.order			= SOC_MBUS_ORDER_LE,
-> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
-> +	},
-> +	{
->  		.fourcc			= V4L2_PIX_FMT_UYVY,
->  		.name			= "UYVY",
->  		.bits_per_sample	= 16,
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+This would leave you with essentially a rectangle control, which you
+still might want to call (or not) a selection control.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
+
