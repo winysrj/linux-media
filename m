@@ -1,43 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34671 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbaJVKD4 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37789 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750851AbaJQIA4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 06:03:56 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 5/5] [media] vivid: enable VIDIOC_EXPBUF
-Date: Wed, 22 Oct 2014 12:03:41 +0200
-Message-Id: <1413972221-13669-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 17 Oct 2014 04:00:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add r8a7794, r8a7793 device support
+Date: Fri, 17 Oct 2014 11:01:07 +0300
+Message-ID: <2001400.nVOdqiCF3c@avalon>
+In-Reply-To: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
+References: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instances created with allocators == 1 use videobuf2-dma-contig, and are
-able to export DMA buffers via VIDIOC_EXPBUF.
+Hi Kaneko-san,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/vivid/vivid-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 4c4fc3d..695286b 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -596,7 +596,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
--/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_streamon		= vb2_ioctl_streamon,
- 	.vidioc_streamoff		= vb2_ioctl_streamoff,
- 
+Could you please also update 
+Documentation/devicetree/bindings/media/rcar_vin.txt with the new compatible 
+strings ?
+
+On Friday 17 October 2014 16:07:39 Yoshihiro Kaneko wrote:
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> Acked-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> ---
+> 
+> This patch is against master branch of linuxtv.org/media_tree.git.
+> 
+> v2 [Yoshihiro Kaneko]
+> * Squashed r8a7793 and r8a7794 patches
+> 
+>  drivers/media/platform/soc_camera/rcar_vin.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+> b/drivers/media/platform/soc_camera/rcar_vin.c index 234cf86..4acae8f
+> 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -1881,6 +1881,8 @@ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+>  #endif
+> 
+>  static struct platform_device_id rcar_vin_id_table[] = {
+> +	{ "r8a7794-vin",  RCAR_GEN2 },
+> +	{ "r8a7793-vin",  RCAR_GEN2 },
+>  	{ "r8a7791-vin",  RCAR_GEN2 },
+>  	{ "r8a7790-vin",  RCAR_GEN2 },
+>  	{ "r8a7779-vin",  RCAR_H1 },
+
 -- 
-2.1.1
+Regards,
+
+Laurent Pinchart
 
