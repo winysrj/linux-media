@@ -1,35 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:44023 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161177AbaJ3UxA (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:41623 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbaJQMiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:53:00 -0400
-Received: by mail-la0-f43.google.com with SMTP id ge10so5199940lab.30
-        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 13:52:59 -0700 (PDT)
-Date: Thu, 30 Oct 2014 22:52:52 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Olli Salonen <olli.salonen@iki.fi>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: add support for TechnoTrend CT2-4500 CI
-In-Reply-To: <1414702107-24963-1-git-send-email-olli.salonen@iki.fi>
-Message-ID: <alpine.DEB.2.10.1410302249490.25005@dl160.lan>
-References: <1414702107-24963-1-git-send-email-olli.salonen@iki.fi>
+	Fri, 17 Oct 2014 08:38:54 -0400
+Date: Fri, 17 Oct 2014 14:38:41 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add r8a7794, r8a7793
+ device support
+Message-ID: <20141017123841.GA20290@verge.net.au>
+References: <1413529659-7752-1-git-send-email-ykaneko0929@gmail.com>
+ <2001400.nVOdqiCF3c@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2001400.nVOdqiCF3c@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Oct 2014, Olli Salonen wrote:
+On Fri, Oct 17, 2014 at 11:01:07AM +0300, Laurent Pinchart wrote:
+> Hi Kaneko-san,
+> 
+> Thank you for the patch.
+> 
+> Could you please also update 
+> Documentation/devicetree/bindings/media/rcar_vin.txt with the new compatible 
+> strings ?
 
-> TechnoTrend CT2-4500 CI is a PCIe device with DVB-T2/C tuner. It is 
-> similar to DVBSky T980C, just with different PCI ID and remote 
-> controller.
+Hi Laurent,
 
-Additional note, this should be applied on top of Max Nibble's commits:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg80865.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg80866.html
+thanks for pointing that out. It is true that we want DT support for the
+new SoCs for this driver and in that case updating the bindings
+documentation would be necessary.  However, this patch adds platform device
+support.
 
-In patchwork they're 26538 and 26539.
+What I suggest is dropping this patch for now and working on
+a replacement that adds DT support only. I do not believe there
+are any plans to use a platform device in mainline for this driver on the
+new SoCs.
 
-Cheers,
--olli
+> On Friday 17 October 2014 16:07:39 Yoshihiro Kaneko wrote:
+> > From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> > 
+> > Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> > Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> > Acked-by: Simon Horman <horms+renesas@verge.net.au>
+> > 
+> > ---
+> > 
+> > This patch is against master branch of linuxtv.org/media_tree.git.
+> > 
+> > v2 [Yoshihiro Kaneko]
+> > * Squashed r8a7793 and r8a7794 patches
+> > 
+> >  drivers/media/platform/soc_camera/rcar_vin.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+> > b/drivers/media/platform/soc_camera/rcar_vin.c index 234cf86..4acae8f
+> > 100644
+> > --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> > +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> > @@ -1881,6 +1881,8 @@ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+> >  #endif
+> > 
+> >  static struct platform_device_id rcar_vin_id_table[] = {
+> > +	{ "r8a7794-vin",  RCAR_GEN2 },
+> > +	{ "r8a7793-vin",  RCAR_GEN2 },
+> >  	{ "r8a7791-vin",  RCAR_GEN2 },
+> >  	{ "r8a7790-vin",  RCAR_GEN2 },
+> >  	{ "r8a7779-vin",  RCAR_H1 },
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
