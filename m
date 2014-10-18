@@ -1,42 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:64666 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941AbaJNHUw (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:51531 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915AbaJRLpa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 03:20:52 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH 1/2] media: soc_camera: rcar_vin: Add r8a7794 device support
-Date: Tue, 14 Oct 2014 16:20:23 +0900
-Message-Id: <1413271224-9792-2-git-send-email-ykaneko0929@gmail.com>
-In-Reply-To: <1413271224-9792-1-git-send-email-ykaneko0929@gmail.com>
-References: <1413271224-9792-1-git-send-email-ykaneko0929@gmail.com>
+	Sat, 18 Oct 2014 07:45:30 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NDN00CV41ZTA140@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 18 Oct 2014 07:45:29 -0400 (EDT)
+Date: Sat, 18 Oct 2014 13:45:25 +0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH dtv-scan-tables]  Add Dusseldorf DVB-T channels
+Message-id: <20141018134525.1148e014.m.chehab@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Add Dusseldorf DVB-T channels
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 1 +
- 1 file changed, 1 insertion(+)
+While travelling for LinuxCon EU, I was able to do scans at the
+Airport and at the hotel. Those are the channels I was able to
+find while there.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index bf3588f..224604d0 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1887,6 +1887,7 @@ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
- #endif
- 
- static struct platform_device_id rcar_vin_id_table[] = {
-+	{ "r8a7794-vin",  RCAR_GEN2 },
- 	{ "r8a7791-vin",  RCAR_GEN2 },
- 	{ "r8a7790-vin",  RCAR_GEN2 },
- 	{ "r8a7779-vin",  RCAR_H1 },
--- 
-1.9.1
+I scanned for DVB-T2 channels too, but was unable to find any.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/dvb-t/de-Dusseldorf b/dvb-t/de-Dusseldorf
+new file mode 100644
+index 0000000..aaf5a53
+--- /dev/null
++++ b/dvb-t/de-Dusseldorf
+@@ -0,0 +1,144 @@
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 482000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/8
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 514000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 538000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 586000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 594000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 602000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 1/2
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/64
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 674000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 1/2
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/64
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 690000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 698000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 1/2
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/64
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 722000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 746000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/4
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT
++	FREQUENCY = 762000000
++	BANDWIDTH_HZ = 8000000
++	CODE_RATE_HP = 2/3
++	CODE_RATE_LP = NONE
++	MODULATION = QAM/16
++	TRANSMISSION_MODE = 8K
++	GUARD_INTERVAL = 1/8
++	HIERARCHY = NONE
++	INVERSION = AUTO
++
 
