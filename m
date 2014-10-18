@@ -1,113 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46964 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbaJZW1r (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:56833 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398AbaJRSuI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 18:27:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sat, 18 Oct 2014 14:50:08 -0400
+Date: Sat, 18 Oct 2014 20:49:58 +0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Takashi Iwai <tiwai@suse.de>, Lars-Peter Clausen <lars@metafoo.de>,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	hverkuil@xs4all.nl, ramakrmu@cisco.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, prabhakar.csengg@gmail.com,
+	tim.gardner@canonical.com, linux@eikelenboom.it,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] uvc: Fix destruction order in uvc_delete()
-Date: Mon, 27 Oct 2014 00:27:50 +0200
-Message-ID: <17042633.rRCnbcG55v@avalon>
-In-Reply-To: <1414138220-15998-1-git-send-email-tiwai@suse.de>
-References: <1414138220-15998-1-git-send-email-tiwai@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+Message-id: <20141018204958.567b252f.m.chehab@samsung.com>
+In-reply-to: <543FDD51.9040404@osg.samsung.com>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+ <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
+ <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com>
+ <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com>
+ <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com>
+ <s5htx34ul3w.wl-tiwai@suse.de> <543FDD51.9040404@osg.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Takashi,
+Em Thu, 16 Oct 2014 08:59:29 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Thank you for the patch.
+> On 10/16/2014 08:48 AM, Takashi Iwai wrote:
+> > At Thu, 16 Oct 2014 08:39:14 -0600,
+> > Shuah Khan wrote:
+> >>
+> >> On 10/16/2014 08:16 AM, Takashi Iwai wrote:
+> >>> At Thu, 16 Oct 2014 08:10:52 -0600,
+> >>> Shuah Khan wrote:
+> >>>>
+> >>>> On 10/16/2014 08:01 AM, Takashi Iwai wrote:
+> >>>>> At Thu, 16 Oct 2014 07:10:37 -0600,
+> >>>>> Shuah Khan wrote:
+> >>>>>>
+> >>>>>> On 10/16/2014 06:00 AM, Lars-Peter Clausen wrote:
+> >>>>>>> On 10/14/2014 04:58 PM, Shuah Khan wrote:
+> >>>>>>> [...]
+> >>>>>>>>       switch (cmd) {
+> >>>>>>>>       case SNDRV_PCM_TRIGGER_START:
+> >>>>>>>> +        err = media_get_audio_tkn(&subs->dev->dev);
+> >>>>>>>> +        if (err == -EBUSY) {
+> >>>>>>>> +            dev_info(&subs->dev->dev, "%s device is busy\n",
+> >>>>>>>> +                    __func__);
+> >>>>>>>
+> >>>>>>> In my opinion this should not dev_info() as this is out of band error
+> >>>>>>> signaling and also as the potential to spam the log. The userspace
+> >>>>>>> application is already properly notified by the return code.
+> >>>>>>>
+> >>>>>>
+> >>>>>> Yes it has the potential to flood the dmesg especially with alsa,
+> >>>>>> I will remove the dev_info().
+> >>>>>
+> >>>>> Yes.  And, I think doing this in the trigger isn't the best.
+> >>>>> Why not in open & close?
+> >>>>
+> >>>> My first cut of this change was in open and close. I saw pulseaudio
+> >>>> application go into this loop trying to open the device. To avoid
+> >>>> such problems, I went with trigger stat and stop. That made all the
+> >>>> pulseaudio continues attempts to open problems go away.
+> >>>
+> >>> But now starting the stream gives the error, and PA would loop it
+> >>> again, no?
+> >>>
+> >>>
+> >>>>> Also, is this token restriction needed only for PCM?  No mixer or
+> >>>>> other controls?
+> >>>>
+> >>>> snd_pcm_ops are the only ones media drivers implement and use. So
+> >>>> I don't think mixer is needed. If it is needed, it is not to hard
+> >>>> to add for that case.
+> >>>
+> >>> Well, then I wonder what resource does actually conflict with
+> >>> usb-audio and media drivers at all...?
+> >>>
+> >>
+> >> audio for dvb/v4l apps gets disrupted when audio app starts. For
+> >> example, dvb or v4l app tuned to a channel, and when an audio app
+> >> starts. audio path needs protected to avoid conflicts between
+> >> digital and analog applications as well.
+> > 
+> > OK, then concentrating on only PCM is fine.
+> > 
+> > But, I'm still not convinced about doing the token management in the
+> > trigger.  The reason -EBUSY doesn't work is that it's the very same
+> > error code when a PCM device is blocked by other processes.  And
+> > -EAGAIN is interpreted by PCM core to -EBUSY for historical reasons.
+> 
+> ah. ok your recommendation is to go with open and close.
+> Mauro has some reservations with holding at open when I discussed
+> my observations with pulseaudio when I was holding token in open
+> instead of trigger start. Maybe he can chime with his concerns.
+> I think his concern was breaking applications if token is held in
+> open().
 
-On Friday 24 October 2014 10:10:20 Takashi Iwai wrote:
-> We've got a bug report at disconnecting a Webcam, where the kernel
-> spews warnings like below:
->   WARNING: CPU: 0 PID: 8385 at ../fs/sysfs/group.c:219
-> sysfs_remove_group+0x87/0x90() sysfs group c0b2350c not found for kobject
-> 'event3'
->   CPU: 0 PID: 8385 Comm: queue2:src Not tainted 3.16.2-1.gdcee397-default #1
-> Hardware name: ASUSTeK Computer INC. A7N8X-E/A7N8X-E, BIOS ASUS A7N8X-E
-> Deluxe ACPI BIOS Rev 1013  11/12/2004 c08d0705 ddc75cbc c0718c5b ddc75ccc
-> c024b654 c08c6d44 ddc75ce8 000020c1 c08d0705 000000db c03d1ec7 c03d1ec7
-> 00000009 00000000 c0b2350c d62c9064 ddc75cd4 c024b6a3 00000009 ddc75ccc
-> c08c6d44 ddc75ce8 ddc75cfc c03d1ec7 Call Trace:
->     [<c0205ba6>] try_stack_unwind+0x156/0x170
->     [<c02046f3>] dump_trace+0x53/0x180
->     [<c0205c06>] show_trace_log_lvl+0x46/0x50
->     [<c0204871>] show_stack_log_lvl+0x51/0xe0
->     [<c0205c67>] show_stack+0x27/0x50
->     [<c0718c5b>] dump_stack+0x3e/0x4e
->     [<c024b654>] warn_slowpath_common+0x84/0xa0
->     [<c024b6a3>] warn_slowpath_fmt+0x33/0x40
->     [<c03d1ec7>] sysfs_remove_group+0x87/0x90
->     [<c05a2c54>] device_del+0x34/0x180
->     [<c05e3989>] evdev_disconnect+0x19/0x50
->     [<c05e06fa>] __input_unregister_device+0x9a/0x140
->     [<c05e0845>] input_unregister_device+0x45/0x80
->     [<f854b1d6>] uvc_delete+0x26/0x110 [uvcvideo]
->     [<f84d66f8>] v4l2_device_release+0x98/0xc0 [videodev]
->     [<c05a25bb>] device_release+0x2b/0x90
->     [<c04ad8bf>] kobject_cleanup+0x6f/0x1a0
->     [<f84d5453>] v4l2_release+0x43/0x70 [videodev]
->     [<c0372f31>] __fput+0xb1/0x1b0
->     [<c02650c1>] task_work_run+0x91/0xb0
->     [<c024d845>] do_exit+0x265/0x910
->     [<c024df64>] do_group_exit+0x34/0xa0
->     [<c025a76f>] get_signal_to_deliver+0x17f/0x590
->     [<c0201b6a>] do_signal+0x3a/0x960
->     [<c02024f7>] do_notify_resume+0x67/0x90
->     [<c071ebb5>] work_notifysig+0x30/0x3b
->     [<b7739e60>] 0xb7739e5f
->    ---[ end trace b1e56095a485b631 ]---
-> 
-> The cause is that uvc_status_cleanup() is called after usb_put_*() in
-> uvc_delete().  usb_put_*() removes the sysfs parent and eventually
-> removes the children recursively, so the later device_del() can't find
-> its sysfs.  The fix is simply rearrange the call orders in
-> uvc_delete() so that the child is removed before the parent.
-> 
-> Bugzilla: https://bugzilla.suse.com/show_bug.cgi?id=897736
-> Reported-and-tested-by: Martin Pluskal <mpluskal@suse.com>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Yes. My concern is that PA has weird behaviors, and it tries to open and
+keep opened all audio devices. Is there a way for avoiding it to keep doing
+it for V4L devices?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Based on what you are seeing trigger could be worse.
+> 
+> > 
+> > How applications (e.g. PA) should behave if the token get fails?
+> > Shouldn't it retry or totally give up?
+> > 
+> 
+> It would be up to the application I would think. I see that arecord
+> quits right away when it finds the device busy. pluseaudio on the other
+> hand appears to retry. I downloaded pulseaudio sources to understand
+> what it is doing, however I didn't get too far. The way it does audio
+> handling is complex for me to follow without spending a lot of time.
+> 
+> thanks,
+> -- Shuah
+> 
 
-I've applied the patch to my tree and will send a pull request for the next 
-kernel version.
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 7c8322d4fc63..3c07af96b30f
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1623,12 +1623,12 @@ static void uvc_delete(struct uvc_device *dev)
->  {
->  	struct list_head *p, *n;
-> 
-> -	usb_put_intf(dev->intf);
-> -	usb_put_dev(dev->udev);
-> -
->  	uvc_status_cleanup(dev);
->  	uvc_ctrl_cleanup_device(dev);
-> 
-> +	usb_put_intf(dev->intf);
-> +	usb_put_dev(dev->udev);
-> +
->  	if (dev->vdev.dev)
->  		v4l2_device_unregister(&dev->vdev);
->  #ifdef CONFIG_MEDIA_CONTROLLER
 
 -- 
-Regards,
 
-Laurent Pinchart
-
+Cheers,
+Mauro
