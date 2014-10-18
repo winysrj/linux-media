@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:42112 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbaJFBDJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 21:03:09 -0400
-Message-ID: <5431EA47.4050507@mentor.com>
-Date: Sun, 5 Oct 2014 18:03:03 -0700
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Received: from mx1.riseup.net ([198.252.153.129]:37655 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751324AbaJRB2A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Oct 2014 21:28:00 -0400
+Message-ID: <5441C21A.1030506@riseup.net>
+Date: Sat, 18 Oct 2014 11:27:54 +1000
+From: Dave Kimble <dave.kimble@riseup.net>
+Reply-To: dave.kimble@riseup.net
 MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	<linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com> <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com> <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com> <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com> <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com> <540F2AC1.20700@gmail.com> <CAL8zT=g6CXmLiW6VZwMFVDjKC8FtoPMPDPg7S37Czev+8YO+PA@mail.gmail.com>
-In-Reply-To: <CAL8zT=g6CXmLiW6VZwMFVDjKC8FtoPMPDPg7S37Czev+8YO+PA@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
+To: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+Subject: Re: GrabBee-HD
+References: <5440362F.5040306@riseup.net>	<CALzAhNW7szuUJK-as48dTHE6Acx_7Ka195MXKdk-V8AjRjfauA@mail.gmail.com>	<5440C555.2040308@riseup.net>	<CALzAhNXae0yz4xmUTHAApDrU6u5DdwDc59Xu7OG_CA6y83ubtA@mail.gmail.com>	<54418EC5.4060408@riseup.net> <CALzAhNVs2xzO2zeOehudd88AigD6kysbkgLrN0VHeyFtjv3ssg@mail.gmail.com>
+In-Reply-To: <CALzAhNVs2xzO2zeOehudd88AigD6kysbkgLrN0VHeyFtjv3ssg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2014 07:50 AM, Jean-Michel Hautbois wrote:
-> Hi Steve,
-> 
-> 2014-09-09 18:28 GMT+02:00 Steve Longerbeam <slongerbeam@gmail.com>:
->> On 09/09/2014 12:49 AM, Jean-Michel Hautbois wrote:
->>> 2014-08-27 16:23 GMT+02:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
->>>
->>>> The complete driver I posted to the list does have some minor issues
->>>> mostly suggested by Hans Verkuil (switch to new selection API instead
->>>> of cropping API for example). It is a full featured driver but it does not
->>>> implement the media device framework, i.e. user does not have direct
->>>> control of the video pipeline, rather the driver chooses the pipeline based
->>>> on the traditional inputs from user (video format and controls).
-> 
-> Here is my first step toward MC support from your work :
-> https://github.com/Vodalys/linux-2.6-imx/commit/8f0318f53c48a9638a1963b395bc79fbd7ba4c07
-> 
-> This is a WIP, so some parts of code are commented out awaiting a
-> nicer solution.
-> I also keep using your eplist array for the moment, and open will
-> obviously fail when trying to power sensor.
-> But what I wanted was a complete MC support with parsing links from DT
-> and I used Laurent's work intensively :).
+http://www.amazon.com/s/ref=nb_sb_noss_2/190-6601431-1833600?url=search-alias%3Daps&field-keywords=grabbee-hd 
+$99.95
+I got mine on eBay for $76 from Hong Kong.
+Now going cheap :-)
 
-Hi Jean-Michel,
+Just thinking aloud:
+My PCs are all mini-ITX in very small cases, so PCI card solutions are 
+not suitable.
+The decoder box is UEC DSD4121 using VAST (DVB-S2) with AV and HDMI outputs.
+There's a UEC upgrade kit to use the USB port with an external HDD to 
+record for $65.
+Might try that next.
+Other options?
 
-Ok thanks for the work, I will try to find time to study it.
+Dave
 
 
-> 
->>>> I've also worked out what I think is a workable video pipeline graph for i.MX,
->>>> suitable for defining the entities, pads, and links. Unfortunately I haven't
->>>> been able to spend as much time as I'd like on it.
-> 
-> Did you find some time to write the pdf you mentioned ?
 
-Finally did. I will send it directly to you, as I'm sure it will get
-stripped here.
+On 18/10/14 08:34, Steven Toth wrote:
+>> So I think this is going to be a very poor toy.
+> Its the kind of thing I usually like to throw into my collection for
+> the long winter nights. If you can give me a url that I can purchase
+> this from then I may pick a unit for future tweakery.
+>
+> - Steve
+>
 
-Steve
