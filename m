@@ -1,127 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:36141 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbaJ2ELJ (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:62534 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbaJROrM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 00:11:09 -0400
-Date: Wed, 29 Oct 2014 13:11:04 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
- input support
-Message-ID: <20141029041103.GB29787@verge.net.au>
-References: <1413868129-22121-1-git-send-email-ykaneko0929@gmail.com>
- <544633D3.5010805@cogentembedded.com>
- <CAH1o70Jk=dCf3VWqdAJmGzd6TSQFeN=x+FCKExDzaf0BZF0L1A@mail.gmail.com>
+	Sat, 18 Oct 2014 10:47:12 -0400
+Received: by mail-lb0-f177.google.com with SMTP id w7so1981977lbi.36
+        for <linux-media@vger.kernel.org>; Sat, 18 Oct 2014 07:47:11 -0700 (PDT)
+Message-ID: <54427D5D.70603@cogentembedded.com>
+Date: Sat, 18 Oct 2014 18:46:53 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAH1o70Jk=dCf3VWqdAJmGzd6TSQFeN=x+FCKExDzaf0BZF0L1A@mail.gmail.com>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] media: soc_camera: rcar_vin: Add capture width
+ check for NV16 format
+References: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com> <1413439968-6349-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413439968-6349-3-git-send-email-ykaneko0929@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kaneko-san, Hi Sergei,
+Hello.
 
-On Tue, Oct 21, 2014 at 08:33:52PM +0900, Yoshihiro Kaneko wrote:
-> Hello Sergei,
-> 
-> 2014-10-21 19:22 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
-> > Hello.
-> >
-> > On 10/21/2014 9:08 AM, Yoshihiro Kaneko wrote:
-> >
-> >> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >
-> >
-> >> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> >> ---
-> >
-> >
-> >> This patch is against master branch of linuxtv.org/media_tree.git.
-> >
-> >
-> >> v2 [Yoshihiro Kaneko]
-> >> * remove unused/useless definition as suggested by Sergei Shtylyov
-> >
-> >
-> >    I didn't say it's useless, I just suspected that you missed the necessary
-> > test somewhere...
-> 
-> Sorry for my inaccurate description.
-> 
-> >
-> >>   drivers/media/platform/soc_camera/rcar_vin.c | 9 +++++++++
-> >>   1 file changed, 9 insertions(+)
-> >
-> >
-> >> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
-> >> b/drivers/media/platform/soc_camera/rcar_vin.c
-> >> index 20defcb..cb5e682 100644
-> >> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> >> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> >> @@ -74,6 +74,7 @@
-> >>   #define VNMC_INF_YUV10_BT656  (2 << 16)
-> >>   #define VNMC_INF_YUV10_BT601  (3 << 16)
-> >>   #define VNMC_INF_YUV16                (5 << 16)
-> >> +#define VNMC_INF_RGB888                (6 << 16)
-> >>   #define VNMC_VUP              (1 << 10)
-> >>   #define VNMC_IM_ODD           (0 << 3)
-> >>   #define VNMC_IM_ODD_EVEN      (1 << 3)
-> >
-> > [...]
-> >>
-> >> @@ -331,6 +336,9 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
-> >>         if (output_is_yuv)
-> >>                 vnmc |= VNMC_BPS;
-> >>
-> >> +       if (vnmc & VNMC_INF_RGB888)
-> >> +               vnmc ^= VNMC_BPS;
-> >> +
-> >
-> >
-> >    Hm, this also changes the behavior for VNMC_INF_YUV16 and
-> > VNMC_INF_YUV10_BT{601|656}. Is this actually intended?
-> 
-> Probably this code is incorrect.
-> Thank you for your review.
+On 10/16/2014 10:12 AM, Yoshihiro Kaneko wrote:
 
-Thanks, I have confirmed with Matsuoka-san that there is a problem here.
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-He has provided the following fix. Could you see about squashing it into
-the above patch and reposting?
+> At the time of NV16 capture format, the user has to specify the
+> capture output width of the multiple of 32 for H/W specification.
+> At the time of using NV16 format by ioctl of VIDIOC_S_FMT,
+> this patch adds align check and the error handling to forbid
+> specification of the capture output width which is not a multiple of 32.
 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> v2 [Yoshihiro Kaneko]
+> * use u32 instead of unsigned long
 
-[PATCH] media: soc_camera: rcar_vin: Fix bit field check
+>   drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++++++++++--
+>   1 file changed, 22 insertions(+), 2 deletions(-)
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 34d5b80..ff5f80a 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> @@ -1087,6 +1091,7 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+>   	unsigned char dsize = 0;
+>   	struct v4l2_rect *cam_subrect = &cam->subrect;
+>   	u32 value;
+> +	u32 imgstr;
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 013d75c..da62d94 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -94,7 +94,7 @@
- #define VNMC_INF_YUV8_BT601	(1 << 16)
- #define VNMC_INF_YUV16		(5 << 16)
- #define VNMC_INF_RGB888		(6 << 16)
--#define VNMC_INF_RGB_MASK	(6 << 16)
-+#define VNMC_INF_MASK		(7 << 16)
- #define VNMC_VUP		(1 << 10)
- #define VNMC_IM_ODD		(0 << 3)
- #define VNMC_IM_ODD_EVEN	(1 << 3)
-@@ -675,7 +675,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	if (output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
--	if (vnmc & VNMC_INF_RGB_MASK)
-+	if ((vnmc & VNMC_INF_MASK) == VNMC_INF_RGB888)
- 		vnmc ^= VNMC_BPS;
- 
- 	/* progressive or interlaced mode */
+    Quite strange name, given the variable's use... what does it stands for?
+
+>
+>   	dev_dbg(icd->parent, "Crop %ux%u@%u:%u\n",
+>   		icd->user_width, icd->user_height, cam->vin_left, cam->vin_top);
+> @@ -1164,7 +1169,11 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
+>   		break;
+>   	}
+>
+> -	iowrite32(ALIGN(cam->out_width, 0x10), priv->base + VNIS_REG);
+> +	if (icd->current_fmt->host_fmt->fourcc == V4L2_PIX_FMT_NV16)
+> +		imgstr = ALIGN(cam->out_width, 0x20);
+> +	else
+> +		imgstr = ALIGN(cam->out_width, 0x10);
+> +	iowrite32(imgstr, priv->base + VNIS_REG);
+
+    I'd call the variable 'vnis' as it gets written to the VNIS register...
+
+>
+>   	return 0;
+>   }
+> @@ -1606,6 +1615,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>   	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+>   		pixfmt, pix->width, pix->height);
+>
+> +	/* At the time of NV16 capture format, the user has to specify the
+> +	   width of the multiple of 32 for H/W specification. */
+
+    The preferred multi-line comment format is this:
+
+/*
+  * bla
+  * bla
+  */
+
+> +	if (priv->error_flag == false)
+> +		priv->error_flag = true;
+
+    I don't see where else you check this flag, it seems rather useless. I 
+also don't see where you clear it, other than the "add/remove device" paths.
+
+> +	else {
+> +		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+> +			dev_err(icd->parent, "Specified width error in NV16 format.\n");
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+
+WBR, Sergei
+
