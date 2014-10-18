@@ -1,45 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay011.isp.belgacom.be ([195.238.6.178]:18777 "EHLO
-	mailrelay011.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750967AbaJFPgf (ORCPT
+Received: from mail-la0-f53.google.com ([209.85.215.53]:42584 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbaJRPF6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 11:36:35 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Fabian Frederick <fabf@skynet.be>, iss_storagedev@hp.com,
-	linux-edac@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 0/7 linux-next] drivers: remove deprecated IRQF_DISABLED
-Date: Mon,  6 Oct 2014 17:35:47 +0200
-Message-Id: <1412609755-28627-1-git-send-email-fabf@skynet.be>
+	Sat, 18 Oct 2014 11:05:58 -0400
+Received: by mail-la0-f53.google.com with SMTP id gq15so2004488lab.26
+        for <linux-media@vger.kernel.org>; Sat, 18 Oct 2014 08:05:57 -0700 (PDT)
+Message-ID: <544281C3.9030002@cogentembedded.com>
+Date: Sat, 18 Oct 2014 19:05:39 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] media: soc_camera: rcar_vin: Add capture width
+ check for NV16 format
+References: <1413439968-6349-1-git-send-email-ykaneko0929@gmail.com> <1413439968-6349-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413439968-6349-3-git-send-email-ykaneko0929@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This small patchset removes IRQF_DISABLED from drivers branch.
+On 10/16/2014 10:12 AM, Yoshihiro Kaneko wrote:
 
-See include/linux/interrupt.h:
-"This flag is a NOOP and scheduled to be removed"
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Note: (cross)compiled but untested.
+> At the time of NV16 capture format, the user has to specify the
+> capture output width of the multiple of 32 for H/W specification.
+> At the time of using NV16 format by ioctl of VIDIOC_S_FMT,
+> this patch adds align check and the error handling to forbid
+> specification of the capture output width which is not a multiple of 32.
 
-Fabian Frederick (7):
-  mv64x60_edac: remove deprecated IRQF_DISABLED
-  ppc4xx_edac: remove deprecated IRQF_DISABLED
-  tw68: remove deprecated IRQF_DISABLED
-  cpqarray: remove deprecated IRQF_DISABLED
-  HSI: remove deprecated IRQF_DISABLED
-  bus: omap_l3_noc: remove deprecated IRQF_DISABLED
-  bus: omap_l3_smx: remove deprecated IRQF_DISABLED
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
 
- drivers/block/cpqarray.c           |  2 +-
- drivers/bus/omap_l3_noc.c          |  4 ++--
- drivers/bus/omap_l3_smx.c          | 10 ++++------
- drivers/edac/mv64x60_edac.c        |  8 ++++----
- drivers/edac/ppc4xx_edac.c         |  4 ++--
- drivers/hsi/clients/nokia-modem.c  |  4 ++--
- drivers/media/pci/tw68/tw68-core.c |  2 +-
- 7 files changed, 16 insertions(+), 18 deletions(-)
+> v2 [Yoshihiro Kaneko]
+> * use u32 instead of unsigned long
 
--- 
-1.9.3
+>   drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++++++++++--
+>   1 file changed, 22 insertions(+), 2 deletions(-)
+
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 34d5b80..ff5f80a 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> @@ -1606,6 +1615,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>   	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+>   		pixfmt, pix->width, pix->height);
+>
+> +	/* At the time of NV16 capture format, the user has to specify the
+> +	   width of the multiple of 32 for H/W specification. */
+> +	if (priv->error_flag == false)
+> +		priv->error_flag = true;
+> +	else {
+> +		if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+> +			dev_err(icd->parent, "Specified width error in NV16 format.\n");
+> +			return -EINVAL;
+> +		}
+> +	}
+
+    Oh, and the kernel style dictates that {} should be used in all arms of 
+the *if* statement if they're used in at least one.
+
+WBR, Sergei
 
