@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60090 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759254AbaJ3KxT (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:58379 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbaJRPCP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 06:53:19 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Vlad Catoi <vladcatoi@gmail.com>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Daniel Mack <zonque@gmail.com>, alsa-devel@alsa-project.org,
-	stable@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 2/2] [media] sound: Update au0828 quirks table
-Date: Thu, 30 Oct 2014 08:53:05 -0200
-Message-Id: <387188328806b20a9d0f39bdab7aa6aa5d013d43.1414666159.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
+	Sat, 18 Oct 2014 11:02:15 -0400
+Received: by mail-la0-f47.google.com with SMTP id pv20so2051995lab.34
+        for <linux-media@vger.kernel.org>; Sat, 18 Oct 2014 08:02:13 -0700 (PDT)
+Message-ID: <544280E4.20101@cogentembedded.com>
+Date: Sat, 18 Oct 2014 19:01:56 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle
+ mode
+References: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Hello.
 
-The au0828 quirks table is currently not in sync with the au0828
-media driver.
+On 10/14/2014 10:25 AM, Yoshihiro Kaneko wrote:
 
-Syncronize it and put them on the same order as found at au0828
-driver, as all the au0828 devices with analog TV need the
-same quirks.
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> By applying this patch, it sets to VSYNC field toggle mode not only
+> at the time of progressive mode but at the time of an interlace mode.
 
-diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-index 5ae1d02d17a3..8a6b366f2925 100644
---- a/sound/usb/quirks-table.h
-+++ b/sound/usb/quirks-table.h
-@@ -2827,14 +2827,22 @@ YAMAHA_DEVICE(0x7010, "UB99"),
- }
- 
- AU0828_DEVICE(0x2040, 0x7200, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
- AU0828_DEVICE(0x2040, 0x7210, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x7217, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721b, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721e, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721f, "Hauppauge", "HVR-950Q"),
--AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
- AU0828_DEVICE(0x2040, 0x7280, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x0fd9, 0x0008, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7201, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x2040, 0x7211, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x2040, 0x7281, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x05e1, 0x0480, "Hauppauge", "Woodbury"),
-+AU0828_DEVICE(0x2040, 0x8200, "Hauppauge", "Woodbury"),
-+AU0828_DEVICE(0x2040, 0x7260, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7213, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7270, "Hauppauge", "HVR-950Q"),
- 
- /* Digidesign Mbox */
- {
--- 
-1.9.3
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+
+> This patch is against master branch of linuxtv.org/media_tree.git.
+
+>   drivers/media/platform/soc_camera/rcar_vin.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 5196c81..bf97ed6 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -108,6 +108,7 @@
+>   #define VNDMR2_VPS		(1 << 30)
+>   #define VNDMR2_HPS		(1 << 29)
+>   #define VNDMR2_FTEV		(1 << 17)
+> +#define VNDMR2_VLV_1		(1 << 12)
+
+    Please instead do:
+
+#define VNDMR2_VLV(n)	((n & 0xf) << 12)
+
+WBR, Sergei
 
