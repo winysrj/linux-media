@@ -1,51 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35019 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161068AbaJ3UNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:13:14 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v4 09/14] cx231xx: let is_tuner check the real i2c port and not the i2c master number
-Date: Thu, 30 Oct 2014 21:12:30 +0100
-Message-Id: <1414699955-5760-10-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
-References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:60426 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581AbaJSKWO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Oct 2014 06:22:14 -0400
+From: Tomas Melin <tomas.melin@iki.fi>
+To: m.chehab@samsung.com, david@hardeman.nu
+Cc: james.hogan@imgtec.com, a.seppala@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tomas Melin <tomas.melin@iki.fi>
+Subject: [PATCH 1/2] [media] rc-core: fix protocol_change regression in ir_raw_event_register
+Date: Sun, 19 Oct 2014 13:21:52 +0300
+Message-Id: <1413714113-7456-1-git-send-email-tomas.melin@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get used i2c port from bus_nr and status of port_3 switch.
+IR reciever using nuvoton-cir and lirc was not working anymore after
+upgrade from kernel 3.16 to 3.17-rcX.
+Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
+("[media] rc-core: simplify sysfs code").
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+The regression comes from adding empty function change_protocol in
+ir-raw.c. It changes behaviour so that only the protocol enabled by driver's
+map_name will be active after registration. This breaks user space behaviour,
+lirc does not get key press signals anymore.
+
+Changed back to original behaviour by removing empty function
+change_protocol in ir-raw.c. Instead only calling change_protocol for
+drivers that actually have the function set up.
+
+Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
 ---
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/rc/rc-ir-raw.c |    7 -------
+ drivers/media/rc/rc-main.c   |   19 ++++++++-----------
+ 2 files changed, 8 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index af9180f..9ade3ac 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -54,10 +54,19 @@ do {							\
-       } 						\
- } while (0)
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index e8fff2a..a118539 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -240,12 +240,6 @@ ir_raw_get_allowed_protocols(void)
+ 	return protocols;
+ }
  
-+static inline int get_real_i2c_port(struct cx231xx *dev, int bus_nr)
-+{
-+	if (bus_nr == 1)
-+		return dev->port_3_switch_enabled ? I2C_1_MUX_3 : I2C_1_MUX_1;
-+	return bus_nr;
-+}
-+
- static inline bool is_tuner(struct cx231xx *dev, struct cx231xx_i2c *bus,
- 			const struct i2c_msg *msg, int tuner_type)
- {
--	if (bus->nr != dev->board.tuner_i2c_master)
-+	int i2c_port = get_real_i2c_port(dev, bus->nr);
-+
-+	if (i2c_port != dev->board.tuner_i2c_master)
- 		return false;
+-static int change_protocol(struct rc_dev *dev, u64 *rc_type)
+-{
+-	/* the caller will update dev->enabled_protocols */
+-	return 0;
+-}
+-
+ /*
+  * Used to (un)register raw event clients
+  */
+@@ -263,7 +257,6 @@ int ir_raw_event_register(struct rc_dev *dev)
  
- 	if (msg->addr != dev->board.tuner_addr)
+ 	dev->raw->dev = dev;
+ 	dev->enabled_protocols = ~0;
+-	dev->change_protocol = change_protocol;
+ 	rc = kfifo_alloc(&dev->raw->kfifo,
+ 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
+ 			 GFP_KERNEL);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index a7991c7..633c682 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1001,11 +1001,6 @@ static ssize_t store_protocols(struct device *device,
+ 		set_filter = dev->s_wakeup_filter;
+ 	}
+ 
+-	if (!change_protocol) {
+-		IR_dprintk(1, "Protocol switching not supported\n");
+-		return -EINVAL;
+-	}
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	old_protocols = *current_protocols;
+@@ -1013,12 +1008,14 @@ static ssize_t store_protocols(struct device *device,
+ 	rc = parse_protocol_change(&new_protocols, buf);
+ 	if (rc < 0)
+ 		goto out;
+-
+-	rc = change_protocol(dev, &new_protocols);
+-	if (rc < 0) {
+-		IR_dprintk(1, "Error setting protocols to 0x%llx\n",
+-			   (long long)new_protocols);
+-		goto out;
++	/* Only if protocol change set up in driver */
++	if (change_protocol) {
++		rc = change_protocol(dev, &new_protocols);
++		if (rc < 0) {
++			IR_dprintk(1, "Error setting protocols to 0x%llx\n",
++				   (long long)new_protocols);
++			goto out;
++		}
+ 	}
+ 
+ 	if (new_protocols == old_protocols) {
 -- 
-2.1.2
+1.7.10.4
 
