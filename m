@@ -1,197 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43238 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932969AbaJVXoS convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1737 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbaJSClP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 19:44:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	wsa@the-dreams.de, lars@metafoo.de
-Subject: Re: [PATCH 2/2] adv7604: Add support for i2c_new_secondary_device
-Date: Thu, 23 Oct 2014 02:44:14 +0300
-Message-ID: <3127348.3KALimKvms@avalon>
-In-Reply-To: <1413991848-28495-2-git-send-email-jean-michel.hautbois@vodalys.com>
-References: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com> <1413991848-28495-2-git-send-email-jean-michel.hautbois@vodalys.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Sat, 18 Oct 2014 22:41:15 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9J2fB06019211
+	for <linux-media@vger.kernel.org>; Sun, 19 Oct 2014 04:41:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DB3052A03D3
+	for <linux-media@vger.kernel.org>; Sun, 19 Oct 2014 04:41:03 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20141019024103.DB3052A03D3@tschai.lan>
+Date: Sun, 19 Oct 2014 04:41:03 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Wednesday 22 October 2014 17:30:48 Jean-Michel Hautbois wrote:
-> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
-> I²C ports. Each map has it own I²C address and acts
-> as a standard slave device on the I²C bus.
-> 
-> If nothing is defined, it uses default addresses.
-> The main purpose is using two adv76xx on the same i2c bus.
-> 
-> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> ---
->  .../devicetree/bindings/media/i2c/adv7604.txt      | 16 +++++-
->  drivers/media/i2c/adv7604.c                        | 59 ++++++++++++-------
->  2 files changed, 53 insertions(+), 22 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
-> 5c8b3e6..8486b5c 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -12,7 +12,10 @@ Required Properties:
->      - "adi,adv7611" for the ADV7611
->      - "adi,adv7604" for the ADV7604
+date:		Sun Oct 19 04:00:17 CEST 2014
+git branch:	test
+git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
-Given that I'll have comment on the independent patch that adds support for 
-the adv7604, you should rebase this series to remote that dependency if you 
-want to get it merged now, otherwise it will get delayed.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-> 
-> -  - reg: I2C slave address
-> +  - reg: I2C slave addresses
-> +    The ADV7604 has thirteen 256-byte maps that can be accessed via the
-> main
-> +    I²C ports. Each map has it own I²C address and acts
-> +    as a standard slave device on the I²C bus.
-> 
->    - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
->      detection pins, one per HDMI input. The active flag indicates the GPIO
-> @@ -33,6 +36,12 @@ The digital output port node must contain at least one
-> endpoint. Optional Properties:
-> 
->    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-> +  - reg-names : Names of maps with programmable addresses.
-> +		It can contain any map needing another address than default one.
-> +		Possible maps names are :
-> +ADV7604 : "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe",
-> "rep",
-> +		"edid", "hdmi", "test", "cp", "vdp"
+Detailed results are available here:
 
-If you rebase the series in order to avoid depending on the adv7604 DT support 
-patch this line should be moved to "adv7604: Add DT parsing support".
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> +ADV7611 : "main", "cec", "infoframe", "afe", "rep", "edid", "hdmi", "cp"
-> 
->  Optional Endpoint Properties:
-> 
-> @@ -51,7 +60,10 @@ Example:
-> 
->  	hdmi_receiver@4c {
->  		compatible = "adi,adv7611";
-> -		reg = <0x4c>;
-> +		/* edid page will be accessible @ 0x66 on i2c bus */
-> +		/* other maps keep their default addresses */
-> +		reg = <0x4c 0x66>;
-> +		reg-names = "main", "edid";
-> 
->  		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
->  		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 421035f..e4e30a2 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -326,6 +326,27 @@ static const struct adv7604_video_standards
-> adv7604_prim_mode_hdmi_gr[] = { { },
->  };
-> 
-> +struct adv7604_register {
-> +	const char *name;
-> +	u8 default_addr;
-> +};
-> +
-> +static const struct adv7604_register adv7604_secondary_names[] = {
-> +	[ADV7604_PAGE_IO] = { "main", 0x4c },
-> +	[ADV7604_PAGE_AVLINK] = { "avlink", 0x42 },
-> +	[ADV7604_PAGE_CEC] = { "cec", 0x40 },
-> +	[ADV7604_PAGE_INFOFRAME] = { "infoframe", 0x3e },
-> +	[ADV7604_PAGE_ESDP] = { "esdp", 0x38 },
-> +	[ADV7604_PAGE_DPP] = { "dpp", 0x3c },
-> +	[ADV7604_PAGE_AFE] = { "afe", 0x26 },
-> +	[ADV7604_PAGE_REP] = { "rep", 0x32 },
-> +	[ADV7604_PAGE_EDID] = { "edid", 0x36 },
-> +	[ADV7604_PAGE_HDMI] = { "hdmi", 0x34 },
-> +	[ADV7604_PAGE_TEST] = { "test", 0x30 },
-> +	[ADV7604_PAGE_CP] = { "cp", 0x22 },
-> +	[ADV7604_PAGE_VDP] = { "vdp", 0x24 },
-> +};
-> +
->  /* -----------------------------------------------------------------------
-> */
-> 
->  static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
-> @@ -2528,13 +2549,26 @@ static void adv7604_unregister_clients(struct
-> adv7604_state *state) }
-> 
->  static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
-> -							u8 addr, u8 io_reg)
-> +						unsigned int i)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	struct adv7604_platform_data *pdata = client->dev.platform_data;
-> +	unsigned int io_reg = 0xf2 + i;
-> +	unsigned int default_addr = io_read(sd, io_reg) >> 1;
+Full logs are available here:
 
-The variable isn't used.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-> +	struct i2c_client *new_client;
-> +
-> +	if (pdata && pdata->i2c_addresses[i])
-> +		new_client = i2c_new_dummy(client->adapter,
-> +					pdata->i2c_addresses[i]);
-> +	else
-> +		new_client = i2c_new_secondary_device(client,
-> +			adv7604_secondary_names[i].name,
-> +			adv7604_secondary_names[i].default_addr);
-> +
-> +	if (new_client)
-> +		io_write(sd, io_reg, new_client->addr << 1);
-> 
-> -	if (addr)
-> -		io_write(sd, io_reg, addr << 1);
-> -	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
-> +	return new_client;
->  }
-> 
->  static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
-> @@ -2718,20 +2752,6 @@ static int adv7604_parse_dt(struct adv7604_state
-> *state) /* Disable the interrupt for now as no DT-based board uses it. */
-> state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
-> 
-> -	/* Use the default I2C addresses. */
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
-> -	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
-> -
->  	/* Hardcode the remaining platform data fields. */
->  	state->pdata.disable_pwrdnb = 0;
->  	state->pdata.disable_cable_det_rst = 0;
-> @@ -2892,8 +2912,7 @@ static int adv7604_probe(struct i2c_client *client,
->  			continue;
-> 
->  		state->i2c_clients[i] =
-> -			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
-> -					     0xf2 + i);
-> +			adv7604_dummy_client(sd, i);
->  		if (state->i2c_clients[i] == NULL) {
->  			err = -ENOMEM;
->  			v4l2_err(sd, "failed to create i2c client %u\n", i);
+The Media Infrastructure API from this daily build is here:
 
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
