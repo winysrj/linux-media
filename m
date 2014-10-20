@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33259 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751013AbaJZMPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 08:15:47 -0400
-Message-ID: <544CE5F1.3040601@iki.fi>
-Date: Sun, 26 Oct 2014 14:15:45 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vc0-f172.google.com ([209.85.220.172]:37695 "EHLO
+	mail-vc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962AbaJTQHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Oct 2014 12:07:15 -0400
+Received: by mail-vc0-f172.google.com with SMTP id lf12so3784033vcb.31
+        for <linux-media@vger.kernel.org>; Mon, 20 Oct 2014 09:07:14 -0700 (PDT)
 MIME-Version: 1.0
-To: tskd08@gmail.com, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH] dvb:tc90522: bugfix of always-false expression
-References: <1414325129-16570-1-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1414325129-16570-1-git-send-email-tskd08@gmail.com>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <544475D5.6080903@infradead.org>
+References: <544475D5.6080903@infradead.org>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Mon, 20 Oct 2014 09:06:54 -0700
+Message-ID: <CAP_ceTxY945D6vuPDz3gPUXN-YwnXX5zG6=GpBuohCcd+YTb=g@mail.gmail.com>
+Subject: Re: [PATCH] DocBook: fix media build error
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 10/26/2014 02:05 PM, tskd08@gmail.com wrote:
-> From: Akihiro Tsukada <tskd08@gmail.com>
+On Sun, Oct 19, 2014 at 7:39 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
+> From: Randy Dunlap <rdunlap@infradead.org>
 >
-> Reported by David Binderman
-
-^^ See Documentation/SubmittingPatches
-
-Antti
-
+> Fix media DocBook build errors by making the orderedlist balanced.
+>
+> DOC1/Documentation/DocBook/compat.xml:2576: parser error : Opening and ending tag mismatch: orderedlist line 2560 and section
+> DOC1/Documentation/DocBook/compat.xml:2726: parser error : Premature end of data in tag section line 884
+> DOC1/Documentation/DocBook/compat.xml:2726: parser error : chunk is not well balanced
+>
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Vincent Palatin <vpalatin@chromium.org>
 > ---
->   drivers/media/dvb-frontends/tc90522.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/DocBook/media/v4l/compat.xml |    1 +
+>  1 file changed, 1 insertion(+)
 >
-> diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
-> index d9905fb..bca81ef 100644
-> --- a/drivers/media/dvb-frontends/tc90522.c
-> +++ b/drivers/media/dvb-frontends/tc90522.c
-> @@ -363,7 +363,7 @@ static int tc90522t_get_frontend(struct dvb_frontend *fe)
->   		u8 v;
->
->   		c->isdbt_partial_reception = val[0] & 0x01;
-> -		c->isdbt_sb_mode = (val[0] & 0xc0) == 0x01;
-> +		c->isdbt_sb_mode = (val[0] & 0xc0) == 0x40;
->
->   		/* layer A */
->   		v = (val[2] & 0x78) >> 3;
->
+> --- lnx-318-rc1.orig/Documentation/DocBook/media/v4l/compat.xml
+> +++ lnx-318-rc1/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2566,6 +2566,7 @@ fields changed from _s32 to _u32.
+>           <para>Added compound control types and &VIDIOC-QUERY-EXT-CTRL;.
+>           </para>
+>          </listitem>
+> +      </orderedlist>
+>        <title>V4L2 in Linux 3.18</title>
+>        <orderedlist>
+>         <listitem>
+
+Compared to the original patch, it's actually also missing the
+ </section>
+
+<section>
+which were lost in the merge.
+
 
 -- 
-http://palosaari.fi/
+Vincent
