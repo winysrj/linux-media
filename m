@@ -1,101 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:62470 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753915AbaJNHQB (ORCPT
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:40018 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993AbaJTCwT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 03:16:01 -0400
-Received: by mail-la0-f54.google.com with SMTP id gm9so7752529lab.41
-        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 00:15:59 -0700 (PDT)
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-pm@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Kevin Hilman <khilman@linaro.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Philipp Zabel <philipp.zabel@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Pavel Machek <pavel@ucw.cz>,
-	Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 3/7] [media] exynos-gsc: Make driver functional without CONFIG_PM_RUNTIME
-Date: Tue, 14 Oct 2014 09:15:36 +0200
-Message-Id: <1413270940-4378-4-git-send-email-ulf.hansson@linaro.org>
-In-Reply-To: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
-References: <1413270940-4378-1-git-send-email-ulf.hansson@linaro.org>
+	Sun, 19 Oct 2014 22:52:19 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH] media: soc_camera: rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
+Date: Mon, 20 Oct 2014 11:51:29 +0900
+Message-Id: <1413773489-18170-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver depended on CONFIG_PM_RUNTIME to be functional, which isn't
-necessary.
+Based on platform device work by Matsuoka-san.
 
-The solution to the above is to enable all runtime PM resourses during
-probe and update the device's runtime PM status to active.
-
-Since driver core invokes pm_request_idle() after ->probe(), unused gsc
-devices will be runtime PM suspended and thus we will still benefit
-from using CONFIG_PM_RUNTIME.
-
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 13d0226..c3a050e 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1085,7 +1085,7 @@ static int gsc_probe(struct platform_device *pdev)
- 		return PTR_ERR(gsc->clock);
- 	}
+Compile tested only.
+
+This patch is against master branch of linuxtv.org/media_tree.git.
+
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 2 ++
+ drivers/media/platform/soc_camera/rcar_vin.c         | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index ba61782..9dafe6b 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
  
--	ret = clk_prepare(gsc->clock);
-+	ret = clk_prepare_enable(gsc->clock);
- 	if (ret) {
- 		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
- 			GSC_CLOCK_GATE_NAME);
-@@ -1108,30 +1108,30 @@ static int gsc_probe(struct platform_device *pdev)
- 		goto err_v4l2;
+  - compatible: Must be one of the following
++   - "renesas,vin-r8a7794" for the R8A7794 device
++   - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7791" for the R8A7791 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 234cf86..c023aab 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1871,6 +1871,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
  
- 	platform_set_drvdata(pdev, gsc);
--	pm_runtime_enable(dev);
--	ret = pm_runtime_get_sync(&pdev->dev);
--	if (ret < 0)
--		goto err_m2m;
-+
-+	gsc_hw_set_sw_reset(gsc);
-+	gsc_wait_reset(gsc);
-+	gsc_m2m_resume(gsc);
- 
- 	/* Initialize continious memory allocator */
- 	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
- 	if (IS_ERR(gsc->alloc_ctx)) {
- 		ret = PTR_ERR(gsc->alloc_ctx);
--		goto err_pm;
-+		goto err_m2m;
- 	}
- 
- 	dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
- 
--	pm_runtime_put(dev);
-+	pm_runtime_set_active(dev);
-+	pm_runtime_enable(dev);
-+
- 	return 0;
--err_pm:
--	pm_runtime_put(dev);
- err_m2m:
- 	gsc_unregister_m2m_device(gsc);
- err_v4l2:
- 	v4l2_device_unregister(&gsc->v4l2_dev);
- err_clk:
--	clk_unprepare(gsc->clock);
-+	clk_disable_unprepare(gsc->clock);
- 	return ret;
- }
- 
+ #ifdef CONFIG_OF
+ static struct of_device_id rcar_vin_of_table[] = {
++	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
++	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
 -- 
 1.9.1
 
