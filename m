@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34137 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753019AbaJBRJQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:09:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 04/10] [media] coda: split out encoder control setup to specify controls per video device
-Date: Thu,  2 Oct 2014 19:08:29 +0200
-Message-Id: <1412269715-28388-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
+Received: from icp-osb-irony-out3.external.iinet.net.au ([203.59.1.219]:65241
+	"EHLO icp-osb-irony-out3.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751057AbaJTBoa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Oct 2014 21:44:30 -0400
+From: Rodney Baker <rodney@jeremiah31-10.net>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (1.0)
+Subject: Re: Kernel 3.17.0 broke xc4000-based DTV1800h
+Message-Id: <BD61E1D7-8FFA-4559-80EC-068047EBB0C0@jeremiah31-10.net>
+Date: Mon, 20 Oct 2014 11:40:56 +1030
+References: <1637119.5DTscVEVRC@mako>
+In-Reply-To: <1637119.5DTscVEVRC@mako>
+To: Linux-Media <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch splits the encoder specific controls out of the main control setup
-function. This way each video device registers only relevant controls.
+Ping? Does anybody have any idea where to star digging on this? 
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Kept both H.264 and MPEG4 v4l2 controls for bitstream encoder device
----
- drivers/media/platform/coda/coda-common.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+Sent from my iPad
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 45db1da..7fc0dc0 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1334,14 +1334,8 @@ static const struct v4l2_ctrl_ops coda_ctrl_ops = {
- 	.s_ctrl = coda_s_ctrl,
- };
- 
--static int coda_ctrls_setup(struct coda_ctx *ctx)
-+static void coda_encode_ctrls(struct coda_ctx *ctx)
- {
--	v4l2_ctrl_handler_init(&ctx->ctrls, 9);
--
--	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_HFLIP, 0, 1, 1, 0);
--	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_VFLIP, 0, 1, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-@@ -1385,6 +1379,18 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0,
- 		1920 * 1088 / 256, 1, 0);
-+}
-+
-+static int coda_ctrls_setup(struct coda_ctx *ctx)
-+{
-+	v4l2_ctrl_handler_init(&ctx->ctrls, 2);
-+
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	if (ctx->inst_type == CODA_INST_ENCODER)
-+		coda_encode_ctrls(ctx);
- 
- 	if (ctx->ctrls.error) {
- 		v4l2_err(&ctx->dev->v4l2_dev,
--- 
-2.1.0
-
+> On 16 Oct 2014, at 17:33, Rodney Baker <rodney.baker@iinet.net.au> wrote:
+> 
+> Since installing kernel 3.17.0-1.gc467423-desktop (on openSuSE 13.1) my 
+> xc4000/zl10353/cx88 based DTV card has failed to initialise on boot.
+> 
+> The following messages are from dmesg; 
+> 
+> [   78.468221] xc4000: I2C read failed
+> [   80.074604] xc4000: I2C read failed
+> [   80.074605] Unable to read tuner registers.
+> [   82.622062] Selecting best matching firmware (7 bits differ) for type=(0), 
+> id 000000200000b700:
+> [   82.626375] i2c i2c-0: sendbytes: NAK bailout.
+> [  148.063594] xc4000: I2C read failed
+> [  149.669994] xc4000: I2C read failed
+> [  149.669995] Unable to read tuner registers.
+> [  149.670198] cx88[0]/0: registered device video1 [v4l2]
+> [  149.670287] cx88[0]/0: registered device vbi0
+> [  149.670338] cx88[0]/0: registered device radio0
+> [  149.670340] cx88[0]/0: failed to create cx88 audio thread, err=-4
+> [  149.670382] cx88[0]/2: cx2388x based DVB/ATSC card
+> [  149.670384] cx8802_alloc_frontends() allocating 1 frontend(s)
+> [  149.670515] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+> [  151.305364] zl10353_read_register: readreg error (reg=127, ret==-6)
+> [  151.305367] cx88[0]/2: frontend initialization failed
+> [  151.305369] cx88[0]/2: dvb_register failed (err = -22)
+> [  151.305370] cx88[0]/2: cx8802 probe failed, err = -22
+> 
+> It worked with 3.16.3-1.gd2bbe7f-desktop on the same machine.
+> 
+> Regards,
+> Rodney.
+> 
+> -- 
+> ==============================================================
+> Rodney Baker VK5ZTV
+> rodney.baker@iinet.net.au
+> ==============================================================
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
