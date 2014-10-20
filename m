@@ -1,170 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51710 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933848AbaJaPJu (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:39606 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753538AbaJTW5E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:50 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 6D6AE217D1
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:36 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 09/10] uvcvideo: Rename and split uvc_queue_enable to uvc_queue_stream(on|off)
-Date: Fri, 31 Oct 2014 17:09:50 +0200
-Message-Id: <1414768191-4536-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 20 Oct 2014 18:57:04 -0400
+Received: by mail-lb0-f170.google.com with SMTP id u10so19509lbd.29
+        for <linux-media@vger.kernel.org>; Mon, 20 Oct 2014 15:57:01 -0700 (PDT)
+Message-ID: <54459339.8010009@einserver.de>
+Date: Tue, 21 Oct 2014 00:56:57 +0200
+From: Andreas Ruprecht <rupran@einserver.de>
+MIME-Version: 1.0
+To: Jim Davis <jim.epost@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>, hverkuil@xs4all.nl
+Subject: Re: randconfig build error with next-20141020, in drivers/media/platform/marvell-ccic/mcam-core.c
+References: <CA+r1ZhgyOubWFZE+B0LnOLJNA7VVvPDDSmUjnRW7=z9cZBb0rA@mail.gmail.com>
+In-Reply-To: <CA+r1ZhgyOubWFZE+B0LnOLJNA7VVvPDDSmUjnRW7=z9cZBb0rA@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This brings the function name in line with the V4L2 API terminology and
-allows removing the duplicate queue type check.
+Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c |  3 ++-
- drivers/media/usb/uvc/uvc_queue.c  | 53 ++++++++++++++++----------------------
- drivers/media/usb/uvc/uvc_v4l2.c   | 10 ++-----
- drivers/media/usb/uvc/uvcvideo.h   |  5 +++-
- 4 files changed, 30 insertions(+), 41 deletions(-)
+after a lot of staring at the configuration it seems like this boils
+down to an issue within the Kconfig constraint description.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index ab1e2fd..6a4b0b8 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2038,7 +2038,8 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 		if (stream->intf == intf) {
- 			ret = uvc_video_resume(stream, reset);
- 			if (ret < 0)
--				uvc_queue_enable(&stream->queue, 0);
-+				uvc_queue_streamoff(&stream->queue,
-+						    stream->queue.queue.type);
- 			return ret;
- 		}
- 	}
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 5c11de0..c295c5c 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -263,6 +263,28 @@ int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
- 	return ret;
- }
- 
-+int uvc_queue_streamon(struct uvc_video_queue *queue, enum v4l2_buf_type type)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_streamon(&queue->queue, type);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
-+int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_streamoff(&queue->queue, type);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
- int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
- {
- 	int ret;
-@@ -318,37 +340,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
- }
- 
- /*
-- * Enable or disable the video buffers queue.
-- *
-- * The queue must be enabled before starting video acquisition and must be
-- * disabled after stopping it. This ensures that the video buffers queue
-- * state can be properly initialized before buffers are accessed from the
-- * interrupt handler.
-- *
-- * Enabling the video queue returns -EBUSY if the queue is already enabled.
-- *
-- * Disabling the video queue cancels the queue and removes all buffers from
-- * the main queue.
-- *
-- * This function can't be called from interrupt context. Use
-- * uvc_queue_cancel() instead.
-- */
--int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
--{
--	int ret;
--
--	mutex_lock(&queue->mutex);
--
--	if (enable)
--		ret = vb2_streamon(&queue->queue, queue->queue.type);
--	else
--		ret = vb2_streamoff(&queue->queue, queue->queue.type);
--
--	mutex_unlock(&queue->mutex);
--	return ret;
--}
--
--/*
-  * Cancel the video buffers queue.
-  *
-  * Cancelling the queue marks all buffers on the irq queue as erroneous,
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 5ba023b..9c5cbcf 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -757,14 +757,11 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
- 	struct uvc_streaming *stream = handle->stream;
- 	int ret;
- 
--	if (type != stream->type)
--		return -EINVAL;
--
- 	if (!uvc_has_privileges(handle))
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
--	ret = uvc_queue_enable(&stream->queue, 1);
-+	ret = uvc_queue_streamon(&stream->queue, type);
- 	mutex_unlock(&stream->mutex);
- 
- 	return ret;
-@@ -776,14 +773,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
- 	struct uvc_fh *handle = fh;
- 	struct uvc_streaming *stream = handle->stream;
- 
--	if (type != stream->type)
--		return -EINVAL;
--
- 	if (!uvc_has_privileges(handle))
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
--	uvc_queue_enable(&stream->queue, 0);
-+	uvc_queue_streamoff(&stream->queue, type);
- 	mutex_unlock(&stream->mutex);
- 
- 	return 0;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 2dc247a..f0a04b5 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -634,7 +634,10 @@ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
- extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf, int nonblocking);
--extern int uvc_queue_enable(struct uvc_video_queue *queue, int enable);
-+extern int uvc_queue_streamon(struct uvc_video_queue *queue,
-+			      enum v4l2_buf_type type);
-+extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
-+			       enum v4l2_buf_type type);
- extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
- extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf);
--- 
-2.0.4
+Broken down to the important bits:
+
+- CONFIG_VIDEO_TW68 and CONFIG_VIDEO_SAA7134 *select*
+CONFIG_VIDEOBUF2_DMA_SG
+
+- Both of these options are set to "*m*" in the configuration provided,
+which means that CONFIG_VIDEOBUF2_DMA_SG will also be selected as "m".
+According to Documentation/kbuild/kconfig-language.txt, line 101, "m" is
+set as the minimal value for CONFIG_VIDEOBUF2_DMA_SG by the selects, and
+as no other options select it as "y", it stays "m".
+
+- CONFIG_VIDEO_CAFE_CCIC is set to "*y*".
+The header file at drivers/media/platform/marvell-ccic/mcam-core.h then
+sets an internal preprocessor variable in line 28:
+
+#if IS_ENABLED(CONFIG_VIDEOBUF2_DMA_SG)
+#define MCAM_MODE_DMA_SG 1
+#endif
+
+The source code right around line 1299 in
+drivers/media/platform/marvell-ccic/mcam-core.c, where the undefined
+reference occurs, depends on MCAM_MODE_DMA_SG.
+
+This means that CONFIG_VIDEOBUF2_DMA_SG is compiled as an LKM, thus the
+reference for vb2_dma_sg_memops from mcam-core.c (which is statically
+compiled) can not be resolved in the builtin.o files and vmlinux.
+
+Unfortunately, I haven't got a solution on how to resolve that, but
+maybe this summary helps someone else to come up with one.
+
+Best regards,
+  Andreas
+
+On 20.10.2014 19:52, Jim Davis wrote:
+> Building with the attached random configuration file,
+> 
+> drivers/built-in.o: In function `mcam_setup_vb2':
+> /home/jim/linux/drivers/media/platform/marvell-ccic/mcam-core.c:1299: undefined
+> reference to `vb2_dma_sg_memops'
+> make: *** [vmlinux] Error 1
+> 
 
