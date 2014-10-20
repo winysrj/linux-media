@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34081 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbaJBRIu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:08:50 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 00/10] CODA7 JPEG support
-Date: Thu,  2 Oct 2014 19:08:25 +0200
-Message-Id: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp.outflux.net ([198.145.64.163]:50039 "EHLO smtp.outflux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751233AbaJTVrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Oct 2014 17:47:49 -0400
+Date: Mon, 20 Oct 2014 14:47:34 -0700
+From: Kees Cook <keescook@chromium.org>
+To: linux-kernel@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] af9035: make sure loading modules is const
+Message-ID: <20141020214734.GA32228@www.outflux.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Make sure that loaded modules are const char strings so we don't
+load arbitrary modules in the future, nor allow for format string
+leaks in the module request call.
 
-These patches add JPEG encoding and decoding support for CODA7541 (i.MX5).
-I have merged the H.264/MPEG4 encoder video devices back together since v1,
-so that there now are four video devices, with the JPEG encoder and decoder
-separate from the default bitstream encoder and decoder. The video devices
-only register relevant controls now.
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 00758c83eec7..1896ab218b11 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -193,8 +193,8 @@ static int af9035_wr_reg_mask(struct dvb_usb_device *d, u32 reg, u8 val,
+ 	return af9035_wr_regs(d, reg, &val, 1);
+ }
+ 
+-static int af9035_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
+-		void *platform_data, struct i2c_adapter *adapter)
++static int af9035_add_i2c_dev(struct dvb_usb_device *d, const char *type,
++		u8 addr, void *platform_data, struct i2c_adapter *adapter)
+ {
+ 	int ret, num;
+ 	struct state *state = d_to_priv(d);
+@@ -221,7 +221,7 @@ static int af9035_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
+ 		goto err;
+ 	}
+ 
+-	request_module(board_info.type);
++	request_module("%s", board_info.type);
+ 
+ 	/* register I2C device */
+ 	client = i2c_new_device(adapter, &board_info);
+-- 
+1.9.1
 
-Philipp Zabel (10):
-  [media] coda: add support for planar YCbCr 4:2:2 (YUV422P) format
-  [media] coda: identify platform device earlier
-  [media] coda: add coda_video_device descriptors
-  [media] coda: split out encoder control setup to specify controls per
-    video device
-  [media] coda: add JPEG register definitions for CODA7541
-  [media] coda: add CODA7541 JPEG support
-  [media] coda: store bitstream buffer position with buffer metadata
-  [media] coda: pad input stream for JPEG decoder
-  [media] coda: try to only queue a single JPEG into the bitstream
-  [media] coda: allow userspace to set compressed buffer size in a
-    certain range
-
- drivers/media/platform/coda/Makefile      |   2 +-
- drivers/media/platform/coda/coda-bit.c    | 204 +++++++----
- drivers/media/platform/coda/coda-common.c | 546 +++++++++++++++++++-----------
- drivers/media/platform/coda/coda-jpeg.c   | 225 ++++++++++++
- drivers/media/platform/coda/coda.h        |  21 +-
- drivers/media/platform/coda/coda_regs.h   |   7 +
- 6 files changed, 743 insertions(+), 262 deletions(-)
- create mode 100644 drivers/media/platform/coda/coda-jpeg.c
 
 -- 
-2.1.0
-
+Kees Cook
+Chrome OS Security
