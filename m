@@ -1,104 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:52872 "EHLO
-	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750809AbaJFQgi (ORCPT
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:52547 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755664AbaJUQJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 12:36:38 -0400
-Message-ID: <1412613395.8561.1.camel@x220>
-Subject: Re: [PATCH v2] [media] Remove references to non-existent PLAT_S5P
- symbol
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Date: Mon, 06 Oct 2014 18:36:35 +0200
-In-Reply-To: <1412611806-9346-1-git-send-email-s.nawrocki@samsung.com>
-References: <1412611806-9346-1-git-send-email-s.nawrocki@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Oct 2014 12:09:04 -0400
+Received: by mail-qg0-f42.google.com with SMTP id z60so1126883qgd.15
+        for <linux-media@vger.kernel.org>; Tue, 21 Oct 2014 09:09:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <s5hbnp5z9uy.wl-tiwai@suse.de>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
+	<543FB374.8020604@metafoo.de>
+	<543FC3CD.8050805@osg.samsung.com>
+	<s5h38aow1ub.wl-tiwai@suse.de>
+	<543FD1EC.5010206@osg.samsung.com>
+	<s5hy4sgumjo.wl-tiwai@suse.de>
+	<543FD892.6010209@osg.samsung.com>
+	<s5htx34ul3w.wl-tiwai@suse.de>
+	<54467EFB.7050800@xs4all.nl>
+	<s5hbnp5z9uy.wl-tiwai@suse.de>
+Date: Tue, 21 Oct 2014 12:08:59 -0400
+Message-ID: <CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Antti Palosaari <crope@iki.fi>,
+	"olebowle@gmx.com" <olebowle@gmx.com>,
+	"ramakrmu@cisco.com" <ramakrmu@cisco.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	perex@perex.cz, prabhakar.csengg@gmail.com,
+	Tim Gardner <tim.gardner@canonical.com>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	alsa-devel@alsa-project.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-10-06 at 18:10 +0200, Sylwester Nawrocki wrote:
-> The PLAT_S5P Kconfig symbol was removed in commit d78c16ccde96
-> ("ARM: SAMSUNG: Remove remaining legacy code"). However, there
-> are still some references to that symbol left, fix that by
-> substituting them with ARCH_S5PV210.
-> 
-> Reported-by: Paul Bolle <pebolle@tiscali.nl>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Sorry, I'm not convinced by that.  If the device has to be controlled
+> exclusively, the right position is the open/close.  Otherwise, the
+> program cannot know when it becomes inaccessible out of sudden during
+> its operation.
 
-Thanks for picking this up!
+I can say that I've definitely seen cases where if you configure a
+device as the "default" capture device in PulseAudio, then pulse will
+continue to capture from it even if you're not actively capturing the
+audio from pulse.  I only spotted this because I had a USB analyzer on
+the device and was dumbfounded when the ISOC packets kept arriving
+even after I had closed VLC.
 
-Should
-     Fixes: d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
+Devin
 
-be added so this will end up in stable for v3.17?
-
->  drivers/media/platform/Kconfig            |    6 +++---
->  drivers/media/platform/exynos4-is/Kconfig |    2 +-
->  drivers/media/platform/s5p-tv/Kconfig     |    2 +-
->  3 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index bee9074..3aac88f 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -166,7 +166,7 @@ config VIDEO_MEM2MEM_DEINTERLACE
->  config VIDEO_SAMSUNG_S5P_G2D
->  	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2
-> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	depends on HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
-> @@ -178,7 +178,7 @@ config VIDEO_SAMSUNG_S5P_G2D
->  config VIDEO_SAMSUNG_S5P_JPEG
->  	tristate "Samsung S5P/Exynos3250/Exynos4 JPEG codec driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2
-> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	depends on HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
-> @@ -189,7 +189,7 @@ config VIDEO_SAMSUNG_S5P_JPEG
->  config VIDEO_SAMSUNG_S5P_MFC
->  	tristate "Samsung S5P MFC Video Codec"
->  	depends on VIDEO_DEV && VIDEO_V4L2
-> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	depends on HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	default n
-> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-> index 77c9512..b7b2e47 100644
-> --- a/drivers/media/platform/exynos4-is/Kconfig
-> +++ b/drivers/media/platform/exynos4-is/Kconfig
-> @@ -2,7 +2,7 @@
->  config VIDEO_SAMSUNG_EXYNOS4_IS
->  	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
->  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	depends on OF && COMMON_CLK
->  	help
->  	  Say Y here to enable camera host interface devices for
-> diff --git a/drivers/media/platform/s5p-tv/Kconfig b/drivers/media/platform/s5p-tv/Kconfig
-> index a9d56f8..beb180e 100644
-> --- a/drivers/media/platform/s5p-tv/Kconfig
-> +++ b/drivers/media/platform/s5p-tv/Kconfig
-> @@ -9,7 +9,7 @@
->  config VIDEO_SAMSUNG_S5P_TV
->  	bool "Samsung TV driver for S5P platform"
->  	depends on PM_RUNTIME
-> -	depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	default n
->  	---help---
->  	  Say Y here to enable selecting the TV output devices for
-
-
-Paul Bolle
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
