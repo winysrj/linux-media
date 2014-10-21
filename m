@@ -1,64 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48640 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932553AbaJUQVa (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4070 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932283AbaJUL7a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 12:21:30 -0400
-Message-ID: <1413908485.3081.4.camel@pengutronix.de>
-Subject: Re: [media] CODA960: Fails to allocate memory
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Date: Tue, 21 Oct 2014 18:21:25 +0200
-In-Reply-To: <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
-References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
-	 <54465F34.1000400@xs4all.nl>
-	 <CAL8zT=herYZ9d3TKrx_5Nre0_RRRXK3Az9-NvmqGE7_SkHLzHg@mail.gmail.com>
-	 <54466471.8050607@xs4all.nl>
-	 <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Tue, 21 Oct 2014 07:59:30 -0400
+Message-ID: <54464A83.7090706@xs4all.nl>
+Date: Tue, 21 Oct 2014 13:58:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Takashi Iwai <tiwai@suse.de>
+CC: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, prabhakar.csengg@gmail.com,
+	tim.gardner@canonical.com, linux@eikelenboom.it,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/6] media: add media token device resource framework
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>	<c8bae1d475b1086302fcb83bc463ec01437c3f95.1413246372.git.shuahkh@osg.samsung.com>	<5446396B.9010709@xs4all.nl> <s5h1tq1ljxj.wl-tiwai@suse.de>
+In-Reply-To: <s5h1tq1ljxj.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
 
-Am Dienstag, den 21.10.2014, 17:39 +0200 schrieb Jean-Michel Hautbois:
-[...]
-> And the output is now :
-> v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
-> [ 6208.240919] coda 2040000.vpu: Not output type
-> [ 6208.245316] coda 2040000.vpu: streamon_out (N), streamon_cap (Y)
-> [ 6208.251353] coda 2040000.vpu: fill bitstream
-> [ 6208.255653] coda 2040000.vpu: fill bitstream payload : 0
-> VIDIOC_STREAMON: failed: Invalid argument
-> 
-> Any idea ?
-> JM
 
-$ trace-cmd record -e v4l2* v4l2-ctl -d13 --stream-out-mmap --stream-mmap --stream-to x.raw
-[...]
-$ trace-cmd report -R | grep bytesused
-[...]
-    v4l2-ctl-308   [003]  1030.861067: v4l2_qbuf:             minor=44 index=0 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.861292: v4l2_qbuf:             minor=44 index=1 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.861471: v4l2_qbuf:             minor=44 index=2 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.861638: v4l2_qbuf:             minor=44 index=3 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.862301: v4l2_qbuf:             minor=44 index=0 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030852944000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.862490: v4l2_qbuf:             minor=44 index=1 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853139000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.862672: v4l2_qbuf:             minor=44 index=2 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853322000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
-    v4l2-ctl-308   [003]  1030.862841: v4l2_qbuf:             minor=44 index=3 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853491000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+On 10/21/2014 01:51 PM, Takashi Iwai wrote:
+> At Tue, 21 Oct 2014 12:46:03 +0200,
+> Hans Verkuil wrote:
+>>
+>> Hi Shuah,
+>>
+>> As promised, here is my review for this patch series.
+>>
+>> On 10/14/2014 04:58 PM, Shuah Khan wrote:
+>>> Add media token device resource framework to allow sharing
+>>> resources such as tuner, dma, audio etc. across media drivers
+>>> and non-media sound drivers that control media hardware. The
+>>> Media token resource is created at the main struct device that
+>>> is common to all drivers that claim various pieces of the main
+>>> media device, which allows them to find the resource using the
+>>> main struct device. As an example, digital, analog, and
+>>> snd-usb-audio drivers can use the media token resource API
+>>> using the main struct device for the interface the media device
+>>> is attached to.
+>>>
+>>> A shared media tokens resource is created using devres framework
+>>> for drivers to find and lock/unlock. Creating a shared devres
+>>> helps avoid creating data structure dependencies between drivers.
+>>> This media token resource contains media token for tuner, and
+>>> audio. When tuner token is requested, audio token is issued.
+>>
+>> Did you mean: 'tuner token is issued' instead of audio token?
+>>
+>> I also have the same question as Takashi: why do we have an audio
+>> token in the first place? While you are streaming audio over alsa
+>> the underlying tuner must be marked as being in use. It's all about
+>> the tuner, since that's the resource that is being shared, not about
+>> audio as such.
+>>
+>> For the remainder of my review I will ignore the audio-related code
+>> and concentrate only on the tuner part.
+>>
+>>> Subsequent token (for tuner and audio) gets from the same task
+>>> and task in the same tgid succeed. This allows applications that
+>>> make multiple v4l2 ioctls to work with the first call acquiring
+>>> the token and applications that create separate threads to handle
+>>> video and audio functions.
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>>    MAINTAINERS                  |    2 +
+>>>    include/linux/media_tknres.h |   50 +++++++++
+>>>    lib/Makefile                 |    2 +
+>>>    lib/media_tknres.c           |  237 ++++++++++++++++++++++++++++++++++++++++++
+>>
+>> I am still not convinced myself that this should be a generic API.
+>> The only reason we need it today is for sharing tuners. Which is almost
+>> a purely media thing with USB audio as the single non-media driver that
+>> will be affected. Today I see no use case outside of tuners. I would
+>> probably want to keep this inside drivers/media.
+>>
+>> If this is going to be expanded it can always be moved to lib later.
+>
+> Well, my argument is that it should be more generic if it were
+> intended to be put in lib.  It'd be fine to put into drivers/media,
+> but this code snippet must be a separate module.  Otherwise usb-audio
+> would grab the whole media stuff even if not needed at all.
 
-The decoder is fed ~ 3 MiB input buffers, which it tries (and fails) to
-copy into the 1 MiB bitstream ringbuffer (currently hard-coded via the
-badly named CODA_MAX_FRAME_SIZE constant), so the bitstream payload in
-the ringbuffer is 0 during start_streaming.
+Certainly.
 
-regards
-Philipp
+>
+> (snip)
+>> I also discovered that you are missing MODULE_AUTHOR, MODULE_DESCRIPTION
+>> and above all MODULE_LICENSE. Without the MODULE_LICENSE it won't link this
+>> module to the GPL devres_* functions. It took me some time to figure that
+>> out.
+>
+> It was a code in lib, so it cannot be a module at all :)
 
+Well, it depends on CONFIG_MEDIA_SUPPORT which is 'm' in my case, so it
+compiles as a module :-)
+
+Regards,
+
+	Hans
