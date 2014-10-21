@@ -1,91 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40765 "EHLO lists.s-osg.org"
+Received: from ring0.de ([5.45.105.125]:53879 "EHLO ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbaJOUVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Oct 2014 16:21:37 -0400
-Message-ID: <543ED74E.1060500@osg.samsung.com>
-Date: Wed, 15 Oct 2014 14:21:34 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Takashi Iwai <tiwai@suse.de>
-CC: m.chehab@samsung.com, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
-	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, perex@perex.cz,
-	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
-	linux@eikelenboom.it, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 0/6] media token resource framework
-References: <cover.1413246370.git.shuahkh@osg.samsung.com> <s5ha94xwa7r.wl-tiwai@suse.de>
-In-Reply-To: <s5ha94xwa7r.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	id S1753569AbaJUPHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 11:07:33 -0400
+From: Sebastian Reichel <sre@kernel.org>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [RFCv2 0/8] [media] si4713 DT binding
+Date: Tue, 21 Oct 2014 17:06:59 +0200
+Message-Id: <1413904027-16767-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/15/2014 10:48 AM, Takashi Iwai wrote:
-> At Tue, 14 Oct 2014 08:58:36 -0600,
-> Shuah Khan wrote:
->>
->> Add media token device resource framework to allow sharing
->> resources such as tuner, dma, audio etc. across media drivers
->> and non-media sound drivers that control media hardware. The
->> Media token resource is created at the main struct device that
->> is common to all drivers that claim various pieces of the main
->> media device, which allows them to find the resource using the
->> main struct device. As an example, digital, analog, and
->> snd-usb-audio drivers can use the media token resource API
->> using the main struct device for the interface the media device
->> is attached to.
->>
->> This patch series consists of media token resource framework
->> and changes to use it in dvb-core, v4l2-core, au0828 driver,
->> and snd-usb-audio driver.
->>
->> With these changes dvb and v4l2 can share the tuner without
->> disrupting each other. Used tvtime, xawtv, kaffeine, and vlc,
->> vlc audio capture option, arecord/aplay during development to
->> identify v4l2 vb2 and vb1 ioctls and file operations that
->> disrupt the digital stream and would require changes to check
->> tuner ownership prior to changing the tuner configuration.
->> vb2 changes are made in the v4l2-core and vb1 changes are made
->> in the au0828 driver to encourage porting drivers to vb2 to
->> advantage of the new media token resource framework with changes
->> in the core.
->>
->> In this patch v2 series, fixed problems identified in the
->> patch v1 series. Important ones are changing snd-usb-audio
->> to use media tokens, holding tuner lock in VIDIOC_ENUMINPUT,
->> and VIDIOC_QUERYSTD.
-> 
-> Just took a quick glance over the patches, and my first concern is why
-> this has to be lib/*.  This means it's always built-in as long as this
-> config is enabled (and will be so on distro kernel) even if it's not
-> used at all.
-> 
+Hi,
 
-Right this module gets built when CONFIG_MEDIA_SUPPORT is enabled
-and stubs are in place when it is not enabled. The intent is for
-this feature to be enabled by default when media support is enabled.
-When a driver doesn't create the resource, it will simply not find it
-and for drivers like snd-usb-audio that aren't tried to media support,
-the stubs are in place and feature is essentially disabled.
+This is the RFCv2 patchset adding DT support to the si4713
+radio transmitter i2c driver. The changes can be summarized
+as follows:
 
-I picked lib so this module can be included in non-media drivers
-e.g: snd-usb-audio.
+ * Move regulator information back into the driver. The
+   regulators needed are documented in the chip and have
+   nothing to do with boarddata. Instead devm_regulator_get_optional
+   is used and errors are handled quite loosely now. Maybe the USB
+   driver should provide dummy regulators.
+ * GPIO handling is updated to gpiod consumer interface, resulting
+   in a driver cleanup and easy DT handling
+ * The driver is updated to use managed resources wherever possible
 
-Does this help explain the design? I didn't want to introduce a new
-config for this feature. If lib isn't right place, could you recommend
-another one that makes this modules available to non-media drivers?
-moving isn't a problem.
+So much about the nice stuff. But there is also
 
-thanks,
--- Shuah
+ * Instantiation of the platform device from the i2c (sub-)device. Since DT
+   is not supposed to contain linuxisms the device is a simple i2c node
+   resulting in the i2c probe function being called. Thus registering the main
+   v4l device must happen from there.
 
+Tested:
+ * Compilation on torvalds/linux.git:master (based on 52d589a)
+ * Booting in DT mode
+ * Some simply driver queries using v4l2-ctl
+
+Not tested:
+ * The USB driver, since I do not own the USB dongle
+ * The legacy platform code (only DT boot has been tested).
+   (The legacy platform code is supposed to removed in the near future anyways)
+
+Changes since RFCv1 (requested by Hans Verkuil):
+ - splitted the patchset into more patches
+ - replaced dev_info with dev_dbg for missing regulators
+ - check for ENOSYS value from devm_gpiod_get (disabled GPIOLIB)
+
+-- Sebastian
+
+Sebastian Reichel (8):
+  [media] si4713: switch to devm regulator API
+  [media] si4713: switch reset gpio to devm_gpiod API
+  [media] si4713: use managed memory allocation
+  [media] si4713: use managed irq request
+  [media] si4713: add device tree support
+  [media] si4713: add DT binding documentation
+  ARM: OMAP2: RX-51: update si4713 platform data
+  [media] si4713: cleanup platform data
+
+ Documentation/devicetree/bindings/media/si4713.txt |  30 ++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |  69 ++++-----
+ drivers/media/radio/si4713/radio-platform-si4713.c |  28 +---
+ drivers/media/radio/si4713/si4713.c                | 167 +++++++++++++--------
+ drivers/media/radio/si4713/si4713.h                |  15 +-
+ include/media/radio-si4713.h                       |  30 ----
+ include/media/si4713.h                             |   4 +-
+ 7 files changed, 186 insertions(+), 157 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+ delete mode 100644 include/media/radio-si4713.h
 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.1.1
+
