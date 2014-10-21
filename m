@@ -1,44 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:62830 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752481AbaJaJJx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 05:09:53 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:40752 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755195AbaJUKl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 06:41:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH] media: soc_camera: rcar_vin: Fix interrupt enable in progressive
-Date: Fri, 31 Oct 2014 18:09:25 +0900
-Message-Id: <1414746565-23142-1-git-send-email-ykaneko0929@gmail.com>
+Cc: j.anaszewski@samsung.com
+Subject: [v4l-utils RFC 1/2] mediactl: Separate entity and pad parsing
+Date: Tue, 21 Oct 2014 13:40:14 +0300
+Message-Id: <1413888015-26649-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1413888015-26649-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1413888015-26649-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Sometimes it's useful to be able to parse the entity independent of the pad.
+Separate entity parsing into media_parse_entity().
 
-The progressive input is captured by the field interrupt.
-Therefore the end of frame interrupt is unnecessary.
-
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ utils/media-ctl/libmediactl.c | 28 ++++++++++++++++++++++++----
+ utils/media-ctl/mediactl.h    | 14 ++++++++++++++
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index d55e2c5..d3d2f7d 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -692,7 +692,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		vnmc ^= VNMC_BPS;
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index ec360bd..e17d86e 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -770,10 +770,10 @@ int media_device_add_entity(struct media_device *media,
+ 	return 0;
+ }
  
- 	/* progressive or interlaced mode */
--	interrupts = progressive ? VNIE_FIE | VNIE_EFE : VNIE_EFE;
-+	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+-struct media_pad *media_parse_pad(struct media_device *media,
+-				  const char *p, char **endp)
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp)
+ {
+-	unsigned int entity_id, pad;
++	unsigned int entity_id;
+ 	struct media_entity *entity;
+ 	char *end;
  
- 	/* ack interrupts */
- 	iowrite32(interrupts, priv->base + VNINTS_REG);
+@@ -810,7 +810,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
+ 			return NULL;
+ 		}
+ 	}
+-	for (; isspace(*end); ++end);
++	for (p = end; isspace(*p); ++p);
++
++	*endp = (char *)p;
++
++	return entity;
++}
++
++struct media_pad *media_parse_pad(struct media_device *media,
++				  const char *p, char **endp)
++{
++	unsigned int pad;
++	struct media_entity *entity;
++	char *end;
++
++	if (endp == NULL)
++		endp = &end;
++
++	entity = media_parse_entity(media, p, &end);
++	if (!entity)
++		return NULL;
++	*endp = end;
+ 
+ 	if (*end != ':') {
+ 		media_dbg(media, "Expected ':'\n", *end);
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 77ac182..3faee71 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
+ int media_reset_links(struct media_device *media);
+ 
+ /**
++ * @brief Parse string to an entity on the media device.
++ * @param media - media device.
++ * @param p - input string
++ * @param endp - pointer to string where parsing ended
++ *
++ * Parse NULL terminated string describing an entity and return its
++ * struct media_entity instance.
++ *
++ * @return Pointer to struct media_entity on success, NULL on failure.
++ */
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp);
++
++/**
+  * @brief Parse string to a pad on the media device.
+  * @param media - media device.
+  * @param p - input string
 -- 
-1.9.1
+2.1.0.231.g7484e3b
 
