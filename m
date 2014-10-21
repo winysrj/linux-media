@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60914 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142AbaJATWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 15:22:15 -0400
-Message-ID: <542C5462.5090406@iki.fi>
-Date: Wed, 01 Oct 2014 22:22:10 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:59650 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082AbaJUHJp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 03:09:45 -0400
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH V2 04/13] cx231xx: give each master i2c bus a seperate
- name
-References: <1412140821-16285-1-git-send-email-zzam@gentoo.org> <1412140821-16285-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412140821-16285-5-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAH1o70JoiJhec6thnQZnQ_99DLjhMrYhypFubkDYNnTcP_02ZQ@mail.gmail.com>
+References: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
+	<544280E4.20101@cogentembedded.com>
+	<CAH1o70JoiJhec6thnQZnQ_99DLjhMrYhypFubkDYNnTcP_02ZQ@mail.gmail.com>
+Date: Tue, 21 Oct 2014 09:09:43 +0200
+Message-ID: <CAMuHMdXDKP=KDzGUqXuPLirPX6Y4BA-n4RC8kdx-8A-e=fa4MQ@mail.gmail.com>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kaneko-san,
 
-
-On 10/01/2014 08:20 AM, Matthias Schwarzott wrote:
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-i2c.c | 5 +++++
->   1 file changed, 5 insertions(+)
+On Tue, Oct 21, 2014 at 5:30 AM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
+>>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>>> @@ -108,6 +108,7 @@
+>>>   #define VNDMR2_VPS            (1 << 30)
+>>>   #define VNDMR2_HPS            (1 << 29)
+>>>   #define VNDMR2_FTEV           (1 << 17)
+>>> +#define VNDMR2_VLV_1           (1 << 12)
+>>
+>>    Please instead do:
+>>
+>> #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
 >
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index a30d400..178fa48 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -506,6 +506,7 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   {
->   	struct cx231xx *dev = bus->dev;
-> +	char bus_name[3];
->
->   	BUG_ON(!dev->cx231xx_send_usb_command);
->
-> @@ -513,6 +514,10 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   	bus->i2c_adap.dev.parent = &dev->udev->dev;
->
->   	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-> +	bus_name[0] = '-';
-> +	bus_name[1] = '0' + bus->nr;
-> +	bus_name[2] = '\0';
-> +	strlcat(bus->i2c_adap.name, bus_name, sizeof(bus->i2c_adap.name));
+> It's unclear to me why the style of the new #define should differ
+> from those of the existing ones.
 
-I am still thinking that. Isn't there any better alternative for this 
-kind homemade number to string conversion? It is trivial, but for 
-something on my head says we should avoid that kind of string 
-manipulation...
+I think Sergey wants to say that unlike for the other fields, there are
+multiple possible values for the VLV field.
 
-printf? num_to_str?
+By providing the single macro definition
 
+        #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
 
-dunno
+you can easily provide a way to set any of VNDMR2_VLV_n.
 
-Antti
+I hope this explanation makes it clearer.
 
->
->   	bus->i2c_adap.algo_data = bus;
->   	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
->
+Gr{oetje,eeting}s,
 
--- 
-http://palosaari.fi/
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
