@@ -1,35 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46919 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759157AbaJ3L3G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 07:29:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 0/2] Update Auvitek au0828 quirks
-Date: Thu, 30 Oct 2014 09:28:10 -0200
-Message-Id: <cover.1414668341.git.mchehab@osg.samsung.com>
+Received: from ring0.de ([5.45.105.125]:54066 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932331AbaJUPIE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 11:08:04 -0400
+From: Sebastian Reichel <sre@kernel.org>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [RFCv2 6/8] [media] si4713: add DT binding documentation
+Date: Tue, 21 Oct 2014 17:07:05 +0200
+Message-Id: <1413904027-16767-7-git-send-email-sre@kernel.org>
+In-Reply-To: <1413904027-16767-1-git-send-email-sre@kernel.org>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several Auvitek au0828 listed at sound quirks. However,
-the table there is incomplete. Simplify the table using a macro
-for au0828 devices and update it to reflect the devices currently
+This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
+radio transmitter.
 
--
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
 
-v2: Fix SOB, au0828 driver reference and add a warning at au0828-cards.c.
-
-Mauro Carvalho Chehab (2):
-  [media] sound: simplify au0828 quirk table
-  [media] sound: Update au0828 quirks table
-
- drivers/media/usb/au0828/au0828-cards.c |   5 +
- sound/usb/quirks-table.h                | 166 ++++++++------------------------
- 2 files changed, 44 insertions(+), 127 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
+new file mode 100644
+index 0000000..5ee5552
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/si4713.txt
+@@ -0,0 +1,30 @@
++* Silicon Labs FM Radio transmitter
++
++The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
++supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
++and a digital interface, which supports I2S, left-justified and a custom
++DSP-mode format. It is programmable through an I2C interface.
++
++Required Properties:
++- compatible: Should contain "silabs,si4713"
++- reg: the I2C address of the device
++
++Optional Properties:
++- interrupts-extended: Interrupt specifier for the chips interrupt
++- reset-gpios: GPIO specifier for the chips reset line
++- vdd-supply: phandle for Vdd regulator
++- vio-supply: phandle for Vio regulator
++
++Example:
++
++&i2c2 {
++        fmtx: si4713@63 {
++                compatible = "silabs,si4713";
++                reg = <0x63>;
++
++                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
++                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
++                vio-supply = <&vio>;
++                vdd-supply = <&vaux1>;
++        };
++};
 -- 
-1.9.3
+2.1.1
 
