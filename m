@@ -1,115 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1275 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922AbaJIClv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 22:41:51 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s992fl2h005587
-	for <linux-media@vger.kernel.org>; Thu, 9 Oct 2014 04:41:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D8C762A0432
-	for <linux-media@vger.kernel.org>; Thu,  9 Oct 2014 04:41:45 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141009024145.D8C762A0432@tschai.lan>
-Date: Thu,  9 Oct 2014 04:41:45 +0200 (CEST)
+Received: from mail.kapsi.fi ([217.30.184.167]:38191 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933376AbaJUVYB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 17:24:01 -0400
+Message-ID: <5446CEED.30501@iki.fi>
+Date: Wed, 22 Oct 2014 00:23:57 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103
+ for supporting the demod of M88RS6000
+References: <201410131444110937756@gmail.com>
+In-Reply-To: <201410131444110937756@gmail.com>
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Thu Oct  9 04:00:28 CEST 2014
-git branch:	test
-git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.17-0.slh.1-amd64
+On 10/13/2014 09:44 AM, Nibble Max wrote:
+> M88RS6000 is the integrated chip, which includes tuner and demod.
+> Its internal demod is similar with M88DS3103 except some registers definition.
+> The main different part of this internal demod from others is its clock/pll generation IP block sitting inside the tuner die.
+> So clock/pll functions should be configed through its tuner i2c bus, NOT its demod i2c bus.
+> The demod of M88RS6000 need the firmware: dvb-demod-m88rs6000.fw
+> firmware download link: http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> @@ -250,6 +251,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   	u16 u16tmp, divide_ratio;
+>   	u32 tuner_frequency, target_mclk;
+>   	s32 s32tmp;
+> +	struct m88rs6000_mclk_config mclk_cfg;
+>
+>   	dev_dbg(&priv->i2c->dev,
+>   			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
+> @@ -291,6 +293,26 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> +	if (priv->chip_id == M88RS6000_CHIP_ID) {
+> +		ret = m88ds3103_wr_reg(priv, 0x06, 0xe0);
+> +		if (ret)
+> +			goto err;
+> +		if (fe->ops.tuner_ops.set_config) {
+> +			/* select main mclk */
+> +			mclk_cfg.config_op = 0;
+> +			mclk_cfg.TunerfreqMHz = c->frequency / 1000;
+> +			mclk_cfg.SymRateKSs = c->symbol_rate / 1000;
+> +			ret = fe->ops.tuner_ops.set_config(fe, &mclk_cfg);
+> +			if (ret)
+> +				goto err;
+> +			priv->mclk_khz = mclk_cfg.MclkKHz;
+> +		}
+> +		ret = m88ds3103_wr_reg(priv, 0x06, 0x00);
+> +		if (ret)
+> +			goto err;
+> +		usleep_range(10000, 20000);
+> +	}
 
-Detailed results are available here:
+That looks odd and also ugly. You pass some values from demod to tuner 
+using set_config callback. Tuner driver can get symbol_rate and 
+frequency just similarly from property cache than demod. Why you do it 
+like that?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Clock is provided by tuner as you mention. I see you use that to pass 
+used clock frequency from tuner to demod. This does not look nice and I 
+would like to see clock framework instead. Or calculate clock on both 
+drivers. Does the demod clock even needs to be changed? I think it is 
+only TS stream size which defines used clock frequency - smaller the TS 
+bitstream, the smaller the clock frequency needed => optimizes power 
+consumption a little. But TS clock is calculated on tuner driver in any 
+case?
 
-Full logs are available here:
+regards
+Antti
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
