@@ -1,107 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:3395 "EHLO smtp208.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753917AbaJHPzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Oct 2014 11:55:35 -0400
-Date: Wed, 8 Oct 2014 17:49:57 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/1] Add a libv4l plugin for Exynos4 camera
-Message-Id: <20141008174957.8451ebb426619d88d7a30cfd@ao2.it>
-In-Reply-To: <54353AA3.3040506@samsung.com>
-References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
-	<1412757980-23570-2-git-send-email-j.anaszewski@samsung.com>
-	<54353124.1060704@redhat.com>
-	<54353AA3.3040506@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:58829 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014AbaJUFKp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 01:10:45 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v3 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
+Date: Tue, 21 Oct 2014 14:10:29 +0900
+Message-Id: <1413868229-22205-4-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
+References: <1413868229-22205-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 08 Oct 2014 15:22:43 +0200
-Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-> Hi Hans,
-> 
-> On 10/08/2014 02:42 PM, Hans de Goede wrote:
-> > Hi,
-> >
-> > On 10/08/2014 10:46 AM, Jacek Anaszewski wrote:
-> >> The plugin provides support for the media device on Exynos4 SoC.
-> >> Added is also a media device configuration file parser.
-> >> The media configuration file is used for conveying information
-> >> about media device links that need to be established as well
-> >> as V4L2 user control ioctls redirection to a particular
-> >> sub-device.
-> >>
-> >> The plugin performs single plane <-> multi plane API conversion,
-> >> video pipeline linking and takes care of automatic data format
-> >> negotiation for the whole pipeline, after intercepting
-> >> VIDIOC_S_FMT or VIDIOC_TRY_FMT ioctls.
-> >>
-> >> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>   configure.ac                                       |    1 +
-> >>   lib/Makefile.am                                    |    5 +-
-> >>   lib/libv4l-exynos4-camera/Makefile.am              |    7 +
-> >>   .../libv4l-devconfig-parser.h                      |  145 ++
-> >>   lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c  | 2486 ++++++++++++++++++++
-> >>   5 files changed, 2642 insertions(+), 2 deletions(-)
-> >>   create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
-> >>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-devconfig-parser.h
-> >>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
-> >
-> > Ugh, that is a big plugin. Can you please split out the parser stuff
-> > into a separate file ?
-> 
-> Yes, I tried to split it, but spent so much time fighting with
-> autotools, that I decided to submit it in this form and ask
-> more experienced v4l-utils build system maintainers for the advice.
-> I mentioned this in the cover letter.
-> 
+Up until now scaling has been forbidden for the NV16 capture format.
+This patch adds support for horizontal scaling-up for NV16. Vertical
+scaling-up for NV16 is forbidden by the H/W specification.
 
-What autotools issue in particular?
-The following change followed by "automake && ./configure" should be
-enough to add a new file libv4l-devconfig-parser.c:
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
+v3 [Yoshihiro Kaneko]
+* no changes
 
-diff --git a/lib/libv4l-exynos4-camera/Makefile.am b/lib/libv4l-exynos4-camera/Makefile.am
-index 3552ec8..14d461a 100644
---- a/lib/libv4l-exynos4-camera/Makefile.am
-+++ b/lib/libv4l-exynos4-camera/Makefile.am
-@@ -2,6 +2,6 @@ if WITH_V4L_PLUGINS
- libv4l2plugin_LTLIBRARIES = libv4l-exynos4-camera.la
- endif
+v2 [Yoshihiro Kaneko]
+* Updated change log text from Simon Horman
+* Code-style fixes as suggested by Sergei Shtylyov
 
--libv4l_exynos4_camera_la_SOURCES = libv4l-exynos4-camera.c
-+libv4l_exynos4_camera_la_SOURCES = libv4l-exynos4-camera.c libv4l-devconfig-parser.c
- libv4l_exynos4_camera_la_CPPFLAGS = -fvisibility=hidden -std=gnu99
- libv4l_exynos4_camera_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -lpthread
+ drivers/media/platform/soc_camera/rcar_vin.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-
-If you wanted to completely reset the build environment you could
-even use "git clean", FWIW I have this "git distclean" alias in
-~/.gitconfig:
-
-[alias]
-	distclean = clean -f -d -X
-
-You'll need to rerun "autoreconf -i" after such a cleanup.
-
-Ciao,
-   Antonio
-
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index ecdbd48..fd2207a 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -644,7 +644,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	/* output format */
+ 	switch (icd->current_fmt->host_fmt->fourcc) {
+ 	case V4L2_PIX_FMT_NV16:
+-		iowrite32(ALIGN(ALIGN(cam->width, 0x20) * cam->height, 0x80),
++		iowrite32(ALIGN((cam->out_width * cam->out_height), 0x80),
+ 			  priv->base + VNUVAOF_REG);
+ 		dmr = VNDMR_DTMD_YCSEP;
+ 		output_is_yuv = true;
+@@ -1614,9 +1614,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	 * At the time of NV16 capture format, the user has to specify the
+ 	 * width of the multiple of 32 for H/W specification.
+ 	 */
+-	if ((pixfmt == V4L2_PIX_FMT_NV16) && (pix->width & 0x1F)) {
+-		dev_err(icd->parent, "Specified width error in NV16 format.\n");
+-		return -EINVAL;
++	if (pixfmt == V4L2_PIX_FMT_NV16) {
++		if (pix->width & 0x1F) {
++			dev_err(icd->parent,
++				"Specified width error in NV16 format. Please specify the multiple of 32.\n");
++			return -EINVAL;
++		}
++		if (pix->height != cam->height) {
++			dev_err(icd->parent,
++				"Vertical scaling-up error in NV16 format. Please specify input height size.\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	switch (pix->field) {
+@@ -1661,6 +1669,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB555X:
++	case V4L2_PIX_FMT_NV16: /* horizontal scaling-up only is supported */
+ 		can_scale = true;
+ 		break;
+ 	default:
 -- 
-Antonio Ospite
-http://ao2.it
+1.9.1
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
