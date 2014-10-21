@@ -1,164 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50523 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751304AbaJBIql (ORCPT
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:55782 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932170AbaJUNQr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 04:46:41 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 04/18] smiapp-pll: Separate bounds checking into a separate function
-Date: Thu,  2 Oct 2014 11:45:54 +0300
-Message-Id: <1412239568-8524-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 21 Oct 2014 09:16:47 -0400
+Received: by mail-ob0-f178.google.com with SMTP id wn1so954047obc.37
+        for <linux-media@vger.kernel.org>; Tue, 21 Oct 2014 06:16:47 -0700 (PDT)
+MIME-Version: 1.0
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Tue, 21 Oct 2014 15:16:31 +0200
+Message-ID: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
+Subject: [media] CODA960: Fails to allocate memory
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi,
 
-Enough work for this function already.
+I am trying to use the CODA960 driver on a 3.18 kernel.
+It seems pretty good when the module is probed (appart from the
+unsupported firmware version) but when I try using the encoder, it
+fails allocating dma buffers.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.c |  110 +++++++++++++++++++++-------------------
- 1 file changed, 59 insertions(+), 51 deletions(-)
+Here is the DT part I added :
+&vpu {
+    compatible = "fsl,imx6q-vpu";
+    clocks = <&clks 168>, <&clks 140>, <&clks 142>;
+    clock-names = "per", "ahb", "ocram";
+    iramsize = <0x21000>;
+    iram = <&ocram>;
+    resets = <&src 1>;
+    status = "okay";
+};
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index d14af5c..bde8eb8 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -87,6 +87,64 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
- }
- 
-+static int check_all_bounds(struct device *dev,
-+			    const struct smiapp_pll_limits *limits,
-+			    struct smiapp_pll *pll)
-+{
-+	int rval;
-+
-+	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
-+			    limits->min_pll_ip_freq_hz,
-+			    limits->max_pll_ip_freq_hz,
-+			    "pll_ip_clk_freq_hz");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->pll_multiplier,
-+			limits->min_pll_multiplier, limits->max_pll_multiplier,
-+			"pll_multiplier");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->pll_op_clk_freq_hz,
-+			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
-+			"pll_op_clk_freq_hz");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->op_sys_clk_div,
-+			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
-+			"op_sys_clk_div");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->op_pix_clk_div,
-+			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
-+			"op_pix_clk_div");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->op_sys_clk_freq_hz,
-+			limits->op.min_sys_clk_freq_hz,
-+			limits->op.max_sys_clk_freq_hz,
-+			"op_sys_clk_freq_hz");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->op_pix_clk_freq_hz,
-+			limits->op.min_pix_clk_freq_hz,
-+			limits->op.max_pix_clk_freq_hz,
-+			"op_pix_clk_freq_hz");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->vt_sys_clk_freq_hz,
-+			limits->vt.min_sys_clk_freq_hz,
-+			limits->vt.max_sys_clk_freq_hz,
-+			"vt_sys_clk_freq_hz");
-+	if (!rval)
-+		rval = bounds_check(
-+			dev, pll->vt_pix_clk_freq_hz,
-+			limits->vt.min_pix_clk_freq_hz,
-+			limits->vt.max_pix_clk_freq_hz,
-+			"vt_pix_clk_freq_hz");
-+
-+	return rval;
-+}
-+
- /*
-  * Heuristically guess the PLL tree for a given common multiplier and
-  * divisor. Begin with the operational timing and continue to video
-@@ -117,7 +175,6 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	uint32_t min_vt_div, max_vt_div, vt_div;
- 	uint32_t min_sys_div, max_sys_div;
- 	unsigned int i;
--	int rval;
- 
- 	/*
- 	 * Get pre_pll_clk_div so that our pll_op_clk_freq_hz won't be
-@@ -323,56 +380,7 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	pll->pixel_rate_csi =
- 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
- 
--	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
--			    limits->min_pll_ip_freq_hz,
--			    limits->max_pll_ip_freq_hz,
--			    "pll_ip_clk_freq_hz");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->pll_multiplier,
--			limits->min_pll_multiplier, limits->max_pll_multiplier,
--			"pll_multiplier");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->pll_op_clk_freq_hz,
--			limits->min_pll_op_freq_hz, limits->max_pll_op_freq_hz,
--			"pll_op_clk_freq_hz");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->op_sys_clk_div,
--			limits->op.min_sys_clk_div, limits->op.max_sys_clk_div,
--			"op_sys_clk_div");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->op_pix_clk_div,
--			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
--			"op_pix_clk_div");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->op_sys_clk_freq_hz,
--			limits->op.min_sys_clk_freq_hz,
--			limits->op.max_sys_clk_freq_hz,
--			"op_sys_clk_freq_hz");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->op_pix_clk_freq_hz,
--			limits->op.min_pix_clk_freq_hz,
--			limits->op.max_pix_clk_freq_hz,
--			"op_pix_clk_freq_hz");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->vt_sys_clk_freq_hz,
--			limits->vt.min_sys_clk_freq_hz,
--			limits->vt.max_sys_clk_freq_hz,
--			"vt_sys_clk_freq_hz");
--	if (!rval)
--		rval = bounds_check(
--			dev, pll->vt_pix_clk_freq_hz,
--			limits->vt.min_pix_clk_freq_hz,
--			limits->vt.max_pix_clk_freq_hz,
--			"vt_pix_clk_freq_hz");
--
--	return rval;
-+	return check_all_bounds(dev, limits, pll);
- }
- 
- int smiapp_pll_calculate(struct device *dev,
--- 
-1.7.10.4
+When booting, I see :
+[    4.410645] coda 2040000.vpu: Firmware code revision: 46056
+[    4.416312] coda 2040000.vpu: Initialized CODA960.
+[    4.421123] coda 2040000.vpu: Unsupported firmware version: 3.1.1
+[    4.483577] coda 2040000.vpu: codec registered as /dev/video[0-1]
 
+I can start v4l2-ctl and it shows that the device seems to be ok :
+ v4l2-ctl --all -d /dev/video1
+Driver Info (not using libv4l2):
+        Driver name   : coda
+        Card type     : CODA960
+        Bus info      : platform:coda
+        Driver version: 3.18.0
+        Capabilities  : 0x84208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+Priority: 2
+Format Video Capture:
+        Width/Height  : 1920/1088
+        Pixel Format  : 'YU12'
+        Field         : None
+        Bytes per Line: 1920
+        Size Image    : 3133440
+        Colorspace    : HDTV and modern devices (ITU709)
+        Flags         :
+Format Video Output:
+        Width/Height  : 1920/1088
+        Pixel Format  : 'H264'
+        Field         : None
+        Bytes per Line: 0
+        Size Image    : 1048576
+        Colorspace    : HDTV and modern devices (ITU709)
+        Flags         :
+Selection: compose, Left 0, Top 0, Width 1920, Height 1088
+Selection: compose_default, Left 0, Top 0, Width 1920, Height 1088
+Selection: compose_bounds, Left 0, Top 0, Width 1920, Height 1088
+Selection: compose_padded, Left 0, Top 0, Width 1920, Height 1088
+Selection: crop, Left 0, Top 0, Width 1920, Height 1088
+Selection: crop_default, Left 0, Top 0, Width 1920, Height 1088
+Selection: crop_bounds, Left 0, Top 0, Width 1920, Height 1088
+
+User Controls
+
+                horizontal_flip (bool)   : default=0 value=0
+                  vertical_flip (bool)   : default=0 value=0
+
+Codec Controls
+
+                 video_gop_size (int)    : min=1 max=60 step=1
+default=16 value=16
+                  video_bitrate (int)    : min=0 max=32767000 step=1
+default=0 value=0
+    number_of_intra_refresh_mbs (int)    : min=0 max=8160 step=1
+default=0 value=0
+           sequence_header_mode (menu)   : min=0 max=1 default=1 value=1
+       maximum_bytes_in_a_slice (int)    : min=1 max=1073741823 step=1
+default=500 value=500
+       number_of_mbs_in_a_slice (int)    : min=1 max=1073741823 step=1
+default=1 value=1
+      slice_partitioning_method (menu)   : min=0 max=2 default=0 value=0
+          h264_i_frame_qp_value (int)    : min=0 max=51 step=1
+default=25 value=25
+          h264_p_frame_qp_value (int)    : min=0 max=51 step=1
+default=25 value=25
+          h264_maximum_qp_value (int)    : min=0 max=51 step=1
+default=51 value=51
+  h264_loop_filter_alpha_offset (int)    : min=0 max=15 step=1 default=0 value=0
+   h264_loop_filter_beta_offset (int)    : min=0 max=15 step=1 default=0 value=0
+          h264_loop_filter_mode (menu)   : min=0 max=1 default=0 value=0
+         mpeg4_i_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
+         mpeg4_p_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
+                horizontal_flip (bool)   : default=0 value=0
+                  vertical_flip (bool)   : default=0 value=0
+
+
+
+
+But when I try to get a file outputed, it fails :
+
+v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
+[ 1197.292256] coda 2040000.vpu: dma_alloc_coherent of size 1048576 failed
+VIDIOC_REQBUFS: failed: Cannot allocate memory
+
+Did I forget to do something ?
+Thanks,
+JM
