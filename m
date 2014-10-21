@@ -1,74 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:45125 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884AbaJYSrZ (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:64879 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755041AbaJULHV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Oct 2014 14:47:25 -0400
-Received: by mail-pa0-f48.google.com with SMTP id ey11so2961607pad.7
-        for <linux-media@vger.kernel.org>; Sat, 25 Oct 2014 11:47:24 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 25 Oct 2014 11:47:24 -0400
-Message-ID: <CAOcJUbx9q1XGUoNW9avqVqi9LQ1hmwe4TM=Op8jLrm4yAKCd8g@mail.gmail.com>
-Subject: [GIT PULL] DVB: add support for LG Electronics LGDT3306A ATSC/QAM-B Demodulator
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 21 Oct 2014 07:07:21 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 00/13] Fixes from Chrome OS tree for MFC driver
+Date: Tue, 21 Oct 2014 16:36:54 +0530
+Message-Id: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Upstreaming the fixes which have gone in to Chrome OS tree for MFC driver.
+Tested on MFCV8, MFCV7 and MFCV6 based Exynos5 based boards, peach-pi
+(5800), peach-pit (5420) and snow (5250).
 
-We spoke briefly about the lgdt3306a driver.  I've done a lot of
-cleanup on this driver, starting with checkpatch.pl complaining:
+Changes from v2:
+1) Rebased on latest media-tree
+2) Dropped the patch (14/14) from previous set
+   s5p-mfc: Don't change the image size to smaller than the request.
 
-total: 495 errors, 313 warnings, 2126 lines checked
+Changes from v1:
+1) Addressed all review comments from Kamil.
+2) Dropped patches
+   [media] s5p-mfc: set B-frames as 2 while encoding
+   [media] s5p-mfc: remove reduntant clock on & clock off
+   [media] s5p-mfc: don't disable clock when next ctx is pending
+3) Rebased on media-tree
 
- ... Now checkpatch.pl reports the following:
+Arun Mankuzhi (2):
+  [media] s5p-mfc: modify mfc wakeup sequence for V8
+  [media] s5p-mfc: De-init MFC when watchdog kicks in
 
-total: 5 errors, 51 warnings, 2138 lines checked
+Ilja Friedel (1):
+  [media] s5p-mfc: Only set timestamp/timecode for new frames.
 
-consisting of mostly "WARNING: line over 80 characters"
+Kiran AVND (4):
+  [media] s5p-mfc: support MIN_BUFFERS query for encoder
+  [media] s5p-mfc: keep RISC ON during reset for V7/V8
+  [media] s5p-mfc: check mfc bus ctrl before reset
+  [media] s5p-mfc: flush dpbs when resolution changes
 
-This could use a *little* bit more cleanup, but I think it's clean
-enough to be merged now.
+Pawel Osciak (5):
+  [media] s5p-mfc: Fix REQBUFS(0) for encoder.
+  [media] s5p-mfc: Don't crash the kernel if the watchdog kicks in.
+  [media] s5p-mfc: Remove unused alloc field from private buffer
+    struct.
+  [media] s5p-mfc: fix V4L2_CID_MIN_BUFFERS_FOR_CAPTURE on resolution
+    change.
+  [media] s5p-mfc: fix a race in interrupt flags handling
 
-The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
+Prathyush K (1):
+  [media] s5p-mfc: clear 'enter_suspend' flag if suspend fails
 
-  Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   45 +++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  122 ++++++++++++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    6 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   54 ++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   13 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   32 +-----
+ 8 files changed, 188 insertions(+), 89 deletions(-)
 
-are available in the git repository at:
+-- 
+1.7.9.5
 
-  git://git.linuxtv.org/mkrufky/dvb lgdt3306a
-
-for you to fetch changes up to b5bf818584a22a9271c78fc18ca9cd44d36266ec:
-
-  lgdt3306a: more small whitespace cleanups (2014-10-25 10:26:15 -0400)
-
-----------------------------------------------------------------
-Fred Richter (1):
-      DVB: add support for LG Electronics LGDT3306A ATSC/QAM-B Demodulator
-
-Michael Ira Krufky (9):
-      lgdt3306a: clean up whitespace & unneeded brackets
-      lgdt3306a: remove unnecessary 'else'
-      lgdt3306a: fix WARNING: EXPORT_SYMBOL(foo); should immediately
-follow its function/variable
-      lgdt3306a: fix ERROR: do not use assignment in if condition
-      lgdt3306a: do not add new typedefs
-      lgdt3306a: fix ERROR: do not use C99 // comments
-      lgdt3306a: fix WARNING: please, no spaces at the start of a line
-      lgdt3306a: fix WARNING: 'supress' may be misspelled - perhaps 'suppress'?
-      lgdt3306a: more small whitespace cleanups
-
- drivers/media/dvb-frontends/Kconfig     |    8 +
- drivers/media/dvb-frontends/Makefile    |    1 +
- drivers/media/dvb-frontends/lgdt3306a.c | 2035 ++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/lgdt3306a.h |   82 ++
- 4 files changed, 2126 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/lgdt3306a.c
- create mode 100644 drivers/media/dvb-frontends/lgdt3306a.h
-
-Cheers,
-
-Mike
