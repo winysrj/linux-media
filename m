@@ -1,49 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:30793 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754995AbaJHIrG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 04:47:06 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND4004JLB2H7RC0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 08 Oct 2014 17:47:05 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, kyungmin.park@samsung.com
-Cc: s.nawrocki@samsung.com
-Subject: [PATCH 1/3] async: Add async_domain_init_exclusive() helper
-Date: Wed, 08 Oct 2014 10:46:51 +0200
-Message-id: <1412758013-23608-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:33044 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932224AbaJUSbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 14:31:10 -0400
+From: Tomas Melin <tomas.melin@iki.fi>
+To: m.chehab@samsung.com, david@hardeman.nu
+Cc: james.hogan@imgtec.com, a.seppala@gmail.com, bay@hackerdom.ru,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tomas Melin <tomas.melin@iki.fi>
+Subject: [PATCH v2 2/2] [media] rc-core: change enabled_protocol default setting
+Date: Tue, 21 Oct 2014 21:30:18 +0300
+Message-Id: <1413916218-7481-2-git-send-email-tomas.melin@iki.fi>
+In-Reply-To: <1413916218-7481-1-git-send-email-tomas.melin@iki.fi>
+References: <1413916218-7481-1-git-send-email-tomas.melin@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Change default setting for enabled protocols.
+Instead of enabling all protocols during registration,
+disable all except default keymap and lirc.
+Reduces overhead since all protocols not handled by default.
+Protocol to use will be enabled when keycode table is written by userspace.
 
-Add a helper to allow initialization of struct async_domain at runtime.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
 ---
- include/linux/async.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/rc/rc-ir-raw.c |    1 -
+ drivers/media/rc/rc-main.c   |    6 ++++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/async.h b/include/linux/async.h
-index 6b0226b..807e40b 100644
---- a/include/linux/async.h
-+++ b/include/linux/async.h
-@@ -37,6 +37,12 @@ struct async_domain {
- 	struct async_domain _name = { .pending = LIST_HEAD_INIT(_name.pending), \
- 				      .registered = 0 }
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index a118539..d3b1e76 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -256,7 +256,6 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 		return -ENOMEM;
  
-+static inline void async_domain_init_exclusive(struct async_domain *domain)
-+{
-+	INIT_LIST_HEAD(&domain->pending);
-+	domain->registered = 0;
-+}
-+
- extern async_cookie_t async_schedule(async_func_t func, void *data);
- extern async_cookie_t async_schedule_domain(async_func_t func, void *data,
- 					    struct async_domain *domain);
+ 	dev->raw->dev = dev;
+-	dev->enabled_protocols = ~0;
+ 	rc = kfifo_alloc(&dev->raw->kfifo,
+ 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
+ 			 GFP_KERNEL);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 633c682..dcdf4cd 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1320,6 +1320,8 @@ int rc_register_device(struct rc_dev *dev)
+ 		rc_map = rc_map_get(RC_MAP_EMPTY);
+ 	if (!rc_map || !rc_map->scan || rc_map->size == 0)
+ 		return -EINVAL;
++	/* get default keymap type */
++	u64 rc_type = (1 << rc_map->rc_type);
+ 
+ 	set_bit(EV_KEY, dev->input_dev->evbit);
+ 	set_bit(EV_REP, dev->input_dev->evbit);
+@@ -1412,16 +1414,16 @@ int rc_register_device(struct rc_dev *dev)
+ 			raw_init = true;
+ 		}
+ 		rc = ir_raw_event_register(dev);
++		dev->enabled_protocols = (rc_type | RC_BIT_LIRC);
+ 		if (rc < 0)
+ 			goto out_input;
+ 	}
+ 
+ 	if (dev->change_protocol) {
+-		u64 rc_type = (1 << rc_map->rc_type);
+ 		rc = dev->change_protocol(dev, &rc_type);
+ 		if (rc < 0)
+ 			goto out_raw;
+-		dev->enabled_protocols = rc_type;
++		dev->enabled_protocols = (rc_type | RC_BIT_LIRC);
+ 	}
+ 
+ 	mutex_unlock(&dev->lock);
 -- 
-1.7.9.5
+1.7.10.4
 
