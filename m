@@ -1,134 +1,425 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51539 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([134.134.136.65]:21977 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934093AbaJaDN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 23:13:59 -0400
-Message-ID: <5452FE75.1010402@iki.fi>
-Date: Fri, 31 Oct 2014 05:13:57 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1755228AbaJUKl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 06:41:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: j.anaszewski@samsung.com
+Subject: [v4l-utils RFC 2/2] mediatext: Add library
+Date: Tue, 21 Oct 2014 13:40:15 +0300
+Message-Id: <1413888015-26649-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1413888015-26649-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1413888015-26649-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103forsupporting
- the demod of M88RS6000
-References: <201410271529188904708@gmail.com>, <201410301238228758761@gmail.com> <201410311034193593814@gmail.com> <5452FA39.8040608@iki.fi>
-In-Reply-To: <5452FA39.8040608@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+libmediatext is a helper library for converting configurations (Media
+controller links, V4L2 controls and V4L2 sub-device media bus formats and
+selections) from text-based form into IOCTLs.
 
+libmediatext depends on libv4l2subdev and libmediactl.
 
-On 10/31/2014 04:55 AM, Antti Palosaari wrote:
->
->
-> On 10/31/2014 04:34 AM, Nibble Max wrote:
->> Hello Antti,
->>
->> On 2014-10-31 01:36:14, Antti Palosaari wrote:
->>>
->>>
->>> On 10/30/2014 06:38 AM, Nibble Max wrote:
->>>
->>>>>> -    if (tab_len > 83) {
->>>>>> +    if (tab_len > 86) {
->>>>>
->>>>> That is not nice, but I could try find better solution and fix it
->>>>> later.
->>>>
->>>> What is the reason to check this parameter?
->>>> How about remove this check?
->>>
->>> It is just to check you will not overwrite buffer accidentally. Buffer
->>> is 83 bytes long, which should be also increased...
->>> The correct solution is somehow calculate max possible tab size on
->>> compile time. It should be possible as init tabs are static const
->>> tables. Use some macro to calculate max value and use it - not plain
->>> numbers.
->>>
->>> Something like that
->>> #define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2,
->>> m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
->>>
->>>
->>>>> Clock selection. What this does:
->>>>> * select mclk_khz
->>>>> * select target_mclk
->>>>> * calls set_config() in order to pass target_mclk to tuner driver
->>>>> * + some strange looking sleep, which is not likely needed
->>>>
->>>> The clock of M88RS6000's demod comes from tuner dies.
->>>> So the first thing is turning on the demod main clock from tuner die
->>>> after the demod reset.
->>>> Without this clock, the following register's content will fail to
->>>> update.
->>>> Before changing the demod main clock, it should close clock path.
->>>> After changing the demod main clock, it open clock path and wait the
->>>> clock to stable.
->>>>
->>>>>
->>>>> One thing what I don't like this is that you have implemented
->>>>> M88RS6000
->>>>> things here and M88DS3103 elsewhere. Generally speaking, code must
->>>>> have
->>>>> some logic where same things are done in same place. So I expect to
->>>>> see
->>>>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
->>>>> implemented here or these moved to place where M88DS3103
->>>>> implementation is.
->>>>>
->>>>
->>>> I will move M88DS3103 implementation to here.
->>>>
->>>>> Also, even set_config() is somehow logically correctly used here, I
->>>>> prefer to duplicate that 4 line long target_mclk selection to tuner
->>>>> driver and get rid of whole set_config(). Even better solution
->>>>> could be
->>>>> to register M88RS6000 as a clock provider using clock framework, but
->>>>> imho it is not worth  that simple case.
->>>>
->>>> Do you suggest to set demod main clock and ts clock in tuner's
->>>> set_params call back?
->>>
->>> Yes, and you did it already on that latest patch, thanks. It is not
->>> logically correct, but a bit hackish solution, but I think it is best in
->>> that special case in order to keep things simple here.
->>>
->>>
->>>
->>> One thing with that new patch I would like to check is this 10us delay
->>> after clock path is enabled. You enable clock just before mcu is stopped
->>> and demod is configured during mcu is on freeze. 10us is almost nothing
->>> and it sounds like having no need in a situation you stop even mcu. It
->>> is about one I2C command which will took longer than 10us. Hard to see
->>> why you need wait 10us to settle clock in such case. What happens if you
->>> don't wait? I assume nothing, it works just as it should as stable
->>> clocks are needed a long after that, when mcu is take out of reset.
->>>
->>
->> usleep_range(10000, 20000);
->> This delay time at least is 10ms, not 10us.
->
-> ah, yes, you were correct. 10ms is indeed a much larger, it is about
-> century on a digital logic signal path where frequency is around 100MHz.
-> 100MHz clock means clock cycle is 10ns, 10ms is 10000000ns => 1,000,000
-> - one million clock cycles. Whilst I don't know how chip designed in a
-> logic level, I have still done some digital logic designing myself and
-> this sounds long.
-> If you don't enable clock path, what is next command which will fail?
-> Probably it will not even fail, but never lock to signal as demod core
-> is not clocked at all.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Teemu Tuominen <teemu.tuominen@intel.com>
+---
+ libmediatext.pc.in                 |  10 ++
+ utils/media-ctl/Makefile.am        |  10 +-
+ utils/media-ctl/libmediatext.pc.in |  10 ++
+ utils/media-ctl/mediatext-test.c   |  65 ++++++++++++
+ utils/media-ctl/mediatext.c        | 210 +++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediatext.h        |  29 +++++
+ 6 files changed, 332 insertions(+), 2 deletions(-)
+ create mode 100644 libmediatext.pc.in
+ create mode 100644 utils/media-ctl/libmediatext.pc.in
+ create mode 100644 utils/media-ctl/mediatext-test.c
+ create mode 100644 utils/media-ctl/mediatext.c
+ create mode 100644 utils/media-ctl/mediatext.h
 
-But if you want keep that delay then keep it. For my eyes it sounds 
-weird to wait that long after clock path is enabled. I have feeling it 
-is clock which is needed much later, but I may be wrong and I cannot 
-even make any tests without hardware. It is also possible that master 
-clock is needed in order to perform all the next commands.
-
-regards
-Antti
-
+diff --git a/libmediatext.pc.in b/libmediatext.pc.in
+new file mode 100644
+index 0000000..6aa6353
+--- /dev/null
++++ b/libmediatext.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: libmediatext
++Description: Media controller and V4L2 text-based configuration library
++Version: @PACKAGE_VERSION@
++Cflags: -I${includedir}
++Libs: -L${libdir} -lmediatext
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index a3931fb..3e883e0 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -1,4 +1,4 @@
+-noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la
++noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+ 
+ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+ libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+@@ -9,9 +9,15 @@ libv4l2subdev_la_LIBADD = libmediactl.la
+ libv4l2subdev_la_CFLAGS = -static
+ libv4l2subdev_la_LDFLAGS = -static
+ 
++libmediatext_la_SOURCES = mediatext.c
++libmediatext_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
++libmediatext_la_LDFLAGS = -static $(LIBUDEV_LIBS)
++
+ mediactl_includedir=$(includedir)/mediactl
+ noinst_HEADERS = mediactl.h v4l2subdev.h
+ 
+-bin_PROGRAMS = media-ctl
++bin_PROGRAMS = media-ctl mediatext-test
+ media_ctl_SOURCES = media-ctl.c options.c options.h tools.h
+ media_ctl_LDADD = libmediactl.la libv4l2subdev.la
++mediatext_test_SOURCES = mediatext-test.c
++mediatext_test_LDADD = libmediatext.la libmediactl.la libv4l2subdev.la
+diff --git a/utils/media-ctl/libmediatext.pc.in b/utils/media-ctl/libmediatext.pc.in
+new file mode 100644
+index 0000000..6aa6353
+--- /dev/null
++++ b/utils/media-ctl/libmediatext.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: libmediatext
++Description: Media controller and V4L2 text-based configuration library
++Version: @PACKAGE_VERSION@
++Cflags: -I${includedir}
++Libs: -L${libdir} -lmediatext
+diff --git a/utils/media-ctl/mediatext-test.c b/utils/media-ctl/mediatext-test.c
+new file mode 100644
+index 0000000..296b8c0
+--- /dev/null
++++ b/utils/media-ctl/mediatext-test.c
+@@ -0,0 +1,65 @@
++/*
++ * libmediatext test program
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "mediactl.h"
++#include "mediatext.h"
++
++int main(int argc, char *argv[])
++{
++	struct media_device *device;
++	int rval;
++
++	if (argc != 3) {
++		fprintf(stderr, "usage: %s <media device> <string>\n\n", argv[0]);
++		fprintf(stderr, "\tstring := [ v4l2-ctrl | v4l2-mbus | link-reset | link-conf]\n\n");
++		fprintf(stderr, "\tv4l2-ctrl := \"entity\" ctrl_type ctrl_id ctrl_value\n");
++		fprintf(stderr, "\tctrl_type := [ int | int64 | bitmask ]\n");
++		fprintf(stderr, "\tctrl_value := [ %%d | %%PRId64 | bitmask_value ]\n");
++		fprintf(stderr, "\tbitmask_value := b<binary_number>\n\n");
++		fprintf(stderr, "\tv4l2-mbus := \n");
++		fprintf(stderr, "\tlink-conf := \"entity\":pad -> \"entity\":pad[link-flags]\n");
++		return EXIT_FAILURE;
++	}
++
++	device = media_device_new(argv[1]);
++	if (!device)
++		return EXIT_FAILURE;
++
++	media_debug_set_handler(device, (void (*)(void *, ...))fprintf, stdout);
++
++	rval = media_device_enumerate(device);
++	if (rval)
++		return EXIT_FAILURE;
++
++	rval = mediatext_parse(device, argv[2]);
++	if (rval) {
++		fprintf(stderr, "bad string %s (%s)\n", argv[2], strerror(-rval));
++		return EXIT_FAILURE;
++	}
++
++	media_device_unref(device);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/utils/media-ctl/mediatext.c b/utils/media-ctl/mediatext.c
+new file mode 100644
+index 0000000..ce0ee42
+--- /dev/null
++++ b/utils/media-ctl/mediatext.c
+@@ -0,0 +1,210 @@
++/*
++ * Media controller text-based configuration library
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <sys/ioctl.h>
++
++#include <ctype.h>
++#include <errno.h>
++#include <inttypes.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <string.h>
++
++#include <linux/types.h>
++
++#include "mediactl.h"
++#include "mediactl-priv.h"
++#include "tools.h"
++#include "v4l2subdev.h"
++
++struct parser {
++	char *prefix;
++	int (*parse)(struct media_device *media, const struct parser *p,
++		     char *string);
++	struct parser *next;
++	bool no_args;
++};
++
++static int parse(struct media_device *media, const struct parser *p, char *string)
++{
++	for (; p->prefix; p++) {
++		size_t len = strlen(p->prefix);
++
++		if (strncmp(p->prefix, string, len))
++			continue;
++
++		string += len;
++
++		for (; isspace(*string); string++);
++
++		if (p->no_args)
++			return p->parse(media, p->next, NULL);
++
++		if (strlen(string) == 0)
++			return -ENOEXEC;
++
++		return p->parse(media, p->next, string);
++	}
++
++	return -ENOENT;
++}
++
++struct ctrl_type {
++	uint32_t type;
++	char *str;
++} ctrltypes[] = {
++	{ V4L2_CTRL_TYPE_INTEGER, "int" },
++	{ V4L2_CTRL_TYPE_MENU, "menu" },
++	{ V4L2_CTRL_TYPE_INTEGER_MENU, "intmenu" },
++	{ V4L2_CTRL_TYPE_BITMASK, "bitmask" },
++	{ V4L2_CTRL_TYPE_INTEGER64, "int64" },
++};
++
++/* adapted from yavta.c */
++static int parse_v4l2_ctrl(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	struct v4l2_ext_control ctrl = { 0 };
++	struct v4l2_ext_controls ctrls = { .count = 1,
++					   .controls = &ctrl };
++	int64_t val;
++	int rval;
++	struct media_entity *entity;
++	struct ctrl_type *ctype;
++	unsigned int i;
++
++	entity = media_parse_entity(media, string, &string);
++	if (!entity)
++		return -ENOENT;
++
++	for (i = 0; i < ARRAY_SIZE(ctrltypes); i++)
++		if (!strncmp(string, ctrltypes[i].str,
++			     strlen(ctrltypes[i].str)))
++			break;
++
++	if (i == ARRAY_SIZE(ctrltypes))
++		return -ENOENT;
++
++	ctype = &ctrltypes[i];
++
++	string += strlen(ctrltypes[i].str);
++	for (; isspace(*string); string++);
++	rval = sscanf(string, "0x%" PRIx32, &ctrl.id);
++	if (rval <= 0)
++		return -EINVAL;
++
++	for (; !isspace(*string) && *string; string++);
++	for (; isspace(*string); string++);
++
++	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
++
++	switch (ctype->type) {
++	case V4L2_CTRL_TYPE_BITMASK:
++		if (*string++ != 'b')
++			return -EINVAL;
++		while (*string == '1' || *string == '0') {
++			val <<= 1;
++			if (*string == '1')
++				val++;
++			string++;
++		}
++		break;
++	default:
++		rval = sscanf(string, "%" PRId64, &val);
++		break;
++	}
++	if (rval <= 0)
++		return -EINVAL;
++
++	media_dbg(media, "Setting control 0x%8.8x (type %s), value %" PRId64 "\n",
++		  ctrl.id, ctype->str, val);
++
++	if (ctype->type == V4L2_CTRL_TYPE_INTEGER64)
++		ctrl.value64 = val;
++	else
++		ctrl.value = val;
++
++	rval = v4l2_subdev_open(entity);
++	if (rval < 0)
++		return rval;
++
++	rval = ioctl(entity->fd, VIDIOC_S_EXT_CTRLS, &ctrls);
++	if (ctype->type != V4L2_CTRL_TYPE_INTEGER64) {
++		if (rval != -1) {
++			ctrl.value64 = ctrl.value;
++		} else if (ctype->type != V4L2_CTRL_TYPE_STRING &&
++			   (errno == EINVAL || errno == ENOTTY)) {
++			struct v4l2_control old = { .id = ctrl.id,
++						    .value = val };
++
++			rval = ioctl(entity->fd, VIDIOC_S_CTRL, &old);
++			if (rval != -1) {
++				ctrl.value64 = old.value;
++			}
++		}
++	}
++	if (rval == -1) {
++		media_dbg(media,
++			  "Failed setting control 0x8.8x: %s (%d) to value %"
++			  PRId64 "\n", ctrl.id, strerror(errno), errno, val);;
++		return -errno;
++	}
++
++	if (val != ctrl.value64)
++		media_dbg(media, "Asking for %" PRId64 ", got %" PRId64 "\n",
++			  val, ctrl.value64);
++
++	return 0;
++}
++
++static int parse_v4l2_mbus(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	media_dbg(media, "Media bus format setup: %s\n", string);
++	return v4l2_subdev_parse_setup_formats(media, string);
++}
++
++static int parse_link_reset(struct media_device *media, const struct parser *p,
++			    char *string)
++{
++	media_dbg(media, "Resetting links\n");
++	return media_reset_links(media);
++}
++
++static int parse_link_conf(struct media_device *media, const struct parser *p,
++			   char *string)
++{
++	media_dbg(media, "Configuring links: %s\n", string);
++	return media_parse_setup_links(media, string);
++}
++
++static const struct parser parsers[] = {
++	{ "v4l2-ctrl", parse_v4l2_ctrl },
++	{ "v4l2-mbus", parse_v4l2_mbus },
++	{ "link-reset", parse_link_reset, NULL, true },
++	{ "link-conf", parse_link_conf },
++	{ 0 }
++};
++
++int mediatext_parse(struct media_device *media, char *string)
++{
++	return parse(media, parsers, string);
++}
+diff --git a/utils/media-ctl/mediatext.h b/utils/media-ctl/mediatext.h
+new file mode 100644
+index 0000000..f2f80fe
+--- /dev/null
++++ b/utils/media-ctl/mediatext.h
+@@ -0,0 +1,29 @@
++/*
++ * Media controller text-based configuration library
++ *
++ * Copyright (C) 2013 Intel Corporation
++ *
++ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published
++ * by the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program. If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __MEDIATEXT_H__
++#define __MEDIATEXT_H__
++
++struct media_device;
++
++int mediatext_parse(struct media_device *device, char *string);
++
++#endif /* __MEDIATEXT_H__ */
 -- 
-http://palosaari.fi/
+2.1.0.231.g7484e3b
+
