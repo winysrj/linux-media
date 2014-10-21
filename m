@@ -1,106 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34687 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbaJVKED (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:54058 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932321AbaJULHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 06:04:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 3/5] [media] vivid: convert to platform device
-Date: Wed, 22 Oct 2014 12:03:39 +0200
-Message-Id: <1413972221-13669-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 21 Oct 2014 07:07:52 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 07/13] [media] s5p-mfc: Don't crash the kernel if the watchdog kicks in.
+Date: Tue, 21 Oct 2014 16:37:01 +0530
+Message-Id: <1413889627-8431-8-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For contiguous DMA buffer allocation, a struct is needed that
-DMA buffers can be associated with.
+From: Pawel Osciak <posciak@chromium.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+If the software watchdog kicks in, the watchdog worker is not synchronized
+with hardware interrupts and does not block other instances. It's possible
+for it to clear the hw_lock, making other instances trigger a BUG() on
+hw_lock checks. Since it's not fatal to clear the hw_lock to zero twice,
+just WARN in those cases for now. We should not explode, as firmware will
+return errors as needed for other instances after it's reloaded, or they
+will time out.
+
+A clean fix should involve killing other instances when watchdog kicks in,
+but requires a major redesign of locking in the driver.
+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 37 +++++++++++++++++++++++++++++--
- 1 file changed, 35 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 2c61a62..c79d60d 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -26,6 +26,7 @@
- #include <linux/vmalloc.h>
- #include <linux/font.h>
- #include <linux/mutex.h>
-+#include <linux/platform_device.h>
- #include <linux/videodev2.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/videobuf2-vmalloc.h>
-@@ -152,6 +153,7 @@ module_param(no_error_inj, bool, 0444);
- MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting controls");
- 
- static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
-+static struct platform_device *vivid_pdev;
- 
- const struct v4l2_rect vivid_min_rect = {
- 	0, 0, MIN_WIDTH, MIN_HEIGHT
-@@ -1288,7 +1290,7 @@ free_dev:
-    will succeed. This is limited to the maximum number of devices that
-    videodev supports, which is equal to VIDEO_NUM_DEVICES.
-  */
--static int __init vivid_init(void)
-+static int vivid_probe(struct platform_device *pdev)
- {
- 	const struct font_desc *font = find_font("VGA8x16");
- 	int ret = 0, i;
-@@ -1323,7 +1325,7 @@ static int __init vivid_init(void)
- 	return ret;
- }
- 
--static void __exit vivid_exit(void)
-+static int vivid_remove(struct platform_device *pdev)
- {
- 	struct vivid_dev *dev;
- 	unsigned i;
-@@ -1384,6 +1386,37 @@ static void __exit vivid_exit(void)
- 		kfree(dev);
- 		vivid_devs[i] = NULL;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index eb71055..8620236 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -342,8 +342,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 		ctx->state = MFCINST_RES_CHANGE_INIT;
+ 		s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 		wake_up_ctx(ctx, reason, err);
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
++		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 		s5p_mfc_clock_off();
+ 		s5p_mfc_hw_call_void(dev->mfc_ops, try_run, dev);
+ 		return;
+@@ -415,8 +414,7 @@ leave_handle_frame:
+ 		clear_work_bit(ctx);
+ 	s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 	wake_up_ctx(ctx, reason, err);
+-	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-		BUG();
++	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 	s5p_mfc_clock_off();
+ 	/* if suspending, wake up device and do not try_run again*/
+ 	if (test_bit(0, &dev->enter_suspend))
+@@ -463,8 +461,7 @@ static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
+ 			break;
+ 		}
  	}
-+
-+	return 0;
-+}
-+
-+struct platform_driver vivid_driver = {
-+	.probe = vivid_probe,
-+	.remove = vivid_remove,
-+	.driver = {
-+		.name = "vivid",
-+	},
-+};
-+
-+static int __init vivid_init(void)
-+{
-+	int ret;
-+
-+	vivid_pdev = platform_device_register_simple("vivid", -1, NULL, 0);
-+	if (IS_ERR(vivid_pdev))
-+		return PTR_ERR(vivid_pdev);
-+
-+	ret = platform_driver_register(&vivid_driver);
-+	if (ret != 0)
-+		platform_device_unregister(vivid_pdev);
-+
-+	return ret;
-+}
-+
-+static void __exit vivid_exit(void)
-+{
-+	platform_device_unregister(vivid_pdev);
-+	platform_driver_unregister(&vivid_driver);
- }
+-	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-		BUG();
++	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 	s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 	s5p_mfc_clock_off();
+ 	wake_up_dev(dev, reason, err);
+@@ -518,8 +515,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 	}
+ 	s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 	clear_work_bit(ctx);
+-	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-		BUG();
++	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 	s5p_mfc_clock_off();
+ 	s5p_mfc_hw_call_void(dev->mfc_ops, try_run, dev);
+ 	wake_up_ctx(ctx, reason, err);
+@@ -557,16 +553,14 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
+ 		} else {
+ 			ctx->dpb_flush_flag = 0;
+ 		}
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
++		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
  
- module_init(vivid_init);
+ 		s5p_mfc_clock_off();
+ 
+ 		wake_up(&ctx->queue);
+ 		s5p_mfc_hw_call_void(dev->mfc_ops, try_run, dev);
+ 	} else {
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
++		WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 
+ 		s5p_mfc_clock_off();
+ 
+@@ -643,8 +637,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 				mfc_err("post_frame_start() failed\n");
+ 			s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 			wake_up_ctx(ctx, reason, err);
+-			if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-				BUG();
++			WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+ 			s5p_mfc_clock_off();
+ 			s5p_mfc_hw_call_void(dev->mfc_ops, try_run, dev);
+ 		} else {
 -- 
-2.1.1
+1.7.9.5
 
