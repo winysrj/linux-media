@@ -1,205 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35009 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161068AbaJ3UNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:13:09 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v4 06/14] cx231xx: Use symbolic constants for i2c ports instead of numbers
-Date: Thu, 30 Oct 2014 21:12:27 +0100
-Message-Id: <1414699955-5760-7-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
-References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+Received: from mail-yh0-f47.google.com ([209.85.213.47]:60837 "EHLO
+	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933125AbaJURo3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 13:44:29 -0400
+MIME-Version: 1.0
+In-Reply-To: <5ee64319b16d00f8fb800607b1e304a1@hardeman.nu>
+References: <1413714113-7456-1-git-send-email-tomas.melin@iki.fi>
+	<1413714113-7456-2-git-send-email-tomas.melin@iki.fi>
+	<5ee64319b16d00f8fb800607b1e304a1@hardeman.nu>
+Date: Tue, 21 Oct 2014 20:44:28 +0300
+Message-ID: <CACraW2q4ki+6hscwL_am536fiL3BS4F+HXN7AN4snbuPveCzHg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] [media] rc-core: change enabled_protocol default setting
+From: Tomas Melin <tomas.melin@iki.fi>
+To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	james.hogan@imgtec.com,
+	=?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace numbers by the constants of same value and same meaning.
+On Mon, Oct 20, 2014 at 5:12 PM, David Härdeman <david@hardeman.nu> wrote:
+> On 2014-10-19 12:21, Tomas Melin wrote:
+>>
+>> Change default setting for enabled protocols.
+>> Instead of enabling all protocols, disable all except lirc during
+>> registration.
+>> Reduces overhead since all protocols not handled by default.
+>> Protocol to use will be enabled when keycode table is written by
+>> userspace.
+>
+>
+> I can see the appeal in this, but now you've disabled automatic decoding for
+> the protocol specified by the keymap for raw drivers? So this would also be
+> a change, right?
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
- 1 file changed, 31 insertions(+), 31 deletions(-)
+Yes, you are right. Atleast it potentially still could change expected
+behaviour.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 092fb85..2f027c7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_PAL_M,
-@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_NTSC_M,
-@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_PAL,
- 
- 		.input = {{
-@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_NTSC,
- 
- 		.input = {{
-@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* request some modules */
- 	if (dev->board.decoder == CX231XX_AVDECODER) {
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--					&dev->i2c_bus[0].i2c_adap,
-+					&dev->i2c_bus[I2C_0].i2c_adap,
- 					"cx25840", 0x88 >> 1, NULL);
- 		if (dev->sd_cx25840 == NULL)
- 			cx231xx_info("cx25840 subdev registration failure\n");
-@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
- 
- 			memset(&client, 0, sizeof(client));
--			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
- 			client.addr = 0xa0 >> 1;
- 
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
--- 
-2.1.2
+>
+> I agree with Mauro that the "proper" long-term fix would be to teach the
+> LIRC userspace daemon to enable the lirc protocol as/when necessary, but
+> something similar to the patch below (but lirc + keymap protocol...if that's
+> possible to implement in a non-intrusive manner, I haven't checked TBH)
+> might be a good idea as an interim measure?
+>
+I think it looks feasible to implement that way. I'll look in to it
+and send a new patch series.
 
+Tomas
+
+>
+>
+>>
+>> Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
+>> ---
+>>  drivers/media/rc/rc-ir-raw.c |    3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+>> index a118539..63d23d0 100644
+>> --- a/drivers/media/rc/rc-ir-raw.c
+>> +++ b/drivers/media/rc/rc-ir-raw.c
+>> @@ -256,7 +256,8 @@ int ir_raw_event_register(struct rc_dev *dev)
+>>                 return -ENOMEM;
+>>
+>>         dev->raw->dev = dev;
+>> -       dev->enabled_protocols = ~0;
+>> +       /* by default, disable all but lirc*/
+>> +       dev->enabled_protocols = RC_BIT_LIRC;
+>>         rc = kfifo_alloc(&dev->raw->kfifo,
+>>                          sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
+>>                          GFP_KERNEL);
