@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f52.google.com ([209.85.213.52]:53057 "EHLO
-	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbaJRKKC convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:34289 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932323AbaJULIC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Oct 2014 06:10:02 -0400
-MIME-Version: 1.0
-In-Reply-To: <20141016204920.GB16402@hardeman.nu>
-References: <1412879436-7513-1-git-send-email-tomas.melin@iki.fi>
-	<20141016204920.GB16402@hardeman.nu>
-Date: Sat, 18 Oct 2014 13:10:01 +0300
-Message-ID: <CACraW2pTb0avTdQCLFAZAWNm5ZuTmVDEOPgZGmY+prepLcRANg@mail.gmail.com>
-Subject: Re: [PATCH resend] [media] rc-core: fix protocol_change regression in ir_raw_event_register
-From: Tomas Melin <tomas.melin@iki.fi>
-To: Tomas Melin <tomas.melin@iki.fi>, m.chehab@samsung.com,
-	james.hogan@imgtec.com,
-	=?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 21 Oct 2014 07:08:02 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 09/13] [media] s5p-mfc: De-init MFC when watchdog kicks in
+Date: Tue, 21 Oct 2014 16:37:03 +0530
+Message-Id: <1413889627-8431-10-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 16, 2014 at 11:49 PM, David Härdeman <david@hardeman.nu> wrote:
-> I think this is already addressed in this thread:
-> http://www.spinics.net/lists/linux-media/msg79865.html
-The patch in that thread would have broken things since the
-store_protocol function is not changed at the same time. The patch I
-sent also takes that into account.
+From: Arun Mankuzhi <arun.m@samsung.com>
 
-My concern is still that user space behaviour changes.
-In my case, lirc simply does not work anymore. More generically,
-anyone now using e.g. nuvoton-cir with anything other than RC6_MCE
-will not get their devices working without first explictly enabling
-the correct protocol from sysfs or with ir-keytable.
+If the software watchdog kicks in, we need to de-init MFC
+before reloading firmware and re-intializing it again.
 
-Correct me if I'm wrong but the change_protocol function in struct
-rc_dev is meant for changing hardware decoder protocols which means
-only a few drivers actually use it. So the added empty function
-change_protocol into rc-ir-raw.c doesnt really make sense in the first
-place.
+Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Tomas
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8620236..39f8f2a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -159,6 +159,10 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
+ 	}
+ 	clear_bit(0, &dev->hw_lock);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
++
++	/* De-init MFC */
++	s5p_mfc_deinit_hw(dev);
++
+ 	/* Double check if there is at least one instance running.
+ 	 * If no instance is in memory than no firmware should be present */
+ 	if (dev->num_inst > 0) {
+-- 
+1.7.9.5
+
