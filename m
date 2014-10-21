@@ -1,117 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:22711 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699AbaJ2JdM (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2970 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932400AbaJUN1i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 05:33:12 -0400
-Date: Wed, 29 Oct 2014 07:33:01 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, tiwai@suse.de
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, akpm@linux-foundation.org,
-	gregkh@linuxfoundation.org, crope@iki.fi, olebowle@gmx.com,
-	dheitmueller@kernellabs.com, hverkuil@xs4all.nl,
-	ramakrmu@cisco.com, laurent.pinchart@ideasonboard.com,
-	perex@perex.cz, prabhakar.csengg@gmail.com,
-	tim.gardner@canonical.com, linux@eikelenboom.it,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 0/6] media token resource framework
-Message-id: <20141029073301.50b46665.m.chehab@samsung.com>
-In-reply-to: <5450B0B8.2060804@linux.intel.com>
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>
- <5450B0B8.2060804@linux.intel.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Tue, 21 Oct 2014 09:27:38 -0400
+Message-ID: <54465F34.1000400@xs4all.nl>
+Date: Tue, 21 Oct 2014 15:27:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [media] CODA960: Fails to allocate memory
+References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
+In-Reply-To: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Oct 2014 11:17:44 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-> Hi Shuah and others,
-> 
-> Shuah Khan wrote:
-> > Add media token device resource framework to allow sharing
-> > resources such as tuner, dma, audio etc. across media drivers
-> > and non-media sound drivers that control media hardware. The
-> > Media token resource is created at the main struct device that
-> > is common to all drivers that claim various pieces of the main
-> > media device, which allows them to find the resource using the
-> > main struct device. As an example, digital, analog, and
-> > snd-usb-audio drivers can use the media token resource API
-> > using the main struct device for the interface the media device
-> > is attached to.
-> >
-> > This patch series consists of media token resource framework
-> > and changes to use it in dvb-core, v4l2-core, au0828 driver,
-> > and snd-usb-audio driver.
-> >
-> > With these changes dvb and v4l2 can share the tuner without
-> > disrupting each other. Used tvtime, xawtv, kaffeine, and vlc,
-> > vlc audio capture option, arecord/aplay during development to
-> > identify v4l2 vb2 and vb1 ioctls and file operations that
-> > disrupt the digital stream and would require changes to check
-> > tuner ownership prior to changing the tuner configuration.
-> > vb2 changes are made in the v4l2-core and vb1 changes are made
-> > in the au0828 driver to encourage porting drivers to vb2 to
-> > advantage of the new media token resource framework with changes
-> > in the core.
-> 
-> I know this comes quite late after the first patch series has been sent, 
-> but I'd like to ask if you have you considered a different approach: 
-> rather than implementing something entirely new, the Media controller 
-> can almost do this already. It models the physical layout of the device, 
-> instead of creating special use case specific Media entity like 
-> constructs for tuner and audio. Also the Media token framework does not 
-> appear to be as a perfect match for the Media controller framework which 
-> is also planned to be used by DVB already:
-> 
-> <URL:http://linuxtv.org/news.php?entry=2014-10-21.mchehab>; look for "3) 
-> DVB API improvements". There have been ALSA MC patches as well but I'm 
-> not aware of the status of those at the moment.
-> 
-> The tokens appear much like media entities of specific kind to me.
 
-Yeah, it could be seen as that.
+On 10/21/2014 03:16 PM, Jean-Michel Hautbois wrote:
+> Hi,
+>
+> I am trying to use the CODA960 driver on a 3.18 kernel.
+> It seems pretty good when the module is probed (appart from the
+> unsupported firmware version) but when I try using the encoder, it
+> fails allocating dma buffers.
+>
+> Here is the DT part I added :
+> &vpu {
+>      compatible = "fsl,imx6q-vpu";
+>      clocks = <&clks 168>, <&clks 140>, <&clks 142>;
+>      clock-names = "per", "ahb", "ocram";
+>      iramsize = <0x21000>;
+>      iram = <&ocram>;
+>      resets = <&src 1>;
+>      status = "okay";
+> };
+>
+> When booting, I see :
+> [    4.410645] coda 2040000.vpu: Firmware code revision: 46056
+> [    4.416312] coda 2040000.vpu: Initialized CODA960.
+> [    4.421123] coda 2040000.vpu: Unsupported firmware version: 3.1.1
+> [    4.483577] coda 2040000.vpu: codec registered as /dev/video[0-1]
+>
+> I can start v4l2-ctl and it shows that the device seems to be ok :
+>   v4l2-ctl --all -d /dev/video1
+> Driver Info (not using libv4l2):
+>          Driver name   : coda
+>          Card type     : CODA960
+>          Bus info      : platform:coda
+>          Driver version: 3.18.0
+>          Capabilities  : 0x84208000
+>                  Video Memory-to-Memory
+>                  Streaming
+>                  Extended Pix Format
+>                  Device Capabilities
+>          Device Caps   : 0x04208000
+>                  Video Memory-to-Memory
+>                  Streaming
+>                  Extended Pix Format
+> Priority: 2
+> Format Video Capture:
+>          Width/Height  : 1920/1088
+>          Pixel Format  : 'YU12'
+>          Field         : None
+>          Bytes per Line: 1920
+>          Size Image    : 3133440
+>          Colorspace    : HDTV and modern devices (ITU709)
+>          Flags         :
+> Format Video Output:
+>          Width/Height  : 1920/1088
+>          Pixel Format  : 'H264'
+>          Field         : None
+>          Bytes per Line: 0
+>          Size Image    : 1048576
+>          Colorspace    : HDTV and modern devices (ITU709)
+>          Flags         :
+> Selection: compose, Left 0, Top 0, Width 1920, Height 1088
+> Selection: compose_default, Left 0, Top 0, Width 1920, Height 1088
+> Selection: compose_bounds, Left 0, Top 0, Width 1920, Height 1088
+> Selection: compose_padded, Left 0, Top 0, Width 1920, Height 1088
+> Selection: crop, Left 0, Top 0, Width 1920, Height 1088
+> Selection: crop_default, Left 0, Top 0, Width 1920, Height 1088
+> Selection: crop_bounds, Left 0, Top 0, Width 1920, Height 1088
+>
+> User Controls
+>
+>                  horizontal_flip (bool)   : default=0 value=0
+>                    vertical_flip (bool)   : default=0 value=0
+>
+> Codec Controls
+>
+>                   video_gop_size (int)    : min=1 max=60 step=1
+> default=16 value=16
+>                    video_bitrate (int)    : min=0 max=32767000 step=1
+> default=0 value=0
+>      number_of_intra_refresh_mbs (int)    : min=0 max=8160 step=1
+> default=0 value=0
+>             sequence_header_mode (menu)   : min=0 max=1 default=1 value=1
+>         maximum_bytes_in_a_slice (int)    : min=1 max=1073741823 step=1
+> default=500 value=500
+>         number_of_mbs_in_a_slice (int)    : min=1 max=1073741823 step=1
+> default=1 value=1
+>        slice_partitioning_method (menu)   : min=0 max=2 default=0 value=0
+>            h264_i_frame_qp_value (int)    : min=0 max=51 step=1
+> default=25 value=25
+>            h264_p_frame_qp_value (int)    : min=0 max=51 step=1
+> default=25 value=25
+>            h264_maximum_qp_value (int)    : min=0 max=51 step=1
+> default=51 value=51
+>    h264_loop_filter_alpha_offset (int)    : min=0 max=15 step=1 default=0 value=0
+>     h264_loop_filter_beta_offset (int)    : min=0 max=15 step=1 default=0 value=0
+>            h264_loop_filter_mode (menu)   : min=0 max=1 default=0 value=0
+>           mpeg4_i_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
+>           mpeg4_p_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
+>                  horizontal_flip (bool)   : default=0 value=0
+>                    vertical_flip (bool)   : default=0 value=0
+>
+>
+>
+>
+> But when I try to get a file outputed, it fails :
+>
+> v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
+> [ 1197.292256] coda 2040000.vpu: dma_alloc_coherent of size 1048576 failed
+> VIDIOC_REQBUFS: failed: Cannot allocate memory
+>
+> Did I forget to do something ?
 
-> Currently, media entities may only be entities bound to a given 
-> subsystem, but I don't think it has to (or perhaps even may) stay that way.
+I assume this is physically contiguous memory. Do you have that much phys. cont. memory
+available at all? If the memory is fragmented you won't be able to get it.
 
-We had some discussions about that with Laurent in San Jose. Yeah,
-we will likely need to change that at the media controller, for complex
-embedded DVB devices.
-
-The usage of the media controller for this specific usage is that
-we should not force userspace apps to be aware of the media controller
-just because of hardware locking.
-
-> In case of the Media controller, mutual exclusion of different users is 
-> currently performed by adding the entities to a pipeline and 
-> incrementing the streaming count once streaming is enabled --- on 
-> different interfaces streaming may mean a different thing.
-
-Well, we'll still need to find a way for ALSA to prevent it to use
-the audio demod and DMA engine that will be powered off when DVB is
-streaming.
-
-> The Media controller interface does not handle serialising potential 
-> users that may wish to configure the device. If that's needed then we'll 
-> need to think how to add it.
-
-Yes, this would be needed needed if we take this approach. 
-
-Reconfiguring the DMA engine and some other registers via V4L2 API 
-should be blocked. The same applies to firmware load, if the device 
-is using tuner input for analog TV.
-
-If we use the media controller, we'll need to add a state to it,
-to indicate that a block at the pipeline is being reconfigured.
-
-Takashi,
-
-What's the status of Media Controller adoption on ALSA?
+Use cma (contiguous memory allocator). You probably have to do very little expect add
+a kernel option to assign enough memory for these buffers.
 
 Regards,
-Mauro
+
+	Hans
