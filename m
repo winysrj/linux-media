@@ -1,205 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:34764 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751238AbaJAFUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Oct 2014 01:20:41 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V2 06/13] cx231xx: Use symbolic constants for i2c ports instead of numbers
-Date: Wed,  1 Oct 2014 07:20:14 +0200
-Message-Id: <1412140821-16285-7-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
-References: <1412140821-16285-1-git-send-email-zzam@gentoo.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:37082 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932323AbaJULHw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 07:07:52 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 06/13] [media] s5p-mfc: check mfc bus ctrl before reset
+Date: Tue, 21 Oct 2014 16:37:00 +0530
+Message-Id: <1413889627-8431-7-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace numbers by the constants of same value and same meaning.
+From: Kiran AVND <avnd.kiran@samsung.com>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+during reset sequence, it is advisable to follow the below
+sequence, in order to avoid unexpected behavior from MFC
+. set SFR 0x7110 MFC_BUS_RESET_CTRL 0x1
+  // wait for REQ_STATUS to be 1
+. get SFR 0x7110 MFC_BUS_RESET_CTRL 0x3
+  // reset now
+
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
- 1 file changed, 31 insertions(+), 31 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h  |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   25 ++++++++++++++++++++++++-
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 092fb85..2f027c7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_PAL_M,
-@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_NTSC_M,
-@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_PAL,
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 51cb2dd..83e01f3 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -71,6 +71,7 @@
+ #define S5P_FIMV_R2H_CMD_ENC_BUFFER_FUL_RET_V6	16
+ #define S5P_FIMV_R2H_CMD_ERR_RET_V6		32
  
- 		.input = {{
-@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_NTSC,
++#define S5P_FIMV_MFC_BUS_RESET_CTRL            0x7110
+ #define S5P_FIMV_FW_VERSION_V6			0xf000
  
- 		.input = {{
-@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* request some modules */
- 	if (dev->board.decoder == CX231XX_AVDECODER) {
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--					&dev->i2c_bus[0].i2c_adap,
-+					&dev->i2c_bus[I2C_0].i2c_adap,
- 					"cx25840", 0x88 >> 1, NULL);
- 		if (dev->sd_cx25840 == NULL)
- 			cx231xx_info("cx25840 subdev registration failure\n");
-@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
+ #define S5P_FIMV_INSTANCE_ID_V6			0xf008
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index f5bb6b2..0d3661b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -129,6 +129,25 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ 	return 0;
+ }
  
- 			memset(&client, 0, sizeof(client));
--			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
- 			client.addr = 0xa0 >> 1;
++int s5p_mfc_bus_reset(struct s5p_mfc_dev *dev)
++{
++	unsigned int status;
++	unsigned long timeout;
++
++	/* Reset */
++	mfc_write(dev, 0x1, S5P_FIMV_MFC_BUS_RESET_CTRL);
++	timeout = jiffies + msecs_to_jiffies(MFC_BW_TIMEOUT);
++	/* Check bus status */
++	do {
++		if (time_after(jiffies, timeout)) {
++			mfc_err("Timeout while resetting MFC.\n");
++			return -EIO;
++		}
++		status = mfc_read(dev, S5P_FIMV_MFC_BUS_RESET_CTRL);
++	} while ((status & 0x2) == 0);
++	return 0;
++}
++
+ /* Reset the device */
+ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ {
+@@ -147,11 +166,15 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 		for (i = 0; i < S5P_FIMV_REG_CLEAR_COUNT_V6; i++)
+ 			mfc_write(dev, 0, S5P_FIMV_REG_CLEAR_BEGIN_V6 + (i*4));
  
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
++		/* check bus reset control before reset */
++		if (dev->risc_on)
++			if (s5p_mfc_bus_reset(dev))
++				return -EIO;
+ 		/* Reset
+ 		 * set RISC_ON to 0 during power_on & wake_up.
+ 		 * V6 needs RISC_ON set to 0 during reset also.
+ 		 */
+-		if ((!dev->risc_on) || (!IS_MFCV7(dev)))
++		if ((!dev->risc_on) || (!IS_MFCV7_PLUS(dev)))
+ 			mfc_write(dev, 0, S5P_FIMV_RISC_ON_V6);
+ 
+ 		mfc_write(dev, 0x1FFF, S5P_FIMV_MFC_RESET_V6);
 -- 
-2.1.1
+1.7.9.5
 
