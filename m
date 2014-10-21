@@ -1,183 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43999 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbaJ0Mww (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:36688 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052AbaJULHj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 08:52:52 -0400
-Date: Mon, 27 Oct 2014 10:52:37 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"ramakrmu@cisco.com" <ramakrmu@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sander Eikelenboom <linux@eikelenboom.it>,
-	prabhakar.csengg@gmail.com, Antti Palosaari <crope@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Tim Gardner <tim.gardner@canonical.com>,
-	"olebowle@gmx.com" <olebowle@gmx.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
- token api
-Message-ID: <20141027105237.5f5ec7fd@recife.lan>
-In-Reply-To: <s5hk33n8ccj.wl-tiwai@suse.de>
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>
-	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
-	<543FB374.8020604@metafoo.de>
-	<543FC3CD.8050805@osg.samsung.com>
-	<s5h38aow1ub.wl-tiwai@suse.de>
-	<543FD1EC.5010206@osg.samsung.com>
-	<s5hy4sgumjo.wl-tiwai@suse.de>
-	<543FD892.6010209@osg.samsung.com>
-	<s5htx34ul3w.wl-tiwai@suse.de>
-	<54467EFB.7050800@xs4all.nl>
-	<s5hbnp5z9uy.wl-tiwai@suse.de>
-	<CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
-	<544804F1.7090606@linux.intel.com>
-	<20141025114115.292ff5d2@recife.lan>
-	<s5hk33n8ccj.wl-tiwai@suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Oct 2014 07:07:39 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 04/13] [media] s5p-mfc: Only set timestamp/timecode for new frames.
+Date: Tue, 21 Oct 2014 16:36:58 +0530
+Message-Id: <1413889627-8431-5-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 26 Oct 2014 09:27:40 +0100
-Takashi Iwai <tiwai@suse.de> escreveu:
+From: Ilja Friedel <ihf@chromium.org>
 
-> At Sat, 25 Oct 2014 11:41:15 -0200,
-> Mauro Carvalho Chehab wrote:
+Timestamp i of a previously decoded buffer was overwritten for some
+H.264 streams with timestamp i+1 of the next buffer. This happened when
+encountering frame_type S5P_FIMV_DECODE_FRAME_SKIPPED, indicating no
+new frame.
 
-> >      +---------------+
-> >      |     start     |
-> >      +---------------+
-> >        |
-> >        |
-> >        v
-> >      +--------------------------------+
-> >      |              idle              | <+
-> >      +--------------------------------+  |
-> >        |                ^           |    |
-> >        |                |           |    |
-> >        v                |           |    |
-> >      +---------------+  |           |    |
-> >      | configuration |  |           |    |
-> >      +---------------+  |           |    |
-> >        |                |           |    |
-> >        |                |           |    |
-> >        v                |           |    |
-> >      +---------------+  |           |    |
-> >   +> |   streaming   | -+           |    |
-> >   |  +---------------+              |    |
-> >   |    |                            |    |
-> >   |    |                            |    |
-> >   |    v                            v    |
-> >   |  +---------------+-----------+----+  |
-> >   +- |       1       | suspended |  2 | -+
-> >      +---------------+-----------+----+
+In most cases this wrong indexing might not have been noticed except
+for a one frame delay in frame presentation. For H.264 streams though
+that require reordering of frames for presentation, it caused a slightly
+erratic presentation time lookup and consequently dropped frames in the
+Pepper Flash plugin.
 
+Signed-off-by: Ilja H. Friedel <ihf@google.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-The above diagram is actually simplified. There's an extra state
-there that should be mentioned:
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 79c9537..eb71055 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -220,11 +220,14 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ 	size_t dec_y_addr;
+ 	unsigned int frame_type;
+ 
+-	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
++	/* Make sure we actually have a new frame before continuing. */
+ 	frame_type = s5p_mfc_hw_call(dev->mfc_ops, get_dec_frame_type, dev);
++	if (frame_type == S5P_FIMV_DECODE_FRAME_SKIPPED)
++		return;
++	dec_y_addr = s5p_mfc_hw_call(dev->mfc_ops, get_dec_y_adr, dev);
+ 
+ 	/* Copy timestamp / timecode from decoded src to dst and set
+-	   appropriate flags */
++	   appropriate flags. */
+ 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
+ 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
+@@ -250,6 +253,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ 				dst_buf->b->v4l2_buf.flags |=
+ 						V4L2_BUF_FLAG_BFRAME;
+ 				break;
++			default:
++				/* Don't know how to handle
++				   S5P_FIMV_DECODE_FRAME_OTHER_FRAME. */
++				mfc_debug(2, "Unexpected frame type: %d\n",
++						frame_type);
+ 			}
+ 			break;
+ 		}
+-- 
+1.7.9.5
 
-idle <-> DVB stream
-
-(actually, DVB stream is a copy of the above, except that ALSA
-won't have any business to do while the device is on DVB mode)
-
-> So, judging from your description, the problem isn't about the
-> exclusive lock, but rather implementation a kind of master/slave
-> devices?  Then the proposed patch doesn't look like a correct
-> implementation to me.
-
-You might see it as a master/slave, except that it is not that simple.
-It is really a hardware lock.
-
-There are actually 3 (sub)drivers that may need to set the hardware:
-	- ALSA driver;
-	- V4L2 driver;
-	- DVB driver.
-
-The goal of the lock is to prevent that more than one driver would try 
-to use a common piece of the hardware that it is already in usage
-by another driver.
-
-So, for example, the ALSA driver should not reprogram the hardware while 
-the V4L2 driver is doing that.
-
-I agree that, for V4L2/ALSA driver's interaction PoV, it could resemble
-a sort of master/slave control, in the sense that ALSA capture start only
-makes sense while V4L2 is at streaming state. Yet, just opening the device
-or (even start capture on ALSA, for the hardware with multiple DMA engines,
-like the ones that use snd-usb-audio) won't cause any harm if the V4L2 driver
-is not reconfiguring the audio registers at the same time.
-
-Also, ALSA open/close should be supported any time, as otherwise it will 
-break existing applications. 
-
-However, when the device is streaming on DVB mode, it is not possible
-to stream on V4L2 mode, as there's just one DMA for both and just one
-tuner. Also, ALSA capture doesn't make much sense on such case. Still,
-locking on open/close may eventually break existing applications. Also,
-it doesn't really make any sense to block the device to move from analog
-to digital mode just because the ALSA devnodes are opened.
-
-> What I (and supposedly Pierre) opposed is the implementation of
-> exclusive lock control in spontaneous callbacks.  Especially the
-> trigger callback is a bad place since it's a callback that is supposed
-> to just trigger atomically.  In general, the only good place for
-> allowing user-space to *control* the exclusive lock is open/close,
-> unless the finer lock control is exposed.
-
-I see your point. Then perhaps we should expose callbacks from other
-parts of the ALSA core, perhaps at the logic that calls the trigger
-callback at read and poll syscalls, plus the corresponding logic that is
-used when the device is using the mmap syscall.
-
-> But, reading through the argument from you guys, the intention of the
-> patch seems like just to raise the conflict from the hardware level to
-> the software level. 
-
-Yes.
-
-> If so, I doubt whether such an exclusive lock is
-> the best way.   For example, audio stream can simply receive an error
-> at any time if something is wrong and reacts accordingly instead of
-> keeping the lock while streaming. Then the master side (video) can
-> set the error flag, let the audio stream stop in the driver (if
-> running), and sync with it.
-
-Hmm... this is actually more complex than that. V4L2 driver doesn't
-know if ALSA is streaming or not, or even if ALSA device node is opened
-while he is touching at the hardware configuration or changing the
-state. I mean: it is not an error to set the hardware. The error only
-happens if ALSA and V4L2 tries to do it at the same time on an incompatible
-way.
-
-Also, this won't work for DVB, as on DVB this is really an exclusive
-lock that would prevent both ALSA and V4L2 drivers to stream while in
-DVB mode.
-
-Implementing it with a lock seems to be the best approach, at least on
-my eyes.
-
-> That said, we should go back and start discussing the design goal at
-> first.
-
-Surely.
-
-> 
-> 
-> thanks,
-> 
-> Takashi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
