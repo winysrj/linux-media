@@ -1,83 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:40587 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708AbaJaRHb (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:19177 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932373AbaJUQrI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 13:07:31 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hi2so1861321wib.7
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 10:07:30 -0700 (PDT)
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	m.chehab@samsung.com,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH] media: adv7604: Correct G/S_EDID behaviour
-Date: Fri, 31 Oct 2014 18:06:59 +0100
-Message-Id: <1414775219-27127-1-git-send-email-jean-michel.hautbois@vodalys.com>
+	Tue, 21 Oct 2014 12:47:08 -0400
+Date: Tue, 21 Oct 2014 14:47:01 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] DocBook: Reduce noise from make cleandocs
+Message-id: <20141021144701.042d9452.m.chehab@samsung.com>
+In-reply-to: <1413908292-26560-1-git-send-email-tiwai@suse.de>
+References: <1413908292-26560-1-git-send-email-tiwai@suse.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to have v4l2-compliance tool pass the G/S_EDID some modifications
-where needed in the driver.
-In particular, the edid.reserved zone must be blanked.
+Em Tue, 21 Oct 2014 18:18:12 +0200
+Takashi Iwai <tiwai@suse.de> escreveu:
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
----
- drivers/media/i2c/adv7604.c | 24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+> I've got a harmless warning when running make cleandocs on an already
+> cleaned tree:
+>   Documentation/DocBook/media/Makefile:28: recipe for target 'cleanmediadocs' failed
+>   make[1]: [cleanmediadocs] Error 1 (ignored)
+> 
+> Suppress this by passing -f to rm.
+> 
+> Signed-off-by: Takashi Iwai <tiwai@suse.de>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 47795ff..0848ee7 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1997,16 +1997,23 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 	struct adv7604_state *state = to_state(sd);
- 	u8 *data = NULL;
- 
-+	memset(edid->reserved, 0, sizeof(edid->reserved));
- 	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
- 		return -EINVAL;
--	if (edid->blocks == 0)
--		return -EINVAL;
--	if (edid->blocks > 2)
--		return -EINVAL;
--	if (edid->start_block > 1)
-+
-+	if (edid->start_block == 0 && edid->blocks == 0) {
-+		edid->blocks = state->edid.blocks;
-+		return 0;
-+	}
-+
-+	if (state->edid.blocks == 0)
-+		return -ENODATA;
-+
-+	if (edid->start_block >= state->edid.blocks)
- 		return -EINVAL;
--	if (edid->start_block == 1)
--		edid->blocks = 1;
-+
-+	if (edid->start_block + edid->blocks > state->edid.blocks)
-+		edid->blocks = state->edid.blocks - edid->start_block;
- 
- 	if (edid->blocks > state->edid.blocks)
- 		edid->blocks = state->edid.blocks;
-@@ -2068,6 +2075,8 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 	int err;
- 	int i;
- 
-+	memset(edid->reserved, 0, sizeof(edid->reserved));
-+
- 	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
- 		return -EINVAL;
- 	if (edid->start_block != 0)
-@@ -2164,7 +2173,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		return -EIO;
- 	}
- 
--
- 	/* enable hotplug after 100 ms */
- 	queue_delayed_work(state->work_queues,
- 			&state->delayed_work_enable_hotplug, HZ / 10);
--- 
-2.1.2
+Assuming that this one would go via linux-doc tree:
 
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+> ---
+>  Documentation/DocBook/media/Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+> index df2962d9e11e..8bf7c6191296 100644
+> --- a/Documentation/DocBook/media/Makefile
+> +++ b/Documentation/DocBook/media/Makefile
+> @@ -25,7 +25,7 @@ GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
+>  PHONY += cleanmediadocs
+>  
+>  cleanmediadocs:
+> -	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
+> +	-@rm -f `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(OBJIMGFILES) 2>/dev/null
+>  
+>  $(obj)/media_api.xml: $(GENFILES) FORCE
+>  
