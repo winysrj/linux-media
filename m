@@ -1,61 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55431 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752489AbaJBFZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:25:08 -0400
-Message-ID: <542CE1B0.1000903@iki.fi>
-Date: Thu, 02 Oct 2014 08:25:04 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:36076 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbaJUDa3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Oct 2014 23:30:29 -0400
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH V3 04/13] cx231xx: give each master i2c bus a seperate
- name
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org> <1412227265-17453-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-5-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <544280E4.20101@cogentembedded.com>
+References: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
+	<544280E4.20101@cogentembedded.com>
+Date: Tue, 21 Oct 2014 12:30:29 +0900
+Message-ID: <CAH1o70JoiJhec6thnQZnQ_99DLjhMrYhypFubkDYNnTcP_02ZQ@mail.gmail.com>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2014 08:20 AM, Matthias Schwarzott wrote:
-> V2: Use snprintf to construct the complete name
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/cx231xx/cx231xx-i2c.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index a30d400..b10f482 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -506,13 +506,14 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
->   int cx231xx_i2c_register(struct cx231xx_i2c *bus)
->   {
->   	struct cx231xx *dev = bus->dev;
-> +	char bus_name[3];
+Hello Sergei,
 
-you don't need that variable anymore :]
+Thank you for your comments.
+
+2014-10-19 0:01 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
+> Hello.
+>
+> On 10/14/2014 10:25 AM, Yoshihiro Kaneko wrote:
+>
+>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>
+>
+>> By applying this patch, it sets to VSYNC field toggle mode not only
+>> at the time of progressive mode but at the time of an interlace mode.
+>
+>
+>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>> ---
+>
+>
+>> This patch is against master branch of linuxtv.org/media_tree.git.
+>
+>
+>>   drivers/media/platform/soc_camera/rcar_vin.c | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>> b/drivers/media/platform/soc_camera/rcar_vin.c
+>> index 5196c81..bf97ed6 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -108,6 +108,7 @@
+>>   #define VNDMR2_VPS            (1 << 30)
+>>   #define VNDMR2_HPS            (1 << 29)
+>>   #define VNDMR2_FTEV           (1 << 17)
+>> +#define VNDMR2_VLV_1           (1 << 12)
+>
+>
+>    Please instead do:
+>
+> #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
+
+It's unclear to me why the style of the new #define should differ
+from those of the existing ones.
+
+Thanks,
+Kaneko
 
 >
->   	BUG_ON(!dev->cx231xx_send_usb_command);
+> WBR, Sergei
 >
->   	bus->i2c_adap = cx231xx_adap_template;
->   	bus->i2c_adap.dev.parent = &dev->udev->dev;
->
-> -	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-> +	snprintf(bus->i2c_adap.name, sizeof(bus->i2c_adap.name), "%s-%d", bus->dev->name, bus->nr);
->
->   	bus->i2c_adap.algo_data = bus;
->   	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
->
-
-With a correction for small mistake I mentioned:
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
