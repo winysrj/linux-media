@@ -1,72 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51649 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759926AbaJaNy5 (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:64293 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052AbaJULHZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:57 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 7376B217D7
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 09/11] uvcvideo: Rename uvc_alloc_buffers to uvc_request_buffers
-Date: Fri, 31 Oct 2014 15:54:55 +0200
-Message-Id: <1414763697-21166-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 21 Oct 2014 07:07:25 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 01/13] [media] s5p-mfc: support MIN_BUFFERS query for encoder
+Date: Tue, 21 Oct 2014 16:36:55 +0530
+Message-Id: <1413889627-8431-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This brings the function name in line with the V4L2 API terminology.
+From: Kiran AVND <avnd.kiran@samsung.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add V4L2_CID_MIN_BUFFERS_FOR_OUTPUT query for encoder.
+Once mfc encoder state is HEAD_PARSED, which is sequence
+header produced, dpb_count is avaialable. Let user space
+query this value.
+
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/usb/uvc/uvc_queue.c | 4 ++--
- drivers/media/usb/uvc/uvc_v4l2.c  | 2 +-
- drivers/media/usb/uvc/uvcvideo.h  | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   42 ++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 708478f..5c11de0 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -205,8 +205,8 @@ void uvc_queue_release(struct uvc_video_queue *queue)
-  * V4L2 queue operations
-  */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index a904a1c..4816f31 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -690,6 +690,16 @@ static struct mfc_control controls[] = {
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
++	{
++		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Minimum number of output bufs",
++		.minimum = 1,
++		.maximum = 32,
++		.step = 1,
++		.default_value = 1,
++		.is_volatile = 1,
++	},
+ };
  
--int uvc_alloc_buffers(struct uvc_video_queue *queue,
--		      struct v4l2_requestbuffers *rb)
-+int uvc_request_buffers(struct uvc_video_queue *queue,
-+			struct v4l2_requestbuffers *rb)
- {
- 	int ret;
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -1624,8 +1634,40 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return ret;
+ }
  
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 1b6b6db..5ba023b 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -690,7 +690,7 @@ static int uvc_ioctl_reqbufs(struct file *file, void *fh,
- 		return ret;
++static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct s5p_mfc_ctx *ctx = ctrl_to_ctx(ctrl);
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	switch (ctrl->id) {
++	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->pb_count;
++			break;
++		} else if (ctx->state != MFCINST_INIT) {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		/* Should wait for the header to be produced */
++		s5p_mfc_clean_ctx_int_flags(ctx);
++		s5p_mfc_wait_for_done_ctx(ctx,
++				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->pb_count;
++		} else {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		break;
++	}
++	return 0;
++}
++
+ static const struct v4l2_ctrl_ops s5p_mfc_enc_ctrl_ops = {
+ 	.s_ctrl = s5p_mfc_enc_s_ctrl,
++	.g_volatile_ctrl = s5p_mfc_enc_g_v_ctrl,
+ };
  
- 	mutex_lock(&stream->mutex);
--	ret = uvc_alloc_buffers(&stream->queue, rb);
-+	ret = uvc_request_buffers(&stream->queue, rb);
- 	mutex_unlock(&stream->mutex);
- 	if (ret < 0)
- 		return ret;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 344aede..2dc247a 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -624,7 +624,7 @@ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
- extern int uvc_queue_init(struct uvc_video_queue *queue,
- 		enum v4l2_buf_type type, int drop_corrupted);
- extern void uvc_queue_release(struct uvc_video_queue *queue);
--extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
-+extern int uvc_request_buffers(struct uvc_video_queue *queue,
- 		struct v4l2_requestbuffers *rb);
- extern int uvc_query_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
+ static int vidioc_s_parm(struct file *file, void *priv,
 -- 
-2.0.4
+1.7.9.5
 
