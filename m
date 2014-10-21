@@ -1,129 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40019 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751370AbaJIBuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Oct 2014 21:50:19 -0400
-Date: Wed, 8 Oct 2014 22:50:11 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
-Message-ID: <20141008225011.2d034c1e@recife.lan>
-In-Reply-To: <5435A44D.2050609@infradead.org>
-References: <20141008174923.76786a03@canb.auug.org.au>
-	<543570C3.9080207@infradead.org>
-	<20141008153105.2fe82fca@recife.lan>
-	<5435A44D.2050609@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:59924 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052AbaJULHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 07:07:43 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 05/13] [media] s5p-mfc: keep RISC ON during reset for V7/V8
+Date: Tue, 21 Oct 2014 16:36:59 +0530
+Message-Id: <1413889627-8431-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 08 Oct 2014 13:53:33 -0700
-Randy Dunlap <rdunlap@infradead.org> escreveu:
+From: Kiran AVND <avnd.kiran@samsung.com>
 
-> On 10/08/14 11:31, Mauro Carvalho Chehab wrote:
-> > Em Wed, 08 Oct 2014 10:13:39 -0700
-> > Randy Dunlap <rdunlap@infradead.org> escreveu:
-> > 
-> >> On 10/07/14 23:49, Stephen Rothwell wrote:
-> >>> Hi all,
-> >>>
-> >>> Please do not add any material intended for v3.19 to you linux-next
-> >>> included trees until after v3.18-rc1 has been released.
-> >>>
-> >>> Changes since 20141007:
-> >>>
-> >>
-> >> I saw these build errors in gspca when CONFIG_INPUT=m but the gspca
-> >> sub-drivers are builtin:
-> >>
-> >> drivers/built-in.o: In function `gspca_dev_probe2':
-> >> (.text+0x10ef43): undefined reference to `input_allocate_device'
-> >> drivers/built-in.o: In function `gspca_dev_probe2':
-> >> (.text+0x10efdd): undefined reference to `input_register_device'
-> >> drivers/built-in.o: In function `gspca_dev_probe2':
-> >> (.text+0x10f002): undefined reference to `input_free_device'
-> >> drivers/built-in.o: In function `gspca_dev_probe2':
-> >> (.text+0x10f0ac): undefined reference to `input_unregister_device'
-> >> drivers/built-in.o: In function `gspca_disconnect':
-> >> (.text+0x10f186): undefined reference to `input_unregister_device'
-> >> drivers/built-in.o: In function `sd_int_pkt_scan':
-> >> se401.c:(.text+0x11373d): undefined reference to `input_event'
-> >> se401.c:(.text+0x11374e): undefined reference to `input_event'
-> >> drivers/built-in.o: In function `sd_pkt_scan':
-> >> t613.c:(.text+0x119f0e): undefined reference to `input_event'
-> >> t613.c:(.text+0x119f1f): undefined reference to `input_event'
-> >> drivers/built-in.o: In function `sd_stopN':
-> >> t613.c:(.text+0x11a047): undefined reference to `input_event'
-> >> drivers/built-in.o:t613.c:(.text+0x11a058): more undefined references to `input_event' follow
-> >>
-> >> These could be fixed in Kconfig by something like (for each sub-driver that tests
-> >> CONFIG_INPUT):
-> >>
-> >> 	depends on INPUT || INPUT=n
-> >>
-> >> Do you have another preference for fixing this?
-> > 
-> > Hmm... The code at the gspca subdrivers looks like:
-> > 
-> > #if IS_ENABLED(CONFIG_INPUT)
-> 
-> For builtin only, that should be
-> 
-> #if IS_BUILTIN(CONFIG_INPUT)
-> 
-> > 		if (data[0] & 0x20) {
-> > 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-> > 			input_sync(gspca_dev->input_dev);
-> > 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-> > 			input_sync(gspca_dev->input_dev);
-> > 		}
-> > #endif
-> > 
-> > As we never got any report about such bug, and this is there for a long
-> > time, I suspect that maybe the IS_ENABLED() macro had some changes on
-> > its behavior. So, IMHO, we should first check if something changed there.
-> 
-> I don't see any changes in <linux/kconfig.h>.
+Reset sequence for MFC V7 and V8 do not need RISC_ON
+to be set to 0, while for MFC V6 it is still needed.
 
-Perhaps some changes at the Kbuild source code or scripts badly affected it.
+Also, remove a couple of register settings during Reset
+which are not needed from V6 onwards.
 
-> 
-> > From gpsca's PoV, IMHO, it should be fine to disable the webcam buttons if
-> > the webcam was compiled as builtin and the input subsystem is compiled as 
-> > module. The core feature expected on a camera is to capture streams. 
-> > Buttons are just a plus.
-> > 
-> > Also, most cams don't even have buttons. The gspca subdriver has support 
-> > for buttons for the few models that have it.
-> > 
-> > So, IMHO, it should be ok to have GSPCA=y and INPUT=m, provided that 
-> > the buttons will be disabled.
-> 
-> Then all of the sub-drivers that use IS_ENABLED(CONFIG_INPUT) should be
-> changed to use IS_BUILTIN(CONFIG_INPUT).
-> 
-> But that is too restrictive IMO.  The input subsystem will work fine when
-> CONFIG_INPUT=m and the GSPCA drivers are also loadable modules.
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   25 ++++++++++++++---------
+ 2 files changed, 16 insertions(+), 10 deletions(-)
 
-Agreed.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 3e41ca1..5b0c334 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -340,6 +340,7 @@ struct s5p_mfc_dev {
+ 	struct s5p_mfc_hw_cmds *mfc_cmds;
+ 	const struct s5p_mfc_regs *mfc_regs;
+ 	enum s5p_mfc_fw_ver fw_ver;
++	bool risc_on; /* indicates if RISC is on or off */
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 0c885a8..f5bb6b2 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -139,12 +139,6 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 	mfc_debug_enter();
+ 
+ 	if (IS_MFCV6_PLUS(dev)) {
+-		/* Reset IP */
+-		/*  except RISC, reset */
+-		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
+-		/*  reset release */
+-		mfc_write(dev, 0x0, S5P_FIMV_MFC_RESET_V6);
+-
+ 		/* Zero Initialization of MFC registers */
+ 		mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD_V6);
+ 		mfc_write(dev, 0, S5P_FIMV_HOST2RISC_CMD_V6);
+@@ -153,8 +147,13 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 		for (i = 0; i < S5P_FIMV_REG_CLEAR_COUNT_V6; i++)
+ 			mfc_write(dev, 0, S5P_FIMV_REG_CLEAR_BEGIN_V6 + (i*4));
+ 
+-		/* Reset */
+-		mfc_write(dev, 0, S5P_FIMV_RISC_ON_V6);
++		/* Reset
++		 * set RISC_ON to 0 during power_on & wake_up.
++		 * V6 needs RISC_ON set to 0 during reset also.
++		 */
++		if ((!dev->risc_on) || (!IS_MFCV7(dev)))
++			mfc_write(dev, 0, S5P_FIMV_RISC_ON_V6);
++
+ 		mfc_write(dev, 0x1FFF, S5P_FIMV_MFC_RESET_V6);
+ 		mfc_write(dev, 0, S5P_FIMV_MFC_RESET_V6);
+ 	} else {
+@@ -226,6 +225,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	/* 0. MFC reset */
+ 	mfc_debug(2, "MFC reset..\n");
+ 	s5p_mfc_clock_on();
++	dev->risc_on = 0;
+ 	ret = s5p_mfc_reset(dev);
+ 	if (ret) {
+ 		mfc_err("Failed to reset MFC - timeout\n");
+@@ -238,8 +238,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	s5p_mfc_clear_cmds(dev);
+ 	/* 3. Release reset signal to the RISC */
+ 	s5p_mfc_clean_dev_int_flags(dev);
+-	if (IS_MFCV6_PLUS(dev))
++	if (IS_MFCV6_PLUS(dev)) {
++		dev->risc_on = 1;
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
++	}
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+ 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
+@@ -336,6 +338,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 	/* 0. MFC reset */
+ 	mfc_debug(2, "MFC reset..\n");
+ 	s5p_mfc_clock_on();
++	dev->risc_on = 0;
+ 	ret = s5p_mfc_reset(dev);
+ 	if (ret) {
+ 		mfc_err("Failed to reset MFC - timeout\n");
+@@ -354,8 +357,10 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 		return ret;
+ 	}
+ 	/* 4. Release reset signal to the RISC */
+-	if (IS_MFCV6_PLUS(dev))
++	if (IS_MFCV6_PLUS(dev)) {
++		dev->risc_on = 1;
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
++	}
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+ 	mfc_debug(2, "Ok, now will write a command to wakeup the system\n");
+-- 
+1.7.9.5
 
-Maybe the solution would be something more complex like 
-(for drivers/media/usb/gspca/zc3xx.c):
-
-#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_ZC3XX))
-
-Probably the best would be to write another macro that would evaluate
-like the above.
-
-> That's simple to express in Kconfig language but probly more messy in CPP.
-> 
-> 
-> Thanks.
-> 
-> 
