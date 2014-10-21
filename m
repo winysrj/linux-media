@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:42065 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617AbaJ1Snl (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48640 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932553AbaJUQVa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 14:43:41 -0400
-From: Tomas Melin <tomas.melin@iki.fi>
-To: m.chehab@samsung.com
-Cc: david@hardeman.nu, james.hogan@imgtec.com, a.seppala@gmail.com,
-	bay@hackerdom.ru, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Tomas Melin <tomas.melin@iki.fi>
-Subject: [PATCH v3] [media] rc-core: fix protocol_change regression in ir_raw_event_register
-Date: Tue, 28 Oct 2014 20:43:14 +0200
-Message-Id: <1414521794-7776-1-git-send-email-tomas.melin@iki.fi>
+	Tue, 21 Oct 2014 12:21:30 -0400
+Message-ID: <1413908485.3081.4.camel@pengutronix.de>
+Subject: Re: [media] CODA960: Fails to allocate memory
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Date: Tue, 21 Oct 2014 18:21:25 +0200
+In-Reply-To: <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
+References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
+	 <54465F34.1000400@xs4all.nl>
+	 <CAL8zT=herYZ9d3TKrx_5Nre0_RRRXK3Az9-NvmqGE7_SkHLzHg@mail.gmail.com>
+	 <54466471.8050607@xs4all.nl>
+	 <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR receiver using nuvoton-cir and lirc required additional configuration
-steps after upgrade from kernel 3.16 to 3.17-rcX.
-Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
-("[media] rc-core: simplify sysfs code").
+Hi Jean-Michel,
 
-The regression comes from adding function change_protocol in
-ir-raw.c. It changes behaviour so that only the protocol enabled by driver's
-map_name will be active after registration. This breaks user space behaviour,
-lirc does not get key press signals anymore.
+Am Dienstag, den 21.10.2014, 17:39 +0200 schrieb Jean-Michel Hautbois:
+[...]
+> And the output is now :
+> v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
+> [ 6208.240919] coda 2040000.vpu: Not output type
+> [ 6208.245316] coda 2040000.vpu: streamon_out (N), streamon_cap (Y)
+> [ 6208.251353] coda 2040000.vpu: fill bitstream
+> [ 6208.255653] coda 2040000.vpu: fill bitstream payload : 0
+> VIDIOC_STREAMON: failed: Invalid argument
+> 
+> Any idea ?
+> JM
 
-Enable lirc protocol by default for ir raw decoders to restore original behaviour.
+$ trace-cmd record -e v4l2* v4l2-ctl -d13 --stream-out-mmap --stream-mmap --stream-to x.raw
+[...]
+$ trace-cmd report -R | grep bytesused
+[...]
+    v4l2-ctl-308   [003]  1030.861067: v4l2_qbuf:             minor=44 index=0 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.861292: v4l2_qbuf:             minor=44 index=1 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.861471: v4l2_qbuf:             minor=44 index=2 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.861638: v4l2_qbuf:             minor=44 index=3 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.862301: v4l2_qbuf:             minor=44 index=0 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030852944000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.862490: v4l2_qbuf:             minor=44 index=1 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853139000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.862672: v4l2_qbuf:             minor=44 index=2 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853322000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
+    v4l2-ctl-308   [003]  1030.862841: v4l2_qbuf:             minor=44 index=3 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853491000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
 
-Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
----
- drivers/media/rc/rc-ir-raw.c |    1 -
- drivers/media/rc/rc-main.c   |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+The decoder is fed ~ 3 MiB input buffers, which it tries (and fails) to
+copy into the 1 MiB bitstream ringbuffer (currently hard-coded via the
+badly named CODA_MAX_FRAME_SIZE constant), so the bitstream payload in
+the ringbuffer is 0 during start_streaming.
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index e8fff2a..b732ac6 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -262,7 +262,6 @@ int ir_raw_event_register(struct rc_dev *dev)
- 		return -ENOMEM;
- 
- 	dev->raw->dev = dev;
--	dev->enabled_protocols = ~0;
- 	dev->change_protocol = change_protocol;
- 	rc = kfifo_alloc(&dev->raw->kfifo,
- 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a7991c7..8d3b74c 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1421,6 +1421,8 @@ int rc_register_device(struct rc_dev *dev)
- 
- 	if (dev->change_protocol) {
- 		u64 rc_type = (1 << rc_map->rc_type);
-+		if (dev->driver_type == RC_DRIVER_IR_RAW)
-+			rc_type |= RC_BIT_LIRC;
- 		rc = dev->change_protocol(dev, &rc_type);
- 		if (rc < 0)
- 			goto out_raw;
--- 
-1.7.10.4
+regards
+Philipp
 
