@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:52383 "EHLO
-	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751482AbaJFJfc (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:63021 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755131AbaJUOzn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 05:35:32 -0400
-Message-ID: <1412588130.4054.49.camel@x220>
-Subject: Re: [PATCH 3/4] [media] Remove optional dependency on PLAT_S5P
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Valentin Rothberg <valentinrothberg@gmail.com>
-Date: Mon, 06 Oct 2014 11:35:30 +0200
-In-Reply-To: <4788945.SoI4OqN9Zu@wuerfel>
-References: <1412586626.4054.42.camel@x220> <4788945.SoI4OqN9Zu@wuerfel>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Oct 2014 10:55:43 -0400
+Received: by mail-lb0-f175.google.com with SMTP id u10so1193068lbd.34
+        for <linux-media@vger.kernel.org>; Tue, 21 Oct 2014 07:55:42 -0700 (PDT)
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH] [media] s5p_mfc: Remove redundant casts
+Date: Tue, 21 Oct 2014 16:55:35 +0200
+Message-Id: <1413903335-3196-1-git-send-email-linux@rasmusvillemoes.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-10-06 at 11:26 +0200, Arnd Bergmann wrote:
-> On Monday 06 October 2014 11:10:26 Paul Bolle wrote:
-> >  config VIDEO_SAMSUNG_S5P_TV
-> >         bool "Samsung TV driver for S5P platform"
-> >         depends on PM_RUNTIME
-> > -       depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
-> > +       depends on ARCH_EXYNOS || COMPILE_TEST
-> >         default n
-> >         ---help---
-> >           Say Y here to enable selecting the TV output devices for
-> > 
-> 
-> I wonder if it should now allow being built for ARCH_S5PV210.
+Both sides of these assignments actually have type "const struct
+vb2_mem_ops *", so the casts are unnecessary and slightly confusing.
 
-That was what Tomasz Figa claimed in
-http://lkml.kernel.org/r/53C676DB.6070002@samsung.com
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> Maybe it was a mistake to remove the PLAT_S5P symbol without changing
-> the use here?
-
-At least it was a bit sloppy to remove the symbol without touching this
-(and six other) dependencies. But after nearly three months I lost
-patience waiting for a fix to be submitted.
-
-My cleanup doesn't really change a thing. And a proper fix, if needed,
-is still possible after this has landed.
-
-> Does S5PV210 have this device?
-
-
-Paul Bolle
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 165bc86..8daf291 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -815,7 +815,7 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
+-	q->mem_ops = (struct vb2_mem_ops *)&vb2_dma_contig_memops;
++	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+@@ -837,7 +837,7 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOENT;
+ 		goto err_queue_init;
+ 	}
+-	q->mem_ops = (struct vb2_mem_ops *)&vb2_dma_contig_memops;
++	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+-- 
+2.0.4
 
