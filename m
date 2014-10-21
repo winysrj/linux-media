@@ -1,180 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:64390 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756566AbaJXNnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Oct 2014 09:43:11 -0400
-Received: by mail-ob0-f176.google.com with SMTP id va2so325963obc.7
-        for <linux-media@vger.kernel.org>; Fri, 24 Oct 2014 06:43:10 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:41572 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933046AbaJURcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 13:32:24 -0400
+Message-ID: <5446989A.3010000@osg.samsung.com>
+Date: Tue, 21 Oct 2014 11:32:10 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAL8zT=ix-Vf2s5Lu8+niAKzdZ19TwsyTMmv8Cqt0Friqd4sYZw@mail.gmail.com>
-References: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
- <20140728185949.GS13730@pengutronix.de> <53D6BD8E.7000903@gmail.com>
- <CAJ+vNU2EiTcXM-CWTLiC=4c9j-ovGFooz3Mr82Yq_6xX1u2gbA@mail.gmail.com>
- <1407153257.3979.30.camel@paszta.hi.pengutronix.de> <CAL8zT=iFatVPc1X-ngQPeY=DtH0GWH76UScVVRrHdk9L27xw5Q@mail.gmail.com>
- <53FDE9E1.2000108@mentor.com> <CAL8zT=iaMYait1j8C_U1smcRQn9Gw=+hvaObgQRaR_4FomGH8Q@mail.gmail.com>
- <540F26E5.50609@gmail.com> <1410284421.3353.47.camel@paszta.hi.pengutronix.de>
- <5410F80F.5060803@mentor.com> <1410442019.4011.63.camel@paszta.hi.pengutronix.de>
- <CAL8zT=ix-Vf2s5Lu8+niAKzdZ19TwsyTMmv8Cqt0Friqd4sYZw@mail.gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Fri, 24 Oct 2014 15:42:55 +0200
-Message-ID: <CAL8zT=gVduZ-NWw=cnwyXGSu31FUkoUNanOW=JKJuF0JYcFS8A@mail.gmail.com>
-Subject: Re: i.MX6 status for IPU/VPU/GPU
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Tim Harvey <tharvey@gateworks.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+To: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: Lars-Peter Clausen <lars@metafoo.de>, m.chehab@samsung.com,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, perex@perex.cz,
+	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
+	linux@eikelenboom.it, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com> <s5htx34ul3w.wl-tiwai@suse.de> <54467EFB.7050800@xs4all.nl> <s5hbnp5z9uy.wl-tiwai@suse.de>
+In-Reply-To: <s5hbnp5z9uy.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 10/21/2014 10:05 AM, Takashi Iwai wrote:
+> At Tue, 21 Oct 2014 17:42:51 +0200,
+> Hans Verkuil wrote:
 
-2014-09-15 16:13 GMT+02:00 Jean-Michel Hautbois
-<jean-michel.hautbois@vodalys.com>:
-> 2014-09-11 15:26 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
->> Hi Steve,
 >>
->> Am Mittwoch, den 10.09.2014, 18:17 -0700 schrieb Steve Longerbeam:
->> [...]
->>> On 09/09/2014 10:40 AM, Philipp Zabel wrote:
->> [...]
->>> >  I have in the meantime started to
->>> > implement everything that has a source or destination selector in the
->>> > Frame Synchronization Unit (FSU) as media entity. I wonder which of
->>> > these parts should reasonably be unified into a single entity:
->> [...]
->>> >     SMFC0
->>> >     SMFC1
->>> >     SMFC2
->>> >     SMFC3
->>>
->>> I don't really see the need for an SMFC entity. The SMFC control can
->>> be integrated into the CSI subdev.
->>
->> Granted, this is currently is a theoretical question, but could we
->> handle a single MIPI link that carries two or more virtual channels with
->> different MIPI IDs this way?
->>
->>> >     IC preprocessor (input to VF and ENC, if I understood correctly)
->>> >     IC viewfinder task (scaling, csc)
->>> >     IC encoding task
->>> >     IC post processing task
->>>
->>> I see either three different IC subdev entities (IC prpenc, IC prpvf,
->>> IC pp), or a single IC entity with three sink pads for each IC task.
->>
->> The former could work, the latter won't allow to have pre and post
->> processing on separate pipelines.
->>
->>> >     IRT viewfinder task (rotation)
->>> >     IRT encoding task
->>> >     IRT post processing task
->>>
->>> well, the IRT is really just a submodule enable bit, I see no need
->>> for an IRT subdev, in fact IRT has already been folded into ipu-ic.c
->>> as a simple submodule enable/disable. Rotation support can be
->>> implemented as part of the IC entities.
->>
->> My current understanding is that the IRT is strictly a mem2mem device
->> using its own DMA channels, which can be channel-linked to the IC (and
->> other blocks) in various ways.
->>
->>> >     VDIC (deinterlacing, combining)
->>>
->>> I am thinking VDIC support can be part of the IC prpvf entity (well,
->>> combining is not really on my radar, I haven't given that much thought).
->>>
->>> >     (and probably some entry for DP/DC/DMFC for the direct
->>> >      viewfinder path)
->>>
->>> Ugh, I've been ignoring that path as well. Freescale's BSP releases
->>> and sample code from their SDK's have no example code for the
->>> direct-to-DP/DC/DMFC camera viewfinder path, so given the quality
->>> of the imx TRM, this could be a challenge to implement. Have you
->>> gotten this path to work?
->>
->> Not yet, no.
->>
->>> > I suppose the SMFC channels need to be separate because they can belong
->>> > to different pipelines (and each entity can only belong to one).
->>>
->>> I see the chosen SMFC channel as an internal decision by the
->>> CSI subdev.
->>
->> Can we handle multiple outputs from a single CSI this way?
->>
->>> > The three IC task entities could probably be combined with their
->>> > corresponding IRT task entity somehow, but that would be at the cost of
->>> > not being able to tell the kernel whether to rotate before or after
->>> > scaling, which might be useful when handling chroma subsampled formats.
->>>
->>> I'm fairly sure IC rotation must always occur _after_ scaling. I.e.
->>> raw frames are first passed through IC prpenc/prpvf/pp for scaling/CSC,
->>> then EOF completion of that task is hardware linked to IRT.
->>
->> There could be good reasons to do the rotation on the input side, for
->> example when upscaling or when the output is 4:2:2 subsampled. At least
->> the FSU registers suggest that channel linking the rotator before the IC
->> is possible. This probably won't be useful for the capture path in most
->> cases, but it might be for rotated playback.
->>
->>> > I have put my current state up here:
->>> >
->>> > git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
->>> >
->>> > So far I've captured video through the SMFC on a Nitrogen6X board with
->>> > OV5652 parallel camera with this.
->>>
->>> Thanks Phillip, I'll take a look! Sounds like a good place to start.
->>> I assume this is with the video mux entity and CSI driver? I.e. no
->>> IC entity support yet for scaling, CSC, or rotation.
->>
->> Yes, exactly.
->
-> I have tried both of your branches (Steve and Philip) and they both
-> are interesting.
-> I easily added adv76xx devices to Steve's work, but there is no media
-> controller support, as you previously said.
-> I cannot get adv7611 working on Philip's branch. I tried to do the
-> same as your "add OV5642 parallel camera" commit, but I don't see a
-> link between csi and adv even though I asked for it in DT (I removed
-> not useful stuff in the following paste) :
->
-> &i2c2 {
->     hdmiin1: adv7611@4c {
->             port {
->                     hdmi0_out: endpoint@1 {
->                             reg = <1>;
->                             remote_endpoint = <&csi0_from_adv7611>;
->                     };
->     };
-> };
->
-> &csi0 {
->         csi0_from_adv7611: endpoint {
->                 remote_endpoint = <&hdmi0_out>;
->         };
-> };
->
-> Is there something specific that needs to be done in order to get the
-> link on boot ?
+>> Quite often media apps open the alsa device at the start and then switch
+>> between TV, radio or DVB mode. If the alsa device would claim the tuner
+>> just by being opened (as opposed to actually using the tuner, which happens
+>> when you start streaming),
+> 
+> What about parameter changes?  The sound devices have to be configured
+> before using.  Don't they influence on others at all, i.e. you can
+> change the PCM sample rate etc during TV, radio or DVB is running?
 
-I get back to this question, as I can't get your
-test/nitrogen6x-ipu-media branch using my adv7611 device.
-And in fact, I tried to draw the topology from media-ctl, and dot
-crashes in SIGSEGV when I do this, I don't know if this is linked to
-the way the topology is done in the driver ?
+Yes. kaffeine uses  snd_usb_capture_ops ioctl -> snd_pcm_lib_ioctl
 
-Can you also give an example of how you captured the video through the
-camera ? Have you used gstreamer ?
-If so, did you use the CODA encoder you wrote too ?
-I am very interested by this particular question.
+Other v4l and vlc (dvb) uses open/close as well as trigger start and
+stop. trigger start/stop is done by a special audio thread in some
+cases. open/close happens from the main thread.
 
-Thanks again for your work,
+> 
+>> then that would make it impossible for the
+>> application to switch tuner mode. In general you want to avoid that open()
+>> will start configuring hardware since that can quite often be slow. Tuner
+>> configuration in particular can be slow since several common tuners need
+>> to load firmware over i2c. You only want to do that when it is really needed,
+>> and not when some application (udev!) opens the device just to examine what
+>> sort of device it is.
+> 
+> But most apps close the device soon after that, no?
+> Which programs keep the PCM device (not the control) opened without
+> actually using?
+> 
+>> So claiming the tuner in the trigger seems to be the right place. If
+>> returning EBUSY is a poor error code for alsa, then we can use something else
+>> for that. EACCES perhaps?
+> 
+> Sorry, I'm not convinced by that.  If the device has to be controlled
+> exclusively, the right position is the open/close.  Otherwise, the
+> program cannot know when it becomes inaccessible out of sudden during
+> its operation.
+> 
+> 
 
-Regards,
-JM
+Let me share my test matrix for this patch series. Hans pointed out
+one test case I didn't know about as a result missed testing. Please
+see if any of the tests miss use-cases or break them: you can scroll
+down to the proposal at the end, if this is too much detail :)
+
+Digital active and analog starting testing:
+kaffeine running
+- v4l2-ctl --all - works
+- Changing channels works with the same token hold, even when
+  frequency changes. Tested changing channels that force freq
+  change.
+- vlc resource is busy with no disruption to kaffeine
+- xawtv - tuner busy when it tries to do ioctls that change
+  tuner settings - snd_usb_pcm_open detects device is busy
+  ( pcm open called from the same thread, trigger gets called
+    from another thread )
+- tvtime - tuner busy when it tries to do ioctls that change
+  tuner settings with no disruption to kaffeine
+  ( pcm open called from the same thread, trigger gets called
+    from another thread )
+- vlc - audio capture on WinTV HVR-950 - device is busy
+  start vlc with no channels for this test
+- arecord to capture on WinTV HVR-950 - device busy
+
+vlc running
+vlc -v channels.xspf
+- v4l2-ctl --all - works
+- Changing channels works with the same token hold, even when
+  frequency changes. Tested changing channels that force freq
+  change.
+- kaffeine resource is busy with no disruption to vlc
+- xawtv - tuner busy when it tries to do ioctls that change
+  tuner settings - snd_usb_pcm_open detects device is busy
+  ( pcm open called from the same thread, trigger gets called
+    from another thread )
+- tvtime - tuner busy when it tries to do ioctls that change
+  tuner settings with no disruption to kaffeine
+  ( pcm open called from the same thread, trigger gets called
+    from another thread )
+- vlc - audio capture on WinTV HVR-950 - device is busy
+- arecord to capture on WinTV HVR-950 - device busy
+
+Analog active and start digital testing:
+xawtv -noalsa -c /dev/video1
+- v4l2-ctl --all - works
+- start kaffeine - fails with device busy and no disruption
+- start vlc - fails with device busy and no disruption
+- tvtime - tuner busy when it tries to do ioctls that change
+  tuner settings with no disruption to kaffeine
+- vlc - audio capture on WinTV HVR-950 - device is busy
+- arecord to capture on WinTV HVR-950 - device busy
+
+tvtime
+- v4l2-ctl --all - works
+- start kaffeine - fails with device busy and no disruption
+- start vlc - fails with device busy and no disruption
+- xawtv - tuner busy when it tries to do ioctls that change
+  tuner settings with no disruption to kaffeine
+- vlc - audio capture on WinTV HVR-950 - device is busy
+- arecord to capture on WinTV HVR-950 - device busy
+
+The following audio/video start/stop combination tests:
+( used arecord as well to test these cases, arecord )
+
+- tvtime start/vlc start/vlc stop/tvtime stop
+  no disruption to tvtime
+- tvtime start/vlc start/tvtie stop/vlc stop
+  One tvtime stops, could trigger capture manually
+- vlc start/tvtime start/tvtime stop/vlc stop
+  vlc audio capture continues, tvtime detect tuner busy
+- vlc start/tvtime start/vlc stop/tvtime start
+  when vlc stops, tvtime could open the tuner device
+
+Repeated the above with kaffeine and vlc and arecord audio
+capture combinations.
+
+Hans pointed out I am missing:
+
+v4l2-ctl -f 180 --sleep=10
+While it is sleeping you must still be able to set the frequency from
+another console.
+
+And it doesn't matter which of the two v4l2-ctl processes ends first,
+as long as one has a reference to the tuner you should be blocked
+from switching the tuner to a different mode (radio or dvb)
+
+I think this above fails because tuner token ownership doesn't
+span processes. Token should act as a lock between dvb/audio/v4l,
+and v4l itself has mechanisms to handle the multiple ownership token
+shouldn't interfere with.
+
+Provided the only thing that is breaking is the v4l case, I think
+I can get it to work with the bit field approach.
+
+Here is what I propose for patch v3:
+- make it a module under media
+- collapse tuner and audio tokens into media token
+- change names (get rid of abbreviated tkn stuff)
+- Make other changes Takashi/Lars pointed out in pcm
+- hold token in pcm open/close
+- add a bitfield to struct v4l2_fh to handle
+  the v4l specific multiple ownership cases.
+- v4l-core and au0828-videp patches will see changes.
+- dvb patch should still be good (crossing fingers)
+
+thanks,
+-- Shuah
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
