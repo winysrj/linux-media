@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:33057 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932568AbaJUQ0X convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:61023 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052AbaJULHa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 12:26:23 -0400
-Received: by mail-ob0-f180.google.com with SMTP id va2so1322138obc.11
-        for <linux-media@vger.kernel.org>; Tue, 21 Oct 2014 09:26:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1413908485.3081.4.camel@pengutronix.de>
-References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
- <54465F34.1000400@xs4all.nl> <CAL8zT=herYZ9d3TKrx_5Nre0_RRRXK3Az9-NvmqGE7_SkHLzHg@mail.gmail.com>
- <54466471.8050607@xs4all.nl> <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
- <1413908485.3081.4.camel@pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Tue, 21 Oct 2014 18:26:07 +0200
-Message-ID: <CAL8zT=hDEth-xoEr=9phzdZ9dXJMBeP9rpiTLYHwoqgf7E4tjQ@mail.gmail.com>
-Subject: Re: [media] CODA960: Fails to allocate memory
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 21 Oct 2014 07:07:30 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, wuchengli@chromium.org, posciak@chromium.org,
+	arun.m@samsung.com, ihf@chromium.org, prathyush.k@samsung.com,
+	kiran@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v3 02/13] [media] s5p-mfc: Fix REQBUFS(0) for encoder.
+Date: Tue, 21 Oct 2014 16:36:56 +0530
+Message-Id: <1413889627-8431-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
+References: <1413889627-8431-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Pawel Osciak <posciak@chromium.org>
 
-2014-10-21 18:21 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Hi Jean-Michel,
->
-> Am Dienstag, den 21.10.2014, 17:39 +0200 schrieb Jean-Michel Hautbois:
-> [...]
->> And the output is now :
->> v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
->> [ 6208.240919] coda 2040000.vpu: Not output type
->> [ 6208.245316] coda 2040000.vpu: streamon_out (N), streamon_cap (Y)
->> [ 6208.251353] coda 2040000.vpu: fill bitstream
->> [ 6208.255653] coda 2040000.vpu: fill bitstream payload : 0
->> VIDIOC_STREAMON: failed: Invalid argument
->>
->> Any idea ?
->> JM
->
-> $ trace-cmd record -e v4l2* v4l2-ctl -d13 --stream-out-mmap --stream-mmap --stream-to x.raw
-> [...]
-> $ trace-cmd report -R | grep bytesused
-> [...]
->     v4l2-ctl-308   [003]  1030.861067: v4l2_qbuf:             minor=44 index=0 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.861292: v4l2_qbuf:             minor=44 index=1 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.861471: v4l2_qbuf:             minor=44 index=2 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.861638: v4l2_qbuf:             minor=44 index=3 type=1 bytesused=0 flags=16387 field=0 timestamp=0 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.862301: v4l2_qbuf:             minor=44 index=0 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030852944000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.862490: v4l2_qbuf:             minor=44 index=1 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853139000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.862672: v4l2_qbuf:             minor=44 index=2 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853322000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->     v4l2-ctl-308   [003]  1030.862841: v4l2_qbuf:             minor=44 index=3 type=2 bytesused=3133440 flags=16387 field=1 timestamp=1030853491000 timecode_type=0 timecode_flags=0 timecode_frames=0 timecode_seconds=0 timecode_minutes=0 timecode_hours=0 timecode_userbits0=0 timecode_userbits1=0 timecode_userbits2=0 timecode_userbits3=0 sequence=0
->
-> The decoder is fed ~ 3 MiB input buffers, which it tries (and fails) to
-> copy into the 1 MiB bitstream ringbuffer (currently hard-coded via the
-> badly named CODA_MAX_FRAME_SIZE constant), so the bitstream payload in
-> the ringbuffer is 0 during start_streaming.
+Handle REQBUFS(0) for CAPTURE queue as well. Also use the proper queue to call
+it on for OUTPUT.
 
-Mmmh, nice, didn't thought to get perf out of there :).
-Well, I understand it can't feed the ringbuffer, but is there a way to
-make the encoder work ?
-I could of course modify CODA_MAX_FRAME_SIZE but this is clearly not
-the good thing to do...
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Thanks,
-JM
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4816f31..6a1c890 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1147,6 +1147,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 		(reqbufs->memory != V4L2_MEMORY_USERPTR))
+ 		return -EINVAL;
+ 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		if (reqbufs->count == 0) {
++			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
++			ctx->capture_state = QUEUE_FREE;
++			return ret;
++		}
+ 		if (ctx->capture_state != QUEUE_FREE) {
+ 			mfc_err("invalid capture state: %d\n",
+ 							ctx->capture_state);
+@@ -1168,6 +1173,14 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			return -ENOMEM;
+ 		}
+ 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (reqbufs->count == 0) {
++			mfc_debug(2, "Freeing buffers\n");
++			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
++			s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers,
++					ctx);
++			ctx->output_state = QUEUE_FREE;
++			return ret;
++		}
+ 		if (ctx->output_state != QUEUE_FREE) {
+ 			mfc_err("invalid output state: %d\n",
+ 							ctx->output_state);
+-- 
+1.7.9.5
+
