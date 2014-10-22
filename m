@@ -1,85 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:49047 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbaJCCg1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 22:36:27 -0400
-From: Amber Thrall <amber.rose.thrall@gmail.com>
-To: jarod@wilsonet.com, m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Amber Thrall <amber.rose.thrall@gmail.com>
-Subject: [PATCH] Staging: media: lirc: cleaned up packet dump in 2 files.
-Date: Thu,  2 Oct 2014 19:33:30 -0700
-Message-Id: <1412303610-18198-1-git-send-email-amber.rose.thrall@gmail.com>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:46824 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932698AbaJVVmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 17:42:09 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2] media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
+Date: Wed, 22 Oct 2014 22:42:01 +0100
+Message-Id: <1414014121-29908-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lirc_imon.c and lirc_sasem.c contain an incoming_packet method that
-is using deprecated printk's.  Removed blocks replacing with single
-dev_info with a %*ph format instead.
+this patch adds support for vidioc_create_bufs. Along side
+remove unneeded member numbuffers.
 
-Signed-off-by: Amber Thrall <amber.rose.thrall@gmail.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_imon.c  | 10 ++--------
- drivers/staging/media/lirc/lirc_sasem.c | 10 ++--------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ Changes for v2:
+ a: return -EINVAL in queue_setup() callback if sizeimage is
+    less then current format size.
+ b: removed unneeded member numbuffers.
+ 
+ drivers/media/platform/davinci/vpbe_display.c | 10 +++++++---
+ include/media/davinci/vpbe_display.h          |  2 --
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-index 7aca44f..232edd5 100644
---- a/drivers/staging/media/lirc/lirc_imon.c
-+++ b/drivers/staging/media/lirc/lirc_imon.c
-@@ -606,7 +606,6 @@ static void imon_incoming_packet(struct imon_context *context,
- 	struct device *dev = context->driver->dev;
- 	int octet, bit;
- 	unsigned char mask;
--	int i;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 3b60749..78b9ffe 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -244,12 +244,15 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
  
- 	/*
- 	 * just bail out if no listening IR client
-@@ -620,13 +619,8 @@ static void imon_incoming_packet(struct imon_context *context,
- 		return;
- 	}
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_buffer_setup\n");
  
--	if (debug) {
--		dev_info(dev, "raw packet: ");
--		for (i = 0; i < len; ++i)
--			printk("%02x ", buf[i]);
--		printk("\n");
--	}
--
-+	if (debug)
-+		dev_info(dev, "raw packet: %*ph\n", len, buf);
- 	/*
- 	 * Translate received data to pulse and space lengths.
- 	 * Received data is active low, i.e. pulses are 0 and
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index c20ef56..2f0463e 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -573,7 +573,6 @@ static void incoming_packet(struct sasem_context *context,
- 	unsigned char *buf = urb->transfer_buffer;
- 	long ms;
- 	struct timeval tv;
--	int i;
++	if (fmt && fmt->fmt.pix.sizeimage < layer->pix_fmt.sizeimage)
++		return -EINVAL;
++
+ 	/* Store number of buffers allocated in numbuffer member */
+-	if (*nbuffers < VPBE_DEFAULT_NUM_BUFS)
+-		*nbuffers = layer->numbuffers = VPBE_DEFAULT_NUM_BUFS;
++	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
++		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
  
- 	if (len != 8) {
- 		dev_warn(&context->dev->dev,
-@@ -582,13 +581,8 @@ static void incoming_packet(struct sasem_context *context,
- 		return;
- 	}
+ 	*nplanes = 1;
+-	sizes[0] = layer->pix_fmt.sizeimage;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : layer->pix_fmt.sizeimage;
+ 	alloc_ctxs[0] = layer->alloc_ctx;
  
--	if (debug) {
--		printk(KERN_INFO "Incoming data: ");
--		for (i = 0; i < 8; ++i)
--			printk(KERN_CONT "%02x ", buf[i]);
--		printk(KERN_CONT "\n");
--	}
--
-+	if (debug)
-+		dev_info(&context->dev->dev, "Incoming data: %*ph\n", len, buf);
- 	/*
- 	 * Lirc could deal with the repeat code, but we really need to block it
- 	 * if it arrives too late.  Otherwise we could repeat the wrong code.
+ 	return 0;
+@@ -1241,6 +1244,7 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out  = vpbe_display_try_fmt,
+ 
+ 	.vidioc_reqbufs		 = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs	 = vb2_ioctl_create_bufs,
+ 	.vidioc_querybuf	 = vb2_ioctl_querybuf,
+ 	.vidioc_qbuf		 = vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf		 = vb2_ioctl_dqbuf,
+diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
+index 163a02b..fa0247a 100644
+--- a/include/media/davinci/vpbe_display.h
++++ b/include/media/davinci/vpbe_display.h
+@@ -70,8 +70,6 @@ struct vpbe_disp_buffer {
+ 
+ /* vpbe display object structure */
+ struct vpbe_layer {
+-	/* number of buffers in fbuffers */
+-	unsigned int numbuffers;
+ 	/* Pointer to the vpbe_display */
+ 	struct vpbe_display *disp_dev;
+ 	/* Pointer pointing to current v4l2_buffer */
 -- 
-2.1.2
+1.9.1
 
