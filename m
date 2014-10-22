@@ -1,42 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51711 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933774AbaJaPJq (ORCPT
+Received: from kozue.soulik.info ([108.61.200.231]:33034 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953AbaJVOHU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:46 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 8BA0F217D3
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:34 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Wed, 22 Oct 2014 10:07:20 -0400
+From: ayaka <ayaka@soulik.info>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v3 03/10] uvcvideo: Set buffer field to V4L2_FIELD_NONE
-Date: Fri, 31 Oct 2014 17:09:44 +0200
-Message-Id: <1414768191-4536-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: k.debski@samsung.com, kyungmin.park@samsung.com,
+	jtp.park@samsung.com, m.chehab@samsung.com,
+	ayaka <ayaka@soulik.info>
+Subject: [PATCH] s5p-mfc: correct the formats info for encoder
+Date: Wed, 22 Oct 2014 22:07:01 +0800
+Message-Id: <1413986821-11463-2-git-send-email-ayaka@soulik.info>
+In-Reply-To: <1413986821-11463-1-git-send-email-ayaka@soulik.info>
+References: <0c7e01cfeded$cdd8c000$698a4000$%debski@samsung.com>
+ <1413986821-11463-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver doesn't support interlaced video, set field to
-V4L2_FIELD_NONE for all vb2 buffers.
+The NV12M is supported by all the version of MFC, so it is better
+to use it as default OUTPUT format.
+MFC v5 doesn't support NV21, I have tested it, for the SEC doc
+it is not supported either.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: ayaka <ayaka@soulik.info>
 ---
- drivers/media/usb/uvc/uvc_video.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index df81b9c..b9c7dee 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1021,6 +1021,7 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index d26b248..4ea3796 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -32,7 +32,7 @@
+ #include "s5p_mfc_intr.h"
+ #include "s5p_mfc_opr.h"
  
- 		uvc_video_get_ts(&ts);
+-#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12MT
++#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12M
+ #define DEF_DST_FMT_ENC	V4L2_PIX_FMT_H264
  
-+		buf->buf.v4l2_buf.field = V4L2_FIELD_NONE;
- 		buf->buf.v4l2_buf.sequence = stream->sequence;
- 		buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
- 		buf->buf.v4l2_buf.timestamp.tv_usec =
+ static struct s5p_mfc_fmt formats[] = {
+@@ -67,8 +67,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+ 	},
+ 	{
+ 		.name		= "H264 Encoded Stream",
 -- 
-2.0.4
+1.9.3
 
