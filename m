@@ -1,177 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4048 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbaJAMIJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Oct 2014 08:08:09 -0400
-Message-ID: <542BEE89.2050405@xs4all.nl>
-Date: Wed, 01 Oct 2014 14:07:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:20054 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753068AbaJVT0t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 15:26:49 -0400
+Message-ID: <544804F1.7090606@linux.intel.com>
+Date: Wed, 22 Oct 2014 14:26:41 -0500
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
 MIME-Version: 1.0
-To: Paulo Assis <pj.assis@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: uvcvideo fails on 3.16 and 3.17 kernels
-References: <CAPueXH4puHLAPWpBS9gjGHd5AGb1gAxZqSggXDaGEJ3WYC_nMA@mail.gmail.com> <3332528.UXGlNqFTSJ@avalon> <CAPueXH5vbm_cSwA_EYyYJRiH3XFKuae9HAG1xGTNha5nB+q0uA@mail.gmail.com> <1782581.QHYlHgcnOV@avalon> <CAPueXH7kjYrumvO56PBcGzNVFgQSzinH4k7OGWmsxNr5GhX+qg@mail.gmail.com>
-In-Reply-To: <CAPueXH7kjYrumvO56PBcGzNVFgQSzinH4k7OGWmsxNr5GhX+qg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Takashi Iwai <tiwai@suse.de>
+CC: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"ramakrmu@cisco.com" <ramakrmu@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	prabhakar.csengg@gmail.com, Antti Palosaari <crope@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Tim Gardner <tim.gardner@canonical.com>,
+	"olebowle@gmx.com" <olebowle@gmx.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com> <s5htx34ul3w.wl-tiwai@suse.de> <54467EFB.7050800@xs4all.nl> <s5hbnp5z9uy.wl-tiwai@suse.de> <CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+In-Reply-To: <CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/14 13:53, Paulo Assis wrote:
-> Laurent,
-> 
-> OK, I undersdant what I'm doing wrong now.
-> I don't see any other solution in order to follow the v4l2 api, than
-> to copy the mmap data into another buffer that will be used in frame
-> processing,  and then requeue.
-> Guvcview processes frame data in several different threads and I don't
-> want to wait for processing to finish before requeing, I just want to
-> call the get_frame function from whathever thread and be done with it.
-> This solution however forces a mem copy that the mmap operation
-> intends to avoid.
+On 10/21/14, 11:08 AM, Devin Heitmueller wrote:
+>> Sorry, I'm not convinced by that.  If the device has to be controlled
+>> exclusively, the right position is the open/close.  Otherwise, the
+>> program cannot know when it becomes inaccessible out of sudden during
+>> its operation.
+>
+> I can say that I've definitely seen cases where if you configure a
+> device as the "default" capture device in PulseAudio, then pulse will
+> continue to capture from it even if you're not actively capturing the
+> audio from pulse.  I only spotted this because I had a USB analyzer on
+> the device and was dumbfounded when the ISOC packets kept arriving
+> even after I had closed VLC.
 
-Once you requeue the buffer you no longer control it and it is owned by
-the driver, which may sync the buffer for the device making it unreliable
-to read from by the cpu (esp. on non-Intel architectures). And of course
-it will be used to capture frames, so the contents can be modified while
-you are still processing. In other words, you should wait with requeuing
-the buffer until after processing. What's strange about that? This is
-nothing new.
-
-You certainly don't want to copy the buffers, that's nuts. Just fix the
-application to postpone calling QBUF until after processing is done.
-
-Regards,
-
-	Hans
-
-> 
-> Best regards,
-> Paulo
-> 
-> 2014-10-01 12:05 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> Hi Paulo,
->>
->> On Wednesday 01 October 2014 11:48:26 Paulo Assis wrote:
->>> Laurent hi,
->>>
->>> 2014-09-30 23:31 GMT+01:00 Laurent Pinchart:
->>>> Hi Paulo,
->>>>
->>>> Thank you for investigation this.
->>>>
->>>> On Tuesday 30 September 2014 13:56:15 Paulo Assis wrote:
->>>>
->>>>> Ok,
->>>>> so I've set a workaround in guvcview, it now uses the length filed if
->>>>> bytesused is set to zero.
->>>>> Anyway I think this violates the v4l2 api:
->>>>> http://linuxtv.org/downloads/v4l-dvb-apis/buffer.html
->>>>>
->>>>> bytesused - ..., Drivers must set this field when type refers to an
->>>>> input stream, ...
->>>>>
->>>>> without this value we have no way of knowing the exact frame size for
->>>>> compressed formats.
->>>>>
->>>>> And this was working in uvcvideo up until 3.16, I don't know how many
->>>>> userspace apps rely on this value, but at least guvcview does, and
->>>>> it's currently broken for uvcvideo devices in the latest kernels.
->>>>
->>>> It took me some time to debug the problem, and I think the problem is
->>>> actually on guvcview's side. When dequeuing a video buffer, the
->>>> application requeues it immediately before processing the buffer's
->>>> contents. The VIDIOC_QBUF ioctl will reset the bytesused field to 0.
->>>>
->>>> While you could work around the problem by using a different struct
->>>> v4l2_buffer instance for the VIDIOC_QBUF call, the V4L2 doesn't allow
->>>> userspace application to access a queued buffer. You must process the
->>>> buffer before requeuing it.
->>>
->>> I though this was why we requested multiple buffers. If this is true
->>> then using just one buffer is enough, also using multiple threads to
->>> process frame data seems useless in this case, since we need to
->>> process the buffer before queueing the next one.
->>>
->>> I thought one could request 4 buffers for mmap and do:
->>>
->>> VIDIOC_DQBUF data->buf[0]
->>> VIDIOC_QBUF  driver queues->buf[1]
->>>
->>> process buf[0]
->>>
->>> VIDIOC_DQBUF data->buf[1]
->>> VIDIOC_QBUF  driver queues->buf[2]
->>>
->>> process buf[1]
->>>
->>> VIDIOC_DQBUF data->buf[2]
->>> VIDIOC_QBUF  driver queues->buf[3]
->>>
->>> process buf[2]
->>>
->>> VIDIOC_DQBUF data->buf[3]
->>> VIDIOC_QBUF  driver queues->buf[0]
->>>
->>> process buf[3]
->>
->> That's certainly valid. However, if I'm not mistaken, after dequeuing buffer i
->> you immediately requeue the same buffer, not buffer i+1.
->>
->> What you should do is queueing all buffers right before starting the stream (I
->> think you're doing fine there, but I haven't double-checked), and then, when a
->> buffer is available, perform the following sequence.
->>
->>         VIDIOC_DQBUF() -> returns buffer i
->>         process buffer i
->>         VIDIOC_QBUF(buffer i)
->>
->> You can perform processing in a different thread if needed, the important part
->> being not to requeue the buffer before userspace is done with it.
->>
->> The bug that caused guvcview to stop functioning is in v4l2_core.c.
->>
->>         memset(&vd->buf, 0, sizeof(struct v4l2_buffer));
->>
->>         vd->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>         vd->buf.memory = V4L2_MEMORY_MMAP;
->>
->>         ret = xioctl(vd->fd, VIDIOC_DQBUF, &vd->buf);
->>
->>         if(!ret)
->>         {
->>                 /*
->>                  * driver timestamp is unreliable
->>                  * use monotonic system time
->>                  */
->>                 vd->timestamp = ns_time_monotonic();
->>
->>                 /* queue the buffers */
->>                 ret = xioctl(vd->fd, VIDIOC_QBUF, &vd->buf);
->>                 ...
->>         }
->>
->> The VIDIOC_DQBUF call will return the correct bytesused value in vd-
->>> buf.bytesused, but the VIDIOC_QBUF call then resets that value to 0.
->>
->> As a quick workaround while you fix the buffer processing sequence, you can
->> copy vd->buf into a new local v4l2_buffer variable after calling VIDIOC_DQBUF,
->> and use that local variable in the VIDIOC_QBUF call. Note that you will still
->> violate the V4L2 API as you're not allowed to touch a buffer after requeuing
->> it, but it should hide the problem and get guvcview to display images again.
->>
->>> Now if we need to process the buffer between VIDIOC_DQBUF and
->>> VIDIOC_QBUF, whats the point in using more than one buffer ?
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+this seems like a feature, not a bug. PulseAudio starts streaming before 
+clients push any data and likewise keeps sources active even after for 
+some time after clients stop recording. Closing VLC in your example 
+doesn't immediately close the ALSA device. look for 
+module-suspend-on-idle in your default.pa config file.
+I also agree that the open/close of the alsa device is the only way to 
+control exclusion.
+-Pierre
 
