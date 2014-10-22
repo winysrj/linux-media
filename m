@@ -1,77 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f47.google.com ([209.85.192.47]:35121 "EHLO
-	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943AbaJDTlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Oct 2014 15:41:20 -0400
-Received: by mail-qg0-f47.google.com with SMTP id i50so2301382qgf.34
-        for <linux-media@vger.kernel.org>; Sat, 04 Oct 2014 12:41:19 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: m.chehab@samsung.com
-Cc: p.zabel@pengutronix.de, linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 1/3] [media] coda: Call v4l2_device_unregister() from a single location
-Date: Sat,  4 Oct 2014 16:40:50 -0300
-Message-Id: <1412451652-27220-1-git-send-email-festevam@gmail.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4117 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172AbaJVCj6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Oct 2014 22:39:58 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9M2ds0g026851
+	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 04:39:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F3BF52A009F
+	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 04:39:42 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141022023942.F3BF52A009F@tschai.lan>
+Date: Wed, 22 Oct 2014 04:39:42 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Instead of calling v4l2_device_unregister() in multiple locations within the
-error paths, let's call it from a single location to make the error handling
-simpler.
+Results of the daily build of media_tree:
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/platform/coda/coda-common.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+date:		Wed Oct 22 04:00:29 CEST 2014
+git branch:	test
+git hash:	1ef24960ab78554fe7e8e77d8fc86524fbd60d3c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-20-g7abd8a7
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index ced4760..7cd82e8 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1926,8 +1926,8 @@ static int coda_probe(struct platform_device *pdev)
- 	} else if (pdev_id) {
- 		dev->devtype = &coda_devdata[pdev_id->driver_data];
- 	} else {
--		v4l2_device_unregister(&dev->v4l2_dev);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err_v4l2_register;
- 	}
- 
- 	dev->debugfs_root = debugfs_create_dir("coda", NULL);
-@@ -1941,8 +1941,7 @@ static int coda_probe(struct platform_device *pdev)
- 					 dev->debugfs_root);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "failed to allocate work buffer\n");
--			v4l2_device_unregister(&dev->v4l2_dev);
--			return ret;
-+			goto err_v4l2_register;
- 		}
- 	}
- 
-@@ -1952,8 +1951,7 @@ static int coda_probe(struct platform_device *pdev)
- 					 dev->debugfs_root);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
--			v4l2_device_unregister(&dev->v4l2_dev);
--			return ret;
-+			goto err_v4l2_register;
- 		}
- 	}
- 
-@@ -1988,6 +1986,10 @@ static int coda_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 
- 	return coda_firmware_request(dev);
-+
-+err_v4l2_register:
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	return ret;
- }
- 
- static int coda_remove(struct platform_device *pdev)
--- 
-1.9.1
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-i686: WARNINGS
+linux-3.17-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-x86_64: WARNINGS
+linux-3.17-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
