@@ -1,93 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:40512 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759489AbaJ3Tws (ORCPT
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:39935 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932079AbaJVTpv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 15:52:48 -0400
+	Wed, 22 Oct 2014 15:45:51 -0400
+Received: by mail-qc0-f179.google.com with SMTP id x3so3472117qcv.10
+        for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 12:45:50 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20141030113725.08b3aa40@recife.lan>
-References: <cover.1414668341.git.mchehab@osg.samsung.com>
-	<678fa12fb8e75c6dc1e781a02e3ddbbba7e1a904.1414668341.git.mchehab@osg.samsung.com>
-	<CAGoCfizkcdU1fgfLjFHwnH34HgpJBcznO+3RrqOMHpLUYKCNPg@mail.gmail.com>
-	<20141030113725.08b3aa40@recife.lan>
-Date: Thu, 30 Oct 2014 15:52:47 -0400
-Message-ID: <CAOcJUbyy59feGH4ME0O02QamYnn+1HPUvOc41tZ7+3p4e_GxGg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] [media] sound: Update au0828 quirks table
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+In-Reply-To: <544804F1.7090606@linux.intel.com>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
+	<543FB374.8020604@metafoo.de>
+	<543FC3CD.8050805@osg.samsung.com>
+	<s5h38aow1ub.wl-tiwai@suse.de>
+	<543FD1EC.5010206@osg.samsung.com>
+	<s5hy4sgumjo.wl-tiwai@suse.de>
+	<543FD892.6010209@osg.samsung.com>
+	<s5htx34ul3w.wl-tiwai@suse.de>
+	<54467EFB.7050800@xs4all.nl>
+	<s5hbnp5z9uy.wl-tiwai@suse.de>
+	<CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+	<544804F1.7090606@linux.intel.com>
+Date: Wed, 22 Oct 2014 15:45:42 -0400
+Message-ID: <CAGoCfiyQVY6Ss2qcp3aQijq3cP3BAM8X4yaCXRtx63dNNm-QKA@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org,
+	Lars-Peter Clausen <lars@metafoo.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Daniel Mack <zonque@gmail.com>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Vlad Catoi <vladcatoi@gmail.com>, alsa-devel@alsa-project.org,
-	stable@vger.kernel.org
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"ramakrmu@cisco.com" <ramakrmu@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Tim Gardner <tim.gardner@canonical.com>,
+	"olebowle@gmx.com" <olebowle@gmx.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 30, 2014 at 9:37 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Hi Devin,
->
-> Em Thu, 30 Oct 2014 09:15:31 -0400
-> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
->
->> Hi Mauro,
->>
->> > Syncronize it and put them on the same order as found at au0828
->> > driver, as all the au0828 devices with analog TV need the
->> > same quirks.
->>
->> The MXL and Woodbury boards don't support analog under Linux, so
->> probably shouldn't be included in the list of quirks.
->
-> True.
->>
->> That said, the MXL and Woodbury versions of the PCBs were prototypes
->> that never made it into production (and since the Auvitek chips are
->> EOL, they never will).  I wouldn't object to a patch which removed the
->> board profiles entirely in the interest of removing dead code.
->>
->> It was certainly nice of Mike Krufky to work to get support into the
->> open source driver before the product was released, but after four
->> years it probably makes sense to remove the entries for products that
->> never actually shipped.
->
-> Yeah, if nobody is using such devices, then we should get rid of them,
-> but I prefer to have this on a separate patch, in order to give
-> people the opportunity to complain.
->
-> So, if I'm understanding well, you're suggesting to add a patch
-> removing those 5 entries (and the corresponding quirks on alsa),
-> right?
->
->         { USB_DEVICE(0x2040, 0x7201),
->                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
->         { USB_DEVICE(0x2040, 0x7211),
->                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
->         { USB_DEVICE(0x2040, 0x7281),
->                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
->         { USB_DEVICE(0x05e1, 0x0480),
->                 .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
->         { USB_DEVICE(0x2040, 0x8200),
->                 .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
->         { USB_DEVICE(0x2040, 0x7260),
->
-> Regards,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> this seems like a feature, not a bug. PulseAudio starts streaming before
+> clients push any data and likewise keeps sources active even after for some
+> time after clients stop recording. Closing VLC in your example doesn't
+> immediately close the ALSA device. look for module-suspend-on-idle in your
+> default.pa config file.
 
+The ALSA userland emulation in PulseAudio is supposed to faithfully emulate
+the behavior of the ALSA kernel ABI... except when it doesn't, then it's not
+a bug but rather a feature.  :-)
 
-Let's *not* remove DTV support for WOODBURY board -- it is not the
-business of the public whether or not the board shipped in
-mass-production.  The board profile is in fact being used for some
-reference designs, and I still use my woodbury prototype to test the
-MXL tuner.
+> I also agree that the open/close of the alsa device is the only way to
+> control exclusion.
 
-I am not the only person using this profile -- no not remove it, please.
+I was also a proponent that we should have fairly coarse locking done
+at open/close for the various device nodes (ALSA/V4L/DVB).  The challenge here
+is that we have a large installed based of existing applications that
+rely on kernel
+behavior that isn't formally specified in any specification.  Hence
+we're forced to try
+to come up with a solution that minimizes the risk of ABI breakage.
+
+If we were doing this from scratch then we could lay down some hard/fast rules
+about things apps aren't supposed to do and how apps are supposed to respond
+to those exception cases.  Unfortunately we don't have that luxury here.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
