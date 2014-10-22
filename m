@@ -1,170 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51648 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43081 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760633AbaJaNy6 (ORCPT
+	with ESMTP id S932608AbaJVURL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:58 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id C9FBF217D8
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
+	Wed, 22 Oct 2014 16:17:11 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 10/11] uvcvideo: Rename and split uvc_queue_enable to uvc_queue_stream(on|off)
-Date: Fri, 31 Oct 2014 15:54:56 +0200
-Message-Id: <1414763697-21166-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC v2 2/4] Add media device related data structures and API.
+Date: Wed, 22 Oct 2014 21:45:47 +0300
+Message-ID: <18631516.oW73vIsC5r@avalon>
+In-Reply-To: <20141022100301.GH15257@valkosipuli.retiisi.org.uk>
+References: <1413557682-20535-1-git-send-email-j.anaszewski@samsung.com> <1413557682-20535-3-git-send-email-j.anaszewski@samsung.com> <20141022100301.GH15257@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This brings the function name in line with the V4L2 API terminology and
-allows removing the duplicate queue type check.
+Hi Sakari,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c |  3 ++-
- drivers/media/usb/uvc/uvc_queue.c  | 53 ++++++++++++++++----------------------
- drivers/media/usb/uvc/uvc_v4l2.c   | 10 ++-----
- drivers/media/usb/uvc/uvcvideo.h   |  5 +++-
- 4 files changed, 30 insertions(+), 41 deletions(-)
+On Wednesday 22 October 2014 13:03:02 Sakari Ailus wrote:
+> On Fri, Oct 17, 2014 at 04:54:40PM +0200, Jacek Anaszewski wrote:
+> ...
+> 
+> > +/*
+> > + * struct media_entity - media device entity data
+> > + * @id:			media entity id within media controller
+> > + * @name:		media entity name
+> > + * @node_name:		media entity related device node name
+> > + * @pads:		array of media_entity pads
+> > + * @num_pads:		number of elements in the pads array
+> > + * @links:		array of media_entity links
+> > + * @num_links:		number of elements in the links array
+> > + * @subdev_fmt:		related sub-device format
+> > + * @fd:			related sub-device node file descriptor
+> > + * @src_pad_id:		source pad id when entity is linked
+> > + * @sink_pad_id:	sink pad id when entity is linked
+> > + * @next:		pointer to the next data structure in the list
+> > + */
+> > +struct media_entity {
+> > +	int id;
+> > +	char name[32];
+> > +	char node_name[32];
+> > +	struct media_pad_desc *pads;
+> > +	int num_pads;
+> > +	struct media_link_desc *links;
+> > +	int num_links;
+> > +	struct v4l2_subdev_format subdev_fmt;
+> > +	int fd;
+> > +	int src_pad_id;
+> > +	int sink_pad_id;
+> > +	struct media_entity *next;
+> > +};
+> 
+> Could you use libmediactl and libv4l2subdev instead here as well? They do
+> actually implement much of what you do here. Feel free to comment on the
+> API. The libraries have a little bit different background than this one.
+> Obviously there's functionality in this library what's not in the two; some
+> of this might belong to either of the two libraries.
+> 
+> I think we'll need V4L2 sub-device related information stored next to the
+> media entities as well, so that's something to be added.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index a0b163a..71f85ed 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2040,7 +2040,8 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 		if (stream->intf == intf) {
- 			ret = uvc_video_resume(stream, reset);
- 			if (ret < 0)
--				uvc_queue_enable(&stream->queue, 0);
-+				uvc_queue_streamoff(&stream->queue,
-+						    stream->queue.queue.type);
- 			return ret;
- 		}
- 	}
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 5c11de0..c295c5c 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -263,6 +263,28 @@ int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
- 	return ret;
- }
- 
-+int uvc_queue_streamon(struct uvc_video_queue *queue, enum v4l2_buf_type type)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_streamon(&queue->queue, type);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
-+int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_streamoff(&queue->queue, type);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
- int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
- {
- 	int ret;
-@@ -318,37 +340,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
- }
- 
- /*
-- * Enable or disable the video buffers queue.
-- *
-- * The queue must be enabled before starting video acquisition and must be
-- * disabled after stopping it. This ensures that the video buffers queue
-- * state can be properly initialized before buffers are accessed from the
-- * interrupt handler.
-- *
-- * Enabling the video queue returns -EBUSY if the queue is already enabled.
-- *
-- * Disabling the video queue cancels the queue and removes all buffers from
-- * the main queue.
-- *
-- * This function can't be called from interrupt context. Use
-- * uvc_queue_cancel() instead.
-- */
--int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
--{
--	int ret;
--
--	mutex_lock(&queue->mutex);
--
--	if (enable)
--		ret = vb2_streamon(&queue->queue, queue->queue.type);
--	else
--		ret = vb2_streamoff(&queue->queue, queue->queue.type);
--
--	mutex_unlock(&queue->mutex);
--	return ret;
--}
--
--/*
-  * Cancel the video buffers queue.
-  *
-  * Cancelling the queue marks all buffers on the irq queue as erroneous,
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 5ba023b..9c5cbcf 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -757,14 +757,11 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
- 	struct uvc_streaming *stream = handle->stream;
- 	int ret;
- 
--	if (type != stream->type)
--		return -EINVAL;
--
- 	if (!uvc_has_privileges(handle))
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
--	ret = uvc_queue_enable(&stream->queue, 1);
-+	ret = uvc_queue_streamon(&stream->queue, type);
- 	mutex_unlock(&stream->mutex);
- 
- 	return ret;
-@@ -776,14 +773,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
- 	struct uvc_fh *handle = fh;
- 	struct uvc_streaming *stream = handle->stream;
- 
--	if (type != stream->type)
--		return -EINVAL;
--
- 	if (!uvc_has_privileges(handle))
- 		return -EBUSY;
- 
- 	mutex_lock(&stream->mutex);
--	uvc_queue_enable(&stream->queue, 0);
-+	uvc_queue_streamoff(&stream->queue, type);
- 	mutex_unlock(&stream->mutex);
- 
- 	return 0;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 2dc247a..f0a04b5 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -634,7 +634,10 @@ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
- extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf, int nonblocking);
--extern int uvc_queue_enable(struct uvc_video_queue *queue, int enable);
-+extern int uvc_queue_streamon(struct uvc_video_queue *queue,
-+			      enum v4l2_buf_type type);
-+extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
-+			       enum v4l2_buf_type type);
- extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
- extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf);
+I generic mechanism to attach subsystem-specific data to entities sounds good 
+to me. The fd field could then be moved out of struct media_entity.
+
 -- 
-2.0.4
+Regards,
+
+Laurent Pinchart
 
