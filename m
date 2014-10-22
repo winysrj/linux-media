@@ -1,75 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33479 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751846AbaJQO7S (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:58238 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754192AbaJVKHz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 10:59:18 -0400
-Message-ID: <54412EC8.1080001@iki.fi>
-Date: Fri, 17 Oct 2014 17:59:20 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 22 Oct 2014 06:07:55 -0400
+Message-ID: <544781F6.4070409@cisco.com>
+Date: Wed, 22 Oct 2014 12:07:50 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-CC: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: [RFC PATCH 09/11] videodev2.h: add v4l2_ctrl_selection
- compound control type.
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl> <1411310909-32825-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1411310909-32825-10-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 1/5] [media] vivid: select CONFIG_FB_CFB_FILLRECT/COPYAREA/IMAGEBLIT
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1413972221-13669-2-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Superseded. Already part of a pull request for 3.18.
 
-(Cc Ricardo.)
+But thanks anyway :-)
 
-Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This will be used by a new selection control.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+	Hans
+
+On 10/22/2014 12:03 PM, Philipp Zabel wrote:
+> The OSD simulation uses the framebuffer core functions, so vivid needs to
+> select the corresponding configuration options.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 > ---
->  include/media/v4l2-ctrls.h     | 2 ++
->  include/uapi/linux/videodev2.h | 8 ++++++++
->  2 files changed, 10 insertions(+)
-> 
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 3005d88..c2fd050 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -46,6 +46,7 @@ struct poll_table_struct;
->   * @p_u16:	Pointer to a 16-bit unsigned value.
->   * @p_u32:	Pointer to a 32-bit unsigned value.
->   * @p_char:	Pointer to a string.
-> + * @p_sel:	Pointer to a struct v4l2_ctrl_selection.
->   * @p:		Pointer to a compound value.
->   */
->  union v4l2_ctrl_ptr {
-> @@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
->  	u16 *p_u16;
->  	u32 *p_u32;
->  	char *p_char;
-> +	struct v4l2_ctrl_selection *p_sel;
->  	void *p;
->  };
-
-In order to be usable on sub-devices, pad information should be added.
-That results in having a pad per rectangle, which probably doesn't make
-sense. Also, other controls may benefit from being pad related.
-
-What would you think of including the pad information in struct
-v4l2_ext_control? That should be in a different patch. Would a flags
-field be needed to tell whether the pad field is valid? 16 bits should
-be good for both, but we anyway had just a single reserved field.
-
-This would leave you with essentially a rectangle control, which you
-still might want to call (or not) a selection control.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
+>   drivers/media/platform/vivid/Kconfig | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+> index d71139a..3bfda25 100644
+> --- a/drivers/media/platform/vivid/Kconfig
+> +++ b/drivers/media/platform/vivid/Kconfig
+> @@ -4,6 +4,9 @@ config VIDEO_VIVID
+>   	select FONT_SUPPORT
+>   	select FONT_8x16
+>   	select VIDEOBUF2_VMALLOC
+> +	select FB_CFB_FILLRECT
+> +	select FB_CFB_COPYAREA
+> +	select FB_CFB_IMAGEBLIT
+>   	default n
+>   	---help---
+>   	  Enables a virtual video driver. This driver emulates a webcam,
+>
 
