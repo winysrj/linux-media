@@ -1,155 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52444 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbaJBNxD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 09:53:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2.1 16/18] smiapp: Clean up smiapp_set_format()
-Date: Thu, 02 Oct 2014 16:53:02 +0300
-Message-ID: <2345405.asIYuPqanQ@avalon>
-In-Reply-To: <1412251754-9061-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412239568-8524-17-git-send-email-sakari.ailus@iki.fi> <1412251754-9061-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:35161 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753594AbaJVPbE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 11:31:04 -0400
+Received: by mail-wg0-f51.google.com with SMTP id b13so4072256wgh.10
+        for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 08:31:02 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, wsa@the-dreams.de,
+	lars@metafoo.de,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH 1/2] i2c: Add generic support passing secondary devices addresses
+Date: Wed, 22 Oct 2014 17:30:47 +0200
+Message-Id: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Some I2C devices have multiple addresses assigned, for example each address
+corresponding to a different internal register map page of the device.
+So far drivers which need support for this have handled this with a driver
+specific and non-generic implementation, e.g. passing the additional address
+via platform data.
 
-Thank you for the patch.
+This patch provides a new helper function called i2c_new_secondary_device()
+which is intended to provide a generic way to get the secondary address
+as well as instantiate a struct i2c_client for the secondary address.
 
-On Thursday 02 October 2014 15:09:14 Sakari Ailus wrote:
-> smiapp_set_format() has accumulated a fair amount of changes without a
-> needed refactoring, do the cleanup now. There's also an unlocked version of
-> v4l2_ctrl_range_changed(), using that fixes a small serialisation issue with
-> the user space interface.
-> 
-> __v4l2_ctrl_modify_range() is used instead of v4l2_ctrl_modify_range() in
-> smiapp_set_format_source() since the mutex is now held during the function
-> call.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The function expects a pointer to the primary i2c_client, a name
+for the secondary address and an optional default address. The name is used
+as a handle to specify which secondary address to get.
 
-For the whole series,
+The default address is used as a fallback in case no secondary address
+was explicitly specified. In case no secondary address and no default
+address were specified the function returns NULL.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+For now the function only supports look-up of the secondary address
+from devicetree, but it can be extended in the future
+to for example support board files and/or ACPI.
 
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c |   73 ++++++++++++++++-------------
->  1 file changed, 43 insertions(+), 30 deletions(-)
-> 
-> since v2:
-> 
-> - Move comment on changed media bus codes to smiapp_set_format_source().
-> 
-> - Add a comment to the patch description on the use of the unlocked variant
->   of v4l2_ctrl_modify_range().
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 926f60c..416b7bd 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -1728,51 +1728,64 @@ static const struct smiapp_csi_data_format
->  	return csi_format;
->  }
-> 
-> -static int smiapp_set_format(struct v4l2_subdev *subdev,
-> -			     struct v4l2_subdev_fh *fh,
-> -			     struct v4l2_subdev_format *fmt)
-> +static int smiapp_set_format_source(struct v4l2_subdev *subdev,
-> +				    struct v4l2_subdev_fh *fh,
-> +				    struct v4l2_subdev_format *fmt)
->  {
->  	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-> -	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
-> -	struct v4l2_rect *crops[SMIAPP_PADS];
-> +	const struct smiapp_csi_data_format *csi_format,
-> +		*old_csi_format = sensor->csi_format;
-> +	u32 code = fmt->format.code;
-> +	unsigned int i;
-> +	int rval;
-> 
-> -	mutex_lock(&sensor->mutex);
-> +	rval = __smiapp_get_format(subdev, fh, fmt);
-> +	if (rval)
-> +		return rval;
-> 
->  	/*
->  	 * Media bus code is changeable on src subdev's source pad. On
->  	 * other source pads we just get format here.
->  	 */
-> -	if (fmt->pad == ssd->source_pad) {
-> -		u32 code = fmt->format.code;
-> -		int rval = __smiapp_get_format(subdev, fh, fmt);
-> -		bool range_changed = false;
-> -		unsigned int i;
-> -
-> -		if (!rval && subdev == &sensor->src->sd) {
-> -			const struct smiapp_csi_data_format *csi_format =
-> -				smiapp_validate_csi_data_format(sensor, code);
-> +	if (subdev != &sensor->src->sd)
-> +		return 0;
-> 
-> -			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> -				if (csi_format->width !=
-> -				    sensor->csi_format->width)
-> -					range_changed = true;
-> +	csi_format = smiapp_validate_csi_data_format(sensor, code);
-> 
-> -				sensor->csi_format = csi_format;
-> -			}
-> +	fmt->format.code = csi_format->code;
-> 
-> -			fmt->format.code = csi_format->code;
-> -		}
-> +	if (fmt->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		return 0;
-> 
-> -		mutex_unlock(&sensor->mutex);
-> -		if (rval || !range_changed)
-> -			return rval;
-> +	sensor->csi_format = csi_format;
-> 
-> +	if (csi_format->width != old_csi_format->width)
->  		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-> -			v4l2_ctrl_modify_range(
-> -				sensor->test_data[i],
-> -				0, (1 << sensor->csi_format->width) - 1, 1, 0);
-> +			__v4l2_ctrl_modify_range(
-> +				sensor->test_data[i], 0,
-> +				(1 << csi_format->width) - 1, 1, 0);
-> 
-> -		return 0;
-> +	return 0;
-> +}
-> +
-> +static int smiapp_set_format(struct v4l2_subdev *subdev,
-> +			     struct v4l2_subdev_fh *fh,
-> +			     struct v4l2_subdev_format *fmt)
-> +{
-> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-> +	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
-> +	struct v4l2_rect *crops[SMIAPP_PADS];
-> +
-> +	mutex_lock(&sensor->mutex);
-> +
-> +	if (fmt->pad == ssd->source_pad) {
-> +		int rval;
-> +
-> +		rval = smiapp_set_format_source(subdev, fh, fmt);
-> +
-> +		mutex_unlock(&sensor->mutex);
-> +
-> +		return rval;
->  	}
-> 
->  	/* Sink pad. Width and height are changeable here. */
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+---
+ drivers/i2c/i2c-core.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c.h    |  8 ++++++++
+ 2 files changed, 48 insertions(+)
 
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 2f90ac6..fd3b07c 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -1166,6 +1166,46 @@ struct i2c_client *i2c_new_dummy(struct i2c_adapter *adapter, u16 address)
+ }
+ EXPORT_SYMBOL_GPL(i2c_new_dummy);
+ 
++/**
++ * i2c_new_secondary_device - Helper to get the instantiated secondary address
++ * @client: Handle to the primary client
++ * @name: Handle to specify which secondary address to get
++ * @default_addr: Used as a fallback if no secondary address was specified
++ * Context: can sleep
++ *
++ * This returns an I2C client bound to the "dummy" driver based on DT parsing.
++ *
++ * This returns the new i2c client, which should be saved for later use with
++ * i2c_unregister_device(); or NULL to indicate an error.
++ */
++struct i2c_client *i2c_new_secondary_device(struct i2c_client *client,
++						const char *name,
++						u16 default_addr)
++{
++	int i;
++	u32 addr;
++	struct device_node *np;
++
++	np = client->dev.of_node;
++
++	if (np) {
++		i = of_property_match_string(np, "reg-names", name);
++		if (i >= 0)
++			of_property_read_u32_index(np, "reg", i, &addr);
++		else if (default_addr != 0)
++			addr = default_addr;
++		else
++			addr = NULL;
++	} else {
++		addr = default_addr;
++	}
++
++	dev_dbg(&client->adapter->dev, "Address for %s : 0x%x\n", name, addr);
++	return i2c_new_dummy(client->adapter, addr);
++}
++EXPORT_SYMBOL_GPL(i2c_new_secondary_device);
++
++
+ /* ------------------------------------------------------------------------- */
+ 
+ /* I2C bus adapters -- one roots each I2C or SMBUS segment */
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index b556e0a..8629287 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -322,6 +322,14 @@ extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
+ extern struct i2c_client *
+ i2c_new_dummy(struct i2c_adapter *adap, u16 address);
+ 
++/* Helper function providing a generic way to get the secondary address
++ * as well as a client handle to this extra address.
++ */
++extern struct i2c_client *
++i2c_new_secondary_device(struct i2c_client *client,
++				const char *name,
++				u16 default_addr);
++
+ extern void i2c_unregister_device(struct i2c_client *);
+ #endif /* I2C */
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.2
 
