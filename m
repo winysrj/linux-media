@@ -1,93 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49392 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517AbaJHQJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 12:09:30 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: drop JPEG buffers not framed by SOI and EOI markers
-Date: Wed,  8 Oct 2014 18:09:27 +0200
-Message-Id: <1412784567-18222-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:35169 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753711AbaJVPbH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 11:31:07 -0400
+Received: by mail-wg0-f42.google.com with SMTP id z12so3949981wgg.25
+        for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 08:31:05 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, wsa@the-dreams.de,
+	lars@metafoo.de,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH 2/2] adv7604: Add support for i2c_new_secondary_device
+Date: Wed, 22 Oct 2014 17:30:48 +0200
+Message-Id: <1413991848-28495-2-git-send-email-jean-michel.hautbois@vodalys.com>
+In-Reply-To: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com>
+References: <1413991848-28495-1-git-send-email-jean-michel.hautbois@vodalys.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a quick check for valid JPEG frames before feeding them into
-the bitstream buffer: Frames that do not begin with the JPEG start of image
-marker and end with the end of image marker are dropped.
+The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+I²C ports. Each map has it own I²C address and acts
+as a standard slave device on the I²C bus.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+If nothing is defined, it uses default addresses.
+The main purpose is using two adv76xx on the same i2c bus.
+
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 ---
- drivers/media/platform/coda/coda-bit.c  | 10 ++++++++++
- drivers/media/platform/coda/coda-jpeg.c | 13 +++++++++++++
- drivers/media/platform/coda/coda.h      |  1 +
- 3 files changed, 24 insertions(+)
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 16 +++++-
+ drivers/media/i2c/adv7604.c                        | 59 ++++++++++++++--------
+ 2 files changed, 53 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 0c67cfd..b4029ae 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -231,6 +231,16 @@ void coda_fill_bitstream(struct coda_ctx *ctx)
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index 5c8b3e6..8486b5c 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -12,7 +12,10 @@ Required Properties:
+     - "adi,adv7611" for the ADV7611
+     - "adi,adv7604" for the ADV7604
  
- 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+-  - reg: I2C slave address
++  - reg: I2C slave addresses
++    The ADV7604 has thirteen 256-byte maps that can be accessed via the main
++    I²C ports. Each map has it own I²C address and acts
++    as a standard slave device on the I²C bus.
  
-+		/* Drop frames that do not start/end with a SOI/EOI markers */
-+		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG &&
-+		    !coda_jpeg_check_buffer(ctx, src_buf)) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "dropping invalid JPEG frame\n");
-+			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
-+			continue;
-+		}
+   - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
+     detection pins, one per HDMI input. The active flag indicates the GPIO
+@@ -33,6 +36,12 @@ The digital output port node must contain at least one endpoint.
+ Optional Properties:
+ 
+   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
++  - reg-names : Names of maps with programmable addresses.
++		It can contain any map needing another address than default one.
++		Possible maps names are :
++ADV7604 : "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe", "rep",
++		"edid", "hdmi", "test", "cp", "vdp"
++ADV7611 : "main", "cec", "infoframe", "afe", "rep", "edid", "hdmi", "cp"
+ 
+ Optional Endpoint Properties:
+ 
+@@ -51,7 +60,10 @@ Example:
+ 
+ 	hdmi_receiver@4c {
+ 		compatible = "adi,adv7611";
+-		reg = <0x4c>;
++		/* edid page will be accessible @ 0x66 on i2c bus */
++		/* other maps keep their default addresses */
++		reg = <0x4c 0x66>;
++		reg-names = "main", "edid";
+ 
+ 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+ 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 421035f..e4e30a2 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -326,6 +326,27 @@ static const struct adv7604_video_standards adv7604_prim_mode_hdmi_gr[] = {
+ 	{ },
+ };
+ 
++struct adv7604_register {
++	const char *name;
++	u8 default_addr;
++};
 +
- 		/* Buffer start position */
- 		start = ctx->bitstream_fifo.kfifo.in &
- 			ctx->bitstream_fifo.kfifo.mask;
-diff --git a/drivers/media/platform/coda/coda-jpeg.c b/drivers/media/platform/coda/coda-jpeg.c
-index 967b015..8fa3e35 100644
---- a/drivers/media/platform/coda/coda-jpeg.c
-+++ b/drivers/media/platform/coda/coda-jpeg.c
-@@ -14,6 +14,9 @@
- 
- #include "coda.h"
- 
-+#define SOI_MARKER	0xffd8
-+#define EOI_MARKER	0xffd9
++static const struct adv7604_register adv7604_secondary_names[] = {
++	[ADV7604_PAGE_IO] = { "main", 0x4c },
++	[ADV7604_PAGE_AVLINK] = { "avlink", 0x42 },
++	[ADV7604_PAGE_CEC] = { "cec", 0x40 },
++	[ADV7604_PAGE_INFOFRAME] = { "infoframe", 0x3e },
++	[ADV7604_PAGE_ESDP] = { "esdp", 0x38 },
++	[ADV7604_PAGE_DPP] = { "dpp", 0x3c },
++	[ADV7604_PAGE_AFE] = { "afe", 0x26 },
++	[ADV7604_PAGE_REP] = { "rep", 0x32 },
++	[ADV7604_PAGE_EDID] = { "edid", 0x36 },
++	[ADV7604_PAGE_HDMI] = { "hdmi", 0x34 },
++	[ADV7604_PAGE_TEST] = { "test", 0x30 },
++	[ADV7604_PAGE_CP] = { "cp", 0x22 },
++	[ADV7604_PAGE_VDP] = { "vdp", 0x24 },
++};
 +
- /*
-  * Typical Huffman tables for 8-bit precision luminance and
-  * chrominance from JPEG ITU-T.81 (ISO/IEC 10918-1) Annex K.3
-@@ -174,6 +177,16 @@ int coda_jpeg_write_tables(struct coda_ctx *ctx)
- 	return 0;
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+@@ -2528,13 +2549,26 @@ static void adv7604_unregister_clients(struct adv7604_state *state)
  }
  
-+bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb)
-+{
-+	void *vaddr = vb2_plane_vaddr(vb, 0);
-+	u16 soi = be16_to_cpup((__be16 *)vaddr);
-+	u16 eoi = be16_to_cpup((__be16 *)(vaddr +
-+					  vb2_get_plane_payload(vb, 0) - 2));
+ static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
+-							u8 addr, u8 io_reg)
++						unsigned int i)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct adv7604_platform_data *pdata = client->dev.platform_data;
++	unsigned int io_reg = 0xf2 + i;
++	unsigned int default_addr = io_read(sd, io_reg) >> 1;
++	struct i2c_client *new_client;
 +
-+	return soi == SOI_MARKER && eoi == EOI_MARKER;
-+}
++	if (pdata && pdata->i2c_addresses[i])
++		new_client = i2c_new_dummy(client->adapter,
++					pdata->i2c_addresses[i]);
++	else
++		new_client = i2c_new_secondary_device(client,
++			adv7604_secondary_names[i].name,
++			adv7604_secondary_names[i].default_addr);
 +
- /*
-  * Scale quantization table using nonlinear scaling factor
-  * u8 qtab[64], scale [50,190]
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 8dd81a7..5dd47e5 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -293,6 +293,7 @@ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
++	if (new_client)
++		io_write(sd, io_reg, new_client->addr << 1);
  
- int coda_h264_padding(int size, char *p);
+-	if (addr)
+-		io_write(sd, io_reg, addr << 1);
+-	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);
++	return new_client;
+ }
  
-+bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
- int coda_jpeg_write_tables(struct coda_ctx *ctx);
- void coda_set_jpeg_compression_quality(struct coda_ctx *ctx, int quality);
+ static const struct adv7604_reg_seq adv7604_recommended_settings_afe[] = {
+@@ -2718,20 +2752,6 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	/* Disable the interrupt for now as no DT-based board uses it. */
+ 	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
  
+-	/* Use the default I2C addresses. */
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
+-	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
+-
+ 	/* Hardcode the remaining platform data fields. */
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+@@ -2892,8 +2912,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 			continue;
+ 
+ 		state->i2c_clients[i] =
+-			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+-					     0xf2 + i);
++			adv7604_dummy_client(sd, i);
+ 		if (state->i2c_clients[i] == NULL) {
+ 			err = -ENOMEM;
+ 			v4l2_err(sd, "failed to create i2c client %u\n", i);
 -- 
-2.1.0
+2.1.2
 
