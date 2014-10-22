@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:62734 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872AbaJVPeb (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:63455 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754546AbaJVKIf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 11:34:31 -0400
-Received: by mail-wg0-f50.google.com with SMTP id a1so4158822wgh.9
-        for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 08:34:29 -0700 (PDT)
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, wsa@the-dreams.de,
-	lars@metafoo.de,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH] adv7604: Add DT parsing support
-Date: Wed, 22 Oct 2014 17:34:21 +0200
-Message-Id: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
+	Wed, 22 Oct 2014 06:08:35 -0400
+Message-ID: <54478220.8050403@cisco.com>
+Date: Wed, 22 Oct 2014 12:08:32 +0200
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 2/5] [media] vivid: remove unused videobuf2-vmalloc headers
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1413972221-13669-3-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for DT parsing of ADV7604 as well as ADV7611.
-It needs to be improved in order to get ports parsing too.
+On 10/22/2014 12:03 PM, Philipp Zabel wrote:
+> The videobuf2-vmalloc header is not used by the changed files, so remove it.
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
----
- Documentation/devicetree/bindings/media/i2c/adv7604.txt | 1 +
- drivers/media/i2c/adv7604.c                             | 1 +
- 2 files changed, 2 insertions(+)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index c27cede..5c8b3e6 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -10,6 +10,7 @@ Required Properties:
- 
-   - compatible: Must contain one of the following
-     - "adi,adv7611" for the ADV7611
-+    - "adi,adv7604" for the ADV7604
- 
-   - reg: I2C slave address
- 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 47795ff..421035f 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2677,6 +2677,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
- 
- static struct of_device_id adv7604_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-+	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, adv7604_of_id);
--- 
-2.1.2
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>   drivers/media/platform/vivid/vivid-kthread-cap.c | 1 -
+>   drivers/media/platform/vivid/vivid-kthread-out.c | 1 -
+>   drivers/media/platform/vivid/vivid-osd.c         | 1 -
+>   3 files changed, 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
+> index 39a67cf..65e5f76 100644
+> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
+> @@ -31,7 +31,6 @@
+>   #include <linux/random.h>
+>   #include <linux/v4l2-dv-timings.h>
+>   #include <asm/div64.h>
+> -#include <media/videobuf2-vmalloc.h>
+>   #include <media/v4l2-dv-timings.h>
+>   #include <media/v4l2-ioctl.h>
+>   #include <media/v4l2-fh.h>
+> diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
+> index d9f36cc..6da0e01 100644
+> --- a/drivers/media/platform/vivid/vivid-kthread-out.c
+> +++ b/drivers/media/platform/vivid/vivid-kthread-out.c
+> @@ -31,7 +31,6 @@
+>   #include <linux/random.h>
+>   #include <linux/v4l2-dv-timings.h>
+>   #include <asm/div64.h>
+> -#include <media/videobuf2-vmalloc.h>
+>   #include <media/v4l2-dv-timings.h>
+>   #include <media/v4l2-ioctl.h>
+>   #include <media/v4l2-fh.h>
+> diff --git a/drivers/media/platform/vivid/vivid-osd.c b/drivers/media/platform/vivid/vivid-osd.c
+> index 084d346..c90cf13 100644
+> --- a/drivers/media/platform/vivid/vivid-osd.c
+> +++ b/drivers/media/platform/vivid/vivid-osd.c
+> @@ -29,7 +29,6 @@
+>   #include <linux/kthread.h>
+>   #include <linux/freezer.h>
+>   #include <linux/fb.h>
+> -#include <media/videobuf2-vmalloc.h>
+>   #include <media/v4l2-device.h>
+>   #include <media/v4l2-ioctl.h>
+>   #include <media/v4l2-ctrls.h>
+>
 
