@@ -1,184 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41572 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933046AbaJURcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 13:32:24 -0400
-Message-ID: <5446989A.3010000@osg.samsung.com>
-Date: Tue, 21 Oct 2014 11:32:10 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43246 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933580AbaJVXxz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 19:53:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, wsa@the-dreams.de, lars@metafoo.de
+Subject: Re: [PATCH] adv7604: Add DT parsing support
+Date: Thu, 23 Oct 2014 02:53:50 +0300
+Message-ID: <1645583.LAOF2HV7Iq@avalon>
+In-Reply-To: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
+References: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
 MIME-Version: 1.0
-To: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: Lars-Peter Clausen <lars@metafoo.de>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
-	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com, perex@perex.cz,
-	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
-	linux@eikelenboom.it, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
- token api
-References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com> <s5htx34ul3w.wl-tiwai@suse.de> <54467EFB.7050800@xs4all.nl> <s5hbnp5z9uy.wl-tiwai@suse.de>
-In-Reply-To: <s5hbnp5z9uy.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/21/2014 10:05 AM, Takashi Iwai wrote:
-> At Tue, 21 Oct 2014 17:42:51 +0200,
-> Hans Verkuil wrote:
+Hi Jean-Michel,
 
->>
->> Quite often media apps open the alsa device at the start and then switch
->> between TV, radio or DVB mode. If the alsa device would claim the tuner
->> just by being opened (as opposed to actually using the tuner, which happens
->> when you start streaming),
+Thank you for the patch.
+
+On Wednesday 22 October 2014 17:34:21 Jean-Michel Hautbois wrote:
+> This patch adds support for DT parsing of ADV7604 as well as ADV7611.
+> It needs to be improved in order to get ports parsing too.
+
+Let's improve it then :-) The DT bindings as proposed by this patch are 
+incomplete, that's just asking for trouble.
+
+How would you model the adv7604 ports ?
+
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/adv7604.txt | 1 +
+>  drivers/media/i2c/adv7604.c                             | 1 +
+>  2 files changed, 2 insertions(+)
 > 
-> What about parameter changes?  The sound devices have to be configured
-> before using.  Don't they influence on others at all, i.e. you can
-> change the PCM sample rate etc during TV, radio or DVB is running?
-
-Yes. kaffeine uses  snd_usb_capture_ops ioctl -> snd_pcm_lib_ioctl
-
-Other v4l and vlc (dvb) uses open/close as well as trigger start and
-stop. trigger start/stop is done by a special audio thread in some
-cases. open/close happens from the main thread.
-
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
+> c27cede..5c8b3e6 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> @@ -10,6 +10,7 @@ Required Properties:
 > 
->> then that would make it impossible for the
->> application to switch tuner mode. In general you want to avoid that open()
->> will start configuring hardware since that can quite often be slow. Tuner
->> configuration in particular can be slow since several common tuners need
->> to load firmware over i2c. You only want to do that when it is really needed,
->> and not when some application (udev!) opens the device just to examine what
->> sort of device it is.
+>    - compatible: Must contain one of the following
+>      - "adi,adv7611" for the ADV7611
+> +    - "adi,adv7604" for the ADV7604
+
+Please switch the two lines to keep them alphabetically sorted.
 > 
-> But most apps close the device soon after that, no?
-> Which programs keep the PCM device (not the control) opened without
-> actually using?
+>    - reg: I2C slave address
 > 
->> So claiming the tuner in the trigger seems to be the right place. If
->> returning EBUSY is a poor error code for alsa, then we can use something else
->> for that. EACCES perhaps?
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 47795ff..421035f 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -2677,6 +2677,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
 > 
-> Sorry, I'm not convinced by that.  If the device has to be controlled
-> exclusively, the right position is the open/close.  Otherwise, the
-> program cannot know when it becomes inaccessible out of sudden during
-> its operation.
-> 
-> 
+>  static struct of_device_id adv7604_of_id[] __maybe_unused = {
+>  	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
+> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
 
-Let me share my test matrix for this patch series. Hans pointed out
-one test case I didn't know about as a result missed testing. Please
-see if any of the tests miss use-cases or break them: you can scroll
-down to the proposal at the end, if this is too much detail :)
+Same comment here.
 
-Digital active and analog starting testing:
-kaffeine running
-- v4l2-ctl --all - works
-- Changing channels works with the same token hold, even when
-  frequency changes. Tested changing channels that force freq
-  change.
-- vlc resource is busy with no disruption to kaffeine
-- xawtv - tuner busy when it tries to do ioctls that change
-  tuner settings - snd_usb_pcm_open detects device is busy
-  ( pcm open called from the same thread, trigger gets called
-    from another thread )
-- tvtime - tuner busy when it tries to do ioctls that change
-  tuner settings with no disruption to kaffeine
-  ( pcm open called from the same thread, trigger gets called
-    from another thread )
-- vlc - audio capture on WinTV HVR-950 - device is busy
-  start vlc with no channels for this test
-- arecord to capture on WinTV HVR-950 - device busy
-
-vlc running
-vlc -v channels.xspf
-- v4l2-ctl --all - works
-- Changing channels works with the same token hold, even when
-  frequency changes. Tested changing channels that force freq
-  change.
-- kaffeine resource is busy with no disruption to vlc
-- xawtv - tuner busy when it tries to do ioctls that change
-  tuner settings - snd_usb_pcm_open detects device is busy
-  ( pcm open called from the same thread, trigger gets called
-    from another thread )
-- tvtime - tuner busy when it tries to do ioctls that change
-  tuner settings with no disruption to kaffeine
-  ( pcm open called from the same thread, trigger gets called
-    from another thread )
-- vlc - audio capture on WinTV HVR-950 - device is busy
-- arecord to capture on WinTV HVR-950 - device busy
-
-Analog active and start digital testing:
-xawtv -noalsa -c /dev/video1
-- v4l2-ctl --all - works
-- start kaffeine - fails with device busy and no disruption
-- start vlc - fails with device busy and no disruption
-- tvtime - tuner busy when it tries to do ioctls that change
-  tuner settings with no disruption to kaffeine
-- vlc - audio capture on WinTV HVR-950 - device is busy
-- arecord to capture on WinTV HVR-950 - device busy
-
-tvtime
-- v4l2-ctl --all - works
-- start kaffeine - fails with device busy and no disruption
-- start vlc - fails with device busy and no disruption
-- xawtv - tuner busy when it tries to do ioctls that change
-  tuner settings with no disruption to kaffeine
-- vlc - audio capture on WinTV HVR-950 - device is busy
-- arecord to capture on WinTV HVR-950 - device busy
-
-The following audio/video start/stop combination tests:
-( used arecord as well to test these cases, arecord )
-
-- tvtime start/vlc start/vlc stop/tvtime stop
-  no disruption to tvtime
-- tvtime start/vlc start/tvtie stop/vlc stop
-  One tvtime stops, could trigger capture manually
-- vlc start/tvtime start/tvtime stop/vlc stop
-  vlc audio capture continues, tvtime detect tuner busy
-- vlc start/tvtime start/vlc stop/tvtime start
-  when vlc stops, tvtime could open the tuner device
-
-Repeated the above with kaffeine and vlc and arecord audio
-capture combinations.
-
-Hans pointed out I am missing:
-
-v4l2-ctl -f 180 --sleep=10
-While it is sleeping you must still be able to set the frequency from
-another console.
-
-And it doesn't matter which of the two v4l2-ctl processes ends first,
-as long as one has a reference to the tuner you should be blocked
-from switching the tuner to a different mode (radio or dvb)
-
-I think this above fails because tuner token ownership doesn't
-span processes. Token should act as a lock between dvb/audio/v4l,
-and v4l itself has mechanisms to handle the multiple ownership token
-shouldn't interfere with.
-
-Provided the only thing that is breaking is the v4l case, I think
-I can get it to work with the bit field approach.
-
-Here is what I propose for patch v3:
-- make it a module under media
-- collapse tuner and audio tokens into media token
-- change names (get rid of abbreviated tkn stuff)
-- Make other changes Takashi/Lars pointed out in pcm
-- hold token in pcm open/close
-- add a bitfield to struct v4l2_fh to handle
-  the v4l specific multiple ownership cases.
-- v4l-core and au0828-videp patches will see changes.
-- dvb patch should still be good (crossing fingers)
-
-thanks,
--- Shuah
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(of, adv7604_of_id);
 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Regards,
+
+Laurent Pinchart
+
