@@ -1,117 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50598 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752125AbaJBIrK (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3192 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932474AbaJVLbf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 04:47:10 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 16/18] smiapp: Clean up smiapp_set_format()
-Date: Thu,  2 Oct 2014 11:46:06 +0300
-Message-Id: <1412239568-8524-17-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 22 Oct 2014 07:31:35 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9MBVWbt051121
+	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 13:31:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.200.78] (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id CC2E62A0432
+	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 13:31:20 +0200 (CEST)
+Message-ID: <54479593.9060803@xs4all.nl>
+Date: Wed, 22 Oct 2014 13:31:31 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] davinci vpbe cleanups and improvements
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-smiapp_set_format() has accumulated a fair amount of changes without a
-needed refactoring, do the cleanup now. There's also an unlocked version of
-v4l2_ctrl_range_changed(), using that fixes a small serialisation issue with
-the user space interface.
+Note: I skipped patch https://patchwork.linuxtv.org/patch/26430/ from Prabhakar's
+patch series since that needs a bit more work, but all other patches from that
+series are part of this pull request.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   65 +++++++++++++++++++-------------
- 1 file changed, 39 insertions(+), 26 deletions(-)
+Over 300 lines deleted, always nice!
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 926f60c..cf8eba8 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1728,6 +1728,42 @@ static const struct smiapp_csi_data_format
- 	return csi_format;
- }
- 
-+static int smiapp_set_format_source(struct v4l2_subdev *subdev,
-+				    struct v4l2_subdev_fh *fh,
-+				    struct v4l2_subdev_format *fmt)
-+{
-+	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-+	const struct smiapp_csi_data_format *csi_format,
-+		*old_csi_format = sensor->csi_format;
-+	u32 code = fmt->format.code;
-+	unsigned int i;
-+	int rval;
-+
-+	rval = __smiapp_get_format(subdev, fh, fmt);
-+	if (rval)
-+		return rval;
-+
-+	if (subdev != &sensor->src->sd)
-+		return 0;
-+
-+	csi_format = smiapp_validate_csi_data_format(sensor, code);
-+
-+	fmt->format.code = csi_format->code;
-+
-+	if (fmt->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return 0;
-+
-+	sensor->csi_format = csi_format;
-+
-+	if (csi_format->width != old_csi_format->width)
-+		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-+			__v4l2_ctrl_modify_range(
-+				sensor->test_data[i], 0,
-+				(1 << csi_format->width) - 1, 1, 0);
-+
-+	return 0;
-+}
-+
- static int smiapp_set_format(struct v4l2_subdev *subdev,
- 			     struct v4l2_subdev_fh *fh,
- 			     struct v4l2_subdev_format *fmt)
-@@ -1743,36 +1779,13 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
- 	 * other source pads we just get format here.
- 	 */
- 	if (fmt->pad == ssd->source_pad) {
--		u32 code = fmt->format.code;
--		int rval = __smiapp_get_format(subdev, fh, fmt);
--		bool range_changed = false;
--		unsigned int i;
--
--		if (!rval && subdev == &sensor->src->sd) {
--			const struct smiapp_csi_data_format *csi_format =
--				smiapp_validate_csi_data_format(sensor, code);
-+		int rval;
- 
--			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--				if (csi_format->width !=
--				    sensor->csi_format->width)
--					range_changed = true;
--
--				sensor->csi_format = csi_format;
--			}
--
--			fmt->format.code = csi_format->code;
--		}
-+		rval = smiapp_set_format_source(subdev, fh, fmt);
- 
- 		mutex_unlock(&sensor->mutex);
--		if (rval || !range_changed)
--			return rval;
--
--		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
--			v4l2_ctrl_modify_range(
--				sensor->test_data[i],
--				0, (1 << sensor->csi_format->width) - 1, 1, 0);
- 
--		return 0;
-+		return rval;
- 	}
- 
- 	/* Sink pad. Width and height are changeable here. */
--- 
-1.7.10.4
+Regards,
 
+	Hans
+
+The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
+
+   Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git for-v3.19a
+
+for you to fetch changes up to fc1079f3dd25adfe5eaf8c7b0d097994f91f8601:
+
+   media: davinci: vpbe: return -ENODATA for *dv_timings/*_std calls (2014-10-22 13:22:13 +0200)
+
+----------------------------------------------------------------
+Prabhakar Lad (14):
+       media: davinci: vpbe: initialize vb2 queue and DMA context in probe
+       media: davinci: vpbe: drop buf_init() callback
+       media: davinci: vpbe: use vb2_ops_wait_prepare/finish helper functions
+       media: davinci: vpbe: drop buf_cleanup() callback
+       media: davinci: vpbe: improve vpbe_buffer_prepare() callback
+       media: davinci: vpbe: use vb2_fop_mmap/poll
+       media: davinci: vpbe: use fh handling provided by v4l
+       media: davinci: vpbe: use vb2_ioctl_* helpers
+       media: davinci: vpbe: add support for VB2_DMABUF
+       media: davinci: vpbe: add support for VIDIOC_EXPBUF
+       media: davinci: vpbe: use helpers provided by core if streaming is started
+       media: davinci: vpbe: drop unused member memory from vpbe_layer
+       media: davinci: vpbe: group v4l2_ioctl_ops
+       media: davinci: vpbe: return -ENODATA for *dv_timings/*_std calls
+
+  drivers/media/platform/davinci/vpbe.c         |  18 +-
+  drivers/media/platform/davinci/vpbe_display.c | 606 +++++++++++++++------------------------------------------------
+  include/media/davinci/vpbe_display.h          |  19 --
+  3 files changed, 158 insertions(+), 485 deletions(-)
