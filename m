@@ -1,79 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp206.alice.it ([82.57.200.102]:49756 "EHLO smtp206.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254AbaJ1OkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 10:40:08 -0400
-Date: Tue, 28 Oct 2014 15:39:41 +0100
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] gspca_stv06xx: enable button found on some Quickcam
- Express variant
-Message-Id: <20141028153941.8298e540ddf03796246c6f26@ao2.it>
-In-Reply-To: <53C3B0AD.7070001@redhat.com>
-References: <1405083417-20615-1-git-send-email-ao2@ao2.it>
-	<53C3B0AD.7070001@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3324 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932685AbaJVL0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 07:26:45 -0400
+Message-ID: <5447946B.9020007@xs4all.nl>
+Date: Wed, 22 Oct 2014 13:26:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+CC: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH 10/15] media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
+References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com> <1413146445-7304-11-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1413146445-7304-11-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Jul 2014 12:27:57 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+Hi Prabhakar,
 
-> Hi,
-> 
-> On 07/11/2014 02:56 PM, Antonio Ospite wrote:
-> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> 
-> Thanks, I've added this to my tree and send a pull-req for it
-> to Mauro.
+This patch series looks good, except for this one.
+
+If you add create_bufs support, then you should also update queue_setup.
+
+If the fmt argument to queue_setup is non-NULL, then check that the
+fmt.pix.sizeimage field is >= the current format's sizeimage. If not,
+return -EINVAL.
+
+This prevents userspace from creating additional buffers that are smaller than
+the minimum required size.
+
+I'm just skipping this patch and queuing all the others for 3.19. Just post an
+updated version for this one and I'll pick it up later.
+
+Regards,
+
+	Hans
+
+On 10/12/2014 10:40 PM, Lad, Prabhakar wrote:
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>   drivers/media/platform/davinci/vpbe_display.c | 1 +
+>   1 file changed, 1 insertion(+)
 >
-
-Hi Hans, I still don't see the change in 3.18-rc2, maybe it got lost.
-
-Here is the patchwork link in case you want to pick the change for 3.19:
-https://patchwork.linuxtv.org/patch/24732/
-
-Thanks,
-   Antonio
-
-> Regards,
-> 
-> Hans
-> 
-> > ---
-> >  drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > index 49d209b..6ac93d8 100644
-> > --- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > +++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-> > @@ -505,13 +505,13 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
-> >  {
-> >  	int ret = -EINVAL;
-> >  
-> > -	if (len == 1 && data[0] == 0x80) {
-> > +	if (len == 1 && (data[0] == 0x80 || data[0] == 0x10)) {
-> >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-> >  		input_sync(gspca_dev->input_dev);
-> >  		ret = 0;
-> >  	}
-> >  
-> > -	if (len == 1 && data[0] == 0x88) {
-> > +	if (len == 1 && (data[0] == 0x88 || data[0] == 0x11)) {
-> >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-> >  		input_sync(gspca_dev->input_dev);
-> >  		ret = 0;
-> > 
-
-
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+> index c33b77e..fd8d4f0 100644
+> --- a/drivers/media/platform/davinci/vpbe_display.c
+> +++ b/drivers/media/platform/davinci/vpbe_display.c
+> @@ -1260,6 +1260,7 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+>   	.vidioc_dqbuf		 = vb2_ioctl_dqbuf,
+>   	.vidioc_streamon	 = vb2_ioctl_streamon,
+>   	.vidioc_streamoff	 = vb2_ioctl_streamoff,
+> +	.vidioc_create_bufs	 = vb2_ioctl_create_bufs,
+>
+>   	.vidioc_cropcap		 = vpbe_display_cropcap,
+>   	.vidioc_g_crop		 = vpbe_display_g_crop,
+>
