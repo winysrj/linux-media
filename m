@@ -1,486 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:51816 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752911AbaJLUlE (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3958 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933049AbaJVMkJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:41:04 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 07/15] media: davinci: vpbe: use fh handling provided by v4l
-Date: Sun, 12 Oct 2014 21:40:37 +0100
-Message-Id: <1413146445-7304-8-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 22 Oct 2014 08:40:09 -0400
+Message-ID: <5447A580.7060208@xs4all.nl>
+Date: Wed, 22 Oct 2014 14:39:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH] [media] Fix smatch warning: unknown field name in initializer
+References: <a51536f693c64c92151b4a7f530e97fa9b0d867d.1411563071.git.mchehab@osg.samsung.com>
+In-Reply-To: <a51536f693c64c92151b4a7f530e97fa9b0d867d.1411563071.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch converts the driver to use fh handling provided by the
-v4l core instead of driver doing it.
+I sadly missed this patch and it is merged now.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c | 189 +++++++++-----------------
- include/media/davinci/vpbe_display.h          |  11 --
- 2 files changed, 65 insertions(+), 135 deletions(-)
+But:
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index fc3bdb6..970242c 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -628,8 +628,8 @@ static int vpbe_try_format(struct vpbe_display *disp_dev,
- static int vpbe_display_querycap(struct file *file, void  *priv,
- 			       struct v4l2_capability *cap)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	cap->version = VPBE_DISPLAY_VERSION_CODE;
- 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-@@ -646,9 +646,8 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
- static int vpbe_display_s_crop(struct file *file, void *priv,
- 			     const struct v4l2_crop *crop)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_display *disp_dev = fh->disp_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_display *disp_dev = layer->disp_dev;
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_layer_config *cfg = &layer->layer_info.config;
- 	struct osd_state *osd_device = disp_dev->osd_device;
-@@ -715,11 +714,10 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
- static int vpbe_display_g_crop(struct file *file, void *priv,
- 			     struct v4l2_crop *crop)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_layer *layer = video_drvdata(file);
- 	struct osd_layer_config *cfg = &layer->layer_info.config;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--	struct osd_state *osd_device = fh->disp_dev->osd_device;
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
-+	struct osd_state *osd_device = layer->disp_dev->osd_device;
- 	struct v4l2_rect *rect = &crop->c;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -743,8 +741,8 @@ static int vpbe_display_g_crop(struct file *file, void *priv,
- static int vpbe_display_cropcap(struct file *file, void *priv,
- 			      struct v4l2_cropcap *cropcap)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_CROPCAP ioctl\n");
- 
-@@ -761,9 +759,8 @@ static int vpbe_display_cropcap(struct file *file, void *priv,
- static int vpbe_display_g_fmt(struct file *file, void *priv,
- 				struct v4l2_format *fmt)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
- 			"VIDIOC_G_FMT, layer id = %d\n",
-@@ -783,9 +780,8 @@ static int vpbe_display_g_fmt(struct file *file, void *priv,
- static int vpbe_display_enum_fmt(struct file *file, void  *priv,
- 				   struct v4l2_fmtdesc *fmt)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	unsigned int index = 0;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -815,9 +811,8 @@ static int vpbe_display_enum_fmt(struct file *file, void  *priv,
- static int vpbe_display_s_fmt(struct file *file, void *priv,
- 				struct v4l2_format *fmt)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_display *disp_dev = fh->disp_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_display *disp_dev = layer->disp_dev;
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_layer_config *cfg  = &layer->layer_info.config;
- 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
-@@ -904,9 +899,9 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
- static int vpbe_display_try_fmt(struct file *file, void *priv,
- 				  struct v4l2_format *fmt)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_display *disp_dev = fh->disp_dev;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_display *disp_dev = layer->disp_dev;
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_TRY_FMT\n");
-@@ -930,9 +925,8 @@ static int vpbe_display_try_fmt(struct file *file, void *priv,
- static int vpbe_display_s_std(struct file *file, void *priv,
- 				v4l2_std_id std_id)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_STD\n");
-@@ -965,8 +959,8 @@ static int vpbe_display_s_std(struct file *file, void *priv,
- static int vpbe_display_g_std(struct file *file, void *priv,
- 				v4l2_std_id *std_id)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_G_STD\n");
- 
-@@ -988,8 +982,8 @@ static int vpbe_display_g_std(struct file *file, void *priv,
- static int vpbe_display_enum_output(struct file *file, void *priv,
- 				    struct v4l2_output *output)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_ENUM_OUTPUT\n");
-@@ -1016,9 +1010,8 @@ static int vpbe_display_enum_output(struct file *file, void *priv,
- static int vpbe_display_s_output(struct file *file, void *priv,
- 				unsigned int i)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_S_OUTPUT\n");
-@@ -1047,8 +1040,8 @@ static int vpbe_display_s_output(struct file *file, void *priv,
- static int vpbe_display_g_output(struct file *file, void *priv,
- 				unsigned int *i)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_G_OUTPUT\n");
- 	/* Get the standard from the current encoder */
-@@ -1067,8 +1060,8 @@ static int
- vpbe_display_enum_dv_timings(struct file *file, void *priv,
- 			struct v4l2_enum_dv_timings *timings)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_ENUM_DV_TIMINGS\n");
-@@ -1097,9 +1090,8 @@ static int
- vpbe_display_s_dv_timings(struct file *file, void *priv,
- 				struct v4l2_dv_timings *timings)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_DV_TIMINGS\n");
-@@ -1135,8 +1127,8 @@ static int
- vpbe_display_g_dv_timings(struct file *file, void *priv,
- 				struct v4l2_dv_timings *dv_timings)
- {
--	struct vpbe_fh *fh = priv;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_G_DV_TIMINGS\n");
- 
-@@ -1155,10 +1147,9 @@ vpbe_display_g_dv_timings(struct file *file, void *priv,
- static int vpbe_display_streamoff(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--	struct osd_state *osd_device = fh->disp_dev->osd_device;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
-+	struct osd_state *osd_device = layer->disp_dev->osd_device;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -1170,12 +1161,6 @@ static int vpbe_display_streamoff(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	/* If io is allowed for this file handle, return error */
--	if (!fh->io_allowed) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "No io_allowed\n");
--		return -EACCES;
--	}
--
- 	/* If streaming is not started, return error */
- 	if (!layer->started) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "streaming not started in layer"
-@@ -1194,10 +1179,9 @@ static int vpbe_display_streamoff(struct file *file, void *priv,
- static int vpbe_display_streamon(struct file *file, void *priv,
- 			 enum v4l2_buf_type buf_type)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_display *disp_dev = fh->disp_dev;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_display *disp_dev = layer->disp_dev;
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	struct osd_state *osd_device = disp_dev->osd_device;
- 	int ret;
- 
-@@ -1212,11 +1196,6 @@ static int vpbe_display_streamon(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	/* If file handle is not allowed IO, return error */
--	if (!fh->io_allowed) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "No io_allowed\n");
--		return -EACCES;
--	}
- 	/* If Streaming is already started, return error */
- 	if (layer->started) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "layer is already streaming\n");
-@@ -1239,9 +1218,8 @@ static int vpbe_display_streamon(struct file *file, void *priv,
- static int vpbe_display_dqbuf(struct file *file, void *priv,
- 		      struct v4l2_buffer *buf)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -1252,11 +1230,6 @@ static int vpbe_display_dqbuf(struct file *file, void *priv,
- 		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buffer type\n");
- 		return -EINVAL;
- 	}
--	/* If this file handle is not allowed to do IO, return error */
--	if (!fh->io_allowed) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "No io_allowed\n");
--		return -EACCES;
--	}
- 	if (file->f_flags & O_NONBLOCK)
- 		/* Call videobuf_dqbuf for non blocking mode */
- 		ret = vb2_dqbuf(&layer->buffer_queue, buf, 1);
-@@ -1270,9 +1243,8 @@ static int vpbe_display_dqbuf(struct file *file, void *priv,
- static int vpbe_display_qbuf(struct file *file, void *priv,
- 		     struct v4l2_buffer *p)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
- 		"VIDIOC_QBUF, layer id = %d\n",
-@@ -1283,21 +1255,14 @@ static int vpbe_display_qbuf(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	/* If this file handle is not allowed to do IO, return error */
--	if (!fh->io_allowed) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "No io_allowed\n");
--		return -EACCES;
--	}
--
- 	return vb2_qbuf(&layer->buffer_queue, p);
- }
- 
- static int vpbe_display_querybuf(struct file *file, void *priv,
- 			 struct v4l2_buffer *buf)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
- 		"VIDIOC_QUERYBUF, layer id = %d\n",
-@@ -1314,9 +1279,8 @@ static int vpbe_display_querybuf(struct file *file, void *priv,
- static int vpbe_display_reqbufs(struct file *file, void *priv,
- 			struct v4l2_requestbuffers *req_buf)
- {
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
-+	struct vpbe_layer *layer = video_drvdata(file);
-+	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_reqbufs\n");
- 
-@@ -1330,8 +1294,6 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
- 		v4l2_err(&vpbe_dev->v4l2_dev, "not IO user\n");
- 		return -EBUSY;
- 	}
--	/* Set io allowed member of file handle to TRUE */
--	fh->io_allowed = 1;
- 	/* Increment io usrs member of layer object to 1 */
- 	layer->io_usrs = 1;
- 	/* Store type of memory requested in layer object */
-@@ -1347,30 +1309,22 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
-  */
- static int vpbe_display_open(struct file *file)
- {
--	struct vpbe_fh *fh = NULL;
- 	struct vpbe_layer *layer = video_drvdata(file);
--	struct video_device *vdev = video_devdata(file);
- 	struct vpbe_display *disp_dev = layer->disp_dev;
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_state *osd_device = disp_dev->osd_device;
- 	int err;
- 
--	/* Allocate memory for the file handle object */
--	fh = kmalloc(sizeof(struct vpbe_fh), GFP_KERNEL);
--	if (fh == NULL) {
--		v4l2_err(&vpbe_dev->v4l2_dev,
--			"unable to allocate memory for file handle object\n");
--		return -ENOMEM;
-+	/* creating context for file descriptor */
-+	err = v4l2_fh_open(file);
-+	if (err) {
-+		v4l2_err(&vpbe_dev->v4l2_dev, "v4l2_fh_open failed\n");
-+		return err;
- 	}
--	v4l2_fh_init(&fh->fh, vdev);
--	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
--			"vpbe display open plane = %d\n",
--			layer->device_id);
- 
--	/* store pointer to fh in private_data member of filep */
--	file->private_data = fh;
--	fh->layer = layer;
--	fh->disp_dev = disp_dev;
-+	/* leaving if layer is already initialized */
-+	if (!v4l2_fh_is_singular_file(file))
-+		return err;
- 
- 	if (!layer->usrs) {
- 		if (mutex_lock_interruptible(&layer->opslock))
-@@ -1383,15 +1337,12 @@ static int vpbe_display_open(struct file *file)
- 			/* Couldn't get layer */
- 			v4l2_err(&vpbe_dev->v4l2_dev,
- 				"Display Manager failed to allocate layer\n");
--			kfree(fh);
-+			v4l2_fh_release(file);
- 			return -EINVAL;
- 		}
- 	}
- 	/* Increment layer usrs counter */
- 	layer->usrs++;
--	/* Set io_allowed member to false */
--	fh->io_allowed = 0;
--	v4l2_fh_add(&fh->fh);
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
- 			"vpbe display device opened successfully\n");
- 	return 0;
-@@ -1404,26 +1355,21 @@ static int vpbe_display_open(struct file *file)
-  */
- static int vpbe_display_release(struct file *file)
- {
--	/* Get the layer object and file handle object */
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_layer *layer = video_drvdata(file);
- 	struct osd_layer_config *cfg  = &layer->layer_info.config;
--	struct vpbe_display *disp_dev = fh->disp_dev;
-+	struct vpbe_display *disp_dev = layer->disp_dev;
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_state *osd_device = disp_dev->osd_device;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_release\n");
- 
- 	mutex_lock(&layer->opslock);
--	/* if this instance is doing IO */
--	if (fh->io_allowed) {
--		/* Reset io_usrs member of layer object */
--		layer->io_usrs = 0;
-+	/* Reset io_usrs member of layer object */
-+	layer->io_usrs = 0;
- 
--		osd_device->ops.disable_layer(osd_device,
--				layer->layer_info.id);
--		layer->started = 0;
--	}
-+	osd_device->ops.disable_layer(osd_device,
-+			layer->layer_info.id);
-+	layer->started = 0;
- 
- 	/* Decrement layer usrs counter */
- 	layer->usrs--;
-@@ -1444,14 +1390,9 @@ static int vpbe_display_release(struct file *file)
- 				layer->layer_info.id);
- 	}
- 
--	v4l2_fh_del(&fh->fh);
--	v4l2_fh_exit(&fh->fh);
--	file->private_data = NULL;
-+	_vb2_fop_release(file, NULL);
- 	mutex_unlock(&layer->opslock);
- 
--	/* Free memory allocated to file handle object */
--	kfree(fh);
--
- 	disp_dev->cbcr_ofst = 0;
- 
- 	return 0;
-diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
-index 637749a..06ea815 100644
---- a/include/media/davinci/vpbe_display.h
-+++ b/include/media/davinci/vpbe_display.h
-@@ -131,17 +131,6 @@ struct vpbe_display {
- 	struct osd_state *osd_device;
- };
- 
--/* File handle structure */
--struct vpbe_fh {
--	struct v4l2_fh fh;
--	/* vpbe device structure */
--	struct vpbe_display *disp_dev;
--	/* pointer to layer object for opened device */
--	struct vpbe_layer *layer;
--	/* Indicates whether this file handle is doing IO */
--	unsigned char io_allowed;
--};
--
- struct buf_config_params {
- 	unsigned char min_numbuffers;
- 	unsigned char numbuffers[VPBE_DISPLAY_MAX_DEVICES];
--- 
-1.9.1
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+This sparse warnings are due to a sparse bug that has been fixed in the sparse
+git repo. It's not included in sparse-0.5.0, the fix came in later.
+
+The #define that you kept it the version that does not comply with the C11 spec, so
+this is likely to fail with non-gcc compilers (gcc apparently kept support for the
+old pre-4.6 syntax).
+
+Regards,
+
+	Hans
+
+On 09/24/2014 02:51 PM, Mauro Carvalho Chehab wrote:
+> This is detected with:
+> 	gcc-4.8.3-7.fc20.x86_64
+>
+> Smatch, up to this patch:
+> 	commit de462ba2c79d9347368c887ed93113e7818a7b07
+> 	Author: Dan Carpenter <dan.carpenter@oracle.com>
+> 	Date:   Wed Sep 17 13:31:16 2014 +0300
+>
+> drivers/media/v4l2-core/v4l2-dv-timings.c:34:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:35:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:36:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:37:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:38:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:39:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:40:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:41:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:42:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:43:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:44:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:45:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:46:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:47:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:48:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:49:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:50:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:51:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:52:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:53:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:54:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:55:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:56:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:57:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:58:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:59:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:60:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:61:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:62:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:63:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:64:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:65:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:66:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:67:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:68:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:69:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:70:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:71:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:72:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:73:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:74:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:75:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:76:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:77:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:78:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:79:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:80:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:81:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:82:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:83:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:84:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:85:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:86:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:87:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:88:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:89:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:90:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:91:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:92:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:93:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:94:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:95:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:96:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:97:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:98:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:99:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:100:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:101:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:102:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:103:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:104:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:105:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:106:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:107:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:108:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:109:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:110:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:111:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:112:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:113:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:114:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:115:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:116:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:117:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:118:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:119:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:120:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:121:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:122:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:123:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:124:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:125:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:126:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:127:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:128:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:129:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:130:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:131:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:132:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:133:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:134:9: error: unknown field name in initializer
+> drivers/media/v4l2-core/v4l2-dv-timings.c:135:9: error: too many errors
+> drivers/media/usb/hdpvr/hdpvr-video.c:42:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:43:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:44:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:45:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:46:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:47:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:48:9: error: unknown field name in initializer
+> drivers/media/usb/hdpvr/hdpvr-video.c:49:9: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:493:18: error: unknown field name in initializer
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+> index 6c8f159e416e..6a0764c89fcb 100644
+> --- a/include/uapi/linux/v4l2-dv-timings.h
+> +++ b/include/uapi/linux/v4l2-dv-timings.h
+> @@ -21,17 +21,8 @@
+>   #ifndef _V4L2_DV_TIMINGS_H
+>   #define _V4L2_DV_TIMINGS_H
+>
+> -#if __GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 6))
+> -/* Sadly gcc versions older than 4.6 have a bug in how they initialize
+> -   anonymous unions where they require additional curly brackets.
+> -   This violates the C1x standard. This workaround adds the curly brackets
+> -   if needed. */
+>   #define V4L2_INIT_BT_TIMINGS(_width, args...) \
+>   	{ .bt = { _width , ## args } }
+> -#else
+> -#define V4L2_INIT_BT_TIMINGS(_width, args...) \
+> -	.bt = { _width , ## args }
+> -#endif
+>
+>   /* CEA-861-E timings (i.e. standard HDTV timings) */
+>
+>
