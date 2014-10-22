@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46266 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753508AbaJ1PA7 (ORCPT
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:52448 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932169AbaJVDRF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 11:00:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	Fred Richter <frichter@hauppauge.com>
-Subject: [PATCH 02/13] [media] lgdt3306a: Use IS_ENABLED() for attach function
-Date: Tue, 28 Oct 2014 13:00:37 -0200
-Message-Id: <87ac8bc45c90a90f848e5396de2ec9fdcab5bec5.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
+	Tue, 21 Oct 2014 23:17:05 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAMuHMdXDKP=KDzGUqXuPLirPX6Y4BA-n4RC8kdx-8A-e=fa4MQ@mail.gmail.com>
+References: <1413267956-8342-1-git-send-email-ykaneko0929@gmail.com>
+	<544280E4.20101@cogentembedded.com>
+	<CAH1o70JoiJhec6thnQZnQ_99DLjhMrYhypFubkDYNnTcP_02ZQ@mail.gmail.com>
+	<CAMuHMdXDKP=KDzGUqXuPLirPX6Y4BA-n4RC8kdx-8A-e=fa4MQ@mail.gmail.com>
+Date: Wed, 22 Oct 2014 12:17:04 +0900
+Message-ID: <CAH1o70KKBObHxZ+Y2++tgJ4ac=MxvyYoSNe-=d=vxo2OV=YnHw@mail.gmail.com>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the check if CONFIG_DVB_LGDT3306A is enabled, use the
-IS_ENABLED() macro, just like the other frontend modules.
+Hi Geert-san,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+2014-10-21 16:09 GMT+09:00 Geert Uytterhoeven <geert@linux-m68k.org>:
+> Hi Kaneko-san,
+>
+> On Tue, Oct 21, 2014 at 5:30 AM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
+>>>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>>>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>>>> @@ -108,6 +108,7 @@
+>>>>   #define VNDMR2_VPS            (1 << 30)
+>>>>   #define VNDMR2_HPS            (1 << 29)
+>>>>   #define VNDMR2_FTEV           (1 << 17)
+>>>> +#define VNDMR2_VLV_1           (1 << 12)
+>>>
+>>>    Please instead do:
+>>>
+>>> #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
+>>
+>> It's unclear to me why the style of the new #define should differ
+>> from those of the existing ones.
+>
+> I think Sergey wants to say that unlike for the other fields, there are
+> multiple possible values for the VLV field.
+>
+> By providing the single macro definition
+>
+>         #define VNDMR2_VLV(n)   ((n & 0xf) << 12)
+>
+> you can easily provide a way to set any of VNDMR2_VLV_n.
+>
+> I hope this explanation makes it clearer.
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 99128d2afebb..c8af071ce40b 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -1662,7 +1662,7 @@ static void lgdt3306a_release(struct dvb_frontend *fe)
- static struct dvb_frontend_ops lgdt3306a_ops;
- 
- struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
--				     struct i2c_adapter *i2c_adap)
-+				      struct i2c_adapter *i2c_adap)
- {
- 	struct lgdt3306a_state *state = NULL;
- 	int ret;
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
-index f489a1fcc5ac..405beebb86e1 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.h
-+++ b/drivers/media/dvb-frontends/lgdt3306a.h
-@@ -63,15 +63,13 @@ struct lgdt3306a_config {
- 	int  xtalMHz;
- };
- 
--#if defined(CONFIG_DVB_LGDT3306A) || (defined(CONFIG_DVB_LGDT3306A_MODULE) && \
--				     defined(MODULE))
--extern
-+#if IS_ENABLED(CONFIG_DVB_LGDT3306A)
- struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
--				     struct i2c_adapter *i2c_adap);
-+				      struct i2c_adapter *i2c_adap);
- #else
- static inline
- struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
--				     struct i2c_adapter *i2c_adap)
-+				      struct i2c_adapter *i2c_adap)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
--- 
-1.9.3
+Thank you for the clarification!
+I'll update this patch sooner.
 
+Thanks,
+Kaneko
+
+>
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
