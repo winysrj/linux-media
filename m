@@ -1,97 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51648 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760614AbaJaNy4 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34687 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754564AbaJVKED (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:56 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 1C597217D1
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 08/11] uvcvideo: Don't stop the stream twice at file handle release
-Date: Fri, 31 Oct 2014 15:54:54 +0200
-Message-Id: <1414763697-21166-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 22 Oct 2014 06:04:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 3/5] [media] vivid: convert to platform device
+Date: Wed, 22 Oct 2014 12:03:39 +0200
+Message-Id: <1413972221-13669-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When releasing the file handle the driver calls the vb2_queue_release
-which turns the stream off. There's thus no need to turn the stream off
-explicitly beforehand.
+For contiguous DMA buffer allocation, a struct is needed that
+DMA buffers can be associated with.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/uvc/uvc_queue.c | 14 +++++++-------
- drivers/media/usb/uvc/uvc_v4l2.c  |  6 ++----
- drivers/media/usb/uvc/uvcvideo.h  |  2 +-
- 3 files changed, 10 insertions(+), 12 deletions(-)
+ drivers/media/platform/vivid/vivid-core.c | 37 +++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 7582470..708478f 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -194,6 +194,13 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- 	return 0;
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 2c61a62..c79d60d 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -26,6 +26,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/font.h>
+ #include <linux/mutex.h>
++#include <linux/platform_device.h>
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <media/videobuf2-vmalloc.h>
+@@ -152,6 +153,7 @@ module_param(no_error_inj, bool, 0444);
+ MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting controls");
+ 
+ static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
++static struct platform_device *vivid_pdev;
+ 
+ const struct v4l2_rect vivid_min_rect = {
+ 	0, 0, MIN_WIDTH, MIN_HEIGHT
+@@ -1288,7 +1290,7 @@ free_dev:
+    will succeed. This is limited to the maximum number of devices that
+    videodev supports, which is equal to VIDEO_NUM_DEVICES.
+  */
+-static int __init vivid_init(void)
++static int vivid_probe(struct platform_device *pdev)
+ {
+ 	const struct font_desc *font = find_font("VGA8x16");
+ 	int ret = 0, i;
+@@ -1323,7 +1325,7 @@ static int __init vivid_init(void)
+ 	return ret;
  }
  
-+void uvc_queue_release(struct uvc_video_queue *queue)
-+{
-+	mutex_lock(&queue->mutex);
-+	vb2_queue_release(&queue->queue);
-+	mutex_unlock(&queue->mutex);
+-static void __exit vivid_exit(void)
++static int vivid_remove(struct platform_device *pdev)
+ {
+ 	struct vivid_dev *dev;
+ 	unsigned i;
+@@ -1384,6 +1386,37 @@ static void __exit vivid_exit(void)
+ 		kfree(dev);
+ 		vivid_devs[i] = NULL;
+ 	}
++
++	return 0;
 +}
 +
- /* -----------------------------------------------------------------------------
-  * V4L2 queue operations
-  */
-@@ -210,13 +217,6 @@ int uvc_alloc_buffers(struct uvc_video_queue *queue,
- 	return ret ? ret : rb->count;
++struct platform_driver vivid_driver = {
++	.probe = vivid_probe,
++	.remove = vivid_remove,
++	.driver = {
++		.name = "vivid",
++	},
++};
++
++static int __init vivid_init(void)
++{
++	int ret;
++
++	vivid_pdev = platform_device_register_simple("vivid", -1, NULL, 0);
++	if (IS_ERR(vivid_pdev))
++		return PTR_ERR(vivid_pdev);
++
++	ret = platform_driver_register(&vivid_driver);
++	if (ret != 0)
++		platform_device_unregister(vivid_pdev);
++
++	return ret;
++}
++
++static void __exit vivid_exit(void)
++{
++	platform_device_unregister(vivid_pdev);
++	platform_driver_unregister(&vivid_driver);
  }
  
--void uvc_free_buffers(struct uvc_video_queue *queue)
--{
--	mutex_lock(&queue->mutex);
--	vb2_queue_release(&queue->queue);
--	mutex_unlock(&queue->mutex);
--}
--
- int uvc_query_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
- {
- 	int ret;
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 4619fd6..1b6b6db 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -530,10 +530,8 @@ static int uvc_v4l2_release(struct file *file)
- 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_release\n");
- 
- 	/* Only free resources if this is a privileged handle. */
--	if (uvc_has_privileges(handle)) {
--		uvc_queue_enable(&stream->queue, 0);
--		uvc_free_buffers(&stream->queue);
--	}
-+	if (uvc_has_privileges(handle))
-+		uvc_queue_release(&stream->queue);
- 
- 	/* Release the file handle. */
- 	uvc_dismiss_privileges(handle);
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 53db7ed..344aede 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -623,9 +623,9 @@ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
- /* Video buffers queue management. */
- extern int uvc_queue_init(struct uvc_video_queue *queue,
- 		enum v4l2_buf_type type, int drop_corrupted);
-+extern void uvc_queue_release(struct uvc_video_queue *queue);
- extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
- 		struct v4l2_requestbuffers *rb);
--extern void uvc_free_buffers(struct uvc_video_queue *queue);
- extern int uvc_query_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
- extern int uvc_create_buffers(struct uvc_video_queue *queue,
+ module_init(vivid_init);
 -- 
-2.0.4
+2.1.1
 
