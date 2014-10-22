@@ -1,111 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41700 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218AbaJHUxf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 16:53:35 -0400
-Message-ID: <5435A44D.2050609@infradead.org>
-Date: Wed, 08 Oct 2014 13:53:33 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
-References: <20141008174923.76786a03@canb.auug.org.au>	<543570C3.9080207@infradead.org> <20141008153105.2fe82fca@recife.lan>
-In-Reply-To: <20141008153105.2fe82fca@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45590 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932723AbaJVLu2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 07:50:28 -0400
+Message-ID: <1413978623.3107.6.camel@pengutronix.de>
+Subject: Re: [PATCH 4/5] [media] vivid: add support for contiguous DMA
+ buffers
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Date: Wed, 22 Oct 2014 13:50:23 +0200
+In-Reply-To: <5447839E.4090309@cisco.com>
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
+	 <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
+	 <5447839E.4090309@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/14 11:31, Mauro Carvalho Chehab wrote:
-> Em Wed, 08 Oct 2014 10:13:39 -0700
-> Randy Dunlap <rdunlap@infradead.org> escreveu:
+Am Mittwoch, den 22.10.2014, 12:14 +0200 schrieb Hans Verkuil:
+[...]
+> > diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> > index 331c544..04b5fbf 100644
+> > --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> > +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> > @@ -151,8 +151,10 @@ static int vid_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+> >
+> >   	/*
+> >   	 * videobuf2-vmalloc allocator is context-less so no need to set
+> > -	 * alloc_ctxs array.
+> > +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
+> >   	 */
+> > +	for (p = 0; p < planes; p++)
+> > +		alloc_ctxs[p] = dev->alloc_ctx;
+> >
+> >   	if (planes == 2)
+> >   		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
+> > diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+> > index 69c2dbd..6b8dfd6 100644
+> > --- a/drivers/media/platform/vivid/vivid-vid-out.c
+> > +++ b/drivers/media/platform/vivid/vivid-vid-out.c
+> > @@ -39,6 +39,7 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+> >   	unsigned planes = dev->fmt_out->planes;
+> >   	unsigned h = dev->fmt_out_rect.height;
+> >   	unsigned size = dev->bytesperline_out[0] * h;
+> > +	unsigned p;
+> >
+> >   	if (dev->field_out == V4L2_FIELD_ALTERNATE) {
+> >   		/*
+> > @@ -98,8 +99,10 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+> >
+> >   	/*
+> >   	 * videobuf2-vmalloc allocator is context-less so no need to set
+> > -	 * alloc_ctxs array.
+> > +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
+> >   	 */
+> > +	for (p = 0; p < planes; p++)
+> > +		alloc_ctxs[p] = dev->alloc_ctx;
+> >
+> >   	if (planes == 2)
+> >   		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
+> >
 > 
->> On 10/07/14 23:49, Stephen Rothwell wrote:
->>> Hi all,
->>>
->>> Please do not add any material intended for v3.19 to you linux-next
->>> included trees until after v3.18-rc1 has been released.
->>>
->>> Changes since 20141007:
->>>
->>
->> I saw these build errors in gspca when CONFIG_INPUT=m but the gspca
->> sub-drivers are builtin:
->>
->> drivers/built-in.o: In function `gspca_dev_probe2':
->> (.text+0x10ef43): undefined reference to `input_allocate_device'
->> drivers/built-in.o: In function `gspca_dev_probe2':
->> (.text+0x10efdd): undefined reference to `input_register_device'
->> drivers/built-in.o: In function `gspca_dev_probe2':
->> (.text+0x10f002): undefined reference to `input_free_device'
->> drivers/built-in.o: In function `gspca_dev_probe2':
->> (.text+0x10f0ac): undefined reference to `input_unregister_device'
->> drivers/built-in.o: In function `gspca_disconnect':
->> (.text+0x10f186): undefined reference to `input_unregister_device'
->> drivers/built-in.o: In function `sd_int_pkt_scan':
->> se401.c:(.text+0x11373d): undefined reference to `input_event'
->> se401.c:(.text+0x11374e): undefined reference to `input_event'
->> drivers/built-in.o: In function `sd_pkt_scan':
->> t613.c:(.text+0x119f0e): undefined reference to `input_event'
->> t613.c:(.text+0x119f1f): undefined reference to `input_event'
->> drivers/built-in.o: In function `sd_stopN':
->> t613.c:(.text+0x11a047): undefined reference to `input_event'
->> drivers/built-in.o:t613.c:(.text+0x11a058): more undefined references to `input_event' follow
->>
->> These could be fixed in Kconfig by something like (for each sub-driver that tests
->> CONFIG_INPUT):
->>
->> 	depends on INPUT || INPUT=n
->>
->> Do you have another preference for fixing this?
-> 
-> Hmm... The code at the gspca subdrivers looks like:
-> 
-> #if IS_ENABLED(CONFIG_INPUT)
+> This is not sufficient. alloc_ctxs should be filled in for all device types in the
+> queue_setup op, so also for vbi cap/out and sdr cap. Without that these devices
+> would fail.
 
-For builtin only, that should be
+Thanks, I'll add the following changes to the next version:
 
-#if IS_BUILTIN(CONFIG_INPUT)
-
-> 		if (data[0] & 0x20) {
-> 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-> 			input_sync(gspca_dev->input_dev);
-> 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-> 			input_sync(gspca_dev->input_dev);
-> 		}
-> #endif
-> 
-> As we never got any report about such bug, and this is there for a long
-> time, I suspect that maybe the IS_ENABLED() macro had some changes on
-> its behavior. So, IMHO, we should first check if something changed there.
-
-I don't see any changes in <linux/kconfig.h>.
-
-> From gpsca's PoV, IMHO, it should be fine to disable the webcam buttons if
-> the webcam was compiled as builtin and the input subsystem is compiled as 
-> module. The core feature expected on a camera is to capture streams. 
-> Buttons are just a plus.
-> 
-> Also, most cams don't even have buttons. The gspca subdriver has support 
-> for buttons for the few models that have it.
-> 
-> So, IMHO, it should be ok to have GSPCA=y and INPUT=m, provided that 
-> the buttons will be disabled.
-
-Then all of the sub-drivers that use IS_ENABLED(CONFIG_INPUT) should be
-changed to use IS_BUILTIN(CONFIG_INPUT).
-
-But that is too restrictive IMO.  The input subsystem will work fine when
-CONFIG_INPUT=m and the GSPCA drivers are also loadable modules.
-That's simple to express in Kconfig language but probly more messy in CPP.
-
-
-Thanks.
-
-
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index 8c5d661..ac6ee15 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -196,6 +196,7 @@ static int sdr_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+ {
+ 	/* 2 = max 16-bit sample returned */
+ 	sizes[0] = SDR_CAP_SAMPLES_PER_BUF * 2;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 	*nplanes = 1;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
+index 2166d0b..27a636f 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-cap.c
++++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+@@ -149,6 +149,7 @@ static int vbi_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+ 		return -EINVAL;
+ 
+ 	sizes[0] = size;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 
+ 	if (vq->num_buffers + *nbuffers < 2)
+ 		*nbuffers = 2 - vq->num_buffers;
+diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
+index 9d00a07..5912ed8 100644
+--- a/drivers/media/platform/vivid/vivid-vbi-out.c
++++ b/drivers/media/platform/vivid/vivid-vbi-out.c
+@@ -41,6 +41,7 @@ static int vbi_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+ 		return -EINVAL;
+ 
+ 	sizes[0] = size;
++	alloc_ctxs[0] = dev->alloc_ctx;
+ 
+ 	if (vq->num_buffers + *nbuffers < 2)
+ 		*nbuffers = 2 - vq->num_buffers;
 -- 
-~Randy
+2.1.1
+
+regards
+Philipp
+
+
