@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42208 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751712AbaJ1QMq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 12:12:46 -0400
-Date: Tue, 28 Oct 2014 14:12:41 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 3.19] mem2mem patches
-Message-ID: <20141028141241.3eae1418@recife.lan>
-In-Reply-To: <0d8c01cfeeac$97a2acc0$c6e80640$%debski@samsung.com>
-References: <0d8c01cfeeac$97a2acc0$c6e80640$%debski@samsung.com>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:37372 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558AbaJVKPw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Oct 2014 06:15:52 -0400
+Message-ID: <544783D4.8010502@cisco.com>
+Date: Wed, 22 Oct 2014 12:15:48 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 5/5] [media] vivid: enable VIDIOC_EXPBUF
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1413972221-13669-6-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 23 Oct 2014 12:32:05 +0200
-Kamil Debski <k.debski@samsung.com> escreveu:
+On 10/22/2014 12:03 PM, Philipp Zabel wrote:
+> Instances created with allocators == 1 use videobuf2-dma-contig, and are
+> able to export DMA buffers via VIDIOC_EXPBUF.
 
-> The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
-> 
->   Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
-> 
-> are available in the git repository at:
-> 
-> 
->   http://git.linuxtv.org/cgit.cgi/kdebski/media_tree_2.git for-3.19
-
-Very unlikely!
-
-How are you generating this pull request? The above cgit link is not
-the right one for a pull request. it should be, instead:
-	git://linuxtv.org/kdebski/media_tree_2.git  for-3.19
-
-This time, I'll pretend that you did it right, but please fix your
-pull requests ;)
+Can you test what happens if you use EXPBUF when vmalloc is used? I hope it
+will just fail, but I am not sure.
 
 Regards,
-Mauro
+
+	Hans
+
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>   drivers/media/platform/vivid/vivid-core.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+> index 4c4fc3d..695286b 100644
+> --- a/drivers/media/platform/vivid/vivid-core.c
+> +++ b/drivers/media/platform/vivid/vivid-core.c
+> @@ -596,7 +596,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
+>   	.vidioc_querybuf		= vb2_ioctl_querybuf,
+>   	.vidioc_qbuf			= vb2_ioctl_qbuf,
+>   	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> -/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
+> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+>   	.vidioc_streamon		= vb2_ioctl_streamon,
+>   	.vidioc_streamoff		= vb2_ioctl_streamoff,
+>
+>
+
