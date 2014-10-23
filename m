@@ -1,105 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39965 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154AbaJIKGX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 06:06:23 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND60001S9J86540@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Oct 2014 11:09:08 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	'Kiran AVND' <avnd.kiran@samsung.com>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	laurent.pinchart@ideasonboard.com
-Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
-	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
-	kiran@chromium.org, Andrzej Hajda <a.hajda@samsung.com>
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
- <1411707142-4881-15-git-send-email-avnd.kiran@samsung.com>
- <11f301cfe2e2$0cacc810$26065830$%debski@samsung.com>
- <54354B8D.8050208@collabora.com>
-In-reply-to: <54354B8D.8050208@collabora.com>
-Subject: RE: [PATCH v2 14/14] [media] s5p-mfc: Don't change the image size to
- smaller than the request.
-Date: Thu, 09 Oct 2014 12:06:19 +0200
-Message-id: <125301cfe3a8$acd561f0$068025d0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Content-transfer-encoding: 8BIT
-Content-language: pl
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39824 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237AbaJWL5R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Oct 2014 07:57:17 -0400
+Message-ID: <1414065430.3854.3.camel@pengutronix.de>
+Subject: Re: [PATCH v2] [media] coda: Improve runtime PM support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Date: Thu, 23 Oct 2014 13:57:10 +0200
+In-Reply-To: <CAPDyKFqSgpOCvXp0aVVTFDj5X6fYkigThXM1VKK_vTWrjhpx6A@mail.gmail.com>
+References: <1411401956-29330-1-git-send-email-p.zabel@pengutronix.de>
+	 <CAPDyKFqSgpOCvXp0aVVTFDj5X6fYkigThXM1VKK_vTWrjhpx6A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Ulf,
 
-> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
-> Sent: Wednesday, October 08, 2014 4:35 PM
-> 
-> 
-> Le 2014-10-08 06:24, Kamil Debski a écrit :
-> > Hi,
+Am Montag, den 22.09.2014, 20:44 +0200 schrieb Ulf Hansson:
+> On 22 September 2014 18:05, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > From: Ulf Hansson <ulf.hansson@linaro.org>
 > >
-> > This patch seems complicated and I do not understand your motives.
+> > For several reasons it's good practice to leave devices in runtime PM
+> > active state while those have been probed.
 > >
-> > Could you explain what is the problem with the current aligning of
-> the
-> > values?
-> > Is this a hardware problem? Which MFC version does it affect?
-> > Is it a software problem? If so, maybe the user space application
-> should
-> > take extra care on what value it passes/receives to try_fmt?
-> This looks like something I wanted to bring here as an RFC but never
-> manage to get the time. In an Odroid Integration we have started using
-> the following simple patch to work around this:
+> > In this cases we also want to prevent the device from going inactive,
+> > until the firmware has been completely installed, especially when using
+> > a PM domain.
+> >
+> > Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 > 
-> https://github.com/dsd/linux-
-> odroid/commit/c76b38c1d682b9870ea3b00093ad6500a9c5f5f6
+> Thanks for moving this to the next version, I have been a bit busy the
+> last week.
 > 
-> The context is that right now we have decided that alignment in s_fmt
-> shall be done with a closest rounding. So the format returned may be
-> bigger, or smaller, that's basically random. I've been digging through
-> a
-> lot, and so far I have found no rational that explains this choice
-> other
-> that this felt right.
-> 
-> In real life, whenever the resulting format is smaller then request,
-> there is little we can do other then fail or try again blindly other
-> sizes. But with bigger raw buffers, we can use zero-copy  cropping
-> techniques to keep going. Here's a example:
-> 
-> image_generator -> hw_converter -> display
-> 
-> As hw_converter is a V4L2 M2M, an ideal use case here would be for
-> image_generator to use buffers from the hw_converter. For the scenario,
-> it is likely that a fixed video size is wanted, but this size is also
-> likely not to match HW requirement. If hw_converter decide to give back
-> something smaller, there is nothing image_generator can do. It would
-> have to try again with random size to find out that best match. It's a
-> bit silly to force that on application, as the hw_converter know the
-> closest best match, which is simply the next valid bigger size if that
-> exist.
-> 
-> hope that helps,
-> Nicolas
+> Changes looking good!
 
-Nicolas, thank you for shedding light on this problem. I see that it is
-not MFC specific. It seems that the problem applies to all Video4Linux2
-devices that use v4l_bound_align_image. I agree with you that this deservers
-an RFC and some discussion as this would change the behaviour of quite
-a few drivers. 
+If I load the coda module on v3.18-rc1 with the GPC power domain patch
+applied (at this point the power domain is disabled), the domain's
+poweron callback is never called. It does work tough if I switch back to
+explicitly calling pm_runtime_get_sync:
 
-I think the documentation does not specify how TRY_FMT/S_FMT should adjust
-the parameters. Maybe it would a good idea to add some flagS that determine
-the behaviour?
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index ac71e11..5421969 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2393,9 +2393,8 @@ static int coda_probe(struct platform_device *pdev)
+         * coda_fw_callback regardless of whether CONFIG_PM_RUNTIME is
+         * enabled or whether the device is associated with a PM domain.
+         */
+-       pm_runtime_get_noresume(&pdev->dev);
+-       pm_runtime_set_active(&pdev->dev);
+        pm_runtime_enable(&pdev->dev);
++       pm_runtime_get_sync(&pdev->dev);
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+        return coda_firmware_request(dev);
+ }
 
+At what point is the pm domain supposed to be enabled when I load the
+module?
+
+regards
+Philipp
 
