@@ -1,100 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:39648 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103AbaJMJcP (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4045 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754585AbaJWLWO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Oct 2014 05:32:15 -0400
-Received: by mail-wi0-f174.google.com with SMTP id h11so3125308wiw.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Oct 2014 02:32:14 -0700 (PDT)
-Date: Mon, 13 Oct 2014 11:32:16 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <lauraa@codeaurora.org>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [RFC 1/4] dma-buf: Add constraints sharing
- information
-Message-ID: <20141013093216.GK26941@phenom.ffwll.local>
-References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
- <1412971678-4457-2-git-send-email-sumit.semwal@linaro.org>
- <20141011185502.GH26941@phenom.ffwll.local>
- <543B8A02.5050106@codeaurora.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <543B8A02.5050106@codeaurora.org>
+	Thu, 23 Oct 2014 07:22:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 01/15] videobuf2-core.h: improve documentation
+Date: Thu, 23 Oct 2014 13:21:28 +0200
+Message-Id: <1414063302-26903-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 13, 2014 at 01:14:58AM -0700, Laura Abbott wrote:
-> On 10/11/2014 11:55 AM, Daniel Vetter wrote:
-> >On Sat, Oct 11, 2014 at 01:37:55AM +0530, Sumit Semwal wrote:
-> >>At present, struct device lacks a mechanism of exposing memory
-> >>access constraints for the device.
-> >>
-> >>Consequently, there is also no mechanism to share these constraints
-> >>while sharing buffers using dma-buf.
-> >>
-> >>If we add support for sharing such constraints, we could use that
-> >>to try to collect requirements of different buffer-sharing devices
-> >>to allocate buffers from a pool that satisfies requirements of all
-> >>such devices.
-> >>
-> >>This is an attempt to add this support; at the moment, only a bitmask
-> >>is added, but if post discussion, we realise we need more information,
-> >>we could always extend the definition of constraint.
-> >>
-> >>A new dma-buf op is also added, to allow exporters to interpret or decide
-> >>on constraint-masks on their own. A default implementation is provided to
-> >>just AND (&) all the constraint-masks.
-> >>
-> >>What constitutes a constraint-mask could be left for interpretation on a
-> >>per-platform basis, while defining some common masks.
-> >>
-> >>Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-> >>Cc: linux-kernel@vger.kernel.org
-> >>Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> >>Cc: linux-media@vger.kernel.org
-> >>Cc: dri-devel@lists.freedesktop.org
-> >>Cc: linaro-mm-sig@lists.linaro.org
-> >
-> >Just a few high-level comments, I'm between conference travel but
-> >hopefully I can discuss this a bit at plumbers next week.
-> >
-> >- I agree that for the insane specific cases we need something opaque like
-> >   the access constraints mask you propose here. But for the normal case I
-> >   think the existing dma constraints in dma_params would go a long way,
-> >   and I think we should look at Rob's RFC from aeons ago to solve those:
-> >
-> >   https://lkml.org/lkml/2012/7/19/285
-> >
-> >   With this we should be able to cover the allocation constraints of 90%
-> >   of all cases hopefully.
-> >
-> >- I'm not sure whether an opaque bitmask is good enough really, I suspect
-> >   that we also need various priorities between different allocators. With
-> >   the option that some allocators are flat-out incompatible.
-> >
-> 
-> From my experience with Ion, the bitmask is okay if you have only a few
-> types but as soon as there are multiple regions it gets complicated and
-> when you start adding in priority via id it really gets unwieldy.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-My idea is to just have a priority field for all devices which have
-special requirements (i.e. beyond dma masks/alignement/segment limits).
-Same priority on different devices would indicate an incompatibility, but
-higher priority on a parent device would indicate a possible allocator.
-That way you could have a root allocator if there's a way to unify
-everything. Not sure though whether this will work, since on intel devices
-we just don't have these kinds of special constraints.
+Document that drivers can access/modify the buffer contents in buf_prepare
+and buf_finish. That was not clearly stated before.
 
-Overall my idea is to reuse the existing dma allocation code in upstream
-linux as much as possible. So having a completely separate hirarchy of
-memory allocators for shared buffers should imo be avoided.
--Daniel
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 6ef2d01..70ace7c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -270,22 +270,24 @@ struct vb2_buffer {
+  *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+- *			perform any initialization required before each hardware
+- *			operation in this callback; drivers that support
+- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+- *			if an error is returned, the buffer will not be queued
+- *			in driver; optional.
++ *			perform any initialization required before each
++ *			hardware operation in this callback; drivers can
++ *			access/modify the buffer here as it is still synced for
++ *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
++ *			also validate the buffer size; if an error is returned,
++ *			the buffer will not be queued in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+- *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional. The
+- *			buffer state can be one of the following: DONE and
+- *			ERROR occur while streaming is in progress, and the
+- *			PREPARED state occurs when the queue has been canceled
+- *			and all pending buffers are being returned to their
+- *			default DEQUEUED state. Typically you only have to do
+- *			something if the state is VB2_BUF_STATE_DONE, since in
+- *			all other cases the buffer contents will be ignored
+- *			anyway.
++ *			userspace; the buffer is synced for the CPU, so drivers
++ *			can access/modify the buffer contents; drivers may
++ *			perform any operations required before userspace
++ *			accesses the buffer; optional. The buffer state can be
++ *			one of the following: DONE and ERROR occur while
++ *			streaming is in progress, and the PREPARED state occurs
++ *			when the queue has been canceled and all pending
++ *			buffers are being returned to their default DEQUEUED
++ *			state. Typically you only have to do something if the
++ *			state is VB2_BUF_STATE_DONE, since in all other cases
++ *			the buffer contents will be ignored anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+  *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+2.1.1
+
