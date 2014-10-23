@@ -1,121 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51711 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933851AbaJaPJv (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2074 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755109AbaJWLWT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:51 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id BB464217D8
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:36 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 23 Oct 2014 07:22:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v3 10/10] uvcvideo: Return all buffers to vb2 at stream stop and start failure
-Date: Fri, 31 Oct 2014 17:09:51 +0200
-Message-Id: <1414768191-4536-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [RFCv4 PATCH 06/15] vb2-vmalloc: add get_dmabuf support
+Date: Thu, 23 Oct 2014 13:21:33 +0200
+Message-Id: <1414063302-26903-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf2 requires drivers to give back ownership of all queue buffers
-in the stop_streaming operation, as well as in the start_streaming
-operation in case of failure. Mark all queued buffers as done in the
-error or queued state.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add support for DMABUF exporting to the vb2-vmalloc implementation.
 
+All memory models now have support for both importing and exporting of DMABUFs.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
-Changes since v2:
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 174 ++++++++++++++++++++++++++++
+ 1 file changed, 174 insertions(+)
 
-- Return buffers on start streaming failure
-- Rename __uvc_queue_cancel to uvc_queue_return_buffers
----
- drivers/media/usb/uvc/uvc_queue.c | 45 ++++++++++++++++++++++++++++++---------
- 1 file changed, 35 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index c295c5c..cc96072 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -42,6 +42,28 @@ uvc_queue_to_stream(struct uvc_video_queue *queue)
- 	return container_of(queue, struct uvc_streaming, queue);
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index d77e397..437fbcd 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -31,6 +31,9 @@ struct vb2_vmalloc_buf {
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct dma_buf			*dbuf;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+@@ -210,6 +213,176 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
  }
  
-+/*
-+ * Return all queued buffers to videobuf2 in the requested state.
-+ *
-+ * This function must be called with the queue spinlock held.
-+ */
-+static void uvc_queue_return_buffers(struct uvc_video_queue *queue,
-+			       enum uvc_buffer_state state)
-+{
-+	enum vb2_buffer_state vb2_state = state == UVC_BUF_STATE_ERROR
-+					? VB2_BUF_STATE_ERROR
-+					: VB2_BUF_STATE_QUEUED;
+ /*********************************************/
++/*         DMABUF ops for exporters          */
++/*********************************************/
 +
-+	while (!list_empty(&queue->irqqueue)) {
-+		struct uvc_buffer *buf = list_first_entry(&queue->irqqueue,
-+							  struct uvc_buffer,
-+							  queue);
-+		list_del(&buf->queue);
-+		buf->state = state;
-+		vb2_buffer_done(&buf->buf, vb2_state);
++struct vb2_vmalloc_attachment {
++	struct sg_table sgt;
++	enum dma_data_direction dir;
++};
++
++static int vb2_vmalloc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++	struct dma_buf_attachment *dbuf_attach)
++{
++	struct vb2_vmalloc_attachment *attach;
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
++	int num_pages = PAGE_ALIGN(buf->size) / PAGE_SIZE;
++	struct sg_table *sgt;
++	struct scatterlist *sg;
++	void *vaddr = buf->vaddr;
++	int ret;
++	int i;
++
++	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
++	if (!attach)
++		return -ENOMEM;
++
++	sgt = &attach->sgt;
++	ret = sg_alloc_table(sgt, num_pages, GFP_KERNEL);
++	if (ret) {
++		kfree(attach);
++		return ret;
 +	}
++	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
++		struct page *page = vmalloc_to_page(vaddr);
++
++		if (!page) {
++			sg_free_table(sgt);
++			kfree(attach);
++			return -ENOMEM;
++		}
++		sg_set_page(sg, page, PAGE_SIZE, 0);
++		vaddr += PAGE_SIZE;
++	}
++
++	attach->dir = DMA_NONE;
++	dbuf_attach->priv = attach;
++	return 0;
 +}
 +
- /* -----------------------------------------------------------------------------
-  * videobuf2 queue operations
-  */
-@@ -139,10 +161,20 @@ static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
- 	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
-+	unsigned long flags;
++static void vb2_vmalloc_dmabuf_ops_detach(struct dma_buf *dbuf,
++	struct dma_buf_attachment *db_attach)
++{
++	struct vb2_vmalloc_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
++
++	if (!attach)
++		return;
++
++	sgt = &attach->sgt;
++
++	/* release the scatterlist cache */
++	if (attach->dir != DMA_NONE)
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++	sg_free_table(sgt);
++	kfree(attach);
++	db_attach->priv = NULL;
++}
++
++static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++{
++	struct vb2_vmalloc_attachment *attach = db_attach->priv;
++	/* stealing dmabuf mutex to serialize map/unmap operations */
++	struct mutex *lock = &db_attach->dmabuf->lock;
++	struct sg_table *sgt;
 +	int ret;
- 
- 	queue->buf_used = 0;
- 
--	return uvc_video_enable(stream, 1);
-+	ret = uvc_video_enable(stream, 1);
-+	if (ret == 0)
-+		return 0;
 +
-+	spin_lock_irqsave(&queue->irqlock, flags);
-+	uvc_queue_return_buffers(queue, UVC_BUF_STATE_QUEUED);
-+	spin_unlock_irqrestore(&queue->irqlock, flags);
++	mutex_lock(lock);
 +
-+	return ret;
- }
++	sgt = &attach->sgt;
++	/* return previously mapped sg table */
++	if (attach->dir == dir) {
++		mutex_unlock(lock);
++		return sgt;
++	}
++
++	/* release any previous cache */
++	if (attach->dir != DMA_NONE) {
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++		attach->dir = DMA_NONE;
++	}
++
++	/* mapping to the client with new direction */
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	if (ret <= 0) {
++		pr_err("failed to map scatterlist\n");
++		mutex_unlock(lock);
++		return ERR_PTR(-EIO);
++	}
++
++	attach->dir = dir;
++
++	mutex_unlock(lock);
++
++	return sgt;
++}
++
++static void vb2_vmalloc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++	struct sg_table *sgt, enum dma_data_direction dir)
++{
++	/* nothing to be done here */
++}
++
++static void vb2_vmalloc_dmabuf_ops_release(struct dma_buf *dbuf)
++{
++	/* drop reference obtained in vb2_vmalloc_get_dmabuf */
++	vb2_vmalloc_put(dbuf->priv);
++}
++
++static void *vb2_vmalloc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
++{
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
++
++	return buf->vaddr + pgnum * PAGE_SIZE;
++}
++
++static void *vb2_vmalloc_dmabuf_ops_vmap(struct dma_buf *dbuf)
++{
++	struct vb2_vmalloc_buf *buf = dbuf->priv;
++
++	return buf->vaddr;
++}
++
++static int vb2_vmalloc_dmabuf_ops_mmap(struct dma_buf *dbuf,
++	struct vm_area_struct *vma)
++{
++	return vb2_vmalloc_mmap(dbuf->priv, vma);
++}
++
++static struct dma_buf_ops vb2_vmalloc_dmabuf_ops = {
++	.attach = vb2_vmalloc_dmabuf_ops_attach,
++	.detach = vb2_vmalloc_dmabuf_ops_detach,
++	.map_dma_buf = vb2_vmalloc_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_vmalloc_dmabuf_ops_unmap,
++	.kmap = vb2_vmalloc_dmabuf_ops_kmap,
++	.kmap_atomic = vb2_vmalloc_dmabuf_ops_kmap,
++	.vmap = vb2_vmalloc_dmabuf_ops_vmap,
++	.mmap = vb2_vmalloc_dmabuf_ops_mmap,
++	.release = vb2_vmalloc_dmabuf_ops_release,
++};
++
++static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flags)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++	struct dma_buf *dbuf;
++
++	if (WARN_ON(!buf->vaddr))
++		return NULL;
++
++	dbuf = dma_buf_export(buf, &vb2_vmalloc_dmabuf_ops, buf->size, flags, NULL);
++	if (IS_ERR(dbuf))
++		return NULL;
++
++	/* dmabuf keeps reference to vb2 buffer */
++	atomic_inc(&buf->refcount);
++
++	return dbuf;
++}
++
++/*********************************************/
+ /*       callbacks for DMABUF buffers        */
+ /*********************************************/
  
- static void uvc_stop_streaming(struct vb2_queue *vq)
-@@ -154,7 +186,7 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
- 	uvc_video_enable(stream, 0);
- 
- 	spin_lock_irqsave(&queue->irqlock, flags);
--	INIT_LIST_HEAD(&queue->irqqueue);
-+	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- }
- 
-@@ -353,17 +385,10 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
-  */
- void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
- {
--	struct uvc_buffer *buf;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&queue->irqlock, flags);
--	while (!list_empty(&queue->irqqueue)) {
--		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
--				       queue);
--		list_del(&buf->queue);
--		buf->state = UVC_BUF_STATE_ERROR;
--		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_ERROR);
--	}
-+	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
- 	/* This must be protected by the irqlock spinlock to avoid race
- 	 * conditions between uvc_buffer_queue and the disconnection event that
- 	 * could result in an interruptible wait in uvc_dequeue_buffer. Do not
+@@ -265,6 +438,7 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+ 	.put		= vb2_vmalloc_put,
+ 	.get_userptr	= vb2_vmalloc_get_userptr,
+ 	.put_userptr	= vb2_vmalloc_put_userptr,
++	.get_dmabuf	= vb2_vmalloc_get_dmabuf,
+ 	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
+ 	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
 -- 
-2.0.4
+2.1.1
 
