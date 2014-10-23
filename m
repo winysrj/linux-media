@@ -1,92 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41966 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755296AbaJXOpE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Oct 2014 10:45:04 -0400
-Message-ID: <544A65DE.40108@osg.samsung.com>
-Date: Fri, 24 Oct 2014 08:44:46 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: alsa-devel@alsa-project.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sander Eikelenboom <linux@eikelenboom.it>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Tim Gardner <tim.gardner@canonical.com>,
-	"olebowle@gmx.com" <olebowle@gmx.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
- token api
-References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com> <s5htx34ul3w.wl-tiwai@suse.de> <54467EFB.7050800@xs4all.nl> <s5hbnp5z9uy.wl-tiwai@suse.de> <CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com> <544804F1.7090606@linux.intel.com> <CAGoCfiyQVY6Ss2qcp3aQijq3cP3BAM8X4yaCXRtx63dNNm-QKA@mail.gmail.com>
-In-Reply-To: <CAGoCfiyQVY6Ss2qcp3aQijq3cP3BAM8X4yaCXRtx63dNNm-QKA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3344 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754917AbaJWLWP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Oct 2014 07:22:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 04/15] vb2-dma-sg: add dmabuf import support
+Date: Thu, 23 Oct 2014 13:21:31 +0200
+Message-Id: <1414063302-26903-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/22/2014 01:45 PM, Devin Heitmueller wrote:
->> this seems like a feature, not a bug. PulseAudio starts streaming before
->> clients push any data and likewise keeps sources active even after for some
->> time after clients stop recording. Closing VLC in your example doesn't
->> immediately close the ALSA device. look for module-suspend-on-idle in your
->> default.pa config file.
-> 
-> The ALSA userland emulation in PulseAudio is supposed to faithfully emulate
-> the behavior of the ALSA kernel ABI... except when it doesn't, then it's not
-> a bug but rather a feature.  :-)
-> 
->> I also agree that the open/close of the alsa device is the only way to
->> control exclusion.
-> 
-> I was also a proponent that we should have fairly coarse locking done
-> at open/close for the various device nodes (ALSA/V4L/DVB).  The challenge here
-> is that we have a large installed based of existing applications that
-> rely on kernel
-> behavior that isn't formally specified in any specification.  Hence
-> we're forced to try
-> to come up with a solution that minimizes the risk of ABI breakage.
-> 
-> If we were doing this from scratch then we could lay down some hard/fast rules
-> about things apps aren't supposed to do and how apps are supposed to respond
-> to those exception cases.  Unfortunately we don't have that luxury here.
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sounds like we don't have a clear direction on open/close or capture
-start/stop. What I am hearing is open/close isn't acceptable for
-media maintainers and capture trigger start/stop isn't acceptable
-to sound maintainers. :) Fork in the road, which way do we go?
+Add support for dmabuf to vb2-dma-sg.
 
-Implementation wise, supporting capture trigger start/stop approach
-will be harder to maintain in longterm. It adds more variables to
-the mix. Applications open sounds device from the main thread and
-then create a new thread to handle streams. I can see that based
-on the token hold requests that come in. So the token hold logic
-will have to take that into account, leading into potential
-unbalanced lock/unlock scenarios. It is not impossible to solve,
-that's what I did in this patch series, but it does get complex.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 126 +++++++++++++++++++++++++++--
+ 1 file changed, 119 insertions(+), 7 deletions(-)
 
-What I am looking for is some consensus on let's go with an approach
-and try. Doesn't matter which way we go, and how much testing I do,
-I am bound to miss something and this work needs to soak for a bit in
-the media experimental branch.
-
-thanks,
--- Shuah
-
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 7375923..2795c27 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
++	struct sg_table			*dma_sgt;
+ 	size_t				size;
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct vm_area_struct		*vma;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+@@ -114,6 +118,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -124,7 +129,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	if (ret)
+ 		goto fail_pages_alloc;
+ 
+-	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, 0, size, GFP_KERNEL);
+ 	if (ret)
+ 		goto fail_table_alloc;
+@@ -173,7 +178,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+-		sg_free_table(&buf->sg_table);
++		sg_free_table(buf->dma_sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
+@@ -185,7 +190,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+ static void vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -193,7 +202,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
+ static void vb2_dma_sg_finish(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -222,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+@@ -274,7 +288,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+-	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
+@@ -319,7 +333,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+-	sg_free_table(&buf->sg_table);
++	sg_free_table(buf->dma_sgt);
+ 	while (--i >= 0) {
+ 		if (buf->write)
+ 			set_page_dirty_lock(buf->pages[i]);
+@@ -392,11 +406,105 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++/*********************************************/
++/*       callbacks for DMABUF buffers        */
++/*********************************************/
++
++static int vb2_dma_sg_map_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to pin a non attached buffer\n");
++		return -EINVAL;
++	}
++
++	if (WARN_ON(buf->dma_sgt)) {
++		pr_err("dmabuf buffer is already pinned\n");
++		return 0;
++	}
++
++	/* get the associated scatterlist for this buffer */
++	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	if (IS_ERR_OR_NULL(sgt)) {
++		pr_err("Error getting dmabuf scatterlist\n");
++		return -EINVAL;
++	}
++
++	buf->dma_sgt = sgt;
++
++	return 0;
++}
++
++static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to unpin a not attached buffer\n");
++		return;
++	}
++
++	if (WARN_ON(!sgt)) {
++		pr_err("dmabuf buffer is already unpinned\n");
++		return;
++	}
++
++	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++
++	buf->dma_sgt = NULL;
++}
++
++static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++
++	/* if vb2 works correctly you should never detach mapped buffer */
++	if (WARN_ON(buf->dma_sgt))
++		vb2_dma_sg_unmap_dmabuf(buf);
++
++	/* detach this attachment */
++	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
++	kfree(buf);
++}
++
++static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
++	unsigned long size, int write)
++{
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
++	struct vb2_dma_sg_buf *buf;
++	struct dma_buf_attachment *dba;
++
++	if (dbuf->size < size)
++		return ERR_PTR(-EFAULT);
++
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	buf->dev = conf->dev;
++	/* create attachment for the dmabuf with the user device */
++	dba = dma_buf_attach(dbuf, buf->dev);
++	if (IS_ERR(dba)) {
++		pr_err("failed to attach dmabuf\n");
++		kfree(buf);
++		return dba;
++	}
++
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->size = size;
++	buf->db_attach = dba;
++
++	return buf;
++}
++
+ static void *vb2_dma_sg_cookie(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 
+-	return &buf->sg_table;
++	return buf->dma_sgt;
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_sg_memops = {
+@@ -409,6 +517,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
++	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
++	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
++	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
+ 	.cookie		= vb2_dma_sg_cookie,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.1.1
+
