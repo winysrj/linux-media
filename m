@@ -1,138 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39207 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750852AbaJCKwN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Oct 2014 06:52:13 -0400
-Date: Fri, 3 Oct 2014 07:52:06 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: "AreMa Inc." <info@are.ma>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: Re: [PATCH] pt3 (pci, tc90522, mxl301rf, qm1d1c0042):
- pt3_unregister_subdev(), pt3_unregister_subdev(), cleanups...
-Message-ID: <20141003075206.331006bd@recife.lan>
-In-Reply-To: <CAKnK8-QOU7szWNcC1BsBZtNmHBLiLqZuCVYpjsVBkpfNCxGa-A@mail.gmail.com>
-References: <1412275758-31340-1-git-send-email-knightrider@are.ma>
-	<542E2BF6.2090800@iki.fi>
-	<CAKnK8-QOU7szWNcC1BsBZtNmHBLiLqZuCVYpjsVBkpfNCxGa-A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1180 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932067AbaJWLW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Oct 2014 07:22:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 14/15] vb2: drop the unused vb2_plane_vaddr function.
+Date: Thu, 23 Oct 2014 13:21:41 +0200
+Message-Id: <1414063302-26903-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 03 Oct 2014 14:45:19 +0900
-"AreMa Inc." <info@are.ma> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Mauro & Antti
-> 
-> Please drop & replace Tsukada's PT3 patches.
+Now that all drivers have been converted, this function can be dropped.
 
-It doesn't work like that. We don't simply drop a driver and replace by
-some other one.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       |  8 +-------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 11 -----------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |  1 -
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |  1 -
+ include/media/videobuf2-core.h                 |  6 +-----
+ 5 files changed, 2 insertions(+), 25 deletions(-)
 
-The way most open source project works with regards to patch reviewing
-process work is via lazy consensus. The maintainer could, of course,
-override it, but this is only done on exceptional cases and when there
-is a strong reason for doing that.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 036b947..5138a9f 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1129,15 +1129,9 @@ void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no)
+ 		return NULL;
+ 
+ 	return call_ptr_memop(vb, begin_cpu_access, vb->planes[plane_no].mem_priv);
+-}
+-EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
+ 
+-/* Keep this for backwards compatibility. Will be removed soon. */
+-void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+-{
+-	return vb2_plane_begin_cpu_access(vb, plane_no);
+ }
+-EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
++EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
+ 
+ /**
+  * vb2_plane_end_cpu_access() - Return a kernel virtual address of a given plane
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 58a4bf2..629ca2e 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -94,16 +94,6 @@ static void *vb2_dc_cookie(void *buf_priv)
+ 	return &buf->dma_addr;
+ }
+ 
+-static void *vb2_dc_vaddr(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	if (!buf->vaddr && buf->db_attach)
+-		buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
+-
+-	return buf->vaddr;
+-}
+-
+ static unsigned int vb2_dc_num_users(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+@@ -895,7 +885,6 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.put		= vb2_dc_put,
+ 	.get_dmabuf	= vb2_dc_get_dmabuf,
+ 	.cookie		= vb2_dc_cookie,
+-	.vaddr		= vb2_dc_vaddr,
+ 	.mmap		= vb2_dc_mmap,
+ 	.get_userptr	= vb2_dc_get_userptr,
+ 	.put_userptr	= vb2_dc_put_userptr,
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 954ce74..0281a85 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -769,7 +769,6 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.put_userptr	= vb2_dma_sg_put_userptr,
+ 	.prepare	= vb2_dma_sg_prepare,
+ 	.finish		= vb2_dma_sg_finish,
+-	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
+ 	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 8623752..5c21190 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -478,7 +478,6 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+ 	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
+ 	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
+-	.vaddr		= vb2_vmalloc_vaddr,
+ 	.begin_cpu_access = vb2_vmalloc_begin_cpu_access,
+ 	.end_cpu_access = vb2_vmalloc_end_cpu_access,
+ 	.mmap		= vb2_vmalloc_mmap,
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 91c1216..4632341 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -63,7 +63,6 @@ struct vb2_threadio_data;
+  *		driver, useful for cache synchronisation, optional.
+  * @finish:	called every time the buffer is passed back from the driver
+  *		to the userspace, also optional.
+- * @vaddr:	return a kernel virtual address to a given memory buffer
+  * @begin_cpu_access: return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists. This memory buffer can be written by the
+@@ -80,7 +79,7 @@ struct vb2_threadio_data;
+  *
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+- * Required ops for read/write access types: alloc, put, num_users, vaddr,
++ * Required ops for read/write access types: alloc, put, num_users,
+  * 			begin_cpu_access, end_cpu_access.
+  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
+  *			unmap_dmabuf, begin_cpu_access, end_cpu_access.
+@@ -109,7 +108,6 @@ struct vb2_mem_ops {
+ 	void		*(*begin_cpu_access)(void *buf_priv);
+ 	void		(*end_cpu_access)(void *buf_priv);
+ 
+-	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
+ 	unsigned int	(*num_users)(void *buf_priv);
+@@ -231,7 +229,6 @@ struct vb2_buffer {
+ 	u32		cnt_mem_detach_dmabuf;
+ 	u32		cnt_mem_map_dmabuf;
+ 	u32		cnt_mem_unmap_dmabuf;
+-	u32		cnt_mem_vaddr;
+ 	u32		cnt_mem_begin_cpu_access;
+ 	u32		cnt_mem_end_cpu_access;
+ 	u32		cnt_mem_cookie;
+@@ -454,7 +451,6 @@ struct vb2_queue {
+ #endif
+ };
+ 
+-void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
+ void vb2_plane_end_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+-- 
+2.1.1
 
-The lazy consensus works like that: someone publish a patch at a public
-mailing list. During a reasonable amount of time, everybody that
-participates at the community can review the patch, and submit their
-review publicly. After that time, it is assumed that everybody was happy
-with the patch. The maintainers will then take it and merge.
-
-The PT3 patches are floating around for at least 2 merge windows, with is
-a more than reasonable time. There were requests to change some bad things
-there, to split the big patches into a series of patches, etc. All of them
-were satisfied. So, as everybody lazily agreed with the code, it got merged.
-
-In other words, if you had anything against the merge of the PT3 driver,
-you should have manifested before the merge during the ~2 months that this
-was discussed, and not after that.
-
-Yet, if the driver is not fully functional or if it have some issues, we do
-accept and we do want incremental patches fixing it. Of course, those changes
-should be properly described. The patch descriptions should answer three
-questions:
-	- What each patch is doing;
-	- Why that patch is needed;
-	- How the change was done.
-
-As Antti stated, those incremental patches should be done with one logical
-change per patch. That will allow us to better understand what's happening.
-
-In other words, you could, for example, send us a patch inside a series that
-would be doing (from your previous patch):
-	- lightweight & yet precise CNR calculus
-
-Such patch should look like:
-
-Subject: pt3: improve and cleanup CNR calculus
-From: your real name <your@email>
-
-The current code uses a too complex logic to do CNR calculus.
-Simplify the logic by doing ....
-That keeps the CNR calculus precise, but makes the calculus
-(quicker|easier to read|...).
-
-Signed-off-by: your real name <your@email>
-
-Please read what's written on our Wiki for more details, at:
-	http://linuxtv.org/wiki/index.php/Developer_Section
-Starting with:
-	http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches
-
-> There are too many weird & violating codes in it.
-
-You need to provide us a way more detailed descriptions than just the
-above statement, as the above example
-
-E. g.: What is weird and where? What's being violated and where? What
-you're proposing to solve it?
-
-Regards,
-Mauro
-
-> 
-> Thanks
-> -Bud
-> 
-> 
-> 2014-10-03 13:54 GMT+09:00 Antti Palosaari <crope@iki.fi>:
-> > On 10/02/2014 09:49 PM, Буди Романто, AreMa Inc wrote:
-> >>
-> >> DVB driver for Earthsoft PT3 PCIE ISDB-S/T receiver
-> >> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> >>
-> >> Status: stable
-> >>
-> >> Changes:
-> >> - demod & tuners converted to I2C binding model
-> >> - i586 & x86_64 clean compile
-> >> - lightweight & yet precise CNR calculus
-> >> - raw CNR (DVBv3)
-> >> - DVBv5 CNR @ 0.0001 dB (ref: include/uapi/linux/dvb/frontend.h, not
-> >> 1/1000 dB!)
-> >> - removed (unused?) tuner's *_release()
-> >> - demod/tuner binding: pt3_unregister_subdev(), pt3_unregister_subdev()
-> >> - some cleanups
-> >
-> >
-> > These drivers are already committed, like you have noticed. There is surely
-> > a lot of issues that could be improved, but it cannot be done by big patch
-> > which replaces everything. You need to just take one issue at the time,
-> > fix/improve it, send patch to mailing list for review. One patch per one
-> > logical change.
-> >
-> > regards
-> > Antti
-> >
-> > --
-> > http://palosaari.fi/
