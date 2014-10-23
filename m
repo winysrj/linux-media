@@ -1,57 +1,573 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <knueffle@yahoo.com>) id 1XV6ct-0003Yw-8e
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2014 00:26:03 +0200
-Received: from nm43-vm9.bullet.mail.bf1.yahoo.com ([216.109.114.170])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-7) with esmtps
-	[UNKNOWN:AES256-GCM-SHA384:256] for <linux-dvb@linuxtv.org>
-	id 1XV6cr-0000xc-1v; Sat, 20 Sep 2014 00:26:03 +0200
-Message-ID: <1411165558.12042.YahooMailNeo@web140002.mail.bf1.yahoo.com>
-Date: Fri, 19 Sep 2014 15:25:58 -0700
-From: Jody Gugelhupf <knueffle@yahoo.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Subject: [linux-dvb] dvb-s - how to obtain PMT (Program Map Table) and
-	w_scan syntax explanation
-Reply-To: linux-media@vger.kernel.org, Jody Gugelhupf <knueffle@yahoo.com>
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from gofer.mess.org ([80.229.237.210]:36676 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754284AbaJWVEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Oct 2014 17:04:54 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	"Jan M. Hochstein" <hochstein@algo.informatik.tu-darmstadt.de>
+Subject: [REVIEW PATCH v1 2/2] [media] lirc_igorplugusb: remove
+Date: Thu, 23 Oct 2014 21:58:23 +0100
+Message-Id: <1414097903-1664-2-git-send-email-sean@mess.org>
+In-Reply-To: <1414097903-1664-1-git-send-email-sean@mess.org>
+References: <1414097903-1664-1-git-send-email-sean@mess.org>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-hi all,
+This driver has been replaced by an rc-core driver for the same hardware.
 
-I'm using a DVB-s card (tbs6991), in combination with tvheadend to stream to clients on the lan. Mainly it works pretty good, but from time to time there are some mux where the PMT values for some stations are missing when adding the mux. I managed to find out how to add the PMT values manually. So far I was obtaining the PMT values from kingofsat.net but also there some are missing and I would like to be able to get these values somehow myself. Can w_scan be used for that or is there any other tool for it?
-In addition I was trying to find out what all the values in my w_scan file mean, for instance a scan like this:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/staging/media/lirc/Kconfig            |    6 -
+ drivers/staging/media/lirc/Makefile           |    1 -
+ drivers/staging/media/lirc/lirc_igorplugusb.c |  508 -------------------------
+ 3 files changed, 515 deletions(-)
+ delete mode 100644 drivers/staging/media/lirc/lirc_igorplugusb.c
 
-w_scan -fs -s S42E0 -D 2c -o2 -F -C ISO8859-9 > turksat.channel.conf
+diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
+index e60a59f..6879c46 100644
+--- a/drivers/staging/media/lirc/Kconfig
++++ b/drivers/staging/media/lirc/Kconfig
+@@ -18,12 +18,6 @@ config LIRC_BT829
+ 	help
+ 	  Driver for the IR interface on BT829-based hardware
+ 
+-config LIRC_IGORPLUGUSB
+-	tristate "Igor Cesko's USB IR Receiver"
+-	depends on LIRC && USB
+-	help
+-	  Driver for Igor Cesko's USB IR Receiver
+-
+ config LIRC_IMON
+ 	tristate "Legacy SoundGraph iMON Receiver and Display"
+ 	depends on LIRC && USB
+diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
+index b90fcab..5430adf 100644
+--- a/drivers/staging/media/lirc/Makefile
++++ b/drivers/staging/media/lirc/Makefile
+@@ -4,7 +4,6 @@
+ # Each configuration option enables a list of files.
+ 
+ obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
+-obj-$(CONFIG_LIRC_IGORPLUGUSB)	+= lirc_igorplugusb.o
+ obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
+ obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
+ obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
+diff --git a/drivers/staging/media/lirc/lirc_igorplugusb.c b/drivers/staging/media/lirc/lirc_igorplugusb.c
+deleted file mode 100644
+index 431d1e8..0000000
+--- a/drivers/staging/media/lirc/lirc_igorplugusb.c
++++ /dev/null
+@@ -1,508 +0,0 @@
+-/*
+- * lirc_igorplugusb - USB remote support for LIRC
+- *
+- * Supports the standard homebrew IgorPlugUSB receiver with Igor's firmware.
+- * See http://www.cesko.host.sk/IgorPlugUSB/IgorPlug-USB%20(AVR)_eng.htm
+- *
+- * The device can only record bursts of up to 36 pulses/spaces.
+- * Works fine with RC5. Longer commands lead to device buffer overrun.
+- * (Maybe a better firmware or a microcontroller with more ram can help?)
+- *
+- * Version 0.1  [beta status]
+- *
+- * Copyright (C) 2004 Jan M. Hochstein
+- *	<hochstein@algo.informatik.tu-darmstadt.de>
+- *
+- * This driver was derived from:
+- *   Paul Miller <pmiller9@users.sourceforge.net>
+- *      "lirc_atiusb" module
+- *   Vladimir Dergachev <volodya@minspring.com>'s 2002
+- *      "USB ATI Remote support" (input device)
+- *   Adrian Dewhurst <sailor-lk@sailorfrag.net>'s 2002
+- *      "USB StreamZap remote driver" (LIRC)
+- *   Artur Lipowski <alipowski@kki.net.pl>'s 2002
+- *      "lirc_dev" and "lirc_gpio" LIRC modules
+- */
+-
+-/*
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/kmod.h>
+-#include <linux/sched.h>
+-#include <linux/errno.h>
+-#include <linux/fs.h>
+-#include <linux/usb.h>
+-#include <linux/time.h>
+-
+-#include <media/lirc.h>
+-#include <media/lirc_dev.h>
+-
+-
+-/* module identification */
+-#define DRIVER_VERSION		"0.2"
+-#define DRIVER_AUTHOR		\
+-	"Jan M. Hochstein <hochstein@algo.informatik.tu-darmstadt.de>"
+-#define DRIVER_DESC		"Igorplug USB remote driver for LIRC"
+-#define DRIVER_NAME		"lirc_igorplugusb"
+-
+-/* One mode2 pulse/space has 4 bytes. */
+-#define CODE_LENGTH	     sizeof(int)
+-
+-/* Igor's firmware cannot record bursts longer than 36. */
+-#define DEVICE_BUFLEN	   36
+-
+-/*
+- * Header at the beginning of the device's buffer:
+- *	unsigned char data_length
+- *	unsigned char data_start    (!=0 means ring-buffer overrun)
+- *	unsigned char counter       (incremented by each burst)
+- */
+-#define DEVICE_HEADERLEN	3
+-
+-/* This is for the gap */
+-#define ADDITIONAL_LIRC_BYTES   2
+-
+-/* times to poll per second */
+-#define SAMPLE_RATE	     100
+-static int sample_rate = SAMPLE_RATE;
+-
+-
+-/**** Igor's USB Request Codes */
+-
+-#define SET_INFRABUFFER_EMPTY   1
+-/**
+- * Params: none
+- * Answer: empty
+- */
+-
+-#define GET_INFRACODE	   2
+-/**
+- * Params:
+- *   wValue: offset to begin reading infra buffer
+- *
+- * Answer: infra data
+- */
+-
+-#define SET_DATAPORT_DIRECTION  3
+-/**
+- * Params:
+- *   wValue: (byte) 1 bit for each data port pin (0=in, 1=out)
+- *
+- * Answer: empty
+- */
+-
+-#define GET_DATAPORT_DIRECTION  4
+-/**
+- * Params: none
+- *
+- * Answer: (byte) 1 bit for each data port pin (0=in, 1=out)
+- */
+-
+-#define SET_OUT_DATAPORT	5
+-/**
+- * Params:
+- *   wValue: byte to write to output data port
+- *
+- * Answer: empty
+- */
+-
+-#define GET_OUT_DATAPORT	6
+-/**
+- * Params: none
+- *
+- * Answer: least significant 3 bits read from output data port
+- */
+-
+-#define GET_IN_DATAPORT	 7
+-/**
+- * Params: none
+- *
+- * Answer: least significant 3 bits read from input data port
+- */
+-
+-#define READ_EEPROM	     8
+-/**
+- * Params:
+- *   wValue: offset to begin reading EEPROM
+- *
+- * Answer: EEPROM bytes
+- */
+-
+-#define WRITE_EEPROM	    9
+-/**
+- * Params:
+- *   wValue: offset to EEPROM byte
+- *   wIndex: byte to write
+- *
+- * Answer: empty
+- */
+-
+-#define SEND_RS232	      10
+-/**
+- * Params:
+- *   wValue: byte to send
+- *
+- * Answer: empty
+- */
+-
+-#define RECV_RS232	      11
+-/**
+- * Params: none
+- *
+- * Answer: byte received
+- */
+-
+-#define SET_RS232_BAUD	  12
+-/**
+- * Params:
+- *   wValue: byte to write to UART bit rate register (UBRR)
+- *
+- * Answer: empty
+- */
+-
+-#define GET_RS232_BAUD	  13
+-/**
+- * Params: none
+- *
+- * Answer: byte read from UART bit rate register (UBRR)
+- */
+-
+-
+-/* data structure for each usb remote */
+-struct igorplug {
+-
+-	/* usb */
+-	struct usb_device *usbdev;
+-	int devnum;
+-
+-	unsigned char *buf_in;
+-	unsigned int len_in;
+-	int in_space;
+-	struct timeval last_time;
+-
+-	dma_addr_t dma_in;
+-
+-	/* lirc */
+-	struct lirc_driver *d;
+-
+-	/* handle sending (init strings) */
+-	int send_flags;
+-};
+-
+-static int unregister_from_lirc(struct igorplug *ir)
+-{
+-	struct lirc_driver *d;
+-	int devnum;
+-
+-	devnum = ir->devnum;
+-	d = ir->d;
+-
+-	if (!d) {
+-		dev_err(&ir->usbdev->dev,
+-			"%s: called with NULL lirc driver struct!\n", __func__);
+-		return -EINVAL;
+-	}
+-
+-	dev_dbg(&ir->usbdev->dev, "calling lirc_unregister_driver\n");
+-	lirc_unregister_driver(d->minor);
+-
+-	return devnum;
+-}
+-
+-static int set_use_inc(void *data)
+-{
+-	struct igorplug *ir = data;
+-
+-	if (!ir) {
+-		printk(DRIVER_NAME "[?]: set_use_inc called with no context\n");
+-		return -EIO;
+-	}
+-
+-	dev_dbg(&ir->usbdev->dev, "set use inc\n");
+-
+-	if (!ir->usbdev)
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-
+-static void set_use_dec(void *data)
+-{
+-	struct igorplug *ir = data;
+-
+-	if (!ir) {
+-		printk(DRIVER_NAME "[?]: set_use_dec called with no context\n");
+-		return;
+-	}
+-
+-	dev_dbg(&ir->usbdev->dev, "set use dec\n");
+-}
+-
+-static void send_fragment(struct igorplug *ir, struct lirc_buffer *buf,
+-			   int i, int max)
+-{
+-	int code;
+-
+-	/* MODE2: pulse/space (PULSE_BIT) in 1us units */
+-	while (i < max) {
+-		/* 1 Igor-tick = 85.333333 us */
+-		code = (unsigned int)ir->buf_in[i] * 85 +
+-			(unsigned int)ir->buf_in[i] / 3;
+-		ir->last_time.tv_usec += code;
+-		if (ir->in_space)
+-			code |= PULSE_BIT;
+-		lirc_buffer_write(buf, (unsigned char *)&code);
+-		/* 1 chunk = CODE_LENGTH bytes */
+-		ir->in_space ^= 1;
+-		++i;
+-	}
+-}
+-
+-/**
+- * Called in user context.
+- * return 0 if data was added to the buffer and
+- * -ENODATA if none was available. This should add some number of bits
+- * evenly divisible by code_length to the buffer
+- */
+-static int igorplugusb_remote_poll(void *data, struct lirc_buffer *buf)
+-{
+-	int ret;
+-	struct igorplug *ir = (struct igorplug *)data;
+-
+-	if (!ir || !ir->usbdev)  /* Has the device been removed? */
+-		return -ENODEV;
+-
+-	memset(ir->buf_in, 0, ir->len_in);
+-
+-	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
+-			      GET_INFRACODE, USB_TYPE_VENDOR | USB_DIR_IN,
+-			      0/* offset */, /*unused*/0,
+-			      ir->buf_in, ir->len_in,
+-			      /*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
+-	if (ret > 0) {
+-		int code, timediff;
+-		struct timeval now;
+-
+-		/* ACK packet has 1 byte --> ignore */
+-		if (ret < DEVICE_HEADERLEN)
+-			return -ENODATA;
+-
+-		dev_dbg(&ir->usbdev->dev, "Got %d bytes. Header: %*ph\n",
+-			ret, 3, ir->buf_in);
+-
+-		do_gettimeofday(&now);
+-		timediff = now.tv_sec - ir->last_time.tv_sec;
+-		if (timediff + 1 > PULSE_MASK / 1000000)
+-			timediff = PULSE_MASK;
+-		else {
+-			timediff *= 1000000;
+-			timediff += now.tv_usec - ir->last_time.tv_usec;
+-		}
+-		ir->last_time.tv_sec = now.tv_sec;
+-		ir->last_time.tv_usec = now.tv_usec;
+-
+-		/* create leading gap  */
+-		code = timediff;
+-		lirc_buffer_write(buf, (unsigned char *)&code);
+-		ir->in_space = 1;   /* next comes a pulse */
+-
+-		if (ir->buf_in[2] == 0)
+-			send_fragment(ir, buf, DEVICE_HEADERLEN, ret);
+-		else {
+-			dev_warn(&ir->usbdev->dev,
+-				 "[%d]: Device buffer overrun.\n", ir->devnum);
+-			/* HHHNNNNNNNNNNNOOOOOOOO H = header
+-			      <---[2]--->         N = newer
+-			   <---------ret--------> O = older */
+-			ir->buf_in[2] %= ret - DEVICE_HEADERLEN; /* sanitize */
+-			/* keep even-ness to not desync pulse/pause */
+-			send_fragment(ir, buf, DEVICE_HEADERLEN +
+-				      ir->buf_in[2] - (ir->buf_in[2] & 1), ret);
+-			send_fragment(ir, buf, DEVICE_HEADERLEN,
+-				      DEVICE_HEADERLEN + ir->buf_in[2]);
+-		}
+-
+-		ret = usb_control_msg(
+-		      ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
+-		      SET_INFRABUFFER_EMPTY, USB_TYPE_VENDOR|USB_DIR_IN,
+-		      /*unused*/0, /*unused*/0,
+-		      /*dummy*/ir->buf_in, /*dummy*/ir->len_in,
+-		      /*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
+-		if (ret < 0)
+-			printk(DRIVER_NAME "[%d]: SET_INFRABUFFER_EMPTY: error %d\n",
+-			       ir->devnum, ret);
+-		return 0;
+-	} else if (ret < 0)
+-		printk(DRIVER_NAME "[%d]: GET_INFRACODE: error %d\n",
+-			ir->devnum, ret);
+-
+-	return -ENODATA;
+-}
+-
+-static int igorplugusb_remote_probe(struct usb_interface *intf,
+-				    const struct usb_device_id *id)
+-{
+-	struct usb_device *dev;
+-	struct usb_host_interface *idesc = NULL;
+-	struct usb_endpoint_descriptor *ep;
+-	struct igorplug *ir = NULL;
+-	struct lirc_driver *driver = NULL;
+-	int devnum, pipe, maxp;
+-	char buf[63], name[128] = "";
+-	int ret;
+-
+-	dev_dbg(&intf->dev, "%s: usb probe called.\n", __func__);
+-
+-	dev = interface_to_usbdev(intf);
+-
+-	idesc = intf->cur_altsetting;
+-
+-	if (idesc->desc.bNumEndpoints != 1)
+-		return -ENODEV;
+-
+-	ep = &idesc->endpoint->desc;
+-	if (((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+-	    != USB_DIR_IN)
+-	    || (ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-	    != USB_ENDPOINT_XFER_CONTROL)
+-		return -ENODEV;
+-
+-	pipe = usb_rcvctrlpipe(dev, ep->bEndpointAddress);
+-	devnum = dev->devnum;
+-	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
+-
+-	dev_dbg(&intf->dev, "%s: bytes_in_key=%zu maxp=%d\n",
+-		__func__, CODE_LENGTH, maxp);
+-
+-	ir = devm_kzalloc(&intf->dev, sizeof(*ir), GFP_KERNEL);
+-	if (!ir)
+-		return -ENOMEM;
+-
+-	driver = devm_kzalloc(&intf->dev, sizeof(*driver), GFP_KERNEL);
+-	if (!driver)
+-		return -ENOMEM;
+-
+-	ir->buf_in = usb_alloc_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
+-					GFP_ATOMIC, &ir->dma_in);
+-	if (!ir->buf_in)
+-		return -ENOMEM;
+-
+-	strcpy(driver->name, DRIVER_NAME " ");
+-	driver->minor = -1;
+-	driver->code_length = CODE_LENGTH * 8; /* in bits */
+-	driver->features = LIRC_CAN_REC_MODE2;
+-	driver->data = ir;
+-	driver->chunk_size = CODE_LENGTH;
+-	driver->buffer_size = DEVICE_BUFLEN + ADDITIONAL_LIRC_BYTES;
+-	driver->set_use_inc = &set_use_inc;
+-	driver->set_use_dec = &set_use_dec;
+-	driver->sample_rate = sample_rate;    /* per second */
+-	driver->add_to_buf = &igorplugusb_remote_poll;
+-	driver->dev = &intf->dev;
+-	driver->owner = THIS_MODULE;
+-
+-	ret = lirc_register_driver(driver);
+-	if (ret < 0) {
+-		usb_free_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
+-			ir->buf_in, ir->dma_in);
+-		return ret;
+-	}
+-
+-	driver->minor = ret;
+-	ir->d = driver;
+-	ir->devnum = devnum;
+-	ir->usbdev = dev;
+-	ir->len_in = DEVICE_BUFLEN + DEVICE_HEADERLEN;
+-	ir->in_space = 1; /* First mode2 event is a space. */
+-	do_gettimeofday(&ir->last_time);
+-
+-	if (dev->descriptor.iManufacturer
+-	    && usb_string(dev, dev->descriptor.iManufacturer,
+-			  buf, sizeof(buf)) > 0)
+-		strlcpy(name, buf, sizeof(name));
+-	if (dev->descriptor.iProduct
+-	    && usb_string(dev, dev->descriptor.iProduct, buf, sizeof(buf)) > 0)
+-		snprintf(name + strlen(name), sizeof(name) - strlen(name),
+-			 " %s", buf);
+-	printk(DRIVER_NAME "[%d]: %s on usb%d:%d\n", devnum, name,
+-	       dev->bus->busnum, devnum);
+-
+-	/* clear device buffer */
+-	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
+-		SET_INFRABUFFER_EMPTY, USB_TYPE_VENDOR|USB_DIR_IN,
+-		/*unused*/0, /*unused*/0,
+-		/*dummy*/ir->buf_in, /*dummy*/ir->len_in,
+-		/*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
+-	if (ret < 0)
+-		printk(DRIVER_NAME "[%d]: SET_INFRABUFFER_EMPTY: error %d\n",
+-			devnum, ret);
+-
+-	usb_set_intfdata(intf, ir);
+-	return 0;
+-}
+-
+-static void igorplugusb_remote_disconnect(struct usb_interface *intf)
+-{
+-	struct usb_device *usbdev = interface_to_usbdev(intf);
+-	struct igorplug *ir = usb_get_intfdata(intf);
+-	struct device *dev = &intf->dev;
+-	int devnum;
+-
+-	usb_set_intfdata(intf, NULL);
+-
+-	if (!ir || !ir->d)
+-		return;
+-
+-	ir->usbdev = NULL;
+-
+-	usb_free_coherent(usbdev, ir->len_in, ir->buf_in, ir->dma_in);
+-
+-	devnum = unregister_from_lirc(ir);
+-
+-	dev_info(dev, DRIVER_NAME "[%d]: %s done\n", devnum, __func__);
+-}
+-
+-static struct usb_device_id igorplugusb_remote_id_table[] = {
+-	/* Igor Plug USB (Atmel's Manufact. ID) */
+-	{ USB_DEVICE(0x03eb, 0x0002) },
+-	/* Fit PC2 Infrared Adapter */
+-	{ USB_DEVICE(0x03eb, 0x21fe) },
+-
+-	/* Terminating entry */
+-	{ }
+-};
+-
+-static struct usb_driver igorplugusb_remote_driver = {
+-	.name =		DRIVER_NAME,
+-	.probe =	igorplugusb_remote_probe,
+-	.disconnect =	igorplugusb_remote_disconnect,
+-	.id_table =	igorplugusb_remote_id_table
+-};
+-
+-module_usb_driver(igorplugusb_remote_driver);
+-
+-#include <linux/vermagic.h>
+-MODULE_INFO(vermagic, VERMAGIC_STRING);
+-
+-MODULE_DESCRIPTION(DRIVER_DESC);
+-MODULE_AUTHOR(DRIVER_AUTHOR);
+-MODULE_LICENSE("GPL");
+-MODULE_DEVICE_TABLE(usb, igorplugusb_remote_id_table);
+-
+-module_param(sample_rate, int, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(sample_rate, "Sampling rate in Hz (default: 100)");
+-- 
+1.7.10.4
 
-results in entries likes these:
-
-TGRT BELGESEL;www.tgrt.com.tr:11981:hC56M2O0S0:S42E:5200:308=2:256=eng@4:0:0:1:42:313:0
-SHOW TV;SHOW TV:11964:hC34M2O0S0:S42E:5925:308+8190=2:256=tur@4,257=alm,258=ifb:273:0:1:90:19:0
-
-I tried to figure out all the output syntax and got so far:
-
-Channel Name : Provider : frequency : polarization : orbital position : symbol rate : video pid and PCR *(if vpid and pcr are the same then vpid=2 seems to apply)* : audiopid=language : videotext pid : conditional access (probably) : service ID (sometime equal to PMT): *don't know* : *don't know* : *don't know*
-
-can someone confirm or correct my interpretation? and again is it somehow possible to get the PMT value in the output as well.
-If i'm not mistaken I can get PMT values at lest in hex format when using dvbsnoop, but then if I want to get the values for 3 satellites (my current setup) that would imply a veeery lengthy process I think, unless someone can give me some pointers (or a solution preferable ;-)).
-
-Thank you in advance for any help :-)
-Jody
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
