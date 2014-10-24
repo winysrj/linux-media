@@ -1,70 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50792 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754060AbaJJO1I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 10:27:08 -0400
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>
-CC: <nikhil.nd@ti.com>
-Subject: [RFC PATCH 1/4] [media] ti-vpe: Use data offset for getting dma_addr for a plane
-Date: Fri, 10 Oct 2014 19:57:00 +0530
-Message-ID: <1412951223-4711-2-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1412951223-4711-1-git-send-email-nikhil.nd@ti.com>
-References: <1412951223-4711-1-git-send-email-nikhil.nd@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga14.intel.com ([192.55.52.115]:33868 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755833AbaJXOYU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Oct 2014 10:24:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH 1/1] yavta: Add --queue-late option for delay queueing buffers over streaming start
+Date: Fri, 24 Oct 2014 17:23:58 +0300
+Message-Id: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The data_offset in v4l2_planes structure will help us point to the start of
-data content for that particular plane. This may be useful when a single
-buffer contains the data for different planes e.g. Y planes of two fields in
-the same buffer. With this, user space can pass queue top field and
-bottom field with same dmafd and different data_offsets.
+Queue buffers to the device after VIDIOC_STREAMON, not before. This does not
+affect queueing behaviour otherwise.
 
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ yavta.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 9a081c2..4c3ef48 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -496,6 +496,14 @@ struct vpe_mmr_adb {
+diff --git a/yavta.c b/yavta.c
+index 20bbe29..7f9e814 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -1429,7 +1429,6 @@ static int video_prepare_capture(struct device *dev, int nbufs, unsigned int off
+ 				 const char *filename, enum buffer_fill_mode fill)
+ {
+ 	unsigned int padding;
+-	unsigned int i;
+ 	int ret;
  
- #define VPE_SET_MMR_ADB_HDR(ctx, hdr, regs, offset_a)	\
- 	VPDMA_SET_MMR_ADB_HDR(ctx->mmr_adb, vpe_mmr_adb, hdr, regs, offset_a)
-+
-+static inline dma_addr_t vb2_dma_addr_plus_data_offset(struct vb2_buffer *vb,
-+	unsigned int plane_no)
-+{
-+	return vb2_dma_contig_plane_dma_addr(vb, plane_no) +
-+		vb->v4l2_planes[plane_no].data_offset;
+ 	/* Allocate and map buffers. */
+@@ -1443,6 +1442,14 @@ static int video_prepare_capture(struct device *dev, int nbufs, unsigned int off
+ 			return ret;
+ 	}
+ 
++	return 0;
 +}
 +
- /*
-  * Set the headers for all of the address/data block structures.
-  */
-@@ -1003,7 +1011,7 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 		int plane = fmt->coplanar ? p_data->vb_part : 0;
++static int video_queue_all_buffers(struct device *dev, enum buffer_fill_mode fill)
++{
++	unsigned int i;
++	int ret;
++
+ 	/* Queue the buffers. */
+ 	for (i = 0; i < dev->nbufs; ++i) {
+ 		ret = video_queue_buffer(dev, i, fill);
+@@ -1554,7 +1561,7 @@ static void video_save_image(struct device *dev, struct v4l2_buffer *buf,
  
- 		vpdma_fmt = fmt->vpdma_fmt[plane];
--		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
-+		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
- 		if (!dma_addr) {
- 			vpe_err(ctx->dev,
- 				"acquiring output buffer(%d) dma_addr failed\n",
-@@ -1043,7 +1051,7 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ static int video_do_capture(struct device *dev, unsigned int nframes,
+ 	unsigned int skip, unsigned int delay, const char *pattern,
+-	int do_requeue_last, enum buffer_fill_mode fill)
++	int do_requeue_last, int do_queue_late, enum buffer_fill_mode fill)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct v4l2_buffer buf;
+@@ -1572,6 +1579,9 @@ static int video_do_capture(struct device *dev, unsigned int nframes,
+ 	if (ret < 0)
+ 		goto done;
  
- 		vpdma_fmt = fmt->vpdma_fmt[plane];
++	if (do_queue_late)
++		video_queue_all_buffers(dev, fill);
++
+ 	size = 0;
+ 	clock_gettime(CLOCK_MONOTONIC, &start);
+ 	last.tv_sec = start.tv_sec;
+@@ -1712,6 +1722,7 @@ static void usage(const char *argv0)
+ 	printf("    --no-query			Don't query capabilities on open\n");
+ 	printf("    --offset			User pointer buffer offset from page start\n");
+ 	printf("    --premultiplied		Color components are premultiplied by alpha value\n");
++	printf("    --queue-late		Queue buffers after streamon, not before\n");
+ 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
+ 	printf("    --timestamp-source		Set timestamp source on output buffers [eof, soe]\n");
+ 	printf("    --skip n			Skip the first n frames\n");
+@@ -1733,6 +1744,7 @@ static void usage(const char *argv0)
+ #define OPT_LOG_STATUS		267
+ #define OPT_BUFFER_SIZE		268
+ #define OPT_PREMULTIPLIED	269
++#define OPT_QUEUE_LATE		270
  
--		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
-+		dma_addr = vb2_dma_addr_plus_data_offset(vb, plane);
- 		if (!dma_addr) {
- 			vpe_err(ctx->dev,
- 				"acquiring input buffer(%d) dma_addr failed\n",
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+@@ -1757,6 +1769,7 @@ static struct option opts[] = {
+ 	{"pause", 0, 0, 'p'},
+ 	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
+ 	{"quality", 1, 0, 'q'},
++	{"queue-late", 0, 0, OPT_QUEUE_LATE},
+ 	{"get-control", 1, 0, 'r'},
+ 	{"requeue-last", 0, 0, OPT_REQUEUE_LAST},
+ 	{"realtime", 2, 0, 'R'},
+@@ -1788,7 +1801,7 @@ int main(int argc, char *argv[])
+ 	int do_list_controls = 0, do_get_control = 0, do_set_control = 0;
+ 	int do_sleep_forever = 0, do_requeue_last = 0;
+ 	int do_rt = 0, do_log_status = 0;
+-	int no_query = 0;
++	int no_query = 0, do_queue_late = 0;
+ 	char *endptr;
+ 	int c;
+ 
+@@ -1971,6 +1984,9 @@ int main(int argc, char *argv[])
+ 		case OPT_PREMULTIPLIED:
+ 			fmt_flags |= V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
+ 			break;
++		case OPT_QUEUE_LATE:
++			do_queue_late = 1;
++			break;
+ 		case OPT_REQUEUE_LAST:
+ 			do_requeue_last = 1;
+ 			break;
+@@ -2107,6 +2123,11 @@ int main(int argc, char *argv[])
+ 		return 1;
+ 	}
+ 
++	if (!do_queue_late && video_queue_all_buffers(&dev, fill_mode)) {
++		video_close(&dev);
++		return 1;
++	}
++
+ 	if (do_pause) {
+ 		printf("Press enter to start capture\n");
+ 		getchar();
+@@ -2122,7 +2143,7 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	if (video_do_capture(&dev, nframes, skip, delay, filename,
+-			     do_requeue_last, fill_mode) < 0) {
++			     do_requeue_last, do_queue_late, fill_mode) < 0) {
+ 		video_close(&dev);
+ 		return 1;
+ 	}
 -- 
-1.7.9.5
+2.1.0.231.g7484e3b
 
