@@ -1,80 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60785 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616AbaJZW1L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 18:27:11 -0400
-In-Reply-To: <201410262135.s9QLZUSV030589@cneufeld.ca>
-References: <201410252315.s9PNF6eB002672@cneufeld.ca> <544C8BAC.1070001@xs4all.nl> <201410261210.s9QCAQBD012612@cneufeld.ca> <1414345274.6342.13.camel@palomino.walls.org> <201410262135.s9QLZUSV030589@cneufeld.ca>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: VBI on PVR-500 stopped working between kernels 3.6 and 3.13
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 26 Oct 2014 18:27:02 -0400
-To: media-alias@cneufeld.ca, linux-media@vger.kernel.org
-Message-ID: <8F9EC1E7-D341-48DE-88BC-7494763DF8A9@md.metrocast.net>
+Received: from cantor2.suse.de ([195.135.220.15]:45271 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751729AbaJXIKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Oct 2014 04:10:23 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] uvc: Fix destruction order in uvc_delete()
+Date: Fri, 24 Oct 2014 10:10:20 +0200
+Message-Id: <1414138220-15998-1-git-send-email-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On October 26, 2014 5:35:30 PM EDT, Christopher Neufeld <media-alias@cneufeld.ca> wrote:
->Andy,
->
->On Sun, 26 Oct 2014 13:41:14 -0400, Andy Walls
-><awalls@md.metrocast.net> said:
->
->> Can you verify that 
->
->> 	v4l2-ctl -d <DEV> --get-fmt-sliced-vbi --get-ctrl=stream_vbi_format
->
->> also fails, and that
->
->Yes, that also fails.
->
->> 	v4l2-ctl --list-devices
->> 	v4l2-ctl -d /dev/vbi<N> --set-fmt-sliced-vbi=cc=1
->--set-ctrl=stream_vbi_format=1
->> 	v4l2-ctl -d /dev/vbi<N> --get-fmt-sliced-vbi
->--get-ctrl=stream_vbi_format
->
->> both succeed on the corresponding vbi node?
->
->Yes, those succeed.  So, that solves my problem, thank you.
->
->> If you can use the /dev/vbiN node as a work-around, please do.
->
->I will switch to doing that, and update the MythTV wiki appropriately. 
->I
->assume that this is the correct invocation for any similar capture
->devices,
->not just the PVR-500 and family.
->
->
->On Sun, 26 Oct 2014 14:28:15 -0400, Andy Walls
-><awalls@md.metrocast.net> said:
->
->> FYI, MythTV has already worked around it:
->> https://code.mythtv.org/trac/ticket/11723
->>
->https://github.com/MythTV/mythtv/commit/25310069a1154213cbc94c903c8b0ace30893ec4
->
->Ah, well then that part of my bug report was incorrect.  Sometimes
->shows
->don't send caption data, even the same program one week later.  I
->happened
->to have two recordings in standard definition that had no captions, but
->one
->recorded last night did, as might be expected if MythTV already worked
->around it.
->
->Thank you for your time on this, Andy and Hans.  I will update my
->scripts,
->and this will work perfectly for me.
+We've got a bug report at disconnecting a Webcam, where the kernel
+spews warnings like below:
+  WARNING: CPU: 0 PID: 8385 at ../fs/sysfs/group.c:219 sysfs_remove_group+0x87/0x90()
+  sysfs group c0b2350c not found for kobject 'event3'
+  CPU: 0 PID: 8385 Comm: queue2:src Not tainted 3.16.2-1.gdcee397-default #1
+  Hardware name: ASUSTeK Computer INC. A7N8X-E/A7N8X-E, BIOS ASUS A7N8X-E Deluxe ACPI BIOS Rev 1013  11/12/2004
+    c08d0705 ddc75cbc c0718c5b ddc75ccc c024b654 c08c6d44 ddc75ce8 000020c1
+    c08d0705 000000db c03d1ec7 c03d1ec7 00000009 00000000 c0b2350c d62c9064
+    ddc75cd4 c024b6a3 00000009 ddc75ccc c08c6d44 ddc75ce8 ddc75cfc c03d1ec7
+  Call Trace:
+    [<c0205ba6>] try_stack_unwind+0x156/0x170
+    [<c02046f3>] dump_trace+0x53/0x180
+    [<c0205c06>] show_trace_log_lvl+0x46/0x50
+    [<c0204871>] show_stack_log_lvl+0x51/0xe0
+    [<c0205c67>] show_stack+0x27/0x50
+    [<c0718c5b>] dump_stack+0x3e/0x4e
+    [<c024b654>] warn_slowpath_common+0x84/0xa0
+    [<c024b6a3>] warn_slowpath_fmt+0x33/0x40
+    [<c03d1ec7>] sysfs_remove_group+0x87/0x90
+    [<c05a2c54>] device_del+0x34/0x180
+    [<c05e3989>] evdev_disconnect+0x19/0x50
+    [<c05e06fa>] __input_unregister_device+0x9a/0x140
+    [<c05e0845>] input_unregister_device+0x45/0x80
+    [<f854b1d6>] uvc_delete+0x26/0x110 [uvcvideo]
+    [<f84d66f8>] v4l2_device_release+0x98/0xc0 [videodev]
+    [<c05a25bb>] device_release+0x2b/0x90
+    [<c04ad8bf>] kobject_cleanup+0x6f/0x1a0
+    [<f84d5453>] v4l2_release+0x43/0x70 [videodev]
+    [<c0372f31>] __fput+0xb1/0x1b0
+    [<c02650c1>] task_work_run+0x91/0xb0
+    [<c024d845>] do_exit+0x265/0x910
+    [<c024df64>] do_group_exit+0x34/0xa0
+    [<c025a76f>] get_signal_to_deliver+0x17f/0x590
+    [<c0201b6a>] do_signal+0x3a/0x960
+    [<c02024f7>] do_notify_resume+0x67/0x90
+    [<c071ebb5>] work_notifysig+0x30/0x3b
+    [<b7739e60>] 0xb7739e5f
+   ---[ end trace b1e56095a485b631 ]---
 
-Hi Chris,
+The cause is that uvc_status_cleanup() is called after usb_put_*() in
+uvc_delete().  usb_put_*() removes the sysfs parent and eventually
+removes the children recursively, so the later device_del() can't find
+its sysfs.  The fix is simply rearrange the call orders in
+uvc_delete() so that the child is removed before the parent.
 
-Well, I didn't look at MythTV's logic for finding the correct vbi device.  You might not get captions from MythTV recordings, if it guessed the wrong vbi node or if it didn't have sufficient permissions to access the vbi node.
+Bugzilla: https://bugzilla.suse.com/show_bug.cgi?id=897736
+Reported-and-tested-by: Martin Pluskal <mpluskal@suse.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-Andy
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 7c8322d4fc63..3c07af96b30f 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1623,12 +1623,12 @@ static void uvc_delete(struct uvc_device *dev)
+ {
+ 	struct list_head *p, *n;
+ 
+-	usb_put_intf(dev->intf);
+-	usb_put_dev(dev->udev);
+-
+ 	uvc_status_cleanup(dev);
+ 	uvc_ctrl_cleanup_device(dev);
+ 
++	usb_put_intf(dev->intf);
++	usb_put_dev(dev->udev);
++
+ 	if (dev->vdev.dev)
+ 		v4l2_device_unregister(&dev->vdev);
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-- 
+2.1.2
+
