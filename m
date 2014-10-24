@@ -1,222 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:40089 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932578AbaJaNON (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4668 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbaJXCkx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:14:13 -0400
-Received: by mail-pd0-f182.google.com with SMTP id fp1so7288182pdb.13
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 06:14:12 -0700 (PDT)
-From: tskd08@gmail.com
+	Thu, 23 Oct 2014 22:40:53 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9O2egVq012833
+	for <linux-media@vger.kernel.org>; Fri, 24 Oct 2014 04:40:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C8C632A009D
+	for <linux-media@vger.kernel.org>; Fri, 24 Oct 2014 04:40:28 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v3 1/7] v4l-utils/libdvbv5, dvbv5-scan: generalize channel duplication check
-Date: Fri, 31 Oct 2014 22:13:38 +0900
-Message-Id: <1414761224-32761-2-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
-References: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141024024028.C8C632A009D@tschai.lan>
+Date: Fri, 24 Oct 2014 04:40:28 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When a new channel entry is to be added to the channel list,
-it is checked if there's already similar entry in the list.
-This check was based only on freq, polarity, allowable frequency shift,
-so it could not be used for delivery systems that use stream_id
-and mulplex multiple TS's (channels) into one frequency.
-This patch adds stream_id to the check.
+Results of the daily build of media_tree:
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- lib/include/libdvbv5/dvb-scan.h |  9 ++++---
- lib/libdvbv5/dvb-scan.c         | 56 ++++++++++++++++++++++++++---------------
- utils/dvb/dvbv5-scan.c          |  8 ++++--
- 3 files changed, 48 insertions(+), 25 deletions(-)
+date:		Fri Oct 24 04:00:35 CEST 2014
+git branch:	test
+git hash:	1ef24960ab78554fe7e8e77d8fc86524fbd60d3c
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-34-g71e642a
+host hardware:	x86_64
+host os:	3.17-0.slh.1-amd64
 
-diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
-index fe50687..aad6d01 100644
---- a/lib/include/libdvbv5/dvb-scan.h
-+++ b/lib/include/libdvbv5/dvb-scan.h
-@@ -385,14 +385,17 @@ void dvb_add_scaned_transponders(struct dvb_v5_fe_parms *parms,
-  */
- int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *parms);
- 
--int dvb_new_freq_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
--			   uint32_t freq, enum dvb_sat_polarization pol, int shift);
-+int dvb_new_entry_is_needed(struct dvb_entry *entry,
-+			   struct dvb_entry *last_entry,
-+			   uint32_t freq, int shift,
-+			   enum dvb_sat_polarization pol, uint32_t stream_id);
- 
- struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *parms,
- 				     struct dvb_entry *first_entry,
- 			             struct dvb_entry *entry,
- 			             uint32_t freq, uint32_t shift,
--			             enum dvb_sat_polarization pol);
-+			             enum dvb_sat_polarization pol,
-+			             uint32_t stream_id);
- 
- void dvb_update_transponders(struct dvb_v5_fe_parms *parms,
- 			     struct dvb_v5_descriptors *dvb_scan_handler,
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index 4a8bd66..31eb78f 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -686,24 +686,37 @@ int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *__p)
- 	return shift;
- }
- 
--int dvb_new_freq_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
--			   uint32_t freq, enum dvb_sat_polarization pol, int shift)
-+int dvb_new_entry_is_needed(struct dvb_entry *entry,
-+			    struct dvb_entry *last_entry,
-+			    uint32_t freq, int shift,
-+			    enum dvb_sat_polarization pol, uint32_t stream_id)
- {
--	int i;
--	uint32_t data;
--
- 	for (; entry != last_entry; entry = entry->next) {
-+		int i;
-+
- 		for (i = 0; i < entry->n_props; i++) {
--			data = entry->props[i].u.data;
--			if (entry->props[i].cmd == DTV_POLARIZATION) {
-+			uint32_t data = entry->props[i].u.data;
-+
-+			if (entry->props[i].cmd == DTV_FREQUENCY) {
-+				if (freq < data - shift || freq > data + shift)
-+					break;
-+			}
-+			if (pol != POLARIZATION_OFF
-+			    && entry->props[i].cmd == DTV_POLARIZATION) {
- 				if (data != pol)
--					continue;
-+					break;
- 			}
--			if (entry->props[i].cmd == DTV_FREQUENCY) {
--				if (( freq >= data - shift) && (freq <= data + shift))
--					return 0;
-+			/* NO_STREAM_ID_FILTER: stream_id is not used.
-+			 * 0: unspecified/auto. libdvbv5 default value.
-+			 */
-+			if (stream_id != NO_STREAM_ID_FILTER && stream_id != 0
-+			    && entry->props[i].cmd == DTV_STREAM_ID) {
-+				if (data != stream_id)
-+					break;
- 			}
- 		}
-+		if (i == entry->n_props && entry->n_props > 0)
-+			return 0;
- 	}
- 
- 	return 1;
-@@ -713,19 +726,21 @@ struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *__p,
- 				     struct dvb_entry *first_entry,
- 			             struct dvb_entry *entry,
- 			             uint32_t freq, uint32_t shift,
--			             enum dvb_sat_polarization pol)
-+			             enum dvb_sat_polarization pol,
-+				     uint32_t stream_id)
- {
- 	struct dvb_v5_fe_parms_priv *parms = (void *)__p;
- 	struct dvb_entry *new_entry;
- 	int i, n = 2;
- 
--	if (!dvb_new_freq_is_needed(first_entry, NULL, freq, pol, shift))
-+	if (!dvb_new_entry_is_needed(first_entry, NULL, freq, shift, pol,
-+				     stream_id))
- 		return NULL;
- 
- 	/* Clone the current entry into a new entry */
- 	new_entry = calloc(sizeof(*new_entry), 1);
- 	if (!new_entry) {
--		dvb_perror("not enough memory for a new scanning frequency");
-+		dvb_perror("not enough memory for a new scanning frequency/TS");
- 		return NULL;
- 	}
- 
-@@ -797,7 +812,7 @@ static void add_update_nit_dvbc(struct dvb_table_nit *nit,
- 		new = tr->entry;
- 	} else {
- 		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
--					 d->frequency, tr->shift, tr->pol);
-+					 d->frequency, tr->shift, tr->pol, 0);
- 		if (!new)
- 			return;
- 	}
-@@ -831,7 +846,8 @@ static void add_update_nit_isdbt(struct dvb_table_nit *nit,
- 
- 	for (i = 0; i < d->num_freqs; i++) {
- 		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
--					 d->frequency[i], tr->shift, tr->pol);
-+					 d->frequency[i], tr->shift,
-+					 tr->pol, 0);
- 		if (!new)
- 			return;
- 	}
-@@ -907,7 +923,7 @@ static void add_update_nit_dvbt2(struct dvb_table_nit *nit,
- 	for (i = 0; i < t2->frequency_loop_length; i++) {
- 		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
- 					 t2->centre_frequency[i] * 10,
--					 tr->shift, tr->pol);
-+					 tr->shift, tr->pol, t2->plp_id);
- 		if (!new)
- 			return;
- 
-@@ -937,7 +953,8 @@ static void add_update_nit_dvbt(struct dvb_table_nit *nit,
- 		return;
- 
- 	new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
--				d->centre_frequency * 10, tr->shift, tr->pol);
-+				d->centre_frequency * 10, tr->shift,
-+				tr->pol, 0);
- 	if (!new)
- 		return;
- 
-@@ -976,7 +993,7 @@ static void add_update_nit_dvbs(struct dvb_table_nit *nit,
- 		new = tr->entry;
- 	} else {
- 		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
--					 d->frequency, tr->shift, tr->pol);
-+					 d->frequency, tr->shift, tr->pol, 0);
- 		if (!new)
- 			return;
- 	}
-@@ -998,7 +1015,6 @@ static void add_update_nit_dvbs(struct dvb_table_nit *nit,
- 				     SYS_DVBS2);
- }
- 
--
- static void __dvb_add_update_transponders(struct dvb_v5_fe_parms_priv *parms,
- 					  struct dvb_v5_descriptors *dvb_scan_handler,
- 					  struct dvb_entry *first_entry,
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 827c3c9..9c10e52 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -238,6 +238,7 @@ static int run_scan(struct arguments *args,
- 
- 	for (entry = dvb_file->first_entry; entry != NULL; entry = entry->next) {
- 		struct dvb_v5_descriptors *dvb_scan_handler = NULL;
-+		uint32_t stream_id;
- 
- 		/*
- 		 * If the channel file has duplicated frequencies, or some
-@@ -251,8 +252,11 @@ static int run_scan(struct arguments *args,
- 		if (dvb_retrieve_entry_prop(entry, DTV_POLARIZATION, &pol))
- 			pol = POLARIZATION_OFF;
- 
--		if (!dvb_new_freq_is_needed(dvb_file->first_entry, entry,
--					    freq, pol, shift))
-+		if (dvb_retrieve_entry_prop(entry, DTV_STREAM_ID, &stream_id))
-+			stream_id = NO_STREAM_ID_FILTER;
-+
-+		if (!dvb_new_entry_is_needed(dvb_file->first_entry, entry,
-+						  freq, shift, pol, stream_id))
- 			continue;
- 
- 		count++;
--- 
-2.1.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
