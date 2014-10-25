@@ -1,78 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39249 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751799AbaJCSFu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Oct 2014 14:05:50 -0400
-Date: Fri, 3 Oct 2014 15:05:44 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.17] si2165 firmware changes
-Message-ID: <20141003150544.435e323f@recife.lan>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:45125 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750884AbaJYSrZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Oct 2014 14:47:25 -0400
+Received: by mail-pa0-f48.google.com with SMTP id ey11so2961607pad.7
+        for <linux-media@vger.kernel.org>; Sat, 25 Oct 2014 11:47:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Date: Sat, 25 Oct 2014 11:47:24 -0400
+Message-ID: <CAOcJUbx9q1XGUoNW9avqVqi9LQ1hmwe4TM=Op8jLrm4yAKCd8g@mail.gmail.com>
+Subject: [GIT PULL] DVB: add support for LG Electronics LGDT3306A ATSC/QAM-B Demodulator
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Mauro,
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
+We spoke briefly about the lgdt3306a driver.  I've done a lot of
+cleanup on this driver, starting with checkpatch.pl complaining:
 
-For some changes at the si2165 firmware name and the removal of an extra
-unneeded header added artificially via the script that extracts it from
-the original driver provided by the manufacturer.
+total: 495 errors, 313 warnings, 2126 lines checked
 
-The si2165 is a new driver that was added for v3.17. There are two issues
-with the current firmware format:
+ ... Now checkpatch.pl reports the following:
 
-- The firmware only covers one specific revision of the chipset
-  (Rev. D). We'll be adding support for another revision for v3.18, so
-  it would be better to rename the firmware file to reflect the revision
-  on its name:
+total: 5 errors, 51 warnings, 2138 lines checked
 
-	-#define SI2165_FIRMWARE "dvb-demod-si2165.fw"
-	+#define SI2165_FIRMWARE_REV_D "dvb-demod-si2165-d.fw"
+consisting of mostly "WARNING: line over 80 characters"
 
-- Instead of containing a single blob with the firmware, the file
-  also contains some meta-data that could be determined on some other way
-  directly by the driver.
+This could use a *little* bit more cleanup, but I think it's clean
+enough to be merged now.
 
-The script that gets the firmware from the Internet was also updated
-accordingly to not add the extra header.
+The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
 
-Thanks!
-Mauro
-
-
-
-The following changes since commit 90a5dbef1a66e9f55b76ccb83c0ef27c0bd87c27:
-
-  Revert "[media] media: em28xx - remove reset_resume interface" (2014-09-28 22:25:24 -0300)
+  Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/topic/si2165-v3.17-rc8
+  git://git.linuxtv.org/mkrufky/dvb lgdt3306a
 
-for you to fetch changes up to 3173fbdce9e41fc4fabe0b3dedd99c615f47dbdd:
+for you to fetch changes up to b5bf818584a22a9271c78fc18ca9cd44d36266ec:
 
-  [media] [V2,2/2] si2165: do load firmware without extra header (2014-10-02 18:18:52 -0300)
-
-----------------------------------------------------------------
-topic/si2165 fixes for v3.17-rc8
+  lgdt3306a: more small whitespace cleanups (2014-10-25 10:26:15 -0400)
 
 ----------------------------------------------------------------
-Matthias Schwarzott (2):
-      [media] [V2, 1/2] get_dvb_firmware: si2165: drop the extra header from the firmware
-      [media] [V2,2/2] si2165: do load firmware without extra header
+Fred Richter (1):
+      DVB: add support for LG Electronics LGDT3306A ATSC/QAM-B Demodulator
 
- Documentation/dvb/get_dvb_firmware        |  20 ++----
- drivers/media/dvb-frontends/Kconfig       |   1 +
- drivers/media/dvb-frontends/si2165.c      | 107 ++++++++++++++++++------------
- drivers/media/dvb-frontends/si2165_priv.h |   2 +-
- 4 files changed, 71 insertions(+), 59 deletions(-)
+Michael Ira Krufky (9):
+      lgdt3306a: clean up whitespace & unneeded brackets
+      lgdt3306a: remove unnecessary 'else'
+      lgdt3306a: fix WARNING: EXPORT_SYMBOL(foo); should immediately
+follow its function/variable
+      lgdt3306a: fix ERROR: do not use assignment in if condition
+      lgdt3306a: do not add new typedefs
+      lgdt3306a: fix ERROR: do not use C99 // comments
+      lgdt3306a: fix WARNING: please, no spaces at the start of a line
+      lgdt3306a: fix WARNING: 'supress' may be misspelled - perhaps 'suppress'?
+      lgdt3306a: more small whitespace cleanups
 
-	
+ drivers/media/dvb-frontends/Kconfig     |    8 +
+ drivers/media/dvb-frontends/Makefile    |    1 +
+ drivers/media/dvb-frontends/lgdt3306a.c | 2035 ++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/lgdt3306a.h |   82 ++
+ 4 files changed, 2126 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/lgdt3306a.c
+ create mode 100644 drivers/media/dvb-frontends/lgdt3306a.h
+
+Cheers,
+
+Mike
