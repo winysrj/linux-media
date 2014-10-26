@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44660 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755228AbaJ1XdP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 19:33:15 -0400
-Date: Wed, 29 Oct 2014 01:33:12 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/1] media: Print information on failed link validation
-Message-ID: <20141028233311.GD3136@valkosipuli.retiisi.org.uk>
-References: <1412372439-4184-1-git-send-email-sakari.ailus@iki.fi>
- <1414537804-25303-1-git-send-email-sakari.ailus@iki.fi>
- <3033119.78jigqieeC@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:33259 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013AbaJZMPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Oct 2014 08:15:47 -0400
+Message-ID: <544CE5F1.3040601@iki.fi>
+Date: Sun, 26 Oct 2014 14:15:45 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3033119.78jigqieeC@avalon>
+To: tskd08@gmail.com, linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [PATCH] dvb:tc90522: bugfix of always-false expression
+References: <1414325129-16570-1-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1414325129-16570-1-git-send-email-tskd08@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-On Wed, Oct 29, 2014 at 01:20:06AM +0200, Laurent Pinchart wrote:
-> >  			ret = -EPIPE;
-> > +			dev_dbg(entity->parent->dev,
-> > +				"\"%s\":%u must be connected by an enabled link, error %d\n",
-> > +				entity->name,
-> > +				find_first_zero_bit(active, entity->num_pads),
-> > +				ret);
-> 
-> Given that ret is always set to -EPIPE, I wouldn't print ", error %d".
-> 
-> Apart from that,
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks for the ack. Good point as well, I'll fix that for v3.
+On 10/26/2014 02:05 PM, tskd08@gmail.com wrote:
+> From: Akihiro Tsukada <tskd08@gmail.com>
+>
+> Reported by David Binderman
+
+^^ See Documentation/SubmittingPatches
+
+Antti
+
+> ---
+>   drivers/media/dvb-frontends/tc90522.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
+> index d9905fb..bca81ef 100644
+> --- a/drivers/media/dvb-frontends/tc90522.c
+> +++ b/drivers/media/dvb-frontends/tc90522.c
+> @@ -363,7 +363,7 @@ static int tc90522t_get_frontend(struct dvb_frontend *fe)
+>   		u8 v;
+>
+>   		c->isdbt_partial_reception = val[0] & 0x01;
+> -		c->isdbt_sb_mode = (val[0] & 0xc0) == 0x01;
+> +		c->isdbt_sb_mode = (val[0] & 0xc0) == 0x40;
+>
+>   		/* layer A */
+>   		v = (val[2] & 0x78) >> 3;
+>
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
