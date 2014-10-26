@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:50348 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbaJFPwL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 11:52:11 -0400
-Message-ID: <5432BAA7.4010008@gmail.com>
-Date: Mon, 06 Oct 2014 17:52:07 +0200
-From: Tomasz Figa <tomasz.figa@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47006 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645AbaJZXa3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Oct 2014 19:30:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	wsa@the-dreams.de, Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] adv7604: Add DT parsing support
+Date: Mon, 27 Oct 2014 01:30:33 +0200
+Message-ID: <19115179.EGFbFL174J@avalon>
+In-Reply-To: <CAL8zT=gUaBDiq=KC5YqCD5dqx2WO1PSXGckvchX_9XxDbJJEpw@mail.gmail.com>
+References: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com> <1645583.LAOF2HV7Iq@avalon> <CAL8zT=gUaBDiq=KC5YqCD5dqx2WO1PSXGckvchX_9XxDbJJEpw@mail.gmail.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org
-CC: pebolle@tiscali.nl, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [media] Remove references to non-existent PLAT_S5P symbol
-References: <1412609947-8358-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1412609947-8358-1-git-send-email-s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.10.2014 17:39, Sylwester Nawrocki wrote:
-> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-> index 77c9512..b3b270a 100644
-> --- a/drivers/media/platform/exynos4-is/Kconfig
-> +++ b/drivers/media/platform/exynos4-is/Kconfig
-> @@ -2,7 +2,7 @@
->  config VIDEO_SAMSUNG_EXYNOS4_IS
->  	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
->  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
-> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->  	depends on OF && COMMON_CLK
->  	help
->  	  Say Y here to enable camera host interface devices for
-> @@ -57,7 +57,7 @@ endif
->  
->  config VIDEO_EXYNOS4_FIMC_IS
->  	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
-> -	depends on HAS_DMA
-> +	depends on HAS_DMA && !ARCH_S5PV210
+Hi Jean-Michel,
 
-Hmm, does this change really do the intended thing?
+On Thursday 23 October 2014 07:51:50 Jean-Michel Hautbois wrote:
+> 2014-10-23 1:53 GMT+02:00 Laurent Pinchart:
+> > On Wednesday 22 October 2014 17:34:21 Jean-Michel Hautbois wrote:
+> >> This patch adds support for DT parsing of ADV7604 as well as ADV7611.
+> >> It needs to be improved in order to get ports parsing too.
+> > 
+> > Let's improve it then :-) The DT bindings as proposed by this patch are
+> > incomplete, that's just asking for trouble.
+> > 
+> > How would you model the adv7604 ports ?
+> 
+> I am opened to suggestions :).
+> But it has to remain as simple as possible, ideally allowing for giving
+> names to the ports.
+> As done today, it works, ports are parsed but are all the same...
 
-Since both S5PV210 and Exynos are multiplatform-aware, now whenever
-ARCH_S5PV210 is enabled, it isn't possible to enable
-VIDEO_EXYNOS4_FIMC_IS, even though ARCH_EXYNOS can be enabled as well at
-the same time.
+The ADV7611 was easy, it had a single HDMI input only. The ADV7612 is easy as 
+well as it just has two separate HDMI inputs.
 
-Best regards,
-Tomasz
+The ADV7604 is a more complex beast. The HDMI inputs shouldn't be much of an 
+issue as they're independent and multiplexed internally. You can just create 
+one pad per HDMI input.
+
+The analog inputs, however, can't be modeled as easily. A naive approach would 
+be to create one pad for each of the 12 analog inputs, but the chip has three 
+separate ADCs and can combine 3 inputs in a single digital video stream. I 
+don't know how we should model support for that. Lars-Peter, Hans, would you 
+have a revolutionary idea to same the world today ?
+
+> >> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+
+[...]
+
+-- 
+Regards,
+
+Laurent Pinchart
+
