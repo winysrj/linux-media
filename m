@@ -1,42 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dehamd003.servertools24.de ([31.47.254.18]:35347 "EHLO
-	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758662AbaJ3LQR (ORCPT
+Received: from 69-165-173-139.dsl.teksavvy.com ([69.165.173.139]:51594 "EHLO
+	londo.cneufeld.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013AbaJZMjF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 07:16:17 -0400
-Message-ID: <54521DFD.5030402@ladisch.de>
-Date: Thu, 30 Oct 2014 12:16:13 +0100
-From: Clemens Ladisch <clemens@ladisch.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>,
-	stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Vlad Catoi <vladcatoi@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [alsa-devel] [PATCH 1/2] [media] sound: simplify au0828 quirk
-	table
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
-	<63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
-In-Reply-To: <63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Sun, 26 Oct 2014 08:39:05 -0400
+Received: from cneufeld.ca (localhost [127.0.0.1])
+	by londo.cneufeld.ca (8.14.4/8.14.4) with ESMTP id s9QCARot012613
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 08:10:27 -0400
+Date: Sun, 26 Oct 2014 08:10:26 -0400
+Message-Id: <201410261210.s9QCAQBD012612@cneufeld.ca>
+From: Christopher Neufeld <neufeld@cneufeld.ca>
+To: linux-media@vger.kernel.org
+In-reply-to: <544C8BAC.1070001@xs4all.nl> (message from Hans Verkuil on Sun,
+	26 Oct 2014 06:50:36 +0100)
+Subject: Re: VBI on PVR-500 stopped working between kernels 3.6 and 3.13
+Reply-to: Christopher.Neufeld@cneufeld.ca
+References: <201410252315.s9PNF6eB002672@cneufeld.ca> <544C8BAC.1070001@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Add a macro to simplify au0828 quirk table. That makes easier
-> to check it against the USB IDs at drivers/media/usb/au0828-card.c
->
-> +++ b/sound/usb/quirks-table.h
-> ...
-> + * This should be kept in sync with drivers/media/usb/au0828-card.c
+Hello Hans,
 
-The file does not exist in that directory.  And when you want to
-keep two files in sync, you need such reminders in both of them.
+On Sun, 26 Oct 2014 06:50:36 +0100, Hans Verkuil <hverkuil@xs4all.nl> said:
+
+>> The script that I use to set up captions invokes this command:
+>> v4l2-ctl -d <DEV> --set-fmt-sliced-vbi=cc --set-ctrl=stream_vbi_format=1
+>> 
+>> This now errors out.  Part of that is a parsing bug in v4l2-ctl, it wants
+>> to see more text after the 'cc'.  I can change it to 
+>> v4l2-ctl -d <DEV> --set-fmt-sliced-vbi=cc=1 --set-ctrl=stream_vbi_format=1
+
+> This is a v4l2-ctl bug. I'll fix that asap. But using cc=1 is a valid workaround.
+
+>> 
+>> with this change, it no longer complains about the command line, but it
+>> errors out in the ioctls.  This behaviour is seen with three versions of
+>> v4l2-ctl: the old one packaged with the old kernel, the new one packaged
+>> with the newer kernel, and the git-head, compiled against the headers of
+>> the new kernel.
+
+> Are you calling this when MythTV is already running? If nobody else is using
+> the PVR-500, does it work?
+
+When my script is running, MythTV is not using that unit of the PVR-500.  I
+use the "recording groups" feature to ensure that that unit is made
+unavailable for recordings whenever high-definition recordings are being
+made.  The details of what I'm doing can be found here:
+https://www.mythtv.org/wiki/Captions_With_HD_PVR
+
+I would not expect this command to succeed if the unit were in use, in fact
+the script detects that as an error case and loops until the device is
+free.  The v4l2-ctl command that I use has historically returned an error
+if somebody had the unit's video device open for reading.  Now, though, it
+errors even when the unit is unused.
+
+For my script, it is necessary that the MythTV backend be running, the
+script is invoked by the backend, but when it is invoked, nobody is using
+that unit of the PVR-500 (and, in practice, the other unit is almost never
+used, as it's quite rare that I make standard-definition recordings).
+
+My script is not used when MythTV directly makes a standard-definition
+recording from the PVR-500.  In that case, the program presumably issues
+its own ioctl equivalents of the v4l2-ctl command, and those are not
+working, because the recordings produced do not have VBI data, while those
+recorded before the kernel upgrade do.
+
+> I won't be able to test this myself until next weekend at the earliest.
+
+Captions are mostly for my wife's benefit, and I checked, most of her
+upcoming shows are being recorded from OTA broadcasts, which provide ATSC
+captions independently of the PVR-500, so I can wait for a week or two.
 
 
-Regards,
-Clemens
+Thank you for looking into this.
+
+-- 
+ Christopher Neufeld
+ Home page:  http://www.cneufeld.ca/neufeld
+ "Don't edit reality for the sake of simplicity"
