@@ -1,102 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:64740 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391AbaJUSa4 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:45200 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751428AbaJZSgN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 14:30:56 -0400
-From: Tomas Melin <tomas.melin@iki.fi>
-To: m.chehab@samsung.com, david@hardeman.nu
-Cc: james.hogan@imgtec.com, a.seppala@gmail.com, bay@hackerdom.ru,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Tomas Melin <tomas.melin@iki.fi>
-Subject: [PATCH v2 1/2] [media] rc-core: fix protocol_change regression in ir_raw_event_register
-Date: Tue, 21 Oct 2014 21:30:17 +0300
-Message-Id: <1413916218-7481-1-git-send-email-tomas.melin@iki.fi>
+	Sun, 26 Oct 2014 14:36:13 -0400
+Message-ID: <1414345274.6342.13.camel@palomino.walls.org>
+Subject: Re: VBI on PVR-500 stopped working between kernels 3.6 and 3.13
+From: Andy Walls <awalls@md.metrocast.net>
+To: Christopher.Neufeld@cneufeld.ca
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Date: Sun, 26 Oct 2014 13:41:14 -0400
+In-Reply-To: <201410261210.s9QCAQBD012612@cneufeld.ca>
+References: <201410252315.s9PNF6eB002672@cneufeld.ca>
+	 <544C8BAC.1070001@xs4all.nl> <201410261210.s9QCAQBD012612@cneufeld.ca>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR reciever using nuvoton-cir and lirc required additional configuration
-steps after upgrade from kernel 3.16 to 3.17-rcX.
-Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
-("[media] rc-core: simplify sysfs code").
+Hi Chris,
 
-The regression comes from adding empty function change_protocol in
-ir-raw.c. It changes behaviour so that only the protocol enabled by driver's
-map_name will be active after registration. This breaks user space behaviour,
-lirc does not get key press signals anymore.
+On Sun, 2014-10-26 at 08:10 -0400, Christopher Neufeld wrote:
+> Hello Hans,
+> 
+> On Sun, 26 Oct 2014 06:50:36 +0100, Hans Verkuil <hverkuil@xs4all.nl> said:
+> 
+> >> The script that I use to set up captions invokes this command:
+> >> v4l2-ctl -d <DEV> --set-fmt-sliced-vbi=cc --set-ctrl=stream_vbi_format=1
+> >> 
+> >> This now errors out.  Part of that is a parsing bug in v4l2-ctl, it wants
+> >> to see more text after the 'cc'.  I can change it to 
+> >> v4l2-ctl -d <DEV> --set-fmt-sliced-vbi=cc=1 --set-ctrl=stream_vbi_format=1
+> 
+> > This is a v4l2-ctl bug. I'll fix that asap. But using cc=1 is a valid workaround.
+> 
+> >> 
+> >> with this change, it no longer complains about the command line, but it
+> >> errors out in the ioctls.  This behaviour is seen with three versions of
+> >> v4l2-ctl: the old one packaged with the old kernel, the new one packaged
+> >> with the newer kernel, and the git-head, compiled against the headers of
+> >> the new kernel.
 
-Changed back to original behaviour by removing empty function
-change_protocol in ir-raw.c. Instead only calling change_protocol for
-drivers that actually have the function set up.
+Can you verify that 
 
-Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
----
- drivers/media/rc/rc-ir-raw.c |    7 -------
- drivers/media/rc/rc-main.c   |   19 ++++++++-----------
- 2 files changed, 8 insertions(+), 18 deletions(-)
+	v4l2-ctl -d <DEV> --get-fmt-sliced-vbi --get-ctrl=stream_vbi_format
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index e8fff2a..a118539 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -240,12 +240,6 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
- 
--static int change_protocol(struct rc_dev *dev, u64 *rc_type)
--{
--	/* the caller will update dev->enabled_protocols */
--	return 0;
--}
--
- /*
-  * Used to (un)register raw event clients
-  */
-@@ -263,7 +257,6 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	dev->raw->dev = dev;
- 	dev->enabled_protocols = ~0;
--	dev->change_protocol = change_protocol;
- 	rc = kfifo_alloc(&dev->raw->kfifo,
- 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
- 			 GFP_KERNEL);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a7991c7..633c682 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1001,11 +1001,6 @@ static ssize_t store_protocols(struct device *device,
- 		set_filter = dev->s_wakeup_filter;
- 	}
- 
--	if (!change_protocol) {
--		IR_dprintk(1, "Protocol switching not supported\n");
--		return -EINVAL;
--	}
--
- 	mutex_lock(&dev->lock);
- 
- 	old_protocols = *current_protocols;
-@@ -1013,12 +1008,14 @@ static ssize_t store_protocols(struct device *device,
- 	rc = parse_protocol_change(&new_protocols, buf);
- 	if (rc < 0)
- 		goto out;
--
--	rc = change_protocol(dev, &new_protocols);
--	if (rc < 0) {
--		IR_dprintk(1, "Error setting protocols to 0x%llx\n",
--			   (long long)new_protocols);
--		goto out;
-+	/* Only if protocol change set up in driver */
-+	if (change_protocol) {
-+		rc = change_protocol(dev, &new_protocols);
-+		if (rc < 0) {
-+			IR_dprintk(1, "Error setting protocols to 0x%llx\n",
-+				   (long long)new_protocols);
-+			goto out;
-+		}
- 	}
- 
- 	if (new_protocols == old_protocols) {
--- 
-1.7.10.4
+also fails, and that
+
+	v4l2-ctl --list-devices
+	v4l2-ctl -d /dev/vbi<N> --set-fmt-sliced-vbi=cc=1 --set-ctrl=stream_vbi_format=1
+	v4l2-ctl -d /dev/vbi<N> --get-fmt-sliced-vbi --get-ctrl=stream_vbi_format
+
+both succeed on the corresponding vbi node?
+
+Looking at the v3.16 kernel code that I'm compiling right now, it looks
+like extra checks put in the v4l2-core don't allow setting sliced VBI
+formats using video device nodes:
+
+http://git.linuxtv.org/cgit.cgi/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-vbi.cpp#n209
+http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/v4l2-core/v4l2-ioctl.c#n959
+http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/v4l2-core/v4l2-ioctl.c#n1192
+http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/v4l2-core/v4l2-ioctl.c#n1265
+
+I have to actually install and test, but this is my current guess.
+
+If you can use the /dev/vbiN node as a work-around, please do.
+
+Regards,
+Andy
+
+> > Are you calling this when MythTV is already running? If nobody else is using
+> > the PVR-500, does it work?
+> 
+> When my script is running, MythTV is not using that unit of the PVR-500.  I
+> use the "recording groups" feature to ensure that that unit is made
+> unavailable for recordings whenever high-definition recordings are being
+> made.  The details of what I'm doing can be found here:
+> https://www.mythtv.org/wiki/Captions_With_HD_PVR
+> 
+> I would not expect this command to succeed if the unit were in use, in fact
+> the script detects that as an error case and loops until the device is
+> free.  The v4l2-ctl command that I use has historically returned an error
+> if somebody had the unit's video device open for reading.  Now, though, it
+> errors even when the unit is unused.
+> 
+> For my script, it is necessary that the MythTV backend be running, the
+> script is invoked by the backend, but when it is invoked, nobody is using
+> that unit of the PVR-500 (and, in practice, the other unit is almost never
+> used, as it's quite rare that I make standard-definition recordings).
+> 
+> My script is not used when MythTV directly makes a standard-definition
+> recording from the PVR-500.  In that case, the program presumably issues
+> its own ioctl equivalents of the v4l2-ctl command, and those are not
+> working, because the recordings produced do not have VBI data, while those
+> recorded before the kernel upgrade do.
+> 
+> > I won't be able to test this myself until next weekend at the earliest.
+> 
+> Captions are mostly for my wife's benefit, and I checked, most of her
+> upcoming shows are being recorded from OTA broadcasts, which provide ATSC
+> captions independently of the PVR-500, so I can wait for a week or two.
+> 
+> 
+> Thank you for looking into this.
+> 
+
 
