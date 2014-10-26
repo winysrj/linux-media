@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:35102 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbaJJGyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 02:54:24 -0400
-Received: by mail-pa0-f47.google.com with SMTP id rd3so1174992pab.20
-        for <linux-media@vger.kernel.org>; Thu, 09 Oct 2014 23:54:24 -0700 (PDT)
-From: Zhangfei Gao <zhangfei.gao@linaro.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Zhangfei Gao <zhangfei.gao@linaro.org>
-Subject: [PATCH] [media] ir-hix5hd2 fix build warning
-Date: Fri, 10 Oct 2014 14:53:47 +0800
-Message-Id: <1412924027-18997-1-git-send-email-zhangfei.gao@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:48724 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013AbaJZMNc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Oct 2014 08:13:32 -0400
+Message-ID: <544CE569.7060507@iki.fi>
+Date: Sun, 26 Oct 2014 14:13:29 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: tskd08@gmail.com, linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [PATCH] dvb-core: set default properties of ISDB-S
+References: <1414324874-16417-1-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1414324874-16417-1-git-send-email-tskd08@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change CONFIG_PM to CONFIG_PM_SLEEP to solve
-warning: 'hix5hd2_ir_suspend' & 'hix5hd2_ir_resume' defined but not used
+Moikka
+How is channel bandwidth defined? Is it static? 38961000 Hz?
 
-Signed-off-by: Zhangfei Gao <zhangfei.gao@linaro.org>
----
- drivers/media/rc/ir-hix5hd2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+regards
+Antti
 
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index c555ca2aed0e..455d1b53c9db 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -294,7 +294,7 @@ static int hix5hd2_ir_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int hix5hd2_ir_suspend(struct device *dev)
- {
- 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
+On 10/26/2014 02:01 PM, tskd08@gmail.com wrote:
+> From: Akihiro Tsukada <tskd08@gmail.com>
+>
+> delsys-fixed props should be set in dvb-core instead of in each driver.
+> ---
+>   drivers/media/dvb-core/dvb_frontend.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index c862ad7..1e9b814 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -962,6 +962,10 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>   	case SYS_ATSC:
+>   		c->modulation = VSB_8;
+>   		break;
+> +	case SYS_ISDBS:
+> +		c->symbol_rate = 28860000;
+> +		c->rolloff = ROLLOFF_35;
+> +		break;
+>   	default:
+>   		c->modulation = QAM_AUTO;
+>   		break;
+> @@ -2074,6 +2078,7 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
+>   		break;
+>   	case SYS_DVBS:
+>   	case SYS_TURBO:
+> +	case SYS_ISDBS:
+>   		rolloff = 135;
+>   		break;
+>   	case SYS_DVBS2:
+>
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
