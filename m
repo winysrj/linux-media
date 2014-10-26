@@ -1,79 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50543 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751554AbaJBIqo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 04:46:44 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 17/18] smiapp: Set valid link frequency range
-Date: Thu,  2 Oct 2014 11:46:07 +0300
-Message-Id: <1412239568-8524-18-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
-References: <1412239568-8524-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:50318 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751049AbaJZLSN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Oct 2014 07:18:13 -0400
+Message-ID: <544CD873.7090600@iki.fi>
+Date: Sun, 26 Oct 2014 13:18:11 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxusb: TS mode setting for TT CT2-4400
+References: <1414310172-25876-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1414310172-25876-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set supported link frequencies in the menu in control initialisation and
-when the bpp changes.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+Antti
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index cf8eba8..87d4d5a 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -523,6 +523,8 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
- static int smiapp_init_controls(struct smiapp_sensor *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-+	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
-+		sensor->csi_format->compressed - SMIAPP_COMPRESSED_BASE];
- 	unsigned int max, i;
- 	int rval;
- 
-@@ -605,8 +607,8 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 
- 	sensor->link_freq = v4l2_ctrl_new_int_menu(
- 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
--		V4L2_CID_LINK_FREQ, max, 0,
--		sensor->platform_data->op_sys_clock);
-+		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
-+		__ffs(*valid_link_freqs), sensor->platform_data->op_sys_clock);
- 
- 	sensor->pixel_rate_csi = v4l2_ctrl_new_std(
- 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
-@@ -1735,6 +1737,7 @@ static int smiapp_set_format_source(struct v4l2_subdev *subdev,
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
- 	const struct smiapp_csi_data_format *csi_format,
- 		*old_csi_format = sensor->csi_format;
-+	unsigned long *valid_link_freqs;
- 	u32 code = fmt->format.code;
- 	unsigned int i;
- 	int rval;
-@@ -1761,6 +1764,18 @@ static int smiapp_set_format_source(struct v4l2_subdev *subdev,
- 				sensor->test_data[i], 0,
- 				(1 << csi_format->width) - 1, 1, 0);
- 
-+	if (csi_format->compressed == old_csi_format->compressed)
-+		return 0;
-+
-+	valid_link_freqs = 
-+		&sensor->valid_link_freqs[sensor->csi_format->compressed
-+					  - SMIAPP_COMPRESSED_BASE];
-+
-+	__v4l2_ctrl_modify_range(
-+		sensor->link_freq, 0,
-+		__fls(*valid_link_freqs), ~*valid_link_freqs,
-+		__ffs(*valid_link_freqs));
-+
- 	return 0;
- }
- 
+On 10/26/2014 09:56 AM, Olli Salonen wrote:
+> There is a new version of the TechnoTrend CT2-4400 USB tuner. The difference is the demodulator that is used (Si2168-B40 instead of -A30).
+>
+> For TT CT2-4400v2 a TS stream related parameter needs to be set, otherwise the stream becomes corrupted. The Windows driver for both CT2-4400 and CT2-4400v2 sets this as well. After this patch the driver works for both versions.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb/cxusb.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index 356abb3..8925b3946 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -1438,6 +1438,12 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>   	si2168_config.i2c_adapter = &adapter;
+>   	si2168_config.fe = &adap->fe_adap[0].fe;
+>   	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +
+> +	/* CT2-4400v2 TS gets corrupted without this */
+> +	if (d->udev->descriptor.idProduct ==
+> +		USB_PID_TECHNOTREND_TVSTICK_CT2_4400)
+> +		si2168_config.ts_mode |= 0x40;
+> +
+>   	memset(&info, 0, sizeof(struct i2c_board_info));
+>   	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+>   	info.addr = 0x64;
+>
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
