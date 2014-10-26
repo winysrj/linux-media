@@ -1,729 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:38258 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724AbaJ3Eic (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:48345 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751357AbaJZOhV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 00:38:32 -0400
-Received: by mail-pa0-f49.google.com with SMTP id lj1so4582195pab.8
-        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 21:38:32 -0700 (PDT)
-Date: Thu, 30 Oct 2014 12:38:25 +0800
-From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
-	"=?utf-8?B?T2xsaSBTYWxvbmVu?=" <olli.salonen@iki.fi>
-References: <201410271529188904708@gmail.com>
-Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggdjIgMy8zXSBEVkJTa3kgVjMgUENJZSBjYXJkOiBhZGQgc29tZSBjaGFuZ2VzIHRvIE04OERTMzEwM2ZvciBzdXBwb3J0aW5nIHRoZSBkZW1vZCBvZiBNODhSUzYwMDA=?=
-Message-ID: <201410301238228758761@gmail.com>
+	Sun, 26 Oct 2014 10:37:21 -0400
+Received: by mail-pa0-f41.google.com with SMTP id rd3so3862263pab.28
+        for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 07:37:20 -0700 (PDT)
+Date: Sun, 26 Oct 2014 22:37:25 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Olli Salonen" <olli.salonen@iki.fi>
+References: <201410131444110937756@gmail.com>,
+ <201410222016467965475@gmail.com>
+Subject: Re: Re: [PATCH 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103forsupporting the demod of M88RS6000
+Message-ID: <201410262237204212225@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
+	charset="gb2312"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-Thanks for review.
-
-On 2014-10-30 11:26:12, Antti Palosaari wrote:
+Hello:
+On 2014-10-25 07:19:15, Antti Palosaari wrote:
 >Moikka!
->This is full review for that driver. Quite a many small changes 
->requested which are easy to fix. One bigger thing I still want do 
->differently is that target_mclk from tuner. I think you could duplicate 
->TS MCLK calculation in a tuner driver as it is only 4 lines - select 
->mclk per delivery system.
+>
+>On 10/22/2014 03:16 PM, Nibble Max wrote:
+>> On 2014-10-22 05:24:02, Antti Palosaari wrote:
+>>>
+>>>
+>>> On 10/13/2014 09:44 AM, Nibble Max wrote:
+>>>> M88RS6000 is the integrated chip, which includes tuner and demod.
+>>>> Its internal demod is similar with M88DS3103 except some registers definition.
+>>>> The main different part of this internal demod from others is its clock/pll generation IP block sitting inside the tuner die.
+>>>> So clock/pll functions should be configed through its tuner i2c bus, NOT its demod i2c bus.
+>>>> The demod of M88RS6000 need the firmware: dvb-demod-m88rs6000.fw
+>>>> firmware download link: http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz
+>>>
+>>>> @@ -250,6 +251,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>>>>    	u16 u16tmp, divide_ratio;
+>>>>    	u32 tuner_frequency, target_mclk;
+>>>>    	s32 s32tmp;
+>>>> +	struct m88rs6000_mclk_config mclk_cfg;
+>>>>
+>>>>    	dev_dbg(&priv->i2c->dev,
+>>>>    			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
+>>>> @@ -291,6 +293,26 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+>>>>    	if (ret)
+>>>>    		goto err;
+>>>>
+>>>> +	if (priv->chip_id == M88RS6000_CHIP_ID) {
+>>>> +		ret = m88ds3103_wr_reg(priv, 0x06, 0xe0);
+>>>> +		if (ret)
+>>>> +			goto err;
+>>>> +		if (fe->ops.tuner_ops.set_config) {
+>>>> +			/* select main mclk */
+>>>> +			mclk_cfg.config_op = 0;
+>>>> +			mclk_cfg.TunerfreqMHz = c->frequency / 1000;
+>>>> +			mclk_cfg.SymRateKSs = c->symbol_rate / 1000;
+>>>> +			ret = fe->ops.tuner_ops.set_config(fe, &mclk_cfg);
+>>>> +			if (ret)
+>>>> +				goto err;
+>>>> +			priv->mclk_khz = mclk_cfg.MclkKHz;
+>>>> +		}
+>>>> +		ret = m88ds3103_wr_reg(priv, 0x06, 0x00);
+>>>> +		if (ret)
+>>>> +			goto err;
+>>>> +		usleep_range(10000, 20000);
+>>>> +	}
+>>>
+>>> That looks odd and also ugly. You pass some values from demod to tuner
+>>> using set_config callback. Tuner driver can get symbol_rate and
+>>> frequency just similarly from property cache than demod. Why you do it
+>>> like that?
+>>>
+>>> Clock is provided by tuner as you mention. I see you use that to pass
+>>> used clock frequency from tuner to demod. This does not look nice and I
+>>> would like to see clock framework instead. Or calculate clock on both
+>>> drivers. Does the demod clock even needs to be changed? I think it is
+>>> only TS stream size which defines used clock frequency - smaller the TS
+>>> bitstream, the smaller the clock frequency needed => optimizes power
+>>> consumption a little. But TS clock is calculated on tuner driver in any
+>>> case?
+>>>
+>> Yes, M88RS6000 looks odd. This integrated chip has two part die, tuner die and demod die.
+>> Its demod's clock(PLL) block is sitting insided the tuner die. The demod has no PLL ip block that makes demod die smaller.
+>> The demod's clock can be adjusted according to the transponder's frequency and symbol rate.
+>> So that the demod's clock and its harmonic frequency will not overlap with the transponder's frequency range.
+>> It will improve its tuner's sensitivity.
+>>
+>> However the tuner driver can get the values from property cache.
+>> Tuner driver does not know when need adjust this demod pll
+>> and return the current demod pll value to the demod driver.
+>> in "struct dvb_tuner_ops", there is no call back to do this directly.
+>> So I select the general "set_config" call back.
+>> TS main clock of demdod also need to be controlled in the tuner die.
+>>
+>> These demod's PLL registers have no relationship with tuner at all.
+>> Logically, These demod's PLL registers should go with demod die as usual.
+>> But in this case they goes with the tuner die physically and controlled through tuner i2c bus.
+>>
+>> The current dvb-frontend driver requires the tuner and demod to split into the seperate drivers.
+>> The demod driver will not access tuner i2c bus directly.
+>> But this integrate chip has more tighter relationship of its tuner and demod die.
+>> That is reason why these odd call backs happen.
+>
+>I understand situation pretty well.
+>Let me say it shortly still to make it clear for the possible others; 
+>M88RS6000 is integrated DVB-S2 receiver containing demod IP block that 
+>is very near to M88DS3103 demod and tuner which is not so near any 
+>existing tuner chip. Both IP blocks, demod and tuner, are connected to 
+>I2C bus. However, all demodulator clocks (master clock and TS master 
+>clock) are coming from tuner die. Tuner gets reference clock from 27 MHz 
+>Xtal and there is PLL or multiple PLLs to derive/generate all the other 
+>needed clocks.
+
+Yes.
+
+>
+>So now we need to get demod MCLK and TS MCLK from tuner to demod. I 
+>looked the tuner driver and saw following possible M88RS6000 MCLKs 
+>93.000, 96.000, 99.000, 110.250 MHz. Old M88DS3103 uses only 96.000 MHz. 
+>There was rather simple logic to select suitable (smallest possible) 
+>demod MCLK according to symbol rate. TS master clock calculation looked 
+>more harder.
+>
+>1) demod MCLK calculation
+>Could you write down smallest possible logic to calculate needed demod 
+>MCLK frequency? I looked m88rs6000t_select_mclk(), but I am not very 
+>happy as that function contains both dead-code and variables that are 
+>initialized multiple times. So take a pen and paper, or text editor, and 
+>write down code snippet for it.
+
+The selection of 93,96,99MHz demod MCLK is related with two variables, symbol rate and tuner frequency.
+Without tuner frequency, it should work in 96MHz which is same with the old M88DS3103. 
+
+>
+>2) TS MCLK calculation
+>Initial TS master clock is calculated by demod driver, which then pass 
+>that clock to tuner driver, which then programs it to PLL, and finally 
+>PLL multipliers/dividers are read back and actual frequency is 
+>calculated. Demod driver took that MCLK and uses integer divider in 
+>order to get final TS clock. As there is rounding errors in any case and 
+>TS clock is not critical at all, I wonder if it is wise to read it back 
+>from PLL registers at all (on m88rs6000t driver). Do you have idea how 
+>much there is rounding error in real life when TS MCLK is programmed? I 
+>mean if you ask 96MHz TS MCLK, what the result is after you read 
+>registers back?
+
+The rounding error is depend on the demod MCLK and required TS MCLK.
+The maxium rounding error of this TS MCLK is about 2% or 3MHz.
+when demod MLCK sets to 110.25MHz and required TS MCLK sets to 144MHz, the actual TS MCLK is 147MHz.
+I think it is fine if do not read back the actual TS MCLK.
+
+>
+>I mean these functions:
+>m88rs6000t_set_ts_mclk()
+>m88rs6000_get_ts_mclk()
 >
 >regards
 >Antti
 >
->On 10/27/2014 09:29 AM, Nibble Max wrote:
->> v2:
->> -make demod mclk selection logic simple.
->> -merge demod mclk and ts mclk into one call back.
->>
->> M88RS6000 is the integrated chip, which includes tuner and demod.
->> Its internal demod is similar with M88DS3103 except some registers definition.
->> The main different part of this internal demod from others is its clock/pll generation IP block sitting inside the tuner die.
->> So clock/pll functions should be configed through its tuner i2c bus, NOT its demod i2c bus.
->> The demod of M88RS6000 need the firmware: dvb-demod-m88rs6000.fw
->> firmware download link: http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz
->>
->> Signed-off-by: Nibble Max <nibble.max@gmail.com>
->> ---
->>   drivers/media/dvb-frontends/m88ds3103.c      | 229 +++++++++++++++++++--------
->>   drivers/media/dvb-frontends/m88ds3103_priv.h | 181 +++++++++++++++++++++
->>   2 files changed, 340 insertions(+), 70 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
->> index 81657e9..a4cfef4 100644
->> --- a/drivers/media/dvb-frontends/m88ds3103.c
->> +++ b/drivers/media/dvb-frontends/m88ds3103.c
->> @@ -1,5 +1,5 @@
->>   /*
->> - * Montage M88DS3103 demodulator driver
->> + * Montage M88DS3103/M88RS6000 demodulator driver
->>    *
->>    * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
->>    *
->> @@ -162,7 +162,7 @@ static int m88ds3103_wr_reg_val_tab(struct m88ds3103_priv *priv,
->>
->>   	dev_dbg(&priv->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
->>
->> -	if (tab_len > 83) {
->> +	if (tab_len > 86) {
->
->That is not nice, but I could try find better solution and fix it later.
-
-What is the reason to check this parameter? 
-How about remove this check?
-
->
->
->>   		ret = -EINVAL;
->>   		goto err;
->>   	}
->> @@ -291,6 +291,30 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   	if (ret)
->>   		goto err;
->>
->> +	/* select M88RS6000 demod main mclk and ts mclk from tuner die. */
->> +	if (priv->chip_id == M88RS6000_CHIP_ID) {
->> +		if (c->symbol_rate > 45010000)
->> +			priv->mclk_khz = 110250;
->> +		else
->> +			priv->mclk_khz = 96000;
->> +		if (c->delivery_system == SYS_DVBS)
->> +			target_mclk = 96000;
->> +		else
->> +			target_mclk = 144000;
->> +		ret = m88ds3103_wr_reg(priv, 0x06, 0xe0);
->> +		if (ret)
->> +			goto err;
->> +		if (fe->ops.tuner_ops.set_config) {
->> +			ret = fe->ops.tuner_ops.set_config(fe, &target_mclk);
->> +			if (ret)
->> +				goto err;
->> +		}
->> +		ret = m88ds3103_wr_reg(priv, 0x06, 0x00);
->> +		if (ret)
->> +			goto err;
->> +		usleep_range(10000, 20000);
->> +	}
->> +
->
->Clock selection. What this does:
->* select mclk_khz
->* select target_mclk
->* calls set_config() in order to pass target_mclk to tuner driver
->* + some strange looking sleep, which is not likely needed
-
-The clock of M88RS6000's demod comes from tuner dies.
-So the first thing is turning on the demod main clock from tuner die after the demod reset.
-Without this clock, the following register's content will fail to update.
-Before changing the demod main clock, it should close clock path.
-After changing the demod main clock, it open clock path and wait the clock to stable.
-
->
->One thing what I don't like this is that you have implemented M88RS6000 
->things here and M88DS3103 elsewhere. Generally speaking, code must have 
->some logic where same things are done in same place. So I expect to see 
->both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection 
->implemented here or these moved to place where M88DS3103 implementation is.
->
-
-I will move M88DS3103 implementation to here.
-
->Also, even set_config() is somehow logically correctly used here, I 
->prefer to duplicate that 4 line long target_mclk selection to tuner 
->driver and get rid of whole set_config(). Even better solution could be 
->to register M88RS6000 as a clock provider using clock framework, but 
->imho it is not worth  that simple case.
-
-Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
-
->
->
->>   	ret = m88ds3103_wr_reg(priv, 0xb2, 0x01);
->>   	if (ret)
->>   		goto err;
->> @@ -301,36 +325,46 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>
->>   	switch (c->delivery_system) {
->>   	case SYS_DVBS:
->> -		len = ARRAY_SIZE(m88ds3103_dvbs_init_reg_vals);
->> -		init = m88ds3103_dvbs_init_reg_vals;
->> -		target_mclk = 96000;
->> +		if (priv->chip_id == M88RS6000_CHIP_ID) {
->> +			len = ARRAY_SIZE(m88rs6000_dvbs_init_reg_vals);
->> +			init = m88rs6000_dvbs_init_reg_vals;
->> +		} else {
->> +			len = ARRAY_SIZE(m88ds3103_dvbs_init_reg_vals);
->> +			init = m88ds3103_dvbs_init_reg_vals;
->> +			target_mclk = 96000;
->> +		}
->
->Aah, M88DS3103 target_mclk selection is found from here. That is just 
->what I was expecting to see on same place than M88RS6000 target_mclk 
->selection.
->
->>   		break;
->>   	case SYS_DVBS2:
->> -		len = ARRAY_SIZE(m88ds3103_dvbs2_init_reg_vals);
->> -		init = m88ds3103_dvbs2_init_reg_vals;
->> -
->> -		switch (priv->cfg->ts_mode) {
->> -		case M88DS3103_TS_SERIAL:
->> -		case M88DS3103_TS_SERIAL_D7:
->> -			if (c->symbol_rate < 18000000)
->> -				target_mclk = 96000;
->> -			else
->> -				target_mclk = 144000;
->> -			break;
->> -		case M88DS3103_TS_PARALLEL:
->> -		case M88DS3103_TS_CI:
->> -			if (c->symbol_rate < 18000000)
->> -				target_mclk = 96000;
->> -			else if (c->symbol_rate < 28000000)
->> -				target_mclk = 144000;
->> -			else
->> -				target_mclk = 192000;
->> -			break;
->> -		default:
->> -			dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n",
->> -					__func__);
->> -			ret = -EINVAL;
->> -			goto err;
->> +		if (priv->chip_id == M88RS6000_CHIP_ID) {
->> +			len = ARRAY_SIZE(m88rs6000_dvbs2_init_reg_vals);
->> +			init = m88rs6000_dvbs2_init_reg_vals;
->> +		} else {
->> +			len = ARRAY_SIZE(m88ds3103_dvbs2_init_reg_vals);
->> +			init = m88ds3103_dvbs2_init_reg_vals;
->> +
->> +			switch (priv->cfg->ts_mode) {
->> +			case M88DS3103_TS_SERIAL:
->> +			case M88DS3103_TS_SERIAL_D7:
->> +				if (c->symbol_rate < 18000000)
->> +					target_mclk = 96000;
->> +				else
->> +					target_mclk = 144000;
->> +				break;
->> +			case M88DS3103_TS_PARALLEL:
->> +			case M88DS3103_TS_CI:
->> +				if (c->symbol_rate < 18000000)
->> +					target_mclk = 96000;
->> +				else if (c->symbol_rate < 28000000)
->> +					target_mclk = 144000;
->> +				else
->> +					target_mclk = 192000;
->> +				break;
->> +			default:
->> +				dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n",
->> +						__func__);
->> +				ret = -EINVAL;
->> +				goto err;
->> +			}
->
->You should really move M88RS6000 target_mclk selection here like 
->M88DS3103 already is.
->
->>   		}
->>   		break;
->>   	default:
->> @@ -347,7 +381,25 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   			goto err;
->>   	}
->>
->> +	if ((priv->chip_id == M88RS6000_CHIP_ID)
->> +		&& (c->delivery_system == SYS_DVBS2)
->> +		&& ((c->symbol_rate / 1000) <= 5000)) {
->> +		ret = m88ds3103_wr_reg(priv, 0xc0, 0x04);
->> +		if (ret)
->> +			goto err;
->> +		ret = m88ds3103_wr_reg(priv, 0x8a, 0x09);
->> +		if (ret)
->> +			goto err;
->> +		ret = m88ds3103_wr_reg(priv, 0x8b, 0x22);
->> +		if (ret)
->> +			goto err;
->> +		ret = m88ds3103_wr_reg(priv, 0x8c, 0x88);
->> +		if (ret)
->> +			goto err;
->> +	}
->> +
->
->Does not look wrong, but I wonder what this does. Some special handling 
->for DVB-S2 low symbol rates. You should be able to write registers 0x8a 
->to 0x8c using register address auto-increment. Please do.
->
->
->>   	u8tmp1 = 0; /* silence compiler warning */
->> +	u8tmp2 = 0;
->>   	switch (priv->cfg->ts_mode) {
->>   	case M88DS3103_TS_SERIAL:
->>   		u8tmp1 = 0x00;
->> @@ -385,6 +437,41 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   			goto err;
->>   	}
->>
->> +	if (priv->chip_id == M88RS6000_CHIP_ID) {
->> +		ret = m88ds3103_wr_reg_mask(priv, 0x9d, 0x08, 0x08);
->> +		if (ret)
->> +			goto err;
->> +		ret = m88ds3103_wr_reg(priv, 0xf1, 0x01);
->> +		if (ret)
->> +			goto err;
->> +		ret = m88ds3103_wr_reg_mask(priv, 0x30, 0x80, 0x80);
->> +		if (ret)
->> +			goto err;
->
->Maybe you could move these register writes to same place where was that 
->special low symbol rate thing.
->Old/existing functionality here to program TS MCLK and that new one you 
->added is something else (TS MCLK is coming from tuner die in a case of 
->M88RS6000).
->
->
->> +	} else {
->> +		switch (target_mclk) {
->> +		case 96000:
->> +			u8tmp1 = 0x02; /* 0b10 */
->> +			u8tmp2 = 0x01; /* 0b01 */
->> +			break;
->> +		case 144000:
->> +			u8tmp1 = 0x00; /* 0b00 */
->> +			u8tmp2 = 0x01; /* 0b01 */
->> +			break;
->> +		case 192000:
->> +			u8tmp1 = 0x03; /* 0b11 */
->> +			u8tmp2 = 0x00; /* 0b00 */
->> +			break;
->> +		}
->> +
->> +		ret = m88ds3103_wr_reg_mask(priv, 0x22, u8tmp1 << 6, 0xc0);
->> +		if (ret)
->> +			goto err;
->> +
->> +		ret = m88ds3103_wr_reg_mask(priv, 0x24, u8tmp2 << 6, 0xc0);
->> +		if (ret)
->> +			goto err;
->> +	}
->> +
->>   	if (priv->cfg->ts_clk) {
->>   		divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
->>   		u8tmp1 = divide_ratio / 2;
->> @@ -420,29 +507,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   	if (ret)
->>   		goto err;
->>
->> -	switch (target_mclk) {
->> -	case 96000:
->> -		u8tmp1 = 0x02; /* 0b10 */
->> -		u8tmp2 = 0x01; /* 0b01 */
->> -		break;
->> -	case 144000:
->> -		u8tmp1 = 0x00; /* 0b00 */
->> -		u8tmp2 = 0x01; /* 0b01 */
->> -		break;
->> -	case 192000:
->> -		u8tmp1 = 0x03; /* 0b11 */
->> -		u8tmp2 = 0x00; /* 0b00 */
->> -		break;
->> -	}
->> -
->> -	ret = m88ds3103_wr_reg_mask(priv, 0x22, u8tmp1 << 6, 0xc0);
->> -	if (ret)
->> -		goto err;
->> -
->> -	ret = m88ds3103_wr_reg_mask(priv, 0x24, u8tmp2 << 6, 0xc0);
->> -	if (ret)
->> -		goto err;
->> -
->>   	if (c->symbol_rate <= 3000000)
->>   		u8tmp = 0x20;
->>   	else if (c->symbol_rate <= 10000000)
->> @@ -466,7 +530,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   	if (ret)
->>   		goto err;
->>
->> -	u16tmp = DIV_ROUND_CLOSEST((c->symbol_rate / 1000) << 15, M88DS3103_MCLK_KHZ / 2);
->> +	u16tmp = DIV_ROUND_CLOSEST((c->symbol_rate / 1000) << 15, priv->mclk_khz / 2);
->>   	buf[0] = (u16tmp >> 0) & 0xff;
->>   	buf[1] = (u16tmp >> 8) & 0xff;
->>   	ret = m88ds3103_wr_regs(priv, 0x61, buf, 2);
->> @@ -489,7 +553,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
->>   			(tuner_frequency - c->frequency));
->>
->>   	s32tmp = 0x10000 * (tuner_frequency - c->frequency);
->> -	s32tmp = DIV_ROUND_CLOSEST(s32tmp, M88DS3103_MCLK_KHZ);
->> +	s32tmp = DIV_ROUND_CLOSEST(s32tmp, priv->mclk_khz);
->>   	if (s32tmp < 0)
->>   		s32tmp += 0x10000;
->>
->> @@ -520,7 +584,7 @@ static int m88ds3103_init(struct dvb_frontend *fe)
->>   	struct m88ds3103_priv *priv = fe->demodulator_priv;
->>   	int ret, len, remaining;
->>   	const struct firmware *fw = NULL;
->> -	u8 *fw_file = M88DS3103_FIRMWARE;
->> +	u8 *fw_file;
->>   	u8 u8tmp;
->>
->>   	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
->> @@ -541,15 +605,6 @@ static int m88ds3103_init(struct dvb_frontend *fe)
->>   	if (ret)
->>   		goto err;
->>
->> -	/* reset */
->> -	ret = m88ds3103_wr_reg(priv, 0x07, 0x60);
->> -	if (ret)
->> -		goto err;
->> -
->> -	ret = m88ds3103_wr_reg(priv, 0x07, 0x00);
->> -	if (ret)
->> -		goto err;
->> -
->>   	/* firmware status */
->>   	ret = m88ds3103_rd_reg(priv, 0xb9, &u8tmp);
->>   	if (ret)
->> @@ -560,10 +615,23 @@ static int m88ds3103_init(struct dvb_frontend *fe)
->>   	if (u8tmp)
->>   		goto skip_fw_download;
->>
->> +	/* global reset, global diseqc reset, golbal fec reset */
->> +	ret = m88ds3103_wr_reg(priv, 0x07, 0xe0);
->> +	if (ret)
->> +		goto err;
->> +
->> +	ret = m88ds3103_wr_reg(priv, 0x07, 0x00);
->> +	if (ret)
->> +		goto err;
->> +
->>   	/* cold state - try to download firmware */
->>   	dev_info(&priv->i2c->dev, "%s: found a '%s' in cold state\n",
->>   			KBUILD_MODNAME, m88ds3103_ops.info.name);
->>
->> +	if (priv->chip_id == M88RS6000_CHIP_ID)
->> +		fw_file = M88RS6000_FIRMWARE;
->> +	else
->> +		fw_file = M88DS3103_FIRMWARE;
->>   	/* request the firmware, this will block and timeout */
->>   	ret = request_firmware(&fw, fw_file, priv->i2c->dev.parent);
->>   	if (ret) {
->> @@ -635,13 +703,18 @@ static int m88ds3103_sleep(struct dvb_frontend *fe)
->>   {
->>   	struct m88ds3103_priv *priv = fe->demodulator_priv;
->>   	int ret;
->> +	u8 u8reg;
->
->Rename it to u8tmp, just to keep it consistent with other funtions in 
->that driver.
->
->>
->>   	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
->>
->>   	priv->delivery_system = SYS_UNDEFINED;
->>
->>   	/* TS Hi-Z */
->> -	ret = m88ds3103_wr_reg_mask(priv, 0x27, 0x00, 0x01);
->> +	if (priv->chip_id == M88RS6000_CHIP_ID)
->> +		u8reg = 0x29;
->> +	else
->> +		u8reg = 0x27;
->> +	ret = m88ds3103_wr_reg_mask(priv, u8reg, 0x00, 0x01);
->>   	if (ret)
->>   		goto err;
->>
->> @@ -830,7 +903,7 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
->>   		goto err;
->>
->>   	c->symbol_rate = 1ull * ((buf[1] << 8) | (buf[0] << 0)) *
->> -			M88DS3103_MCLK_KHZ * 1000 / 0x10000;
->> +			priv->mclk_khz * 1000 / 0x10000;
->>
->>   	return 0;
->>   err:
->> @@ -1310,18 +1383,22 @@ struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
->>   	priv->i2c = i2c;
->>   	mutex_init(&priv->i2c_mutex);
->>
->> -	ret = m88ds3103_rd_reg(priv, 0x01, &chip_id);
->> +	/* 0x00: chip id[6:0], 0x01: chip ver[7:0], 0x02: chip ver[15:8] */
->> +	ret = m88ds3103_rd_reg(priv, 0x00, &chip_id);
->>   	if (ret)
->>   		goto err;
->>
->> -	dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
->> +	chip_id >>= 1;
->> +	dev_info(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
->>
->>   	switch (chip_id) {
->> -	case 0xd0:
->> +	case M88RS6000_CHIP_ID:
->> +	case M88DS3103_CHIP_ID:
->>   		break;
->>   	default:
->>   		goto err;
->>   	}
->> +	priv->chip_id = chip_id;
->>
->>   	switch (priv->cfg->clock_out) {
->>   	case M88DS3103_CLOCK_OUT_DISABLED:
->> @@ -1337,6 +1414,11 @@ struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
->>   		goto err;
->>   	}
->>
->> +	/* 0x29 register is defined differently for m88rs6000. */
->> +	/* set internal tuner address to 0x42 */
->> +	if (chip_id == M88RS6000_CHIP_ID)
->> +		u8tmp = 0x00;
->> +
->
->So that is I2C address used for tuner. Does that register set tuner I2C 
->address? Or is it just needed by demod for some reason?
-
-The tuner I2C address is configured by this demod register.
-
->
->Bridge driver uses
->+	tuner_info.addr = 0x21;
->which is 0x42, but in a standard 7 bit notation. So maybe comment should 
->say I2C address is 0x21.
->
->
->>   	ret = m88ds3103_wr_reg(priv, 0x29, u8tmp);
->>   	if (ret)
->>   		goto err;
->> @@ -1362,8 +1444,14 @@ struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
->>
->>   	*tuner_i2c_adapter = priv->i2c_adapter;
->>
->> +	/* set main mclk to default value */
->> +	priv->mclk_khz = M88DS3103_MCLK_KHZ;
->> +
->
->That should go to same place where you select M88RS6000 mclk_khz.
->
->>   	/* create dvb_frontend */
->>   	memcpy(&priv->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
->> +	if (priv->chip_id == M88RS6000_CHIP_ID)
->> +		strncpy(priv->fe.ops.info.name,
->> +			"Montage M88RS6000", sizeof(priv->fe.ops.info.name));
->>   	priv->fe.demodulator_priv = priv;
->>
->>   	return &priv->fe;
->> @@ -1423,3 +1511,4 @@ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
->>   MODULE_DESCRIPTION("Montage M88DS3103 DVB-S/S2 demodulator driver");
->>   MODULE_LICENSE("GPL");
->>   MODULE_FIRMWARE(M88DS3103_FIRMWARE);
->> +MODULE_FIRMWARE(M88RS6000_FIRMWARE);
->> diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
->> index 9169fdd..a2c0958 100644
->> --- a/drivers/media/dvb-frontends/m88ds3103_priv.h
->> +++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
->> @@ -25,7 +25,10 @@
->>   #include <linux/math64.h>
->>
->>   #define M88DS3103_FIRMWARE "dvb-demod-m88ds3103.fw"
->> +#define M88RS6000_FIRMWARE "dvb-demod-m88rs6000.fw"
->>   #define M88DS3103_MCLK_KHZ 96000
->> +#define M88RS6000_CHIP_ID 0x74
->> +#define M88DS3103_CHIP_ID 0x70
->>
->>   struct m88ds3103_priv {
->>   	struct i2c_adapter *i2c;
->> @@ -38,6 +41,10 @@ struct m88ds3103_priv {
->>   	u32 ber;
->>   	bool warm; /* FW running */
->>   	struct i2c_adapter *i2c_adapter;
->> +	/* auto detect chip id to do different config */
->> +	u8 chip_id;
->> +	/* main mclk is calculated for M88RS6000 dynamically */
->> +	u32 mclk_khz;
->>   };
->>
->>   struct m88ds3103_reg_val {
->> @@ -214,4 +221,178 @@ static const struct m88ds3103_reg_val m88ds3103_dvbs2_init_reg_vals[] = {
->>   	{0xb8, 0x00},
->>   };
->>
->> +static const struct m88ds3103_reg_val m88rs6000_dvbs_init_reg_vals[] = {
->> +	{0x23, 0x07},
->> +	{0x08, 0x03},
->> +	{0x0c, 0x02},
->> +	{0x20, 0x00},
->> +	{0x21, 0x54},
->> +	{0x25, 0x82},
->> +	{0x27, 0x31},
->> +	{0x30, 0x08},
->> +	{0x31, 0x40},
->> +	{0x32, 0x32},
->> +	{0x33, 0x35},
->> +	{0x35, 0xff},
->> +	{0x3a, 0x00},
->> +	{0x37, 0x10},
->> +	{0x38, 0x10},
->> +	{0x39, 0x02},
->> +	{0x42, 0x60},
->> +	{0x4a, 0x80},
->> +	{0x4b, 0x04},
->> +	{0x4d, 0x91},
->> +	{0x5d, 0xc8},
->> +	{0x50, 0x36},
->> +	{0x51, 0x36},
->> +	{0x52, 0x36},
->> +	{0x53, 0x36},
->> +	{0x63, 0x0f},
->> +	{0x64, 0x30},
->> +	{0x65, 0x40},
->> +	{0x68, 0x26},
->> +	{0x69, 0x4c},
->> +	{0x70, 0x20},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x40},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x60},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x80},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0xa0},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x1f},
->> +	{0x76, 0x38},
->> +	{0x77, 0xa6},
->> +	{0x78, 0x0c},
->> +	{0x79, 0x80},
->> +	{0x7f, 0x14},
->> +	{0x7c, 0x00},
->> +	{0xae, 0x82},
->> +	{0x80, 0x64},
->> +	{0x81, 0x66},
->> +	{0x82, 0x44},
->> +	{0x85, 0x04},
->> +	{0xcd, 0xf4},
->> +	{0x90, 0x33},
->> +	{0xa0, 0x44},
->> +	{0xbe, 0x00},
->> +	{0xc0, 0x08},
->> +	{0xc3, 0x10},
->> +	{0xc4, 0x08},
->> +	{0xc5, 0xf0},
->> +	{0xc6, 0xff},
->> +	{0xc7, 0x00},
->> +	{0xc8, 0x1a},
->> +	{0xc9, 0x80},
->> +	{0xe0, 0xf8},
->> +	{0xe6, 0x8b},
->> +	{0xd0, 0x40},
->> +	{0xf8, 0x20},
->> +	{0xfa, 0x0f},
->> +	{0x00, 0x00},
->> +	{0xbd, 0x01},
->> +	{0xb8, 0x00},
->> +	{0x29, 0x11},
->> +};
->> +
->> +static const struct m88ds3103_reg_val m88rs6000_dvbs2_init_reg_vals[] = {
->> +	{0x23, 0x07},
->> +	{0x08, 0x07},
->> +	{0x0c, 0x02},
->> +	{0x20, 0x00},
->> +	{0x21, 0x54},
->> +	{0x25, 0x82},
->> +	{0x27, 0x31},
->> +	{0x30, 0x08},
->> +	{0x32, 0x32},
->> +	{0x33, 0x35},
->> +	{0x35, 0xff},
->> +	{0x3a, 0x00},
->> +	{0x37, 0x10},
->> +	{0x38, 0x10},
->> +	{0x39, 0x02},
->> +	{0x42, 0x60},
->> +	{0x4a, 0x80},
->> +	{0x4b, 0x04},
->> +	{0x4d, 0x91},
->> +	{0x5d, 0xc8},
->> +	{0x50, 0x36},
->> +	{0x51, 0x36},
->> +	{0x52, 0x36},
->> +	{0x53, 0x36},
->> +	{0x63, 0x0f},
->> +	{0x64, 0x10},
->> +	{0x65, 0x20},
->> +	{0x68, 0x46},
->> +	{0x69, 0xcd},
->> +	{0x70, 0x20},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x40},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x60},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x80},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0xa0},
->> +	{0x71, 0x70},
->> +	{0x72, 0x04},
->> +	{0x73, 0x00},
->> +	{0x70, 0x1f},
->> +	{0x76, 0x38},
->> +	{0x77, 0xa6},
->> +	{0x78, 0x0c},
->> +	{0x79, 0x80},
->> +	{0x7f, 0x14},
->> +	{0x85, 0x08},
->> +	{0xcd, 0xf4},
->> +	{0x90, 0x33},
->> +	{0x86, 0x00},
->> +	{0x87, 0x0f},
->> +	{0x89, 0x00},
->> +	{0x8b, 0x44},
->> +	{0x8c, 0x66},
->> +	{0x9d, 0xc1},
->> +	{0x8a, 0x10},
->> +	{0xad, 0x40},
->> +	{0xa0, 0x44},
->> +	{0xbe, 0x00},
->> +	{0xc0, 0x08},
->> +	{0xc1, 0x10},
->> +	{0xc2, 0x08},
->> +	{0xc3, 0x10},
->> +	{0xc4, 0x08},
->> +	{0xc5, 0xf0},
->> +	{0xc6, 0xff},
->> +	{0xc7, 0x00},
->> +	{0xc8, 0x1a},
->> +	{0xc9, 0x80},
->> +	{0xca, 0x23},
->> +	{0xcb, 0x24},
->> +	{0xcc, 0xf4},
->> +	{0xce, 0x74},
->> +	{0x00, 0x00},
->> +	{0xbd, 0x01},
->> +	{0xb8, 0x00},
->> +	{0x29, 0x01},
->> +};
->>   #endif
->>
->
 >-- 
 >http://palosaari.fi/
+
 BR,
 Max
 
