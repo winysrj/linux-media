@@ -1,81 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:65284 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769AbaJ0RLJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46458 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbaJZMq5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 13:11:09 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NE400D2052KXHA0@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 27 Oct 2014 13:11:08 -0400 (EDT)
-Date: Mon, 27 Oct 2014 15:11:04 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: tskd08@gmail.com
+	Sun, 26 Oct 2014 08:46:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 6/7] v4l-utils/libdvbv5: don't discard config-supplied
- parameters
-Message-id: <20141027151104.427630df.m.chehab@samsung.com>
-In-reply-to: <1414323983-15996-7-git-send-email-tskd08@gmail.com>
-References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
- <1414323983-15996-7-git-send-email-tskd08@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Subject: Re: [yavta PATCH 1/1] yavta: Add --queue-late option for delay queueing buffers over streaming start
+Date: Sun, 26 Oct 2014 14:47 +0200
+Message-ID: <26687548.xFURFqytIV@avalon>
+In-Reply-To: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 26 Oct 2014 20:46:22 +0900
-tskd08@gmail.com escreveu:
+Hi Sakari,
 
-> From: Akihiro Tsukada <tskd08@gmail.com>
+Thank you for the patch. I've pushed it to the yavta git tree.
+
+On Friday 24 October 2014 17:23:58 Sakari Ailus wrote:
+> Queue buffers to the device after VIDIOC_STREAMON, not before. This does not
+> affect queueing behaviour otherwise.
 > 
-> When an user enabled the option to update parameters with PSI,
-> the parameters that were supplied from config file and  not mandatory
-> to the delivery system were discarded.
-
-Sorry, but I was unable to understand what you're meaning.
-
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  lib/libdvbv5/dvb-fe.c | 14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
+>  yavta.c | 29 +++++++++++++++++++++++++----
+>  1 file changed, 25 insertions(+), 4 deletions(-)
 > 
-> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-> index 05f7d03..52af4e4 100644
-> --- a/lib/libdvbv5/dvb-fe.c
-> +++ b/lib/libdvbv5/dvb-fe.c
-> @@ -575,6 +575,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *p)
->  	int i, n = 0;
->  	const unsigned int *sys_props;
->  	struct dtv_properties prop;
-> +	struct dtv_property fe_prop[DTV_MAX_COMMAND];
->  	struct dvb_frontend_parameters v3_parms;
->  	uint32_t bw;
->  
-> @@ -583,19 +584,14 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *p)
->  		return EINVAL;
->  
->  	while (sys_props[n]) {
-> -		parms->dvb_prop[n].cmd = sys_props[n];
-> +		fe_prop[n].cmd = sys_props[n];
->  		n++;
+> diff --git a/yavta.c b/yavta.c
+> index 20bbe29..7f9e814 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -1429,7 +1429,6 @@ static int video_prepare_capture(struct device *dev,
+> int nbufs, unsigned int off const char *filename, enum buffer_fill_mode
+> fill)
+>  {
+>  	unsigned int padding;
+> -	unsigned int i;
+>  	int ret;
+> 
+>  	/* Allocate and map buffers. */
+> @@ -1443,6 +1442,14 @@ static int video_prepare_capture(struct device *dev,
+> int nbufs, unsigned int off return ret;
 >  	}
-> -	parms->dvb_prop[n].cmd = DTV_DELIVERY_SYSTEM;
-> -	parms->dvb_prop[n].u.data = parms->p.current_sys;
-> +	fe_prop[n].cmd = DTV_DELIVERY_SYSTEM;
-> +	fe_prop[n].u.data = parms->p.current_sys;
->  	n++;
->  
-> -	/* Keep it ready for set */
-> -	parms->dvb_prop[n].cmd = DTV_TUNE;
-> -	parms->n_props = n;
-> -
-> -	struct dtv_property fe_prop[DTV_MAX_COMMAND];
-> -	n = dvb_copy_fe_props(parms->dvb_prop, n, fe_prop);
-> +	n = dvb_copy_fe_props(fe_prop, n, fe_prop);
+> 
+> +	return 0;
+> +}
+> +
+> +static int video_queue_all_buffers(struct device *dev, enum
+> buffer_fill_mode fill) +{
+> +	unsigned int i;
+> +	int ret;
+> +
+>  	/* Queue the buffers. */
+>  	for (i = 0; i < dev->nbufs; ++i) {
+>  		ret = video_queue_buffer(dev, i, fill);
+> @@ -1554,7 +1561,7 @@ static void video_save_image(struct device *dev,
+> struct v4l2_buffer *buf,
+> 
+>  static int video_do_capture(struct device *dev, unsigned int nframes,
+>  	unsigned int skip, unsigned int delay, const char *pattern,
+> -	int do_requeue_last, enum buffer_fill_mode fill)
+> +	int do_requeue_last, int do_queue_late, enum buffer_fill_mode fill)
+>  {
+>  	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+>  	struct v4l2_buffer buf;
+> @@ -1572,6 +1579,9 @@ static int video_do_capture(struct device *dev,
+> unsigned int nframes, if (ret < 0)
+>  		goto done;
+> 
+> +	if (do_queue_late)
+> +		video_queue_all_buffers(dev, fill);
+> +
+>  	size = 0;
+>  	clock_gettime(CLOCK_MONOTONIC, &start);
+>  	last.tv_sec = start.tv_sec;
+> @@ -1712,6 +1722,7 @@ static void usage(const char *argv0)
+>  	printf("    --no-query			Don't query capabilities on open\n");
+>  	printf("    --offset			User pointer buffer offset from page 
+start\n");
+>  	printf("    --premultiplied		Color components are premultiplied by 
+alpha
+> value\n"); +	printf("    --queue-late		Queue buffers after streamon, 
+not
+> before\n"); printf("    --requeue-last		Requeue the last buffers before
+> streamoff\n"); printf("    --timestamp-source		Set timestamp source on
+> output buffers [eof, soe]\n"); printf("    --skip n			Skip the first 
+n
+> frames\n");
+> @@ -1733,6 +1744,7 @@ static void usage(const char *argv0)
+>  #define OPT_LOG_STATUS		267
+>  #define OPT_BUFFER_SIZE		268
+>  #define OPT_PREMULTIPLIED	269
+> +#define OPT_QUEUE_LATE		270
+> 
+>  static struct option opts[] = {
+>  	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+> @@ -1757,6 +1769,7 @@ static struct option opts[] = {
+>  	{"pause", 0, 0, 'p'},
+>  	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
+>  	{"quality", 1, 0, 'q'},
+> +	{"queue-late", 0, 0, OPT_QUEUE_LATE},
+>  	{"get-control", 1, 0, 'r'},
+>  	{"requeue-last", 0, 0, OPT_REQUEUE_LAST},
+>  	{"realtime", 2, 0, 'R'},
+> @@ -1788,7 +1801,7 @@ int main(int argc, char *argv[])
+>  	int do_list_controls = 0, do_get_control = 0, do_set_control = 0;
+>  	int do_sleep_forever = 0, do_requeue_last = 0;
+>  	int do_rt = 0, do_log_status = 0;
+> -	int no_query = 0;
+> +	int no_query = 0, do_queue_late = 0;
+>  	char *endptr;
+>  	int c;
+> 
+> @@ -1971,6 +1984,9 @@ int main(int argc, char *argv[])
+>  		case OPT_PREMULTIPLIED:
+>  			fmt_flags |= V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
+>  			break;
+> +		case OPT_QUEUE_LATE:
+> +			do_queue_late = 1;
+> +			break;
+>  		case OPT_REQUEUE_LAST:
+>  			do_requeue_last = 1;
+>  			break;
+> @@ -2107,6 +2123,11 @@ int main(int argc, char *argv[])
+>  		return 1;
+>  	}
+> 
+> +	if (!do_queue_late && video_queue_all_buffers(&dev, fill_mode)) {
+> +		video_close(&dev);
+> +		return 1;
+> +	}
+> +
+>  	if (do_pause) {
+>  		printf("Press enter to start capture\n");
+>  		getchar();
+> @@ -2122,7 +2143,7 @@ int main(int argc, char *argv[])
+>  	}
+> 
+>  	if (video_do_capture(&dev, nframes, skip, delay, filename,
+> -			     do_requeue_last, fill_mode) < 0) {
+> +			     do_requeue_last, do_queue_late, fill_mode) < 0) {
+>  		video_close(&dev);
+>  		return 1;
+>  	}
 
-Huh? this looks weird.
+-- 
+Regards,
 
->  
->  	prop.props = fe_prop;
->  	prop.num = n;
+Laurent Pinchart
+
