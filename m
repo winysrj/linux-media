@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2697 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754917AbaJWLWL (ORCPT
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:45850 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbaJZTdU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 07:22:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [RFCv4 PATCH 00/15] vb2: improve dma-sg, expbuf
-Date: Thu, 23 Oct 2014 13:21:27 +0200
-Message-Id: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 26 Oct 2014 15:33:20 -0400
+MIME-Version: 1.0
+In-Reply-To: <20141025090307.GA31078@hardeman.nu>
+References: <1413916218-7481-1-git-send-email-tomas.melin@iki.fi>
+	<20141025090307.GA31078@hardeman.nu>
+Date: Sun, 26 Oct 2014 21:33:19 +0200
+Message-ID: <CACraW2pZnOnjj4iXoAN4A23efWVoL4ZjFXvXiS4ktxZ5YYEz9Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] [media] rc-core: fix protocol_change regression in ir_raw_event_register
+From: Tomas Melin <tomas.melin@iki.fi>
+To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Tomas Melin <tomas.melin@iki.fi>, james.hogan@imgtec.com,
+	=?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>,
+	=?UTF-8?B?0JDQu9C10LrRgdCw0L3QtNGAINCR0LXRgNGB0LXQvdC10LI=?=
+	<bay@hackerdom.ru>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v3:
+On Sat, Oct 25, 2014 at 12:03 PM, David Härdeman <david@hardeman.nu> wrote:
+> Wouldn't something like this be a simpler way of achieving the same
+> result? (untested):
 
-- Dropped patch 02/10: succeeded by patch 10/15 in this series
-- Added patches 11-15 to correctly handle syncing/mapping dmabuf
-  buffers for CPU access. This was never done correctly before.
-  Many thanks to Pawel Osciak for helping me with this during the
-  media mini-summit last week.
+The idea was to remove the empty change_protocol function that had
+been added in the breaking commit.
+IMHO, it would be better to not have functions that don't do anything.
+Actually, another problem with that empty function is that if the
+driver first sets up a "real" change_protocol function and related
+data, and then calls rc_register_device, the driver defined
+change_protocol function would be overwritten.
 
-The patch series adds an allocation context to dma-sg and uses that to move
-dma_(un)map_sg into the vb2 framework, which is where it belongs.
 
-Some drivers needs to fixup the buffers before giving it back to userspace
-(or before handing it over to the kernel). Document that this can be done
-in buf_prepare and buf_finish.
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index a7991c7..d521f20 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1421,6 +1421,9 @@ int rc_register_device(struct rc_dev *dev)
+>
+>         if (dev->change_protocol) {
+>                 u64 rc_type = (1 << rc_map->rc_type);
+> +               if (dev->driver_type == RC_DRIVER_IR_RAW)
+> +                       rc_type |= RC_BIT_LIRC;
+> +
+>                 rc = dev->change_protocol(dev, &rc_type);
+>                 if (rc < 0)
+>                         goto out_raw;
 
-The last 5 patches make this more strict by requiring all cpu access to
-be bracketed by calls to vb2_plane_begin/end_cpu_access() which replaces
-the old vb2_plane_vaddr() call.
+But otherwise yes, your suggestion could work, with the addition that
+we still need to update enabled_protocols (and not init
+enabled_protocols anymore in ir_raw_event_register() ).
++               dev->enabled_protocols = (rc_type | RC_BIT_LIRC);
 
-Note: two drivers still use the vb2_plane_addr() call: coda and
-exynos4-is/fimc-capture.c. For both drivers I will need some help since
-I am not sure where to put the begin/end calls. Patch 14 removes
-the vb2_plane_vaddr call, so obviously those two drivers won't compile
-after that.
-
-DMABUF export support is added to dma-sg and vmalloc, so now all memory
-models support DMABUF importing and exporting.
-
-I am inclined to make a pull request for patches 1-10 if there are no
-new comments. The issues that patches 11-15 address are separate from
-the patches 1-10 and this is only an issue when using dmabuf with
-drivers that need cpu access.
-
-Reviews are very welcome.
-
-I plan on doing more testing next week, in particular with the patch
-series posted for vivid that add dma-contig. It's now easy to extend
-with dma-sg as well, so that should make testing a lot simpler.
-
-Regards,
-
-	Hans
-
+Please let me know your preferences on which you prefer, and, if
+needed, I'll make a new patch version.
+Tomas
