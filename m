@@ -1,61 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:63478 "EHLO
-	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140AbaJFJHA (ORCPT
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:39360 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbaJZMKe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Oct 2014 05:07:00 -0400
-Message-ID: <1412586417.4054.38.camel@x220>
-Subject: [PATCH 0/4] Remove optional dependencies on PLAT_S5P
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Mon, 06 Oct 2014 11:06:57 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 26 Oct 2014 08:10:34 -0400
+Received: by mail-pd0-f173.google.com with SMTP id v10so3988740pde.4
+        for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 05:10:33 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH] dvb:tc90522: fix stats report
+Date: Sun, 26 Oct 2014 21:10:24 +0900
+Message-Id: <1414325424-16706-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
-removed the Kconfig symbol PLAT_S5P. The seven dependencies on that
-symbol have evaluated to false since next-20140716 (for linux-next) and
-v3.17-rc1 (for mainline). Probably no one noticed because these are all
-optional dependencies.
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-I've mentioned this a few times:
-- http://lkml.kernel.org/r/1405505756.4408.24.camel@x220
-- http://lkml.kernel.org/r/1409825817.5546.99.camel@x220
-- http://lkml.kernel.org/r/1411068565.2017.83.camel@x220
+* report per-transponder symbolrate instead of per-TS one (moved to dvb-core)
+* add output TS-ID report, which might be useful if an user did not specify
+  stream id or set a wrong one, and the demod chose the first TS_ID found.
+---
+ drivers/media/dvb-frontends/tc90522.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-As far as I know no fix for this is pending. So let's remove these
-optional dependencies. If it turns out that they should actually be
-replaced by another symbol, as was said in a reply to my first message
-but never done, this series can be used as a reference for the places
-that need fixing.
-
-This series is done on top of next-20141003. It is tested by grepping
-the tree only.
-
-Paul Bolle (4):
-  [media] Remove optional dependencies on PLAT_S5P
-  [media] exynos4-is: Remove optional dependency on PLAT_S5P
-  [media] Remove optional dependency on PLAT_S5P
-  usb: host: Remove optional dependencies on PLAT_S5P
-
- drivers/media/platform/Kconfig            | 6 +++---
- drivers/media/platform/exynos4-is/Kconfig | 2 +-
- drivers/media/platform/s5p-tv/Kconfig     | 2 +-
- drivers/usb/host/Kconfig                  | 4 ++--
- 4 files changed, 7 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
+index bca81ef..b35d65c 100644
+--- a/drivers/media/dvb-frontends/tc90522.c
++++ b/drivers/media/dvb-frontends/tc90522.c
+@@ -216,32 +216,30 @@ static int tc90522s_get_frontend(struct dvb_frontend *fe)
+ 	c->delivery_system = SYS_ISDBS;
+ 
+ 	layers = 0;
+-	ret = reg_read(state, 0xe8, val, 3);
++	ret = reg_read(state, 0xe6, val, 5);
+ 	if (ret == 0) {
+-		int slots;
+ 		u8 v;
+ 
++		c->stream_id = val[0] << 8 | val[1];
++
+ 		/* high/single layer */
+-		v = (val[0] & 0x70) >> 4;
++		v = (val[2] & 0x70) >> 4;
+ 		c->modulation = (v == 7) ? PSK_8 : QPSK;
+ 		c->fec_inner = fec_conv_sat[v];
+ 		c->layer[0].fec = c->fec_inner;
+ 		c->layer[0].modulation = c->modulation;
+-		c->layer[0].segment_count = val[1] & 0x3f; /* slots */
++		c->layer[0].segment_count = val[3] & 0x3f; /* slots */
+ 
+ 		/* low layer */
+-		v = (val[0] & 0x07);
++		v = (val[2] & 0x07);
+ 		c->layer[1].fec = fec_conv_sat[v];
+ 		if (v == 0)  /* no low layer */
+ 			c->layer[1].segment_count = 0;
+ 		else
+-			c->layer[1].segment_count = val[2] & 0x3f; /* slots */
++			c->layer[1].segment_count = val[4] & 0x3f; /* slots */
+ 		/* actually, BPSK if v==1, but not defined in fe_modulation_t */
+ 		c->layer[1].modulation = QPSK;
+ 		layers = (v > 0) ? 2 : 1;
+-
+-		slots =  c->layer[0].segment_count +  c->layer[1].segment_count;
+-		c->symbol_rate = 28860000 * slots / 48;
+ 	}
+ 
+ 	/* statistics */
 -- 
-1.9.3
+2.1.2
 
