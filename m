@@ -1,36 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:55319 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbaJZN61 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47028 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751730AbaJ0AH4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 09:58:27 -0400
-Received: by mail-pd0-f180.google.com with SMTP id ft15so2126378pdb.11
-        for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 06:58:27 -0700 (PDT)
-Message-ID: <544CFDFE.9030409@gmail.com>
-Date: Sun, 26 Oct 2014 22:58:22 +0900
-From: Akihiro TSUKADA <tskd08@gmail.com>
+	Sun, 26 Oct 2014 20:07:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv4 PATCH 01/15] videobuf2-core.h: improve documentation
+Date: Mon, 27 Oct 2014 02:07:58 +0200
+Message-ID: <2367286.uK648OTWkn@avalon>
+In-Reply-To: <1414063302-26903-2-git-send-email-hverkuil@xs4all.nl>
+References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl> <1414063302-26903-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-CC: m.chehab@samsung.com
-Subject: Re: [PATCH] dvb:tc90522: bugfix of always-false expression
-References: <1414325129-16570-1-git-send-email-tskd08@gmail.com> <544CE5F1.3040601@iki.fi>
-In-Reply-To: <544CE5F1.3040601@iki.fi>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Reported by David Binderman
+Hi Hans,
+
+Thank you for the patch.
+
+On Thursday 23 October 2014 13:21:28 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> ^^ See Documentation/SubmittingPatches
+> Document that drivers can access/modify the buffer contents in buf_prepare
+> and buf_finish. That was not clearly stated before.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Though I knew that Reported-by: tag should not be used,
-I wrote it just to express my appreciation for his report,
-and did not mean to attach the tag.
-But I admit that it is confusing,
-so I'd like to beg Mauro to do me the kindness
-to delete the line when this patch is committed.
-(or I'll re-send the patch if it is necessary.)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-regards,
-akihiro
+> ---
+>  include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+>  1 file changed, 17 insertions(+), 15 deletions(-)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 6ef2d01..70ace7c 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -270,22 +270,24 @@ struct vb2_buffer {
+>   *			queue setup from completing successfully; optional.
+>   * @buf_prepare:	called every time the buffer is queued from userspace
+>   *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+> - *			perform any initialization required before each hardware
+> - *			operation in this callback; drivers that support
+> - *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+> - *			if an error is returned, the buffer will not be queued
+> - *			in driver; optional.
+> + *			perform any initialization required before each
+> + *			hardware operation in this callback; drivers can
+> + *			access/modify the buffer here as it is still synced for
+> + *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
+> + *			also validate the buffer size; if an error is returned,
+> + *			the buffer will not be queued in driver; optional.
+>   * @buf_finish:		called before every dequeue of the buffer back to
+> - *			userspace; drivers may perform any operations required
+> - *			before userspace accesses the buffer; optional. The
+> - *			buffer state can be one of the following: DONE and
+> - *			ERROR occur while streaming is in progress, and the
+> - *			PREPARED state occurs when the queue has been canceled
+> - *			and all pending buffers are being returned to their
+> - *			default DEQUEUED state. Typically you only have to do
+> - *			something if the state is VB2_BUF_STATE_DONE, since in
+> - *			all other cases the buffer contents will be ignored
+> - *			anyway.
+> + *			userspace; the buffer is synced for the CPU, so drivers
+> + *			can access/modify the buffer contents; drivers may
+> + *			perform any operations required before userspace
+> + *			accesses the buffer; optional. The buffer state can be
+> + *			one of the following: DONE and ERROR occur while
+> + *			streaming is in progress, and the PREPARED state occurs
+> + *			when the queue has been canceled and all pending
+> + *			buffers are being returned to their default DEQUEUED
+> + *			state. Typically you only have to do something if the
+> + *			state is VB2_BUF_STATE_DONE, since in all other cases
+> + *			the buffer contents will be ignored anyway.
+>   * @buf_cleanup:	called once before the buffer is freed; drivers may
+>   *			perform any additional cleanup; optional.
+>   * @start_streaming:	called once to enter 'streaming' state; the driver 
+may
+
+-- 
+Regards,
+
+Laurent Pinchart
+
