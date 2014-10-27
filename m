@@ -1,38 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.239.73.48] ([103.239.73.48]:38801 "EHLO a.1-hour-pay.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752611AbaJ3S5G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 14:57:06 -0400
-Received: from mvdkry (unknown [14.154.195.238])
-	by a.1-hour-pay.com (Postfix) with ESMTPA id 36425475D
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 02:56:13 +0800 (CST)
-Date: Fri, 31 Oct 2014 02:57:56 +0800
-From: "LED Light" <hw5@a.1-hour-pay.com>
-Reply-To: shadow@JRS-Tech.net
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Milky LED BULBS  Ceramic ceiling lamps LED FLOOD LIGHTS
-Message-ID: <201410310257568593692@a.1-hour-pay.com>
+Received: from lists.s-osg.org ([54.187.51.154]:42046 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751962AbaJ0Prf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Oct 2014 11:47:35 -0400
+Message-ID: <544E690D.1030506@osg.samsung.com>
+Date: Mon, 27 Oct 2014 09:47:25 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
+	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
+	ramakrmu@cisco.com, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, perex@perex.cz,
+	prabhakar.csengg@gmail.com, tim.gardner@canonical.com,
+	linux@eikelenboom.it, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de> <543FC3CD.8050805@osg.samsung.com> <s5h38aow1ub.wl-tiwai@suse.de> <543FD1EC.5010206@osg.samsung.com> <s5hy4sgumjo.wl-tiwai@suse.de> <543FD892.6010209@osg.samsung.com> <s5htx34ul3w.wl-tiwai@suse.de> <54467EFB.7050800@xs4all.nl> <s5hbnp5z9uy.wl-tiwai@suse.de> <5446989A.3010000@osg.samsung.com> <20141025085742.43e20bb5.m.chehab@samsung.com>
+In-Reply-To: <20141025085742.43e20bb5.m.chehab@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciBQdXJjaGFzaW5nIE1hbmFnZSwgDQoNCkdvb2QgbW9ybmluZy4sIEhvdyBhcmUgeW91Pw0K
-DQpBcyBrbm93aW5nIHRoYXQgeW91IGFyZSBpbiB0aGUgTEVEIGxpZ2h0aW5nIG1hcmtldCAuIE5v
-dyBJIGFtIHdyaXRpbmcgdG8gZXN0YWJsaXNoIGJ1c2luZXNzIHJlbGF0aW9uc2hpcCB3aXRoIHlv
-dSAuIFRoZSBmb2xsb3dpbmcgUkdCIGZsb29kIGxpZ2h0LCBzZW5zb3IgZmxvb2QgbGlnaHRpbmcg
-aGFzIGJlZW4gc2hpcHBlZCB0byBHZXJtYW55ICwgU3dpdHplcmxhbmQsIFJvbWFuaWEgLCBSdXNz
-aWFuICwgRnJhbmNlICwgQ2FuYWRhLCBVSyAuIEFuZCBJIHdvdWxkIGxpa2UgdG8gYXNrIHlvdSB0
-byB0cnkgaW4geW91ciB0YXJnZXQgbWFya2V0IGFsc28gOg0KIA0KDQoxMFcgZmxvb2QgbGlnaHQg
-LyBSR0IgLyBDVyBvciBXVyAxMi41JHVzZCBlYWNoIHBjcy4NCg0KMjBXIGZsb29kIGxpZ2h0IC8g
-UkdCIC8gQ1cgb3IgV1cgMTYuNCR1c2QgZWFjaCBwY3MNCg0KMzBXIGZsb29kIGxpZ2h0IC8gUkdC
-IC8gQ1cgb3IgV1cgMjUkdXNkIGVhY2ggcGNzDQoNCjUwVyBmbG9vZCBsaWdodCAvIFJHQiAvIENX
-IG9yIFdXIDMzJHVzZCBlYWNoIHBjcw0KDQpQbHMgZmVlbCBmcmVlIHRvIGNvbnRhY3Qgd2l0aCBt
-ZSBpZiB5b3Ugd291bGQgbGlrZSB0byBrbm93IG1vcmUgISBUaGFua3MgISANCg0KU2luY2VyZWx5
-DQpKUlMgVGVjaG5vbG9neSBDby4sTHRkDQpTaGFkb3cNCg0KRW1haWyjuiAgc2hhZG93QEpSUy1U
-ZWNoLm5ldA0KU2t5cGWjuiAgdGVjaGpyc2INCk1TTqO6ICAgIHRlY2hqcnNiQG1zbi5jbg0KV2Vi
-c2l0o7ogd3d3Lmpycy1MRUQubmV0DQoNCg0Kd2Ugd291bGQgYmUgZ3JhdGVmdWwgaWYgeW91IHdp
-bGwgYmUgb3VyIGxlZCBsYW1wcyBjYXRhbG9ndWUgcmVzZXJ2ZWQgZm9yIHlvdXIgc3VwZXJ2aXNv
-ci4=
+On 10/25/2014 04:57 AM, Mauro Carvalho Chehab wrote:
+> Hi,
+> 
+> Sorry to enter into this thread so late. Last week was a full week, due to the
+> 4 conferences I paticiapated, and last week I needed to fill lots of trip
+> reports. Also, I have another trip to give two speeches.
+> 
+> Em Tue, 21 Oct 2014 11:32:10 -0600
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Here is what I propose for patch v3:
+>> - make it a module under media
+>> - collapse tuner and audio tokens into media token
+> 
+> I'm a little skeptical about this. Merging tuner and audio tokens seems
+> weird on my eyes, as there are actually two different hardware resources
+> we need to lock, and we may be locking them on different places.
+
+I think the suggestion for collapsing came about because, in this
+patch series, the dvb and v4l use-cases are such that tuner and
+audio need to be held together. i.e when tuner is held, audio is
+held as well. With an intent to simplify the usage, I decided to
+have get_tuner interface to return audio token. It does simplify
+the logic for callers - all the paces that get tuner will also
+need to make a call to get audio and handle errors when audio is
+not available. That made it even more confusing perhaps and raised
+the question that "why can't we collapse".
+
+Having two tokens will allow the ability hold them independently.
+Maybe the right approach for patch v3 is don't collapse, but
+change dvb and v4l to get tuner followed by audio and handle the
+errors paths themselves.
+
+> 
+>> - change names (get rid of abbreviated tkn stuff)
+>> - Make other changes Takashi/Lars pointed out in pcm
+>> - hold token in pcm open/close
+> 
+
+-- Shuah
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
