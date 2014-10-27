@@ -1,89 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:32923 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756192AbaJ2UNE (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4455 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749AbaJ0Kel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 16:13:04 -0400
-Received: by mail-la0-f51.google.com with SMTP id q1so3224319lam.38
-        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 13:13:01 -0700 (PDT)
+	Mon, 27 Oct 2014 06:34:41 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9RAYbKW019040
+	for <linux-media@vger.kernel.org>; Mon, 27 Oct 2014 11:34:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.194.228] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 7A7E62A0377
+	for <linux-media@vger.kernel.org>; Mon, 27 Oct 2014 11:34:19 +0100 (CET)
+Message-ID: <544E1FBC.7060305@xs4all.nl>
+Date: Mon, 27 Oct 2014 11:34:36 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20141029170853.1ee823cb.m.chehab@samsung.com>
-References: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
-	<20141029170853.1ee823cb.m.chehab@samsung.com>
-Date: Wed, 29 Oct 2014 18:13:01 -0200
-Message-ID: <CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
-Subject: Re: Issues with Empia + saa7115
-From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] Two patches
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok, just to be sure, I have others capture boards like  Silan SC8113,
-that's only on newer kernels? If so I'll backport it.
+Hi Mauro,
 
-2014-10-29 17:08 GMT-02:00 Mauro Carvalho Chehab <m.chehab@samsung.com>:
-> Em Wed, 29 Oct 2014 16:34:09 -0200
-> Rafael Coutinho <rafael.coutinho@phiinnovations.com> escreveu:
->
->> Hi all,
->>
->> I'm having trouble to make an SAA7115 (Actually it's the generic
->> GM7113 version) video capture board to work on a beagle board running
->> Android (4.0.3).
->> For some reason I cannot capture any image, it always output a green image file.
->> The kernel is Linux-3.2.0
->
-> Support for GM7113 were added only on a recent version.
->
-> So, you need to get a newer driver. So, you'll need to either upgrade
-> the Kernel, use either Linux backports or media-build to get a newer
-> driver set or do the manual work of backporting saa7115 and the bridge
-> driver changes for gm7113 for it to work.
->
-> Regards,
-> Mauro
->
->>
->> My current approach is the simplest I have found so far, to avoid any
->> issues with other sw layers. I'm forcing a 'dd' from the /dev/video
->> device.
->>
->> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
->>
->> And then I open the raw image file converting it on an image editor.
->>
->> In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
->> Bone with android it fails to get an image.
->>
->> I have now tried with a Linux (angstron) on beagle bone with 3.8
->> kernel and this time is even worse, the 'dd' command does not result
->> on any byte written on the output file.
->>
->> The v4l2-ctl works fine on the 3 environments. I can even set values
->> as standard, input etc...
->>
->> I have attached the dmesg of the environments here:
->>
->> * Android - dmesg http://pastebin.com/AFdB9N9c
->>
->> * Linux Angstron - dmesg http://pastebin.com/s3S3iCph
->> * Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
->>
->> * Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
->>
->> I have one restriction on the kernel of android due the HAL drivers
->> for BBB. So changing kernel is not a choice.
->>
->> Anyone could give me some tips on where to look for other issues or debug it?
->>
->> Thanks in advance
->>
+This fixes one tricky v4l2-ctrls.c sparse warning and increases the number
+of buffers in vb2.
 
-
-
--- 
 Regards,
-Coutinho
-www.phiinnovations.com
+
+	Hans
+
+
+The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
+
+  Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19c
+
+for you to fetch changes up to 0c0b10999ca6d68dc224d1330dc2541c66db0351:
+
+  v4l2-ctrls: fix sparse warning (2014-10-27 11:33:14 +0100)
+
+----------------------------------------------------------------
+Divneil Wadhawan (1):
+      vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
+
+Hans Verkuil (1):
+      v4l2-ctrls: fix sparse warning
+
+ drivers/media/pci/saa7134/saa7134-ts.c       |  4 +--
+ drivers/media/pci/saa7134/saa7134-vbi.c      |  4 +--
+ drivers/media/pci/saa7134/saa7134-video.c    |  2 +-
+ drivers/media/platform/mem2mem_testdev.c     |  2 +-
+ drivers/media/platform/ti-vpe/vpe.c          |  2 +-
+ drivers/media/platform/vivid/vivid-core.h    |  2 +-
+ drivers/media/platform/vivid/vivid-ctrls.c   |  2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c |  2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 87 +++++++++++++++++++++++++++++++++++++++--------------------------
+ drivers/media/v4l2-core/videobuf2-core.c     |  8 +++---
+ include/media/videobuf2-core.h               |  4 ++-
+ 11 files changed, 69 insertions(+), 50 deletions(-)
