@@ -1,247 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3344 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754917AbaJWLWP (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:9006 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaJ0ROS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 07:22:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 04/15] vb2-dma-sg: add dmabuf import support
-Date: Thu, 23 Oct 2014 13:21:31 +0200
-Message-Id: <1414063302-26903-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1414063302-26903-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 27 Oct 2014 13:14:18 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NE400GB457TKIA0@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Oct 2014 13:14:17 -0400 (EDT)
+Date: Mon, 27 Oct 2014 15:14:13 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: tskd08@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 7/7] v4l-utils/libdvbv5,
+ dvbv5-scan: generalize channel duplication check
+Message-id: <20141027151413.68ac45cd.m.chehab@samsung.com>
+In-reply-to: <1414323983-15996-8-git-send-email-tskd08@gmail.com>
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+ <1414323983-15996-8-git-send-email-tskd08@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sun, 26 Oct 2014 20:46:23 +0900
+tskd08@gmail.com escreveu:
 
-Add support for dmabuf to vb2-dma-sg.
+> From: Akihiro Tsukada <tskd08@gmail.com>
+> 
+> include stream id to duplication check
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 126 +++++++++++++++++++++++++++--
- 1 file changed, 119 insertions(+), 7 deletions(-)
+Please add a better description.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 7375923..2795c27 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-+	struct sg_table			*dma_sgt;
- 	size_t				size;
- 	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- 	struct vm_area_struct		*vma;
-+
-+	/* DMABUF related */
-+	struct dma_buf_attachment	*db_attach;
- };
- 
- static void vb2_dma_sg_put(void *buf_priv);
-@@ -114,6 +118,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
- 	/* size is already page aligned */
- 	buf->num_pages = size >> PAGE_SHIFT;
- 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_sgt = &buf->sg_table;
- 
- 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
-@@ -124,7 +129,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
- 	if (ret)
- 		goto fail_pages_alloc;
- 
--	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, 0, size, GFP_KERNEL);
- 	if (ret)
- 		goto fail_table_alloc;
-@@ -173,7 +178,7 @@ static void vb2_dma_sg_put(void *buf_priv)
- 		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->num_pages);
--		sg_free_table(&buf->sg_table);
-+		sg_free_table(buf->dma_sgt);
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
- 		kfree(buf->pages);
-@@ -185,7 +190,11 @@ static void vb2_dma_sg_put(void *buf_priv)
- static void vb2_dma_sg_prepare(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	struct sg_table *sgt = &buf->sg_table;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	/* DMABUF exporter will flush the cache for us */
-+	if (buf->db_attach)
-+		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
-@@ -193,7 +202,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
- static void vb2_dma_sg_finish(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	struct sg_table *sgt = &buf->sg_table;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	/* DMABUF exporter will flush the cache for us */
-+	if (buf->db_attach)
-+		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
-@@ -222,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->dma_sgt = &buf->sg_table;
- 
- 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
-@@ -274,7 +288,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
- 
--	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
-+	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
- 		goto userptr_fail_alloc_table_from_pages;
- 
-@@ -319,7 +333,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
--	sg_free_table(&buf->sg_table);
-+	sg_free_table(buf->dma_sgt);
- 	while (--i >= 0) {
- 		if (buf->write)
- 			set_page_dirty_lock(buf->pages[i]);
-@@ -392,11 +406,105 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	return 0;
- }
- 
-+/*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_dma_sg_map_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+	struct sg_table *sgt;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		pr_err("trying to pin a non attached buffer\n");
-+		return -EINVAL;
-+	}
-+
-+	if (WARN_ON(buf->dma_sgt)) {
-+		pr_err("dmabuf buffer is already pinned\n");
-+		return 0;
-+	}
-+
-+	/* get the associated scatterlist for this buffer */
-+	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
-+	if (IS_ERR_OR_NULL(sgt)) {
-+		pr_err("Error getting dmabuf scatterlist\n");
-+		return -EINVAL;
-+	}
-+
-+	buf->dma_sgt = sgt;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		pr_err("trying to unpin a not attached buffer\n");
-+		return;
-+	}
-+
-+	if (WARN_ON(!sgt)) {
-+		pr_err("dmabuf buffer is already unpinned\n");
-+		return;
-+	}
-+
-+	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
-+
-+	buf->dma_sgt = NULL;
-+}
-+
-+static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = mem_priv;
-+
-+	/* if vb2 works correctly you should never detach mapped buffer */
-+	if (WARN_ON(buf->dma_sgt))
-+		vb2_dma_sg_unmap_dmabuf(buf);
-+
-+	/* detach this attachment */
-+	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
-+	kfree(buf);
-+}
-+
-+static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, int write)
-+{
-+	struct vb2_dma_sg_conf *conf = alloc_ctx;
-+	struct vb2_dma_sg_buf *buf;
-+	struct dma_buf_attachment *dba;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dev = conf->dev;
-+	/* create attachment for the dmabuf with the user device */
-+	dba = dma_buf_attach(dbuf, buf->dev);
-+	if (IS_ERR(dba)) {
-+		pr_err("failed to attach dmabuf\n");
-+		kfree(buf);
-+		return dba;
-+	}
-+
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->size = size;
-+	buf->db_attach = dba;
-+
-+	return buf;
-+}
-+
- static void *vb2_dma_sg_cookie(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 
--	return &buf->sg_table;
-+	return buf->dma_sgt;
- }
- 
- const struct vb2_mem_ops vb2_dma_sg_memops = {
-@@ -409,6 +517,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
-+	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
-+	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
- 	.cookie		= vb2_dma_sg_cookie,
- };
- EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
--- 
-2.1.1
+I'll review it latter after you fix the issues on the other patches
+and send them with the proper SOBs.
 
+I would prefer to apply this patch and look on it more deeply, but
+I need first to be able to apply the remaining ones.
+
+> ---
+>  lib/include/libdvbv5/dvb-scan.h |  11 ++--
+>  lib/libdvbv5/dvb-scan.c         | 132 ++++++++++++----------------------------
+>  utils/dvb/dvbv5-scan.c          |  16 ++---
+>  3 files changed, 49 insertions(+), 110 deletions(-)
+> 
+> diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
+> index e3a0d24..aad6d01 100644
+> --- a/lib/include/libdvbv5/dvb-scan.h
+> +++ b/lib/include/libdvbv5/dvb-scan.h
+> @@ -385,16 +385,17 @@ void dvb_add_scaned_transponders(struct dvb_v5_fe_parms *parms,
+>   */
+>  int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *parms);
+>  
+> -int dvb_new_freq_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> -			   uint32_t freq, enum dvb_sat_polarization pol, int shift);
+> -int dvb_new_ts_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> -			   uint32_t freq, int shift, uint32_t ts_id);
+> +int dvb_new_entry_is_needed(struct dvb_entry *entry,
+> +			   struct dvb_entry *last_entry,
+> +			   uint32_t freq, int shift,
+> +			   enum dvb_sat_polarization pol, uint32_t stream_id);
+>  
+>  struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *parms,
+>  				     struct dvb_entry *first_entry,
+>  			             struct dvb_entry *entry,
+>  			             uint32_t freq, uint32_t shift,
+> -			             enum dvb_sat_polarization pol);
+> +			             enum dvb_sat_polarization pol,
+> +			             uint32_t stream_id);
+>  
+>  void dvb_update_transponders(struct dvb_v5_fe_parms *parms,
+>  			     struct dvb_v5_descriptors *dvb_scan_handler,
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index f265f97..e11a915 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -693,93 +693,32 @@ int dvb_estimate_freq_shift(struct dvb_v5_fe_parms *__p)
+>  	return shift;
+>  }
+>  
+> -int dvb_new_freq_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> -			   uint32_t freq, enum dvb_sat_polarization pol, int shift)
+> +int dvb_new_entry_is_needed(struct dvb_entry *entry,
+> +			    struct dvb_entry *last_entry,
+> +			    uint32_t freq, int shift,
+> +			    enum dvb_sat_polarization pol, uint32_t stream_id)
+>  {
+> -	int i;
+> -	uint32_t data;
+> -
+>  	for (; entry != last_entry; entry = entry->next) {
+> -		for (i = 0; i < entry->n_props; i++) {
+> -			data = entry->props[i].u.data;
+> -			if (entry->props[i].cmd == DTV_POLARIZATION) {
+> -				if (data != pol)
+> -					continue;
+> -			}
+> -			if (entry->props[i].cmd == DTV_FREQUENCY) {
+> -				if (( freq >= data - shift) && (freq <= data + shift))
+> -					return 0;
+> -			}
+> -		}
+> -	}
+> -
+> -	return 1;
+> -}
+> -
+> -struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *__p,
+> -				     struct dvb_entry *first_entry,
+> -			             struct dvb_entry *entry,
+> -			             uint32_t freq, uint32_t shift,
+> -			             enum dvb_sat_polarization pol)
+> -{
+> -	struct dvb_v5_fe_parms_priv *parms = (void *)__p;
+> -	struct dvb_entry *new_entry;
+> -	int i, n = 2;
+> -
+> -	if (!dvb_new_freq_is_needed(first_entry, NULL, freq, pol, shift))
+> -		return NULL;
+> -
+> -	/* Clone the current entry into a new entry */
+> -	new_entry = calloc(sizeof(*new_entry), 1);
+> -	if (!new_entry) {
+> -		dvb_perror("not enough memory for a new scanning frequency");
+> -		return NULL;
+> -	}
+> +		int i;
+>  
+> -	memcpy(new_entry, entry, sizeof(*entry));
+> +		for (i = 0; i < entry->n_props; i++) {
+> +			uint32_t data = entry->props[i].u.data;
+>  
+> -	/*
+> -	 * The frequency should change to the new one. Seek for it and
+> -	 * replace its value to the desired one.
+> -	 */
+> -	for (i = 0; i < new_entry->n_props; i++) {
+> -		if (new_entry->props[i].cmd == DTV_FREQUENCY) {
+> -			new_entry->props[i].u.data = freq;
+> -			/* Navigate to the end of the entry list */
+> -			while (entry->next) {
+> -				entry = entry->next;
+> -				n++;
+> +			if (entry->props[i].cmd == DTV_FREQUENCY) {
+> +				if (freq < data - shift || freq > data + shift)
+> +					break;
+>  			}
+> -			dvb_log("New transponder/channel found: #%d: %d",
+> -			        n, freq);
+> -			entry->next = new_entry;
+> -			new_entry->next = NULL;
+> -			return new_entry;
+> -		}
+> -	}
+> -
+> -	/* This should never happen */
+> -	dvb_logerr("BUG: Couldn't add %d to the scan frequency list.", freq);
+> -	free(new_entry);
+> -
+> -	return NULL;
+> -}
+> -
+> -int dvb_new_ts_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+> -			 uint32_t freq, int shift, uint32_t ts_id)
+> -{
+> -	int i;
+> -	uint32_t data;
+> -
+> -	for (; entry != last_entry; entry = entry->next) {
+> -		for (i = 0; i < entry->n_props; i++) {
+> -			data = entry->props[i].u.data;
+> -			if (entry->props[i].cmd == DTV_STREAM_ID) {
+> -				if (data != ts_id)
+> +			if (pol != POLARIZATION_OFF
+> +			    && entry->props[i].cmd == DTV_POLARIZATION) {
+> +				if (data != pol)
+>  					break;
+>  			}
+> -			if (entry->props[i].cmd == DTV_FREQUENCY) {
+> -				if (freq < data - shift || freq > data + shift)
+> +			/* NO_STREAM_ID_FILTER: stream_id is not used.
+> +			 * 0: unspecified/auto. libdvbv5 default value.
+> +			 */
+> +			if (stream_id != NO_STREAM_ID_FILTER && stream_id != 0
+> +			    && entry->props[i].cmd == DTV_STREAM_ID) {
+> +				if (data != stream_id)
+>  					break;
+>  			}
+>  		}
+> @@ -790,16 +729,19 @@ int dvb_new_ts_is_needed(struct dvb_entry *entry, struct dvb_entry *last_entry,
+>  	return 1;
+>  }
+>  
+> -static struct dvb_entry *
+> -dvb_scan_add_entry_isdbs(struct dvb_v5_fe_parms *__p,
+> -			 struct dvb_entry *first_entry, struct dvb_entry *entry,
+> -			 uint32_t freq, uint32_t shift, uint32_t ts_id)
+> +struct dvb_entry *dvb_scan_add_entry(struct dvb_v5_fe_parms *__p,
+> +				     struct dvb_entry *first_entry,
+> +			             struct dvb_entry *entry,
+> +			             uint32_t freq, uint32_t shift,
+> +			             enum dvb_sat_polarization pol,
+> +				     uint32_t stream_id)
+>  {
+>  	struct dvb_v5_fe_parms_priv *parms = (void *)__p;
+>  	struct dvb_entry *new_entry;
+>  	int i, n = 2;
+>  
+> -	if (!dvb_new_ts_is_needed(first_entry, NULL, freq, shift, ts_id))
+> +	if (!dvb_new_entry_is_needed(first_entry, NULL, freq, shift, pol,
+> +				     stream_id))
+>  		return NULL;
+>  
+>  	/* Clone the current entry into a new entry */
+> @@ -874,7 +816,7 @@ static void add_update_nit_dvbc(struct dvb_table_nit *nit,
+>  		new = tr->entry;
+>  	} else {
+>  		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+> -					 d->frequency, tr->shift, tr->pol);
+> +					 d->frequency, tr->shift, tr->pol, 0);
+>  		if (!new)
+>  			return;
+>  	}
+> @@ -908,7 +850,8 @@ static void add_update_nit_isdbt(struct dvb_table_nit *nit,
+>  
+>  	for (i = 0; i < d->num_freqs; i++) {
+>  		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+> -					 d->frequency[i], tr->shift, tr->pol);
+> +					 d->frequency[i], tr->shift,
+> +					 tr->pol, 0);
+>  		if (!new)
+>  			return;
+>  	}
+> @@ -984,9 +927,9 @@ static void add_update_nit_dvbt2(struct dvb_table_nit *nit,
+>  	for (i = 0; i < t2->frequency_loop_length; i++) {
+>  		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+>  					 t2->centre_frequency[i] * 10,
+> -					 tr->shift, tr->pol);
+> +					 tr->shift, tr->pol, t2->plp_id);
+>  		if (!new)
+> -			return;
+> +			continue;
+>  
+>  		dvb_store_entry_prop(new, DTV_DELIVERY_SYSTEM,
+>  				     SYS_DVBT2);
+> @@ -1014,7 +957,8 @@ static void add_update_nit_dvbt(struct dvb_table_nit *nit,
+>  		return;
+>  
+>  	new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+> -				d->centre_frequency * 10, tr->shift, tr->pol);
+> +				d->centre_frequency * 10, tr->shift,
+> +				tr->pol, 0);
+>  	if (!new)
+>  		return;
+>  
+> @@ -1053,7 +997,7 @@ static void add_update_nit_dvbs(struct dvb_table_nit *nit,
+>  		new = tr->entry;
+>  	} else {
+>  		new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+> -					 d->frequency, tr->shift, tr->pol);
+> +					 d->frequency, tr->shift, tr->pol, 0);
+>  		if (!new)
+>  			return;
+>  	}
+> @@ -1094,9 +1038,9 @@ static void add_update_nit_isdbs(struct dvb_table_nit *nit,
+>  	if (tr->update)
+>  		return;
+>  
+> -        ts_id = tran->transport_id;
+> -	new = dvb_scan_add_entry_isdbs(tr->parms, tr->first_entry, tr->entry,
+> -				       d->frequency, tr->shift, ts_id);
+> +	ts_id = tran->transport_id;
+> +	new = dvb_scan_add_entry(tr->parms, tr->first_entry, tr->entry,
+> +				 d->frequency, tr->shift, tr->pol, ts_id);
+>  	if (!new)
+>  		return;
+>  
+> diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
+> index e87c983..ef2b3ab 100644
+> --- a/utils/dvb/dvbv5-scan.c
+> +++ b/utils/dvb/dvbv5-scan.c
+> @@ -241,6 +241,7 @@ static int run_scan(struct arguments *args,
+>  
+>  	for (entry = dvb_file->first_entry; entry != NULL; entry = entry->next) {
+>  		struct dvb_v5_descriptors *dvb_scan_handler = NULL;
+> +		uint32_t stream_id;
+>  
+>  		/*
+>  		 * If the channel file has duplicated frequencies, or some
+> @@ -254,18 +255,11 @@ static int run_scan(struct arguments *args,
+>  		if (dvb_retrieve_entry_prop(entry, DTV_POLARIZATION, &pol))
+>  			pol = POLARIZATION_OFF;
+>  
+> -		if (parms->current_sys == SYS_ISDBS) {
+> -			uint32_t tsid = 0;
+> +		if (dvb_retrieve_entry_prop(entry, DTV_STREAM_ID, &stream_id))
+> +			stream_id = NO_STREAM_ID_FILTER;
+>  
+> -			dvb_store_entry_prop(entry, DTV_POLARIZATION, POLARIZATION_R);
+> -
+> -			dvb_retrieve_entry_prop(entry, DTV_STREAM_ID, &tsid);
+> -			if (!dvb_new_ts_is_needed(dvb_file->first_entry, entry,
+> -						  freq, shift, tsid))
+> -				continue;
+> -		} else
+> -		if (!dvb_new_freq_is_needed(dvb_file->first_entry, entry,
+> -					    freq, pol, shift))
+> +		if (!dvb_new_entry_is_needed(dvb_file->first_entry, entry,
+> +						  freq, shift, pol, stream_id))
+>  			continue;
+>  
+>  		count++;
