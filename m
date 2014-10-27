@@ -1,350 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12262 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555AbaJHK3N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Oct 2014 06:29:13 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND40095VFXHTC50@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 08 Oct 2014 11:32:05 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Kiran AVND' <avnd.kiran@samsung.com>, linux-media@vger.kernel.org
-Cc: wuchengli@chromium.org, posciak@chromium.org, arun.m@samsung.com,
-	ihf@chromium.org, prathyush.k@samsung.com, arun.kk@samsung.com,
-	kiran@chromium.org
-References: <1411707142-4881-1-git-send-email-avnd.kiran@samsung.com>
- <1411707142-4881-14-git-send-email-avnd.kiran@samsung.com>
-In-reply-to: <1411707142-4881-14-git-send-email-avnd.kiran@samsung.com>
-Subject: RE: [PATCH v2 13/14] [media] s5p-mfc: fix a race in interrupt flags
- handling
-Date: Wed, 08 Oct 2014 12:29:09 +0200
-Message-id: <11f501cfe2e2$b2d40780$187c1680$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtprelay0101.hostedemail.com ([216.40.44.101]:44381 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751326AbaJ0FZU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Oct 2014 01:25:20 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
+	dri-devel@lists.freedesktop.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, patches@opensource.wolfsonmicro.com,
+	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-parisc@vger.kernel.org
+Cc: linux-input@vger.kernel.org, linux-wireless@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 00/11] treewide: mask then shift defects and style updates
+Date: Sun, 26 Oct 2014 22:24:56 -0700
+Message-Id: <cover.1414387334.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+logical mask has lower precedence than shift but should be
+done before the shift so parentheses are generally required.
 
-This patch does not apply to the current media tree.
+And when masking with a fixed value after a shift, normal kernel
+style has the shift on the left, then the shift on the right so
+convert a few non-conforming uses.
 
-commit cf3167cf1e969b17671a4d3d956d22718a8ceb85)
-Author: Antti Palosaari <crope@iki.fi>
-Date:   Fri Sep 26 22:45:36 2014 -0300
+Joe Perches (11):
+  block: nvme-scsi: Fix probable mask then right shift defects
+  radeon: evergreen: Fix probable mask then right shift defects
+  aiptek: Fix probable mask then right shift defects
+  dvb-net: Fix probable mask then right shift defects
+  cx25840/cx18: Use standard ordering of mask and shift
+  wm8350-core: Fix probable mask then right shift defect
+  iwlwifi: dvm: Fix probable mask then right shift defect
+  ssb: driver_chip_comon_pmu: Fix probable mask then right shift defect
+  tty: ipwireless: Fix probable mask then right shift defects
+  hwa-hc: Fix probable mask then right shift defect
+  sound: ad1889: Fix probable mask then right shift defects
 
-    [media] pt3: fix DTV FE I2C driver load error paths
-    
-Best wishes,
+ drivers/block/nvme-scsi.c                | 12 ++++++------
+ drivers/gpu/drm/radeon/evergreen.c       |  3 ++-
+ drivers/input/tablet/aiptek.c            |  6 +++---
+ drivers/media/dvb-core/dvb_net.c         |  4 +++-
+ drivers/media/i2c/cx25840/cx25840-core.c | 12 ++++++------
+ drivers/media/pci/cx18/cx18-av-core.c    | 16 ++++++++--------
+ drivers/mfd/wm8350-core.c                |  2 +-
+ drivers/net/wireless/iwlwifi/dvm/lib.c   |  4 ++--
+ drivers/ssb/driver_chipcommon_pmu.c      |  4 ++--
+ drivers/tty/ipwireless/hardware.c        | 12 ++++++------
+ drivers/usb/host/hwa-hc.c                |  2 +-
+ sound/pci/ad1889.c                       |  8 ++++----
+ 12 files changed, 44 insertions(+), 41 deletions(-)
+
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
-> -----Original Message-----
-> From: Kiran AVND [mailto:avnd.kiran@samsung.com]
-> Sent: Friday, September 26, 2014 6:52 AM
-> To: linux-media@vger.kernel.org
-> Cc: k.debski@samsung.com; wuchengli@chromium.org; posciak@chromium.org;
-> arun.m@samsung.com; ihf@chromium.org; prathyush.k@samsung.com;
-> arun.kk@samsung.com; kiran@chromium.org
-> Subject: [PATCH v2 13/14] [media] s5p-mfc: fix a race in interrupt
-> flags handling
-> 
-> From: Pawel Osciak <posciak@chromium.org>
-> 
-> Interrupt result flags have to be cleared before a hardware job is run.
-> Otherwise, if they are cleared asynchronously, we may end up clearing
-> them after the interrupt for which we wanted to wait has already
-> arrived, thus overwriting the job results that we intended to wait for.
-> 
-> To prevent this, clear the flags only under hw_lock and before running
-> a hardware job.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |    2 --
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    3 ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    1 -
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   13 ++-----------
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   12 ++----------
->  5 files changed, 4 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-> index 565a6ed..ca0a5cd 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-> @@ -468,7 +468,6 @@ int s5p_mfc_open_mfc_inst(struct s5p_mfc_dev *dev,
-> struct s5p_mfc_ctx *ctx)
->  	}
-> 
->  	set_work_bit_irqsave(ctx);
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
->  	if (s5p_mfc_wait_for_done_ctx(ctx,
->  		S5P_MFC_R2H_CMD_OPEN_INSTANCE_RET, 0)) { @@ -494,7 +493,6
-> @@ void s5p_mfc_close_mfc_inst(struct s5p_mfc_dev *dev, struct
-> s5p_mfc_ctx *ctx)  {
->  	ctx->state = MFCINST_RETURN_INST;
->  	set_work_bit_irqsave(ctx);
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
->  	/* Wait until instance is returned or timeout occurred */
->  	if (s5p_mfc_wait_for_done_ctx(ctx,
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 301d74f..7eef03a 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -350,7 +350,6 @@ static int vidioc_g_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  						MFCINST_RES_CHANGE_END)) {
->  		/* If the MFC is parsing the header,
->  		 * so wait until it is finished */
-> -		s5p_mfc_clean_ctx_int_flags(ctx);
->  		s5p_mfc_wait_for_done_ctx(ctx,
-> S5P_MFC_R2H_CMD_SEQ_DONE_RET,
->  									0);
->  	}
-> @@ -762,7 +761,6 @@ static int s5p_mfc_dec_g_v_ctrl(struct v4l2_ctrl
-> *ctrl)
->  			return -EINVAL;
->  		}
->  		/* Should wait for the header to be parsed */
-> -		s5p_mfc_clean_ctx_int_flags(ctx);
->  		s5p_mfc_wait_for_done_ctx(ctx,
->  				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
->  		if (ctx->state >= MFCINST_HEAD_PARSED && @@ -1076,7 +1074,6
-> @@ static void s5p_mfc_stop_streaming(struct vb2_queue *q)
->  		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING))
-> {
->  			ctx->state = MFCINST_FLUSH;
->  			set_work_bit_irqsave(ctx);
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
->  			if (s5p_mfc_wait_for_done_ctx(ctx,
->  				S5P_MFC_R2H_CMD_DPB_FLUSH_RET, 0))
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 653f28f..407dc63 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -1679,7 +1679,6 @@ static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl
-> *ctrl)
->  			return -EINVAL;
->  		}
->  		/* Should wait for the header to be produced */
-> -		s5p_mfc_clean_ctx_int_flags(ctx);
->  		s5p_mfc_wait_for_done_ctx(ctx,
->  				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
->  		if (ctx->state >= MFCINST_HEAD_PARSED && diff --git
-> a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-> index f882905..40a98ad 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-> @@ -1178,7 +1178,6 @@ static void s5p_mfc_run_res_change(struct
-> s5p_mfc_ctx *ctx)
-> 
->  	s5p_mfc_set_dec_stream_buffer_v5(ctx, 0, 0, 0);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_decode_one_frame_v5(ctx, MFC_DEC_RES_CHANGE);  }
-> 
-> @@ -1192,7 +1191,6 @@ static int s5p_mfc_run_dec_frame(struct
-> s5p_mfc_ctx *ctx, int last_frame)
->  		last_frame = MFC_DEC_LAST_FRAME;
->  		s5p_mfc_set_dec_stream_buffer_v5(ctx, 0, 0, 0);
->  		dev->curr_ctx = ctx->num;
-> -		s5p_mfc_clean_ctx_int_flags(ctx);
->  		s5p_mfc_decode_one_frame_v5(ctx, last_frame);
->  		return 0;
->  	}
-> @@ -1212,7 +1210,6 @@ static int s5p_mfc_run_dec_frame(struct
-> s5p_mfc_ctx *ctx, int last_frame)
->  		ctx->consumed_stream, temp_vb->b-
-> >v4l2_planes[0].bytesused);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
->  		last_frame = MFC_DEC_LAST_FRAME;
->  		mfc_debug(2, "Setting ctx->state to FINISHING\n"); @@ -
-> 1273,7 +1270,6 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx
-> *ctx)
->  	s5p_mfc_set_enc_stream_buffer_v5(ctx, dst_addr, dst_size);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	mfc_debug(2, "encoding buffer with index=%d state=%d\n",
->  		  src_mb ? src_mb->b->v4l2_buf.index : -1, ctx->state);
->  	s5p_mfc_encode_one_frame_v5(ctx);
-> @@ -1297,7 +1293,6 @@ static void s5p_mfc_run_init_dec(struct
-> s5p_mfc_ctx *ctx)
->  				0, temp_vb->b->v4l2_planes[0].bytesused);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_init_decode_v5(ctx);
->  }
-> 
-> @@ -1317,7 +1312,6 @@ static void s5p_mfc_run_init_enc(struct
-> s5p_mfc_ctx *ctx)
->  	s5p_mfc_set_enc_stream_buffer_v5(ctx, dst_addr, dst_size);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_init_encode_v5(ctx);
->  }
-> 
-> @@ -1352,7 +1346,6 @@ static int s5p_mfc_run_init_dec_buffers(struct
-> s5p_mfc_ctx *ctx)
->  				0, temp_vb->b->v4l2_planes[0].bytesused);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	ret = s5p_mfc_set_dec_frame_buffer_v5(ctx);
->  	if (ret) {
->  		mfc_err("Failed to alloc frame mem\n"); @@ -1396,6 +1389,8
-> @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
->  	 * Now obtaining frames from MFC buffer
->  	 */
->  	s5p_mfc_clock_on();
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +
->  	if (ctx->type == MFCINST_DECODER) {
->  		s5p_mfc_set_dec_desc_buffer(ctx);
->  		switch (ctx->state) {
-> @@ -1406,12 +1401,10 @@ static void s5p_mfc_try_run_v5(struct
-> s5p_mfc_dev *dev)
->  			ret = s5p_mfc_run_dec_frame(ctx, MFC_DEC_FRAME);
->  			break;
->  		case MFCINST_INIT:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, open_inst_cmd,
->  					ctx);
->  			break;
->  		case MFCINST_RETURN_INST:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, close_inst_cmd,
->  					ctx);
->  			break;
-> @@ -1444,12 +1437,10 @@ static void s5p_mfc_try_run_v5(struct
-> s5p_mfc_dev *dev)
->  			ret = s5p_mfc_run_enc_frame(ctx);
->  			break;
->  		case MFCINST_INIT:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, open_inst_cmd,
->  					ctx);
->  			break;
->  		case MFCINST_RETURN_INST:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, close_inst_cmd,
->  					ctx);
->  			break;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index 991008a..9104a75 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -1399,7 +1399,6 @@ static inline void s5p_mfc_set_flush(struct
-> s5p_mfc_ctx *ctx, int flush)
-> 
->  	if (flush) {
->  		dev->curr_ctx = ctx->num;
-> -		s5p_mfc_clean_ctx_int_flags(ctx);
->  		WRITEL(ctx->inst_no, mfc_regs->instance_id);
->  		s5p_mfc_hw_call(dev->mfc_cmds, cmd_host2risc, dev,
->  				S5P_FIMV_H2R_CMD_FLUSH_V6, NULL);
-> @@ -1540,7 +1539,6 @@ static inline void
-> s5p_mfc_run_dec_last_frames(struct s5p_mfc_ctx *ctx)
-> 
->  	s5p_mfc_set_dec_stream_buffer_v6(ctx, 0, 0, 0);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_decode_one_frame_v6(ctx, MFC_DEC_LAST_FRAME);  }
-> 
-> @@ -1577,7 +1575,6 @@ static inline int s5p_mfc_run_dec_frame(struct
-> s5p_mfc_ctx *ctx)
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
-> 
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
->  		last_frame = 1;
->  		mfc_debug(2, "Setting ctx->state to FINISHING\n"); @@ -
-> 1634,7 +1631,6 @@ static inline int s5p_mfc_run_enc_frame(struct
-> s5p_mfc_ctx *ctx)
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
-> 
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_encode_one_frame_v6(ctx);
-> 
->  	return 0;
-> @@ -1656,7 +1652,6 @@ static inline void s5p_mfc_run_init_dec(struct
-> s5p_mfc_ctx *ctx)
->  			temp_vb->b->v4l2_planes[0].bytesused);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_init_decode_v6(ctx);
->  }
-> 
-> @@ -1676,7 +1671,6 @@ static inline void s5p_mfc_run_init_enc(struct
-> s5p_mfc_ctx *ctx)
->  	s5p_mfc_set_enc_stream_buffer_v6(ctx, dst_addr, dst_size);
->  	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	s5p_mfc_init_encode_v6(ctx);
->  }
-> 
-> @@ -1696,7 +1690,6 @@ static inline int
-> s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
->  	}
-> 
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	ret = s5p_mfc_set_dec_frame_buffer_v6(ctx);
->  	if (ret) {
->  		mfc_err("Failed to alloc frame mem.\n"); @@ -1711,7 +1704,6
-> @@ static inline int s5p_mfc_run_init_enc_buffers(struct s5p_mfc_ctx
-> *ctx)
->  	int ret;
-> 
->  	dev->curr_ctx = ctx->num;
-> -	s5p_mfc_clean_ctx_int_flags(ctx);
->  	ret = s5p_mfc_set_enc_ref_buffer_v6(ctx);
->  	if (ret) {
->  		mfc_err("Failed to alloc frame mem.\n"); @@ -1760,6 +1752,8
-> @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
->  	 * Now obtaining frames from MFC buffer */
-> 
->  	s5p_mfc_clock_on();
-> +	s5p_mfc_clean_ctx_int_flags(ctx);
-> +
->  	if (ctx->type == MFCINST_DECODER) {
->  		switch (ctx->state) {
->  		case MFCINST_FINISHING:
-> @@ -1769,12 +1763,10 @@ static void s5p_mfc_try_run_v6(struct
-> s5p_mfc_dev *dev)
->  			ret = s5p_mfc_run_dec_frame(ctx);
->  			break;
->  		case MFCINST_INIT:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, open_inst_cmd,
->  					ctx);
->  			break;
->  		case MFCINST_RETURN_INST:
-> -			s5p_mfc_clean_ctx_int_flags(ctx);
->  			ret = s5p_mfc_hw_call(dev->mfc_cmds, close_inst_cmd,
->  					ctx);
->  			break;
-> --
-> 1.7.9.5
+2.1.2
 
