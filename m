@@ -1,65 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:43412 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbaJWQma (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:57538 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202AbaJ0P5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 12:42:30 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
+	Mon, 27 Oct 2014 11:57:34 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NDW00A9KP7JCL20@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Oct 2014 17:45:19 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0NDW00198P2RSXC0@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Oct 2014 17:42:27 +0100 (BST)
-Message-id: <54492FE5.2050000@samsung.com>
-Date: Thu, 23 Oct 2014 18:42:13 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0NE40067H1NWS570@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Oct 2014 11:57:32 -0400 (EDT)
+Date: Mon, 27 Oct 2014 13:57:27 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Richard Vollkommer <linux@hauppauge.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 1/3] xc5000: tuner firmware update
+Message-id: <20141027135727.297ba10a.m.chehab@samsung.com>
+In-reply-to: <CAOcJUbyK7Y5=fMfEGv5rhC3bPpeiiS3Mp1z+8cVfHoqy-opy5Q@mail.gmail.com>
+References: <BLU437-SMTP74723F476D15D78EEEA959BA900@phx.gbl>
+ <20141027094619.69851745.m.chehab@samsung.com>
+ <CAOcJUbyK7Y5=fMfEGv5rhC3bPpeiiS3Mp1z+8cVfHoqy-opy5Q@mail.gmail.com>
 MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] Exynos driver fixes for 3.18
-Content-type: text/plain; charset=utf-8
+Content-type: text/plain; charset=US-ASCII
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Mon, 27 Oct 2014 10:25:48 -0400
+Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 
-I've collected the Exynos driver fixes in this pull request, it's mostly
-non-critical compiler warning fixes, except the PLAT_S5P patch.
+> On Mon, Oct 27, 2014 at 7:46 AM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+> > Em Sat, 25 Oct 2014 16:17:21 -0400
+> > Michael Krufky <mkrufky@hotmail.com> escreveu:
+> >
+> >> From: Richard Vollkommer <linux@hauppauge.com>
+> >>
+> >> - Update the xc5000 tuner firmware to version 1.6.821
+> >>
+> >> - Update the xc5000c tuner firmware to version 4.1.33
+> >>
+> >> Firmware files can be downloaded from:
+> >>
+> >> - http://hauppauge.lightpath.net/software/hvr950q/xc5000c-4.1.33.zip
+> >> - http://hauppauge.lightpath.net/software/hvr950q/xc5000-1.6.821.zip
+> >>
+> >> Signed-off-by: Richard Vollkommer <linux@hauppauge.com>
+> >> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+> >> Signed-off-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+> >
+> > Hi Michael,
+> >
+> > Please use a logic that would allow the old firmware files to allow
+> > falling back to the previous firmware version if the new one is not
+> > available.
+> >
+> > Regards,
+> > Mauro
+> >
+> >> ---
+> >>  drivers/media/tuners/xc5000.c | 14 +++++++-------
+> >>  1 file changed, 7 insertions(+), 7 deletions(-)
+> >>
+> >> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+> >> index e44c8ab..fafff4c 100644
+> >> --- a/drivers/media/tuners/xc5000.c
+> >> +++ b/drivers/media/tuners/xc5000.c
+> >> @@ -222,15 +222,15 @@ struct xc5000_fw_cfg {
+> >>       u8 fw_checksum_supported;
+> >>  };
+> >>
+> >> -#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.114.fw"
+> >> -static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
+> >> +#define XC5000A_FIRMWARE "dvb-fe-xc5000-1.6.821.fw"
+> >> +static const struct xc5000_fw_cfg xc5000a_fw_cfg = {
+> >>       .name = XC5000A_FIRMWARE,
+> >>       .size = 12401,
+> >> -     .pll_reg = 0x806c,
+> >> +     .pll_reg = 0x8067,
+> >>  };
+> >>
+> >> -#define XC5000C_FIRMWARE "dvb-fe-xc5000c-4.1.30.7.fw"
+> >> -static const struct xc5000_fw_cfg xc5000c_41_024_5 = {
+> >> +#define XC5000C_FIRMWARE "dvb-fe-xc5000c-4.1.33.fw"
+> >> +static const struct xc5000_fw_cfg xc5000c_fw_cfg = {
+> >>       .name = XC5000C_FIRMWARE,
+> >>       .size = 16497,
+> >>       .pll_reg = 0x13,
+> >> @@ -243,9 +243,9 @@ static inline const struct xc5000_fw_cfg *xc5000_assign_firmware(int chip_id)
+> >>       switch (chip_id) {
+> >>       default:
+> >>       case XC5000A:
+> >> -             return &xc5000a_1_6_114;
+> >> +             return &xc5000a_fw_cfg;
+> >>       case XC5000C:
+> >> -             return &xc5000c_41_024_5;
+> >> +             return &xc5000c_fw_cfg;
+> >>       }
+> >>  }
+> >>
+> 
+> 
+> Mauro,
+> 
+> I like the idea of supporting older firmware revisions if the new one
+> is not present, but, the established president for this sort of thing
+> has always been to replace older firmware with newer firmware without
+> backward compatibility support for older binaries.
 
-The following changes since commit 9f93c52783faa24c5c6fca216acf0765ad5d8dd6:
+No, we're actually adding backward support. There are some drivers
+already with it. See for example xc4000 (changeset da7bfa2c5df).
 
-  [media] hackrf: harmless off by one in debug code (2014-10-21 08:56:52 -0200)
+> Although the current driver can work with both old and new firmware
+> versions, this hasn't been the case in the past, and won't always be
+> the case with future firmware revisions.
 
-are available in the git repository at:
+Yeah, we did a very crap job breaking backward firmware compat in
+the past. We're not doing it anymore ;)
 
-  git://linuxtv.org/snawrocki/samsung.git for-v3.18-fixes
+> Hauppauge has provided links to the new firmware for both the XC5000
+> and XC5000C chips along with licensing.  Maybe instead, we can just
+> upstream those into the linux-firmware packages for distribution.
 
-for you to fetch changes up to 802b0e2921315b9b18430002f58e802e545a2149:
+Upstreaming to linux-firmware was done already for the previous firmwares.
+The firmwares at linux-firmware for xc5000 and xc5000c were merged back 
+there for 3.17 a few weeks ago.
 
-  s5p-jpeg: Avoid -Wuninitialized warning in s5p_jpeg_parse_hdr (2014-10-23
-17:59:07 +0200)
+Feel free to submit them a new version.
 
-----------------------------------------------------------------
-Jacek Anaszewski (1):
-      s5p-jpeg: Avoid -Wuninitialized warning in s5p_jpeg_parse_hdr
+> I don't think supporting two different firmware versions is a good
+> idea for the case of the xc5000 driver.
 
-Sylwester Nawrocki (1):
-      [media] Remove references to non-existent PLAT_S5P symbol
+Why not? It should work as-is with either version. We can always add
+some backward compat code if needed.
 
-Thierry Reding (2):
-      s5p-jpeg: Only build suspend/resume for PM
-      s5p-fimc: Only build suspend/resume for PM
-
- drivers/media/platform/Kconfig                |    6 +++---
- drivers/media/platform/exynos4-is/Kconfig     |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.c |    2 ++
- drivers/media/platform/s5p-jpeg/jpeg-core.c   |    6 +++++-
- drivers/media/platform/s5p-tv/Kconfig         |    2 +-
- 5 files changed, 12 insertions(+), 6 deletions(-)
-
---
-Regards,
-Sylwester
+> 
+> -Mike Krufky
