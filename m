@@ -1,73 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:49493 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758408AbaJaNKL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:10:11 -0400
-Message-ID: <54538A26.70901@gentoo.org>
-Date: Fri, 31 Oct 2014 14:09:58 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:44747 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbaJ0Rii (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Oct 2014 13:38:38 -0400
+Received: by mail-pa0-f44.google.com with SMTP id bj1so2349450pad.3
+        for <linux-media@vger.kernel.org>; Mon, 27 Oct 2014 10:38:38 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx231xx: remove direct register PWR_CTL_EN modification
- that switches port3
-References: <20141030182706.09265d37@recife.lan>	<1414709035-7729-1-git-send-email-zzam@gentoo.org> <20141031083258.4cfd463a@recife.lan>
-In-Reply-To: <20141031083258.4cfd463a@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20141027162252.GA9984@linuxtv.org>
+References: <BLU437-SMTP74723F476D15D78EEEA959BA900@phx.gbl>
+	<20141027094619.69851745.m.chehab@samsung.com>
+	<CAOcJUbyK7Y5=fMfEGv5rhC3bPpeiiS3Mp1z+8cVfHoqy-opy5Q@mail.gmail.com>
+	<20141027135727.297ba10a.m.chehab@samsung.com>
+	<20141027162252.GA9984@linuxtv.org>
+Date: Mon, 27 Oct 2014 13:38:38 -0400
+Message-ID: <CAOcJUbxU=uQXCuxiAY95TmwB+pk0xmPYQFBzWvdSAsdjtHnXrA@mail.gmail.com>
+Subject: Re: [PATCH 1/3] xc5000: tuner firmware update
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Richard Vollkommer <linux@hauppauge.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31.10.2014 11:32, Mauro Carvalho Chehab wrote:
-> Em Thu, 30 Oct 2014 23:43:55 +0100
-> Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> 
->> The only remaining place that modifies the relevant bit is in function
->> cx231xx_set_Colibri_For_LowIF
+On Mon, Oct 27, 2014 at 12:22 PM, Johannes Stezenbach <js@linuxtv.org> wrote:
+> On Mon, Oct 27, 2014 at 01:57:27PM -0200, Mauro Carvalho Chehab wrote:
+>> Em Mon, 27 Oct 2014 10:25:48 -0400
+>> Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 >>
->> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
->> ---
->>  drivers/media/usb/cx231xx/cx231xx-avcore.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
+>> > I like the idea of supporting older firmware revisions if the new one
+>> > is not present, but, the established president for this sort of thing
+>> > has always been to replace older firmware with newer firmware without
+>> > backward compatibility support for older binaries.
 >>
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> index b56bc87..781908b 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
->> @@ -2270,7 +2270,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
->>  	case POLARIS_AVMODE_ANALOGT_TV:
->>  
->>  		tmp |= PWR_DEMOD_EN;
->> -		tmp |= (I2C_DEMOD_EN);
->>  		value[0] = (u8) tmp;
->>  		value[1] = (u8) (tmp >> 8);
->>  		value[2] = (u8) (tmp >> 16);
->> @@ -2366,7 +2365,7 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
->>  		}
->>  
->>  		tmp &= (~PWR_AV_MODE);
->> -		tmp |= POLARIS_AVMODE_DIGITAL | I2C_DEMOD_EN;
->> +		tmp |= POLARIS_AVMODE_DIGITAL;
->>  		value[0] = (u8) tmp;
->>  		value[1] = (u8) (tmp >> 8);
->>  		value[2] = (u8) (tmp >> 16);
-> 
+>> No, we're actually adding backward support. There are some drivers
+>> already with it. See for example xc4000 (changeset da7bfa2c5df).
+>>
+>> > Although the current driver can work with both old and new firmware
+>> > versions, this hasn't been the case in the past, and won't always be
+>> > the case with future firmware revisions.
+>>
+>> Yeah, we did a very crap job breaking backward firmware compat in
+>> the past. We're not doing it anymore ;)
+>>
+>> > Hauppauge has provided links to the new firmware for both the XC5000
+>> > and XC5000C chips along with licensing.  Maybe instead, we can just
+>> > upstream those into the linux-firmware packages for distribution.
+>>
+>> Upstreaming to linux-firmware was done already for the previous firmwares.
+>> The firmwares at linux-firmware for xc5000 and xc5000c were merged back
+>> there for 3.17 a few weeks ago.
+>>
+>> Feel free to submit them a new version.
+>>
+>> > I don't think supporting two different firmware versions is a good
+>> > idea for the case of the xc5000 driver.
+>>
+>> Why not? It should work as-is with either version. We can always add
+>> some backward compat code if needed.
+>
+> FWIW, Linus recently addressed the topic wrt wireless firmware:
+> http://article.gmane.org/gmane.linux.kernel.wireless.general/126794
+>
+>
+> HTH,
+> Johannes
 
-Hi Mauro,
+OK, I read Linus' email.  I am willing to add an additional patch that
+will look for the new firmware image and fall back to the older one if
+the new one is not present, but I strongly believe that we should only
+support both firmware revisions for a finite period of time -- this
+can give people (and distros) time to update to the newer firmware,
+and will help to eliminate future bug reports and quality issues that
+would otherwise have been resolved by moving to the new firmware.
 
-> Hmm... Not sure if this patch is right. There is one I2C bus internally
-> at cx231xx. Some configurations need to go through this I2C bus. 
-> 
+The new firmware image itself is a bug-fix and improves tuning
+performance.  If users complain of quality issues using the old
+firmware, it will not be very likely to gain developer interest, as
+only the new firmware is considered to be truly "supported" now.
 
-What exactly do you mean by configurations need to go through this I2C
-bus? Do you mean the port3 switch must have a specific value even when
-not doing i2c transfers?
+Is this acceptable?
 
-> Did you test if changing from/to analog/digital mode is working?
-> 
-
-I did not yet check analog mode.
-
-Regards
-Matthias
-
+-Mike Krufky
