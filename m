@@ -1,108 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:57028 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729AbaJQH3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 03:29:33 -0400
-Message-ID: <5440C555.2040308@riseup.net>
-Date: Fri, 17 Oct 2014 17:29:25 +1000
-From: Dave Kimble <dave.kimble@riseup.net>
-Reply-To: dave.kimble@riseup.net
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Subject: Re: GrabBee-HD
-References: <5440362F.5040306@riseup.net> <CALzAhNW7szuUJK-as48dTHE6Acx_7Ka195MXKdk-V8AjRjfauA@mail.gmail.com>
-In-Reply-To: <CALzAhNW7szuUJK-as48dTHE6Acx_7Ka195MXKdk-V8AjRjfauA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:65284 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751769AbaJ0RLJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Oct 2014 13:11:09 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NE400D2052KXHA0@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Oct 2014 13:11:08 -0400 (EDT)
+Date: Mon, 27 Oct 2014 15:11:04 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: tskd08@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 6/7] v4l-utils/libdvbv5: don't discard config-supplied
+ parameters
+Message-id: <20141027151104.427630df.m.chehab@samsung.com>
+In-reply-to: <1414323983-15996-7-git-send-email-tskd08@gmail.com>
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+ <1414323983-15996-7-git-send-email-tskd08@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for your reply.
-Your feeling that VB-WinXP would be the problem sent me back to that.
-So I found that VB picking up USB 2.0 devices requires the Extension 
-Pack installed with ehci controller enabled , and that cured that 
-problem, and the device now finds it's XP driver.
+Em Sun, 26 Oct 2014 20:46:22 +0900
+tskd08@gmail.com escreveu:
 
-The grabber software loads OK and asks for the signal information. Since 
-the software goes with this particular device, I am surprised at this - 
-it should know it already, shouldn't it?
+> From: Akihiro Tsukada <tskd08@gmail.com>
+> 
+> When an user enabled the option to update parameters with PSI,
+> the parameters that were supplied from config file and  not mandatory
+> to the delivery system were discarded.
 
-Although the software's input is the device's output, it also seems to 
-depend on the device's input, i.e. the HDMI stream.This stream comes via 
-satellite dish and decoder box, and is picking up Freeview channels in 
-Australia.
+Sorry, but I was unable to understand what you're meaning.
 
-Almost all of the options produce the error: "Sigma Designs USB Device 
-device does not active or error !" [sic]
-The best combination of options produces a good picture, but it moves 
-very slowly and after a few seconds freezes.
-XP cannot then terminate the process, and neither can VB > Close.
-So I have to VB > Reset
-Then Ubuntu loses the device from lsusb and it needs too be unplugged 
-and plugged in again, and VB-WinXP started again.
+> ---
+>  lib/libdvbv5/dvb-fe.c | 14 +++++---------
+>  1 file changed, 5 insertions(+), 9 deletions(-)
+> 
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index 05f7d03..52af4e4 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -575,6 +575,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *p)
+>  	int i, n = 0;
+>  	const unsigned int *sys_props;
+>  	struct dtv_properties prop;
+> +	struct dtv_property fe_prop[DTV_MAX_COMMAND];
+>  	struct dvb_frontend_parameters v3_parms;
+>  	uint32_t bw;
+>  
+> @@ -583,19 +584,14 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *p)
+>  		return EINVAL;
+>  
+>  	while (sys_props[n]) {
+> -		parms->dvb_prop[n].cmd = sys_props[n];
+> +		fe_prop[n].cmd = sys_props[n];
+>  		n++;
+>  	}
+> -	parms->dvb_prop[n].cmd = DTV_DELIVERY_SYSTEM;
+> -	parms->dvb_prop[n].u.data = parms->p.current_sys;
+> +	fe_prop[n].cmd = DTV_DELIVERY_SYSTEM;
+> +	fe_prop[n].u.data = parms->p.current_sys;
+>  	n++;
+>  
+> -	/* Keep it ready for set */
+> -	parms->dvb_prop[n].cmd = DTV_TUNE;
+> -	parms->n_props = n;
+> -
+> -	struct dtv_property fe_prop[DTV_MAX_COMMAND];
+> -	n = dvb_copy_fe_props(parms->dvb_prop, n, fe_prop);
+> +	n = dvb_copy_fe_props(fe_prop, n, fe_prop);
 
-Any assistance would be welcome - as you can probably tell, I really 
-don't know what I'm doing.
+Huh? this looks weird.
 
-Dave
-
-On 17/10/14 07:40, Steven Toth wrote:
-> Ok, no nobody jumped in the first time around..... my turn I guess... :)
->
-> Comments below.
->
-> On Thu, Oct 16, 2014 at 5:18 PM, Dave Kimble<dave.kimble@riseup.net>  wrote:
->> I have just bought an HDMI to USB-2.0 grabber called "GrabBee-HD".
->> http://www.greada.com/grabbeex-hd.html
->> Motherboard photo:http://www.davekimble.org.au/computers/GrabBee-HD.jpg
->> Inside it has chips labelled "Sigma PL330B-CPE3" and "iTE IT6604E".
->> Note that it compresses the video with H.264 .
-> I've worked on drivers for those two chips in the past. I have a large
-> amount of experience with these parts.
->
->> I knew it probably wouldn't have drivers for Linux, but it does have Windows
->> drivers on CD,
->> so since I run Ubuntu-VirtualBox-WinXP I thought it might well work one way
->> or another.
-> Correct, no Linux drivers.
->
->> On Ubuntu 14.04, the USB device is picked up:
->> $ lsusb -v -d 0658:1100
->>
-> <snip>
->
->> but it is not recognised as a video capture device by VLC.
->> /dev/dvb/ , /dev/v4l/ , /dev/video0 do not exist.
-> Correct. Linux has no support for that device. :(
->
->> So I fired up VB-WinXP and installed the Windows drivers and software, and
->> restarted.
->> Then plugged in the device, which should connect the device to the driver,
->> but it didn't.
-> That's odd. It suggests an (off topic) windows related driver problem,
-> or a virtual machine issue.
->
->> Starting the Grabbee-HD software gives "No video capture device is
->> connected!"
->> Then I realised the USB device has to be passed through the VB interface,
->> VB-Manager > USB > Add > "no devices available".
->>
->> So because Ubuntu doesn't properly recognise the device, it can't pass it on
->> to VB and XP.
-> I don't think the virtual machines work that way, at least not in my
-> experience. I've always been able to do what you want to do on various
-> platforms. Sorry, I can't really help you debug Windows / Virtual
-> machine issues.
->
->> Is there any chance of getting this going on Ubuntu 14.04 natively?
-> Unlikely. Sigma are generally GPL unfriendly.
->
-> I've done drivers for this chip on OSX before, mostly as a R&D
-> exercise, so I'm highly familiar with it. The chip is a monster to
-> write for, kinda nasty to be honest - not very straightforward.
->
-> I think you're out of luck.
->
-> - Steve
->
-
+>  
+>  	prop.props = fe_prop;
+>  	prop.num = n;
