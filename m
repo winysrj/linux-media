@@ -1,116 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3752 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727AbaJKCld (ORCPT
+Received: from smtprelay0100.hostedemail.com ([216.40.44.100]:37718 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752778AbaJ0FZa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 22:41:33 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9B2fTXl053043
-	for <linux-media@vger.kernel.org>; Sat, 11 Oct 2014 04:41:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F036D2A002F
-	for <linux-media@vger.kernel.org>; Sat, 11 Oct 2014 04:41:24 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141011024124.F036D2A002F@tschai.lan>
-Date: Sat, 11 Oct 2014 04:41:24 +0200 (CEST)
+	Mon, 27 Oct 2014 01:25:30 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
+Subject: [PATCH 05/11] cx25840/cx18: Use standard ordering of mask and shift
+Date: Sun, 26 Oct 2014 22:25:01 -0700
+Message-Id: <0f1e7b544283cd5d8ef1ca6f759af5e208dbc2fd.1414387334.git.joe@perches.com>
+In-Reply-To: <cover.1414387334.git.joe@perches.com>
+References: <cover.1414387334.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Precedence of & and >> is not the same and is not left to right.
+shift has higher precedence and should be done after the mask.
 
-Results of the daily build of media_tree:
+This use has a mask then shift which is not the normal style.
 
-date:		Sat Oct 11 04:00:17 CEST 2014
-git branch:	test
-git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.17-0.slh.1-amd64
+Move the shift before the mask to match nearly all the other
+uses in kernel.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/i2c/cx25840/cx25840-core.c | 12 ++++++------
+ drivers/media/pci/cx18/cx18-av-core.c    | 16 ++++++++--------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index e453a3f..0327032 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -879,7 +879,7 @@ void cx25840_std_setup(struct i2c_client *client)
+ 	/* Sets horizontal blanking delay and active lines */
+ 	cx25840_write(client, 0x470, hblank);
+ 	cx25840_write(client, 0x471,
+-			0xff & (((hblank >> 8) & 0x3) | (hactive << 4)));
++		      (((hblank >> 8) & 0x3) | (hactive << 4)) & 0xff);
+ 	cx25840_write(client, 0x472, hactive >> 4);
+ 
+ 	/* Sets burst gate delay */
+@@ -888,13 +888,13 @@ void cx25840_std_setup(struct i2c_client *client)
+ 	/* Sets vertical blanking delay and active duration */
+ 	cx25840_write(client, 0x474, vblank);
+ 	cx25840_write(client, 0x475,
+-			0xff & (((vblank >> 8) & 0x3) | (vactive << 4)));
++		      (((vblank >> 8) & 0x3) | (vactive << 4)) & 0xff);
+ 	cx25840_write(client, 0x476, vactive >> 4);
+ 	cx25840_write(client, 0x477, vblank656);
+ 
+ 	/* Sets src decimation rate */
+-	cx25840_write(client, 0x478, 0xff & src_decimation);
+-	cx25840_write(client, 0x479, 0xff & (src_decimation >> 8));
++	cx25840_write(client, 0x478, src_decimation & 0xff);
++	cx25840_write(client, 0x479, (src_decimation >> 8) & 0xff);
+ 
+ 	/* Sets Luma and UV Low pass filters */
+ 	cx25840_write(client, 0x47a, luma_lpf << 6 | ((uv_lpf << 4) & 0x30));
+@@ -904,8 +904,8 @@ void cx25840_std_setup(struct i2c_client *client)
+ 
+ 	/* Sets SC Step*/
+ 	cx25840_write(client, 0x47c, sc);
+-	cx25840_write(client, 0x47d, 0xff & sc >> 8);
+-	cx25840_write(client, 0x47e, 0xff & sc >> 16);
++	cx25840_write(client, 0x47d, (sc >> 8) & 0xff);
++	cx25840_write(client, 0x47e, (sc >> 16) & 0xff);
+ 
+ 	/* Sets VBI parameters */
+ 	if (std & V4L2_STD_625_50) {
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index 2d3afe0..45be26c 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -490,8 +490,8 @@ void cx18_av_std_setup(struct cx18 *cx)
+ 
+ 	/* Sets horizontal blanking delay and active lines */
+ 	cx18_av_write(cx, 0x470, hblank);
+-	cx18_av_write(cx, 0x471, 0xff & (((hblank >> 8) & 0x3) |
+-						(hactive << 4)));
++	cx18_av_write(cx, 0x471,
++		      (((hblank >> 8) & 0x3) | (hactive << 4)) & 0xff);
+ 	cx18_av_write(cx, 0x472, hactive >> 4);
+ 
+ 	/* Sets burst gate delay */
+@@ -499,14 +499,14 @@ void cx18_av_std_setup(struct cx18 *cx)
+ 
+ 	/* Sets vertical blanking delay and active duration */
+ 	cx18_av_write(cx, 0x474, vblank);
+-	cx18_av_write(cx, 0x475, 0xff & (((vblank >> 8) & 0x3) |
+-						(vactive << 4)));
++	cx18_av_write(cx, 0x475,
++		      (((vblank >> 8) & 0x3) | (vactive << 4)) & 0xff);
+ 	cx18_av_write(cx, 0x476, vactive >> 4);
+ 	cx18_av_write(cx, 0x477, vblank656);
+ 
+ 	/* Sets src decimation rate */
+-	cx18_av_write(cx, 0x478, 0xff & src_decimation);
+-	cx18_av_write(cx, 0x479, 0xff & (src_decimation >> 8));
++	cx18_av_write(cx, 0x478, src_decimation & 0xff);
++	cx18_av_write(cx, 0x479, (src_decimation >> 8) & 0xff);
+ 
+ 	/* Sets Luma and UV Low pass filters */
+ 	cx18_av_write(cx, 0x47a, luma_lpf << 6 | ((uv_lpf << 4) & 0x30));
+@@ -516,8 +516,8 @@ void cx18_av_std_setup(struct cx18 *cx)
+ 
+ 	/* Sets SC Step*/
+ 	cx18_av_write(cx, 0x47c, sc);
+-	cx18_av_write(cx, 0x47d, 0xff & sc >> 8);
+-	cx18_av_write(cx, 0x47e, 0xff & sc >> 16);
++	cx18_av_write(cx, 0x47d, (sc >> 8) & 0xff);
++	cx18_av_write(cx, 0x47e, (sc >> 16) & 0xff);
+ 
+ 	if (std & V4L2_STD_625_50) {
+ 		state->slicer_line_delay = 1;
+-- 
+2.1.2
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
