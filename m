@@ -1,101 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0141.hostedemail.com ([216.40.44.141]:37177 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751965AbaJCBlb (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:43999 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbaJ0Mww (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 21:41:31 -0400
-Message-ID: <1412300487.3247.91.camel@joe-AO725>
-Subject: Re: [PATCH] Fixed all coding style issues for
- drivers/staging/media/lirc/
-From: Joe Perches <joe@perches.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Amber Thrall <amber.rose.thrall@gmail.com>, jarod@wilsonet.com,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Thu, 02 Oct 2014 18:41:27 -0700
-In-Reply-To: <542DE6B5.1060906@iki.fi>
-References: <1412224802-28431-1-git-send-email-amber.rose.thrall@gmail.com>
-	 <20141002102938.2b762583@recife.lan> <1412268351.3247.68.camel@joe-AO725>
-	 <542DE6B5.1060906@iki.fi>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
+	Mon, 27 Oct 2014 08:52:52 -0400
+Date: Mon, 27 Oct 2014 10:52:37 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"ramakrmu@cisco.com" <ramakrmu@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	prabhakar.csengg@gmail.com, Antti Palosaari <crope@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Tim Gardner <tim.gardner@canonical.com>,
+	"olebowle@gmx.com" <olebowle@gmx.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
+ token api
+Message-ID: <20141027105237.5f5ec7fd@recife.lan>
+In-Reply-To: <s5hk33n8ccj.wl-tiwai@suse.de>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
+	<543FB374.8020604@metafoo.de>
+	<543FC3CD.8050805@osg.samsung.com>
+	<s5h38aow1ub.wl-tiwai@suse.de>
+	<543FD1EC.5010206@osg.samsung.com>
+	<s5hy4sgumjo.wl-tiwai@suse.de>
+	<543FD892.6010209@osg.samsung.com>
+	<s5htx34ul3w.wl-tiwai@suse.de>
+	<54467EFB.7050800@xs4all.nl>
+	<s5hbnp5z9uy.wl-tiwai@suse.de>
+	<CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+	<544804F1.7090606@linux.intel.com>
+	<20141025114115.292ff5d2@recife.lan>
+	<s5hk33n8ccj.wl-tiwai@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2014-10-03 at 02:58 +0300, Antti Palosaari wrote:
-> On 10/02/2014 07:45 PM, Joe Perches wrote:
-> > On Thu, 2014-10-02 at 10:29 -0300, Mauro Carvalho Chehab wrote:
-> >> Em Wed, 01 Oct 2014 21:40:02 -0700 Amber Thrall <amber.rose.thrall@gmail.com> escreveu:
-> >>> Fixed various coding style issues, including strings over 80 characters long and many
-> >>> deprecated printk's have been replaced with proper methods.
-> > []
-> >>> diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-> > []
-> >>> @@ -623,8 +623,8 @@ static void imon_incoming_packet(struct imon_context *context,
-> >>>   	if (debug) {
-> >>>   		dev_info(dev, "raw packet: ");
-> >>>   		for (i = 0; i < len; ++i)
-> >>> -			printk("%02x ", buf[i]);
-> >>> -		printk("\n");
-> >>> +			dev_info(dev, "%02x ", buf[i]);
-> >>> +		dev_info(dev, "\n");
-> >>>   	}
-> >>
-> >> This is wrong, as the second printk should be printk_cont.
-> >>
-> >> The best here would be to change all above to use %*ph.
-> >> So, just:
-> >>
-> >> 	dev_debug(dev, "raw packet: %*ph\n", len, buf);
-> >
-> > Not quite.
-> >
-> > %*ph is length limited and only useful for lengths < 30 or so.
-> > Even then, it's pretty ugly.
-> >
-> > print_hex_dump_debug() is generally better.
+Em Sun, 26 Oct 2014 09:27:40 +0100
+Takashi Iwai <tiwai@suse.de> escreveu:
+
+> At Sat, 25 Oct 2014 11:41:15 -0200,
+> Mauro Carvalho Chehab wrote:
+
+> >      +---------------+
+> >      |     start     |
+> >      +---------------+
+> >        |
+> >        |
+> >        v
+> >      +--------------------------------+
+> >      |              idle              | <+
+> >      +--------------------------------+  |
+> >        |                ^           |    |
+> >        |                |           |    |
+> >        v                |           |    |
+> >      +---------------+  |           |    |
+> >      | configuration |  |           |    |
+> >      +---------------+  |           |    |
+> >        |                |           |    |
+> >        |                |           |    |
+> >        v                |           |    |
+> >      +---------------+  |           |    |
+> >   +> |   streaming   | -+           |    |
+> >   |  +---------------+              |    |
+> >   |    |                            |    |
+> >   |    |                            |    |
+> >   |    v                            v    |
+> >   |  +---------------+-----------+----+  |
+> >   +- |       1       | suspended |  2 | -+
+> >      +---------------+-----------+----+
+
+
+The above diagram is actually simplified. There's an extra state
+there that should be mentioned:
+
+idle <-> DVB stream
+
+(actually, DVB stream is a copy of the above, except that ALSA
+won't have any business to do while the device is on DVB mode)
+
+> So, judging from your description, the problem isn't about the
+> exclusive lock, but rather implementation a kind of master/slave
+> devices?  Then the proposed patch doesn't look like a correct
+> implementation to me.
+
+You might see it as a master/slave, except that it is not that simple.
+It is really a hardware lock.
+
+There are actually 3 (sub)drivers that may need to set the hardware:
+	- ALSA driver;
+	- V4L2 driver;
+	- DVB driver.
+
+The goal of the lock is to prevent that more than one driver would try 
+to use a common piece of the hardware that it is already in usage
+by another driver.
+
+So, for example, the ALSA driver should not reprogram the hardware while 
+the V4L2 driver is doing that.
+
+I agree that, for V4L2/ALSA driver's interaction PoV, it could resemble
+a sort of master/slave control, in the sense that ALSA capture start only
+makes sense while V4L2 is at streaming state. Yet, just opening the device
+or (even start capture on ALSA, for the hardware with multiple DMA engines,
+like the ones that use snd-usb-audio) won't cause any harm if the V4L2 driver
+is not reconfiguring the audio registers at the same time.
+
+Also, ALSA open/close should be supported any time, as otherwise it will 
+break existing applications. 
+
+However, when the device is streaming on DVB mode, it is not possible
+to stream on V4L2 mode, as there's just one DMA for both and just one
+tuner. Also, ALSA capture doesn't make much sense on such case. Still,
+locking on open/close may eventually break existing applications. Also,
+it doesn't really make any sense to block the device to move from analog
+to digital mode just because the ALSA devnodes are opened.
+
+> What I (and supposedly Pierre) opposed is the implementation of
+> exclusive lock control in spontaneous callbacks.  Especially the
+> trigger callback is a bad place since it's a callback that is supposed
+> to just trigger atomically.  In general, the only good place for
+> allowing user-space to *control* the exclusive lock is open/close,
+> unless the finer lock control is exposed.
+
+I see your point. Then perhaps we should expose callbacks from other
+parts of the ALSA core, perhaps at the logic that calls the trigger
+callback at read and poll syscalls, plus the corresponding logic that is
+used when the device is using the mmap syscall.
+
+> But, reading through the argument from you guys, the intention of the
+> patch seems like just to raise the conflict from the hardware level to
+> the software level. 
+
+Yes.
+
+> If so, I doubt whether such an exclusive lock is
+> the best way.   For example, audio stream can simply receive an error
+> at any time if something is wrong and reacts accordingly instead of
+> keeping the lock while streaming. Then the master side (video) can
+> set the error flag, let the audio stream stop in the driver (if
+> running), and sync with it.
+
+Hmm... this is actually more complex than that. V4L2 driver doesn't
+know if ALSA is streaming or not, or even if ALSA device node is opened
+while he is touching at the hardware configuration or changing the
+state. I mean: it is not an error to set the hardware. The error only
+happens if ALSA and V4L2 tries to do it at the same time on an incompatible
+way.
+
+Also, this won't work for DVB, as on DVB this is really an exclusive
+lock that would prevent both ALSA and V4L2 drivers to stream while in
+DVB mode.
+
+Implementing it with a lock seems to be the best approach, at least on
+my eyes.
+
+> That said, we should go back and start discussing the design goal at
+> first.
+
+Surely.
+
 > 
-> That is place where you print 8 debug bytes, which are received remote 
-> controller code. IMHO %*ph format is just what you like in that case.
-
-Hi Antti.
-
-I stand by my statement as I only looked at the
-patch snippet itself, not any function real code.
-
-In the actual code, there's a test above it:
-
-	if (len != 8) {
-		dev_warn(dev, "imon %s: invalid incoming packet size (len = %d, intf%d)\n",
-			__func__, len, intf);
-		return;
-	}
-
-So in my opinion, this would be better/smaller as:
-
-	dev_dbg(dev, "raw packet: %8ph\n", urb->transfer_buffer);
-
-> Why print_hex_dump_debug() is better? IIRC it could not be even 
-> controlled like those dynamic debug printings.
-
-Nope, it is. (from printk.h)
-
-#if defined(CONFIG_DYNAMIC_DEBUG)
-#define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
-			     groupsize, buf, len, ascii)	\
-	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
-			 groupsize, buf, len, ascii)
-#else
-#define print_hex_dump_debug(prefix_str, prefix_type, rowsize,		\
-			     groupsize, buf, len, ascii)		\
-	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, rowsize,	\
-		       groupsize, buf, len, ascii)
-#endif /* defined(CONFIG_DYNAMIC_DEBUG) */
-
-It prints multiple lines when the length is > 16.
-It prints the ascii along with the hex if desired.
-
-cheers, Joe
-
+> 
+> thanks,
+> 
+> Takashi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
