@@ -1,46 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3905 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027AbaJGOMD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 10:12:03 -0400
-Message-ID: <5433F48B.6070803@xs4all.nl>
-Date: Tue, 07 Oct 2014 16:11:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Niels Ole Salscheider <niels_ole@salscheider-online.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] qv4l2: Fix out-of-source build
-References: <1412690293-30841-1-git-send-email-niels_ole@salscheider-online.de>
-In-Reply-To: <1412690293-30841-1-git-send-email-niels_ole@salscheider-online.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:46262 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751901AbaJ1PA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 11:00:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Fred Richter <frichter@hauppauge.com>
+Subject: [PATCH 06/13] [media] lgdt3306a: Remove FSF address
+Date: Tue, 28 Oct 2014 13:00:41 -0200
+Message-Id: <d65bb8f2b7b68f6699d37f109c552da7dd468735.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Applied.
+Fix this CodingStyle error:
 
-Thanks!
+	ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so ag$
+	#56: FILE: drivers/media/dvb-frontends/lgdt3306a.c:19:
+	+ *    along with this program; if not, write to the Free Software$
 
-	Hans
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On 10/07/14 15:58, Niels Ole Salscheider wrote:
-> Signed-off-by: Niels Ole Salscheider <niels_ole@salscheider-online.de>
-> ---
->  utils/qv4l2/Makefile.am | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
-> index 26f8dca..2b3251c 100644
-> --- a/utils/qv4l2/Makefile.am
-> +++ b/utils/qv4l2/Makefile.am
-> @@ -8,7 +8,7 @@ qv4l2_SOURCES = qv4l2.cpp general-tab.cpp ctrl-tab.cpp vbi-tab.cpp capture-win.c
->  nodist_qv4l2_SOURCES = moc_qv4l2.cpp moc_general-tab.cpp moc_capture-win.cpp moc_vbi-tab.cpp qrc_qv4l2.cpp
->  qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la \
->    ../libmedia_dev/libmedia_dev.la
-> -qv4l2_CPPFLAGS = -I../v4l2-compliance -I../v4l2-ctl
-> +qv4l2_CPPFLAGS = -I$(srcdir)/../v4l2-compliance -I$(srcdir)/../v4l2-ctl
->  
->  if WITH_QTGL
->  qv4l2_CPPFLAGS += $(QTGL_CFLAGS)
-> 
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index d1a914de4180..54c2c282e97e 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -14,11 +14,6 @@
+  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *    GNU General Public License for more details.
+- *
+- *    You should have received a copy of the GNU General Public License
+- *    along with this program; if not, write to the Free Software
+- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+  */
+ 
+ #include <asm/div64.h>
+@@ -1455,6 +1450,7 @@ static u32 lgdt3306a_calculate_snr_x100(struct lgdt3306a_state *state)
+ 
+ static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state *state)
+ {
++	int ret;
+ 	u8 cnt = 0;
+ 	u8 packet_error;
+ 	u32 snr;
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
+index 0b020e743060..6d7daf6f52de 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.h
++++ b/drivers/media/dvb-frontends/lgdt3306a.h
+@@ -13,11 +13,6 @@
+  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *    GNU General Public License for more details.
+- *
+- *    You should have received a copy of the GNU General Public License
+- *    along with this program; if not, write to the Free Software
+- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+  */
+ 
+ #ifndef _LGDT3306A_H_
+-- 
+1.9.3
 
