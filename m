@@ -1,78 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2552 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbaJVJlc (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49101 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790AbaJ1XUA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 05:41:32 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9M9fR5F066978
-	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 11:41:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.61.200.78] (173-38-208-170.cisco.com [173.38.208.170])
-	by tschai.lan (Postfix) with ESMTPSA id 1FAFD2A0432
-	for <linux-media@vger.kernel.org>; Wed, 22 Oct 2014 11:41:16 +0200 (CEST)
-Message-ID: <54477BC6.6050901@xs4all.nl>
-Date: Wed, 22 Oct 2014 11:41:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 28 Oct 2014 19:20:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] media: Print information on failed link validation
+Date: Wed, 29 Oct 2014 01:20:06 +0200
+Message-ID: <3033119.78jigqieeC@avalon>
+In-Reply-To: <1414537804-25303-1-git-send-email-sakari.ailus@iki.fi>
+References: <1412372439-4184-1-git-send-email-sakari.ailus@iki.fi> <1414537804-25303-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] cx88: convert to vb2
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request contains this patch series:
+Hi Sakari,
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg79597.html
+Thank you for the patch.
 
-It's unchanged except for rebasing to v3.18-rc1.
+On Wednesday 29 October 2014 01:10:04 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> The Media controller doesn't tell much to the user in cases such as pipeline
+> startup failure. The link validation is the most common media graph (or in
+> V4L2's case, format) related reason for the failure. In more complex
+> pipelines the reason may not always be obvious to the user, so point them
+> to look at the right direction.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> since v1:
+> - Fix language in the second message.
+> 
+>  drivers/media/media-entity.c |   13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 37c334e..a4030c3 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -279,8 +279,14 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, continue;
+> 
+>  			ret = entity->ops->link_validate(link);
+> -			if (ret < 0 && ret != -ENOIOCTLCMD)
+> +			if (ret < 0 && ret != -ENOIOCTLCMD) {
+> +				dev_dbg(entity->parent->dev,
+> +					"link validation failed for \"%s\":%u -> \"%s\":%u, error 
+%d\n",
+> +					entity->name, link->source->index,
+> +					link->sink->entity->name,
+> +					link->sink->index, ret);
+>  				goto error;
+> +			}
+>  		}
+> 
+>  		/* Either no links or validated links are fine. */
+> @@ -288,6 +294,11 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity,
+> 
+>  		if (!bitmap_full(active, entity->num_pads)) {
+>  			ret = -EPIPE;
+> +			dev_dbg(entity->parent->dev,
+> +				"\"%s\":%u must be connected by an enabled link, error %d\n",
+> +				entity->name,
+> +				find_first_zero_bit(active, entity->num_pads),
+> +				ret);
 
+Given that ret is always set to -EPIPE, I wouldn't print ", error %d".
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  			goto error;
+>  		}
+>  	}
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
-
-   Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git cx88
-
-for you to fetch changes up to ad3314ca0ea90fd7b82d0a8a72727a7cc7bd99f1:
-
-   cx88: fix VBI support (2014-10-22 11:30:36 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (16):
-       cx88: remove fmt from the buffer struct
-       cx88: drop the bogus 'queue' list in dmaqueue.
-       cx88: drop videobuf abuse in cx88-alsa
-       cx88: convert to vb2
-       cx88: fix sparse warning
-       cx88: return proper errors during fw load
-       cx88: drop cx88_free_buffer
-       cx88: remove dependency on btcx-risc
-       cx88: increase API command timeout
-       cx88: don't pollute the kernel log
-       cx88: move width, height and field to core struct
-       cx88: drop mpeg_active field.
-       cx88: don't allow changes while vb2_is_busy
-       cx88: consistently use UNSET for absent tuner
-       cx88: pci_disable_device comes after free_irq.
-       cx88: fix VBI support
-
-  drivers/media/pci/cx88/Kconfig          |   5 +-
-  drivers/media/pci/cx88/Makefile         |   1 -
-  drivers/media/pci/cx88/cx88-alsa.c      | 112 +++++++--
-  drivers/media/pci/cx88/cx88-blackbird.c | 565 ++++++++++++++++++++-------------------------
-  drivers/media/pci/cx88/cx88-cards.c     |  71 +++---
-  drivers/media/pci/cx88/cx88-core.c      | 113 +++------
-  drivers/media/pci/cx88/cx88-dvb.c       | 158 +++++++++----
-  drivers/media/pci/cx88/cx88-mpeg.c      | 159 ++++---------
-  drivers/media/pci/cx88/cx88-vbi.c       | 216 +++++++++--------
-  drivers/media/pci/cx88/cx88-video.c     | 871 +++++++++++++++++++++------------------------------------------------
-  drivers/media/pci/cx88/cx88.h           | 104 ++++-----
-  11 files changed, 985 insertions(+), 1390 deletions(-)
