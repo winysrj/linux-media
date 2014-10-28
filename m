@@ -1,60 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40082 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750839AbaJIL4W (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48576 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505AbaJ1NVJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Oct 2014 07:56:22 -0400
-Date: Thu, 9 Oct 2014 14:55:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com
-Subject: Re: [RFC PATCH 00/11] Add configuration store support
-Message-ID: <20141009115542.GZ2939@valkosipuli.retiisi.org.uk>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 28 Oct 2014 09:21:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Hardware for testing Dead Pixel API
+Date: Tue, 28 Oct 2014 15:21:14 +0200
+Message-ID: <3291269.yV9E63i4de@avalon>
+In-Reply-To: <544F95BE.1070608@iki.fi>
+References: <CAPybu_2SNomez4K+QOdnhwyMPJ5f6n08=n-cUuM9qTg+624kNQ@mail.gmail.com> <544F95BE.1070608@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-Thank you for the set, and my apologies for taking a look only now.
-
-On Sun, Sep 21, 2014 at 04:48:18PM +0200, Hans Verkuil wrote:
-> This patch series adds support for configuration stores to the control
-> framework. This allows you to store control values for a particular
-> configuration (up to VIDEO_MAX_FRAME configuration stores are currently
-> supported). When you queue a new buffer you can supply the store ID and
-> the driver will apply all controls for that configuration store.
+On Tuesday 28 October 2014 15:10:22 Sakari Ailus wrote:
+> Ricardo Ribalda Delgado wrote:
+> > Hello
+> > 
+> > As we discussed in the mini-summit I am interested in upstreaming an
+> > API for Dead Pixels.
+> > 
+> > Since it is not viable to push my camera code, I would like to add it
+> > to an already supported camera.
+> > 
+> > On the summit somebody mention a board that also has hardware support
+> > for Dead Pixels, but the driver did not support it. If my memory is
+> > right it was a beagle board plus a sensor board.
+> > 
+> > Could somebody point me to the right hardware to buy ?
 > 
-> When you set a new value for a configuration store then you can choose
-> whether this is 'fire and forget', i.e. after the driver applies the
-> control value for that store it won't be applied again until a new value
-> is set. Or you can set the value every time that configuration store is
-> applied.
+> The OMAP 3 ISP does have dead pixel correction but I'm not sure if it's
+> documented well enough to actually implement it in public documentation.
+> 
+> A used Nokia N9 or N900 would be one possibility. I think the only
+> cameras I've seen dead pixels in are either of the front cameras,
+> probably the one in N900. At the moment only the N9 main camera works
+> for sure however. The N9 or N900 front cameras will need some debugging
+> work / DT snippets at least.
+> 
+> There are cameras for Beagle boards, too. Laurent, do you happen to
+> remember if you've seen any with dead pixels in it?
 
-This does work for video device nodes but not for sub-device nodes which
-have no buffer queues. Also if you think of using just a value from the
-closest video buffer queue, that doesn't work either since there could be
-more than one of those.
-
-Most of the time the controls that need to be applied on per-frame basis are
-present in embedded systems with complex media pipelines where most of the
-controls are present on sub-device nodes.
-
-In other words this approach alone is not sufficient to bind control related
-configurations to individual frames. For preparing and applying
-configurations it is applicable.
-
-Thinking about the Android camera API v3, controls are a part of the picture
-only: capture requests contain buffer sets as well. I think the concept
-makes sense also outside Android. Let's discuss this further at the Media
-summit.
+I haven't seen any, but on the other hand I haven't really paid attention. It 
+shouldn't be difficult to damage pixels on a sensor :-)
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
