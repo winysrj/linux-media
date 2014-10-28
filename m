@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51739 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570AbaJaPVQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38159 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751310AbaJ1NK0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:21:16 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id E916E217D1
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:19:04 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] v4l: omap4iss: Enable DMABUF support
-Date: Fri, 31 Oct 2014 17:21:19 +0200
-Message-Id: <1414768882-16255-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 28 Oct 2014 09:10:26 -0400
+Message-ID: <544F95BE.1070608@iki.fi>
+Date: Tue, 28 Oct 2014 15:10:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Hardware for testing Dead Pixel API
+References: <CAPybu_2SNomez4K+QOdnhwyMPJ5f6n08=n-cUuM9qTg+624kNQ@mail.gmail.com>
+In-Reply-To: <CAPybu_2SNomez4K+QOdnhwyMPJ5f6n08=n-cUuM9qTg+624kNQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable DMABUF import and export operations using videobuf2.
+Hi Ricardo,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss_video.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+Ricardo Ribalda Delgado wrote:
+> Hello
+> 
+> As we discussed in the mini-summit I am interested in upstreaming an
+> API for Dead Pixels.
+> 
+> Since it is not viable to push my camera code, I would like to add it
+> to an already supported camera.
+> 
+> On the summit somebody mention a board that also has hardware support
+> for Dead Pixels, but the driver did not support it. If my memory is
+> right it was a beagle board plus a sensor board.
+> 
+> Could somebody point me to the right hardware to buy ?
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 5d62503..774ccea 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -773,6 +773,14 @@ iss_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- }
- 
- static int
-+iss_video_expbuf(struct file *file, void *fh, struct v4l2_exportbuffer *e)
-+{
-+	struct iss_video_fh *vfh = to_iss_video_fh(fh);
-+
-+	return vb2_expbuf(&vfh->queue, e);
-+}
-+
-+static int
- iss_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- {
- 	struct iss_video_fh *vfh = to_iss_video_fh(fh);
-@@ -1021,6 +1029,7 @@ static const struct v4l2_ioctl_ops iss_video_ioctl_ops = {
- 	.vidioc_reqbufs			= iss_video_reqbufs,
- 	.vidioc_querybuf		= iss_video_querybuf,
- 	.vidioc_qbuf			= iss_video_qbuf,
-+	.vidioc_expbuf			= iss_video_expbuf,
- 	.vidioc_dqbuf			= iss_video_dqbuf,
- 	.vidioc_streamon		= iss_video_streamon,
- 	.vidioc_streamoff		= iss_video_streamoff,
-@@ -1071,7 +1080,7 @@ static int iss_video_open(struct file *file)
- 	q = &handle->queue;
- 
- 	q->type = video->type;
--	q->io_modes = VB2_MMAP;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF;
- 	q->drv_priv = handle;
- 	q->ops = &iss_video_vb2ops;
- 	q->mem_ops = &vb2_dma_contig_memops;
+The OMAP 3 ISP does have dead pixel correction but I'm not sure if it's
+documented well enough to actually implement it in public documentation.
+
+A used Nokia N9 or N900 would be one possibility. I think the only
+cameras I've seen dead pixels in are either of the front cameras,
+probably the one in N900. At the moment only the N9 main camera works
+for sure however. The N9 or N900 front cameras will need some debugging
+work / DT snippets at least.
+
+There are cameras for Beagle boards, too. Laurent, do you happen to
+remember if you've seen any with dead pixels in it?
+
 -- 
-2.0.4
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@iki.fi
