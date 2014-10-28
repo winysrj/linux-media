@@ -1,121 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27579 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbaJUHRF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 03:17:05 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NDS006DG9P5XV50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Oct 2014 08:19:53 +0100 (BST)
-Message-id: <5446086C.5030705@samsung.com>
-Date: Tue, 21 Oct 2014 09:17:00 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH/RFC v2 1/4] Add a media device configuration file parser.
-References: <1413557682-20535-1-git-send-email-j.anaszewski@samsung.com>
- <1413557682-20535-2-git-send-email-j.anaszewski@samsung.com>
- <20141020214415.GE15257@valkosipuli.retiisi.org.uk>
-In-reply-to: <20141020214415.GE15257@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from vader.hardeman.nu ([95.142.160.32]:37730 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751407AbaJ1Thp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 15:37:45 -0400
+Date: Tue, 28 Oct 2014 20:37:43 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Tomas Melin <tomas.melin@iki.fi>
+Cc: m.chehab@samsung.com, james.hogan@imgtec.com, a.seppala@gmail.com,
+	bay@hackerdom.ru, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] [media] rc-core: fix protocol_change regression in
+ ir_raw_event_register
+Message-ID: <20141028193743.GC15486@hardeman.nu>
+References: <1414521794-7776-1-git-send-email-tomas.melin@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1414521794-7776-1-git-send-email-tomas.melin@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 10/20/2014 11:44 PM, Sakari Ailus wrote:
-> Hi Jacek,
+On Tue, Oct 28, 2014 at 08:43:14PM +0200, Tomas Melin wrote:
+>IR receiver using nuvoton-cir and lirc required additional configuration
+>steps after upgrade from kernel 3.16 to 3.17-rcX.
+>Bisected regression to commit da6e162d6a4607362f8478c715c797d84d449f8b
+>("[media] rc-core: simplify sysfs code").
 >
-> On Fri, Oct 17, 2014 at 04:54:39PM +0200, Jacek Anaszewski wrote:
->> This patch adds a parser for a media device configuration
->> file. The parser expects the configuration file containing
->> links end v4l2-controls definitions as described in the
->> header file being added. The links describe connections
->> between media entities and v4l2-controls define the target
->> sub-devices for particular user controls related ioctl calls.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   lib/include/libv4l2-media-conf-parser.h |  148 +++++++++++
->>   lib/libv4l2/libv4l2-media-conf-parser.c |  441 +++++++++++++++++++++++++++++++
->>   2 files changed, 589 insertions(+)
->>   create mode 100644 lib/include/libv4l2-media-conf-parser.h
->>   create mode 100644 lib/libv4l2/libv4l2-media-conf-parser.c
->>
->> diff --git a/lib/include/libv4l2-media-conf-parser.h b/lib/include/libv4l2-media-conf-parser.h
->> new file mode 100644
->> index 0000000..b2dba3a
->> --- /dev/null
->> +++ b/lib/include/libv4l2-media-conf-parser.h
->> @@ -0,0 +1,148 @@
->> +/*
->> + * Parser of media device configuration file.
->> + *
->> + * Copyright (c) 2014 Samsung Electronics Co., Ltd.
->> + *              http://www.samsung.com
->> + *
->> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
->> + *
->> + * The configuration file has to comply with following format:
->> + *
->> + * Link description entry format:
->> + *
->> + * link {
->> + * <TAB>source_entity: <entity_name><LF>
->> + * <TAB>source_pad: <pad_id><LF>
->> + * <TAB>sink_entity: <entity_name><LF>
->> + * <TAB>sink_pad: <pad_id><LF>
->> + * }
+>The regression comes from adding function change_protocol in
+>ir-raw.c. It changes behaviour so that only the protocol enabled by driver's
+>map_name will be active after registration. This breaks user space behaviour,
+>lirc does not get key press signals anymore.
 >
-> Could you use the existing libmediactl format? The parser exists as well.
-
-Of course, I will switch to using it.
-
-> As a matter of fact, I have a few patches to make it easier to user in a
-> library.
+>Enable lirc protocol by default for ir raw decoders to restore original behaviour.
 >
-> libmediactl appears to be located under utils/media-ctl. Perhaps it's be
-> better placed under lib. Cc Laurent.
+>Signed-off-by: Tomas Melin <tomas.melin@iki.fi>
+
+Acked-by: David Härdeman <david@hardeman.nu>
+
+>---
+> drivers/media/rc/rc-ir-raw.c |    1 -
+> drivers/media/rc/rc-main.c   |    2 ++
+> 2 files changed, 2 insertions(+), 1 deletion(-)
 >
->> + * The V4L2 control group format:
->> + *
->> + * v4l2-controls {
->> + * <TAB><control1_name>: <entity_name><LF>
->> + * <TAB><control2_name>: <entity_name><LF>
->> + * ...
->> + * <TAB><controlN_name>: <entity_name><LF>
->> + * }
->
-> I didn't know you were working on this.
-
-Actually I did the main part of work around 1,5 year ago as a part
-of familiarizing myself with V4L2 media controller API.
-
->
-> I have a small library which does essentially the same. The implementation
-> is incomplete, that's why I hadn't posted it to the list. We could perhaps
-> discuss this a little bit tomorrow. When would you be available, in case you
-> are?
-
-I will be available around 8 hours from now on.
-
-> What would you think of using a little bit more condensed format for this,
-> similar to that of libmediactl?
+>diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+>index e8fff2a..b732ac6 100644
+>--- a/drivers/media/rc/rc-ir-raw.c
+>+++ b/drivers/media/rc/rc-ir-raw.c
+>@@ -262,7 +262,6 @@ int ir_raw_event_register(struct rc_dev *dev)
+> 		return -ENOMEM;
+> 
+> 	dev->raw->dev = dev;
+>-	dev->enabled_protocols = ~0;
+> 	dev->change_protocol = change_protocol;
+> 	rc = kfifo_alloc(&dev->raw->kfifo,
+> 			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
+>diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+>index a7991c7..8d3b74c 100644
+>--- a/drivers/media/rc/rc-main.c
+>+++ b/drivers/media/rc/rc-main.c
+>@@ -1421,6 +1421,8 @@ int rc_register_device(struct rc_dev *dev)
+> 
+> 	if (dev->change_protocol) {
+> 		u64 rc_type = (1 << rc_map->rc_type);
+>+		if (dev->driver_type == RC_DRIVER_IR_RAW)
+>+			rc_type |= RC_BIT_LIRC;
+> 		rc = dev->change_protocol(dev, &rc_type);
+> 		if (rc < 0)
+> 			goto out_raw;
+>-- 
+>1.7.10.4
 >
 
-Could you spot a place where the format is defined?
-
-Best Regards,
-Jacek Anaszewski
-
+-- 
+David Härdeman
