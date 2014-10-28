@@ -1,174 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51740 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570AbaJaPVT (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46276 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979AbaJ1PA7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:21:19 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id CACFE217D4
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:19:05 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] v4l: omap4iss: Stop started entities when pipeline start fails
-Date: Fri, 31 Oct 2014 17:21:22 +0200
-Message-Id: <1414768882-16255-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 28 Oct 2014 11:00:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Fred Richter <frichter@hauppauge.com>
+Subject: [PATCH 11/13] [media] lgdt3306a: constify log tables
+Date: Tue, 28 Oct 2014 13:00:46 -0200
+Message-Id: <496635a58bdc8b14a1a784e2d814933e5fc3272a.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If an entity can't be started when starting a pipeline we need to clean
-up by stopping all entities that have been successfully started.
-Otherwise the hardware and software states won't match, potentially
-leading to crashes (for instance due to the CSI2 receiver receiving
-interrupts with a NULL pipeline pointer).
+Ideally, we should be replacing this function by intlog10().
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss.c | 108 +++++++++++++++++++----------------
- 1 file changed, 59 insertions(+), 49 deletions(-)
+While we don't do that, let's at least constify the tables,
+in order to remove its code footfrint, and get rid of nelems.
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index fa05908..d8240a1 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -560,6 +560,61 @@ static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
-  */
- 
- /*
-+ * iss_pipeline_disable - Disable streaming on a pipeline
-+ * @pipe: ISS pipeline
-+ * @until: entity at which to stop pipeline walk
-+ *
-+ * Walk the entities chain starting at the pipeline output video node and stop
-+ * all modules in the chain. Wait synchronously for the modules to be stopped if
-+ * necessary.
-+ *
-+ * If the until argument isn't NULL, stop the pipeline walk when reaching the
-+ * until entity. This is used to disable a partially started pipeline due to a
-+ * subdev start error.
-+ */
-+static int iss_pipeline_disable(struct iss_pipeline *pipe,
-+				struct media_entity *until)
-+{
-+	struct iss_device *iss = pipe->output->iss;
-+	struct media_entity *entity;
-+	struct media_pad *pad;
-+	struct v4l2_subdev *subdev;
-+	int failure = 0;
-+	int ret;
-+
-+	entity = &pipe->output->video.entity;
-+	while (1) {
-+		pad = &entity->pads[0];
-+		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-+			break;
-+
-+		pad = media_entity_remote_pad(pad);
-+		if (pad == NULL ||
-+		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			break;
-+
-+		entity = pad->entity;
-+		if (entity == until)
-+			break;
-+
-+		subdev = media_entity_to_v4l2_subdev(entity);
-+		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
-+		if (ret < 0) {
-+			dev_dbg(iss->dev, "%s: module stop timeout.\n",
-+				subdev->name);
-+			/* If the entity failed to stopped, assume it has
-+			 * crashed. Mark it as such, the ISS will be reset when
-+			 * applications will release it.
-+			 */
-+			iss->crashed |= 1U << subdev->entity.id;
-+			failure = -ETIMEDOUT;
-+		}
-+	}
-+
-+	return failure;
-+}
-+
-+/*
-  * iss_pipeline_enable - Enable streaming on a pipeline
-  * @pipe: ISS pipeline
-  * @mode: Stream mode (single shot or continuous)
-@@ -610,8 +665,10 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 
- 		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
-+		if (ret < 0 && ret != -ENOIOCTLCMD) {
-+			iss_pipeline_disable(pipe, entity);
- 			return ret;
-+		}
- 
- 		if (subdev == &iss->csi2a.subdev ||
- 		    subdev == &iss->csi2b.subdev)
-@@ -623,53 +680,6 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+This also fixes a few 80-cols CodingStyle warnings.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 9c80d4c26381..ad483be1b64e 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -1386,11 +1386,15 @@ static u8 lgdt3306a_get_packet_error(struct lgdt3306a_state *state)
+ 	return val;
  }
  
- /*
-- * iss_pipeline_disable - Disable streaming on a pipeline
-- * @pipe: ISS pipeline
-- *
-- * Walk the entities chain starting at the pipeline output video node and stop
-- * all modules in the chain. Wait synchronously for the modules to be stopped if
-- * necessary.
-- */
--static int iss_pipeline_disable(struct iss_pipeline *pipe)
--{
--	struct iss_device *iss = pipe->output->iss;
--	struct media_entity *entity;
--	struct media_pad *pad;
--	struct v4l2_subdev *subdev;
--	int failure = 0;
--	int ret;
--
--	entity = &pipe->output->video.entity;
--	while (1) {
--		pad = &entity->pads[0];
--		if (!(pad->flags & MEDIA_PAD_FL_SINK))
--			break;
--
--		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
--			break;
--
--		entity = pad->entity;
--		subdev = media_entity_to_v4l2_subdev(entity);
--
--		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
--		if (ret < 0) {
--			dev_dbg(iss->dev, "%s: module stop timeout.\n",
--				subdev->name);
--			/* If the entity failed to stopped, assume it has
--			 * crashed. Mark it as such, the ISS will be reset when
--			 * applications will release it.
--			 */
--			iss->crashed |= 1U << subdev->entity.id;
--			failure = -ETIMEDOUT;
--		}
--	}
--
--	return failure;
--}
--
--/*
-  * omap4iss_pipeline_set_stream - Enable/disable streaming on a pipeline
-  * @pipe: ISS pipeline
-  * @state: Stream state (stopped, single shot or continuous)
-@@ -687,7 +697,7 @@ int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
- 	int ret;
++static const u32 valx_x10[] = {
++	10,  11,  13,  15,  17,  20,  25,  33,  41,  50,  59,  73,  87,  100
++};
++static const u32 log10x_x1000[] = {
++	0,  41, 114, 176, 230, 301, 398, 518, 613, 699, 771, 863, 939, 1000
++};
++
+ static u32 log10_x1000(u32 x)
+ {
+-	static u32 valx_x10[]     = {  10,  11,  13,  15,  17,  20,  25,  33,  41,  50,  59,  73,  87,  100 };
+-	static u32 log10x_x1000[] = {   0,  41, 114, 176, 230, 301, 398, 518, 613, 699, 771, 863, 939, 1000 };
+-	static u32 nelems = sizeof(valx_x10)/sizeof(valx_x10[0]);
+ 	u32 diff_val, step_val, step_log10;
+ 	u32 log_val = 0;
+ 	u32 i;
+@@ -1418,11 +1422,11 @@ static u32 log10_x1000(u32 x)
+ 		return log_val;	/* don't need to interpolate */
  
- 	if (state == ISS_PIPELINE_STREAM_STOPPED)
--		ret = iss_pipeline_disable(pipe);
-+		ret = iss_pipeline_disable(pipe, NULL);
- 	else
- 		ret = iss_pipeline_enable(pipe, state);
+ 	/* find our place on the log curve */
+-	for (i = 1; i < nelems; i++) {
++	for (i = 1; i < ARRAY_SIZE(valx_x10); i++) {
+ 		if (valx_x10[i] >= x)
+ 			break;
+ 	}
+-	if (i == nelems)
++	if (i == ARRAY_SIZE(valx_x10))
+ 		return log_val + log10x_x1000[i - 1];
  
+ 	diff_val   = x - valx_x10[i-1];
 -- 
-2.0.4
+1.9.3
 
