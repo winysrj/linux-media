@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:58428 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbaJEJAM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Oct 2014 05:00:12 -0400
-From: "=?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?="
-	<info@are.ma>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [PATCH 04/11] pt3: add comment
-Date: Sun,  5 Oct 2014 17:59:40 +0900
-Message-Id: <91a283b71e82584c290d3c2f1715b07d630edcff.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
-In-Reply-To: <cover.1412497399.git.knightrider@are.ma>
-References: <cover.1412497399.git.knightrider@are.ma>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44660 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755228AbaJ1XdP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 19:33:15 -0400
+Date: Wed, 29 Oct 2014 01:33:12 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] media: Print information on failed link validation
+Message-ID: <20141028233311.GD3136@valkosipuli.retiisi.org.uk>
+References: <1412372439-4184-1-git-send-email-sakari.ailus@iki.fi>
+ <1414537804-25303-1-git-send-email-sakari.ailus@iki.fi>
+ <3033119.78jigqieeC@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3033119.78jigqieeC@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PT3 needs frontend & tuners to run properly
+Hi Laurent,
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
----
- drivers/media/pci/pt3/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, Oct 29, 2014 at 01:20:06AM +0200, Laurent Pinchart wrote:
+> >  			ret = -EPIPE;
+> > +			dev_dbg(entity->parent->dev,
+> > +				"\"%s\":%u must be connected by an enabled link, error %d\n",
+> > +				entity->name,
+> > +				find_first_zero_bit(active, entity->num_pads),
+> > +				ret);
+> 
+> Given that ret is always set to -EPIPE, I wouldn't print ", error %d".
+> 
+> Apart from that,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/pci/pt3/Kconfig b/drivers/media/pci/pt3/Kconfig
-index 16c208a..f7b7210 100644
---- a/drivers/media/pci/pt3/Kconfig
-+++ b/drivers/media/pci/pt3/Kconfig
-@@ -6,5 +6,5 @@ config DVB_PT3
- 	select MEDIA_TUNER_MXL301RF if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Support for Earthsoft PT3 PCIe cards.
--
-+	  You need to enable frontend (TC90522) & tuners (QM1D1C0042, MXL301RF)
- 	  Say Y or M if you own such a device and want to use it.
+Thanks for the ack. Good point as well, I'll fix that for v3.
+
 -- 
-1.8.4.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
