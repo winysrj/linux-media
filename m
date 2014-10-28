@@ -1,75 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:14192 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043AbaJISf0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 14:35:26 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND6002F8WZ0VE70@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Oct 2014 14:35:24 -0400 (EDT)
-Date: Thu, 09 Oct 2014 15:35:20 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Akihiro TSUKADA <tskd08@gmail.com>
+Received: from smtp206.alice.it ([82.57.200.102]:49756 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254AbaJ1OkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 10:40:08 -0400
+Date: Tue, 28 Oct 2014 15:39:41 +0100
+From: Antonio Ospite <ao2@ao2.it>
+To: Hans de Goede <hdegoede@redhat.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] v4l-utils/dvbv5-scan: add support for ISDB-S scanning
-Message-id: <20141009153520.281def64.m.chehab@samsung.com>
-In-reply-to: <5436CFD4.4090400@gmail.com>
-References: <1412770181-5420-1-git-send-email-tskd08@gmail.com>
- <1412770181-5420-5-git-send-email-tskd08@gmail.com>
- <20141008130426.792d7bb7.m.chehab@samsung.com> <5436CFD4.4090400@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Subject: Re: [PATCH] gspca_stv06xx: enable button found on some Quickcam
+ Express variant
+Message-Id: <20141028153941.8298e540ddf03796246c6f26@ao2.it>
+In-Reply-To: <53C3B0AD.7070001@redhat.com>
+References: <1405083417-20615-1-git-send-email-ao2@ao2.it>
+	<53C3B0AD.7070001@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 10 Oct 2014 03:11:32 +0900
-Akihiro TSUKADA <tskd08@gmail.com> escreveu:
+On Mon, 14 Jul 2014 12:27:57 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-> On 2014年10月09日 01:04, Mauro Carvalho Chehab wrote:
-> >> @@ -251,6 +251,16 @@ static int run_scan(struct arguments *args,
-> >>  		if (dvb_retrieve_entry_prop(entry, DTV_POLARIZATION, &pol))
-> >>  			pol = POLARIZATION_OFF;
-> >>  
-> >> +		if (parms->current_sys == SYS_ISDBS) {
-> >> +			uint32_t tsid = 0;
-> >> +
-> >> +			dvb_store_entry_prop(entry, DTV_POLARIZATION, POLARIZATION_R);
-> >> +
-> >> +			dvb_retrieve_entry_prop(entry, DTV_STREAM_ID, &tsid);
-> >> +			if (!dvb_new_ts_is_needed(dvb_file->first_entry, entry,
-> >> +						  freq, shift, tsid))
-> >> +				continue;
-> > 
-> > This is likely needed for DVB-T2 and DVB-S2 too.
+> Hi,
 > 
-> Should we compare channel entries by (freq, stream_id, polarization) triplet
-> instead of by the current (freq, polarization) or (freq, stream_id)?
+> On 07/11/2014 02:56 PM, Antonio Ospite wrote:
+> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> 
+> Thanks, I've added this to my tree and send a pull-req for it
+> to Mauro.
+>
 
-For DVB-S2, it should likely  be (freq, stream_id, polarization) triplet
-(tests needed).
+Hi Hans, I still don't see the change in 3.18-rc2, maybe it got lost.
 
-For DVB-T2, (freq, stream_id) pair should work;
+Here is the patchwork link in case you want to pick the change for 3.19:
+https://patchwork.linuxtv.org/patch/24732/
 
-For ISDB-S, you likely need the (freq, stream_id, polarization) triplet
-too, as you may have two polarizations there, right?
+Thanks,
+   Antonio
 
-> >> @@ -258,6 +268,10 @@ static int run_scan(struct arguments *args,
-> >>  		count++;
-> >>  		dvb_log("Scanning frequency #%d %d", count, freq);
-> >>  
-> >> +		if (!args->lnb_name && entry->lnb &&
-> >> +		    (!parms->lnb || strcasecmp(entry->lnb, parms->lnb->alias)))
+> Regards,
+> 
+> Hans
+> 
+> > ---
+> >  drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
 > > 
-> > Shouldn't it be: !strcasecmp(entry->lnb, parms->lnb->alias)? Or maybe just
-> > remove this test.
-> I want to update parms->lnb (which was set from the prev entry)
-> only if it differs from entry->lnb (current one),
-> and don't want to linear-search all LNB types for every entries,
-> as lots of entries are expected to have the same LNB types.
+> > diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+> > index 49d209b..6ac93d8 100644
+> > --- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
+> > +++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+> > @@ -505,13 +505,13 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+> >  {
+> >  	int ret = -EINVAL;
+> >  
+> > -	if (len == 1 && data[0] == 0x80) {
+> > +	if (len == 1 && (data[0] == 0x80 || data[0] == 0x10)) {
+> >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
+> >  		input_sync(gspca_dev->input_dev);
+> >  		ret = 0;
+> >  	}
+> >  
+> > -	if (len == 1 && data[0] == 0x88) {
+> > +	if (len == 1 && (data[0] == 0x88 || data[0] == 0x11)) {
+> >  		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+> >  		input_sync(gspca_dev->input_dev);
+> >  		ret = 0;
+> > 
 
-Ah, ok. Please add a comment then.
 
-> --
-> akihiro 
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
