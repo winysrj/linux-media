@@ -1,108 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:57194 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161558AbaJaCeY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 22:34:24 -0400
-Received: by mail-pa0-f44.google.com with SMTP id bj1so6721835pad.17
-        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 19:34:23 -0700 (PDT)
-Date: Fri, 31 Oct 2014 10:34:22 +0800
-From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
-	"=?utf-8?B?T2xsaSBTYWxvbmVu?=" <olli.salonen@iki.fi>
-References: <201410271529188904708@gmail.com>,
- <201410301238228758761@gmail.com>
-Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggdjIgMy8zXSBEVkJTa3kgVjMgUENJZSBjYXJkOiBhZGQgc29tZSBjaGFuZ2VzIHRvIE04OERTMzEwM2ZvcnN1cHBvcnRpbmcgdGhlIGRlbW9kIG9mIE04OFJTNjAwMA==?=
-Message-ID: <201410311034193593814@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Received: from lists.s-osg.org ([54.187.51.154]:42273 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751093AbaJ1S62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 14:58:28 -0400
+Date: Tue, 28 Oct 2014 16:58:23 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 02/16] cx88: drop the bogus 'queue' list in dmaqueue.
+Message-ID: <20141028165823.5b34cd2a@recife.lan>
+In-Reply-To: <1411216911-7950-3-git-send-email-hverkuil@xs4all.nl>
+References: <1411216911-7950-1-git-send-email-hverkuil@xs4all.nl>
+	<1411216911-7950-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Antti,
+Em Sat, 20 Sep 2014 14:41:37 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 2014-10-31 01:36:14, Antti Palosaari wrote:
->
->
->On 10/30/2014 06:38 AM, Nibble Max wrote:
->
->>>> -	if (tab_len > 83) {
->>>> +	if (tab_len > 86) {
->>>
->>> That is not nice, but I could try find better solution and fix it later.
->>
->> What is the reason to check this parameter?
->> How about remove this check?
->
->It is just to check you will not overwrite buffer accidentally. Buffer 
->is 83 bytes long, which should be also increased...
->The correct solution is somehow calculate max possible tab size on 
->compile time. It should be possible as init tabs are static const 
->tables. Use some macro to calculate max value and use it - not plain 
->numbers.
->
->Something like that
->#define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2, 
->m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
->
->
->>> Clock selection. What this does:
->>> * select mclk_khz
->>> * select target_mclk
->>> * calls set_config() in order to pass target_mclk to tuner driver
->>> * + some strange looking sleep, which is not likely needed
->>
->> The clock of M88RS6000's demod comes from tuner dies.
->> So the first thing is turning on the demod main clock from tuner die after the demod reset.
->> Without this clock, the following register's content will fail to update.
->> Before changing the demod main clock, it should close clock path.
->> After changing the demod main clock, it open clock path and wait the clock to stable.
->>
->>>
->>> One thing what I don't like this is that you have implemented M88RS6000
->>> things here and M88DS3103 elsewhere. Generally speaking, code must have
->>> some logic where same things are done in same place. So I expect to see
->>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
->>> implemented here or these moved to place where M88DS3103 implementation is.
->>>
->>
->> I will move M88DS3103 implementation to here.
->>
->>> Also, even set_config() is somehow logically correctly used here, I
->>> prefer to duplicate that 4 line long target_mclk selection to tuner
->>> driver and get rid of whole set_config(). Even better solution could be
->>> to register M88RS6000 as a clock provider using clock framework, but
->>> imho it is not worth  that simple case.
->>
->> Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
->
->Yes, and you did it already on that latest patch, thanks. It is not 
->logically correct, but a bit hackish solution, but I think it is best in 
->that special case in order to keep things simple here.
->
->
->
->One thing with that new patch I would like to check is this 10us delay 
->after clock path is enabled. You enable clock just before mcu is stopped 
->and demod is configured during mcu is on freeze. 10us is almost nothing 
->and it sounds like having no need in a situation you stop even mcu. It 
->is about one I2C command which will took longer than 10us. Hard to see 
->why you need wait 10us to settle clock in such case. What happens if you 
->don't wait? I assume nothing, it works just as it should as stable 
->clocks are needed a long after that, when mcu is take out of reset.
->
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This list is used some buffers have a different format, but that can
+> never happen. Remove it and all associated code.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/pci/cx88/cx88-mpeg.c  | 31 -----------------------------
+>  drivers/media/pci/cx88/cx88-video.c | 39 +++----------------------------------
+>  drivers/media/pci/cx88/cx88.h       |  1 -
+>  3 files changed, 3 insertions(+), 68 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+> index 2803b6f..5f59901 100644
+> --- a/drivers/media/pci/cx88/cx88-mpeg.c
+> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
+> @@ -210,37 +210,7 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
+>  
+>  	dprintk( 1, "cx8802_restart_queue\n" );
+>  	if (list_empty(&q->active))
+> -	{
+> -		struct cx88_buffer *prev;
+> -		prev = NULL;
+> -
+> -		dprintk(1, "cx8802_restart_queue: queue is empty\n" );
 
-usleep_range(10000, 20000);
-This delay time at least is 10ms, not 10us. 
+This is not bogus code. What happens here is that sometimes the DMA 
+engine stops on cx88 and it needs to be restarted under some temporary
+errors.
 
->regards
->Antti
->
->-- 
->http://palosaari.fi/
-BR,
-Max
+I don't remember the exact condition, as I don't touch on cx88 on
+several years, but I think it happens when the signal drops (for
+example, if the antenna cable gets removed, but not 100% sure).
 
+So, removing this code will cause regressions.
+
+Regards,
+Mauro
+
+> -
+> -		for (;;) {
+> -			if (list_empty(&q->queued))
+> -				return 0;
+> -			buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
+> -			if (NULL == prev) {
+> -				list_move_tail(&buf->vb.queue, &q->active);
+> -				cx8802_start_dma(dev, q, buf);
+> -				buf->vb.state = VIDEOBUF_ACTIVE;
+> -				buf->count    = q->count++;
+> -				mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+> -				dprintk(1,"[%p/%d] restart_queue - first active\n",
+> -					buf,buf->vb.i);
+> -
+> -			} else {
+> -				list_move_tail(&buf->vb.queue, &q->active);
+> -				buf->vb.state = VIDEOBUF_ACTIVE;
+> -				buf->count    = q->count++;
+> -				prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+> -				dprintk(1,"[%p/%d] restart_queue - move to active\n",
+> -					buf,buf->vb.i);
+> -			}
+> -			prev = buf;
+> -		}
+>  		return 0;
+> -	}
+>  
+>  	buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
+>  	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
+> @@ -486,7 +456,6 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+>  
+>  	/* init dma queue */
+>  	INIT_LIST_HEAD(&dev->mpegq.active);
+> -	INIT_LIST_HEAD(&dev->mpegq.queued);
+>  	dev->mpegq.timeout.function = cx8802_timeout;
+>  	dev->mpegq.timeout.data     = (unsigned long)dev;
+>  	init_timer(&dev->mpegq.timeout);
+> diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+> index 3075179..10fea4d 100644
+> --- a/drivers/media/pci/cx88/cx88-video.c
+> +++ b/drivers/media/pci/cx88/cx88-video.c
+> @@ -470,7 +470,7 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+>  			       struct cx88_dmaqueue *q)
+>  {
+>  	struct cx88_core *core = dev->core;
+> -	struct cx88_buffer *buf, *prev;
+> +	struct cx88_buffer *buf;
+>  
+>  	if (!list_empty(&q->active)) {
+>  		buf = list_entry(q->active.next, struct cx88_buffer, vb.queue);
+> @@ -480,33 +480,8 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+>  		list_for_each_entry(buf, &q->active, vb.queue)
+>  			buf->count = q->count++;
+>  		mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+> -		return 0;
+> -	}
+> -
+> -	prev = NULL;
+> -	for (;;) {
+> -		if (list_empty(&q->queued))
+> -			return 0;
+> -		buf = list_entry(q->queued.next, struct cx88_buffer, vb.queue);
+> -		if (NULL == prev) {
+> -			list_move_tail(&buf->vb.queue, &q->active);
+> -			start_video_dma(dev, q, buf);
+> -			buf->vb.state = VIDEOBUF_ACTIVE;
+> -			buf->count    = q->count++;
+> -			mod_timer(&q->timeout, jiffies+BUFFER_TIMEOUT);
+> -			dprintk(2,"[%p/%d] restart_queue - first active\n",
+> -				buf,buf->vb.i);
+> -
+> -		} else {
+> -			list_move_tail(&buf->vb.queue, &q->active);
+> -			buf->vb.state = VIDEOBUF_ACTIVE;
+> -			buf->count    = q->count++;
+> -			prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+> -			dprintk(2,"[%p/%d] restart_queue - move to active\n",
+> -				buf,buf->vb.i);
+> -		}
+> -		prev = buf;
+>  	}
+> +	return 0;
+>  }
+>  
+>  /* ------------------------------------------------------------------ */
+> @@ -613,13 +588,7 @@ buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>  	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP | RISC_IRQ1 | RISC_CNT_INC);
+>  	buf->risc.jmp[1] = cpu_to_le32(q->stopper.dma);
+>  
+> -	if (!list_empty(&q->queued)) {
+> -		list_add_tail(&buf->vb.queue,&q->queued);
+> -		buf->vb.state = VIDEOBUF_QUEUED;
+> -		dprintk(2,"[%p/%d] buffer_queue - append to queued\n",
+> -			buf, buf->vb.i);
+> -
+> -	} else if (list_empty(&q->active)) {
+> +	if (list_empty(&q->active)) {
+>  		list_add_tail(&buf->vb.queue,&q->active);
+>  		start_video_dma(dev, q, buf);
+>  		buf->vb.state = VIDEOBUF_ACTIVE;
+> @@ -1694,7 +1663,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+>  
+>  	/* init video dma queues */
+>  	INIT_LIST_HEAD(&dev->vidq.active);
+> -	INIT_LIST_HEAD(&dev->vidq.queued);
+>  	dev->vidq.timeout.function = cx8800_vid_timeout;
+>  	dev->vidq.timeout.data     = (unsigned long)dev;
+>  	init_timer(&dev->vidq.timeout);
+> @@ -1703,7 +1671,6 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+>  
+>  	/* init vbi dma queues */
+>  	INIT_LIST_HEAD(&dev->vbiq.active);
+> -	INIT_LIST_HEAD(&dev->vbiq.queued);
+>  	dev->vbiq.timeout.function = cx8800_vbi_timeout;
+>  	dev->vbiq.timeout.data     = (unsigned long)dev;
+>  	init_timer(&dev->vbiq.timeout);
+> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+> index ddc7991..77ec542 100644
+> --- a/drivers/media/pci/cx88/cx88.h
+> +++ b/drivers/media/pci/cx88/cx88.h
+> @@ -324,7 +324,6 @@ struct cx88_buffer {
+>  
+>  struct cx88_dmaqueue {
+>  	struct list_head       active;
+> -	struct list_head       queued;
+>  	struct timer_list      timeout;
+>  	struct btcx_riscmem    stopper;
+>  	u32                    count;
