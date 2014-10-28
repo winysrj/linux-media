@@ -1,54 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:37372 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558AbaJVKPw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46265 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754060AbaJ1PA7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 06:15:52 -0400
-Message-ID: <544783D4.8010502@cisco.com>
-Date: Wed, 22 Oct 2014 12:15:48 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 5/5] [media] vivid: enable VIDIOC_EXPBUF
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1413972221-13669-6-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 28 Oct 2014 11:00:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Fred Richter <frichter@hauppauge.com>
+Subject: [PATCH 08/13] [media] lbdt3306a: simplify the lock status check
+Date: Tue, 28 Oct 2014 13:00:43 -0200
+Message-Id: <2cf3f13aa583cf9f7454b88ea9953cc3a5f297fe.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/22/2014 12:03 PM, Philipp Zabel wrote:
-> Instances created with allocators == 1 use videobuf2-dma-contig, and are
-> able to export DMA buffers via VIDIOC_EXPBUF.
+The logic there is too complex and it looks like an inifite
+loop.
 
-Can you test what happens if you use EXPBUF when vmalloc is used? I hope it
-will just fail, but I am not sure.
+So, simplify the logic and implement it as a for loop.
 
-Regards,
+This gets rid of the following checkpatch.pl warnings:
 
-	Hans
+WARNING: else is not generally useful after a break or return
++			return LG3306_UNLOCK;
++		} else {
 
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->   drivers/media/platform/vivid/vivid-core.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index 4c4fc3d..695286b 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -596,7 +596,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
->   	.vidioc_querybuf		= vb2_ioctl_querybuf,
->   	.vidioc_qbuf			= vb2_ioctl_qbuf,
->   	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> -/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
-> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
->   	.vidioc_streamon		= vb2_ioctl_streamon,
->   	.vidioc_streamoff		= vb2_ioctl_streamoff,
->
->
+WARNING: else is not generally useful after a break or return
++			return LG3306_UNLOCK;
++		} else {
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 85fc9c63e3ca..0356810da444 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -1461,64 +1461,52 @@ static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state
+ 	u8 packet_error;
+ 	u32 snr;
+ 
+-	while (1) {
++	for (cnt = 0; cnt < 10; cnt++) {
+ 		if (lgdt3306a_sync_lock_poll(state) == LG3306_UNLOCK) {
+ 			dbg_info("no sync lock!\n");
+ 			return LG3306_UNLOCK;
+-		} else {
+-			msleep(20);
+-			ret = lgdt3306a_pre_monitoring(state);
+-			if (ret)
+-				return LG3306_UNLOCK;
+-
+-			packet_error = lgdt3306a_get_packet_error(state);
+-			snr = lgdt3306a_calculate_snr_x100(state);
+-			dbg_info("cnt=%d errors=%d snr=%d\n",
+-			       cnt, packet_error, snr);
+-
+-			if ((snr < 1500) || (packet_error >= 0xff))
+-				cnt++;
+-			else
+-				return LG3306_LOCK;
+-
+-			if (cnt >= 10) {
+-				dbg_info("not locked!\n");
+-				return LG3306_UNLOCK;
+-			}
+ 		}
++
++		msleep(20);
++		ret = lgdt3306a_pre_monitoring(state);
++		if (ret)
++			break;
++
++		packet_error = lgdt3306a_get_packet_error(state);
++		snr = lgdt3306a_calculate_snr_x100(state);
++		dbg_info("cnt=%d errors=%d snr=%d\n", cnt, packet_error, snr);
++
++		if ((snr >= 1500) && (packet_error < 0xff))
++			return LG3306_LOCK;
+ 	}
++
++	dbg_info("not locked!\n");
+ 	return LG3306_UNLOCK;
+ }
+ 
+ static enum lgdt3306a_lock_status lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
+ {
+-	u8 cnt = 0;
++	u8 cnt;
+ 	u8 packet_error;
+ 	u32	snr;
+ 
+-	while (1) {
++	for (cnt = 0; cnt < 10; cnt++) {
+ 		if (lgdt3306a_fec_lock_poll(state) == LG3306_UNLOCK) {
+ 			dbg_info("no fec lock!\n");
+ 			return LG3306_UNLOCK;
+-		} else {
+-			msleep(20);
+-
+-			packet_error = lgdt3306a_get_packet_error(state);
+-			snr = lgdt3306a_calculate_snr_x100(state);
+-			dbg_info("cnt=%d errors=%d snr=%d\n",
+-			       cnt, packet_error, snr);
+-
+-			if ((snr < 1500) || (packet_error >= 0xff))
+-				cnt++;
+-			else
+-				return LG3306_LOCK;
+-
+-			if (cnt >= 10) {
+-				dbg_info("not locked!\n");
+-				return LG3306_UNLOCK;
+-			}
+ 		}
++
++		msleep(20);
++
++		packet_error = lgdt3306a_get_packet_error(state);
++		snr = lgdt3306a_calculate_snr_x100(state);
++		dbg_info("cnt=%d errors=%d snr=%d\n", cnt, packet_error, snr);
++
++		if ((snr >= 1500) && (packet_error < 0xff))
++			return LG3306_LOCK;
+ 	}
++
++	dbg_info("not locked!\n");
+ 	return LG3306_UNLOCK;
+ }
+ 
+-- 
+1.9.3
 
