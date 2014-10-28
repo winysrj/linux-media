@@ -1,367 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42343 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750858AbaJ1XnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 19:43:01 -0400
-Date: Tue, 28 Oct 2014 21:42:50 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:46268 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535AbaJ1PA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 11:00:59 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Takashi Iwai <tiwai@suse.de>,
-	Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sander Eikelenboom <linux@eikelenboom.it>,
-	prabhakar.csengg@gmail.com, Antti Palosaari <crope@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Tim Gardner <tim.gardner@canonical.com>,
-	"olebowle@gmx.com" <olebowle@gmx.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: [RFCv1] Media Token API needs - Was: Re: [alsa-devel] [PATCH v2
- 5/6] sound/usb: pcm changes to use media token api
-Message-ID: <20141028214250.27f0c869@recife.lan>
-In-Reply-To: <5450077F.70101@osg.samsung.com>
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>
-	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
-	<543FB374.8020604@metafoo.de>
-	<543FC3CD.8050805@osg.samsung.com>
-	<s5h38aow1ub.wl-tiwai@suse.de>
-	<543FD1EC.5010206@osg.samsung.com>
-	<s5hy4sgumjo.wl-tiwai@suse.de>
-	<543FD892.6010209@osg.samsung.com>
-	<s5htx34ul3w.wl-tiwai@suse.de>
-	<54467EFB.7050800@xs4all.nl>
-	<s5hbnp5z9uy.wl-tiwai@suse.de>
-	<CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
-	<544804F1.7090606@linux.intel.com>
-	<20141025114115.292ff5d2@recife.lan>
-	<s5hk33n8ccj.wl-tiwai@suse.de>
-	<20141027105237.5f5ec7fd@recife.lan>
-	<5450077F.70101@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Fred Richter <frichter@hauppauge.com>
+Subject: [PATCH 12/13] [media] lgdt3306a: Break long lines
+Date: Tue, 28 Oct 2014 13:00:47 -0200
+Message-Id: <dbb4116cf8e670a5c9df7c5c5464ff925c0254b9.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
+References: <cover.1414507927.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Fix most of checkpatch warnings like:
+	WARNING: line over 80 characters
 
-I'm understanding that you're collecting comments to write a RFC with the
-needs by the media token, right?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I'm sending you my contributions to such text. See enclosed.
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index ad483be1b64e..4e0cf443b9ff 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -220,13 +220,17 @@ static int lgdt3306a_mpeg_mode(struct lgdt3306a_state *state,
+ 	int ret;
+ 
+ 	dbg_info("(%d)\n", mode);
+-	/* transport packet format */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0071, 7, mode == LGDT3306A_MPEG_PARALLEL?1:0); /* TPSENB=0x80 */
++	/* transport packet format - TPSENB=0x80 */
++	ret = lgdt3306a_set_reg_bit(state, 0x0071, 7,
++				     mode == LGDT3306A_MPEG_PARALLEL ? 1 : 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+-	/* start of packet signal duration */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0071, 6, 0); /* TPSSOPBITEN=0x40; 0=byte duration, 1=bit duration */
++	/*
++	 * start of packet signal duration
++	 * TPSSOPBITEN=0x40; 0=byte duration, 1=bit duration
++	 */
++	ret = lgdt3306a_set_reg_bit(state, 0x0071, 6, 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+@@ -285,17 +289,23 @@ static int lgdt3306a_mpeg_tristate(struct lgdt3306a_state *state,
+ 		ret = lgdt3306a_read_reg(state, 0x0070, &val);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+-		val &= ~0xa8; /* Tristate bus; TPOUTEN=0x80, TPCLKOUTEN=0x20, TPDATAOUTEN=0x08 */
++		/*
++		 * Tristate bus; TPOUTEN=0x80, TPCLKOUTEN=0x20,
++		 * TPDATAOUTEN=0x08
++		 */
++		val &= ~0xa8;
+ 		ret = lgdt3306a_write_reg(state, 0x0070, val);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+-		ret = lgdt3306a_set_reg_bit(state, 0x0003, 6, 1); /* AGCIFOUTENB=0x40; 1=Disable IFAGC pin */
++		/* AGCIFOUTENB=0x40; 1=Disable IFAGC pin */
++		ret = lgdt3306a_set_reg_bit(state, 0x0003, 6, 1);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+ 	} else {
+-		ret = lgdt3306a_set_reg_bit(state, 0x0003, 6, 0); /* enable IFAGC pin */
++		/* enable IFAGC pin */
++		ret = lgdt3306a_set_reg_bit(state, 0x0003, 6, 0);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+@@ -331,20 +341,24 @@ static int lgdt3306a_power(struct lgdt3306a_state *state,
+ 	dbg_info("(%d)\n", mode);
+ 
+ 	if (mode == 0) {
+-		ret = lgdt3306a_set_reg_bit(state, 0x0000, 7, 0); /* into reset */
++		/* into reset */
++		ret = lgdt3306a_set_reg_bit(state, 0x0000, 7, 0);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+-		ret = lgdt3306a_set_reg_bit(state, 0x0000, 0, 0); /* power down */
++		/* power down */
++		ret = lgdt3306a_set_reg_bit(state, 0x0000, 0, 0);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+ 	} else {
+-		ret = lgdt3306a_set_reg_bit(state, 0x0000, 7, 1); /* out of reset */
++		/* out of reset */
++		ret = lgdt3306a_set_reg_bit(state, 0x0000, 7, 1);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 
+-		ret = lgdt3306a_set_reg_bit(state, 0x0000, 0, 1); /* power up */
++		/* power up */
++		ret = lgdt3306a_set_reg_bit(state, 0x0000, 0, 1);
+ 		if (lg_chkerr(ret))
+ 			goto fail;
+ 	}
+@@ -658,8 +672,8 @@ static int lgdt3306a_set_inversion_auto(struct lgdt3306a_state *state,
+ 
+ 	dbg_info("(%d)\n", enabled);
+ 
+-	/* 0=Manual 1=Auto(QAM only) */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0002, 3, enabled);/* SPECINVAUTO=0x04 */
++	/* 0=Manual 1=Auto(QAM only) - SPECINVAUTO=0x04 */
++	ret = lgdt3306a_set_reg_bit(state, 0x0002, 3, enabled);
+ 	return ret;
+ }
+ 
+@@ -671,17 +685,22 @@ static int lgdt3306a_spectral_inversion(struct lgdt3306a_state *state,
+ 
+ 	dbg_info("(%d)\n", inversion);
+ #if 0
+-/* FGR - spectral_inversion defaults already set for VSB and QAM; can enable later if desired */
++	/*
++	 * FGR - spectral_inversion defaults already set for VSB and QAM;
++	 * can enable later if desired
++	 */
+ 
+ 	ret = lgdt3306a_set_inversion(state, inversion);
+ 
+ 	switch (p->modulation) {
+ 	case VSB_8:
+-		ret = lgdt3306a_set_inversion_auto(state, 0); /* Manual only for VSB */
++		/* Manual only for VSB */
++		ret = lgdt3306a_set_inversion_auto(state, 0);
+ 		break;
+ 	case QAM_64:
+ 	case QAM_256:
+-		ret = lgdt3306a_set_inversion_auto(state, 1); /* Auto ok for QAM */
++		/* Auto ok for QAM */
++		ret = lgdt3306a_set_inversion_auto(state, 1);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -711,7 +730,8 @@ static int lgdt3306a_set_if(struct lgdt3306a_state *state,
+ 
+ 	switch (if_freq_khz) {
+ 	default:
+-	    pr_warn("IF=%d KHz is not supportted, 3250 assumed\n", if_freq_khz);
++		pr_warn("IF=%d KHz is not supportted, 3250 assumed\n",
++			if_freq_khz);
+ 		/* fallthrough */
+ 	case 3250: /* 3.25Mhz */
+ 		nco1 = 0x34;
+@@ -758,7 +778,8 @@ static int lgdt3306a_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	}
+ 	dbg_info("(%d)\n", enable);
+ 
+-	return lgdt3306a_set_reg_bit(state, 0x0002, 7, enable ? 0 : 1); /* NI2CRPTEN=0x80 */
++	/* NI2CRPTEN=0x80 */
++	return lgdt3306a_set_reg_bit(state, 0x0002, 7, enable ? 0 : 1);
+ }
+ 
+ static int lgdt3306a_sleep(struct lgdt3306a_state *state)
+@@ -810,22 +831,30 @@ static int lgdt3306a_init(struct dvb_frontend *fe)
+ 		goto fail;
+ 
+ 	/* 4. Peak-to-peak voltage of ADC input signal */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0004, 7, 1); /* ADCSEL1V=0x80=1Vpp; 0x00=2Vpp */
++
++	/* ADCSEL1V=0x80=1Vpp; 0x00=2Vpp */
++	ret = lgdt3306a_set_reg_bit(state, 0x0004, 7, 1);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+ 	/* 5. ADC output data capture clock phase */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0004, 2, 0); /* 0=same phase as ADC clock */
++
++	/* 0=same phase as ADC clock */
++	ret = lgdt3306a_set_reg_bit(state, 0x0004, 2, 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+ 	/* 5a. ADC sampling clock source */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0004, 3, 0); /* ADCCLKPLLSEL=0x08; 0=use ext clock, not PLL */
++
++	/* ADCCLKPLLSEL=0x08; 0=use ext clock, not PLL */
++	ret = lgdt3306a_set_reg_bit(state, 0x0004, 3, 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+ 	/* 6. Automatic PLL set */
+-	ret = lgdt3306a_set_reg_bit(state, 0x0005, 6, 0); /* PLLSETAUTO=0x40; 0=off */
++
++	/* PLLSETAUTO=0x40; 0=off */
++	ret = lgdt3306a_set_reg_bit(state, 0x0005, 6, 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+@@ -980,7 +1009,7 @@ static int lgdt3306a_set_parameters(struct dvb_frontend *fe)
+ 		goto fail;
+ 
+ 	ret = lgdt3306a_spectral_inversion(state, p,
+-					  state->cfg->spectral_inversion ? 1 : 0);
++					state->cfg->spectral_inversion ? 1 : 0);
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
+@@ -1015,7 +1044,8 @@ static int lgdt3306a_get_frontend(struct dvb_frontend *fe)
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 
+-	dbg_info("(%u, %d)\n", state->current_frequency, state->current_modulation);
++	dbg_info("(%u, %d)\n",
++		 state->current_frequency, state->current_modulation);
+ 
+ 	p->modulation = state->current_modulation;
+ 	p->frequency = state->current_frequency;
+@@ -1071,7 +1101,9 @@ static int lgdt3306a_monitor_vsb(struct lgdt3306a_state *state)
+ 	if (ret)
+ 		return ret;
+ 	val &= 0xf8;
+-	if ((snrRef > 18) && (maxPowerMan > 0x68) && (nCombDet == 0x01) && ((fbDlyCir == 0x03FF) || (fbDlyCir < 0x6C)))	{
++	if ((snrRef > 18) && (maxPowerMan > 0x68)
++	    && (nCombDet == 0x01)
++	    && ((fbDlyCir == 0x03FF) || (fbDlyCir < 0x6C))) {
+ 		/* SNR is over 18dB and no ghosting */
+ 		val |= 0x00; /* final bandwidth = 0 */
+ 	} else {
+@@ -1104,7 +1136,8 @@ static int lgdt3306a_monitor_vsb(struct lgdt3306a_state *state)
+ 	return ret;
+ }
+ 
+-static enum lgdt3306a_modulation lgdt3306a_check_oper_mode(struct lgdt3306a_state *state)
++static enum lgdt3306a_modulation
++lgdt3306a_check_oper_mode(struct lgdt3306a_state *state)
+ {
+ 	u8 val = 0;
+ 	int ret;
+@@ -1134,8 +1167,9 @@ err:
+ 	return LG3306_UNKNOWN_MODE;
+ }
+ 
+-static enum lgdt3306a_lock_status lgdt3306a_check_lock_status(struct lgdt3306a_state *state,
+-			enum lgdt3306a_lock_check whatLock)
++static enum lgdt3306a_lock_status
++lgdt3306a_check_lock_status(struct lgdt3306a_state *state,
++			    enum lgdt3306a_lock_check whatLock)
+ {
+ 	u8 val = 0;
+ 	int ret;
+@@ -1219,7 +1253,8 @@ static enum lgdt3306a_lock_status lgdt3306a_check_lock_status(struct lgdt3306a_s
+ 	return lockStatus;
+ }
+ 
+-static enum lgdt3306a_neverlock_status lgdt3306a_check_neverlock_status(struct lgdt3306a_state *state)
++static enum lgdt3306a_neverlock_status
++lgdt3306a_check_neverlock_status(struct lgdt3306a_state *state)
+ {
+ 	u8 val = 0;
+ 	int ret;
+@@ -1267,7 +1302,8 @@ static int lgdt3306a_pre_monitoring(struct lgdt3306a_state *state)
+ 		snrRef, mainStrong, aiccrejStatus, currChDiffACQ);
+ 
+ #if 0
+-	if ((mainStrong == 0) && (currChDiffACQ > 0x70)) /* Dynamic ghost exists */
++	/* Dynamic ghost exists */
++	if ((mainStrong == 0) && (currChDiffACQ > 0x70))
+ #endif
+ 	if (mainStrong == 0) {
+ 		ret = lgdt3306a_read_reg(state, 0x2135, &val);
+@@ -1317,7 +1353,8 @@ static int lgdt3306a_pre_monitoring(struct lgdt3306a_state *state)
+ 	return 0;
+ }
+ 
+-static enum lgdt3306a_lock_status lgdt3306a_sync_lock_poll(struct lgdt3306a_state *state)
++static enum lgdt3306a_lock_status
++lgdt3306a_sync_lock_poll(struct lgdt3306a_state *state)
+ {
+ 	enum lgdt3306a_lock_status syncLockStatus = LG3306_UNLOCK;
+ 	int	i;
+@@ -1325,7 +1362,8 @@ static enum lgdt3306a_lock_status lgdt3306a_sync_lock_poll(struct lgdt3306a_stat
+ 	for (i = 0; i < 2; i++)	{
+ 		msleep(30);
+ 
+-		syncLockStatus = lgdt3306a_check_lock_status(state, LG3306_SYNC_LOCK);
++		syncLockStatus = lgdt3306a_check_lock_status(state,
++							     LG3306_SYNC_LOCK);
+ 
+ 		if (syncLockStatus == LG3306_LOCK) {
+ 			dbg_info("locked(%d)\n", i);
+@@ -1336,7 +1374,8 @@ static enum lgdt3306a_lock_status lgdt3306a_sync_lock_poll(struct lgdt3306a_stat
+ 	return LG3306_UNLOCK;
+ }
+ 
+-static enum lgdt3306a_lock_status lgdt3306a_fec_lock_poll(struct lgdt3306a_state *state)
++static enum lgdt3306a_lock_status
++lgdt3306a_fec_lock_poll(struct lgdt3306a_state *state)
+ {
+ 	enum lgdt3306a_lock_status FECLockStatus = LG3306_UNLOCK;
+ 	int	i;
+@@ -1344,7 +1383,8 @@ static enum lgdt3306a_lock_status lgdt3306a_fec_lock_poll(struct lgdt3306a_state
+ 	for (i = 0; i < 2; i++)	{
+ 		msleep(30);
+ 
+-		FECLockStatus = lgdt3306a_check_lock_status(state, LG3306_FEC_LOCK);
++		FECLockStatus = lgdt3306a_check_lock_status(state,
++							    LG3306_FEC_LOCK);
+ 
+ 		if (FECLockStatus == LG3306_LOCK) {
+ 			dbg_info("locked(%d)\n", i);
+@@ -1355,7 +1395,8 @@ static enum lgdt3306a_lock_status lgdt3306a_fec_lock_poll(struct lgdt3306a_state
+ 	return FECLockStatus;
+ }
+ 
+-static enum lgdt3306a_neverlock_status lgdt3306a_neverlock_poll(struct lgdt3306a_state *state)
++static enum lgdt3306a_neverlock_status
++lgdt3306a_neverlock_poll(struct lgdt3306a_state *state)
+ {
+ 	enum lgdt3306a_neverlock_status NLLockStatus = LG3306_NL_FAIL;
+ 	int	i;
+@@ -1458,7 +1499,8 @@ static u32 lgdt3306a_calculate_snr_x100(struct lgdt3306a_state *state)
+ 	return snr_x100;
+ }
+ 
+-static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state *state)
++static enum lgdt3306a_lock_status
++lgdt3306a_vsb_lock_poll(struct lgdt3306a_state *state)
+ {
+ 	int ret;
+ 	u8 cnt = 0;
+@@ -1488,7 +1530,8 @@ static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state
+ 	return LG3306_UNLOCK;
+ }
+ 
+-static enum lgdt3306a_lock_status lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
++static enum lgdt3306a_lock_status
++lgdt3306a_qam_lock_poll(struct lgdt3306a_state *state)
+ {
+ 	u8 cnt;
+ 	u8 packet_error;
+@@ -1632,7 +1675,7 @@ static int lgdt3306a_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 
+ 	*ber = 0;
+ #if 1
+-	/* FGR - BUGBUG - I don't know what value is expected by dvb_core
++	/* FGR - FIXME - I don't know what value is expected by dvb_core
+ 	 * what is the scale of the value?? */
+ 	tmp =              read_reg(state, 0x00fc); /* NBERVALUE[24-31] */
+ 	tmp = (tmp << 8) | read_reg(state, 0x00fd); /* NBERVALUE[16-23] */
+@@ -1650,7 +1693,7 @@ static int lgdt3306a_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 
+ 	*ucblocks = 0;
+ #if 1
+-	/* FGR - BUGBUG - I don't know what value is expected by dvb_core
++	/* FGR - FIXME - I don't know what value is expected by dvb_core
+ 	 * what happens when value wraps? */
+ 	*ucblocks = read_reg(state, 0x00f4); /* TPIFTPERRCNT[0-7] */
+ 	dbg_info("ucblocks=%u\n", *ucblocks);
+@@ -1659,7 +1702,9 @@ static int lgdt3306a_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int lgdt3306a_tune(struct dvb_frontend *fe, bool re_tune, unsigned int mode_flags, unsigned int *delay, fe_status_t *status)
++static int lgdt3306a_tune(struct dvb_frontend *fe, bool re_tune,
++			  unsigned int mode_flags, unsigned int *delay,
++			  fe_status_t *status)
+ {
+ 	int ret = 0;
+ 	struct lgdt3306a_state *state = fe->demodulator_priv;
+@@ -1761,7 +1806,8 @@ struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
+ 	if ((val & 0x74) != 0x74) {
+ 		pr_warn("expected 0x74, got 0x%x\n", (val & 0x74));
+ #if 0
+-		goto fail;	/* BUGBUG - re-enable when we know this is right */
++		/* FIXME - re-enable when we know this is right */
++		goto fail;
+ #endif
+ 	}
+ 	ret = lgdt3306a_read_reg(state, 0x0001, &val);
+@@ -1770,7 +1816,8 @@ struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
+ 	if ((val & 0xf6) != 0xc6) {
+ 		pr_warn("expected 0xc6, got 0x%x\n", (val & 0xf6));
+ #if 0
+-		goto fail;	/* BUGBUG - re-enable when we know this is right */
++		/* FIXME - re-enable when we know this is right */
++		goto fail;
+ #endif
+ 	}
+ 	ret = lgdt3306a_read_reg(state, 0x0002, &val);
+@@ -1779,7 +1826,8 @@ struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
+ 	if ((val & 0x73) != 0x03) {
+ 		pr_warn("expected 0x03, got 0x%x\n", (val & 0x73));
+ #if 0
+-		goto fail;	/* BUGBUG - re-enable when we know this is right */
++		/* FIXME - re-enable when we know this is right */
++		goto fail;
+ #endif
+ 	}
+ 
+-- 
+1.9.3
 
-I suggest to change the subject and submit this on a separate thread, after
-we finish the review of such document. Anyway, I'm changing the subject
-of this Thread to reflect that.
-
-Regards,
-Mauro
-
-Em Tue, 28 Oct 2014 15:15:43 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-
-> On 10/27/2014 06:52 AM, Mauro Carvalho Chehab wrote:
-> > Em Sun, 26 Oct 2014 09:27:40 +0100
-> > Takashi Iwai <tiwai@suse.de> escreveu:
-> > 
-> 
-> > 
-> > Hmm... this is actually more complex than that. V4L2 driver doesn't
-> > know if ALSA is streaming or not, or even if ALSA device node is opened
-> > while he is touching at the hardware configuration or changing the
-> > state. I mean: it is not an error to set the hardware. The error only
-> > happens if ALSA and V4L2 tries to do it at the same time on an incompatible
-> > way.
-> > 
-> > Also, this won't work for DVB, as on DVB this is really an exclusive
-> > lock that would prevent both ALSA and V4L2 drivers to stream while in
-> > DVB mode.
-> > 
-> > Implementing it with a lock seems to be the best approach, at least on
-> > my eyes.
-> > 
-> >> That said, we should go back and start discussing the design goal at
-> >> first.
-> > 
-> > Surely.
-> 
-> This is long, however, hoping it will describe the problem and
-> solution that is being pursued in detail:
-
-Before starting with the description, this is the simplified diagram of
-a media device (without IR, eeprom and other beasts):
-
-  +-----------------------------------------------------------------------------------------+
-  |                                                                                         |
-  |                   +----------------+     +------------------+-------+----------------+  |
-  |                   |  demod_video   | <-- |      analog      | tuner |     digital    |  |
-  |                   +----------------+     +------------------+-------+----------------+  |
-  |                     |                      |                           |                |
-  |                     |                      |                           |                |
-  v                     v                      v                           v                |
-+--------------+-----+-----------------+     +------------------+        +---------------+  |
-|     dvb      | DMA |      analog     |     |   demod_audio    |        | digital_demux | -+
-+--------------+-----+-----------------+     +------------------+        +---------------+
-  |                     |                      |
-  |                     |                      |
-  v                     v                      v
-+--------------+      +----------------+     +------------------+
-| devnode dvr0 |      | devnode video0 |     |    audio DMA     |
-+--------------+      +----------------+     +------------------+
-                                               |
-                                               |
-                                               v
-                                             +------------------+
-                                             | devnode pcmC1D0c |
-                                             +------------------+
-
-There are two components that are shared there between analog and digital:
-the tuner (where the signal is captured) and the DMA engine used to stream
-analog and Digital TV (dvb).
-
-PS.: the diagram is over-simplified, as the tuner is just one of the possible
-inputs for the analog part of the device. Other possible inputs are S-Video,
-composite, HDMI, etc.
-
-Sometimes, the audio DMA is also shared, e. g. just one stream comes from
-the hardware. It is up to the driver to split audio and video and send
-them to the V4L2 and ALSA APIs. This is the case of tm6000 driver.
-
-Those shared components can be used either at analog or digital mode,
-but not at the same time.
-
-Also, programming the V4L2 analog and audio DMA and demods should be done
-via V4L2 API, as this API allows the selection of the proper audio/video
-input (almost all devices have multiple analog inputs).
-
-Please notice that, if the tuner is on digital mode, the entire analog
-path is disabled, including ALSA output.
-
-If the tuner is on analog mode, both ALSA and V4L2 can work at the
-same time. However, during the period where the tuner firmware is
-loaded, and during the DMA configuration and input selection time,
-neither ALSA or V4L2 can stream. Such configuration/firmware load
-is commanded via V4L2 API, as ALSA knows nothing about tuner or
-input selection.
-
-> 
-> At a higher level the problem description is:
-> 
-> There are 3 different device files that get created to control
-> tuner and audio functions on a media device. 3 drivers (dvb,
-> v4l2, alsa), and 3 core apis (dvb-core, v4l-core, audio) that
-> control the tuner and audio hardware and provide user api to
-> these 3 device files.
-
-
-There's actually a 4th component for some drivers: the mceusb driver,
-that handles remote controllers. The mceusb handles the Microsoft 
-Media Center Remote Control protocol. It supports standalone remote
-controller devices, but it also supports a few USB devices that use
-a separate interface for IR.
-
-There are currently some issues on cx231xx and mceusb, as both drivers 
-can be used at the same time, but, when cx231xx sends certain commands, 
-the mceusb IR polls fail. This is out of the scope of the audio lock,
-but it also needs to be addressed some day.
-
-> User applications, drivers and the core have no knowledge of each
-> other. The only thing that is common across all these drivers is
-> the parent device for the main usb device which is controlled by
-> the main usb driver.
-
-I would add that there are user applications that can handle all
-3 APIs like MythTV. But, at least MythTV doesn't know how to associate
-ALSA, V4L2 and DVB devnodes that belong to the same device.
-
-I mean: if MythTV finds, let's say, 3 V4L2 nodes, 3 ALSA nodes, 
-and 1 DVB node, it doesn't know what device is associated with the
-DVB node.
-
-Almost all applications that are aware of V4L2 API are also aware of
-ALSA API and may associate audio and video, as there is a way to 
-associate it using sysfs. However, several apps don't use it.
-
-> The premise for the main design idea in this series is creating
-> a common construct at the parent device structure that is visible
-> to all drivers to act as a master access control (lock). Let's call
-> this media token object with two sub-tokens one for tuner and another
-> for audio.
-> 
-> Each of the apis evolved separately, hence have their own backwards
-> compatibility to maintain. Starting with v4l2:
-> 
-> v4l2 case:
-> Multiple v4l2 applications are allowed to open /dev/video0 in
-> read/write mode with no restrictions as long as the tuner is in
-> analog mode. v4l2 core handles conflicting requests between v4l2
-> applications. 
-
-> It doesn't have the knowledge that the tuner is in
-
-To be clear: "It" here refers to v4l2 core. The drivers may have this
-knowledge as, except for one case (bttv driver), they share some data.
-
-> use by a dvb and/or audio is in use. As soon as a v4l2 application
-> starts, digital stream glitches and audio glitches.
-> 
-> dvb case:
-> Multiple dvb applications can open the dvb device in read only mode.
-
-There's no issue with ALSA on R/O mode, as the application is not
-allowed to modify anything at the stream. This is used only to monitor
-an already opened device in R/W mode.
-
-> As soon an application open the device read/write mode a separate
-> kthread is kicked off to handle the request. Only one application
-> can open the device in read/write mode. 
-
-> Similar to v4l2 case,
-
-s/v4l2/v4l2 core/
-
-> dvb-core doesn't have any knowledge that the tuner is in use by
-> v4l2 and/or audio is in use. As soon as a dvb application starts v4l2
-> video glitches and audio glitches.
-> 
-> audio case:
-> Same scenario is applicable to audio application. When a v4l2 or dvb
-> application starts, audio application gets impacted.
-> 
-> Problems to address:
-> 
-> dvb owns tuner and audio: another dvb, v4l2 app and audio app should
->                           detect tuner/audio busy right away and exit.
-> 
-> v4l2 owns tuner and audio: another dvb and audio app should detect
->                            tuner/audio busy right away and exit.
-
-Actually, no: audio should not exit. The V4L2 should only hold the
-token for the required time to initialize the device and/or load the
-firmware. ALSA applications should wait for V4L2 to finish
-programming at audio, and should keep working after that.
-
->                            v4l2 app can continue to use it until it
->                            tries to change the tuner/audio state.
-> 
-> 
-> audio owns audio: dvb and v4l2 apps should detect audio busy and exit.
-
-Actually no. It is, instead:
-
-audio owns audio: dvb apps should detect audio busy and exit.
-V4L2 apps should work. However, when certain V4L2 ioctls are issued, 
-the audio device driver should not send any command to the hardware.
-After such commands, the audio mixers may change.
-
-We need two separate tokens because of that: the behavior is different.
-
-This is basically why we need two separate tokens, and because we cannot
-implement locking at ALSA open/close.
-
-> 
-> Special cases:
-> 
-> dvb apps. access tuner and audio in exclusive mode. i.e only one dvb app.
-> at a time is allowed to open the device read/write mode.
-
-To be clearer: dvb apps won't use the audio node, but audio should be blocked,
-as the devices can't use audio while in DVB mode.
-
-> As dvb apps.
-> create threads to handle audio and video, 
-
-No. DVB apps don't handle audio/video. It receives data as MPEG-TS,
-using a separate device node. Yet, the same DMA engine that provides
-video (and, sometimes audio) is used by the DVB devnode.
-
-> all threads in that group
-> should be allowed by the higher level construct to access the tuner and
-> audio. dvb application will have to hold tuner and audio tokens so v4l2
-> and audio apps. know they are in use.
-> 
-> audio apps. access audio in exclusive mode. i.e only one audio app. at
-> a time is allowed to open the device in read/write mode. Audio apps.
-> create threads and thread closes and re-opens the audio device. Threads
-> can do this and hence something that higher level construct has to allow.
-> audio app. has to hold audio token so dvb and v4l2 know that it is in use.
-> (Note: I am not sure if I have the audio scenario right)
-> 
-> v4l2 apps. access tuner and audio in shared v4l2 mode. i.e several v4l2
-> processes and threads could use tuner and audio at the same time. The
-> higher level construct has to allow multiple v4l2 apps. to access and
-> disallow dvb and audio apps. access when they are in use by v4l2.
-
-Actually, V4L2 core handles concurrency. There's just one file handler
-with full control to start/stop stream at V4L2 side.
-
-> 
-> Adding to this, both dvb and v4l2 open audio device and make snd pcm
-> capture callbacks.
-
-Huh? DVB won't need to touch at PCM capture callbacks. It should just
-avoid audio PCM capture to stream while in DVB mode.
-
-> There is no way to tell if dvb or v4l2 or audio
-> app is the one that is making this request.
-
-> dvb app would like audio
-> in exclusive mode allowing only one process and its threads to access
-> it.
-
-No. It just wants to disable the part of the hardware that can now
-be powered off.
-
-> v4l2 on the other hand would like audio in shared state accessible
-> to all v4l2 processes. 
-
-> If dvb-core and v4l2-core get tuner and audio
-> tokens at the same time, the window for having tuner token and not
-> getting audio token go down.
-
-No. It should not be allowed that both dvb-core and v4l2-core to get
-the tokens at the same time. This is an exclusive lock.
-
-> In dvb case when dvb device is opened in read/write mode, and v4l2
-> case when an app. tries to change the status. Audio callbacks have to
-> detect if audio is busy, if not which mode to request the token in.
-
-Huh?
-
-> For dvb and audio app. cases, the audio token should be requested in
-> exclusive mode and in v4l2 case shared mode. The logic for requesting
-> audio token will have to be try to get in exclusive mode, if fails,
-> try to get in shared mode, and if that fails give up.
-
-Huh?
-
-> 
-> Current status:
-> Combining patch v1 and patch v2 designs by allowing shared mode token
-> hold for v4l2, and deciding on where to hold audio token from
-> alsa driver will solve the above conflict scenarios. That said, the
-> question is "is this the right approach?" or are there other ways to
-> solve the problem. One thing is clear, we need some common higher level
-> construct for all the device drivers and dvb, v4l2, and audio ioctls,
-> callbacks etc, to detect the hardware is in use.
-
-I think that the current status is that we need to finish the spec
-first. Then check if the patches are doing what's above.
-
-It seems that we agree to not agree at the requirements so far ;)
-
-> 
-> I do think lock/token approach has the best potential to solve the
-> problems. We are at this point very close to addressing conflicts.
-> At least the ones I am able to test.
-> 
-> thanks,
-> -- Shuah
-
-Regards,
-Mauro
