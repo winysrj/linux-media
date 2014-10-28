@@ -1,573 +1,367 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:36676 "EHLO gofer.mess.org"
+Received: from lists.s-osg.org ([54.187.51.154]:42343 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754284AbaJWVEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Oct 2014 17:04:54 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	"Jan M. Hochstein" <hochstein@algo.informatik.tu-darmstadt.de>
-Subject: [REVIEW PATCH v1 2/2] [media] lirc_igorplugusb: remove
-Date: Thu, 23 Oct 2014 21:58:23 +0100
-Message-Id: <1414097903-1664-2-git-send-email-sean@mess.org>
-In-Reply-To: <1414097903-1664-1-git-send-email-sean@mess.org>
-References: <1414097903-1664-1-git-send-email-sean@mess.org>
+	id S1750858AbaJ1XnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Oct 2014 19:43:01 -0400
+Date: Tue, 28 Oct 2014 21:42:50 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Takashi Iwai <tiwai@suse.de>,
+	Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	prabhakar.csengg@gmail.com, Antti Palosaari <crope@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Tim Gardner <tim.gardner@canonical.com>,
+	"olebowle@gmx.com" <olebowle@gmx.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: [RFCv1] Media Token API needs - Was: Re: [alsa-devel] [PATCH v2
+ 5/6] sound/usb: pcm changes to use media token api
+Message-ID: <20141028214250.27f0c869@recife.lan>
+In-Reply-To: <5450077F.70101@osg.samsung.com>
+References: <cover.1413246370.git.shuahkh@osg.samsung.com>
+	<cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com>
+	<543FB374.8020604@metafoo.de>
+	<543FC3CD.8050805@osg.samsung.com>
+	<s5h38aow1ub.wl-tiwai@suse.de>
+	<543FD1EC.5010206@osg.samsung.com>
+	<s5hy4sgumjo.wl-tiwai@suse.de>
+	<543FD892.6010209@osg.samsung.com>
+	<s5htx34ul3w.wl-tiwai@suse.de>
+	<54467EFB.7050800@xs4all.nl>
+	<s5hbnp5z9uy.wl-tiwai@suse.de>
+	<CAGoCfixD-zv1MMHUXLnjGV5KVB-DGdp2ZqZ0hUTR14UvLh-Gvw@mail.gmail.com>
+	<544804F1.7090606@linux.intel.com>
+	<20141025114115.292ff5d2@recife.lan>
+	<s5hk33n8ccj.wl-tiwai@suse.de>
+	<20141027105237.5f5ec7fd@recife.lan>
+	<5450077F.70101@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has been replaced by an rc-core driver for the same hardware.
+Hi Shuah,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/staging/media/lirc/Kconfig            |    6 -
- drivers/staging/media/lirc/Makefile           |    1 -
- drivers/staging/media/lirc/lirc_igorplugusb.c |  508 -------------------------
- 3 files changed, 515 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_igorplugusb.c
+I'm understanding that you're collecting comments to write a RFC with the
+needs by the media token, right?
 
-diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
-index e60a59f..6879c46 100644
---- a/drivers/staging/media/lirc/Kconfig
-+++ b/drivers/staging/media/lirc/Kconfig
-@@ -18,12 +18,6 @@ config LIRC_BT829
- 	help
- 	  Driver for the IR interface on BT829-based hardware
- 
--config LIRC_IGORPLUGUSB
--	tristate "Igor Cesko's USB IR Receiver"
--	depends on LIRC && USB
--	help
--	  Driver for Igor Cesko's USB IR Receiver
--
- config LIRC_IMON
- 	tristate "Legacy SoundGraph iMON Receiver and Display"
- 	depends on LIRC && USB
-diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
-index b90fcab..5430adf 100644
---- a/drivers/staging/media/lirc/Makefile
-+++ b/drivers/staging/media/lirc/Makefile
-@@ -4,7 +4,6 @@
- # Each configuration option enables a list of files.
- 
- obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
--obj-$(CONFIG_LIRC_IGORPLUGUSB)	+= lirc_igorplugusb.o
- obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
- obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
-diff --git a/drivers/staging/media/lirc/lirc_igorplugusb.c b/drivers/staging/media/lirc/lirc_igorplugusb.c
-deleted file mode 100644
-index 431d1e8..0000000
---- a/drivers/staging/media/lirc/lirc_igorplugusb.c
-+++ /dev/null
-@@ -1,508 +0,0 @@
--/*
-- * lirc_igorplugusb - USB remote support for LIRC
-- *
-- * Supports the standard homebrew IgorPlugUSB receiver with Igor's firmware.
-- * See http://www.cesko.host.sk/IgorPlugUSB/IgorPlug-USB%20(AVR)_eng.htm
-- *
-- * The device can only record bursts of up to 36 pulses/spaces.
-- * Works fine with RC5. Longer commands lead to device buffer overrun.
-- * (Maybe a better firmware or a microcontroller with more ram can help?)
-- *
-- * Version 0.1  [beta status]
-- *
-- * Copyright (C) 2004 Jan M. Hochstein
-- *	<hochstein@algo.informatik.tu-darmstadt.de>
-- *
-- * This driver was derived from:
-- *   Paul Miller <pmiller9@users.sourceforge.net>
-- *      "lirc_atiusb" module
-- *   Vladimir Dergachev <volodya@minspring.com>'s 2002
-- *      "USB ATI Remote support" (input device)
-- *   Adrian Dewhurst <sailor-lk@sailorfrag.net>'s 2002
-- *      "USB StreamZap remote driver" (LIRC)
-- *   Artur Lipowski <alipowski@kki.net.pl>'s 2002
-- *      "lirc_dev" and "lirc_gpio" LIRC modules
-- */
--
--/*
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/kmod.h>
--#include <linux/sched.h>
--#include <linux/errno.h>
--#include <linux/fs.h>
--#include <linux/usb.h>
--#include <linux/time.h>
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--
--/* module identification */
--#define DRIVER_VERSION		"0.2"
--#define DRIVER_AUTHOR		\
--	"Jan M. Hochstein <hochstein@algo.informatik.tu-darmstadt.de>"
--#define DRIVER_DESC		"Igorplug USB remote driver for LIRC"
--#define DRIVER_NAME		"lirc_igorplugusb"
--
--/* One mode2 pulse/space has 4 bytes. */
--#define CODE_LENGTH	     sizeof(int)
--
--/* Igor's firmware cannot record bursts longer than 36. */
--#define DEVICE_BUFLEN	   36
--
--/*
-- * Header at the beginning of the device's buffer:
-- *	unsigned char data_length
-- *	unsigned char data_start    (!=0 means ring-buffer overrun)
-- *	unsigned char counter       (incremented by each burst)
-- */
--#define DEVICE_HEADERLEN	3
--
--/* This is for the gap */
--#define ADDITIONAL_LIRC_BYTES   2
--
--/* times to poll per second */
--#define SAMPLE_RATE	     100
--static int sample_rate = SAMPLE_RATE;
--
--
--/**** Igor's USB Request Codes */
--
--#define SET_INFRABUFFER_EMPTY   1
--/**
-- * Params: none
-- * Answer: empty
-- */
--
--#define GET_INFRACODE	   2
--/**
-- * Params:
-- *   wValue: offset to begin reading infra buffer
-- *
-- * Answer: infra data
-- */
--
--#define SET_DATAPORT_DIRECTION  3
--/**
-- * Params:
-- *   wValue: (byte) 1 bit for each data port pin (0=in, 1=out)
-- *
-- * Answer: empty
-- */
--
--#define GET_DATAPORT_DIRECTION  4
--/**
-- * Params: none
-- *
-- * Answer: (byte) 1 bit for each data port pin (0=in, 1=out)
-- */
--
--#define SET_OUT_DATAPORT	5
--/**
-- * Params:
-- *   wValue: byte to write to output data port
-- *
-- * Answer: empty
-- */
--
--#define GET_OUT_DATAPORT	6
--/**
-- * Params: none
-- *
-- * Answer: least significant 3 bits read from output data port
-- */
--
--#define GET_IN_DATAPORT	 7
--/**
-- * Params: none
-- *
-- * Answer: least significant 3 bits read from input data port
-- */
--
--#define READ_EEPROM	     8
--/**
-- * Params:
-- *   wValue: offset to begin reading EEPROM
-- *
-- * Answer: EEPROM bytes
-- */
--
--#define WRITE_EEPROM	    9
--/**
-- * Params:
-- *   wValue: offset to EEPROM byte
-- *   wIndex: byte to write
-- *
-- * Answer: empty
-- */
--
--#define SEND_RS232	      10
--/**
-- * Params:
-- *   wValue: byte to send
-- *
-- * Answer: empty
-- */
--
--#define RECV_RS232	      11
--/**
-- * Params: none
-- *
-- * Answer: byte received
-- */
--
--#define SET_RS232_BAUD	  12
--/**
-- * Params:
-- *   wValue: byte to write to UART bit rate register (UBRR)
-- *
-- * Answer: empty
-- */
--
--#define GET_RS232_BAUD	  13
--/**
-- * Params: none
-- *
-- * Answer: byte read from UART bit rate register (UBRR)
-- */
--
--
--/* data structure for each usb remote */
--struct igorplug {
--
--	/* usb */
--	struct usb_device *usbdev;
--	int devnum;
--
--	unsigned char *buf_in;
--	unsigned int len_in;
--	int in_space;
--	struct timeval last_time;
--
--	dma_addr_t dma_in;
--
--	/* lirc */
--	struct lirc_driver *d;
--
--	/* handle sending (init strings) */
--	int send_flags;
--};
--
--static int unregister_from_lirc(struct igorplug *ir)
--{
--	struct lirc_driver *d;
--	int devnum;
--
--	devnum = ir->devnum;
--	d = ir->d;
--
--	if (!d) {
--		dev_err(&ir->usbdev->dev,
--			"%s: called with NULL lirc driver struct!\n", __func__);
--		return -EINVAL;
--	}
--
--	dev_dbg(&ir->usbdev->dev, "calling lirc_unregister_driver\n");
--	lirc_unregister_driver(d->minor);
--
--	return devnum;
--}
--
--static int set_use_inc(void *data)
--{
--	struct igorplug *ir = data;
--
--	if (!ir) {
--		printk(DRIVER_NAME "[?]: set_use_inc called with no context\n");
--		return -EIO;
--	}
--
--	dev_dbg(&ir->usbdev->dev, "set use inc\n");
--
--	if (!ir->usbdev)
--		return -ENODEV;
--
--	return 0;
--}
--
--static void set_use_dec(void *data)
--{
--	struct igorplug *ir = data;
--
--	if (!ir) {
--		printk(DRIVER_NAME "[?]: set_use_dec called with no context\n");
--		return;
--	}
--
--	dev_dbg(&ir->usbdev->dev, "set use dec\n");
--}
--
--static void send_fragment(struct igorplug *ir, struct lirc_buffer *buf,
--			   int i, int max)
--{
--	int code;
--
--	/* MODE2: pulse/space (PULSE_BIT) in 1us units */
--	while (i < max) {
--		/* 1 Igor-tick = 85.333333 us */
--		code = (unsigned int)ir->buf_in[i] * 85 +
--			(unsigned int)ir->buf_in[i] / 3;
--		ir->last_time.tv_usec += code;
--		if (ir->in_space)
--			code |= PULSE_BIT;
--		lirc_buffer_write(buf, (unsigned char *)&code);
--		/* 1 chunk = CODE_LENGTH bytes */
--		ir->in_space ^= 1;
--		++i;
--	}
--}
--
--/**
-- * Called in user context.
-- * return 0 if data was added to the buffer and
-- * -ENODATA if none was available. This should add some number of bits
-- * evenly divisible by code_length to the buffer
-- */
--static int igorplugusb_remote_poll(void *data, struct lirc_buffer *buf)
--{
--	int ret;
--	struct igorplug *ir = (struct igorplug *)data;
--
--	if (!ir || !ir->usbdev)  /* Has the device been removed? */
--		return -ENODEV;
--
--	memset(ir->buf_in, 0, ir->len_in);
--
--	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
--			      GET_INFRACODE, USB_TYPE_VENDOR | USB_DIR_IN,
--			      0/* offset */, /*unused*/0,
--			      ir->buf_in, ir->len_in,
--			      /*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
--	if (ret > 0) {
--		int code, timediff;
--		struct timeval now;
--
--		/* ACK packet has 1 byte --> ignore */
--		if (ret < DEVICE_HEADERLEN)
--			return -ENODATA;
--
--		dev_dbg(&ir->usbdev->dev, "Got %d bytes. Header: %*ph\n",
--			ret, 3, ir->buf_in);
--
--		do_gettimeofday(&now);
--		timediff = now.tv_sec - ir->last_time.tv_sec;
--		if (timediff + 1 > PULSE_MASK / 1000000)
--			timediff = PULSE_MASK;
--		else {
--			timediff *= 1000000;
--			timediff += now.tv_usec - ir->last_time.tv_usec;
--		}
--		ir->last_time.tv_sec = now.tv_sec;
--		ir->last_time.tv_usec = now.tv_usec;
--
--		/* create leading gap  */
--		code = timediff;
--		lirc_buffer_write(buf, (unsigned char *)&code);
--		ir->in_space = 1;   /* next comes a pulse */
--
--		if (ir->buf_in[2] == 0)
--			send_fragment(ir, buf, DEVICE_HEADERLEN, ret);
--		else {
--			dev_warn(&ir->usbdev->dev,
--				 "[%d]: Device buffer overrun.\n", ir->devnum);
--			/* HHHNNNNNNNNNNNOOOOOOOO H = header
--			      <---[2]--->         N = newer
--			   <---------ret--------> O = older */
--			ir->buf_in[2] %= ret - DEVICE_HEADERLEN; /* sanitize */
--			/* keep even-ness to not desync pulse/pause */
--			send_fragment(ir, buf, DEVICE_HEADERLEN +
--				      ir->buf_in[2] - (ir->buf_in[2] & 1), ret);
--			send_fragment(ir, buf, DEVICE_HEADERLEN,
--				      DEVICE_HEADERLEN + ir->buf_in[2]);
--		}
--
--		ret = usb_control_msg(
--		      ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
--		      SET_INFRABUFFER_EMPTY, USB_TYPE_VENDOR|USB_DIR_IN,
--		      /*unused*/0, /*unused*/0,
--		      /*dummy*/ir->buf_in, /*dummy*/ir->len_in,
--		      /*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
--		if (ret < 0)
--			printk(DRIVER_NAME "[%d]: SET_INFRABUFFER_EMPTY: error %d\n",
--			       ir->devnum, ret);
--		return 0;
--	} else if (ret < 0)
--		printk(DRIVER_NAME "[%d]: GET_INFRACODE: error %d\n",
--			ir->devnum, ret);
--
--	return -ENODATA;
--}
--
--static int igorplugusb_remote_probe(struct usb_interface *intf,
--				    const struct usb_device_id *id)
--{
--	struct usb_device *dev;
--	struct usb_host_interface *idesc = NULL;
--	struct usb_endpoint_descriptor *ep;
--	struct igorplug *ir = NULL;
--	struct lirc_driver *driver = NULL;
--	int devnum, pipe, maxp;
--	char buf[63], name[128] = "";
--	int ret;
--
--	dev_dbg(&intf->dev, "%s: usb probe called.\n", __func__);
--
--	dev = interface_to_usbdev(intf);
--
--	idesc = intf->cur_altsetting;
--
--	if (idesc->desc.bNumEndpoints != 1)
--		return -ENODEV;
--
--	ep = &idesc->endpoint->desc;
--	if (((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
--	    != USB_DIR_IN)
--	    || (ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--	    != USB_ENDPOINT_XFER_CONTROL)
--		return -ENODEV;
--
--	pipe = usb_rcvctrlpipe(dev, ep->bEndpointAddress);
--	devnum = dev->devnum;
--	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
--
--	dev_dbg(&intf->dev, "%s: bytes_in_key=%zu maxp=%d\n",
--		__func__, CODE_LENGTH, maxp);
--
--	ir = devm_kzalloc(&intf->dev, sizeof(*ir), GFP_KERNEL);
--	if (!ir)
--		return -ENOMEM;
--
--	driver = devm_kzalloc(&intf->dev, sizeof(*driver), GFP_KERNEL);
--	if (!driver)
--		return -ENOMEM;
--
--	ir->buf_in = usb_alloc_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
--					GFP_ATOMIC, &ir->dma_in);
--	if (!ir->buf_in)
--		return -ENOMEM;
--
--	strcpy(driver->name, DRIVER_NAME " ");
--	driver->minor = -1;
--	driver->code_length = CODE_LENGTH * 8; /* in bits */
--	driver->features = LIRC_CAN_REC_MODE2;
--	driver->data = ir;
--	driver->chunk_size = CODE_LENGTH;
--	driver->buffer_size = DEVICE_BUFLEN + ADDITIONAL_LIRC_BYTES;
--	driver->set_use_inc = &set_use_inc;
--	driver->set_use_dec = &set_use_dec;
--	driver->sample_rate = sample_rate;    /* per second */
--	driver->add_to_buf = &igorplugusb_remote_poll;
--	driver->dev = &intf->dev;
--	driver->owner = THIS_MODULE;
--
--	ret = lirc_register_driver(driver);
--	if (ret < 0) {
--		usb_free_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
--			ir->buf_in, ir->dma_in);
--		return ret;
--	}
--
--	driver->minor = ret;
--	ir->d = driver;
--	ir->devnum = devnum;
--	ir->usbdev = dev;
--	ir->len_in = DEVICE_BUFLEN + DEVICE_HEADERLEN;
--	ir->in_space = 1; /* First mode2 event is a space. */
--	do_gettimeofday(&ir->last_time);
--
--	if (dev->descriptor.iManufacturer
--	    && usb_string(dev, dev->descriptor.iManufacturer,
--			  buf, sizeof(buf)) > 0)
--		strlcpy(name, buf, sizeof(name));
--	if (dev->descriptor.iProduct
--	    && usb_string(dev, dev->descriptor.iProduct, buf, sizeof(buf)) > 0)
--		snprintf(name + strlen(name), sizeof(name) - strlen(name),
--			 " %s", buf);
--	printk(DRIVER_NAME "[%d]: %s on usb%d:%d\n", devnum, name,
--	       dev->bus->busnum, devnum);
--
--	/* clear device buffer */
--	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
--		SET_INFRABUFFER_EMPTY, USB_TYPE_VENDOR|USB_DIR_IN,
--		/*unused*/0, /*unused*/0,
--		/*dummy*/ir->buf_in, /*dummy*/ir->len_in,
--		/*timeout*/HZ * USB_CTRL_GET_TIMEOUT);
--	if (ret < 0)
--		printk(DRIVER_NAME "[%d]: SET_INFRABUFFER_EMPTY: error %d\n",
--			devnum, ret);
--
--	usb_set_intfdata(intf, ir);
--	return 0;
--}
--
--static void igorplugusb_remote_disconnect(struct usb_interface *intf)
--{
--	struct usb_device *usbdev = interface_to_usbdev(intf);
--	struct igorplug *ir = usb_get_intfdata(intf);
--	struct device *dev = &intf->dev;
--	int devnum;
--
--	usb_set_intfdata(intf, NULL);
--
--	if (!ir || !ir->d)
--		return;
--
--	ir->usbdev = NULL;
--
--	usb_free_coherent(usbdev, ir->len_in, ir->buf_in, ir->dma_in);
--
--	devnum = unregister_from_lirc(ir);
--
--	dev_info(dev, DRIVER_NAME "[%d]: %s done\n", devnum, __func__);
--}
--
--static struct usb_device_id igorplugusb_remote_id_table[] = {
--	/* Igor Plug USB (Atmel's Manufact. ID) */
--	{ USB_DEVICE(0x03eb, 0x0002) },
--	/* Fit PC2 Infrared Adapter */
--	{ USB_DEVICE(0x03eb, 0x21fe) },
--
--	/* Terminating entry */
--	{ }
--};
--
--static struct usb_driver igorplugusb_remote_driver = {
--	.name =		DRIVER_NAME,
--	.probe =	igorplugusb_remote_probe,
--	.disconnect =	igorplugusb_remote_disconnect,
--	.id_table =	igorplugusb_remote_id_table
--};
--
--module_usb_driver(igorplugusb_remote_driver);
--
--#include <linux/vermagic.h>
--MODULE_INFO(vermagic, VERMAGIC_STRING);
--
--MODULE_DESCRIPTION(DRIVER_DESC);
--MODULE_AUTHOR(DRIVER_AUTHOR);
--MODULE_LICENSE("GPL");
--MODULE_DEVICE_TABLE(usb, igorplugusb_remote_id_table);
--
--module_param(sample_rate, int, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(sample_rate, "Sampling rate in Hz (default: 100)");
--- 
-1.7.10.4
+I'm sending you my contributions to such text. See enclosed.
 
+I suggest to change the subject and submit this on a separate thread, after
+we finish the review of such document. Anyway, I'm changing the subject
+of this Thread to reflect that.
+
+Regards,
+Mauro
+
+Em Tue, 28 Oct 2014 15:15:43 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+
+> On 10/27/2014 06:52 AM, Mauro Carvalho Chehab wrote:
+> > Em Sun, 26 Oct 2014 09:27:40 +0100
+> > Takashi Iwai <tiwai@suse.de> escreveu:
+> > 
+> 
+> > 
+> > Hmm... this is actually more complex than that. V4L2 driver doesn't
+> > know if ALSA is streaming or not, or even if ALSA device node is opened
+> > while he is touching at the hardware configuration or changing the
+> > state. I mean: it is not an error to set the hardware. The error only
+> > happens if ALSA and V4L2 tries to do it at the same time on an incompatible
+> > way.
+> > 
+> > Also, this won't work for DVB, as on DVB this is really an exclusive
+> > lock that would prevent both ALSA and V4L2 drivers to stream while in
+> > DVB mode.
+> > 
+> > Implementing it with a lock seems to be the best approach, at least on
+> > my eyes.
+> > 
+> >> That said, we should go back and start discussing the design goal at
+> >> first.
+> > 
+> > Surely.
+> 
+> This is long, however, hoping it will describe the problem and
+> solution that is being pursued in detail:
+
+Before starting with the description, this is the simplified diagram of
+a media device (without IR, eeprom and other beasts):
+
+  +-----------------------------------------------------------------------------------------+
+  |                                                                                         |
+  |                   +----------------+     +------------------+-------+----------------+  |
+  |                   |  demod_video   | <-- |      analog      | tuner |     digital    |  |
+  |                   +----------------+     +------------------+-------+----------------+  |
+  |                     |                      |                           |                |
+  |                     |                      |                           |                |
+  v                     v                      v                           v                |
++--------------+-----+-----------------+     +------------------+        +---------------+  |
+|     dvb      | DMA |      analog     |     |   demod_audio    |        | digital_demux | -+
++--------------+-----+-----------------+     +------------------+        +---------------+
+  |                     |                      |
+  |                     |                      |
+  v                     v                      v
++--------------+      +----------------+     +------------------+
+| devnode dvr0 |      | devnode video0 |     |    audio DMA     |
++--------------+      +----------------+     +------------------+
+                                               |
+                                               |
+                                               v
+                                             +------------------+
+                                             | devnode pcmC1D0c |
+                                             +------------------+
+
+There are two components that are shared there between analog and digital:
+the tuner (where the signal is captured) and the DMA engine used to stream
+analog and Digital TV (dvb).
+
+PS.: the diagram is over-simplified, as the tuner is just one of the possible
+inputs for the analog part of the device. Other possible inputs are S-Video,
+composite, HDMI, etc.
+
+Sometimes, the audio DMA is also shared, e. g. just one stream comes from
+the hardware. It is up to the driver to split audio and video and send
+them to the V4L2 and ALSA APIs. This is the case of tm6000 driver.
+
+Those shared components can be used either at analog or digital mode,
+but not at the same time.
+
+Also, programming the V4L2 analog and audio DMA and demods should be done
+via V4L2 API, as this API allows the selection of the proper audio/video
+input (almost all devices have multiple analog inputs).
+
+Please notice that, if the tuner is on digital mode, the entire analog
+path is disabled, including ALSA output.
+
+If the tuner is on analog mode, both ALSA and V4L2 can work at the
+same time. However, during the period where the tuner firmware is
+loaded, and during the DMA configuration and input selection time,
+neither ALSA or V4L2 can stream. Such configuration/firmware load
+is commanded via V4L2 API, as ALSA knows nothing about tuner or
+input selection.
+
+> 
+> At a higher level the problem description is:
+> 
+> There are 3 different device files that get created to control
+> tuner and audio functions on a media device. 3 drivers (dvb,
+> v4l2, alsa), and 3 core apis (dvb-core, v4l-core, audio) that
+> control the tuner and audio hardware and provide user api to
+> these 3 device files.
+
+
+There's actually a 4th component for some drivers: the mceusb driver,
+that handles remote controllers. The mceusb handles the Microsoft 
+Media Center Remote Control protocol. It supports standalone remote
+controller devices, but it also supports a few USB devices that use
+a separate interface for IR.
+
+There are currently some issues on cx231xx and mceusb, as both drivers 
+can be used at the same time, but, when cx231xx sends certain commands, 
+the mceusb IR polls fail. This is out of the scope of the audio lock,
+but it also needs to be addressed some day.
+
+> User applications, drivers and the core have no knowledge of each
+> other. The only thing that is common across all these drivers is
+> the parent device for the main usb device which is controlled by
+> the main usb driver.
+
+I would add that there are user applications that can handle all
+3 APIs like MythTV. But, at least MythTV doesn't know how to associate
+ALSA, V4L2 and DVB devnodes that belong to the same device.
+
+I mean: if MythTV finds, let's say, 3 V4L2 nodes, 3 ALSA nodes, 
+and 1 DVB node, it doesn't know what device is associated with the
+DVB node.
+
+Almost all applications that are aware of V4L2 API are also aware of
+ALSA API and may associate audio and video, as there is a way to 
+associate it using sysfs. However, several apps don't use it.
+
+> The premise for the main design idea in this series is creating
+> a common construct at the parent device structure that is visible
+> to all drivers to act as a master access control (lock). Let's call
+> this media token object with two sub-tokens one for tuner and another
+> for audio.
+> 
+> Each of the apis evolved separately, hence have their own backwards
+> compatibility to maintain. Starting with v4l2:
+> 
+> v4l2 case:
+> Multiple v4l2 applications are allowed to open /dev/video0 in
+> read/write mode with no restrictions as long as the tuner is in
+> analog mode. v4l2 core handles conflicting requests between v4l2
+> applications. 
+
+> It doesn't have the knowledge that the tuner is in
+
+To be clear: "It" here refers to v4l2 core. The drivers may have this
+knowledge as, except for one case (bttv driver), they share some data.
+
+> use by a dvb and/or audio is in use. As soon as a v4l2 application
+> starts, digital stream glitches and audio glitches.
+> 
+> dvb case:
+> Multiple dvb applications can open the dvb device in read only mode.
+
+There's no issue with ALSA on R/O mode, as the application is not
+allowed to modify anything at the stream. This is used only to monitor
+an already opened device in R/W mode.
+
+> As soon an application open the device read/write mode a separate
+> kthread is kicked off to handle the request. Only one application
+> can open the device in read/write mode. 
+
+> Similar to v4l2 case,
+
+s/v4l2/v4l2 core/
+
+> dvb-core doesn't have any knowledge that the tuner is in use by
+> v4l2 and/or audio is in use. As soon as a dvb application starts v4l2
+> video glitches and audio glitches.
+> 
+> audio case:
+> Same scenario is applicable to audio application. When a v4l2 or dvb
+> application starts, audio application gets impacted.
+> 
+> Problems to address:
+> 
+> dvb owns tuner and audio: another dvb, v4l2 app and audio app should
+>                           detect tuner/audio busy right away and exit.
+> 
+> v4l2 owns tuner and audio: another dvb and audio app should detect
+>                            tuner/audio busy right away and exit.
+
+Actually, no: audio should not exit. The V4L2 should only hold the
+token for the required time to initialize the device and/or load the
+firmware. ALSA applications should wait for V4L2 to finish
+programming at audio, and should keep working after that.
+
+>                            v4l2 app can continue to use it until it
+>                            tries to change the tuner/audio state.
+> 
+> 
+> audio owns audio: dvb and v4l2 apps should detect audio busy and exit.
+
+Actually no. It is, instead:
+
+audio owns audio: dvb apps should detect audio busy and exit.
+V4L2 apps should work. However, when certain V4L2 ioctls are issued, 
+the audio device driver should not send any command to the hardware.
+After such commands, the audio mixers may change.
+
+We need two separate tokens because of that: the behavior is different.
+
+This is basically why we need two separate tokens, and because we cannot
+implement locking at ALSA open/close.
+
+> 
+> Special cases:
+> 
+> dvb apps. access tuner and audio in exclusive mode. i.e only one dvb app.
+> at a time is allowed to open the device read/write mode.
+
+To be clearer: dvb apps won't use the audio node, but audio should be blocked,
+as the devices can't use audio while in DVB mode.
+
+> As dvb apps.
+> create threads to handle audio and video, 
+
+No. DVB apps don't handle audio/video. It receives data as MPEG-TS,
+using a separate device node. Yet, the same DMA engine that provides
+video (and, sometimes audio) is used by the DVB devnode.
+
+> all threads in that group
+> should be allowed by the higher level construct to access the tuner and
+> audio. dvb application will have to hold tuner and audio tokens so v4l2
+> and audio apps. know they are in use.
+> 
+> audio apps. access audio in exclusive mode. i.e only one audio app. at
+> a time is allowed to open the device in read/write mode. Audio apps.
+> create threads and thread closes and re-opens the audio device. Threads
+> can do this and hence something that higher level construct has to allow.
+> audio app. has to hold audio token so dvb and v4l2 know that it is in use.
+> (Note: I am not sure if I have the audio scenario right)
+> 
+> v4l2 apps. access tuner and audio in shared v4l2 mode. i.e several v4l2
+> processes and threads could use tuner and audio at the same time. The
+> higher level construct has to allow multiple v4l2 apps. to access and
+> disallow dvb and audio apps. access when they are in use by v4l2.
+
+Actually, V4L2 core handles concurrency. There's just one file handler
+with full control to start/stop stream at V4L2 side.
+
+> 
+> Adding to this, both dvb and v4l2 open audio device and make snd pcm
+> capture callbacks.
+
+Huh? DVB won't need to touch at PCM capture callbacks. It should just
+avoid audio PCM capture to stream while in DVB mode.
+
+> There is no way to tell if dvb or v4l2 or audio
+> app is the one that is making this request.
+
+> dvb app would like audio
+> in exclusive mode allowing only one process and its threads to access
+> it.
+
+No. It just wants to disable the part of the hardware that can now
+be powered off.
+
+> v4l2 on the other hand would like audio in shared state accessible
+> to all v4l2 processes. 
+
+> If dvb-core and v4l2-core get tuner and audio
+> tokens at the same time, the window for having tuner token and not
+> getting audio token go down.
+
+No. It should not be allowed that both dvb-core and v4l2-core to get
+the tokens at the same time. This is an exclusive lock.
+
+> In dvb case when dvb device is opened in read/write mode, and v4l2
+> case when an app. tries to change the status. Audio callbacks have to
+> detect if audio is busy, if not which mode to request the token in.
+
+Huh?
+
+> For dvb and audio app. cases, the audio token should be requested in
+> exclusive mode and in v4l2 case shared mode. The logic for requesting
+> audio token will have to be try to get in exclusive mode, if fails,
+> try to get in shared mode, and if that fails give up.
+
+Huh?
+
+> 
+> Current status:
+> Combining patch v1 and patch v2 designs by allowing shared mode token
+> hold for v4l2, and deciding on where to hold audio token from
+> alsa driver will solve the above conflict scenarios. That said, the
+> question is "is this the right approach?" or are there other ways to
+> solve the problem. One thing is clear, we need some common higher level
+> construct for all the device drivers and dvb, v4l2, and audio ioctls,
+> callbacks etc, to detect the hardware is in use.
+
+I think that the current status is that we need to finish the spec
+first. Then check if the patches are doing what's above.
+
+It seems that we agree to not agree at the requirements so far ;)
+
+> 
+> I do think lock/token approach has the best potential to solve the
+> problems. We are at this point very close to addressing conflicts.
+> At least the ones I am able to test.
+> 
+> thanks,
+> -- Shuah
+
+Regards,
+Mauro
