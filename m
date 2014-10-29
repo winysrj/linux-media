@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp08.uk.clara.net ([195.8.89.41]:57310 "EHLO
-	claranet-outbound-smtp08.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370AbaJaPsu (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:60730 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933829AbaJ2QER (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:48:50 -0400
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Subject: [PATCH v2] DocBook media: Clarify V4L2_FIELD_ANY for drivers
-Date: Fri, 31 Oct 2014 15:48:42 +0000
-Message-Id: <1414770522-22863-1-git-send-email-simon.farnsworth@onelan.co.uk>
+	Wed, 29 Oct 2014 12:04:17 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Cc: ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com,
+	hverkuil@xs4all.nl, Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH 1/4] [media] solo6x10: free vb2 buffers on stop_streaming
+Date: Wed, 29 Oct 2014 20:03:51 +0400
+Message-Id: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation for enum v4l2_field did not make it clear that V4L2_FIELD_ANY
-is only acceptable as input to the kernel, not as a response from the
-driver.
+This fixes warning from drivers/media/v4l2-core/videobuf2-core.c:2144
 
-Make it clear, to stop userspace developers like me assuming it can be
-returned by the driver.
-
-Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
 ---
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-Change wording as suggested by Hans. The new wording still makes sense to
-me, and leaves it clear that V4L2_FIELD_ANY is not a valid answer from
-TRY_FMT.
-
- Documentation/DocBook/media/v4l/io.xml | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index e5e8325..1c17f80 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1422,7 +1422,10 @@ one of the <constant>V4L2_FIELD_NONE</constant>,
- <constant>V4L2_FIELD_BOTTOM</constant>, or
- <constant>V4L2_FIELD_INTERLACED</constant> formats is acceptable.
- Drivers choose depending on hardware capabilities or e.&nbsp;g. the
--requested image size, and return the actual field order. &v4l2-buffer;
-+requested image size, and return the actual field order. Drivers must
-+never return <constant>V4L2_FIELD_ANY</constant>. If multiple
-+field orders are possible the driver must choose one of the possible
-+field orders during &VIDIOC-S-FMT; or &VIDIOC-TRY-FMT;. &v4l2-buffer;
- <structfield>field</structfield> can never be
- <constant>V4L2_FIELD_ANY</constant>.</entry>
- 	  </row>
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 28023f9..6cd6a25 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -781,9 +781,19 @@ static int solo_enc_start_streaming(struct vb2_queue *q, unsigned int count)
+ static void solo_enc_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(q);
++	unsigned long flags;
+ 
++	spin_lock_irqsave(&solo_enc->av_lock, flags);
+ 	solo_enc_off(solo_enc);
+-	INIT_LIST_HEAD(&solo_enc->vidq_active);
++	while (!list_empty(&solo_enc->vidq_active)) {
++		struct solo_vb2_buf *buf = list_entry(
++				solo_enc->vidq_active.next,
++				struct solo_vb2_buf, list);
++
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++	spin_unlock_irqrestore(&solo_enc->av_lock, flags);
+ 	solo_ring_stop(solo_enc->solo_dev);
+ }
+ 
 -- 
-1.9.3
+1.8.5.5
 
