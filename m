@@ -1,131 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:45424 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155AbaJNOAg convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:32923 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756192AbaJ2UNE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Oct 2014 10:00:36 -0400
-Received: by mail-oi0-f53.google.com with SMTP id v63so16450851oia.40
-        for <linux-media@vger.kernel.org>; Tue, 14 Oct 2014 07:00:35 -0700 (PDT)
+	Wed, 29 Oct 2014 16:13:04 -0400
+Received: by mail-la0-f51.google.com with SMTP id q1so3224319lam.38
+        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 13:13:01 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <543B896E.4030600@codeaurora.org>
-References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org> <543B896E.4030600@codeaurora.org>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Tue, 14 Oct 2014 19:30:15 +0530
-Message-ID: <CAO_48GHp3BS7fqFN9PgxBZYckUxaGw2xXAoVD2x7o4QJFW-8Mg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC 0/4] dma-buf Constraints-Enabled Allocation helpers
-To: Laura Abbott <lauraa@codeaurora.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linaro-kernel@lists.linaro.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <20141029170853.1ee823cb.m.chehab@samsung.com>
+References: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
+	<20141029170853.1ee823cb.m.chehab@samsung.com>
+Date: Wed, 29 Oct 2014 18:13:01 -0200
+Message-ID: <CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
+Subject: Re: Issues with Empia + saa7115
+From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
+Ok, just to be sure, I have others capture boards like  Silan SC8113,
+that's only on newer kernels? If so I'll backport it.
 
-On 13 October 2014 13:42, Laura Abbott <lauraa@codeaurora.org> wrote:
-> On 10/10/2014 1:07 PM, Sumit Semwal wrote:
->>
->> Hi,
->>
->> Why:
->> ====
->>   While sharing buffers using dma-buf, currently there's no mechanism to
->> let
->> devices share their memory access constraints with each other to allow for
->> delayed allocation of backing storage.
->>
->> This RFC attempts to introduce the idea of memory constraints of a device,
->> and how these constraints can be shared and used to help allocate buffers
->> that
->> can satisfy requirements of all devices attached to a particular dma-buf.
->>
->> How:
->> ====
->>   A constraints_mask is added to dma_parms of the device, and at the time
->> of
->> each device attachment to a dma-buf, the dma-buf uses this
->> constraints_mask
->> to calculate the access_mask for the dma-buf.
->>
->> Allocators can be defined for each of these constraints_masks, and then
->> helper
->> functions can be used to allocate the backing storage from the matching
->> allocator satisfying the constraints of all devices interested.
->>
->> A new miscdevice, /dev/cenalloc [1] is created, which acts as the dma-buf
->> exporter to make this transparent to the devices.
->>
->> More details in the patch description of "cenalloc: Constraint-Enabled
->> Allocation helpers for dma-buf".
->>
->>
->> At present, the constraint_mask is only a bitmask, but it should be
->> possible to
->> change it to a struct and adapt the constraint_mask calculation
->> accordingly,
->> based on discussion.
->>
->>
->> Important requirement:
->> ======================
->>   Of course, delayed allocation can only work if all participating devices
->> will wait for other devices to have 'attached' before mapping the buffer
->> for the first time.
->>
->> As of now, users of dma-buf(drm prime, v4l2 etc) call the attach() and
->> then
->> map_attachment() almost immediately after it. This would need to be
->> changed if
->> they were to benefit from constraints.
->>
->>
->> What 'cenalloc' is not:
->> =======================
->> - not 'general' allocator helpers - useful only for constraints-enabled
->>    devices that share buffers with others using dma-buf.
->> - not a replacement for existing allocation mechanisms inside various
->>    subsystems; merely a possible alternative.
->> - no page-migration - it would be very complementary to the delayed
->> allocation
->>     suggested here.
->>
->> TODOs:
->> ======
->> - demonstration test cases
->> - vma helpers for allocators
->> - more sample allocators
->> - userspace ioctl (It should be a simple one, and we have one ready, but
->> wanted
->>     to agree on the kernel side of things first)
->>
->>
+2014-10-29 17:08 GMT-02:00 Mauro Carvalho Chehab <m.chehab@samsung.com>:
+> Em Wed, 29 Oct 2014 16:34:09 -0200
+> Rafael Coutinho <rafael.coutinho@phiinnovations.com> escreveu:
 >
-> I'm interested to see the userspace ioctl. The mask based approach of
-> Ion does not scale well to a userspace ABI so I'm curious if cenalloc
-> does better.
-Apologies for the delay in response.
-Since with cenalloc, the decision of 'which pool to allocate from' is
-not with the userspace, but is calculated based on the devices that
-attach, the userspace ABI should be just a simple xxx_create, which
-returns an fd that'd be the dma-buf fd. That will allow easy sharing
-with other dma-buf importers via standard dma-buf API.
+>> Hi all,
+>>
+>> I'm having trouble to make an SAA7115 (Actually it's the generic
+>> GM7113 version) video capture board to work on a beagle board running
+>> Android (4.0.3).
+>> For some reason I cannot capture any image, it always output a green image file.
+>> The kernel is Linux-3.2.0
 >
-> Thanks,
-> Laura
+> Support for GM7113 were added only on a recent version.
 >
-> --
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-> hosted by The Linux Foundation
+> So, you need to get a newer driver. So, you'll need to either upgrade
+> the Kernel, use either Linux backports or media-build to get a newer
+> driver set or do the manual work of backporting saa7115 and the bridge
+> driver changes for gm7113 for it to work.
+>
+> Regards,
+> Mauro
+>
+>>
+>> My current approach is the simplest I have found so far, to avoid any
+>> issues with other sw layers. I'm forcing a 'dd' from the /dev/video
+>> device.
+>>
+>> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
+>>
+>> And then I open the raw image file converting it on an image editor.
+>>
+>> In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
+>> Bone with android it fails to get an image.
+>>
+>> I have now tried with a Linux (angstron) on beagle bone with 3.8
+>> kernel and this time is even worse, the 'dd' command does not result
+>> on any byte written on the output file.
+>>
+>> The v4l2-ctl works fine on the 3 environments. I can even set values
+>> as standard, input etc...
+>>
+>> I have attached the dmesg of the environments here:
+>>
+>> * Android - dmesg http://pastebin.com/AFdB9N9c
+>>
+>> * Linux Angstron - dmesg http://pastebin.com/s3S3iCph
+>> * Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
+>>
+>> * Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
+>>
+>> I have one restriction on the kernel of android due the HAL drivers
+>> for BBB. So changing kernel is not a choice.
+>>
+>> Anyone could give me some tips on where to look for other issues or debug it?
+>>
+>> Thanks in advance
+>>
 
 
 
 -- 
-Thanks and regards,
-
-Sumit Semwal
-Kernel Team Lead - Linaro Mobile Group
-Linaro.org │ Open source software for ARM SoCs
+Regards,
+Coutinho
+www.phiinnovations.com
