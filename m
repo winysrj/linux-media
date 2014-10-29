@@ -1,116 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1737 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640AbaJSClP (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1805 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932228AbaJ2KBt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Oct 2014 22:41:15 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9J2fB06019211
-	for <linux-media@vger.kernel.org>; Sun, 19 Oct 2014 04:41:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DB3052A03D3
-	for <linux-media@vger.kernel.org>; Sun, 19 Oct 2014 04:41:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141019024103.DB3052A03D3@tschai.lan>
-Date: Sun, 19 Oct 2014 04:41:03 +0200 (CEST)
+	Wed, 29 Oct 2014 06:01:49 -0400
+Message-ID: <5450BAF4.6050008@xs4all.nl>
+Date: Wed, 29 Oct 2014 11:01:24 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Divneil Wadhawan <divneil.wadhawan@st.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
+References: <5437932A.7000706@xs4all.nl>	<20141028162647.43c1946a@recife.lan>	<54509744.7090005@xs4all.nl>	<20141029062952.05e47989@recife.lan>	<5450AC8C.4090603@xs4all.nl> <20141029071312.08aef860@recife.lan>
+In-Reply-To: <20141029071312.08aef860@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 10/29/14 10:13, Mauro Carvalho Chehab wrote:
+> Em Wed, 29 Oct 2014 09:59:56 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 10/29/14 09:29, Mauro Carvalho Chehab wrote:
+>>> Em Wed, 29 Oct 2014 08:29:08 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> On 10/28/2014 07:26 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em Fri, 10 Oct 2014 10:04:58 +0200
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>
+>>>>>> (This patch is from Divneil except for the vivid changes which I added. He had
+>>>>>> difficulties posting the patch without the mailer mangling it, so I'm reposting
+>>>>>> it for him)
+>>>>>>
+>>>>>> - vb2 drivers to rely on VB2_MAX_FRAME.
+>>>>>>
+>>>>>> - VB2_MAX_FRAME bumps the value to 64 from current 32
+>>>>>
+>>>>> Hmm... what's the point of announcing a maximum of 32 buffers to userspace,
+>>>>> but using internally 64?
+>>>>
+>>>> Where do we announce 32 buffers?
+>>>
+>>> VIDEO_MAX_FRAME is defined at videodev2.h:
+>>>
+>>> include/uapi/linux/videodev2.h:#define VIDEO_MAX_FRAME               32
+>>>
+>>> So, it is part of userspace API. Yeah, I know, it sucks, but apps
+>>> may be using it to limit the max number of buffers.
+>>
+>> So? Userspace is free to ask for 32 buffers, and it will get 32 buffers if
+>> memory allows. vb2 won't be returning more than 32, so I don't see how things
+>> can break.
+> 
+> Well, VIDEO_MAX_FRAME has nothing to do with the max VB1 support. It is
+> the maximum number of buffers supported by V4L2. Properly-written apps
+> will never request more than 32 buffers, because we're telling them that
+> this is not supported.
+> 
+> So, it makes no sense to change internally to 64, but keeping announcing
+> that the maximum is 32. We're just wasting memory inside the Kernel with
+> no reason.
 
-Results of the daily build of media_tree:
+Hmm, so you think VIDEO_MAX_FRAME should just be updated to 64?
 
-date:		Sun Oct 19 04:00:17 CEST 2014
-git branch:	test
-git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.17-0.slh.1-amd64
+I am a bit afraid that that might break applications (especially if there
+are any that use bits in a 32-bit unsigned variable). Should userspace
+know about this at all? I think that the maximum number of frames is
+driver dependent, and in fact one of the future vb2 improvements would be
+to stop hardcoding this and leave the maximum up to the driver.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Basically I would like to deprecate VIDEO_MAX_FRAME.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
