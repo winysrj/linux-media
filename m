@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46262 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901AbaJ1PA7 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3102 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751226AbaJ2Dlm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 11:00:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Ira Krufky <mkrufky@linuxtv.org>,
-	Fred Richter <frichter@hauppauge.com>
-Subject: [PATCH 06/13] [media] lgdt3306a: Remove FSF address
-Date: Tue, 28 Oct 2014 13:00:41 -0200
-Message-Id: <d65bb8f2b7b68f6699d37f109c552da7dd468735.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414507927.git.mchehab@osg.samsung.com>
-References: <cover.1414507927.git.mchehab@osg.samsung.com>
+	Tue, 28 Oct 2014 23:41:42 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9T3fbp2007334
+	for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 04:41:40 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id ECB042A008C
+	for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 04:41:36 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141029034136.ECB042A008C@tschai.lan>
+Date: Wed, 29 Oct 2014 04:41:36 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this CodingStyle error:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so ag$
-	#56: FILE: drivers/media/dvb-frontends/lgdt3306a.c:19:
-	+ *    along with this program; if not, write to the Free Software$
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+date:		Wed Oct 29 04:00:26 CET 2014
+git branch:	test
+git hash:	7a7f1ab37dc8f66cf0ef10f3d3f1b79ac4bc67fc
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-34-g71e642a
+host hardware:	x86_64
+host os:	3.17-1.slh.5-amd64
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index d1a914de4180..54c2c282e97e 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -14,11 +14,6 @@
-  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *    GNU General Public License for more details.
-- *
-- *    You should have received a copy of the GNU General Public License
-- *    along with this program; if not, write to the Free Software
-- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- *
-  */
- 
- #include <asm/div64.h>
-@@ -1455,6 +1450,7 @@ static u32 lgdt3306a_calculate_snr_x100(struct lgdt3306a_state *state)
- 
- static enum lgdt3306a_lock_status lgdt3306a_vsb_lock_poll(struct lgdt3306a_state *state)
- {
-+	int ret;
- 	u8 cnt = 0;
- 	u8 packet_error;
- 	u32 snr;
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
-index 0b020e743060..6d7daf6f52de 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.h
-+++ b/drivers/media/dvb-frontends/lgdt3306a.h
-@@ -13,11 +13,6 @@
-  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *    GNU General Public License for more details.
-- *
-- *    You should have received a copy of the GNU General Public License
-- *    along with this program; if not, write to the Free Software
-- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- *
-  */
- 
- #ifndef _LGDT3306A_H_
--- 
-1.9.3
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
