@@ -1,76 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:39270 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaJIUjY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Oct 2014 16:39:24 -0400
-Received: by mail-pd0-f170.google.com with SMTP id p10so370946pdj.15
-        for <linux-media@vger.kernel.org>; Thu, 09 Oct 2014 13:39:23 -0700 (PDT)
-Message-ID: <5436F253.7060203@gmail.com>
-Date: Fri, 10 Oct 2014 02:08:43 +0530
-From: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: omap3isp Device Tree support status
-References: <20140928221341.GQ2939@valkosipuli.retiisi.org.uk> <54330499.50905@gmail.com> <20141008113303.GY2939@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20141008113303.GY2939@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:54087 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933829AbaJ2QE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Oct 2014 12:04:28 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Cc: ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com,
+	hverkuil@xs4all.nl, Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH 3/4] [media] solo6x10: bind start & stop of encoded frames processing thread to device (de)init
+Date: Wed, 29 Oct 2014 20:03:53 +0400
+Message-Id: <1414598634-13446-3-git-send-email-andrey.krieger.utkin@gmail.com>
+In-Reply-To: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
+References: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Before, it was called from individual encoder (de)init procedures, which
+lead to spare threads running (which were actually lost, leaked).
+The current fix uses trivial approach, and the downside is that the
+processing thread is working always, even when there's no consumer.
 
-On Wednesday 08 October 2014 05:03 PM, Sakari Ailus wrote:
-> Hi Alaganjar,
-> 
-> On Tue, Oct 07, 2014 at 02:37:37AM +0530, Alaganraj Sandhanam wrote:
->> Hi Sakari,
->>
->> Thanks for the patches.
->> On Monday 29 September 2014 03:43 AM, Sakari Ailus wrote:
->>> Hi,
->>>
->>> I managed to find some time for debugging my original omap3isp DT support
->>> patchset (which includes smiapp DT support as well), and found a few small
->>> but important bugs.
->>>
->>> The status is now that images can be captured using the Nokia N9 camera, in
->>> which the sensor is connected to the CSI-2 interface. Laurent confirmed that
->>> the parallel interface worked for him (Beagleboard, mt9p031 sensor on
->>> Leopard imaging's li-5m03 board).
->> Good news!
->>>
->>> These patches (on top of the smiapp patches I recently sent for review which
->>> are in much better shape) are still experimental and not ready for review. I
->>> continue to clean them up and post them to the list when that is done. For
->>> now they can be found here:
->>>
->>> <URL:http://git.linuxtv.org/cgit.cgi/sailus/media_tree.git/log/?h=rm696-043-dt>
->>>
->> I couldn't clone the repo, getting "remote corrupt" error.
->>
->> $ git remote -v
->> media-sakari	git://linuxtv.org/sailus/media_tree.git (fetch)
->> media-sakari	git://linuxtv.org/sailus/media_tree.git (push)
->> origin	git://linuxtv.org/media_tree.git (fetch)
->> origin	git://linuxtv.org/media_tree.git (push)
->> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (fetch)
->> sakari	git://vihersipuli.retiisi.org.uk/~sailus/linux.git (push)
->>
->> $ git fetch media-sakari
->> warning: cannot parse SRV response: Message too long
->> remote: error: Could not read 5ea878796f0a1d9649fe43a6a09df53d3915c0ef
->> remote: fatal: revision walk setup failed
->> remote: aborting due to possible repository corruption on the remote side.
->> fatal: protocol error: bad pack header
-> 
-> I'm not sure what this could be related. Can you fetch from other trees,
-> e.g. your origin remote? Do you get the same error from the remote on
-> vihersipuli, and by using http instead?
-> 
-I'm able to fetch from "origin" and "vihersipuli" remotes.
-problem with only "git://linuxtv.org/sailus/media_tree.git" remote.
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+---
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-Thanks&Regards
-Alaganraj
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 9afeb69..b9b61b9 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -770,12 +770,8 @@ static void solo_ring_stop(struct solo_dev *solo_dev)
+ static int solo_enc_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(q);
+-	int ret;
+ 
+-	ret = solo_enc_on(solo_enc);
+-	if (ret)
+-		return ret;
+-	return solo_ring_start(solo_enc->solo_dev);
++	return solo_enc_on(solo_enc);
+ }
+ 
+ static void solo_enc_stop_streaming(struct vb2_queue *q)
+@@ -794,7 +790,6 @@ static void solo_enc_stop_streaming(struct vb2_queue *q)
+ 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+ 	}
+ 	spin_unlock_irqrestore(&solo_enc->av_lock, flags);
+-	solo_ring_stop(solo_enc->solo_dev);
+ }
+ 
+ static struct vb2_ops solo_enc_video_qops = {
+@@ -1432,13 +1427,15 @@ int solo_enc_v4l2_init(struct solo_dev *solo_dev, unsigned nr)
+ 		 solo_dev->v4l2_enc[0]->vfd->num,
+ 		 solo_dev->v4l2_enc[solo_dev->nr_chans - 1]->vfd->num);
+ 
+-	return 0;
++	return solo_ring_start(solo_dev);
+ }
+ 
+ void solo_enc_v4l2_exit(struct solo_dev *solo_dev)
+ {
+ 	int i;
+ 
++	solo_ring_stop(solo_dev);
++
+ 	for (i = 0; i < solo_dev->nr_chans; i++)
+ 		solo_enc_free(solo_dev->v4l2_enc[i]);
+ 
+-- 
+1.8.5.5
+
