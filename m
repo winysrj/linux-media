@@ -1,171 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35025 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161145AbaJ3UNQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:13:16 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v4 10/14] cx231xx: change usage of I2C_1 to the real i2c port
-Date: Thu, 30 Oct 2014 21:12:31 +0100
-Message-Id: <1414699955-5760-11-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
-References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:33727 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398AbaJ2SeM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Oct 2014 14:34:12 -0400
+Received: by mail-la0-f41.google.com with SMTP id pn19so3093918lab.0
+        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 11:34:09 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 29 Oct 2014 16:34:09 -0200
+Message-ID: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
+Subject: Issues with Empia + saa7115
+From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-change almost all instances of I2C_1 to I2C_1_MUX_3
+Hi all,
 
-Only these cases are changed to I2C_1_MUX_1:
-* All that have dont_use_port_3 set.
-* CX231XX_BOARD_HAUPPAUGE_EXETER, old code did explicitly not switch to port3.
-* eeprom access for 930C
+I'm having trouble to make an SAA7115 (Actually it's the generic
+GM7113 version) video capture board to work on a beagle board running
+Android (4.0.3).
+For some reason I cannot capture any image, it always output a green image file.
+The kernel is Linux-3.2.0
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+My current approach is the simplest I have found so far, to avoid any
+issues with other sw layers. I'm forcing a 'dd' from the /dev/video
+device.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index f5fb93a..4eb2057 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -104,7 +104,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
-@@ -144,7 +144,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
-@@ -184,7 +184,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
-@@ -225,7 +225,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
-@@ -297,7 +297,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
-@@ -325,7 +325,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
-@@ -353,7 +353,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_1,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
-@@ -419,7 +419,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_2,
--		.demod_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -457,7 +457,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_2,
--		.demod_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -495,7 +495,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_2,
--		.demod_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.ir_i2c_master = I2C_2,
- 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
- 		.has_dvb = 1,
-@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.norm = V4L2_STD_PAL,
- 
- 		.input = {{
-@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.norm = V4L2_STD_NTSC,
- 
- 		.input = {{
-@@ -718,7 +718,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
-@@ -757,7 +757,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = I2C_1,
-+		.tuner_i2c_master = I2C_1_MUX_3,
- 		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
-@@ -1064,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
- 
- 			memset(&client, 0, sizeof(client));
--			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
-+			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1_MUX_1);
- 			client.addr = 0xa0 >> 1;
- 
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
+dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
+
+And then I open the raw image file converting it on an image editor.
+
+In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
+Bone with android it fails to get an image.
+
+I have now tried with a Linux (angstron) on beagle bone with 3.8
+kernel and this time is even worse, the 'dd' command does not result
+on any byte written on the output file.
+
+The v4l2-ctl works fine on the 3 environments. I can even set values
+as standard, input etc...
+
+I have attached the dmesg of the environments here:
+
+* Android - dmesg http://pastebin.com/AFdB9N9c
+
+* Linux Angstron - dmesg http://pastebin.com/s3S3iCph
+* Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
+
+* Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
+
+I have one restriction on the kernel of android due the HAL drivers
+for BBB. So changing kernel is not a choice.
+
+Anyone could give me some tips on where to look for other issues or debug it?
+
+Thanks in advance
+
 -- 
-2.1.2
-
+Regards,
+Coutinho
+www.phiinnovations.com
