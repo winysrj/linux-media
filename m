@@ -1,54 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from icp-osb-irony-out4.external.iinet.net.au ([203.59.1.220]:17378
-	"EHLO icp-osb-irony-out4.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750765AbaJPHNJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 03:13:09 -0400
-From: Rodney Baker <rodney.baker@iinet.net.au>
-To: Linux-Media <linux-media@vger.kernel.org>
-Reply-To: rodney.baker@iinet.net.au
-Subject: Kernel 3.17.0 broke xc4000-based DTV1800h
-Date: Thu, 16 Oct 2014 17:33:51 +1030
-Message-ID: <1637119.5DTscVEVRC@mako>
+Received: from lists.s-osg.org ([54.187.51.154]:42445 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932595AbaJ2NFk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Oct 2014 09:05:40 -0400
+Date: Wed, 29 Oct 2014 11:05:34 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Divneil Wadhawan <divneil.wadhawan@st.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
+Message-ID: <20141029110534.138af0ab@recife.lan>
+In-Reply-To: <8693824.jOpqngyjmV@avalon>
+References: <5437932A.7000706@xs4all.nl>
+	<5450BAF4.6050008@xs4all.nl>
+	<20141029104033.35f0d212@recife.lan>
+	<8693824.jOpqngyjmV@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since installing kernel 3.17.0-1.gc467423-desktop (on openSuSE 13.1) my 
-xc4000/zl10353/cx88 based DTV card has failed to initialise on boot.
+Em Wed, 29 Oct 2014 14:46:55 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-The following messages are from dmesg; 
+> > > Hmm, so you think VIDEO_MAX_FRAME should just be updated to 64?
+> > 
+> > Yes.
+> > 
+> > > I am a bit afraid that that might break applications (especially if there
+> > > are any that use bits in a 32-bit unsigned variable).
+> > 
+> > What 32-bits have to do with that? This is just the maximum number of
+> > buffers, and not the number of bits.
+> 
+> Applications might use a bitmask to track buffers.
 
-[   78.468221] xc4000: I2C read failed
-[   80.074604] xc4000: I2C read failed
-[   80.074605] Unable to read tuner registers.
-[   82.622062] Selecting best matching firmware (7 bits differ) for type=(0), 
-id 000000200000b700:
-[   82.626375] i2c i2c-0: sendbytes: NAK bailout.
-[  148.063594] xc4000: I2C read failed
-[  149.669994] xc4000: I2C read failed
-[  149.669995] Unable to read tuner registers.
-[  149.670198] cx88[0]/0: registered device video1 [v4l2]
-[  149.670287] cx88[0]/0: registered device vbi0
-[  149.670338] cx88[0]/0: registered device radio0
-[  149.670340] cx88[0]/0: failed to create cx88 audio thread, err=-4
-[  149.670382] cx88[0]/2: cx2388x based DVB/ATSC card
-[  149.670384] cx8802_alloc_frontends() allocating 1 frontend(s)
-[  149.670515] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-[  151.305364] zl10353_read_register: readreg error (reg=127, ret==-6)
-[  151.305367] cx88[0]/2: frontend initialization failed
-[  151.305369] cx88[0]/2: dvb_register failed (err = -22)
-[  151.305370] cx88[0]/2: cx8802 probe failed, err = -22
+True, but then it should be limiting the max buffer to 32, if the 
+implementation won't support more than 32 bits at its bitmask
+implementation.
 
-It worked with 3.16.3-1.gd2bbe7f-desktop on the same machine.
+Anyway, we need to double check if nothing will break at the open
+source apps before being able to change its value.
+
+> 
+> > > Should userspace know about this at all? I think that the maximum number
+> > > of frames is driver dependent, and in fact one of the future vb2
+> > > improvements would be to stop hardcoding this and leave the maximum up to
+> > > the driver.
+> > 
+> > It is not driver dependent. It basically depends on the streaming logic.
+> > Both VB and VB2 are free to set whatever size it is needed. They can
+> > even change the logic to use a linked list, to avoid pre-allocating
+> > anything.
+> > 
+> > Ok, there's actually a hardware limit, with is the maximum amount of
+> > memory that could be used for DMA on a given hardware/architecture.
+> > 
+> > The 32 limit was just a random number that was chosen.
+> 
+> So, can't we just mark VIDEO_MAX_FRAME as deprecated ? We can't remove it as 
+> applications might depend on it, but it's pretty useless otherwise.
+
+As I pointed below, even the applications _we_ wrote at v4l-utils use
+it. The good news is that I double-checked xawtv3, xawtv4 and tvtime:
+none of them use it. Perhaps we're lucky enough, but I wouldn't count
+with that.
+
+Ok, we can always write a note there saying that this is deprecated,
+but the same symbol is still used internally on the drivers.
+
+If we're willing to deprecate, we should do something like:
+
+#ifndef __KERNEL__
+	/* This define is deprecated because (...) */
+	#define VIDEO_MAX_FRAME	32
+#endif
+
+And then remove all occurrences of it at Kernelspace.
+
+We should also first fix v4l-utils no not use it, as v4l-utils is
+currently the reference code for users. Please notice, however, that
+v4l-compliance depends on it. I suspect that it wants/needs to test
+the maximum buffer size. What would be a reasonable way to replace
+it, and still be able to test the maximum buffer limit?
 
 Regards,
-Rodney.
-
--- 
-==============================================================
-Rodney Baker VK5ZTV
-rodney.baker@iinet.net.au
-==============================================================
+Mauro
