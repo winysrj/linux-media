@@ -1,82 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1805 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932228AbaJ2KBt (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:58262 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757289AbaJ2XvH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 06:01:49 -0400
-Message-ID: <5450BAF4.6050008@xs4all.nl>
-Date: Wed, 29 Oct 2014 11:01:24 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Oct 2014 19:51:07 -0400
+Date: Thu, 30 Oct 2014 08:51:00 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
+ input support
+Message-ID: <20141029235100.GA4599@verge.net.au>
+References: <1413868129-22121-1-git-send-email-ykaneko0929@gmail.com>
+ <544633D3.5010805@cogentembedded.com>
+ <CAH1o70Jk=dCf3VWqdAJmGzd6TSQFeN=x+FCKExDzaf0BZF0L1A@mail.gmail.com>
+ <20141029041103.GB29787@verge.net.au>
+ <5450D01D.9060701@cogentembedded.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Divneil Wadhawan <divneil.wadhawan@st.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
-References: <5437932A.7000706@xs4all.nl>	<20141028162647.43c1946a@recife.lan>	<54509744.7090005@xs4all.nl>	<20141029062952.05e47989@recife.lan>	<5450AC8C.4090603@xs4all.nl> <20141029071312.08aef860@recife.lan>
-In-Reply-To: <20141029071312.08aef860@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5450D01D.9060701@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/29/14 10:13, Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Oct 2014 09:59:56 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Wed, Oct 29, 2014 at 02:31:41PM +0300, Sergei Shtylyov wrote:
+> Hello.
 > 
->> On 10/29/14 09:29, Mauro Carvalho Chehab wrote:
->>> Em Wed, 29 Oct 2014 08:29:08 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> On 10/28/2014 07:26 PM, Mauro Carvalho Chehab wrote:
->>>>> Em Fri, 10 Oct 2014 10:04:58 +0200
->>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>>
->>>>>> (This patch is from Divneil except for the vivid changes which I added. He had
->>>>>> difficulties posting the patch without the mailer mangling it, so I'm reposting
->>>>>> it for him)
->>>>>>
->>>>>> - vb2 drivers to rely on VB2_MAX_FRAME.
->>>>>>
->>>>>> - VB2_MAX_FRAME bumps the value to 64 from current 32
->>>>>
->>>>> Hmm... what's the point of announcing a maximum of 32 buffers to userspace,
->>>>> but using internally 64?
->>>>
->>>> Where do we announce 32 buffers?
->>>
->>> VIDEO_MAX_FRAME is defined at videodev2.h:
->>>
->>> include/uapi/linux/videodev2.h:#define VIDEO_MAX_FRAME               32
->>>
->>> So, it is part of userspace API. Yeah, I know, it sucks, but apps
->>> may be using it to limit the max number of buffers.
->>
->> So? Userspace is free to ask for 32 buffers, and it will get 32 buffers if
->> memory allows. vb2 won't be returning more than 32, so I don't see how things
->> can break.
+> On 10/29/2014 7:11 AM, Simon Horman wrote:
 > 
-> Well, VIDEO_MAX_FRAME has nothing to do with the max VB1 support. It is
-> the maximum number of buffers supported by V4L2. Properly-written apps
-> will never request more than 32 buffers, because we're telling them that
-> this is not supported.
+> >>>>From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 > 
-> So, it makes no sense to change internally to 64, but keeping announcing
-> that the maximum is 32. We're just wasting memory inside the Kernel with
-> no reason.
+> >>>>Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> >>>>Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> >>>>---
+> 
+> >>>>This patch is against master branch of linuxtv.org/media_tree.git.
+> 
+> >>>>v2 [Yoshihiro Kaneko]
+> >>>>* remove unused/useless definition as suggested by Sergei Shtylyov
+> 
+> >>>    I didn't say it's useless, I just suspected that you missed the necessary
+> >>>test somewhere...
+> 
+> >>Sorry for my inaccurate description.
+> 
+> >>>>   drivers/media/platform/soc_camera/rcar_vin.c | 9 +++++++++
+> >>>>   1 file changed, 9 insertions(+)
+> 
+> >>>>diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+> >>>>b/drivers/media/platform/soc_camera/rcar_vin.c
+> >>>>index 20defcb..cb5e682 100644
+> >>>>--- a/drivers/media/platform/soc_camera/rcar_vin.c
+> >>>>+++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> >>>>@@ -74,6 +74,7 @@
+> >>>>   #define VNMC_INF_YUV10_BT656  (2 << 16)
+> >>>>   #define VNMC_INF_YUV10_BT601  (3 << 16)
+> >>>>   #define VNMC_INF_YUV16                (5 << 16)
+> >>>>+#define VNMC_INF_RGB888                (6 << 16)
+> >>>>   #define VNMC_VUP              (1 << 10)
+> >>>>   #define VNMC_IM_ODD           (0 << 3)
+> >>>>   #define VNMC_IM_ODD_EVEN      (1 << 3)
+> 
+> >>>[...]
+> 
+> >>>>@@ -331,6 +336,9 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+> >>>>         if (output_is_yuv)
+> >>>>                 vnmc |= VNMC_BPS;
+> >>>>
+> >>>>+       if (vnmc & VNMC_INF_RGB888)
+> >>>>+               vnmc ^= VNMC_BPS;
+> >>>>+
+> 
+> >>>    Hm, this also changes the behavior for VNMC_INF_YUV16 and
+> >>>VNMC_INF_YUV10_BT{601|656}. Is this actually intended?
+> 
+> >>Probably this code is incorrect.
+> >>Thank you for your review.
+> 
+> >Thanks, I have confirmed with Matsuoka-san that there is a problem here.
+> 
+> >He has provided the following fix. Could you see about squashing it into
+> >the above patch and reposting?
+> 
+> >From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> >[PATCH] media: soc_camera: rcar_vin: Fix bit field check
+> 
+> >Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> >diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> >index 013d75c..da62d94 100644
+> >--- a/drivers/media/platform/soc_camera/rcar_vin.c
+> >+++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> >@@ -94,7 +94,7 @@
+> >  #define VNMC_INF_YUV8_BT601	(1 << 16)
+> >  #define VNMC_INF_YUV16		(5 << 16)
+> >  #define VNMC_INF_RGB888		(6 << 16)
+> >-#define VNMC_INF_RGB_MASK	(6 << 16)
+> >+#define VNMC_INF_MASK		(7 << 16)
+> 
+>    #define it above VNMC_INF_YUV8_BT656 please.
+> 
+> >  #define VNMC_VUP		(1 << 10)
+> >  #define VNMC_IM_ODD		(0 << 3)
+> >  #define VNMC_IM_ODD_EVEN	(1 << 3)
+> >@@ -675,7 +675,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+> >  	if (output_is_yuv)
+> >  		vnmc |= VNMC_BPS;
+> >
+> >-	if (vnmc & VNMC_INF_RGB_MASK)
+> >+	if ((vnmc & VNMC_INF_MASK) == VNMC_INF_RGB888)
+> 
+>    Is he sure it shouldn't be (vnmc & VNMC_INF_RGB888) == VNMC_INF_RGB888 to
+> also cover 16-bit RGB666 and 12-bit RGB88?
 
-Hmm, so you think VIDEO_MAX_FRAME should just be updated to 64?
+Nice, I think that is a good idea (although the latter formats aren't
+supported by the driver yet, right?).
 
-I am a bit afraid that that might break applications (especially if there
-are any that use bits in a 32-bit unsigned variable). Should userspace
-know about this at all? I think that the maximum number of frames is
-driver dependent, and in fact one of the future vb2 improvements would be
-to stop hardcoding this and leave the maximum up to the driver.
+Its somewhat unobvious how that logic works so perhaps we should add a
+comment like this
 
-Basically I would like to deprecate VIDEO_MAX_FRAME.
+	/* If input and output use the same colorspace, use bypass mode */
+	if (output_is_yuv)
+		vnmc |= VNMC_BPS;
 
-Regards,
-
-	Hans
+	/* The above assumes YUV input, toggle BPS for RGB input.
+	 * RGB inputs can be detected by checking that the most-significant
+	 * two bits of INF are set. This corresponds to the bits
+	 * set in VNMC_INF_RGB888. */
+	if ((vnmc & VNMC_INF_RGB888)) == VNMC_INF_RGB888)
+		vnmc ^= VNMC_BPS;
