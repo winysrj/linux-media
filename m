@@ -1,57 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51656 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203AbaJFQGw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 12:06:52 -0400
-Message-id: <5432BE19.90508@samsung.com>
-Date: Mon, 06 Oct 2014 18:06:49 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: linux-media@vger.kernel.org, pebolle@tiscali.nl,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [media] Remove references to non-existent PLAT_S5P symbol
-References: <1412609947-8358-1-git-send-email-s.nawrocki@samsung.com>
- <5432BAA7.4010008@gmail.com>
-In-reply-to: <5432BAA7.4010008@gmail.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:45324 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933829AbaJ2QEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Oct 2014 12:04:23 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Cc: ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com,
+	hverkuil@xs4all.nl, Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH 2/4] [media] solo6x10: free DMA allocation when releasing encoder
+Date: Wed, 29 Oct 2014 20:03:52 +0400
+Message-Id: <1414598634-13446-2-git-send-email-andrey.krieger.utkin@gmail.com>
+In-Reply-To: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
+References: <1414598634-13446-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/14 17:52, Tomasz Figa wrote:
-> On 06.10.2014 17:39, Sylwester Nawrocki wrote:
->> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
->> index 77c9512..b3b270a 100644
->> --- a/drivers/media/platform/exynos4-is/Kconfig
->> +++ b/drivers/media/platform/exynos4-is/Kconfig
->> @@ -2,7 +2,7 @@
->>  config VIDEO_SAMSUNG_EXYNOS4_IS
->>  	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
->>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
->> +	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
->>  	depends on OF && COMMON_CLK
->>  	help
->>  	  Say Y here to enable camera host interface devices for
->> @@ -57,7 +57,7 @@ endif
->>  
->>  config VIDEO_EXYNOS4_FIMC_IS
->>  	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
->> -	depends on HAS_DMA
->> +	depends on HAS_DMA && !ARCH_S5PV210
-> 
-> Hmm, does this change really do the intended thing?
-> 
-> Since both S5PV210 and Exynos are multiplatform-aware, now whenever
-> ARCH_S5PV210 is enabled, it isn't possible to enable
-> VIDEO_EXYNOS4_FIMC_IS, even though ARCH_EXYNOS can be enabled as well at
-> the same time.
+Fixes this warning:
 
-Sorry, I missed S5PV210 supports ARCH_MULTIPLATFORM, let me resend
-with that line removed. Thanks for pointing out.
+[  956.730136] ------------[ cut here ]------------
+[  956.730143] WARNING: CPU: 1 PID: 10134 at lib/dma-debug.c:963 dma_debug_device_change+0x191/0x1f0()
+[  956.730146] pci 0000:07:05.0: DMA-API: device driver has pending DMA allocations while released from device [count=8]
+One of leaked entries details: [device address=0x00000000d3d57000] [size=512 bytes] [mapped with DMA_BIDIRECTIONAL] [mapped as coherent]
+[  956.730147] Modules linked in: solo6x10(-) videobuf2_dma_contig videobuf2_dma_sg videobuf2_memops videobuf2_core ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat videobuf_vmalloc videobuf_core v4l2_common videodev rt2800usb rt2800lib rt2x00usb rt2x00lib mac80211 cfg80211 crc_ccitt usbkbd hid_a4tech hid_generic usbhid snd_hda_codec_hdmi snd_hda_codec_via snd_hda_codec_generic snd_hda_intel snd_hda_controller snd_hda_codec snd_hwdep snd_pcm x86_pkg_temp_thermal snd_timer snd soundcore
+[  956.730172] CPU: 1 PID: 10134 Comm: rmmod Not tainted 3.18.0-rc1-next-20141023-zver-dirty #24
+[  956.730173] Hardware name: System manufacturer System Product Name/P8H77-V, BIOS 0501 02/28/2012
+[  956.730175]  0000000000000009 ffff8801df9e3c58 ffffffff817ffe6b 0000000000000001
+[  956.730177]  ffff8801df9e3ca8 ffff8801df9e3c98 ffffffff81091ec7 0000000000000046
+[  956.730180]  ffff880215457e90 0000000000000008 ffffffff81cbb10f ffff880215570098
+[  956.730183] Call Trace:
+[  956.730188]  [<ffffffff817ffe6b>] dump_stack+0x4f/0x7c
+[  956.730192]  [<ffffffff81091ec7>] warn_slowpath_common+0x87/0xb0
+[  956.730194]  [<ffffffff81091f91>] warn_slowpath_fmt+0x41/0x50
+[  956.730197]  [<ffffffff81412558>] ? dma_debug_device_change+0xb8/0x1f0
+[  956.730199]  [<ffffffff81412631>] dma_debug_device_change+0x191/0x1f0
+[  956.730203]  [<ffffffff810b14ad>] notifier_call_chain+0x4d/0x70
+[  956.730205]  [<ffffffff810b15f9>] __blocking_notifier_call_chain+0x59/0x80
+[  956.730207]  [<ffffffff810b1631>] blocking_notifier_call_chain+0x11/0x20
+[  956.730211]  [<ffffffff815873af>] __device_release_driver+0xcf/0xf0
+[  956.730213]  [<ffffffff81587ee8>] driver_detach+0xc8/0xd0
+[  956.730215]  [<ffffffff81587147>] bus_remove_driver+0x57/0xd0
+[  956.730218]  [<ffffffff815887e9>] driver_unregister+0x29/0x60
+[  956.730221]  [<ffffffff81420131>] pci_unregister_driver+0x21/0x90
+[  956.730225]  [<ffffffffa03219d7>] solo_pci_driver_exit+0x10/0x12 [solo6x10]
+[  956.730228]  [<ffffffff81112ee0>] SyS_delete_module+0x170/0x1f0
+[  956.730232]  [<ffffffff813eb76e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+[  956.730234]  [<ffffffff8180abd2>] system_call_fastpath+0x12/0x17
+[  956.730235] ---[ end trace e730af02713a6c53 ]---
+[  956.730237] Mapped at:
+[  956.730238]  [<ffffffff8141186c>] debug_dma_alloc_coherent+0x3c/0xb0
+[  956.730240]  [<ffffffffa03203f6>] solo_enc_v4l2_init+0x706/0xba0 [solo6x10]
+[  956.730243]  [<ffffffffa03165b3>] solo_pci_probe+0x503/0x700 [solo6x10]
+[  956.730245]  [<ffffffff81420459>] local_pci_probe+0x49/0xa0
+[  956.730248]  [<ffffffff814207a1>] pci_device_probe+0xd1/0x120
 
---
-Regards,
-Sylwester
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+---
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 6cd6a25..9afeb69 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -1385,6 +1385,9 @@ static void solo_enc_free(struct solo_enc_dev *solo_enc)
+ 	if (solo_enc == NULL)
+ 		return;
+ 
++	pci_free_consistent(solo_enc->solo_dev->pdev,
++			sizeof(struct solo_p2m_desc) * solo_enc->desc_nelts,
++			solo_enc->desc_items, solo_enc->desc_dma);
+ 	video_unregister_device(solo_enc->vfd);
+ 	v4l2_ctrl_handler_free(&solo_enc->hdl);
+ 	kfree(solo_enc);
+-- 
+1.8.5.5
+
