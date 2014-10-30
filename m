@@ -1,59 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:50039 "EHLO smtp.outflux.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751233AbaJTVrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 17:47:49 -0400
-Date: Mon, 20 Oct 2014 14:47:34 -0700
-From: Kees Cook <keescook@chromium.org>
-To: linux-kernel@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] af9035: make sure loading modules is const
-Message-ID: <20141020214734.GA32228@www.outflux.net>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:39325 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756934AbaJ3Tjy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 15:39:54 -0400
+Received: by mail-lb0-f170.google.com with SMTP id 10so4948855lbg.29
+        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 12:39:53 -0700 (PDT)
+Date: Thu, 30 Oct 2014 21:39:51 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Nibble Max <nibble.max@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] cx23885: add DVBSky S950C and T980C RC support
+In-Reply-To: <201410231802135463883@gmail.com>
+Message-ID: <alpine.DEB.2.10.1410302139200.1436@dl160.lan>
+References: <201410231802135463883@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure that loaded modules are const char strings so we don't
-load arbitrary modules in the future, nor allow for format string
-leaks in the module request call.
+Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Thu, 23 Oct 2014, Nibble Max wrote:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 00758c83eec7..1896ab218b11 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -193,8 +193,8 @@ static int af9035_wr_reg_mask(struct dvb_usb_device *d, u32 reg, u8 val,
- 	return af9035_wr_regs(d, reg, &val, 1);
- }
- 
--static int af9035_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
--		void *platform_data, struct i2c_adapter *adapter)
-+static int af9035_add_i2c_dev(struct dvb_usb_device *d, const char *type,
-+		u8 addr, void *platform_data, struct i2c_adapter *adapter)
- {
- 	int ret, num;
- 	struct state *state = d_to_priv(d);
-@@ -221,7 +221,7 @@ static int af9035_add_i2c_dev(struct dvb_usb_device *d, char *type, u8 addr,
- 		goto err;
- 	}
- 
--	request_module(board_info.type);
-+	request_module("%s", board_info.type);
- 
- 	/* register I2C device */
- 	client = i2c_new_device(adapter, &board_info);
--- 
-1.9.1
-
-
--- 
-Kees Cook
-Chrome OS Security
+> DVBSky s950ci dvb-s/s2 ci PCIe card:
+> 1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
+> 2>ci controller: CIMAX SP2 or its clone.
+> 3>PCIe bridge: CX23885
+>
+> The patchs are based on the following patchs.
+> Olli Salonen submit:
+> https://patchwork.linuxtv.org/patch/26180/
+> https://patchwork.linuxtv.org/patch/26183/
+> https://patchwork.linuxtv.org/patch/26324/
+> Nibble Max submit:
+> https://patchwork.linuxtv.org/patch/26207/
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+> drivers/media/pci/cx23885/cx23885-cards.c | 6 ++++++
+> drivers/media/pci/cx23885/cx23885-input.c | 6 ++++++
+> 2 files changed, 12 insertions(+)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> index ac34c27..d9ba48c 100644
+> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+> @@ -1669,6 +1669,8 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_TBS_6980:
+> 	case CX23885_BOARD_TBS_6981:
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		if (!enable_885_ir)
+> 			break;
+> 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+> @@ -1716,6 +1718,8 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_TBS_6980:
+> 	case CX23885_BOARD_TBS_6981:
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+> 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+> 		dev->sd_ir = NULL;
+> @@ -1764,6 +1768,8 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_TBS_6980:
+> 	case CX23885_BOARD_TBS_6981:
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		if (dev->sd_ir)
+> 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+> 		break;
+> diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+> index f81c2f9..0bf6839 100644
+> --- a/drivers/media/pci/cx23885/cx23885-input.c
+> +++ b/drivers/media/pci/cx23885/cx23885-input.c
+> @@ -88,6 +88,8 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+> 	case CX23885_BOARD_TBS_6980:
+> 	case CX23885_BOARD_TBS_6981:
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		/*
+> 		 * The only boards we handle right now.  However other boards
+> 		 * using the CX2388x integrated IR controller should be similar
+> @@ -141,6 +143,8 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+> 	case CX23885_BOARD_MYGICA_X8507:
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		/*
+> 		 * The IR controller on this board only returns pulse widths.
+> 		 * Any other mode setting will fail to set up the device.
+> @@ -308,6 +312,8 @@ int cx23885_input_init(struct cx23885_dev *dev)
+> 		rc_map = RC_MAP_TBS_NEC;
+> 		break;
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T980C:
+> +	case CX23885_BOARD_DVBSKY_S950C:
+> 		/* Integrated CX23885 IR controller */
+> 		driver_type = RC_DRIVER_IR_RAW;
+> 		allowed_protos = RC_BIT_ALL;
+>
+> -- 
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
