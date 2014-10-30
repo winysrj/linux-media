@@ -1,135 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:33868 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755833AbaJXOYU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Oct 2014 10:24:20 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH 1/1] yavta: Add --queue-late option for delay queueing buffers over streaming start
-Date: Fri, 24 Oct 2014 17:23:58 +0300
-Message-Id: <1414160638-27974-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:60090 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759254AbaJ3KxT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 06:53:19 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Vlad Catoi <vladcatoi@gmail.com>,
+	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
+	Daniel Mack <zonque@gmail.com>, alsa-devel@alsa-project.org,
+	stable@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 2/2] [media] sound: Update au0828 quirks table
+Date: Thu, 30 Oct 2014 08:53:05 -0200
+Message-Id: <387188328806b20a9d0f39bdab7aa6aa5d013d43.1414666159.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
+References: <cover.1414666159.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414666159.git.mchehab@osg.samsung.com>
+References: <cover.1414666159.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Queue buffers to the device after VIDIOC_STREAMON, not before. This does not
-affect queueing behaviour otherwise.
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- yavta.c | 29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+The au0828 quirks table is currently not in sync with the au0828
+media driver.
 
-diff --git a/yavta.c b/yavta.c
-index 20bbe29..7f9e814 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -1429,7 +1429,6 @@ static int video_prepare_capture(struct device *dev, int nbufs, unsigned int off
- 				 const char *filename, enum buffer_fill_mode fill)
+Syncronize it and put them on the same order as found at au0828
+driver, as all the au0828 devices with analog TV need the
+same quirks.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
+index 5ae1d02d17a3..8a6b366f2925 100644
+--- a/sound/usb/quirks-table.h
++++ b/sound/usb/quirks-table.h
+@@ -2827,14 +2827,22 @@ YAMAHA_DEVICE(0x7010, "UB99"),
+ }
+ 
+ AU0828_DEVICE(0x2040, 0x7200, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
+ AU0828_DEVICE(0x2040, 0x7210, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x7217, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721b, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721e, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721f, "Hauppauge", "HVR-950Q"),
+-AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
+ AU0828_DEVICE(0x2040, 0x7280, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x0fd9, 0x0008, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7201, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x2040, 0x7211, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x2040, 0x7281, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x05e1, 0x0480, "Hauppauge", "Woodbury"),
++AU0828_DEVICE(0x2040, 0x8200, "Hauppauge", "Woodbury"),
++AU0828_DEVICE(0x2040, 0x7260, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7213, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7270, "Hauppauge", "HVR-950Q"),
+ 
+ /* Digidesign Mbox */
  {
- 	unsigned int padding;
--	unsigned int i;
- 	int ret;
- 
- 	/* Allocate and map buffers. */
-@@ -1443,6 +1442,14 @@ static int video_prepare_capture(struct device *dev, int nbufs, unsigned int off
- 			return ret;
- 	}
- 
-+	return 0;
-+}
-+
-+static int video_queue_all_buffers(struct device *dev, enum buffer_fill_mode fill)
-+{
-+	unsigned int i;
-+	int ret;
-+
- 	/* Queue the buffers. */
- 	for (i = 0; i < dev->nbufs; ++i) {
- 		ret = video_queue_buffer(dev, i, fill);
-@@ -1554,7 +1561,7 @@ static void video_save_image(struct device *dev, struct v4l2_buffer *buf,
- 
- static int video_do_capture(struct device *dev, unsigned int nframes,
- 	unsigned int skip, unsigned int delay, const char *pattern,
--	int do_requeue_last, enum buffer_fill_mode fill)
-+	int do_requeue_last, int do_queue_late, enum buffer_fill_mode fill)
- {
- 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 	struct v4l2_buffer buf;
-@@ -1572,6 +1579,9 @@ static int video_do_capture(struct device *dev, unsigned int nframes,
- 	if (ret < 0)
- 		goto done;
- 
-+	if (do_queue_late)
-+		video_queue_all_buffers(dev, fill);
-+
- 	size = 0;
- 	clock_gettime(CLOCK_MONOTONIC, &start);
- 	last.tv_sec = start.tv_sec;
-@@ -1712,6 +1722,7 @@ static void usage(const char *argv0)
- 	printf("    --no-query			Don't query capabilities on open\n");
- 	printf("    --offset			User pointer buffer offset from page start\n");
- 	printf("    --premultiplied		Color components are premultiplied by alpha value\n");
-+	printf("    --queue-late		Queue buffers after streamon, not before\n");
- 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
- 	printf("    --timestamp-source		Set timestamp source on output buffers [eof, soe]\n");
- 	printf("    --skip n			Skip the first n frames\n");
-@@ -1733,6 +1744,7 @@ static void usage(const char *argv0)
- #define OPT_LOG_STATUS		267
- #define OPT_BUFFER_SIZE		268
- #define OPT_PREMULTIPLIED	269
-+#define OPT_QUEUE_LATE		270
- 
- static struct option opts[] = {
- 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
-@@ -1757,6 +1769,7 @@ static struct option opts[] = {
- 	{"pause", 0, 0, 'p'},
- 	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
- 	{"quality", 1, 0, 'q'},
-+	{"queue-late", 0, 0, OPT_QUEUE_LATE},
- 	{"get-control", 1, 0, 'r'},
- 	{"requeue-last", 0, 0, OPT_REQUEUE_LAST},
- 	{"realtime", 2, 0, 'R'},
-@@ -1788,7 +1801,7 @@ int main(int argc, char *argv[])
- 	int do_list_controls = 0, do_get_control = 0, do_set_control = 0;
- 	int do_sleep_forever = 0, do_requeue_last = 0;
- 	int do_rt = 0, do_log_status = 0;
--	int no_query = 0;
-+	int no_query = 0, do_queue_late = 0;
- 	char *endptr;
- 	int c;
- 
-@@ -1971,6 +1984,9 @@ int main(int argc, char *argv[])
- 		case OPT_PREMULTIPLIED:
- 			fmt_flags |= V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
- 			break;
-+		case OPT_QUEUE_LATE:
-+			do_queue_late = 1;
-+			break;
- 		case OPT_REQUEUE_LAST:
- 			do_requeue_last = 1;
- 			break;
-@@ -2107,6 +2123,11 @@ int main(int argc, char *argv[])
- 		return 1;
- 	}
- 
-+	if (!do_queue_late && video_queue_all_buffers(&dev, fill_mode)) {
-+		video_close(&dev);
-+		return 1;
-+	}
-+
- 	if (do_pause) {
- 		printf("Press enter to start capture\n");
- 		getchar();
-@@ -2122,7 +2143,7 @@ int main(int argc, char *argv[])
- 	}
- 
- 	if (video_do_capture(&dev, nframes, skip, delay, filename,
--			     do_requeue_last, fill_mode) < 0) {
-+			     do_requeue_last, do_queue_late, fill_mode) < 0) {
- 		video_close(&dev);
- 		return 1;
- 	}
 -- 
-2.1.0.231.g7484e3b
+1.9.3
 
