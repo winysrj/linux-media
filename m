@@ -1,155 +1,504 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35150 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748AbaJDE0T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Oct 2014 00:26:19 -0400
-Message-ID: <542F76E5.8080601@iki.fi>
-Date: Sat, 04 Oct 2014 07:26:13 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Bimow Chen <Bimow.Chen@ite.com.tw>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct
- issue
-References: <1412227954.1699.2.camel@ite-desktop>
-In-Reply-To: <1412227954.1699.2.camel@ite-desktop>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51528 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759180AbaJ3OQF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 10:16:05 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] cx23885-dvb: Fix some issues at the DVB error handling
+Date: Thu, 30 Oct 2014 12:15:53 -0200
+Message-Id: <1414678553-10191-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-I did some review and testing. Before that patch, IT9133 DVBv3 signal 
-strength measurement was broken - it returned 0xffff all the time. After 
-that is returns some realistic values between 0-0xffff.
+As pointed by smatch:
+	drivers/media/pci/cx23885/cx23885-dvb.c:1066 dvb_register() error: we previously assumed 'fe0->dvb.frontend' could be null (see line 1060)
+	drivers/media/pci/cx23885/cx23885-dvb.c:1990 cx23885_dvb_register() error: we previously assumed 'fe0' could be null (see line 1975)
 
-Anyhow, AF9033 chip version it worked earlier too, just like old comment 
-says hw returns 0-100, which was scaled to 0-0xffff.
+What happens is that the error handling logic when a frontend
+register fails sometimes keep doing the work, as if it didn't
+fail.
 
-AF9033 and IT9133 firmware differs on signal strength measurement. For 
-AF9033 it provides both percentage and dBm reports, for IT9133 I know 
-only dBm report.
+This could potentially cause an OOPS. So, simplify the logic
+a little bit and return an error if frontend fails before
+trying to setup VB2 queue.
 
-AF9033:
-0x800048 relative (0-100, percentage)
-0x80004a decibel (-VAL dBm)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 290 ++++++++++++++++----------------
+ 1 file changed, 145 insertions(+), 145 deletions(-)
 
-IT9133:
-0x8000f7 decibel (VAL - 100 dBm)
-
-
-Now you changed that AF9033 implementation from 0x800048 (percentage) to 
-0x80004a (dBm) and scale that to 0-0xffff, which results poorer result 
-than old implementation calculated by firmware.
-
-What I tested that implementation, it gives maximum value 0x6e14, which 
-we could calc is 43dBm. I was using -18dBm RF level (which is very very 
-strong), so I suspect that 43dBm is maximum what firmware even could 
-report. Having maximum possible signal strength only 43% (out of 100%) 
-is not nice.
-
-
-So I ask you change AF9035 as it has been (percentage reported by FW). 
-Change only non-working IT9135 what you like.
-
-Also, add error checking just after register reads and jump out if fails.
-
-regards
-Antti
-
-
-On 10/02/2014 08:32 AM, Bimow Chen wrote:
-> Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
->
->
-> 0001-af9033-fix-DVBv3-signal-strength-value-not-correct-i.patch
->
->
->>From 02ee7de4600a43a322f75cf04d273effa04d3a42 Mon Sep 17 00:00:00 2001
-> From: Bimow Chen<Bimow.Chen@ite.com.tw>
-> Date: Wed, 1 Oct 2014 18:28:54 +0800
-> Subject: [PATCH 1/2] af9033: fix DVBv3 signal strength value not correct issue
->
-> Register 0x800048 is not dB measure but relative scale. Fix it and conform to NorDig specifications.
->
-> Signed-off-by: Bimow Chen<Bimow.Chen@ite.com.tw>
-> ---
->   drivers/media/dvb-frontends/af9033.c      |   43 +++++++++++++++++++++++-----
->   drivers/media/dvb-frontends/af9033_priv.h |    6 ++++
->   2 files changed, 41 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-> index 63a89c1..2b3d2f0 100644
-> --- a/drivers/media/dvb-frontends/af9033.c
-> +++ b/drivers/media/dvb-frontends/af9033.c
-> @@ -862,16 +862,43 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
->   static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
->   {
->   	struct af9033_dev *dev = fe->demodulator_priv;
-> -	int ret;
-> -	u8 strength2;
-> +	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
-> +	int ret, tmp, power_real;
-> +	u8 u8tmp, gain_offset, buf[7];
->
-> -	/* read signal strength of 0-100 scale */
-> -	ret = af9033_rd_reg(dev, 0x800048, &strength2);
-> -	if (ret < 0)
-> -		goto err;
-> +	if (dev->is_af9035) {
-> +		ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
-> +		/* scale value to 0x0000-0xffff */
-> +		*strength = u8tmp * 0xffff / 100;
-> +	} else {
-> +		ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
-> +		ret |= af9033_rd_regs(dev, 0x80f900, buf, 7);
-> +
-> +		if (c->frequency <= 300000000)
-> +			gain_offset = 7; /* VHF */
-> +		else
-> +			gain_offset = 4; /* UHF */
-> +
-> +		power_real = (u8tmp - 100 - gain_offset) -
-> +			power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
-> +
-> +		if (power_real < -15)
-> +			tmp = 0;
-> +		else if ((power_real >= -15) && (power_real < 0))
-> +			tmp = (2 * (power_real + 15)) / 3;
-> +		else if ((power_real >= 0) && (power_real < 20))
-> +			tmp = 4 * power_real + 10;
-> +		else if ((power_real >= 20) && (power_real < 35))
-> +			tmp = (2 * (power_real - 20)) / 3 + 90;
-> +		else
-> +			tmp = 100;
-> +
-> +		/* scale value to 0x0000-0xffff */
-> +		*strength = tmp * 0xffff / 100;
-> +	}
->
-> -	/* scale value to 0x0000-0xffff */
-> -	*strength = strength2 * 0xffff / 100;
-> +	if (ret)
-> +		goto err;
->
->   	return 0;
->
-> diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-> index c12c92c..c9c8798 100644
-> --- a/drivers/media/dvb-frontends/af9033_priv.h
-> +++ b/drivers/media/dvb-frontends/af9033_priv.h
-> @@ -2051,4 +2051,10 @@ static const struct reg_val tuner_init_it9135_62[] = {
->   	{ 0x80fd8b, 0x00 },
->   };
->
-> +/* NorDig power reference table */
-> +static const int power_reference[][5] = {
-> +	{-93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
-> +	{-87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
-> +	{-82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
-> +};
->   #endif /* AF9033_PRIV_H */
-> -- 1.7.0.4
->
-
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 757854914781..043d9c91fbbd 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1045,11 +1045,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+ 						&hauppauge_generic_config,
+ 						&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(mt2131_attach, fe0->dvb.frontend,
+-				   &i2c_bus->i2c_adap,
+-				   &hauppauge_generic_tunerconfig, 0);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(mt2131_attach, fe0->dvb.frontend,
++			   &i2c_bus->i2c_adap,
++			   &hauppauge_generic_tunerconfig, 0);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1270:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1275:
+@@ -1057,11 +1057,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(lgdt3305_attach,
+ 					       &hauppauge_lgdt3305_config,
+ 					       &i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-				   0x60, &dev->i2c_bus[1].i2c_adap,
+-				   &hauppauge_hvr127x_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(tda18271_attach, fe0->dvb.frontend,
++			   0x60, &dev->i2c_bus[1].i2c_adap,
++			   &hauppauge_hvr127x_config);
+ 		if (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1275)
+ 			cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
+@@ -1071,11 +1071,12 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(s5h1411_attach,
+ 					       &hcw_s5h1411_config,
+ 					       &i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-				   0x60, &dev->i2c_bus[1].i2c_adap,
+-				   &hauppauge_tda18271_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++
++		dvb_attach(tda18271_attach, fe0->dvb.frontend,
++			   0x60, &dev->i2c_bus[1].i2c_adap,
++			   &hauppauge_tda18271_config);
+ 
+ 		tda18271_attach(&dev->ts1.analog_fe,
+ 			0x60, &dev->i2c_bus[1].i2c_adap,
+@@ -1090,14 +1091,15 @@ static int dvb_register(struct cx23885_tsport *port)
+ 				dvb_attach(s5h1409_attach,
+ 					   &hauppauge_ezqam_config,
+ 					   &i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				dvb_attach(tda829x_attach, fe0->dvb.frontend,
+-					   &dev->i2c_bus[1].i2c_adap, 0x42,
+-					   &tda829x_no_probe);
+-				dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-					   0x60, &dev->i2c_bus[1].i2c_adap,
+-					   &hauppauge_tda18271_config);
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++
++			dvb_attach(tda829x_attach, fe0->dvb.frontend,
++				   &dev->i2c_bus[1].i2c_adap, 0x42,
++				   &tda829x_no_probe);
++			dvb_attach(tda18271_attach, fe0->dvb.frontend,
++				   0x60, &dev->i2c_bus[1].i2c_adap,
++				   &hauppauge_tda18271_config);
+ 			break;
+ 		case 0:
+ 		default:
+@@ -1105,11 +1107,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 				dvb_attach(s5h1409_attach,
+ 					   &hauppauge_generic_config,
+ 					   &i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL)
+-				dvb_attach(mt2131_attach, fe0->dvb.frontend,
+-					   &i2c_bus->i2c_adap,
+-					   &hauppauge_generic_tunerconfig, 0);
+-			break;
++			if (fe0->dvb.frontend == NULL)
++				break;
++			dvb_attach(mt2131_attach, fe0->dvb.frontend,
++				   &i2c_bus->i2c_adap,
++				   &hauppauge_generic_tunerconfig, 0);
+ 		}
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
+@@ -1117,32 +1119,33 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+ 						&hauppauge_hvr1800lp_config,
+ 						&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(mt2131_attach, fe0->dvb.frontend,
+-				   &i2c_bus->i2c_adap,
+-				   &hauppauge_generic_tunerconfig, 0);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(mt2131_attach, fe0->dvb.frontend,
++			   &i2c_bus->i2c_adap,
++			   &hauppauge_generic_tunerconfig, 0);
+ 		break;
+ 	case CX23885_BOARD_DVICO_FUSIONHDTV_5_EXP:
+ 		i2c_bus = &dev->i2c_bus[0];
+ 		fe0->dvb.frontend = dvb_attach(lgdt330x_attach,
+ 						&fusionhdtv_5_express,
+ 						&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(simple_tuner_attach, fe0->dvb.frontend,
+-				   &i2c_bus->i2c_adap, 0x61,
+-				   TUNER_LG_TDVS_H06XF);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(simple_tuner_attach, fe0->dvb.frontend,
++			   &i2c_bus->i2c_adap, 0x61,
++			   TUNER_LG_TDVS_H06XF);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+ 		i2c_bus = &dev->i2c_bus[1];
+ 		fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+ 						&hauppauge_hvr1500q_config,
+ 						&dev->i2c_bus[0].i2c_adap);
+-		if (fe0->dvb.frontend != NULL)
+-			dvb_attach(xc5000_attach, fe0->dvb.frontend,
+-				   &i2c_bus->i2c_adap,
+-				   &hauppauge_hvr1500q_tunerconfig);
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(xc5000_attach, fe0->dvb.frontend,
++			   &i2c_bus->i2c_adap,
++			   &hauppauge_hvr1500q_tunerconfig);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 		i2c_bus = &dev->i2c_bus[1];
+@@ -1173,14 +1176,14 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
+ 			&hauppauge_hvr1200_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(tda829x_attach, fe0->dvb.frontend,
+-				&dev->i2c_bus[1].i2c_adap, 0x42,
+-				&tda829x_no_probe);
+-			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-				0x60, &dev->i2c_bus[1].i2c_adap,
+-				&hauppauge_hvr1200_tuner_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(tda829x_attach, fe0->dvb.frontend,
++			   &dev->i2c_bus[1].i2c_adap, 0x42,
++			   &tda829x_no_probe);
++		dvb_attach(tda18271_attach, fe0->dvb.frontend,
++			   0x60, &dev->i2c_bus[1].i2c_adap,
++			   &hauppauge_hvr1200_tuner_config);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1210:
+ 		i2c_bus = &dev->i2c_bus[0];
+@@ -1439,12 +1442,10 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(lgs8gxx_attach,
+ 			&mygica_x8506_lgs8gl5_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(xc5000_attach,
+-				fe0->dvb.frontend,
+-				&i2c_bus2->i2c_adap,
+-				&mygica_x8506_xc5000_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(xc5000_attach, fe0->dvb.frontend,
++			   &i2c_bus2->i2c_adap, &mygica_x8506_xc5000_config);
+ 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8507:
+@@ -1453,12 +1454,12 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
+ 			&mygica_x8507_mb86a20s_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(xc5000_attach,
+-			fe0->dvb.frontend,
+-			&i2c_bus2->i2c_adap,
+-			&mygica_x8507_xc5000_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++
++		dvb_attach(xc5000_attach, fe0->dvb.frontend,
++			   &i2c_bus2->i2c_adap,
++			   &mygica_x8507_xc5000_config);
+ 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+@@ -1467,12 +1468,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(lgs8gxx_attach,
+ 			&magicpro_prohdtve2_lgs8g75_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(xc5000_attach,
+-				fe0->dvb.frontend,
+-				&i2c_bus2->i2c_adap,
+-				&magicpro_prohdtve2_xc5000_config);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(xc5000_attach, fe0->dvb.frontend,
++			   &i2c_bus2->i2c_adap,
++			   &magicpro_prohdtve2_xc5000_config);
+ 		cx23885_set_frontend_hook(port, fe0->dvb.frontend);
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+@@ -1480,10 +1480,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(s5h1411_attach,
+ 			&hcw_s5h1411_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL)
+-			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-				0x60, &dev->i2c_bus[0].i2c_adap,
+-				&hauppauge_tda18271_config);
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(tda18271_attach, fe0->dvb.frontend,
++			   0x60, &dev->i2c_bus[0].i2c_adap,
++			   &hauppauge_tda18271_config);
+ 
+ 		tda18271_attach(&dev->ts1.analog_fe,
+ 			0x60, &dev->i2c_bus[1].i2c_adap,
+@@ -1495,10 +1496,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(s5h1411_attach,
+ 			&hcw_s5h1411_config,
+ 			&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL)
+-			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+-				0x60, &dev->i2c_bus[0].i2c_adap,
+-				&hauppauge_tda18271_config);
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(tda18271_attach, fe0->dvb.frontend,
++			   0x60, &dev->i2c_bus[0].i2c_adap,
++			   &hauppauge_tda18271_config);
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8558PRO:
+ 		switch (port->nr) {
+@@ -1508,12 +1510,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			fe0->dvb.frontend = dvb_attach(atbm8830_attach,
+ 				&mygica_x8558pro_atbm8830_cfg1,
+ 				&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				dvb_attach(max2165_attach,
+-					fe0->dvb.frontend,
+-					&i2c_bus->i2c_adap,
+-					&mygic_x8558pro_max2165_cfg1);
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++			dvb_attach(max2165_attach, fe0->dvb.frontend,
++				   &i2c_bus->i2c_adap,
++				   &mygic_x8558pro_max2165_cfg1);
+ 			break;
+ 		/* port C */
+ 		case 2:
+@@ -1521,13 +1522,11 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			fe0->dvb.frontend = dvb_attach(atbm8830_attach,
+ 				&mygica_x8558pro_atbm8830_cfg2,
+ 				&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				dvb_attach(max2165_attach,
+-					fe0->dvb.frontend,
+-					&i2c_bus->i2c_adap,
+-					&mygic_x8558pro_max2165_cfg2);
+-			}
+-			break;
++			if (fe0->dvb.frontend == NULL)
++				break;
++			dvb_attach(max2165_attach, fe0->dvb.frontend,
++				   &i2c_bus->i2c_adap,
++				   &mygic_x8558pro_max2165_cfg2);
+ 		}
+ 		break;
+ 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
+@@ -1539,15 +1538,15 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(stv0367ter_attach,
+ 					&netup_stv0367_config[port->nr - 1],
+ 					&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			if (NULL == dvb_attach(xc5000_attach,
+-					fe0->dvb.frontend,
++		if (fe0->dvb.frontend == NULL)
++			break;
++		if (NULL == dvb_attach(xc5000_attach, fe0->dvb.frontend,
+ 					&i2c_bus->i2c_adap,
+ 					&netup_xc5000_config[port->nr - 1]))
+-				goto frontend_detach;
+-			/* load xc5000 firmware */
+-			fe0->dvb.frontend->ops.tuner_ops.init(fe0->dvb.frontend);
+-		}
++			goto frontend_detach;
++		/* load xc5000 firmware */
++		fe0->dvb.frontend->ops.tuner_ops.init(fe0->dvb.frontend);
++
+ 		/* MFE frontend 2 */
+ 		fe1 = vb2_dvb_get_frontend(&port->frontends, 2);
+ 		if (fe1 == NULL)
+@@ -1556,14 +1555,15 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe1->dvb.frontend = dvb_attach(stv0367cab_attach,
+ 					&netup_stv0367_config[port->nr - 1],
+ 					&i2c_bus->i2c_adap);
+-		if (fe1->dvb.frontend != NULL) {
+-			fe1->dvb.frontend->id = 1;
+-			if (NULL == dvb_attach(xc5000_attach,
+-					fe1->dvb.frontend,
+-					&i2c_bus->i2c_adap,
+-					&netup_xc5000_config[port->nr - 1]))
+-				goto frontend_detach;
+-		}
++		if (fe1->dvb.frontend == NULL)
++			break;
++
++		fe1->dvb.frontend->id = 1;
++		if (NULL == dvb_attach(xc5000_attach,
++				       fe1->dvb.frontend,
++				       &i2c_bus->i2c_adap,
++				       &netup_xc5000_config[port->nr - 1]))
++			goto frontend_detach;
+ 		break;
+ 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		i2c_bus = &dev->i2c_bus[0];
+@@ -1575,26 +1575,26 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			fe0->dvb.frontend = dvb_attach(drxk_attach,
+ 					&terratec_drxk_config[0],
+ 					&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				if (!dvb_attach(mt2063_attach,
+-						fe0->dvb.frontend,
+-						&terratec_mt2063_config[0],
+-						&i2c_bus2->i2c_adap))
+-					goto frontend_detach;
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++			if (!dvb_attach(mt2063_attach,
++					fe0->dvb.frontend,
++					&terratec_mt2063_config[0],
++					&i2c_bus2->i2c_adap))
++				goto frontend_detach;
+ 			break;
+ 		/* port c */
+ 		case 2:
+ 			fe0->dvb.frontend = dvb_attach(drxk_attach,
+ 					&terratec_drxk_config[1],
+ 					&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				if (!dvb_attach(mt2063_attach,
+-						fe0->dvb.frontend,
+-						&terratec_mt2063_config[1],
+-						&i2c_bus2->i2c_adap))
+-					goto frontend_detach;
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++			if (!dvb_attach(mt2063_attach,
++					fe0->dvb.frontend,
++					&terratec_mt2063_config[1],
++					&i2c_bus2->i2c_adap))
++				goto frontend_detach;
+ 			break;
+ 		}
+ 		break;
+@@ -1604,10 +1604,10 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		fe0->dvb.frontend = dvb_attach(ds3000_attach,
+ 					&tevii_ds3000_config,
+ 					&i2c_bus->i2c_adap);
+-		if (fe0->dvb.frontend != NULL) {
+-			dvb_attach(ts2020_attach, fe0->dvb.frontend,
+-				&tevii_ts2020_config, &i2c_bus->i2c_adap);
+-		}
++		if (fe0->dvb.frontend == NULL)
++			break;
++		dvb_attach(ts2020_attach, fe0->dvb.frontend,
++			   &tevii_ts2020_config, &i2c_bus->i2c_adap);
+ 		break;
+ 	case CX23885_BOARD_PROF_8000:
+ 		i2c_bus = &dev->i2c_bus[0];
+@@ -1616,15 +1616,15 @@ static int dvb_register(struct cx23885_tsport *port)
+ 						&prof_8000_stv090x_config,
+ 						&i2c_bus->i2c_adap,
+ 						STV090x_DEMODULATOR_0);
+-		if (fe0->dvb.frontend != NULL) {
+-			if (!dvb_attach(stb6100_attach,
+-					fe0->dvb.frontend,
+-					&prof_8000_stb6100_config,
+-					&i2c_bus->i2c_adap))
+-				goto frontend_detach;
++		if (fe0->dvb.frontend == NULL)
++			break;
++		if (!dvb_attach(stb6100_attach,
++				fe0->dvb.frontend,
++				&prof_8000_stb6100_config,
++				&i2c_bus->i2c_adap))
++			goto frontend_detach;
+ 
+-			fe0->dvb.frontend->ops.set_voltage = p8000_set_voltage;
+-		}
++		fe0->dvb.frontend->ops.set_voltage = p8000_set_voltage;
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR4400:
+ 		i2c_bus = &dev->i2c_bus[0];
+@@ -1635,26 +1635,26 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			fe0->dvb.frontend = dvb_attach(tda10071_attach,
+ 						&hauppauge_tda10071_config,
+ 						&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				if (!dvb_attach(a8293_attach, fe0->dvb.frontend,
+-						&i2c_bus->i2c_adap,
+-						&hauppauge_a8293_config))
+-					goto frontend_detach;
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++			if (!dvb_attach(a8293_attach, fe0->dvb.frontend,
++					&i2c_bus->i2c_adap,
++					&hauppauge_a8293_config))
++				goto frontend_detach;
+ 			break;
+ 		/* port c */
+ 		case 2:
+ 			fe0->dvb.frontend = dvb_attach(si2165_attach,
+ 					&hauppauge_hvr4400_si2165_config,
+ 					&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend != NULL) {
+-				fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+-				if (!dvb_attach(tda18271_attach,
+-						fe0->dvb.frontend,
+-						0x60, &i2c_bus2->i2c_adap,
+-					  &hauppauge_hvr4400_tuner_config))
+-					goto frontend_detach;
+-			}
++			if (fe0->dvb.frontend == NULL)
++				break;
++			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
++			if (!dvb_attach(tda18271_attach,
++					fe0->dvb.frontend,
++					0x60, &i2c_bus2->i2c_adap,
++				  &hauppauge_hvr4400_tuner_config))
++				goto frontend_detach;
+ 			break;
+ 		}
+ 		break;
+@@ -1973,7 +1973,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
+ 
+ 		fe0 = vb2_dvb_get_frontend(&port->frontends, i);
+ 		if (!fe0)
+-			err = -EINVAL;
++			return -EINVAL;
+ 
+ 		dprintk(1, "%s\n", __func__);
+ 		dprintk(1, " ->probed by Card=%d Name=%s, PCI %02x:%02x\n",
 -- 
-http://palosaari.fi/
+1.9.3
+
