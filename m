@@ -1,77 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37627 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbaJJIHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 04:07:49 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ND700C16YP4FV60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Oct 2014 09:10:16 +0100 (BST)
-Message-id: <543793B9.4020100@samsung.com>
-Date: Fri, 10 Oct 2014 10:07:21 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/1] Add a libv4l plugin for Exynos4 camera
-References: <1412757980-23570-1-git-send-email-j.anaszewski@samsung.com>
- <1412757980-23570-2-git-send-email-j.anaszewski@samsung.com>
- <54353124.1060704@redhat.com> <54353AA3.3040506@samsung.com>
- <54364566.9030102@redhat.com>
-In-reply-to: <54364566.9030102@redhat.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp.gentoo.org ([140.211.166.183]:34997 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161019AbaJ3UND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 16:13:03 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v4 02/14] cx231xx: use own i2c_client for eeprom access
+Date: Thu, 30 Oct 2014 21:12:23 +0100
+Message-Id: <1414699955-5760-3-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is a preparation for deleting the otherwise useless i2c_clients
+that are allocated for all the i2c master adapters.
 
-On 10/09/2014 10:20 AM, Hans de Goede wrote:
-> Hi,
->
-> On 10/08/2014 03:22 PM, Jacek Anaszewski wrote:
->> Hi Hans,
->>
->> On 10/08/2014 02:42 PM, Hans de Goede wrote:
->
-> <snip>
->
->>>> +    }
->>>> +
->>>> +    /* refresh device topology data after linking */
->>>> +    release_entities(mdev);
->>>> +
->>>> +    ret = get_device_topology(mdev);
->>>> +
->>>> +    /* close media device fd as it won't be longer required */
->>>> +    close(mdev->media_fd);
->>>> +
->>>> +    if (ret < 0)
->>>> +        goto err_get_dev_topology;
->>>> +
->>>> +    /* discover a pipeline for the capture device */
->>>> +    ret = discover_pipeline_by_fd(mdev, fd);
->>>> +    if (ret < 0)
->>>> +        goto err_discover_pipeline;
->>>
->>> There does not seem to be any code here to ensure that this plugin does
->>> not bind to non exonys4 fimc devices. Please fix that.
->>
->> There is. Please look above at the
->>
->> "if (!capture_entity(media_entity_name))" condition above.
->
-> I already checked that, that just checks for the string "capture", which is
-> way too generic, please add a more narrow guard.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-While making cleanup I mistakenly removed checking for the driver name
-after QUERYCAP in the beginning of plugin_init. Will fix it in the next
-version.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 791f00c..092fb85 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -980,23 +980,20 @@ static void cx231xx_config_tuner(struct cx231xx *dev)
+ 
+ }
+ 
+-static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
++static int read_eeprom(struct cx231xx *dev, struct i2c_client *client,
++		       u8 *eedata, int len)
+ {
+ 	int ret = 0;
+-	u8 addr = 0xa0 >> 1;
+ 	u8 start_offset = 0;
+ 	int len_todo = len;
+ 	u8 *eedata_cur = eedata;
+ 	int i;
+-	struct i2c_msg msg_write = { .addr = addr, .flags = 0,
++	struct i2c_msg msg_write = { .addr = client->addr, .flags = 0,
+ 		.buf = &start_offset, .len = 1 };
+-	struct i2c_msg msg_read = { .addr = addr, .flags = I2C_M_RD };
+-
+-	/* mutex_lock(&dev->i2c_lock); */
+-	cx231xx_enable_i2c_port_3(dev, false);
++	struct i2c_msg msg_read = { .addr = client->addr, .flags = I2C_M_RD };
+ 
+ 	/* start reading at offset 0 */
+-	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
++	ret = i2c_transfer(client->adapter, &msg_write, 1);
+ 	if (ret < 0) {
+ 		cx231xx_err("Can't read eeprom\n");
+ 		return ret;
+@@ -1006,7 +1003,7 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
+ 		msg_read.len = (len_todo > 64) ? 64 : len_todo;
+ 		msg_read.buf = eedata_cur;
+ 
+-		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
++		ret = i2c_transfer(client->adapter, &msg_read, 1);
+ 		if (ret < 0) {
+ 			cx231xx_err("Can't read eeprom\n");
+ 			return ret;
+@@ -1062,9 +1059,14 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 		{
+ 			struct tveeprom tvee;
+ 			static u8 eeprom[256];
++			struct i2c_client client;
++
++			memset(&client, 0, sizeof(client));
++			client.adapter = &dev->i2c_bus[1].i2c_adap;
++			client.addr = 0xa0 >> 1;
+ 
+-			read_eeprom(dev, eeprom, sizeof(eeprom));
+-			tveeprom_hauppauge_analog(&dev->i2c_bus[1].i2c_client,
++			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
++			tveeprom_hauppauge_analog(&client,
+ 						&tvee, eeprom + 0xc0);
+ 			break;
+ 		}
+-- 
+2.1.2
 
-Regards,
-Jacek
