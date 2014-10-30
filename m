@@ -1,141 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:53991 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755642AbaJUPHp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 11:07:45 -0400
-From: Sebastian Reichel <sre@kernel.org>
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>
-Subject: [RFCv2 2/8] [media] si4713: switch reset gpio to devm_gpiod API
-Date: Tue, 21 Oct 2014 17:07:01 +0200
-Message-Id: <1413904027-16767-3-git-send-email-sre@kernel.org>
-In-Reply-To: <1413904027-16767-1-git-send-email-sre@kernel.org>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:64301 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760774AbaJ3TzZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 15:55:25 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAOcJUbyy59feGH4ME0O02QamYnn+1HPUvOc41tZ7+3p4e_GxGg@mail.gmail.com>
+References: <cover.1414668341.git.mchehab@osg.samsung.com>
+	<678fa12fb8e75c6dc1e781a02e3ddbbba7e1a904.1414668341.git.mchehab@osg.samsung.com>
+	<CAGoCfizkcdU1fgfLjFHwnH34HgpJBcznO+3RrqOMHpLUYKCNPg@mail.gmail.com>
+	<20141030113725.08b3aa40@recife.lan>
+	<CAOcJUbyy59feGH4ME0O02QamYnn+1HPUvOc41tZ7+3p4e_GxGg@mail.gmail.com>
+Date: Thu, 30 Oct 2014 15:55:24 -0400
+Message-ID: <CAOcJUbwaysG4TfR-nesPskYhSaLnrd6nHAsV_s=5SEsq+4iY7A@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] [media] sound: Update au0828 quirks table
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Daniel Mack <zonque@gmail.com>,
+	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
+	Vlad Catoi <vladcatoi@gmail.com>, alsa-devel@alsa-project.org,
+	stable@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This updates the driver to use the managed gpiod interface
-instead of the unmanged old GPIO API. This is a preperation
-for the introduction of device tree support.
+On Thu, Oct 30, 2014 at 3:52 PM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+> On Thu, Oct 30, 2014 at 9:37 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+>> Hi Devin,
+>>
+>> Em Thu, 30 Oct 2014 09:15:31 -0400
+>> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+>>
+>>> Hi Mauro,
+>>>
+>>> > Syncronize it and put them on the same order as found at au0828
+>>> > driver, as all the au0828 devices with analog TV need the
+>>> > same quirks.
+>>>
+>>> The MXL and Woodbury boards don't support analog under Linux, so
+>>> probably shouldn't be included in the list of quirks.
+>>
+>> True.
+>>>
+>>> That said, the MXL and Woodbury versions of the PCBs were prototypes
+>>> that never made it into production (and since the Auvitek chips are
+>>> EOL, they never will).  I wouldn't object to a patch which removed the
+>>> board profiles entirely in the interest of removing dead code.
+>>>
+>>> It was certainly nice of Mike Krufky to work to get support into the
+>>> open source driver before the product was released, but after four
+>>> years it probably makes sense to remove the entries for products that
+>>> never actually shipped.
+>>
+>> Yeah, if nobody is using such devices, then we should get rid of them,
+>> but I prefer to have this on a separate patch, in order to give
+>> people the opportunity to complain.
+>>
+>> So, if I'm understanding well, you're suggesting to add a patch
+>> removing those 5 entries (and the corresponding quirks on alsa),
+>> right?
+>>
+>>         { USB_DEVICE(0x2040, 0x7201),
+>>                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
+>>         { USB_DEVICE(0x2040, 0x7211),
+>>                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
+>>         { USB_DEVICE(0x2040, 0x7281),
+>>                 .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
+>>         { USB_DEVICE(0x05e1, 0x0480),
+>>                 .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
+>>         { USB_DEVICE(0x2040, 0x8200),
+>>                 .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
+>>         { USB_DEVICE(0x2040, 0x7260),
+>>
+>> Regards,
+>> Mauro
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> Let's *not* remove DTV support for WOODBURY board -- it is not the
+> business of the public whether or not the board shipped in
+> mass-production.  The board profile is in fact being used for some
+> reference designs, and I still use my woodbury prototype to test the
+> MXL tuner.
+>
+> I am not the only person using this profile -- no not remove it, please.
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/media/radio/si4713/si4713.c | 38 +++++++++++++++++--------------------
- drivers/media/radio/si4713/si4713.h |  3 ++-
- 2 files changed, 19 insertions(+), 22 deletions(-)
+correction:  I still use both the woodbury prototype (to test the
+reference design) *and* the MXL version for testing the mxl tuner.
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index b335093..e560a7e 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -383,9 +383,9 @@ static int si4713_powerup(struct si4713_device *sdev)
- 		}
- 	}
- 
--	if (gpio_is_valid(sdev->gpio_reset)) {
-+	if (!IS_ERR(sdev->gpio_reset)) {
- 		udelay(50);
--		gpio_set_value(sdev->gpio_reset, 1);
-+		gpiod_set_value(sdev->gpio_reset, 1);
- 	}
- 
- 	if (client->irq)
-@@ -407,8 +407,8 @@ static int si4713_powerup(struct si4713_device *sdev)
- 						SI4713_STC_INT | SI4713_CTS);
- 		return err;
- 	}
--	if (gpio_is_valid(sdev->gpio_reset))
--		gpio_set_value(sdev->gpio_reset, 0);
-+	if (!IS_ERR(sdev->gpio_reset))
-+		gpiod_set_value(sdev->gpio_reset, 0);
- 
- 
- 	if (sdev->vdd) {
-@@ -447,8 +447,8 @@ static int si4713_powerdown(struct si4713_device *sdev)
- 		v4l2_dbg(1, debug, &sdev->sd, "Power down response: 0x%02x\n",
- 				resp[0]);
- 		v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
--		if (gpio_is_valid(sdev->gpio_reset))
--			gpio_set_value(sdev->gpio_reset, 0);
-+		if (!IS_ERR(sdev->gpio_reset))
-+			gpiod_set_value(sdev->gpio_reset, 0);
- 
- 		if (sdev->vdd) {
- 			err = regulator_disable(sdev->vdd);
-@@ -1457,16 +1457,17 @@ static int si4713_probe(struct i2c_client *client,
- 		goto exit;
- 	}
- 
--	sdev->gpio_reset = -1;
--	if (pdata && gpio_is_valid(pdata->gpio_reset)) {
--		rval = gpio_request(pdata->gpio_reset, "si4713 reset");
--		if (rval) {
--			dev_err(&client->dev,
--				"Failed to request gpio: %d\n", rval);
--			goto free_sdev;
--		}
--		sdev->gpio_reset = pdata->gpio_reset;
--		gpio_direction_output(sdev->gpio_reset, 0);
-+	sdev->gpio_reset = devm_gpiod_get(&client->dev, "reset");
-+	if (!IS_ERR(sdev->gpio_reset)) {
-+		gpiod_direction_output(sdev->gpio_reset, 0);
-+	} else if (PTR_ERR(sdev->gpio_reset) == -ENOENT) {
-+		dev_dbg(&client->dev, "No reset GPIO assigned\n");
-+	} else if (PTR_ERR(sdev->gpio_reset) == -ENOSYS) {
-+		dev_dbg(&client->dev, "No reset GPIO support\n");
-+	} else {
-+		rval = PTR_ERR(sdev->gpio_reset);
-+		dev_err(&client->dev, "Failed to request gpio: %d\n", rval);
-+		goto free_sdev;
- 	}
- 
- 	sdev->vdd = devm_regulator_get_optional(&client->dev, "vdd");
-@@ -1614,9 +1615,6 @@ free_irq:
- 		free_irq(client->irq, sdev);
- free_ctrls:
- 	v4l2_ctrl_handler_free(hdl);
--free_gpio:
--	if (gpio_is_valid(sdev->gpio_reset))
--		gpio_free(sdev->gpio_reset);
- free_sdev:
- 	kfree(sdev);
- exit:
-@@ -1637,8 +1635,6 @@ static int si4713_remove(struct i2c_client *client)
- 
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
--	if (gpio_is_valid(sdev->gpio_reset))
--		gpio_free(sdev->gpio_reset);
- 	kfree(sdev);
- 
- 	return 0;
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index ed28ed2..7c2479f 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -16,6 +16,7 @@
- #define SI4713_I2C_H
- 
- #include <linux/regulator/consumer.h>
-+#include <linux/gpio/consumer.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/si4713.h>
-@@ -236,7 +237,7 @@ struct si4713_device {
- 	struct completion work;
- 	struct regulator *vdd;
- 	struct regulator *vio;
--	int gpio_reset;
-+	struct gpio_desc *gpio_reset;
- 	u32 power_state;
- 	u32 rds_enabled;
- 	u32 frequency;
--- 
-2.1.1
-
+There is no reason to remove these profiles, the USB IDs will not be recycled
