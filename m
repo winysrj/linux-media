@@ -1,52 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34096 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788AbaJBRI5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Oct 2014 13:08:57 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 09/10] [media] coda: try to only queue a single JPEG into the bitstream
-Date: Thu,  2 Oct 2014 19:08:34 +0200
-Message-Id: <1412269715-28388-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
-References: <1412269715-28388-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp.gentoo.org ([140.211.166.183]:35025 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161145AbaJ3UNQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 16:13:16 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v4 10/14] cx231xx: change usage of I2C_1 to the real i2c port
+Date: Thu, 30 Oct 2014 21:12:31 +0100
+Message-Id: <1414699955-5760-11-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With bitstream padding, it is possible to decode a single JPEG in the bitstream
-immediately. This allows us to only ever queue a single JPEG into the bitstream
-buffer, except to increase payload over 512 bytes or to back out of hold state.
-This is a measure to decrease JPEG decoder latency.
+change almost all instances of I2C_1 to I2C_1_MUX_3
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Only these cases are changed to I2C_1_MUX_1:
+* All that have dont_use_port_3 set.
+* CX231XX_BOARD_HAUPPAUGE_EXETER, old code did explicitly not switch to port3.
+* eeprom access for 930C
+
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/coda/coda-bit.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 27e0764..2a6810e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -221,6 +221,14 @@ void coda_fill_bitstream(struct coda_ctx *ctx)
- 	u32 start;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f5fb93a..4eb2057 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -104,7 +104,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -144,7 +144,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+@@ -184,7 +184,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -225,7 +225,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x1c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -297,7 +297,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x02,
+@@ -325,7 +325,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x32,
+@@ -353,7 +353,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_1,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -419,7 +419,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -457,7 +457,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x10,
+@@ -495,7 +495,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.tuner_sda_gpio = -1,
+ 		.gpio_pin_status_mask = 0x4001000,
+ 		.tuner_i2c_master = I2C_2,
+-		.demod_i2c_master = I2C_1,
++		.demod_i2c_master = I2C_1_MUX_3,
+ 		.ir_i2c_master = I2C_2,
+ 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
+ 		.has_dvb = 1,
+@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.norm = V4L2_STD_PAL,
  
- 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
-+		/*
-+		 * Only queue a single JPEG into the bitstream buffer, except
-+		 * to increase payload over 512 bytes or if in hold state.
-+		 */
-+		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG &&
-+		    (coda_get_bitstream_payload(ctx) >= 512) && !ctx->hold)
-+			break;
-+
- 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 		.input = {{
+@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.norm = V4L2_STD_NTSC,
  
- 		/* Buffer start position */
+ 		.input = {{
+@@ -718,7 +718,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -757,7 +757,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.ctl_pin_status_mask = 0xFFFFFFC4,
+ 		.agc_analog_digital_select_gpio = 0x0c,
+ 		.gpio_pin_status_mask = 0x4001000,
+-		.tuner_i2c_master = I2C_1,
++		.tuner_i2c_master = I2C_1_MUX_3,
+ 		.demod_i2c_master = I2C_2,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x0e,
+@@ -1064,7 +1064,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 			struct i2c_client client;
+ 
+ 			memset(&client, 0, sizeof(client));
+-			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1);
++			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1_MUX_1);
+ 			client.addr = 0xa0 >> 1;
+ 
+ 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
 -- 
-2.1.0
+2.1.2
 
