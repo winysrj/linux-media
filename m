@@ -1,57 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0101.hostedemail.com ([216.40.44.101]:44381 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751326AbaJ0FZU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 01:25:20 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
-	dri-devel@lists.freedesktop.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, patches@opensource.wolfsonmicro.com,
-	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-parisc@vger.kernel.org
-Cc: linux-input@vger.kernel.org, linux-wireless@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 00/11] treewide: mask then shift defects and style updates
-Date: Sun, 26 Oct 2014 22:24:56 -0700
-Message-Id: <cover.1414387334.git.joe@perches.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:35018 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161068AbaJ3UNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 16:13:12 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v4 08/14] cx231xx: remember status of i2c port_3 switch
+Date: Thu, 30 Oct 2014 21:12:29 +0100
+Message-Id: <1414699955-5760-9-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-logical mask has lower precedence than shift but should be
-done before the shift so parentheses are generally required.
+This is used later for is_tuner function that switches i2c behaviour for
+some tuners.
 
-And when masking with a fixed value after a shift, normal kernel
-style has the shift on the left, then the shift on the right so
-convert a few non-conforming uses.
+V2: Add comments about possible improvements for port_3 switch function.
+V3: Fix coding style.
 
-Joe Perches (11):
-  block: nvme-scsi: Fix probable mask then right shift defects
-  radeon: evergreen: Fix probable mask then right shift defects
-  aiptek: Fix probable mask then right shift defects
-  dvb-net: Fix probable mask then right shift defects
-  cx25840/cx18: Use standard ordering of mask and shift
-  wm8350-core: Fix probable mask then right shift defect
-  iwlwifi: dvm: Fix probable mask then right shift defect
-  ssb: driver_chip_comon_pmu: Fix probable mask then right shift defect
-  tty: ipwireless: Fix probable mask then right shift defects
-  hwa-hc: Fix probable mask then right shift defect
-  sound: ad1889: Fix probable mask then right shift defects
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/usb/cx231xx/cx231xx-avcore.c | 12 ++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h        |  1 +
+ 2 files changed, 13 insertions(+)
 
- drivers/block/nvme-scsi.c                | 12 ++++++------
- drivers/gpu/drm/radeon/evergreen.c       |  3 ++-
- drivers/input/tablet/aiptek.c            |  6 +++---
- drivers/media/dvb-core/dvb_net.c         |  4 +++-
- drivers/media/i2c/cx25840/cx25840-core.c | 12 ++++++------
- drivers/media/pci/cx18/cx18-av-core.c    | 16 ++++++++--------
- drivers/mfd/wm8350-core.c                |  2 +-
- drivers/net/wireless/iwlwifi/dvm/lib.c   |  4 ++--
- drivers/ssb/driver_chipcommon_pmu.c      |  4 ++--
- drivers/tty/ipwireless/hardware.c        | 12 ++++++------
- drivers/usb/host/hwa-hc.c                |  2 +-
- sound/pci/ad1889.c                       |  8 ++++----
- 12 files changed, 44 insertions(+), 41 deletions(-)
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 40a6987..0a5fec4 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -1272,6 +1272,14 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
+ 
+ 	if (dev->board.dont_use_port_3)
+ 		is_port_3 = false;
++
++	/*
++	 * Should this code check dev->port_3_switch_enabled first
++	 * to skip unnecessary reading of the register?
++	 * If yes, the flag dev->port_3_switch_enabled must be initialized
++	 * correctly.
++	 */
++
+ 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
+ 				       PWR_CTL_EN, value, 4);
+ 	if (status < 0)
+@@ -1294,6 +1302,10 @@ int cx231xx_enable_i2c_port_3(struct cx231xx *dev, bool is_port_3)
+ 	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+ 					PWR_CTL_EN, value, 4);
+ 
++	/* remember status of the switch for usage in is_tuner */
++	if (status >= 0)
++		dev->port_3_switch_enabled = is_port_3;
++
+ 	return status;
+ 
+ }
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index f03338b..8a3c97b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -629,6 +629,7 @@ struct cx231xx {
+ 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
+ 	struct cx231xx_i2c i2c_bus[3];
+ 	unsigned int xc_fw_load_done:1;
++	unsigned int port_3_switch_enabled:1;
+ 	/* locks */
+ 	struct mutex gpio_i2c_lock;
+ 	struct mutex i2c_lock;
 -- 
 2.1.2
 
