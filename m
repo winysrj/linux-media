@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:37180 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbaJLUEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:04:12 -0400
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Carlo Caione <carlo@caione.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>,
-	Beniamino Galvani <b.galvani@gmail.com>
-Subject: [PATCH 0/3] media: rc: add support for Amlogic Meson IR receiver
-Date: Sun, 12 Oct 2014 22:01:52 +0200
-Message-Id: <1413144115-23188-1-git-send-email-b.galvani@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54662 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760211AbaJ3OtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 10:49:13 -0400
+Message-ID: <54524FE7.6040701@iki.fi>
+Date: Thu, 30 Oct 2014 16:49:11 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] si2157: add support for SYS_DVBC_ANNEX_B
+References: <1414665796-22123-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1414665796-22123-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-this is a driver for the IR receiver available in Amlogic Meson6 and
-Meson8 SoCs. The device can operate in two modes: in "NEC" mode the
-hardware can decode frames using the NEC IR protocol, while in
-"general" mode the receiver simply reports the duration of pulses and
-spaces for software decoding.
+Antti
 
-In order to have the maximum compatibility with different protocols
-the driver implements software decoding.
-
-The third patch (dts files) depends on some other patchsets [1][2]
-that are still under review, so at the moment is not meant to be
-merged.
-
-[1] https://lkml.org/lkml/2014/10/5/162
-[2] https://lkml.org/lkml/2014/10/7/712
-
-Beniamino Galvani (3):
-  media: rc: add driver for Amlogic Meson IR remote receiver
-  media: rc: meson: document device tree bindings
-  ARM: dts: meson: add dts nodes for IR receiver
-
- .../devicetree/bindings/media/meson-ir.txt         |  14 ++
- arch/arm/boot/dts/meson.dtsi                       |   7 +
- arch/arm/boot/dts/meson8-vega-s89e.dts             |   6 +
- arch/arm/boot/dts/meson8.dtsi                      |   7 +
- drivers/media/rc/Kconfig                           |  11 ++
- drivers/media/rc/Makefile                          |   1 +
- drivers/media/rc/meson-ir.c                        | 214 +++++++++++++++++++++
- 7 files changed, 260 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
- create mode 100644 drivers/media/rc/meson-ir.c
+On 10/30/2014 12:43 PM, Olli Salonen wrote:
+> Set the property for delivery system also in case of SYS_DVBC_ANNEX_B. This behaviour is observed in the sniffs taken with Hauppauge HVR-955Q Windows driver.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/tuners/si2157.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> index cf97142..b086b87 100644
+> --- a/drivers/media/tuners/si2157.c
+> +++ b/drivers/media/tuners/si2157.c
+> @@ -250,6 +250,9 @@ static int si2157_set_params(struct dvb_frontend *fe)
+>   	case SYS_ATSC:
+>   			delivery_system = 0x00;
+>   			break;
+> +	case SYS_DVBC_ANNEX_B:
+> +			delivery_system = 0x10;
+> +			break;
+>   	case SYS_DVBT:
+>   	case SYS_DVBT2: /* it seems DVB-T and DVB-T2 both are 0x20 here */
+>   			delivery_system = 0x20;
+>
 
 -- 
-1.9.1
-
+http://palosaari.fi/
