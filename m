@@ -1,87 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:63213 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754836AbaJUKLn (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:44023 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161177AbaJ3UxA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 06:11:43 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NDS008CQHS28QA0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Oct 2014 11:14:26 +0100 (BST)
-Message-id: <54463158.1050300@samsung.com>
-Date: Tue, 21 Oct 2014 12:11:36 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH/RFC v2 1/4] Add a media device configuration file parser.
-References: <1413557682-20535-1-git-send-email-j.anaszewski@samsung.com>
- <1413557682-20535-2-git-send-email-j.anaszewski@samsung.com>
- <20141020214415.GE15257@valkosipuli.retiisi.org.uk>
- <5446086C.5030705@samsung.com>
- <20141021092623.GF15257@valkosipuli.retiisi.org.uk>
-In-reply-to: <20141021092623.GF15257@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Thu, 30 Oct 2014 16:53:00 -0400
+Received: by mail-la0-f43.google.com with SMTP id ge10so5199940lab.30
+        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 13:52:59 -0700 (PDT)
+Date: Thu, 30 Oct 2014 22:52:52 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Olli Salonen <olli.salonen@iki.fi>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] cx23885: add support for TechnoTrend CT2-4500 CI
+In-Reply-To: <1414702107-24963-1-git-send-email-olli.salonen@iki.fi>
+Message-ID: <alpine.DEB.2.10.1410302249490.25005@dl160.lan>
+References: <1414702107-24963-1-git-send-email-olli.salonen@iki.fi>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Thu, 30 Oct 2014, Olli Salonen wrote:
 
-On 10/21/2014 11:26 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Tue, Oct 21, 2014 at 09:17:00AM +0200, Jacek Anaszewski wrote:
-> ...
->>>> + * The V4L2 control group format:
->>>> + *
->>>> + * v4l2-controls {
->>>> + * <TAB><control1_name>: <entity_name><LF>
->>>> + * <TAB><control2_name>: <entity_name><LF>
->>>> + * ...
->>>> + * <TAB><controlN_name>: <entity_name><LF>
->>>> + * }
->>>
->>> I didn't know you were working on this.
->>
->> Actually I did the main part of work around 1,5 year ago as a part
->> of familiarizing myself with V4L2 media controller API.
->
-> :-D
->
-> I think it's about time we get things like this to libv4l.
+> TechnoTrend CT2-4500 CI is a PCIe device with DVB-T2/C tuner. It is 
+> similar to DVBSky T980C, just with different PCI ID and remote 
+> controller.
 
-Definitely :)
+Additional note, this should be applied on top of Max Nibble's commits:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg80865.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg80866.html
 
->>>
->>> I have a small library which does essentially the same. The implementation
->>> is incomplete, that's why I hadn't posted it to the list. We could perhaps
->>> discuss this a little bit tomorrow. When would you be available, in case you
->>> are?
->>
->> I will be available around 8 hours from now on.
->
-> I couldn't see you on #v4l, would an hour from now (13:30 Finnish time) be
-> ok for you?
+In patchwork they're 26538 and 26539.
 
-What about 14:00 Finnish time?
-
->>> What would you think of using a little bit more condensed format for this,
->>> similar to that of libmediactl?
->>>
->>
->> Could you spot a place where the format is defined?
->
-> At the moment there's none, but I thought of a similar format used by
-> libmediactl.
-
-OK, to be discussed.
-
-Best Regards,
-Jacek Anaszewski
-
+Cheers,
+-olli
