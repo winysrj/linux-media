@@ -1,58 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51709 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933445AbaJaPJp (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2200 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752297AbaJ3H1v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 11:09:45 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 02A8A217D1
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:33 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 01/10] v4l2: get/set prio using video_dev prio structure
-Date: Fri, 31 Oct 2014 17:09:42 +0200
-Message-Id: <1414768191-4536-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 30 Oct 2014 03:27:51 -0400
+Message-ID: <5451E86A.2000004@xs4all.nl>
+Date: Thu, 30 Oct 2014 08:27:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Sparse error in s5p_mfc_enc.c
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_device structure embed a v4l2_prio_state structure used by
-default for priority handling, but drivers can override that default by
-setting the video_dev prio pointer to a different v4l2_prio_state
-instance.
+Hi Kamil,
 
-However, the VIDIO_G_PRIORITY and VIDIOC_S_PRIORITY implementations use
-the prio state embedded in v4l2_device unconditionally, breaking drivers
-that need to override the default. Fix them.
+Can you make a patch to fix this sparse error?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+/home/hans/work/build/media-git/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1178:25: error: incompatible types in conditional expression (different base types)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9ccb19a..1bf84a5 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1040,7 +1040,7 @@ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
- 	if (ops->vidioc_g_priority)
- 		return ops->vidioc_g_priority(file, fh, arg);
- 	vfd = video_devdata(file);
--	*p = v4l2_prio_max(&vfd->v4l2_dev->prio);
-+	*p = v4l2_prio_max(vfd->prio);
- 	return 0;
- }
- 
-@@ -1055,7 +1055,7 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
- 		return ops->vidioc_s_priority(file, fh, *p);
- 	vfd = video_devdata(file);
- 	vfh = file->private_data;
--	return v4l2_prio_change(&vfd->v4l2_dev->prio, &vfh->prio, *p);
-+	return v4l2_prio_change(vfd->prio, &vfh->prio, *p);
- }
- 
- static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
--- 
-2.0.4
+s5p_mfc_hw_call should probably be s5p_mfc_hw_call_void.
 
+Regards,
+
+	Hans
