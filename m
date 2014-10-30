@@ -1,34 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:52053 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757283AbaJ3Kck (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 06:32:40 -0400
-Received: by mail-la0-f43.google.com with SMTP id ge10so4113746lab.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 03:32:38 -0700 (PDT)
-Date: Thu, 30 Oct 2014 12:32:33 +0200 (EET)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] si2157: Add support for delivery system SYS_ATSC
-In-Reply-To: <20141030070628.4f52e9da@recife.lan>
-Message-ID: <alpine.DEB.2.10.1410301229240.1390@dl160.lan>
-References: <1408253089-9487-1-git-send-email-olli.salonen@iki.fi> <20141029070849.0a1c6d56@recife.lan> <CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com> <20141030070628.4f52e9da@recife.lan>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from smtp.gentoo.org ([140.211.166.183]:35003 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932513AbaJ3UNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 16:13:06 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v4 04/14] cx231xx: give each master i2c bus a seperate name
+Date: Thu, 30 Oct 2014 21:12:25 +0100
+Message-Id: <1414699955-5760-5-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Oct 2014, Mauro Carvalho Chehab wrote:
+V2: Use snprintf to construct the complete name
+V3: Remove unneeded variable.
 
-> Ah, ok. Are you planning to submit a patch for it, and the patches adding
-> support for HVR-955Q?
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/cx231xx/cx231xx-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I can submit a patch for that, no problem. However, I'm not working with 
-HVR-955Q at the moment. I don't have access to ATSC/ClearQAM signal.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index a30d400..4505716 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -512,7 +512,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+ 	bus->i2c_adap = cx231xx_adap_template;
+ 	bus->i2c_adap.dev.parent = &dev->udev->dev;
+ 
+-	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
++	snprintf(bus->i2c_adap.name, sizeof(bus->i2c_adap.name), "%s-%d", bus->dev->name, bus->nr);
+ 
+ 	bus->i2c_adap.algo_data = bus;
+ 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+-- 
+2.1.2
 
-If someone is working with that, I can put you in contact with someone 
-who is interested in that device and is able to test.
-
-Cheers,
--olli
