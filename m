@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39126 "EHLO lists.s-osg.org"
+Received: from smtp.gentoo.org ([140.211.166.183]:35033 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753101AbaJBVK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 17:10:56 -0400
-Date: Thu, 2 Oct 2014 18:10:50 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.17] media fixes
-Message-ID: <20141002181050.2791714d@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1161145AbaJ3UNW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 16:13:22 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v4 14/14] cx231xx: scan all four existing i2c busses instead of the 3 masters
+Date: Thu, 30 Oct 2014 21:12:35 +0100
+Message-Id: <1414699955-5760-15-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+The scanning itself just fails (as before this series) but now the correct busses are scanned.
 
-Please pull from:
-	  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v3.17-rc8
+V2: Changed to symbolic names where muxed adapters can be seen directly.
+V3: Comment about scanning busses ordered by physical port numbers.
 
-For one last time regression fix at em28xx. The removal of .reset_resume
-broke suspend/resume on this driver for some devices.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c | 6 ++++++
+ drivers/media/usb/cx231xx/cx231xx-i2c.c  | 8 ++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-There are more fixes to be done for em28xx suspend/resume to be better
-handled, but I'm opting to let them to stay for a while at the media devel
-tree, in order to get more tests. So, for now, let's just revert this patch.
-
-Thanks!
-Mauro
-
-The following changes since commit 8e2c8717c1812628b5538c05250057b37c66fdbe:
-
-  [media] em28xx-v4l: get rid of field "users" in struct em28xx_v4l2" (2014-09-21 21:27:57 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v3.17-rc8
-
-for you to fetch changes up to 90a5dbef1a66e9f55b76ccb83c0ef27c0bd87c27:
-
-  Revert "[media] media: em28xx - remove reset_resume interface" (2014-09-28 22:25:24 -0300)
-
-----------------------------------------------------------------
-media fixes for v3.17-rc8
-
-----------------------------------------------------------------
-Mauro Carvalho Chehab (1):
-      Revert "[media] media: em28xx - remove reset_resume interface"
-
- drivers/media/usb/em28xx/em28xx-cards.c | 1 +
- 1 file changed, 1 insertion(+)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index c49022f..9b5cd9e 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -1303,6 +1303,12 @@ int cx231xx_dev_init(struct cx231xx *dev)
+ 	cx231xx_i2c_mux_register(dev, 0);
+ 	cx231xx_i2c_mux_register(dev, 1);
+ 
++	/* scan the real bus segments in the order of physical port numbers */
++	cx231xx_do_i2c_scan(dev, I2C_0);
++	cx231xx_do_i2c_scan(dev, I2C_1_MUX_1);
++	cx231xx_do_i2c_scan(dev, I2C_2);
++	cx231xx_do_i2c_scan(dev, I2C_1_MUX_3);
++
+ 	/* init hardware */
+ 	/* Note : with out calling set power mode function,
+ 	afe can not be set up correctly */
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 3e9dfd8..d1003c7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -492,6 +492,9 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
+ 	int i, rc;
+ 	struct i2c_client client;
+ 
++	if (!i2c_scan)
++		return;
++
+ 	memset(&client, 0, sizeof(client));
+ 	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
+ 
+@@ -528,10 +531,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
+ 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+ 	i2c_add_adapter(&bus->i2c_adap);
+ 
+-	if (0 == bus->i2c_rc) {
+-		if (i2c_scan)
+-			cx231xx_do_i2c_scan(dev, bus->nr);
+-	} else
++	if (0 != bus->i2c_rc)
+ 		cx231xx_warn("%s: i2c bus %d register FAILED\n",
+ 			     dev->name, bus->nr);
+ 
+-- 
+2.1.2
 
