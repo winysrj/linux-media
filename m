@@ -1,74 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35000 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161035AbaJ3UNE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:13:04 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v4 03/14] cx231xx: delete i2c_client per bus
-Date: Thu, 30 Oct 2014 21:12:24 +0100
-Message-Id: <1414699955-5760-4-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
-References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:46963 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759354AbaJ3L3H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 07:29:07 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Daniel Mack <zonque@gmail.com>,
+	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
+	Vlad Catoi <vladcatoi@gmail.com>, alsa-devel@alsa-project.org,
+	stable@vger.kernel.org
+Subject: [PATCH v2 2/2] [media] sound: Update au0828 quirks table
+Date: Thu, 30 Oct 2014 09:28:12 -0200
+Message-Id: <678fa12fb8e75c6dc1e781a02e3ddbbba7e1a904.1414668341.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414668341.git.mchehab@osg.samsung.com>
+References: <cover.1414668341.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414668341.git.mchehab@osg.samsung.com>
+References: <cover.1414668341.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For each i2c master there is a i2c_client allocated that could be
-deleted now that its only two users have been changed to use their
-own i2c_client.
+The au0828 quirks table is currently not in sync with the au0828
+media driver.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 7 -------
- drivers/media/usb/cx231xx/cx231xx.h     | 1 -
- 2 files changed, 8 deletions(-)
+Syncronize it and put them on the same order as found at au0828
+driver, as all the au0828 devices with analog TV need the
+same quirks.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 67a1391..a30d400 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -455,10 +455,6 @@ static struct i2c_adapter cx231xx_adap_template = {
- 	.algo = &cx231xx_algo,
- };
+Cc: stable@vger.kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
+index 8f3e2bf100eb..83bddbdb90e9 100644
+--- a/sound/usb/quirks-table.h
++++ b/sound/usb/quirks-table.h
+@@ -2827,14 +2827,22 @@ YAMAHA_DEVICE(0x7010, "UB99"),
+ }
  
--static struct i2c_client cx231xx_client_template = {
--	.name = "cx231xx internal",
--};
--
- /* ----------------------------------------------------------- */
+ AU0828_DEVICE(0x2040, 0x7200, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
+ AU0828_DEVICE(0x2040, 0x7210, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x7217, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721b, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721e, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x2040, 0x721f, "Hauppauge", "HVR-950Q"),
+-AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
+ AU0828_DEVICE(0x2040, 0x7280, "Hauppauge", "HVR-950Q"),
+ AU0828_DEVICE(0x0fd9, 0x0008, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7201, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x2040, 0x7211, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x2040, 0x7281, "Hauppauge", "HVR-950Q-MXL"),
++AU0828_DEVICE(0x05e1, 0x0480, "Hauppauge", "Woodbury"),
++AU0828_DEVICE(0x2040, 0x8200, "Hauppauge", "Woodbury"),
++AU0828_DEVICE(0x2040, 0x7260, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7213, "Hauppauge", "HVR-950Q"),
++AU0828_DEVICE(0x2040, 0x7270, "Hauppauge", "HVR-950Q"),
  
- /*
-@@ -514,7 +510,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	BUG_ON(!dev->cx231xx_send_usb_command);
- 
- 	bus->i2c_adap = cx231xx_adap_template;
--	bus->i2c_client = cx231xx_client_template;
- 	bus->i2c_adap.dev.parent = &dev->udev->dev;
- 
- 	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-@@ -523,8 +518,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	i2c_add_adapter(&bus->i2c_adap);
- 
--	bus->i2c_client.adapter = &bus->i2c_adap;
--
- 	if (0 == bus->i2c_rc) {
- 		if (i2c_scan)
- 			cx231xx_do_i2c_scan(dev, bus->nr);
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 5efc93e..c92382f 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -472,7 +472,6 @@ struct cx231xx_i2c {
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap;
--	struct i2c_client i2c_client;
- 	u32 i2c_rc;
- 
- 	/* different settings for each bus */
+ /* Digidesign Mbox */
+ {
 -- 
-2.1.2
+1.9.3
 
