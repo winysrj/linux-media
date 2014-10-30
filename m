@@ -1,290 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:59818 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaJSIZj (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:46815 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175AbaJ3GEb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Oct 2014 04:25:39 -0400
-Received: by mail-lb0-f176.google.com with SMTP id p9so2455078lbv.21
-        for <linux-media@vger.kernel.org>; Sun, 19 Oct 2014 01:25:37 -0700 (PDT)
+	Thu, 30 Oct 2014 02:04:31 -0400
+Received: by mail-wg0-f46.google.com with SMTP id x13so3442850wgg.19
+        for <linux-media@vger.kernel.org>; Wed, 29 Oct 2014 23:04:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20141029070849.0a1c6d56@recife.lan>
+References: <1408253089-9487-1-git-send-email-olli.salonen@iki.fi>
+	<20141029070849.0a1c6d56@recife.lan>
+Date: Thu, 30 Oct 2014 08:04:29 +0200
+Message-ID: <CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
+Subject: Re: [PATCH] si2157: Add support for delivery system SYS_ATSC
 From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] dtv-scan-tables: add mux H to stations transmitting it in Finland
-Date: Sun, 19 Oct 2014 11:25:27 +0300
-Message-Id: <1413707128-19995-1-git-send-email-olli.salonen@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new mux H is being broadcasted by Digita from 6 stations in Finland.
+Hi Mauro,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- dvb-t/fi-Espoo     | 15 ++++++++++-----
- dvb-t/fi-Jyvaskyla | 15 ++++++++++-----
- dvb-t/fi-Lahti     | 15 ++++++++++-----
- dvb-t/fi-Oulu      | 15 ++++++++++-----
- dvb-t/fi-Tampere   | 15 ++++++++++-----
- dvb-t/fi-Turku     | 15 ++++++++++-----
- 6 files changed, 60 insertions(+), 30 deletions(-)
+No, for ClearQAM the delivery_system should be set to 0x10 and this
+patch does not include that. At the time of submission of that patch I
+only had the trace from the ATSC case.
 
-diff --git a/dvb-t/fi-Espoo b/dvb-t/fi-Espoo
-index 03296ae..ceb906d 100644
---- a/dvb-t/fi-Espoo
-+++ b/dvb-t/fi-Espoo
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Espoo]
-+[Espoo-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 562000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Espoo]
-+[Espoo-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 658000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Espoo]
-+[Espoo-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 674000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Espoo]
-+[Espoo-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 730000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Espoo]
-+[Espoo-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 586000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Espoo-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 514000000
-+	BANDWIDTH_HZ = 8000000
-+
-diff --git a/dvb-t/fi-Jyvaskyla b/dvb-t/fi-Jyvaskyla
-index 3e2c51f..02ced9e 100644
---- a/dvb-t/fi-Jyvaskyla
-+++ b/dvb-t/fi-Jyvaskyla
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Jyvaskyla]
-+[Jyvaskyla-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 546000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Jyvaskyla]
-+[Jyvaskyla-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 786000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Jyvaskyla]
-+[Jyvaskyla-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 746000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Jyvaskyla]
-+[Jyvaskyla-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 634000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Jyvaskyla]
-+[Jyvaskyla-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 506000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Jyvaskyla-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 586000000
-+	BANDWIDTH_HZ = 8000000
-+
-diff --git a/dvb-t/fi-Lahti b/dvb-t/fi-Lahti
-index d4bf403..f4c89b8 100644
---- a/dvb-t/fi-Lahti
-+++ b/dvb-t/fi-Lahti
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Lahti]
-+[Lahti-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 570000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Lahti]
-+[Lahti-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 682000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Lahti]
-+[Lahti-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 762000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Lahti]
-+[Lahti-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 714000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Lahti]
-+[Lahti-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 626000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Lahti-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 690000000
-+	BANDWIDTH_HZ = 8000000
-+
-diff --git a/dvb-t/fi-Oulu b/dvb-t/fi-Oulu
-index 6d10849..0e3906a 100644
---- a/dvb-t/fi-Oulu
-+++ b/dvb-t/fi-Oulu
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Oulu]
-+[Oulu-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 634000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Oulu]
-+[Oulu-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 714000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Oulu]
-+[Oulu-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 738000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Oulu]
-+[Oulu-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 602000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Oulu]
-+[Oulu-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 498000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Oulu-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 570000000
-+	BANDWIDTH_HZ = 8000000
-+
-diff --git a/dvb-t/fi-Tampere b/dvb-t/fi-Tampere
-index 1440032..27cf3a7 100644
---- a/dvb-t/fi-Tampere
-+++ b/dvb-t/fi-Tampere
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Tampere]
-+[Tampere-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 578000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Tampere]
-+[Tampere-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 490000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Tampere]
-+[Tampere-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 770000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Tampere]
-+[Tampere-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 778000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Tampere]
-+[Tampere-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 642000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Tampere-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 674000000
-+	BANDWIDTH_HZ = 8000000
-+
-diff --git a/dvb-t/fi-Turku b/dvb-t/fi-Turku
-index 281048d..e3907a6 100644
---- a/dvb-t/fi-Turku
-+++ b/dvb-t/fi-Turku
-@@ -1,28 +1,33 @@
- # 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- 
--[Turku]
-+[Turku-A]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 714000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Turku]
-+[Turku-B]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 738000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Turku]
-+[Turku-C]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 762000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Turku]
-+[Turku-E]
- 	DELIVERY_SYSTEM = DVBT
- 	FREQUENCY = 786000000
- 	BANDWIDTH_HZ = 8000000
- 
--[Turku]
-+[Turku-D]
- 	DELIVERY_SYSTEM = DVBT2
- 	FREQUENCY = 538000000
- 	BANDWIDTH_HZ = 8000000
- 
-+[Turku-H]
-+	DELIVERY_SYSTEM = DVBT2
-+	FREQUENCY = 698000000
-+	BANDWIDTH_HZ = 8000000
-+
--- 
-1.9.1
+ATSC & ClearQAM USB sniffs here:
+http://trsqr.net/olli/hvr955q/
 
+Cheers,
+-olli
+
+On 29 October 2014 11:08, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> Hi Olli,
+>
+> Em Sun, 17 Aug 2014 08:24:49 +0300
+> Olli Salonen <olli.salonen@iki.fi> escreveu:
+>
+>> Set the property for delivery system also in case of SYS_ATSC. This
+>> behaviour is observed in the sniffs taken with Hauppauge HVR-955Q
+>> Windows driver.
+>>
+>> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+>> ---
+>>  drivers/media/tuners/si2157.c | 3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+>> index 6c53edb..3b86d59 100644
+>> --- a/drivers/media/tuners/si2157.c
+>> +++ b/drivers/media/tuners/si2157.c
+>> @@ -239,6 +239,9 @@ static int si2157_set_params(struct dvb_frontend *fe)
+>>               bandwidth = 0x0f;
+>>
+>>       switch (c->delivery_system) {
+>> +     case SYS_ATSC:
+>> +                     delivery_system = 0x00;
+>> +                     break;
+>
+> Did you check if it uses the same delivery system also for clear-QAM?
+>
+> If so, this patch is missing SYS_DVBC_ANNEX_B inside this case.
+>
+> Ah, FYI, I merged the demod used on HVR-955Q at a separate topic branch
+> upstream:
+>         http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=lgdt3306a
+>
+> Regards,
+> Mauro
