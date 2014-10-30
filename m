@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40879 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:42622 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906AbaJPNKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 09:10:46 -0400
-Message-ID: <543FC3CD.8050805@osg.samsung.com>
-Date: Thu, 16 Oct 2014 07:10:37 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1758928AbaJ3L2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 07:28:55 -0400
+Date: Thu, 30 Oct 2014 09:28:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Clemens Ladisch <clemens@ladisch.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>,
+	stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
+	Vlad Catoi <vladcatoi@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [alsa-devel] [PATCH 1/2] [media] sound: simplify au0828 quirk
+ table
+Message-ID: <20141030092848.1b41ab7d@recife.lan>
+In-Reply-To: <54521DFD.5030402@ladisch.de>
+References: <cover.1414666159.git.mchehab@osg.samsung.com>
+	<63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
+	<54521DFD.5030402@ladisch.de>
 MIME-Version: 1.0
-To: Lars-Peter Clausen <lars@metafoo.de>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
-	hverkuil@xs4all.nl, ramakrmu@cisco.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	perex@perex.cz, tiwai@suse.de, prabhakar.csengg@gmail.com,
-	tim.gardner@canonical.com, linux@eikelenboom.it
-CC: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH v2 5/6] sound/usb: pcm changes to use media
- token api
-References: <cover.1413246370.git.shuahkh@osg.samsung.com> <cf1059cc2606f20d921e5691e3d59945a19a7871.1413246372.git.shuahkh@osg.samsung.com> <543FB374.8020604@metafoo.de>
-In-Reply-To: <543FB374.8020604@metafoo.de>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/16/2014 06:00 AM, Lars-Peter Clausen wrote:
-> On 10/14/2014 04:58 PM, Shuah Khan wrote:
-> [...]
->>       switch (cmd) {
->>       case SNDRV_PCM_TRIGGER_START:
->> +        err = media_get_audio_tkn(&subs->dev->dev);
->> +        if (err == -EBUSY) {
->> +            dev_info(&subs->dev->dev, "%s device is busy\n",
->> +                    __func__);
+Em Thu, 30 Oct 2014 12:16:13 +0100
+Clemens Ladisch <clemens@ladisch.de> escreveu:
+
+> Mauro Carvalho Chehab wrote:
+> > Add a macro to simplify au0828 quirk table. That makes easier
+> > to check it against the USB IDs at drivers/media/usb/au0828-card.c
+> >
+> > +++ b/sound/usb/quirks-table.h
+> > ...
+> > + * This should be kept in sync with drivers/media/usb/au0828-card.c
 > 
-> In my opinion this should not dev_info() as this is out of band error
-> signaling and also as the potential to spam the log. The userspace
-> application is already properly notified by the return code.
-> 
+> The file does not exist in that directory.  And when you want to
+> keep two files in sync, you need such reminders in both of them.
 
-Yes it has the potential to flood the dmesg especially with alsa,
-I will remove the dev_info().
+Thanks for reviewing it. 
 
-thanks,
--- Shuah
+I'm sending an updated version with those fixes.
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Regards,
+Mauro
