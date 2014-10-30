@@ -1,72 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:53464 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbaJLUk6 (ORCPT
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:61498 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933727AbaJ3NWG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:40:58 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 04/15] media: davinci: vpbe: drop buf_cleanup() callback
-Date: Sun, 12 Oct 2014 21:40:34 +0100
-Message-Id: <1413146445-7304-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 30 Oct 2014 09:22:06 -0400
+Received: by mail-qa0-f42.google.com with SMTP id k15so1985356qaq.29
+        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 06:22:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BLU437-SMTP74F4D6277B11F3F5F92D16BA900@phx.gbl>
+References: <1414268243-29514-1-git-send-email-mkrufky@linuxtv.org>
+	<BLU437-SMTP74F4D6277B11F3F5F92D16BA900@phx.gbl>
+Date: Thu, 30 Oct 2014 09:22:03 -0400
+Message-ID: <CAGoCfiyT3TMzsLk81d-1XVtpw2XyBP8tfs_THd6Hhzux_f_hUA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] xc5000: add IF output level control
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Michael Krufky <mkrufky@hotmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Richard Vollkommer <linux@hauppauge.com>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch drops buf_cleanup() callback as this callback
-is never called with buffer state active.
+On Sat, Oct 25, 2014 at 4:17 PM, Michael Krufky <mkrufky@hotmail.com> wrote:
+> From: Richard Vollkommer <linux@hauppauge.com>
+>
+> Adds control of the IF output level to the xc5000 tuner
+> configuration structure.  Increases the IF level to the
+> demodulator to fix failure to lock and picture breakup
+> issues (with the au8522 demodulator, in the case of the
+> Hauppauge HVR950Q).
+>
+> This patch works with all XC5000 firmware versions.
+>
+> Signed-off-by: Richard Vollkommer <linux@hauppauge.com>
+> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Signed-off-by: Michael Ira Krufky <mkrufky@linuxtv.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c | 24 ------------------------
- 1 file changed, 24 deletions(-)
+Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 6f9599d..491b832 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -285,29 +285,6 @@ static void vpbe_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
- }
- 
--/*
-- * vpbe_buf_cleanup()
-- * This function is called from the vb2 layer to free memory allocated to
-- * the buffers
-- */
--static void vpbe_buf_cleanup(struct vb2_buffer *vb)
--{
--	/* Get the file handle object and layer object */
--	struct vpbe_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
--	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
--	struct vpbe_disp_buffer *buf = container_of(vb,
--					struct vpbe_disp_buffer, vb);
--	unsigned long flags;
--
--	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
--			"vpbe_buf_cleanup\n");
--
--	spin_lock_irqsave(&layer->irqlock, flags);
--	if (vb->state == VB2_BUF_STATE_ACTIVE)
--		list_del_init(&buf->list);
--	spin_unlock_irqrestore(&layer->irqlock, flags);
--}
--
- static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpbe_layer *layer = vb2_get_drv_priv(vq);
-@@ -385,7 +362,6 @@ static struct vb2_ops video_qops = {
- 	.buf_prepare = vpbe_buffer_prepare,
- 	.start_streaming = vpbe_start_streaming,
- 	.stop_streaming = vpbe_stop_streaming,
--	.buf_cleanup = vpbe_buf_cleanup,
- 	.buf_queue = vpbe_buffer_queue,
- };
- 
 -- 
-1.9.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
