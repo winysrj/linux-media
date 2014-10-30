@@ -1,76 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43246 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933580AbaJVXxz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:57542 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934023AbaJ3KRF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 19:53:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org, wsa@the-dreams.de, lars@metafoo.de
-Subject: Re: [PATCH] adv7604: Add DT parsing support
-Date: Thu, 23 Oct 2014 02:53:50 +0300
-Message-ID: <1645583.LAOF2HV7Iq@avalon>
-In-Reply-To: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
-References: <1413992061-28678-1-git-send-email-jean-michel.hautbois@vodalys.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 30 Oct 2014 06:17:05 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux1394-devel@lists.sourceforge.net
+Subject: [PATCH] [media] fix a warning on avr32 arch
+Date: Thu, 30 Oct 2014 08:16:57 -0200
+Message-Id: <3948e2c09f98e556afe11f0e3d348bbe610af31e.1414664215.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+on avr32 arch, those warnings happen:
+	drivers/media/firewire/firedtv-fw.c: In function 'node_update':
+	drivers/media/firewire/firedtv-fw.c:329: warning: comparison is always true due to limited range of data type
 
-Thank you for the patch.
+In this particular case, the signal is desired, as the isochannel
+var can be initalized with -1 inside the driver.
 
-On Wednesday 22 October 2014 17:34:21 Jean-Michel Hautbois wrote:
-> This patch adds support for DT parsing of ADV7604 as well as ADV7611.
-> It needs to be improved in order to get ports parsing too.
+So, change the type to s8, to avoid issues on archs where char
+is unsigned.
 
-Let's improve it then :-) The DT bindings as proposed by this patch are 
-incomplete, that's just asking for trouble.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-How would you model the adv7604 ports ?
-
-> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/adv7604.txt | 1 +
->  drivers/media/i2c/adv7604.c                             | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
-> c27cede..5c8b3e6 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -10,6 +10,7 @@ Required Properties:
-> 
->    - compatible: Must contain one of the following
->      - "adi,adv7611" for the ADV7611
-> +    - "adi,adv7604" for the ADV7604
-
-Please switch the two lines to keep them alphabetically sorted.
-> 
->    - reg: I2C slave address
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 47795ff..421035f 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -2677,6 +2677,7 @@ MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
-> 
->  static struct of_device_id adv7604_of_id[] __maybe_unused = {
->  	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
-
-Same comment here.
-
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(of, adv7604_of_id);
-
+diff --git a/drivers/media/firewire/firedtv.h b/drivers/media/firewire/firedtv.h
+index c2ba085e0d20..346a85be6de2 100644
+--- a/drivers/media/firewire/firedtv.h
++++ b/drivers/media/firewire/firedtv.h
+@@ -96,7 +96,7 @@ struct firedtv {
+ 
+ 	enum model_type		type;
+ 	char			subunit;
+-	char			isochannel;
++	s8			isochannel;
+ 	struct fdtv_ir_context	*ir_context;
+ 
+ 	fe_sec_voltage_t	voltage;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
