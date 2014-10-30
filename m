@@ -1,89 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46789 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754645AbaJJO1K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 10:27:10 -0400
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>
-CC: <nikhil.nd@ti.com>
-Subject: [RFC PATCH 2/4] [media] ti-vpe: Use line average de-interlacing for first 2 frames
-Date: Fri, 10 Oct 2014 19:57:01 +0530
-Message-ID: <1412951223-4711-3-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1412951223-4711-1-git-send-email-nikhil.nd@ti.com>
-References: <1412951223-4711-1-git-send-email-nikhil.nd@ti.com>
+Received: from dehamd003.servertools24.de ([31.47.254.18]:35347 "EHLO
+	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758662AbaJ3LQR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 07:16:17 -0400
+Message-ID: <54521DFD.5030402@ladisch.de>
+Date: Thu, 30 Oct 2014 12:16:13 +0100
+From: Clemens Ladisch <clemens@ladisch.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>,
+	stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
+	Vlad Catoi <vladcatoi@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [alsa-devel] [PATCH 1/2] [media] sound: simplify au0828 quirk
+	table
+References: <cover.1414666159.git.mchehab@osg.samsung.com>
+	<63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
+In-Reply-To: <63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Archit Taneja <archit@ti.com>
+Mauro Carvalho Chehab wrote:
+> Add a macro to simplify au0828 quirk table. That makes easier
+> to check it against the USB IDs at drivers/media/usb/au0828-card.c
+>
+> +++ b/sound/usb/quirks-table.h
+> ...
+> + * This should be kept in sync with drivers/media/usb/au0828-card.c
 
-For n input fields, the VPE de-interlacer creates n - 2 progressive frames.
+The file does not exist in that directory.  And when you want to
+keep two files in sync, you need such reminders in both of them.
 
-To support this, we use line average mode of de-interlacer for the first 2
-input fields to generate 2 progressive frames. We then revert back to the
-preferred EDI method, and create n - 2 frames, creating a sum of n frames.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
-
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 4c3ef48..a11044f 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -807,6 +807,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
- 
-+static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
-+{
-+	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
-+
-+	if (mode & 0x2)
-+		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
-+
-+	if (mode & 0x3)
-+		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
-+
-+	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
-+		VPE_EDI_INP_MODE_SHIFT);
-+
-+	ctx->load_mmrs = true;
-+}
-+
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -1119,6 +1136,15 @@ static void device_run(void *priv)
- 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 	WARN_ON(ctx->dst_vb == NULL);
- 
-+	if (ctx->deinterlacing) {
-+		/*
-+		 * we have output the first 2 frames through line average, we
-+		 * now switch to EDI de-interlacer
-+		 */
-+		if (ctx->sequence == 2)
-+			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
-+	}
-+
- 	/* config descriptors */
- 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
- 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
-@@ -1780,6 +1806,9 @@ static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
- {
- 	struct vpe_ctx *ctx = file2ctx(file);
- 
-+	if (ctx->deinterlacing)
-+		config_edi_input_mode(ctx, 0x0);
-+
- 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
- }
- 
--- 
-1.7.9.5
-
+Regards,
+Clemens
