@@ -1,152 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40070 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:49772 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbaJILwN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Oct 2014 07:52:13 -0400
-Date: Thu, 9 Oct 2014 08:52:07 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Oct 8 (media/usb/gspca)
-Message-ID: <20141009085207.70d6b1d1@recife.lan>
-In-Reply-To: <1412853970.21441.32.camel@x220>
-References: <20141008174923.76786a03@canb.auug.org.au>
-	<543570C3.9080207@infradead.org>
-	<20141008153105.2fe82fca@recife.lan>
-	<5435A44D.2050609@infradead.org>
-	<20141008225011.2d034c1e@recife.lan>
-	<1412837128.21441.9.camel@x220>
-	<20141009073052.0ddc3e97@recife.lan>
-	<1412853970.21441.32.camel@x220>
+	id S1757327AbaJ3RgN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 13:36:13 -0400
+Message-ID: <54527709.3050108@iki.fi>
+Date: Thu, 30 Oct 2014 19:36:09 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103for
+ supporting the demod of M88RS6000
+References: <201410271529188904708@gmail.com> <201410301238228758761@gmail.com>
+In-Reply-To: <201410301238228758761@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 09 Oct 2014 13:26:10 +0200
-Paul Bolle <pebolle@tiscali.nl> escreveu:
 
-> On Thu, 2014-10-09 at 07:30 -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 09 Oct 2014 08:45:28 +0200
-> > Paul Bolle <pebolle@tiscali.nl> escreveu:
-> > > The above discussion meanders a bit, and I just stumbled onto it, but
-> > > would
-> > >     #if IS_BUILTIN(CONFIG_INPUT) || (IS_MODULE(CONFIG_INPUT) && defined(MODULE))
-> > > 
-> > > cover your requirements when using macros?
-> > 
-> > No. What we need to do, for all gspca sub-drivers that have optional
-> > support for buttons is to only enable the buttons support if:
-> > 
-> > 	CONFIG_INPUT=y
-> > or
-> > 	CONFIG_INPUT=m and CONFIG_USB_GSPCA_submodule=m
-> > 
-> > If we use a reverse logic, we need to disable the code if:
-> > 	# CONFIG_INPUT is not set
-> > or
-> > 	CONFIG_INPUT=m and CONFIG_USB_GSPCA_submodule=y
-> > 
-> > The rationale for disabling the code on the last expression is that a
-> > builtin code cannot call a function inside a module.
-> > 
-> > Also, as the submodule is already being compiled, we know that
-> > CONFIG_USB_GSPCA_submodule is either module or builtin.
-> > 
-> > So, either one of those expressions should work:
-> > 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && !IS_BUILTIN(CONFIG_USB_GSPCA_submodule))
-> > or
-> > 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_MODULE(CONFIG_INPUT) && IS_MODULE(CONFIG_USB_GSPCA_submodule) && defined(MODULE))
-> 
-> I thought MODULE was only defined for code that will be part of a
-> module. So "IS_MODULE(CONFIG_USB_GSPCA_submodule)" and "defined(MODULE)"
-> should be equal when used _inside_ [...]/usb/gspca/that_submodule.c,
 
-Ah, I didn't know that. In such case, your suggestion is indeed better,
-as it is easier to write the patch.
+On 10/30/2014 06:38 AM, Nibble Max wrote:
 
-> shouldn't they? That would make this option basically identical to my
-> suggestion. Or are you thinking about using these tests outside of these
-> submodules themselves?
+>>> -	if (tab_len > 83) {
+>>> +	if (tab_len > 86) {
+>>
+>> That is not nice, but I could try find better solution and fix it later.
+>
+> What is the reason to check this parameter?
+> How about remove this check?
 
-> 
-> > or
-> > 	#if (IS_BUILTIN(CONFIG_INPUT)) || (IS_ENABLED(CONFIG_INPUT) && IS_MODULE(CONFIG_USB_GSPCA_submodule))
-> 
-> I think it's clearer to use
->     IS_BUILTIN(CONFIG_FOO) || (IS_MODULE(CONFIG_FOO) && [...])
-> 
-> Ditto above. Perhaps just a matter of taste.
-> 
-> (Depending on INPUT is apparently not possible for these submodules. 
+It is just to check you will not overwrite buffer accidentally. Buffer 
+is 83 bytes long, which should be also increased...
+The correct solution is somehow calculate max possible tab size on 
+compile time. It should be possible as init tabs are static const 
+tables. Use some macro to calculate max value and use it - not plain 
+numbers.
 
-No, because the main functionality (webcam support) doesn't depend on
-INPUT.
+Something like that
+#define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2, 
+m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
 
-> So
-> obviously any solution needs to check whether input is available, say
-> like
->     if (IS_MODULE(CONFIG_INPUT))
->         if (!is_input_loaded())
->             goto no_input;
-> 
-> Doesn't it?)
 
-Yeah, but the thing is that it breaks at compilation time, because
-the builtin module would try to use some symbols that are defined only
-at runtime.
+>> Clock selection. What this does:
+>> * select mclk_khz
+>> * select target_mclk
+>> * calls set_config() in order to pass target_mclk to tuner driver
+>> * + some strange looking sleep, which is not likely needed
+>
+> The clock of M88RS6000's demod comes from tuner dies.
+> So the first thing is turning on the demod main clock from tuner die after the demod reset.
+> Without this clock, the following register's content will fail to update.
+> Before changing the demod main clock, it should close clock path.
+> After changing the demod main clock, it open clock path and wait the clock to stable.
+>
+>>
+>> One thing what I don't like this is that you have implemented M88RS6000
+>> things here and M88DS3103 elsewhere. Generally speaking, code must have
+>> some logic where same things are done in same place. So I expect to see
+>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
+>> implemented here or these moved to place where M88DS3103 implementation is.
+>>
+>
+> I will move M88DS3103 implementation to here.
+>
+>> Also, even set_config() is somehow logically correctly used here, I
+>> prefer to duplicate that 4 line long target_mclk selection to tuner
+>> driver and get rid of whole set_config(). Even better solution could be
+>> to register M88RS6000 as a clock provider using clock framework, but
+>> imho it is not worth  that simple case.
+>
+> Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
 
-So, the above won't solve the issue.
+Yes, and you did it already on that latest patch, thanks. It is not 
+logically correct, but a bit hackish solution, but I think it is best in 
+that special case in order to keep things simple here.
 
-One possibility for future Kernels would be to add some logic that would
-automatically load the module if a call to one of those symbols defined
-inside a module happens inside a builtin module.
 
-The DVB subsystem actually does that for I2C frontend drivers, 
-using those macros:
 
-#define dvb_attach(FUNCTION, ARGS...) ({ \
-	void *__r = NULL; \
-	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
-	if (__a) { \
-		__r = (void *) __a(ARGS); \
-		if (__r == NULL) \
-			symbol_put(FUNCTION); \
-	} else { \
-		printk(KERN_ERR "DVB: Unable to find symbol "#FUNCTION"()\n"); \
-	} \
-	__r; \
-})
+One thing with that new patch I would like to check is this 10us delay 
+after clock path is enabled. You enable clock just before mcu is stopped 
+and demod is configured during mcu is on freeze. 10us is almost nothing 
+and it sounds like having no need in a situation you stop even mcu. It 
+is about one I2C command which will took longer than 10us. Hard to see 
+why you need wait 10us to settle clock in such case. What happens if you 
+don't wait? I assume nothing, it works just as it should as stable 
+clocks are needed a long after that, when mcu is take out of reset.
 
-#define dvb_detach(FUNC)	symbol_put_addr(FUNC)
+regards
+Antti
 
-The above works reasonably fine when there's just one symbol needed
-from the module driver.
-
-There are, however, some issues with such approach:
-
-1) as symbol_request increments refcount, this works very badly when
-   there's more than one symbol needed, as symbol_put() would need
-   to be called as many times as symbol_request() is called;
-
-2) lsmod doesn't list what module is actually requesting such symbol
-   (if the caller is also a module). It just increments refcounting.
-    There were some patches meant to fix that, send a long time ago,
-    but were never merged. Can't remember why:
-	http://linuxtv.org/pipermail/linux-dvb/2006-August/012322.html
-
-Due to the above issues, and because we want to better use the I2C
-binding model, we're currently trying to get rid of such approach for
-the DVB subsystem, but there are too many changes to get rid of it.
-So, the migration is slow.
-
-Anyway, IMHO, having such sort of logic would help to solve the issues
-with some weird configs like INPUT=m.
-
-Regards,
-Mauro
+-- 
+http://palosaari.fi/
