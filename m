@@ -1,59 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51649 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759926AbaJaNyx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:54:53 -0400
-Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 5276F217D3
-	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:41 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 03/11] uvcvideo: Add V4L2 debug module parameter
-Date: Fri, 31 Oct 2014 15:54:49 +0200
-Message-Id: <1414763697-21166-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:42600 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758311AbaJ3JGe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 05:06:34 -0400
+Date: Thu, 30 Oct 2014 07:06:28 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] si2157: Add support for delivery system SYS_ATSC
+Message-ID: <20141030070628.4f52e9da@recife.lan>
+In-Reply-To: <CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
+References: <1408253089-9487-1-git-send-email-olli.salonen@iki.fi>
+	<20141029070849.0a1c6d56@recife.lan>
+	<CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new debug module parameter and use it to initialize the V4L2 debug
-level for all video devices.
+Em Thu, 30 Oct 2014 08:04:29 +0200
+Olli Salonen <olli.salonen@iki.fi> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> Hi Mauro,
+> 
+> No, for ClearQAM the delivery_system should be set to 0x10 and this
+> patch does not include that. At the time of submission of that patch I
+> only had the trace from the ATSC case.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 30163432..1cae974 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -34,6 +34,7 @@
- unsigned int uvc_clock_param = CLOCK_MONOTONIC;
- unsigned int uvc_no_drop_param;
- static unsigned int uvc_quirks_param = -1;
-+static unsigned int uvc_debug_param;
- unsigned int uvc_trace_param;
- unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
- 
-@@ -1763,6 +1764,7 @@ static int uvc_register_video(struct uvc_device *dev,
- 	vdev->ioctl_ops = &uvc_ioctl_ops;
- 	vdev->release = uvc_release;
- 	vdev->prio = &stream->chain->prio;
-+	vdev->debug = uvc_debug_param;
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		vdev->vfl_dir = VFL_DIR_TX;
- 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
-@@ -2080,6 +2082,8 @@ static int uvc_clock_param_set(const char *val, struct kernel_param *kp)
- module_param_call(clock, uvc_clock_param_set, uvc_clock_param_get,
- 		  &uvc_clock_param, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(clock, "Video buffers timestamp clock");
-+module_param_named(debug, uvc_debug_param, uint, S_IRUGO);
-+MODULE_PARM_DESC(debug, "V4L2 debug level");
- module_param_named(nodrop, uvc_no_drop_param, uint, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(nodrop, "Don't drop incomplete frames");
- module_param_named(quirks, uvc_quirks_param, uint, S_IRUGO|S_IWUSR);
--- 
-2.0.4
+Ah, ok. Are you planning to submit a patch for it, and the patches adding
+support for HVR-955Q?
 
+> 
+> ATSC & ClearQAM USB sniffs here:
+> http://trsqr.net/olli/hvr955q/
+
+Thanks!
+
+Regards,
+Mauro
+
+> 
+> Cheers,
+> -olli
+> 
+> On 29 October 2014 11:08, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> > Hi Olli,
+> >
+> > Em Sun, 17 Aug 2014 08:24:49 +0300
+> > Olli Salonen <olli.salonen@iki.fi> escreveu:
+> >
+> >> Set the property for delivery system also in case of SYS_ATSC. This
+> >> behaviour is observed in the sniffs taken with Hauppauge HVR-955Q
+> >> Windows driver.
+> >>
+> >> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> >> ---
+> >>  drivers/media/tuners/si2157.c | 3 +++
+> >>  1 file changed, 3 insertions(+)
+> >>
+> >> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> >> index 6c53edb..3b86d59 100644
+> >> --- a/drivers/media/tuners/si2157.c
+> >> +++ b/drivers/media/tuners/si2157.c
+> >> @@ -239,6 +239,9 @@ static int si2157_set_params(struct dvb_frontend *fe)
+> >>               bandwidth = 0x0f;
+> >>
+> >>       switch (c->delivery_system) {
+> >> +     case SYS_ATSC:
+> >> +                     delivery_system = 0x00;
+> >> +                     break;
+> >
+> > Did you check if it uses the same delivery system also for clear-QAM?
+> >
+> > If so, this patch is missing SYS_DVBC_ANNEX_B inside this case.
+> >
+> > Ah, FYI, I merged the demod used on HVR-955Q at a separate topic branch
+> > upstream:
+> >         http://git.linuxtv.org/cgit.cgi/media_tree.git/log/?h=lgdt3306a
+> >
+> > Regards,
+> > Mauro
