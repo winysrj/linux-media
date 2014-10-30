@@ -1,281 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:47565 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755254AbaJJUJE (ORCPT
+Received: from mail-la0-f41.google.com ([209.85.215.41]:53919 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933193AbaJ3Usj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Oct 2014 16:09:04 -0400
-Received: by mail-pd0-f175.google.com with SMTP id v10so2239012pde.34
-        for <linux-media@vger.kernel.org>; Fri, 10 Oct 2014 13:09:03 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [RFC 4/4] cenalloc: a sample allocator for contiguous page allocation
-Date: Sat, 11 Oct 2014 01:37:58 +0530
-Message-Id: <1412971678-4457-5-git-send-email-sumit.semwal@linaro.org>
-In-Reply-To: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
-References: <1412971678-4457-1-git-send-email-sumit.semwal@linaro.org>
+	Thu, 30 Oct 2014 16:48:39 -0400
+Received: by mail-la0-f41.google.com with SMTP id s18so543604lam.14
+        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 13:48:37 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] cx23885: add support for TechnoTrend CT2-4500 CI
+Date: Thu, 30 Oct 2014 22:48:27 +0200
+Message-Id: <1414702107-24963-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+TechnoTrend CT2-4500 CI is a PCIe device with DVB-T2/C tuner. It is similar to DVBSky T980C, just with different PCI ID and remote controller.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/cenalloc/Makefile                 |   2 +-
- drivers/cenalloc/cenalloc_system_contig.c | 225 ++++++++++++++++++++++++++++++
- 2 files changed, 226 insertions(+), 1 deletion(-)
- create mode 100644 drivers/cenalloc/cenalloc_system_contig.c
+ drivers/media/pci/cx23885/cx23885-cards.c | 14 ++++++++++++++
+ drivers/media/pci/cx23885/cx23885-dvb.c   |  8 +++++---
+ drivers/media/pci/cx23885/cx23885-input.c |  8 ++++++++
+ drivers/media/pci/cx23885/cx23885.h       |  1 +
+ 4 files changed, 28 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cenalloc/Makefile b/drivers/cenalloc/Makefile
-index d36b531..2f69b61 100644
---- a/drivers/cenalloc/Makefile
-+++ b/drivers/cenalloc/Makefile
-@@ -1,3 +1,3 @@
- # Makefile for the cenalloc helper
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index d9ba48c..9c7e8ac 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -688,6 +688,10 @@ struct cx23885_board cx23885_boards[] = {
+ 		.name		= "DVBSky S950C",
+ 		.portb		= CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_TT_CT2_4500_CI] = {
++		.name		= "Technotrend TT-budget CT2-4500 CI",
++		.portb		= CX23885_MPEG_DVB,
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
  
--obj-y				+= cenalloc.o
-+obj-y				+= cenalloc.o cenalloc_system_contig.o
-diff --git a/drivers/cenalloc/cenalloc_system_contig.c b/drivers/cenalloc/cenalloc_system_contig.c
-new file mode 100644
-index 0000000..ecf0c03
---- /dev/null
-+++ b/drivers/cenalloc/cenalloc_system_contig.c
-@@ -0,0 +1,225 @@
-+/*
-+ * central allocator using kmalloc
-+ *
-+ * Copyright(C) 2014 Linaro Limited. All rights reserved.
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <asm/page.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/err.h>
-+#include <linux/highmem.h>
-+#include <linux/mm.h>
-+#include <linux/scatterlist.h>
-+#include <linux/seq_file.h>
-+#include <linux/slab.h>
-+#include <linux/vmalloc.h>
-+
-+#include "cenalloc_priv.h"
-+
-+static gfp_t low_order_gfp_flags  = (GFP_HIGHUSER | __GFP_ZERO | __GFP_NOWARN);
-+
-+void cenalloc_pages_sync_for_device(struct device *dev, struct page *page,
-+		size_t size, enum dma_data_direction dir)
-+{
-+	struct scatterlist sg;
-+
-+	sg_init_table(&sg, 1);
-+	sg_set_page(&sg, page, size, 0);
-+	/*
-+	 * This is not correct - sg_dma_address needs a dma_addr_t that is valid
-+	 * for the the targeted device, but this works on the currently targeted
-+	 * hardware.
-+	 */
-+	sg_dma_address(&sg) = page_to_phys(page);
-+	dma_sync_sg_for_device(dev, &sg, 1, dir);
-+}
-+
-+static int cenalloc_system_contig_allocate(struct cenalloc_allocator *allocator,
-+			struct cenalloc_buffer *buffer, unsigned long len,
-+			unsigned long align, unsigned long flags)
-+{
-+	int order = get_order(len);
-+		struct page *page;
-+	struct sg_table *table;
-+	unsigned long i;
-+	int ret;
-+
-+	if (align > (PAGE_SIZE << order))
-+		return -EINVAL;
-+
-+	page = alloc_pages(low_order_gfp_flags, order);
-+	if (!page)
-+		return -ENOMEM;
-+
-+	split_page(page, order);
-+
-+	len = PAGE_ALIGN(len);
-+	for (i = len >> PAGE_SHIFT; i < (1 << order); i++)
-+		__free_page(page + i);
-+
-+	table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
-+	if (!table) {
-+		ret = -ENOMEM;
-+		goto free_pages;
-+	}
-+
-+	ret = sg_alloc_table(table, 1, GFP_KERNEL);
-+	if (ret)
-+		goto free_table;
-+
-+	sg_set_page(table->sgl, page, len, 0);
-+
-+	buffer->sg_table = table;
-+
-+	cenalloc_pages_sync_for_device(NULL, page, len, DMA_BIDIRECTIONAL);
-+
-+	return 0;
-+
-+free_table:
-+	kfree(table);
-+free_pages:
-+	for (i = 0; i < len >> PAGE_SHIFT; i++)
-+		__free_page(page + i);
-+
-+	return ret;
-+
-+}
-+
-+static void cenalloc_system_contig_free(struct cenalloc_buffer *buffer)
-+{
-+	struct sg_table *table = buffer->sg_table;
-+	struct page *page = sg_page(table->sgl);
-+	unsigned long pages = PAGE_ALIGN(buffer->size) >> PAGE_SHIFT;
-+	unsigned long i;
-+
-+	for (i = 0; i < pages; i++)
-+		__free_page(page + i);
-+	sg_free_table(table);
-+	kfree(table);
-+}
-+
-+static struct sg_table *cenalloc_system_contig_map_dma
-+	(struct cenalloc_allocator *allocator, struct cenalloc_buffer *buffer)
-+{
-+	return buffer->sg_table;
-+}
-+
-+static void cenalloc_system_contig_unmap_dma
-+	(struct cenalloc_allocator *allocator, struct cenalloc_buffer *buffer)
-+{
-+
-+}
-+
-+static void *cenalloc_system_contig_map_kernel
-+	(struct cenalloc_allocator *allocator, struct cenalloc_buffer *buffer)
-+{
-+	struct scatterlist *sg;
-+	int i, j;
-+	void *vaddr;
-+	pgprot_t pgprot;
-+	struct sg_table *table = buffer->sg_table;
-+	int npages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
-+	struct page **pages = vmalloc(sizeof(struct page *) * npages);
-+	struct page **tmp = pages;
-+
-+	if (!pages)
-+		return NULL;
-+
-+	pgprot = pgprot_writecombine(PAGE_KERNEL);
-+
-+	for_each_sg(table->sgl, sg, table->nents, i) {
-+		int npages_this_entry = PAGE_ALIGN(sg->length) / PAGE_SIZE;
-+		struct page *page = sg_page(sg);
-+
-+		BUG_ON(i >= npages);
-+		for (j = 0; j < npages_this_entry; j++)
-+			*(tmp++) = page++;
-+	}
-+	vaddr = vmap(pages, npages, VM_MAP, pgprot);
-+	vfree(pages);
-+
-+	if (vaddr == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	return vaddr;
-+}
-+
-+static void cenalloc_system_contig_unmap_kernel
-+	(struct cenalloc_allocator *allocator, struct cenalloc_buffer *buffer)
-+{
-+	vunmap(buffer->vaddr);
-+}
-+
-+static int cenalloc_system_contig_map_user
-+	(struct cenalloc_allocator *mapper, struct cenalloc_buffer *buffer,
-+			struct vm_area_struct *vma)
-+{
-+	struct sg_table *table = buffer->sg_table;
-+	unsigned long addr = vma->vm_start;
-+	unsigned long offset = vma->vm_pgoff * PAGE_SIZE;
-+	struct scatterlist *sg;
-+	int i;
-+	int ret;
-+
-+	for_each_sg(table->sgl, sg, table->nents, i) {
-+		struct page *page = sg_page(sg);
-+		unsigned long remainder = vma->vm_end - addr;
-+		unsigned long len = sg->length;
-+
-+		if (offset >= sg->length) {
-+			offset -= sg->length;
-+			continue;
-+		} else if (offset) {
-+			page += offset / PAGE_SIZE;
-+			len = sg->length - offset;
-+			offset = 0;
-+		}
-+		len = min(len, remainder);
-+		ret = remap_pfn_range(vma, addr, page_to_pfn(page), len,
-+				vma->vm_page_prot);
-+		if (ret)
-+			return ret;
-+		addr += len;
-+		if (addr >= vma->vm_end)
-+			return 0;
-+	}
-+	return 0;
-+}
-+
-+static void cenalloc_system_contig_sync_for_device
-+	(struct cenalloc_allocator *allocator, struct cenalloc_buffer *buffer,
-+		struct device *dev, enum dma_data_direction dir)
-+{
-+	/* TODO */
-+}
-+
-+static struct cenalloc_allocator_ops system_contig_ops = {
-+	.allocate = cenalloc_system_contig_allocate,
-+	.free = cenalloc_system_contig_free,
-+	.map_dma = cenalloc_system_contig_map_dma,
-+	.unmap_dma = cenalloc_system_contig_unmap_dma,
-+	.map_kernel = cenalloc_system_contig_map_kernel,
-+	.unmap_kernel = cenalloc_system_contig_unmap_kernel,
-+	.map_user = cenalloc_system_contig_map_user,
-+	.sync_for_device = cenalloc_system_contig_sync_for_device,
-+};
-+
-+struct cenalloc_allocator system_contig = {
-+	.ops = &system_contig_ops,
-+	.type = CENALLOC_ALLOCATOR_SYSTEM,
-+	.id = CENALLOC_ALLOCATOR_SYSTEM,
-+	.name = "system contiguous memory allocator",
-+};
+@@ -955,6 +959,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0x4254,
+ 		.subdevice = 0x950c,
+ 		.card      = CX23885_BOARD_DVBSKY_S950C,
++	}, {
++		.subvendor = 0x13c2,
++		.subdevice = 0x3013,
++		.card      = CX23885_BOARD_TT_CT2_4500_CI,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -1559,6 +1567,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 		break;
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		/*
+ 		 * GPIO-0 INTA from CiMax, input
+ 		 * GPIO-1 reset CiMax, output, high active
+@@ -1671,6 +1680,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		if (!enable_885_ir)
+ 			break;
+ 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+@@ -1720,6 +1730,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+ 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+ 		dev->sd_ir = NULL;
+@@ -1770,6 +1781,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		if (dev->sd_ir)
+ 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+ 		break;
+@@ -1875,6 +1887,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_PROF_8000:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+@@ -1995,6 +2008,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", 0x88 >> 1, NULL);
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index f82eb18..5e6caed 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1766,6 +1766,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_DVBSKY_T980C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		i2c_bus = &dev->i2c_bus[1];
+ 		i2c_bus2 = &dev->i2c_bus[0];
+ 
+@@ -1938,7 +1939,8 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		break;
+ 		}
+ 	case CX23885_BOARD_DVBSKY_S950C:
+-	case CX23885_BOARD_DVBSKY_T980C: {
++	case CX23885_BOARD_DVBSKY_T980C:
++	case CX23885_BOARD_TT_CT2_4500_CI: {
+ 		u8 eeprom[256]; /* 24C02 i2c eeprom */
+ 
+ 		/* attach CI */
+@@ -1985,8 +1987,8 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
+ 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
+ 				sizeof(eeprom));
+-		printk(KERN_INFO "DVBSky T980C/S950C MAC address: %pM\n",
+-			eeprom + 0xc0);
++		printk(KERN_INFO "%s MAC address: %pM\n",
++			cx23885_boards[dev->board].name, eeprom + 0xc0);
+ 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0, 6);
+ 		break;
+ 		}
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 0bf6839..12d8a3d 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -90,6 +90,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		/*
+ 		 * The only boards we handle right now.  However other boards
+ 		 * using the CX2388x integrated IR controller should be similar
+@@ -145,6 +146,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		/*
+ 		 * The IR controller on this board only returns pulse widths.
+ 		 * Any other mode setting will fail to set up the device.
+@@ -319,6 +321,12 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 		allowed_protos = RC_BIT_ALL;
+ 		rc_map = RC_MAP_DVBSKY;
+ 		break;
++	case CX23885_BOARD_TT_CT2_4500_CI:
++		/* Integrated CX23885 IR controller */
++		driver_type = RC_DRIVER_IR_RAW;
++		allowed_protos = RC_BIT_ALL;
++		rc_map = RC_MAP_TT_1500;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index f6f6974..7eee2ea 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -95,6 +95,7 @@
+ #define CX23885_BOARD_DVBSKY_T9580             45
+ #define CX23885_BOARD_DVBSKY_T980C             46
+ #define CX23885_BOARD_DVBSKY_S950C             47
++#define CX23885_BOARD_TT_CT2_4500_CI           48
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
 -- 
 1.9.1
 
