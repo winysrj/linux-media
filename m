@@ -1,109 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4070 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932283AbaJUL7a (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:57194 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161558AbaJaCeY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 07:59:30 -0400
-Message-ID: <54464A83.7090706@xs4all.nl>
-Date: Tue, 21 Oct 2014 13:58:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Takashi Iwai <tiwai@suse.de>
-CC: Shuah Khan <shuahkh@osg.samsung.com>, m.chehab@samsung.com,
-	akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-	crope@iki.fi, olebowle@gmx.com, dheitmueller@kernellabs.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	perex@perex.cz, prabhakar.csengg@gmail.com,
-	tim.gardner@canonical.com, linux@eikelenboom.it,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/6] media: add media token device resource framework
-References: <cover.1413246370.git.shuahkh@osg.samsung.com>	<c8bae1d475b1086302fcb83bc463ec01437c3f95.1413246372.git.shuahkh@osg.samsung.com>	<5446396B.9010709@xs4all.nl> <s5h1tq1ljxj.wl-tiwai@suse.de>
-In-Reply-To: <s5h1tq1ljxj.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+	Thu, 30 Oct 2014 22:34:24 -0400
+Received: by mail-pa0-f44.google.com with SMTP id bj1so6721835pad.17
+        for <linux-media@vger.kernel.org>; Thu, 30 Oct 2014 19:34:23 -0700 (PDT)
+Date: Fri, 31 Oct 2014 10:34:22 +0800
+From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
+To: "=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
+	"=?utf-8?B?T2xsaSBTYWxvbmVu?=" <olli.salonen@iki.fi>
+References: <201410271529188904708@gmail.com>,
+ <201410301238228758761@gmail.com>
+Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggdjIgMy8zXSBEVkJTa3kgVjMgUENJZSBjYXJkOiBhZGQgc29tZSBjaGFuZ2VzIHRvIE04OERTMzEwM2ZvcnN1cHBvcnRpbmcgdGhlIGRlbW9kIG9mIE04OFJTNjAwMA==?=
+Message-ID: <201410311034193593814@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Antti,
 
-
-On 10/21/2014 01:51 PM, Takashi Iwai wrote:
-> At Tue, 21 Oct 2014 12:46:03 +0200,
-> Hans Verkuil wrote:
->>
->> Hi Shuah,
->>
->> As promised, here is my review for this patch series.
->>
->> On 10/14/2014 04:58 PM, Shuah Khan wrote:
->>> Add media token device resource framework to allow sharing
->>> resources such as tuner, dma, audio etc. across media drivers
->>> and non-media sound drivers that control media hardware. The
->>> Media token resource is created at the main struct device that
->>> is common to all drivers that claim various pieces of the main
->>> media device, which allows them to find the resource using the
->>> main struct device. As an example, digital, analog, and
->>> snd-usb-audio drivers can use the media token resource API
->>> using the main struct device for the interface the media device
->>> is attached to.
+On 2014-10-31 01:36:14, Antti Palosaari wrote:
+>
+>
+>On 10/30/2014 06:38 AM, Nibble Max wrote:
+>
+>>>> -	if (tab_len > 83) {
+>>>> +	if (tab_len > 86) {
 >>>
->>> A shared media tokens resource is created using devres framework
->>> for drivers to find and lock/unlock. Creating a shared devres
->>> helps avoid creating data structure dependencies between drivers.
->>> This media token resource contains media token for tuner, and
->>> audio. When tuner token is requested, audio token is issued.
+>>> That is not nice, but I could try find better solution and fix it later.
 >>
->> Did you mean: 'tuner token is issued' instead of audio token?
+>> What is the reason to check this parameter?
+>> How about remove this check?
+>
+>It is just to check you will not overwrite buffer accidentally. Buffer 
+>is 83 bytes long, which should be also increased...
+>The correct solution is somehow calculate max possible tab size on 
+>compile time. It should be possible as init tabs are static const 
+>tables. Use some macro to calculate max value and use it - not plain 
+>numbers.
+>
+>Something like that
+>#define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2, 
+>m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
+>
+>
+>>> Clock selection. What this does:
+>>> * select mclk_khz
+>>> * select target_mclk
+>>> * calls set_config() in order to pass target_mclk to tuner driver
+>>> * + some strange looking sleep, which is not likely needed
 >>
->> I also have the same question as Takashi: why do we have an audio
->> token in the first place? While you are streaming audio over alsa
->> the underlying tuner must be marked as being in use. It's all about
->> the tuner, since that's the resource that is being shared, not about
->> audio as such.
+>> The clock of M88RS6000's demod comes from tuner dies.
+>> So the first thing is turning on the demod main clock from tuner die after the demod reset.
+>> Without this clock, the following register's content will fail to update.
+>> Before changing the demod main clock, it should close clock path.
+>> After changing the demod main clock, it open clock path and wait the clock to stable.
 >>
->> For the remainder of my review I will ignore the audio-related code
->> and concentrate only on the tuner part.
->>
->>> Subsequent token (for tuner and audio) gets from the same task
->>> and task in the same tgid succeed. This allows applications that
->>> make multiple v4l2 ioctls to work with the first call acquiring
->>> the token and applications that create separate threads to handle
->>> video and audio functions.
 >>>
->>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>> ---
->>>    MAINTAINERS                  |    2 +
->>>    include/linux/media_tknres.h |   50 +++++++++
->>>    lib/Makefile                 |    2 +
->>>    lib/media_tknres.c           |  237 ++++++++++++++++++++++++++++++++++++++++++
+>>> One thing what I don't like this is that you have implemented M88RS6000
+>>> things here and M88DS3103 elsewhere. Generally speaking, code must have
+>>> some logic where same things are done in same place. So I expect to see
+>>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
+>>> implemented here or these moved to place where M88DS3103 implementation is.
+>>>
 >>
->> I am still not convinced myself that this should be a generic API.
->> The only reason we need it today is for sharing tuners. Which is almost
->> a purely media thing with USB audio as the single non-media driver that
->> will be affected. Today I see no use case outside of tuners. I would
->> probably want to keep this inside drivers/media.
+>> I will move M88DS3103 implementation to here.
 >>
->> If this is going to be expanded it can always be moved to lib later.
+>>> Also, even set_config() is somehow logically correctly used here, I
+>>> prefer to duplicate that 4 line long target_mclk selection to tuner
+>>> driver and get rid of whole set_config(). Even better solution could be
+>>> to register M88RS6000 as a clock provider using clock framework, but
+>>> imho it is not worth  that simple case.
+>>
+>> Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
 >
-> Well, my argument is that it should be more generic if it were
-> intended to be put in lib.  It'd be fine to put into drivers/media,
-> but this code snippet must be a separate module.  Otherwise usb-audio
-> would grab the whole media stuff even if not needed at all.
-
-Certainly.
-
+>Yes, and you did it already on that latest patch, thanks. It is not 
+>logically correct, but a bit hackish solution, but I think it is best in 
+>that special case in order to keep things simple here.
 >
-> (snip)
->> I also discovered that you are missing MODULE_AUTHOR, MODULE_DESCRIPTION
->> and above all MODULE_LICENSE. Without the MODULE_LICENSE it won't link this
->> module to the GPL devres_* functions. It took me some time to figure that
->> out.
 >
-> It was a code in lib, so it cannot be a module at all :)
+>
+>One thing with that new patch I would like to check is this 10us delay 
+>after clock path is enabled. You enable clock just before mcu is stopped 
+>and demod is configured during mcu is on freeze. 10us is almost nothing 
+>and it sounds like having no need in a situation you stop even mcu. It 
+>is about one I2C command which will took longer than 10us. Hard to see 
+>why you need wait 10us to settle clock in such case. What happens if you 
+>don't wait? I assume nothing, it works just as it should as stable 
+>clocks are needed a long after that, when mcu is take out of reset.
+>
 
-Well, it depends on CONFIG_MEDIA_SUPPORT which is 'm' in my case, so it
-compiles as a module :-)
+usleep_range(10000, 20000);
+This delay time at least is 10ms, not 10us. 
 
-Regards,
+>regards
+>Antti
+>
+>-- 
+>http://palosaari.fi/
+BR,
+Max
 
-	Hans
