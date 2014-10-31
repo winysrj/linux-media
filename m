@@ -1,142 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:49767 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179AbaJLUlJ (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:17146 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757992AbaJaNGQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Oct 2014 16:41:09 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 12/15] media: davinci: vpbe: use helpers provided by core if streaming is started
-Date: Sun, 12 Oct 2014 21:40:42 +0100
-Message-Id: <1413146445-7304-13-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1413146445-7304-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 31 Oct 2014 09:06:16 -0400
+Date: Fri, 31 Oct 2014 16:06:00 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mahfouz.saif.elyazal@gmail.com
+Cc: linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141031130600.GA16310@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this patch uses vb2_is_busy() helper to check if streaming is
-actually started, instead of driver managing it.
+Hello Aya Mahfouz,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c | 34 ++++++++-------------------
- include/media/davinci/vpbe_display.h          |  4 ----
- 2 files changed, 10 insertions(+), 28 deletions(-)
+The patch be4aa8157c98: "staging: media: lirc: lirc_zilog.c: replace
+custom print macros with dev_* and pr_*" from Oct 26, 2014, leads to
+the following static checker warning:
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 378f31b..b57fa68 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -152,8 +152,8 @@ static irqreturn_t venc_isr(int irq, void *arg)
- 
- 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
- 		layer = disp_dev->dev[i];
--		/* If streaming is started in this layer */
--		if (!layer->started)
-+
-+		if (!vb2_start_streaming_called(&layer->buffer_queue))
- 			continue;
- 
- 		if (layer->layer_first_int) {
-@@ -314,7 +314,6 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	 * if request format is yuv420 semiplanar, need to
- 	 * enable both video windows
- 	 */
--	layer->started = 1;
- 	layer->layer_first_int = 1;
- 
- 	return ret;
-@@ -829,11 +828,9 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
- 			"VIDIOC_S_FMT, layer id = %d\n",
- 			layer->device_id);
- 
--	/* If streaming is started, return error */
--	if (layer->started) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
-+	if (vb2_is_busy(&layer->buffer_queue))
- 		return -EBUSY;
--	}
-+
- 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
- 		v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "invalid type\n");
- 		return -EINVAL;
-@@ -937,11 +934,9 @@ static int vpbe_display_s_std(struct file *file, void *priv,
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_STD\n");
- 
--	/* If streaming is started, return error */
--	if (layer->started) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
-+	if (vb2_is_busy(&layer->buffer_queue))
- 		return -EBUSY;
--	}
-+
- 	if (NULL != vpbe_dev->ops.s_std) {
- 		ret = vpbe_dev->ops.s_std(vpbe_dev, std_id);
- 		if (ret) {
-@@ -1021,11 +1016,10 @@ static int vpbe_display_s_output(struct file *file, void *priv,
- 	int ret;
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_S_OUTPUT\n");
--	/* If streaming is started, return error */
--	if (layer->started) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
-+
-+	if (vb2_is_busy(&layer->buffer_queue))
- 		return -EBUSY;
--	}
-+
- 	if (NULL == vpbe_dev->ops.set_output)
- 		return -EINVAL;
- 
-@@ -1102,12 +1096,8 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
- 
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_DV_TIMINGS\n");
- 
--
--	/* If streaming is started, return error */
--	if (layer->started) {
--		v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
-+	if (vb2_is_busy(&layer->buffer_queue))
- 		return -EBUSY;
--	}
- 
- 	/* Set the given standard in the encoder */
- 	if (!vpbe_dev->ops.s_dv_timings)
-@@ -1212,13 +1202,9 @@ static int vpbe_display_release(struct file *file)
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "vpbe_display_release\n");
- 
- 	mutex_lock(&layer->opslock);
--	/* Reset io_usrs member of layer object */
--	layer->io_usrs = 0;
- 
- 	osd_device->ops.disable_layer(osd_device,
- 			layer->layer_info.id);
--	layer->started = 0;
--
- 	/* Decrement layer usrs counter */
- 	layer->usrs--;
- 	/* If this file handle has initialize encoder device, reset it */
-diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
-index 06ea815..de0843d 100644
---- a/include/media/davinci/vpbe_display.h
-+++ b/include/media/davinci/vpbe_display.h
-@@ -106,12 +106,8 @@ struct vpbe_layer {
- 	unsigned char window_enable;
- 	/* number of open instances of the layer */
- 	unsigned int usrs;
--	/* number of users performing IO */
--	unsigned int io_usrs;
- 	/* Indicates id of the field which is being displayed */
- 	unsigned int field_id;
--	/* Indicates whether streaming started */
--	unsigned char started;
- 	/* Identifies device object */
- 	enum vpbe_display_device_id device_id;
- 	/* facilitation of ioctl ops lock by v4l2*/
--- 
-1.9.1
+	drivers/staging/media/lirc/lirc_zilog.c:1340 close()
+	error: we previously assumed 'ir' could be null (see line 1339)
 
+drivers/staging/media/lirc/lirc_zilog.c
+  1333  /* Close the IR device */
+  1334  static int close(struct inode *node, struct file *filep)
+  1335  {
+  1336          /* find our IR struct */
+  1337          struct IR *ir = filep->private_data;
+  1338  
+  1339          if (ir == NULL) {
+                    ^^^^^^^^^^
+  1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
+                                ^^^^^^^^^
+
+I suggest you just delete the error message.  Can "ir" actually be NULL
+here anyway?
+
+  1341                  return -ENODEV;
+  1342          }
+  1343  
+
+	drivers/staging/media/lirc/lirc_zilog.c:1636 ir_probe()
+	error: potential null dereference 'ir'.  (kzalloc returns null)
+
+drivers/staging/media/lirc/lirc_zilog.c
+  1614          dev_info(ir->l.dev, "IR unit on %s (i2c-%d) registered as lirc%d and ready\n",
+  1615                     adap->name, adap->nr, ir->l.minor);
+  1616  
+  1617  out_ok:
+  1618          if (rx != NULL)
+  1619                  put_ir_rx(rx, true);
+  1620          if (tx != NULL)
+  1621                  put_ir_tx(tx, true);
+  1622          put_ir_device(ir, true);
+  1623          dev_info(ir->l.dev, "probe of IR %s on %s (i2c-%d) done\n",
+  1624                     tx_probe ? "Tx" : "Rx", adap->name, adap->nr);
+  1625          mutex_unlock(&ir_devices_lock);
+  1626          return 0;
+  1627  
+  1628  out_put_xx:
+  1629          if (rx != NULL)
+  1630                  put_ir_rx(rx, true);
+                        ^^^^^^^^^^^^^^^^^^^
+Btw, I think this is a double free?  On some paths we call put_ir_rx()
+before the goto out_put_xx;.
+
+  1631          if (tx != NULL)
+  1632                  put_ir_tx(tx, true);
+  1633  out_put_ir:
+  1634          put_ir_device(ir, true);
+  1635  out_no_ir:
+  1636          dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+                        ^^^^^^^^^
+Null dereference.
+
+  1637                      __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+  1638                     ret);
+  1639          mutex_unlock(&ir_devices_lock);
+  1640          return ret;
+  1641  }
+
+regards,
+dan carpenter
