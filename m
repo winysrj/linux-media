@@ -1,138 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:33134 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752781AbaJPVSp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Oct 2014 17:18:45 -0400
-Received: from berryeater.riseup.net (berryeater-pn.riseup.net [10.0.1.120])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(Client CN "*.riseup.net", Issuer "Gandi Standard SSL CA" (not verified))
-	by mx1.riseup.net (Postfix) with ESMTPS id DAC314154E
-	for <linux-media@vger.kernel.org>; Thu, 16 Oct 2014 14:18:44 -0700 (PDT)
-Message-ID: <5440362F.5040306@riseup.net>
-Date: Fri, 17 Oct 2014 07:18:39 +1000
-From: Dave Kimble <dave.kimble@riseup.net>
-Reply-To: dave.kimble@riseup.net
-MIME-Version: 1.0
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:49494 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932578AbaJaNOI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 09:14:08 -0400
+Received: by mail-pa0-f49.google.com with SMTP id lj1so7595968pab.8
+        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 06:14:07 -0700 (PDT)
+From: tskd08@gmail.com
 To: linux-media@vger.kernel.org
-Subject: GrabBee-HD
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3 0/7] v4l-utils/libdvbv5,dvb: add support for ISDB-S
+Date: Fri, 31 Oct 2014 22:13:37 +0900
+Message-Id: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have just bought an HDMI to USB-2.0 grabber called "GrabBee-HD".
-http://www.greada.com/grabbeex-hd.html
-Motherboard photo: http://www.davekimble.org.au/computers/GrabBee-HD.jpg
-Inside it has chips labelled "Sigma PL330B-CPE3" and "iTE IT6604E".
-Note that it compresses the video with H.264 .
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-I knew it probably wouldn't have drivers for Linux, but it does have 
-Windows drivers on CD,
-so since I run Ubuntu-VirtualBox-WinXP I thought it might well work one 
-way or another.
+This patch series adds tuning and scanning features for ISDB-S,
+and required modifications to libdvbv5 and utils/dvb to support it.
+Other features of the libdvbv5 API may not work for ISDB-S.
 
-On Ubuntu 14.04, the USB device is picked up:
-$ lsusb -v -d 0658:1100
+Changes from v2:
+ * rebased to the recent master (db6a15ad)
+ * removed the unnecessary/wrong patches pointed out by the reviews
+ * re-ordered the patches, non ISDB-S/T specific ones first
+ * re-wrote countries.[ch], to include 3-letter country code support
+ * make charset conversions of ARIB-STD-B24 encodings bidirectional
+ * add SOBs
 
-Bus 001 Device 007: ID 0658:1100 Sigma Designs, Inc.
-Couldn't open device, some information will be missing
-Device Descriptor:
-   bLength                18
-   bDescriptorType         1
-   bcdUSB               2.00
-   bDeviceClass            0 (Defined at Interface level)
-   bDeviceSubClass         0
-   bDeviceProtocol         0
-   bMaxPacketSize0        64
-   idVendor           0x0658 Sigma Designs, Inc.
-   idProduct          0x1100
-   bcdDevice            0.00
-   iManufacturer           1
-   iProduct                2
-   iSerial                 3
-   bNumConfigurations      1
-   Configuration Descriptor:
-     bLength                 9
-     bDescriptorType         2
-     wTotalLength           46
-     bNumInterfaces          1
-     bConfigurationValue     1
-     iConfiguration          4
-     bmAttributes         0x80
-       (Bus Powered)
-     MaxPower              500mA
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       0
-       bNumEndpoints           4
-       bInterfaceClass       255 Vendor Specific Class
-       bInterfaceSubClass      0
-       bInterfaceProtocol      0
-       iInterface              4
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x02  EP 2 OUT
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               3
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x04  EP 4 OUT
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               3
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               3
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x83  EP 3 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               3
-====
+Akihiro Tsukada (7):
+  v4l-utils/libdvbv5, dvbv5-scan: generalize channel duplication check
+  v4l-utils/libdvbv5: add as many channels as possible in scanning
+    DVB-T2
+  v4l-utils/libdvbv5: wrong frequency in the output of satellite delsys
+    scans
+  v4l-utils/libdvbv5: add support for ISDB-S tuning
+  v4l-utils/libdvbv5: add support for ISDB-S scanning
+  v4l-utils/dvb: add COUNTRY property
+  v4l-utils/libdvbv5: add gconv module for the text conversions of
+    ISDB-S/T.
 
-but it is not recognised as a video capture device by VLC.
-/dev/dvb/ , /dev/v4l/ , /dev/video0 do not exist.
-
-So I fired up VB-WinXP and installed the Windows drivers and software, 
-and restarted.
-Then plugged in the device, which should connect the device to the 
-driver, but it didn't.
-Starting the Grabbee-HD software gives "No video capture device is 
-connected!"
-Then I realised the USB device has to be passed through the VB interface,
-VB-Manager > USB > Add > "no devices available".
-
-So because Ubuntu doesn't properly recognise the device, it can't pass 
-it on to VB and XP.
-
-Is there any chance of getting this going on Ubuntu 14.04 natively?
-
+ configure.ac                      |   13 +
+ lib/Makefile.am                   |    6 +-
+ lib/gconv/arib-std-b24.c          | 1592 +++++++++++++++++++++++++++++++++++++
+ lib/gconv/en300-468-tab00.c       |  564 +++++++++++++
+ lib/gconv/gconv-modules           |    8 +
+ lib/gconv/gconv.map               |    8 +
+ lib/gconv/iconv/loop.c            |  523 ++++++++++++
+ lib/gconv/iconv/skeleton.c        |  829 +++++++++++++++++++
+ lib/gconv/jis0201.h               |   63 ++
+ lib/gconv/jis0208.h               |  112 +++
+ lib/gconv/jisx0213.h              |  102 +++
+ lib/include/libdvbv5/countries.h  |  307 +++++++
+ lib/include/libdvbv5/dvb-fe.h     |   14 +
+ lib/include/libdvbv5/dvb-scan.h   |    9 +-
+ lib/include/libdvbv5/dvb-v5-std.h |    7 +-
+ lib/libdvbv5/Makefile.am          |    2 +
+ lib/libdvbv5/countries.c          |  427 ++++++++++
+ lib/libdvbv5/dvb-fe-priv.h        |    6 +-
+ lib/libdvbv5/dvb-fe.c             |   93 ++-
+ lib/libdvbv5/dvb-file.c           |   33 +
+ lib/libdvbv5/dvb-sat.c            |    9 +
+ lib/libdvbv5/dvb-scan.c           |  114 ++-
+ lib/libdvbv5/dvb-v5-std.c         |    6 +-
+ lib/libdvbv5/parse_string.c       |    8 +-
+ utils/dvb/dvb-format-convert.c    |    3 +-
+ utils/dvb/dvbv5-scan.c            |   26 +-
+ utils/dvb/dvbv5-zap.c             |   10 +
+ 27 files changed, 4856 insertions(+), 38 deletions(-)
+ create mode 100644 lib/gconv/arib-std-b24.c
+ create mode 100644 lib/gconv/en300-468-tab00.c
+ create mode 100644 lib/gconv/gconv-modules
+ create mode 100644 lib/gconv/gconv.map
+ create mode 100644 lib/gconv/iconv/loop.c
+ create mode 100644 lib/gconv/iconv/skeleton.c
+ create mode 100644 lib/gconv/jis0201.h
+ create mode 100644 lib/gconv/jis0208.h
+ create mode 100644 lib/gconv/jisx0213.h
+ create mode 100644 lib/include/libdvbv5/countries.h
+ create mode 100644 lib/libdvbv5/countries.c
 
 -- 
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at http://vger.kernel.org/majordomo-info.html
+2.1.3
 
