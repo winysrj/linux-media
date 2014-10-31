@@ -1,205 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:42977 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbaJBFV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Oct 2014 01:21:29 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com, crope@iki.fi
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH V3 06/13] cx231xx: Use symbolic constants for i2c ports instead of numbers
-Date: Thu,  2 Oct 2014 07:20:58 +0200
-Message-Id: <1412227265-17453-7-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
-References: <1412227265-17453-1-git-send-email-zzam@gentoo.org>
+Received: from mailout62.mail01.mtsvc.net ([216.70.64.126]:53753 "EHLO
+	mailout62.mail01.mtsvc.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757268AbaJaRiq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 13:38:46 -0400
+Received: from mailout32.mail01.mtsvc.net ([216.70.64.70] helo=n23.mail01.mtsvc.net)
+	by mailout62.mail01.mtsvc.net with esmtps (UNKNOWN:AES256-GCM-SHA384:256)
+	(Exim 4.72)
+	(envelope-from <peter@hurleysoftware.com>)
+	id 1XkG9t-0007aC-F8
+	for linux-media@vger.kernel.org; Fri, 31 Oct 2014 13:38:45 -0400
+Message-ID: <5453C91D.9060702@hurleysoftware.com>
+Date: Fri, 31 Oct 2014 13:38:37 -0400
+From: Peter Hurley <peter@hurleysoftware.com>
+MIME-Version: 1.0
+To: Udo van den Heuvel <udovdh@xs4all.nl>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: 3.17.2. issue?
+References: <5453AE33.8040802@xs4all.nl>
+In-Reply-To: <5453AE33.8040802@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace numbers by the constants of same value and same meaning.
+[ +cc Hans Verkuil, Mauro Carvalho Chehab, linux-media ]
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 62 +++++++++++++++----------------
- 1 file changed, 31 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 092fb85..2f027c7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -104,8 +104,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -144,8 +144,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -184,8 +184,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -225,8 +225,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x1c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -297,8 +297,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x02,
- 		.norm = V4L2_STD_PAL,
-@@ -325,8 +325,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x32,
- 		.norm = V4L2_STD_NTSC,
-@@ -353,8 +353,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-@@ -418,9 +418,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_PAL_M,
-@@ -456,9 +456,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
- 		.norm = V4L2_STD_NTSC_M,
-@@ -494,9 +494,9 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.tuner_scl_gpio = -1,
- 		.tuner_sda_gpio = -1,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 2,
--		.demod_i2c_master = 1,
--		.ir_i2c_master = 2,
-+		.tuner_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1,
-+		.ir_i2c_master = I2C_2,
- 		.rc_map_name = RC_MAP_PIXELVIEW_002T,
- 		.has_dvb = 1,
- 		.demod_addr = 0x10,
-@@ -587,7 +587,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_PAL,
- 
- 		.input = {{
-@@ -622,7 +622,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
-+		.tuner_i2c_master = I2C_1,
- 		.norm = V4L2_STD_NTSC,
- 
- 		.input = {{
-@@ -718,8 +718,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -757,8 +757,8 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.ctl_pin_status_mask = 0xFFFFFFC4,
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
--		.tuner_i2c_master = 1,
--		.demod_i2c_master = 2,
-+		.tuner_i2c_master = I2C_1,
-+		.demod_i2c_master = I2C_2,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -1033,7 +1033,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	/* request some modules */
- 	if (dev->board.decoder == CX231XX_AVDECODER) {
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--					&dev->i2c_bus[0].i2c_adap,
-+					&dev->i2c_bus[I2C_0].i2c_adap,
- 					"cx25840", 0x88 >> 1, NULL);
- 		if (dev->sd_cx25840 == NULL)
- 			cx231xx_info("cx25840 subdev registration failure\n");
-@@ -1062,7 +1062,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 			struct i2c_client client;
- 
- 			memset(&client, 0, sizeof(client));
--			client.adapter = &dev->i2c_bus[1].i2c_adap;
-+			client.adapter = &dev->i2c_bus[I2C_1].i2c_adap;
- 			client.addr = 0xa0 >> 1;
- 
- 			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
--- 
-2.1.1
+On 10/31/2014 11:43 AM, Udo van den Heuvel wrote:
+> Hello,
+> 
+> Booting into 3.17.2 on one box I saw:
+> 
+> [   15.070260] microcode: CPU0: patch_level=0x010000b7
+> [   15.279454] Linux video capture interface: v2.00
+> [   15.315043] microcode: CPU0: new patch_level=0x010000c7
+> [   15.319519] microcode: CPU1: patch_level=0x010000b7
+> [   15.323966] microcode: CPU1: new patch_level=0x010000c7
+> [   15.328493] microcode: Microcode Update Driver: v2.00
+> <tigran@aivazian.fsnet.co.uk>, Peter Oruba
+> [   15.750724] saa7146: register extension 'budget_av'
+> [   15.757205] ------------[ cut here ]------------
+> [   15.763300] WARNING: CPU: 0 PID: 468 at fs/proc/generic.c:341
+> __proc_create+0x1a4/0x1c0()
+> [   15.769475] name len 0
+> [   15.774046] Modules linked in: budget_av(+) saa7146_vv
+> videobuf_dma_sg videobuf_core v4l2_common videodev budget_core microcode
+> ttpci_eeprom saa7146 dvb_core snd_hda_codec_realtek snd_hda_codec_hdmi
+> snd_hda_codec_generic cp210x snd_hda_intel usbserial k10temp
+> snd_hda_controller evdev snd_hda_codec snd_seq snd_seq_device snd_pcm
+> i2c_piix4 snd_timer snd acpi_cpufreq processor button nfsd auth_rpcgss
+> oid_registry exportfs nfs_acl lockd sunrpc hid_generic usbhid hid
+> ata_generic ehci_pci ehci_hcd ohci_pci ohci_hcd sr_mod cdrom radeon
+> fbcon bitblit softcursor font cfbfillrect cfbimgblt cfbcopyarea
+> backlight drm_kms_helper ttm autofs4
+> [   15.794125] CPU: 0 PID: 468 Comm: systemd-udevd Not tainted
+> 3.17.2test-dirty #7
+> [   15.799155] Hardware name: To Be Filled By O.E.M. To Be Filled By
+> O.E.M./To be filled by O.E.M., BIOS 080015  05/04/2010
+> [   15.804586]  0000000000000009 ffffffff81461238 ffff8800cf69ba60
+> ffffffff81056271
+> [   15.809771]  ffff8800cf69bb00 ffff8800cf69bab0 0000000000000002
+> 000000000000416d
+> [   15.814957]  0000000000000000 ffffffff810562e7 ffffffff8156510b
+> ffffffff00000020
+> [   15.820188] Call Trace:
+> [   15.825314]  [<ffffffff81461238>] ? dump_stack+0x49/0x6a
+> [   15.830457]  [<ffffffff81056271>] ? warn_slowpath_common+0x81/0xb0
+> [   15.835535]  [<ffffffff810562e7>] ? warn_slowpath_fmt+0x47/0x50
+> [   15.840565]  [<ffffffff81179c74>] ? __proc_create+0x1a4/0x1c0
+> [   15.845613]  [<ffffffff81179f5f>] ? proc_mkdir_data+0x2f/0x70
+> [   15.850605]  [<ffffffff81092b74>] ? register_handler_proc+0x114/0x130
+> [   15.855497]  [<ffffffff8108f87b>] ? __setup_irq+0x3cb/0x500
+> [   15.860273]  [<ffffffffa0362da0>] ? saa7146_remove_one+0x1c0/0x1c0
+> [saa7146]
+> [   15.865007]  [<ffffffff8108fb21>] ? request_threaded_irq+0xd1/0x170
+> [   15.869728]  [<ffffffffa03630f3>] ? saa7146_init_one+0x103/0x740
+> [saa7146]
+> [   15.874377]  [<ffffffff81271158>] ? pci_device_probe+0x98/0xf0
+> [   15.878911]  [<ffffffff81305356>] ? driver_probe_device+0x86/0x270
+> [   15.883317]  [<ffffffff81305633>] ? __driver_attach+0x93/0xa0
+> [   15.887659]  [<ffffffff813055a0>] ? __device_attach+0x60/0x60
+> [   15.891919]  [<ffffffff81303653>] ? bus_for_each_dev+0x53/0x90
+> [   15.896107]  [<ffffffff81304b68>] ? bus_add_driver+0x188/0x240
+> [   15.900246]  [<ffffffffa0400000>] ? 0xffffffffa0400000
+> [   15.904359]  [<ffffffff813059e6>] ? driver_register+0x56/0xd0
+> [   15.908454]  [<ffffffff810002b4>] ? do_one_initcall+0x84/0x1b0
+> [   15.912567]  [<ffffffff810b0774>] ? load_module+0x1c34/0x2190
+> [   15.916648]  [<ffffffff810ad3c0>] ? store_uevent+0x50/0x50
+> [   15.920716]  [<ffffffff810b0e25>] ? SyS_finit_module+0x85/0x90
+> [   15.924768]  [<ffffffff81466092>] ? system_call_fastpath+0x16/0x1b
+> [   15.928925] ---[ end trace b6ff19cfd9b0c411 ]---
+> [   15.932953] saa7146: found saa7146 @ mem ffffc90000020c00 (revision
+> 1, irq 20) (0x153b,0x1157)
+> [   15.937071] saa7146 (0): dma buffer size 192512
+> [   15.937071] saa7146 (0): dma buffer size 192512
+> [   15.941161] DVB: registering new adapter (Terratec Cinergy 1200 DVB-T)
+> [   15.981742] adapter failed MAC signature check
+> [   15.987499] encoded MAC from EEPROM was
+> ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+> [   16.256557] budget_av: KNC1-0: MAC addr = 00:0a:ac:01:d6:87
+> [   16.617698] budget_av 0000:03:05.0: DVB: registering adapter 0
+> frontend 0 (Philips TDA10046H DVB-T)...
+> [   16.624394] budget_av: ci interface initialised
+> [   17.053409] EXT4-fs (dm-3): mounted filesystem with ordered data
+> mode. Opts: (null)
+> 
+> What happened?
+> 
+> Kind regards,
+> Udo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
