@@ -1,60 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38682 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932361AbaJVJ3Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Oct 2014 05:29:25 -0400
-Message-ID: <1413970161.3107.2.camel@pengutronix.de>
-Subject: Re: [media] CODA960: Fails to allocate memory
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Date: Wed, 22 Oct 2014 11:29:21 +0200
-In-Reply-To: <CAL8zT=jQ-pg8x1rqX5SFvgbtKuTsaJXdSVuMU3ocJGRUBCo3Bg@mail.gmail.com>
-References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
-	 <54465F34.1000400@xs4all.nl>
-	 <CAL8zT=herYZ9d3TKrx_5Nre0_RRRXK3Az9-NvmqGE7_SkHLzHg@mail.gmail.com>
-	 <54466471.8050607@xs4all.nl>
-	 <CAL8zT=jykeu33QRvj9JxhuSxV2Cg8La2J8KxVJpu+GsaE9wZnA@mail.gmail.com>
-	 <1413908485.3081.4.camel@pengutronix.de>
-	 <CAL8zT=hDEth-xoEr=9phzdZ9dXJMBeP9rpiTLYHwoqgf7E4tjQ@mail.gmail.com>
-	 <CAL8zT=jQ-pg8x1rqX5SFvgbtKuTsaJXdSVuMU3ocJGRUBCo3Bg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from lists.s-osg.org ([54.187.51.154]:42782 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756393AbaJaKdE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 06:33:04 -0400
+Date: Fri, 31 Oct 2014 08:32:58 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: crope@iki.fi, linux-media@vger.kernel.org
+Subject: Re: [PATCH] cx231xx: remove direct register PWR_CTL_EN modification
+ that switches port3
+Message-ID: <20141031083258.4cfd463a@recife.lan>
+In-Reply-To: <1414709035-7729-1-git-send-email-zzam@gentoo.org>
+References: <20141030182706.09265d37@recife.lan>
+	<1414709035-7729-1-git-send-email-zzam@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+Em Thu, 30 Oct 2014 23:43:55 +0100
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-Am Mittwoch, den 22.10.2014, 11:21 +0200 schrieb Jean-Michel Hautbois:
-> I may have misunderstand something...
-> I try to encode, and modified the CODA_MAX_FRAME_SIZE to 0x500000 just to see.
->
-> And here is the trace-cmd :
+> The only remaining place that modifies the relevant bit is in function
+> cx231xx_set_Colibri_For_LowIF
 > 
-> $> trace-cmd  record -e v4l2*  v4l2-ctl -d1  --stream-out-mmap
-> --stream-mmap --stream-to x.raw
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>  drivers/media/usb/cx231xx/cx231xx-avcore.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> index b56bc87..781908b 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> @@ -2270,7 +2270,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
+>  	case POLARIS_AVMODE_ANALOGT_TV:
+>  
+>  		tmp |= PWR_DEMOD_EN;
+> -		tmp |= (I2C_DEMOD_EN);
+>  		value[0] = (u8) tmp;
+>  		value[1] = (u8) (tmp >> 8);
+>  		value[2] = (u8) (tmp >> 16);
+> @@ -2366,7 +2365,7 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
+>  		}
+>  
+>  		tmp &= (~PWR_AV_MODE);
+> -		tmp |= POLARIS_AVMODE_DIGITAL | I2C_DEMOD_EN;
+> +		tmp |= POLARIS_AVMODE_DIGITAL;
+>  		value[0] = (u8) tmp;
+>  		value[1] = (u8) (tmp >> 8);
+>  		value[2] = (u8) (tmp >> 16);
 
-Are you sure /dev/video1 is the encoder device?
+Hmm... Not sure if this patch is right. There is one I2C bus internally
+at cx231xx. Some configurations need to go through this I2C bus. 
 
-  $ cat /sys/class/video4linux/video12/name
-  coda-encoder
+Did you test if changing from/to analog/digital mode is working?
 
-  $ cat /sys/class/video4linux/video13/name
-  coda-decoder
-
-[...]
-> And the bytesused is 5MB which corresponds to the 0x500000...
-> How is the encoder supposed to work precisely ? I missed something...
-
-The encoder just takes raw frames and returns encoded frames. The
-bitstream ringbuffer is not involved there.
-
-regards
-Philipp
+Regards,
+Mauro
 
