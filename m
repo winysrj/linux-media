@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4455 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751749AbaJ0Kel (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51649 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759926AbaJaNyx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 06:34:41 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9RAYbKW019040
-	for <linux-media@vger.kernel.org>; Mon, 27 Oct 2014 11:34:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.61.194.228] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 7A7E62A0377
-	for <linux-media@vger.kernel.org>; Mon, 27 Oct 2014 11:34:19 +0100 (CET)
-Message-ID: <544E1FBC.7060305@xs4all.nl>
-Date: Mon, 27 Oct 2014 11:34:36 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] Two patches
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 31 Oct 2014 09:54:53 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 5276F217D3
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:41 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 03/11] uvcvideo: Add V4L2 debug module parameter
+Date: Fri, 31 Oct 2014 15:54:49 +0200
+Message-Id: <1414763697-21166-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add a new debug module parameter and use it to initialize the V4L2 debug
+level for all video devices.
 
-This fixes one tricky v4l2-ctrls.c sparse warning and increases the number
-of buffers in vb2.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Regards,
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 30163432..1cae974 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -34,6 +34,7 @@
+ unsigned int uvc_clock_param = CLOCK_MONOTONIC;
+ unsigned int uvc_no_drop_param;
+ static unsigned int uvc_quirks_param = -1;
++static unsigned int uvc_debug_param;
+ unsigned int uvc_trace_param;
+ unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
+ 
+@@ -1763,6 +1764,7 @@ static int uvc_register_video(struct uvc_device *dev,
+ 	vdev->ioctl_ops = &uvc_ioctl_ops;
+ 	vdev->release = uvc_release;
+ 	vdev->prio = &stream->chain->prio;
++	vdev->debug = uvc_debug_param;
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		vdev->vfl_dir = VFL_DIR_TX;
+ 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+@@ -2080,6 +2082,8 @@ static int uvc_clock_param_set(const char *val, struct kernel_param *kp)
+ module_param_call(clock, uvc_clock_param_set, uvc_clock_param_get,
+ 		  &uvc_clock_param, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(clock, "Video buffers timestamp clock");
++module_param_named(debug, uvc_debug_param, uint, S_IRUGO);
++MODULE_PARM_DESC(debug, "V4L2 debug level");
+ module_param_named(nodrop, uvc_no_drop_param, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(nodrop, "Don't drop incomplete frames");
+ module_param_named(quirks, uvc_quirks_param, uint, S_IRUGO|S_IWUSR);
+-- 
+2.0.4
 
-	Hans
-
-
-The following changes since commit 1ef24960ab78554fe7e8e77d8fc86524fbd60d3c:
-
-  Merge tag 'v3.18-rc1' into patchwork (2014-10-21 08:32:51 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19c
-
-for you to fetch changes up to 0c0b10999ca6d68dc224d1330dc2541c66db0351:
-
-  v4l2-ctrls: fix sparse warning (2014-10-27 11:33:14 +0100)
-
-----------------------------------------------------------------
-Divneil Wadhawan (1):
-      vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
-
-Hans Verkuil (1):
-      v4l2-ctrls: fix sparse warning
-
- drivers/media/pci/saa7134/saa7134-ts.c       |  4 +--
- drivers/media/pci/saa7134/saa7134-vbi.c      |  4 +--
- drivers/media/pci/saa7134/saa7134-video.c    |  2 +-
- drivers/media/platform/mem2mem_testdev.c     |  2 +-
- drivers/media/platform/ti-vpe/vpe.c          |  2 +-
- drivers/media/platform/vivid/vivid-core.h    |  2 +-
- drivers/media/platform/vivid/vivid-ctrls.c   |  2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c         | 87 +++++++++++++++++++++++++++++++++++++++--------------------------
- drivers/media/v4l2-core/videobuf2-core.c     |  8 +++---
- include/media/videobuf2-core.h               |  4 ++-
- 11 files changed, 69 insertions(+), 50 deletions(-)
