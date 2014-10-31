@@ -1,73 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.culm.net ([79.188.239.84]:43172 "EHLO centaur.culm.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751544AbaJSWcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Oct 2014 18:32:04 -0400
-From: Witold Krecicki <wpk+lkml@culm.net>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Witold Krecicki <wpk+lkml@culm.net>
-Subject: [PATCH 1/1] em28xx: add support for Leadtek VC100 USB capture device
-Date: Mon, 20 Oct 2014 00:25:59 +0200
-Message-Id: <1413757559-12268-1-git-send-email-wpk+lkml@culm.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:51539 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934093AbaJaDN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 23:13:59 -0400
+Message-ID: <5452FE75.1010402@iki.fi>
+Date: Fri, 31 Oct 2014 05:13:57 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103forsupporting
+ the demod of M88RS6000
+References: <201410271529188904708@gmail.com>, <201410301238228758761@gmail.com> <201410311034193593814@gmail.com> <5452FA39.8040608@iki.fi>
+In-Reply-To: <5452FA39.8040608@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Leadtek VC100 is a simple USB capture stick, similar to
-Yakumo Movie Mixer.
 
-Signed-off-by: Witold Krecicki <wpk+lkml@culm.net>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 16 ++++++++++++++++
- drivers/media/usb/em28xx/em28xx.h       |  1 +
- 2 files changed, 17 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 71fa51e..3c97bf1 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2243,6 +2243,20 @@ struct em28xx_board em28xx_boards[] = {
- 		.has_dvb       = 1,
- 		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
- 	},
-+	[EM2861_BOARD_LEADTEK_VC100] = {
-+		.name          = "Leadtek VC100",
-+		.tuner_type    = TUNER_ABSENT,	/* Capture only device */
-+		.decoder       = EM28XX_TVP5150,
-+		.input         = { {
-+			.type     = EM28XX_VMUX_COMPOSITE1,
-+			.vmux     = TVP5150_COMPOSITE1,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		}, {
-+			.type     = EM28XX_VMUX_SVIDEO,
-+			.vmux     = TVP5150_SVIDEO,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		} },
-+	},
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
-@@ -2424,6 +2438,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM28178_BOARD_PCTV_461E },
- 	{ USB_DEVICE(0x2013, 0x025f),
- 			.driver_info = EM28178_BOARD_PCTV_292E },
-+	{ USB_DEVICE(0x0413, 0x6f07),
-+			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index a21a746..05e7f7c 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -141,6 +141,7 @@
- #define EM28178_BOARD_PCTV_461E                   92
- #define EM2874_BOARD_KWORLD_UB435Q_V3		  93
- #define EM28178_BOARD_PCTV_292E                   94
-+#define EM2861_BOARD_LEADTEK_VC100                95
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
+On 10/31/2014 04:55 AM, Antti Palosaari wrote:
+>
+>
+> On 10/31/2014 04:34 AM, Nibble Max wrote:
+>> Hello Antti,
+>>
+>> On 2014-10-31 01:36:14, Antti Palosaari wrote:
+>>>
+>>>
+>>> On 10/30/2014 06:38 AM, Nibble Max wrote:
+>>>
+>>>>>> -    if (tab_len > 83) {
+>>>>>> +    if (tab_len > 86) {
+>>>>>
+>>>>> That is not nice, but I could try find better solution and fix it
+>>>>> later.
+>>>>
+>>>> What is the reason to check this parameter?
+>>>> How about remove this check?
+>>>
+>>> It is just to check you will not overwrite buffer accidentally. Buffer
+>>> is 83 bytes long, which should be also increased...
+>>> The correct solution is somehow calculate max possible tab size on
+>>> compile time. It should be possible as init tabs are static const
+>>> tables. Use some macro to calculate max value and use it - not plain
+>>> numbers.
+>>>
+>>> Something like that
+>>> #define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2,
+>>> m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
+>>>
+>>>
+>>>>> Clock selection. What this does:
+>>>>> * select mclk_khz
+>>>>> * select target_mclk
+>>>>> * calls set_config() in order to pass target_mclk to tuner driver
+>>>>> * + some strange looking sleep, which is not likely needed
+>>>>
+>>>> The clock of M88RS6000's demod comes from tuner dies.
+>>>> So the first thing is turning on the demod main clock from tuner die
+>>>> after the demod reset.
+>>>> Without this clock, the following register's content will fail to
+>>>> update.
+>>>> Before changing the demod main clock, it should close clock path.
+>>>> After changing the demod main clock, it open clock path and wait the
+>>>> clock to stable.
+>>>>
+>>>>>
+>>>>> One thing what I don't like this is that you have implemented
+>>>>> M88RS6000
+>>>>> things here and M88DS3103 elsewhere. Generally speaking, code must
+>>>>> have
+>>>>> some logic where same things are done in same place. So I expect to
+>>>>> see
+>>>>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
+>>>>> implemented here or these moved to place where M88DS3103
+>>>>> implementation is.
+>>>>>
+>>>>
+>>>> I will move M88DS3103 implementation to here.
+>>>>
+>>>>> Also, even set_config() is somehow logically correctly used here, I
+>>>>> prefer to duplicate that 4 line long target_mclk selection to tuner
+>>>>> driver and get rid of whole set_config(). Even better solution
+>>>>> could be
+>>>>> to register M88RS6000 as a clock provider using clock framework, but
+>>>>> imho it is not worth  that simple case.
+>>>>
+>>>> Do you suggest to set demod main clock and ts clock in tuner's
+>>>> set_params call back?
+>>>
+>>> Yes, and you did it already on that latest patch, thanks. It is not
+>>> logically correct, but a bit hackish solution, but I think it is best in
+>>> that special case in order to keep things simple here.
+>>>
+>>>
+>>>
+>>> One thing with that new patch I would like to check is this 10us delay
+>>> after clock path is enabled. You enable clock just before mcu is stopped
+>>> and demod is configured during mcu is on freeze. 10us is almost nothing
+>>> and it sounds like having no need in a situation you stop even mcu. It
+>>> is about one I2C command which will took longer than 10us. Hard to see
+>>> why you need wait 10us to settle clock in such case. What happens if you
+>>> don't wait? I assume nothing, it works just as it should as stable
+>>> clocks are needed a long after that, when mcu is take out of reset.
+>>>
+>>
+>> usleep_range(10000, 20000);
+>> This delay time at least is 10ms, not 10us.
+>
+> ah, yes, you were correct. 10ms is indeed a much larger, it is about
+> century on a digital logic signal path where frequency is around 100MHz.
+> 100MHz clock means clock cycle is 10ns, 10ms is 10000000ns => 1,000,000
+> - one million clock cycles. Whilst I don't know how chip designed in a
+> logic level, I have still done some digital logic designing myself and
+> this sounds long.
+> If you don't enable clock path, what is next command which will fail?
+> Probably it will not even fail, but never lock to signal as demod core
+> is not clocked at all.
+
+But if you want keep that delay then keep it. For my eyes it sounds 
+weird to wait that long after clock path is enabled. I have feeling it 
+is clock which is needed much later, but I may be wrong and I cannot 
+even make any tests without hardware. It is also possible that master 
+clock is needed in order to perform all the next commands.
+
+regards
+Antti
+
 -- 
-1.9.1
-
+http://palosaari.fi/
