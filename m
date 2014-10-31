@@ -1,72 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:53717 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932646AbaJaNOV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51709 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933445AbaJaPJp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 09:14:21 -0400
-Received: by mail-pd0-f174.google.com with SMTP id p10so7219123pdj.19
-        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 06:14:21 -0700 (PDT)
-From: tskd08@gmail.com
+	Fri, 31 Oct 2014 11:09:45 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 02A8A217D1
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:33 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v3 3/7] v4l-utils/libdvbv5: wrong frequency in the output of satellite delsys scans
-Date: Fri, 31 Oct 2014 22:13:40 +0900
-Message-Id: <1414761224-32761-4-git-send-email-tskd08@gmail.com>
-In-Reply-To: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
-References: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
+Subject: [PATCH v3 01/10] v4l2: get/set prio using video_dev prio structure
+Date: Fri, 31 Oct 2014 17:09:42 +0200
+Message-Id: <1414768191-4536-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+The v4l2_device structure embed a v4l2_prio_state structure used by
+default for priority handling, but drivers can override that default by
+setting the video_dev prio pointer to a different v4l2_prio_state
+instance.
 
-In the output of satellite delsys's scanning,
-channel frequencies were offset by the LNB's LO frequency,
-which should be not.
+However, the VIDIO_G_PRIORITY and VIDIOC_S_PRIORITY implementations use
+the prio state embedded in v4l2_device unconditionally, breaking drivers
+that need to override the default. Fix them.
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- lib/libdvbv5/dvb-fe.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index f535311..01b2848 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -604,8 +604,12 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *p)
- 		}
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 9ccb19a..1bf84a5 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1040,7 +1040,7 @@ static int v4l_g_priority(const struct v4l2_ioctl_ops *ops,
+ 	if (ops->vidioc_g_priority)
+ 		return ops->vidioc_g_priority(file, fh, arg);
+ 	vfd = video_devdata(file);
+-	*p = v4l2_prio_max(&vfd->v4l2_dev->prio);
++	*p = v4l2_prio_max(vfd->prio);
+ 	return 0;
+ }
  
- 		/* copy back params from temporary fe_prop */
--		for (i = 0; i < n; i++)
-+		for (i = 0; i < n; i++) {
-+			if (dvb_fe_is_satellite(p->current_sys)
-+			    && fe_prop[i].cmd == DTV_FREQUENCY)
-+				fe_prop[i].u.data += parms->freq_offset;
- 			dvb_fe_store_parm(&parms->p, fe_prop[i].cmd, fe_prop[i].u.data);
-+		}
+@@ -1055,7 +1055,7 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
+ 		return ops->vidioc_s_priority(file, fh, *p);
+ 	vfd = video_devdata(file);
+ 	vfh = file->private_data;
+-	return v4l2_prio_change(&vfd->v4l2_dev->prio, &vfh->prio, *p);
++	return v4l2_prio_change(vfd->prio, &vfh->prio, *p);
+ }
  
- 		if (parms->p.verbose) {
- 			dvb_log("Got parameters for %s:",
-@@ -683,8 +687,19 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *p)
- 			dvb_logdbg("LNA is %s", parms->p.lna ? "ON" : "OFF");
- 	}
- 
--	if (dvb_fe_is_satellite(tmp_parms.p.current_sys))
-+	if (dvb_fe_is_satellite(tmp_parms.p.current_sys)) {
- 		dvb_sat_set_parms(&tmp_parms.p);
-+		/*
-+		 * even though the frequncy prop is kept un-modified here,
-+		 * a later call to dvb_fe_get_parms() issues FE_GET_PROPERTY
-+		 * ioctl and overwrites it with the offset-ed value from
-+		 * the FE. So we need to save the offset here and
-+		 * re-add it in dvb_fe_get_parms().
-+		 * note that dvbv5-{scan,zap} utilities call dvb_fe_get_parms()
-+		 * indirectly from check_frontend() via dvb_fe_get_stats().
-+		 */
-+		parms->freq_offset = tmp_parms.freq_offset;
-+	}
- 
- 	/* Filter out any user DTV_foo property such as DTV_POLARIZATION */
- 	tmp_parms.n_props = dvb_copy_fe_props(tmp_parms.dvb_prop,
+ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
 -- 
-2.1.3
+2.0.4
 
