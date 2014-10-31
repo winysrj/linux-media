@@ -1,95 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49772 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757327AbaJ3RgN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 13:36:13 -0400
-Message-ID: <54527709.3050108@iki.fi>
-Date: Thu, 30 Oct 2014 19:36:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33028 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751541AbaJaRrx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 13:47:53 -0400
+Message-ID: <5453CB40.8040303@xs4all.nl>
+Date: Fri, 31 Oct 2014 18:47:44 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103for
- supporting the demod of M88RS6000
-References: <201410271529188904708@gmail.com> <201410301238228758761@gmail.com>
-In-Reply-To: <201410301238228758761@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Peter Hurley <peter@hurleysoftware.com>,
+	Udo van den Heuvel <udovdh@xs4all.nl>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: 3.17.2. issue?
+References: <5453AE33.8040802@xs4all.nl> <5453C91D.9060702@hurleysoftware.com>
+In-Reply-To: <5453C91D.9060702@hurleysoftware.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/31/2014 06:38 PM, Peter Hurley wrote:
+> [ +cc Hans Verkuil, Mauro Carvalho Chehab, linux-media ]
 
+Fixed by this patch: https://patchwork.linuxtv.org/patch/26302/
 
-On 10/30/2014 06:38 AM, Nibble Max wrote:
+Which is queued for 3.18. I think this should be backported
+to 3.17 as well.
 
->>> -	if (tab_len > 83) {
->>> +	if (tab_len > 86) {
+Regards,
+
+	Hans
+
+> 
+> On 10/31/2014 11:43 AM, Udo van den Heuvel wrote:
+>> Hello,
 >>
->> That is not nice, but I could try find better solution and fix it later.
->
-> What is the reason to check this parameter?
-> How about remove this check?
-
-It is just to check you will not overwrite buffer accidentally. Buffer 
-is 83 bytes long, which should be also increased...
-The correct solution is somehow calculate max possible tab size on 
-compile time. It should be possible as init tabs are static const 
-tables. Use some macro to calculate max value and use it - not plain 
-numbers.
-
-Something like that
-#define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2, 
-m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
-
-
->> Clock selection. What this does:
->> * select mclk_khz
->> * select target_mclk
->> * calls set_config() in order to pass target_mclk to tuner driver
->> * + some strange looking sleep, which is not likely needed
->
-> The clock of M88RS6000's demod comes from tuner dies.
-> So the first thing is turning on the demod main clock from tuner die after the demod reset.
-> Without this clock, the following register's content will fail to update.
-> Before changing the demod main clock, it should close clock path.
-> After changing the demod main clock, it open clock path and wait the clock to stable.
->
+>> Booting into 3.17.2 on one box I saw:
 >>
->> One thing what I don't like this is that you have implemented M88RS6000
->> things here and M88DS3103 elsewhere. Generally speaking, code must have
->> some logic where same things are done in same place. So I expect to see
->> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
->> implemented here or these moved to place where M88DS3103 implementation is.
+>> [   15.070260] microcode: CPU0: patch_level=0x010000b7
+>> [   15.279454] Linux video capture interface: v2.00
+>> [   15.315043] microcode: CPU0: new patch_level=0x010000c7
+>> [   15.319519] microcode: CPU1: patch_level=0x010000b7
+>> [   15.323966] microcode: CPU1: new patch_level=0x010000c7
+>> [   15.328493] microcode: Microcode Update Driver: v2.00
+>> <tigran@aivazian.fsnet.co.uk>, Peter Oruba
+>> [   15.750724] saa7146: register extension 'budget_av'
+>> [   15.757205] ------------[ cut here ]------------
+>> [   15.763300] WARNING: CPU: 0 PID: 468 at fs/proc/generic.c:341
+>> __proc_create+0x1a4/0x1c0()
+>> [   15.769475] name len 0
+>> [   15.774046] Modules linked in: budget_av(+) saa7146_vv
+>> videobuf_dma_sg videobuf_core v4l2_common videodev budget_core microcode
+>> ttpci_eeprom saa7146 dvb_core snd_hda_codec_realtek snd_hda_codec_hdmi
+>> snd_hda_codec_generic cp210x snd_hda_intel usbserial k10temp
+>> snd_hda_controller evdev snd_hda_codec snd_seq snd_seq_device snd_pcm
+>> i2c_piix4 snd_timer snd acpi_cpufreq processor button nfsd auth_rpcgss
+>> oid_registry exportfs nfs_acl lockd sunrpc hid_generic usbhid hid
+>> ata_generic ehci_pci ehci_hcd ohci_pci ohci_hcd sr_mod cdrom radeon
+>> fbcon bitblit softcursor font cfbfillrect cfbimgblt cfbcopyarea
+>> backlight drm_kms_helper ttm autofs4
+>> [   15.794125] CPU: 0 PID: 468 Comm: systemd-udevd Not tainted
+>> 3.17.2test-dirty #7
+>> [   15.799155] Hardware name: To Be Filled By O.E.M. To Be Filled By
+>> O.E.M./To be filled by O.E.M., BIOS 080015  05/04/2010
+>> [   15.804586]  0000000000000009 ffffffff81461238 ffff8800cf69ba60
+>> ffffffff81056271
+>> [   15.809771]  ffff8800cf69bb00 ffff8800cf69bab0 0000000000000002
+>> 000000000000416d
+>> [   15.814957]  0000000000000000 ffffffff810562e7 ffffffff8156510b
+>> ffffffff00000020
+>> [   15.820188] Call Trace:
+>> [   15.825314]  [<ffffffff81461238>] ? dump_stack+0x49/0x6a
+>> [   15.830457]  [<ffffffff81056271>] ? warn_slowpath_common+0x81/0xb0
+>> [   15.835535]  [<ffffffff810562e7>] ? warn_slowpath_fmt+0x47/0x50
+>> [   15.840565]  [<ffffffff81179c74>] ? __proc_create+0x1a4/0x1c0
+>> [   15.845613]  [<ffffffff81179f5f>] ? proc_mkdir_data+0x2f/0x70
+>> [   15.850605]  [<ffffffff81092b74>] ? register_handler_proc+0x114/0x130
+>> [   15.855497]  [<ffffffff8108f87b>] ? __setup_irq+0x3cb/0x500
+>> [   15.860273]  [<ffffffffa0362da0>] ? saa7146_remove_one+0x1c0/0x1c0
+>> [saa7146]
+>> [   15.865007]  [<ffffffff8108fb21>] ? request_threaded_irq+0xd1/0x170
+>> [   15.869728]  [<ffffffffa03630f3>] ? saa7146_init_one+0x103/0x740
+>> [saa7146]
+>> [   15.874377]  [<ffffffff81271158>] ? pci_device_probe+0x98/0xf0
+>> [   15.878911]  [<ffffffff81305356>] ? driver_probe_device+0x86/0x270
+>> [   15.883317]  [<ffffffff81305633>] ? __driver_attach+0x93/0xa0
+>> [   15.887659]  [<ffffffff813055a0>] ? __device_attach+0x60/0x60
+>> [   15.891919]  [<ffffffff81303653>] ? bus_for_each_dev+0x53/0x90
+>> [   15.896107]  [<ffffffff81304b68>] ? bus_add_driver+0x188/0x240
+>> [   15.900246]  [<ffffffffa0400000>] ? 0xffffffffa0400000
+>> [   15.904359]  [<ffffffff813059e6>] ? driver_register+0x56/0xd0
+>> [   15.908454]  [<ffffffff810002b4>] ? do_one_initcall+0x84/0x1b0
+>> [   15.912567]  [<ffffffff810b0774>] ? load_module+0x1c34/0x2190
+>> [   15.916648]  [<ffffffff810ad3c0>] ? store_uevent+0x50/0x50
+>> [   15.920716]  [<ffffffff810b0e25>] ? SyS_finit_module+0x85/0x90
+>> [   15.924768]  [<ffffffff81466092>] ? system_call_fastpath+0x16/0x1b
+>> [   15.928925] ---[ end trace b6ff19cfd9b0c411 ]---
+>> [   15.932953] saa7146: found saa7146 @ mem ffffc90000020c00 (revision
+>> 1, irq 20) (0x153b,0x1157)
+>> [   15.937071] saa7146 (0): dma buffer size 192512
+>> [   15.937071] saa7146 (0): dma buffer size 192512
+>> [   15.941161] DVB: registering new adapter (Terratec Cinergy 1200 DVB-T)
+>> [   15.981742] adapter failed MAC signature check
+>> [   15.987499] encoded MAC from EEPROM was
+>> ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+>> [   16.256557] budget_av: KNC1-0: MAC addr = 00:0a:ac:01:d6:87
+>> [   16.617698] budget_av 0000:03:05.0: DVB: registering adapter 0
+>> frontend 0 (Philips TDA10046H DVB-T)...
+>> [   16.624394] budget_av: ci interface initialised
+>> [   17.053409] EXT4-fs (dm-3): mounted filesystem with ordered data
+>> mode. Opts: (null)
 >>
->
-> I will move M88DS3103 implementation to here.
->
->> Also, even set_config() is somehow logically correctly used here, I
->> prefer to duplicate that 4 line long target_mclk selection to tuner
->> driver and get rid of whole set_config(). Even better solution could be
->> to register M88RS6000 as a clock provider using clock framework, but
->> imho it is not worth  that simple case.
->
-> Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
+>> What happened?
+>>
+>> Kind regards,
+>> Udo
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Yes, and you did it already on that latest patch, thanks. It is not 
-logically correct, but a bit hackish solution, but I think it is best in 
-that special case in order to keep things simple here.
-
-
-
-One thing with that new patch I would like to check is this 10us delay 
-after clock path is enabled. You enable clock just before mcu is stopped 
-and demod is configured during mcu is on freeze. 10us is almost nothing 
-and it sounds like having no need in a situation you stop even mcu. It 
-is about one I2C command which will took longer than 10us. Hard to see 
-why you need wait 10us to settle clock in such case. What happens if you 
-don't wait? I assume nothing, it works just as it should as stable 
-clocks are needed a long after that, when mcu is take out of reset.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
