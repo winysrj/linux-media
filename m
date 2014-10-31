@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:40018 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbaJTCwT (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:20979 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbaJaUBw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Oct 2014 22:52:19 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH] media: soc_camera: rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
-Date: Mon, 20 Oct 2014 11:51:29 +0900
-Message-Id: <1413773489-18170-1-git-send-email-ykaneko0929@gmail.com>
+	Fri, 31 Oct 2014 16:01:52 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEB00LIERN31620@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Oct 2014 16:01:51 -0400 (EDT)
+Date: Fri, 31 Oct 2014 18:01:47 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 5/7] v4l-utils/libdvbv5: add gconv module for the text
+ translation of ISDB-S/T.
+Message-id: <20141031180147.051d2231.m.chehab@samsung.com>
+In-reply-to: <5453A48C.5000804@gmail.com>
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+ <1414323983-15996-6-git-send-email-tskd08@gmail.com>
+ <20141027150805.4fbd495c.m.chehab@samsung.com> <5453A48C.5000804@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on platform device work by Matsuoka-san.
+Em Sat, 01 Nov 2014 00:02:36 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
+> > Using my Fedora package maintainer's hat, I would only enable this
+> > on a patch that would also be packaging the gconf module as a
+> > separate subpackage, as this would make easier to deprecate it
+> > if/when this gets merged at gconv's upstream.
+> 
+> I'm afraid that gconv upstream won't merge those application
+> domain specific encodings,
+> as I posted an inquiry about the acceptance of such gconv modules
+> to the glibc ML's, but got no response until now.
+> (and it seems that the current glibc does not include
+>  app specific char-encodings).
 
-Compile tested only.
+At least the way I see it, this is not app-specific, but, instead, a
+standard-defined charset. So, I think they should accept. Yet, it could
+take some time for it to happen.
 
-This patch is against master branch of linuxtv.org/media_tree.git.
+If you're expecting to have this inside the library for a long time,
+IMHO, you should better integrate it there, dynamically loading the
+gconv module and using it, if the library is compiled with such support.
 
- Documentation/devicetree/bindings/media/rcar_vin.txt | 2 ++
- drivers/media/platform/soc_camera/rcar_vin.c         | 2 ++
- 2 files changed, 4 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index ba61782..9dafe6b 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
- 
-  - compatible: Must be one of the following
-+   - "renesas,vin-r8a7794" for the R8A7794 device
-+   - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7791" for the R8A7791 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 234cf86..c023aab 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1871,6 +1871,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
- 
- #ifdef CONFIG_OF
- static struct of_device_id rcar_vin_of_table[] = {
-+	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
-+	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--- 
-1.9.1
-
+Regards,
+Mauro
