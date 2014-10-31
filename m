@@ -1,145 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2970 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932400AbaJUN1i (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51711 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933439AbaJaPJt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Oct 2014 09:27:38 -0400
-Message-ID: <54465F34.1000400@xs4all.nl>
-Date: Tue, 21 Oct 2014 15:27:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [media] CODA960: Fails to allocate memory
-References: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
-In-Reply-To: <CAL8zT=j2STDuLHW3ONw1+cOfePZceBN7yTsV1WxDjFo0bZMBaA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 31 Oct 2014 11:09:49 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 7780D217D6
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:35 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 06/10] uvcvideo: Implement vb2 queue start and stop stream operations
+Date: Fri, 31 Oct 2014 17:09:47 +0200
+Message-Id: <1414768191-4536-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+To work propertly the videobuf2 core code needs to be in charge of
+stream start/stop control. Implement the start_streaming and
+stop_streaming vb2 operations and move video enable/disable code to
+them.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 43 +++++++++++++++++++++++++--------------
+ drivers/media/usb/uvc/uvc_v4l2.c  | 10 ---------
+ 2 files changed, 28 insertions(+), 25 deletions(-)
 
-On 10/21/2014 03:16 PM, Jean-Michel Hautbois wrote:
-> Hi,
->
-> I am trying to use the CODA960 driver on a 3.18 kernel.
-> It seems pretty good when the module is probed (appart from the
-> unsupported firmware version) but when I try using the encoder, it
-> fails allocating dma buffers.
->
-> Here is the DT part I added :
-> &vpu {
->      compatible = "fsl,imx6q-vpu";
->      clocks = <&clks 168>, <&clks 140>, <&clks 142>;
->      clock-names = "per", "ahb", "ocram";
->      iramsize = <0x21000>;
->      iram = <&ocram>;
->      resets = <&src 1>;
->      status = "okay";
-> };
->
-> When booting, I see :
-> [    4.410645] coda 2040000.vpu: Firmware code revision: 46056
-> [    4.416312] coda 2040000.vpu: Initialized CODA960.
-> [    4.421123] coda 2040000.vpu: Unsupported firmware version: 3.1.1
-> [    4.483577] coda 2040000.vpu: codec registered as /dev/video[0-1]
->
-> I can start v4l2-ctl and it shows that the device seems to be ok :
->   v4l2-ctl --all -d /dev/video1
-> Driver Info (not using libv4l2):
->          Driver name   : coda
->          Card type     : CODA960
->          Bus info      : platform:coda
->          Driver version: 3.18.0
->          Capabilities  : 0x84208000
->                  Video Memory-to-Memory
->                  Streaming
->                  Extended Pix Format
->                  Device Capabilities
->          Device Caps   : 0x04208000
->                  Video Memory-to-Memory
->                  Streaming
->                  Extended Pix Format
-> Priority: 2
-> Format Video Capture:
->          Width/Height  : 1920/1088
->          Pixel Format  : 'YU12'
->          Field         : None
->          Bytes per Line: 1920
->          Size Image    : 3133440
->          Colorspace    : HDTV and modern devices (ITU709)
->          Flags         :
-> Format Video Output:
->          Width/Height  : 1920/1088
->          Pixel Format  : 'H264'
->          Field         : None
->          Bytes per Line: 0
->          Size Image    : 1048576
->          Colorspace    : HDTV and modern devices (ITU709)
->          Flags         :
-> Selection: compose, Left 0, Top 0, Width 1920, Height 1088
-> Selection: compose_default, Left 0, Top 0, Width 1920, Height 1088
-> Selection: compose_bounds, Left 0, Top 0, Width 1920, Height 1088
-> Selection: compose_padded, Left 0, Top 0, Width 1920, Height 1088
-> Selection: crop, Left 0, Top 0, Width 1920, Height 1088
-> Selection: crop_default, Left 0, Top 0, Width 1920, Height 1088
-> Selection: crop_bounds, Left 0, Top 0, Width 1920, Height 1088
->
-> User Controls
->
->                  horizontal_flip (bool)   : default=0 value=0
->                    vertical_flip (bool)   : default=0 value=0
->
-> Codec Controls
->
->                   video_gop_size (int)    : min=1 max=60 step=1
-> default=16 value=16
->                    video_bitrate (int)    : min=0 max=32767000 step=1
-> default=0 value=0
->      number_of_intra_refresh_mbs (int)    : min=0 max=8160 step=1
-> default=0 value=0
->             sequence_header_mode (menu)   : min=0 max=1 default=1 value=1
->         maximum_bytes_in_a_slice (int)    : min=1 max=1073741823 step=1
-> default=500 value=500
->         number_of_mbs_in_a_slice (int)    : min=1 max=1073741823 step=1
-> default=1 value=1
->        slice_partitioning_method (menu)   : min=0 max=2 default=0 value=0
->            h264_i_frame_qp_value (int)    : min=0 max=51 step=1
-> default=25 value=25
->            h264_p_frame_qp_value (int)    : min=0 max=51 step=1
-> default=25 value=25
->            h264_maximum_qp_value (int)    : min=0 max=51 step=1
-> default=51 value=51
->    h264_loop_filter_alpha_offset (int)    : min=0 max=15 step=1 default=0 value=0
->     h264_loop_filter_beta_offset (int)    : min=0 max=15 step=1 default=0 value=0
->            h264_loop_filter_mode (menu)   : min=0 max=1 default=0 value=0
->           mpeg4_i_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
->           mpeg4_p_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
->                  horizontal_flip (bool)   : default=0 value=0
->                    vertical_flip (bool)   : default=0 value=0
->
->
->
->
-> But when I try to get a file outputed, it fails :
->
-> v4l2-ctl -d1 --stream-out-mmap --stream-mmap --stream-to x.raw
-> [ 1197.292256] coda 2040000.vpu: dma_alloc_coherent of size 1048576 failed
-> VIDIOC_REQBUFS: failed: Cannot allocate memory
->
-> Did I forget to do something ?
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 9703655..7582470 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -135,6 +135,29 @@ static void uvc_wait_finish(struct vb2_queue *vq)
+ 	mutex_lock(&queue->mutex);
+ }
+ 
++static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
++
++	queue->buf_used = 0;
++
++	return uvc_video_enable(stream, 1);
++}
++
++static void uvc_stop_streaming(struct vb2_queue *vq)
++{
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
++	unsigned long flags;
++
++	uvc_video_enable(stream, 0);
++
++	spin_lock_irqsave(&queue->irqlock, flags);
++	INIT_LIST_HEAD(&queue->irqqueue);
++	spin_unlock_irqrestore(&queue->irqlock, flags);
++}
++
+ static struct vb2_ops uvc_queue_qops = {
+ 	.queue_setup = uvc_queue_setup,
+ 	.buf_prepare = uvc_buffer_prepare,
+@@ -142,6 +165,8 @@ static struct vb2_ops uvc_queue_qops = {
+ 	.buf_finish = uvc_buffer_finish,
+ 	.wait_prepare = uvc_wait_prepare,
+ 	.wait_finish = uvc_wait_finish,
++	.start_streaming = uvc_start_streaming,
++	.stop_streaming = uvc_stop_streaming,
+ };
+ 
+ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+@@ -310,27 +335,15 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
+  */
+ int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
+ {
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	mutex_lock(&queue->mutex);
+-	if (enable) {
+-		ret = vb2_streamon(&queue->queue, queue->queue.type);
+-		if (ret < 0)
+-			goto done;
+ 
+-		queue->buf_used = 0;
+-	} else {
++	if (enable)
++		ret = vb2_streamon(&queue->queue, queue->queue.type);
++	else
+ 		ret = vb2_streamoff(&queue->queue, queue->queue.type);
+-		if (ret < 0)
+-			goto done;
+-
+-		spin_lock_irqsave(&queue->irqlock, flags);
+-		INIT_LIST_HEAD(&queue->irqqueue);
+-		spin_unlock_irqrestore(&queue->irqlock, flags);
+-	}
+ 
+-done:
+ 	mutex_unlock(&queue->mutex);
+ 	return ret;
+ }
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index e8bf4f1..4619fd6 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -531,7 +531,6 @@ static int uvc_v4l2_release(struct file *file)
+ 
+ 	/* Only free resources if this is a privileged handle. */
+ 	if (uvc_has_privileges(handle)) {
+-		uvc_video_enable(stream, 0);
+ 		uvc_queue_enable(&stream->queue, 0);
+ 		uvc_free_buffers(&stream->queue);
+ 	}
+@@ -768,14 +767,6 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
+ 
+ 	mutex_lock(&stream->mutex);
+ 	ret = uvc_queue_enable(&stream->queue, 1);
+-	if (ret < 0)
+-		goto done;
+-
+-	ret = uvc_video_enable(stream, 1);
+-	if (ret < 0)
+-		uvc_queue_enable(&stream->queue, 0);
+-
+-done:
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return ret;
+@@ -794,7 +785,6 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	uvc_video_enable(stream, 0);
+ 	uvc_queue_enable(&stream->queue, 0);
+ 	mutex_unlock(&stream->mutex);
+ 
+-- 
+2.0.4
 
-I assume this is physically contiguous memory. Do you have that much phys. cont. memory
-available at all? If the memory is fragmented you won't be able to get it.
-
-Use cma (contiguous memory allocator). You probably have to do very little expect add
-a kernel option to assign enough memory for these buffers.
-
-Regards,
-
-	Hans
