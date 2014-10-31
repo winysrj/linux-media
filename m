@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:46482 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957AbaJTRIq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51649 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759926AbaJaNy5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 13:08:46 -0400
-Message-ID: <54454199.3070702@infradead.org>
-Date: Mon, 20 Oct 2014 10:08:41 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Vincent Palatin <vpalatin@chromium.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] DocBook: fix media build error
-References: <544475D5.6080903@infradead.org> <CAP_ceTxY945D6vuPDz3gPUXN-YwnXX5zG6=GpBuohCcd+YTb=g@mail.gmail.com>
-In-Reply-To: <CAP_ceTxY945D6vuPDz3gPUXN-YwnXX5zG6=GpBuohCcd+YTb=g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 31 Oct 2014 09:54:57 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 7376B217D7
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 09/11] uvcvideo: Rename uvc_alloc_buffers to uvc_request_buffers
+Date: Fri, 31 Oct 2014 15:54:55 +0200
+Message-Id: <1414763697-21166-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/14 09:06, Vincent Palatin wrote:
-> On Sun, Oct 19, 2014 at 7:39 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
->> From: Randy Dunlap <rdunlap@infradead.org>
->>
->> Fix media DocBook build errors by making the orderedlist balanced.
->>
->> DOC1/Documentation/DocBook/compat.xml:2576: parser error : Opening and ending tag mismatch: orderedlist line 2560 and section
->> DOC1/Documentation/DocBook/compat.xml:2726: parser error : Premature end of data in tag section line 884
->> DOC1/Documentation/DocBook/compat.xml:2726: parser error : chunk is not well balanced
->>
->> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
->> Cc: Vincent Palatin <vpalatin@chromium.org>
->> ---
->>  Documentation/DocBook/media/v4l/compat.xml |    1 +
->>  1 file changed, 1 insertion(+)
->>
->> --- lnx-318-rc1.orig/Documentation/DocBook/media/v4l/compat.xml
->> +++ lnx-318-rc1/Documentation/DocBook/media/v4l/compat.xml
->> @@ -2566,6 +2566,7 @@ fields changed from _s32 to _u32.
->>           <para>Added compound control types and &VIDIOC-QUERY-EXT-CTRL;.
->>           </para>
->>          </listitem>
->> +      </orderedlist>
->>        <title>V4L2 in Linux 3.18</title>
->>        <orderedlist>
->>         <listitem>
-> 
-> Compared to the original patch, it's actually also missing the
->  </section>
-> 
-> <section>
-> which were lost in the merge.
-> 
-> 
+This brings the function name in line with the V4L2 API terminology.
 
-Would you please send a complete fix for it?
-then Mauro can drop my patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 4 ++--
+ drivers/media/usb/uvc/uvc_v4l2.c  | 2 +-
+ drivers/media/usb/uvc/uvcvideo.h  | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-Thanks.
-
-
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 708478f..5c11de0 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -205,8 +205,8 @@ void uvc_queue_release(struct uvc_video_queue *queue)
+  * V4L2 queue operations
+  */
+ 
+-int uvc_alloc_buffers(struct uvc_video_queue *queue,
+-		      struct v4l2_requestbuffers *rb)
++int uvc_request_buffers(struct uvc_video_queue *queue,
++			struct v4l2_requestbuffers *rb)
+ {
+ 	int ret;
+ 
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 1b6b6db..5ba023b 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -690,7 +690,7 @@ static int uvc_ioctl_reqbufs(struct file *file, void *fh,
+ 		return ret;
+ 
+ 	mutex_lock(&stream->mutex);
+-	ret = uvc_alloc_buffers(&stream->queue, rb);
++	ret = uvc_request_buffers(&stream->queue, rb);
+ 	mutex_unlock(&stream->mutex);
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 344aede..2dc247a 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -624,7 +624,7 @@ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
+ extern int uvc_queue_init(struct uvc_video_queue *queue,
+ 		enum v4l2_buf_type type, int drop_corrupted);
+ extern void uvc_queue_release(struct uvc_video_queue *queue);
+-extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
++extern int uvc_request_buffers(struct uvc_video_queue *queue,
+ 		struct v4l2_requestbuffers *rb);
+ extern int uvc_query_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
 -- 
-~Randy
+2.0.4
+
