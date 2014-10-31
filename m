@@ -1,97 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4349 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752294AbaJ0N5h (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:21019 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755646AbaJaUCb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Oct 2014 09:57:37 -0400
-Message-ID: <544E4F3C.1010509@xs4all.nl>
-Date: Mon, 27 Oct 2014 14:57:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Johann Klammer <klammerj@a1.net>
-CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, trivial@kernel.org
-Subject: Re: [PATCH][RESEND][TRIVIAL] Turn bothersome error into a debug message
-References: <542AE6A6.9000504@a1.net> <544E4C57.9080302@a1.net>
-In-Reply-To: <544E4C57.9080302@a1.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 31 Oct 2014 16:02:31 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEB00KL1RO6W420@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Oct 2014 16:02:30 -0400 (EDT)
+Date: Fri, 31 Oct 2014 18:02:27 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 6/7] v4l-utils/libdvbv5: don't discard config-supplied
+ parameters
+Message-id: <20141031180227.4de8c4bc.m.chehab@samsung.com>
+In-reply-to: <5453A9BE.7060806@gmail.com>
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+ <1414323983-15996-7-git-send-email-tskd08@gmail.com>
+ <20141027151104.427630df.m.chehab@samsung.com> <5453A9BE.7060806@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Johann,
+Em Sat, 01 Nov 2014 00:24:46 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-I've added this to my todo list and will look at this soon (next Friday or Monday
-most likely).
+> I withdrew this patch as it's meaningless.
+> 
+> Originally I mis-understood that when dvbv5-scan was run
+> with "-G" option, the props in channel config file that
+> are not specified in dvb-v5-std.c::sys_foo_props[] were
+> once loaded to "parms" structure to be scanned,
+> but later discarded in dvb_fe_get_parms()
+> (without experiments/tests :P ).
+> 
+> I noticed that there's no effect in this patch by experiments,
+> and non "sys_foo_props[]"-defined props are discarded at
+> its read in the first place.
+> sorry to have bothered you with the meaningless patch.
+> maybe it was because I had a cold recently;)
 
-	Hans
+No problem :)
 
-On 10/27/2014 02:44 PM, Johann Klammer wrote:
-> Let's see if that works now...
-> 
-> On 09/30/2014 07:21 PM, Johann Klammer wrote:
->> Hello,
->>
->> After updating the kernel to 3.14.15 I am seeing these messages:
->>
->> [273684.964081] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273690.020061] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273695.076082] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273700.132077] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273705.188070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273710.244066] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273715.300187] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273720.356068] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273725.412188] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273730.468094] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273735.524070] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->> [273740.580176] saa7146: saa7146 (0): saa7146_wait_for_debi_done_sleep
->> timed out while waiting for registers getting programmed
->>
->> filling up the logs(one about every 5 seconds).
->>
->> The TV card is a Terratec Cinergy 1200 DVBS (I believe.. it's rather old).
->>
->> I can not observe any erratic behavior, just those pesky messages...
->>
->> I see there was an earlier post here in 2008 about a similar
->> problem...(Cinergy 1200 DVB-C... a coincidence?)
->>
->> What does it mean?
->> Do I need to be worried?
->>
->> I am using a debian testing on a 32 bit box.
->> The previous kernel was linux-image-3.12-1-486.
->> It did not show those messages, but maybe due to some configure
->> options... I built this one from linux-source-3.14...
->>
-> Answering my own question:
-> Other posts suggests that it is not actually an error on cards without a
-> CI interface. Here's a patch that turns it into a debug message, so it
-> does not clobber the logs.
-> 
-> Signed-off-by: Johann Klammer <klammerj@a1.net>
-> --- linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c.orig  2014-07-31 23:51:43.000000000 +0200
-> +++ linux-source-3.14/drivers/media/common/saa7146/saa7146_core.c 2014-10-06 18:57:54.000000000 +0200
-> @@ -71,7 +71,7 @@ static inline int saa7146_wait_for_debi_
->     if (saa7146_read(dev, MC2) & 2)
->       break;
->     if (err) {
-> -     pr_err("%s: %s timed out while waiting for registers getting programmed\n",
-> +     pr_debug("%s: %s timed out while waiting for registers getting programmed\n",
->              dev->name, __func__);
->       return -ETIMEDOUT;
->     }
-> 
-> 
+Regards,
+Mauro
