@@ -1,155 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:57190 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbaJGQlh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Oct 2014 12:41:37 -0400
-Received: by mail-vc0-f177.google.com with SMTP id hq11so5013276vcb.8
-        for <linux-media@vger.kernel.org>; Tue, 07 Oct 2014 09:41:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <3718548.sH2BZ4J8RZ@avalon>
-References: <CAP_ceTz8BRQoFxkgb085_gOh29x8anvQNodAGMkgOukk02x29g@mail.gmail.com>
- <1412629559-16624-1-git-send-email-vpalatin@chromium.org> <3718548.sH2BZ4J8RZ@avalon>
-From: Vincent Palatin <vpalatin@chromium.org>
-Date: Tue, 7 Oct 2014 09:41:16 -0700
-Message-ID: <CAP_ceTymjiPAcRQ1jBbnM20iLiwhqm20wM197VOfVLat-ZUbvA@mail.gmail.com>
-Subject: Re: [PATCH v5 2/2] V4L: uvcvideo: Add support for pan/tilt speed controls
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51648 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760633AbaJaNy6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 09:54:58 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id C9FBF217D8
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 10/11] uvcvideo: Rename and split uvc_queue_enable to uvc_queue_stream(on|off)
+Date: Fri, 31 Oct 2014 15:54:56 +0200
+Message-Id: <1414763697-21166-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 7, 2014 at 9:36 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->
-> Hi Vincent,
->
-> Thank you for the patch. Mauro has already merged this in his tree, it should
-> appear in v3.18-rc1.
->
+This brings the function name in line with the V4L2 API terminology and
+allows removing the duplicate queue type check.
 
-Great ! I missed the merge.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c |  3 ++-
+ drivers/media/usb/uvc/uvc_queue.c  | 53 ++++++++++++++++----------------------
+ drivers/media/usb/uvc/uvc_v4l2.c   | 10 ++-----
+ drivers/media/usb/uvc/uvcvideo.h   |  5 +++-
+ 4 files changed, 30 insertions(+), 41 deletions(-)
 
-Thanks,
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index a0b163a..71f85ed 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2040,7 +2040,8 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ 		if (stream->intf == intf) {
+ 			ret = uvc_video_resume(stream, reset);
+ 			if (ret < 0)
+-				uvc_queue_enable(&stream->queue, 0);
++				uvc_queue_streamoff(&stream->queue,
++						    stream->queue.queue.type);
+ 			return ret;
+ 		}
+ 	}
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 5c11de0..c295c5c 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -263,6 +263,28 @@ int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
+ 	return ret;
+ }
+ 
++int uvc_queue_streamon(struct uvc_video_queue *queue, enum v4l2_buf_type type)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_streamon(&queue->queue, type);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
++int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_streamoff(&queue->queue, type);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
+ int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
+ {
+ 	int ret;
+@@ -318,37 +340,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
+ }
+ 
+ /*
+- * Enable or disable the video buffers queue.
+- *
+- * The queue must be enabled before starting video acquisition and must be
+- * disabled after stopping it. This ensures that the video buffers queue
+- * state can be properly initialized before buffers are accessed from the
+- * interrupt handler.
+- *
+- * Enabling the video queue returns -EBUSY if the queue is already enabled.
+- *
+- * Disabling the video queue cancels the queue and removes all buffers from
+- * the main queue.
+- *
+- * This function can't be called from interrupt context. Use
+- * uvc_queue_cancel() instead.
+- */
+-int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
+-{
+-	int ret;
+-
+-	mutex_lock(&queue->mutex);
+-
+-	if (enable)
+-		ret = vb2_streamon(&queue->queue, queue->queue.type);
+-	else
+-		ret = vb2_streamoff(&queue->queue, queue->queue.type);
+-
+-	mutex_unlock(&queue->mutex);
+-	return ret;
+-}
+-
+-/*
+  * Cancel the video buffers queue.
+  *
+  * Cancelling the queue marks all buffers on the irq queue as erroneous,
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 5ba023b..9c5cbcf 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -757,14 +757,11 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
+ 	struct uvc_streaming *stream = handle->stream;
+ 	int ret;
+ 
+-	if (type != stream->type)
+-		return -EINVAL;
+-
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	ret = uvc_queue_enable(&stream->queue, 1);
++	ret = uvc_queue_streamon(&stream->queue, type);
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return ret;
+@@ -776,14 +773,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ 	struct uvc_fh *handle = fh;
+ 	struct uvc_streaming *stream = handle->stream;
+ 
+-	if (type != stream->type)
+-		return -EINVAL;
+-
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	uvc_queue_enable(&stream->queue, 0);
++	uvc_queue_streamoff(&stream->queue, type);
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return 0;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 2dc247a..f0a04b5 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -634,7 +634,10 @@ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
+ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf, int nonblocking);
+-extern int uvc_queue_enable(struct uvc_video_queue *queue, int enable);
++extern int uvc_queue_streamon(struct uvc_video_queue *queue,
++			      enum v4l2_buf_type type);
++extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
++			       enum v4l2_buf_type type);
+ extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
+ extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf);
 -- 
-Vincent
+2.0.4
 
->
-> On Monday 06 October 2014 14:05:59 Vincent Palatin wrote:
-> > Map V4L2_CID_TILT_SPEED and V4L2_CID_PAN_SPEED to the standard UVC
-> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
-> >
-> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
-> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-> > Verified that it can pan and tilt at the same time in both directions.
-> >
-> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
-> > Reviewed-by: Pawel Osciak <posciak@chromium.org>
-> > ---
-> > Changes from v1/v2:
-> > - rebased
-> > Changes from v3:
-> > - removed gerrit-id
-> > Chnages from v4:
-> > - switched "offset" to unsigned int
-> >
-> >  drivers/media/usb/uvc/uvc_ctrl.c | 58 ++++++++++++++++++++++++++++++++++---
-> >  1 file changed, 55 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> > b/drivers/media/usb/uvc/uvc_ctrl.c index 0eb82106..d2d1755 100644
-> > --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> > +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> > @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
-> >               .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
-> >               .index          = 12,
-> >               .size           = 4,
-> > -             .flags          = UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
-> > -                             | UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
-> > -                             | UVC_CTRL_FLAG_GET_DEF
-> > +             .flags          = UVC_CTRL_FLAG_SET_CUR
-> > +                             | UVC_CTRL_FLAG_GET_RANGE
-> >
-> >                               | UVC_CTRL_FLAG_AUTO_UPDATE,
-> >
-> >       },
-> >       {
-> > @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct
-> > uvc_control_mapping *mapping, data[2] = min((int)abs(value), 0xff);
-> >  }
-> >
-> > +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
-> > +     __u8 query, const __u8 *data)
-> > +{
-> > +     unsigned int first = mapping->offset / 8;
-> > +     __s8 rel = (__s8)data[first];
-> > +
-> > +     switch (query) {
-> > +     case UVC_GET_CUR:
-> > +             return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
-> > +                                              : -data[first+1]);
-> > +     case UVC_GET_MIN:
-> > +             return -data[first+1];
-> > +     case UVC_GET_MAX:
-> > +     case UVC_GET_RES:
-> > +     case UVC_GET_DEF:
-> > +     default:
-> > +             return data[first+1];
-> > +     }
-> > +}
-> > +
-> > +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
-> > +     __s32 value, __u8 *data)
-> > +{
-> > +     unsigned int first = mapping->offset / 8;
-> > +
-> > +     data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
-> > +     data[first+1] = min_t(int, abs(value), 0xff);
-> > +}
-> > +
-> >  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
-> >       {
-> >               .id             = V4L2_CID_BRIGHTNESS,
-> > @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] =
-> > { .data_type  = UVC_CTRL_DATA_TYPE_SIGNED,
-> >       },
-> >       {
-> > +             .id             = V4L2_CID_PAN_SPEED,
-> > +             .name           = "Pan (Speed)",
-> > +             .entity         = UVC_GUID_UVC_CAMERA,
-> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
-> > +             .size           = 16,
-> > +             .offset         = 0,
-> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
-> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
-> > +             .get            = uvc_ctrl_get_rel_speed,
-> > +             .set            = uvc_ctrl_set_rel_speed,
-> > +     },
-> > +     {
-> > +             .id             = V4L2_CID_TILT_SPEED,
-> > +             .name           = "Tilt (Speed)",
-> > +             .entity         = UVC_GUID_UVC_CAMERA,
-> > +             .selector       = UVC_CT_PANTILT_RELATIVE_CONTROL,
-> > +             .size           = 16,
-> > +             .offset         = 16,
-> > +             .v4l2_type      = V4L2_CTRL_TYPE_INTEGER,
-> > +             .data_type      = UVC_CTRL_DATA_TYPE_SIGNED,
-> > +             .get            = uvc_ctrl_get_rel_speed,
-> > +             .set            = uvc_ctrl_set_rel_speed,
-> > +     },
-> > +     {
-> >               .id             = V4L2_CID_PRIVACY,
-> >               .name           = "Privacy",
-> >               .entity         = UVC_GUID_UVC_CAMERA,
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
