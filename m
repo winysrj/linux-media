@@ -1,147 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49622 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51711 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932476AbaJ2Lpj (ORCPT
+	with ESMTP id S933445AbaJaPJr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 07:45:39 -0400
+	Fri, 31 Oct 2014 11:09:47 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id D962C217D4
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:34 +0100 (CET)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Clarify RGB666 pixel format definition
-Date: Wed, 29 Oct 2014 13:45:46 +0200
-Message-ID: <4301993.tc7nBMPXQH@avalon>
-In-Reply-To: <540F127D.4020300@samsung.com>
-References: <1405975150-9256-1-git-send-email-laurent.pinchart@ideasonboard.com> <1468017.Vb1L5kusHW@avalon> <540F127D.4020300@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 04/10] uvcvideo: Separate video and queue enable/disable operations
+Date: Fri, 31 Oct 2014 17:09:45 +0200
+Message-Id: <1414768191-4536-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+In order to make use of the vb2 queue start/stop_streaming operations
+the video and queue enable/disable operations need to be split, as the
+vb2 queue will need to enable and disable video instead of the other way
+around.
 
-On Tuesday 09 September 2014 16:45:17 Sylwester Nawrocki wrote:
-> On 09/09/14 15:18, Laurent Pinchart wrote:
-> > On Tuesday 22 July 2014 00:44:34 Hans Verkuil wrote:
-> >> On 07/22/2014 12:30 AM, Laurent Pinchart wrote:
-> >>> On Monday 21 July 2014 23:43:16 Hans Verkuil wrote:
-> >>>> On 07/21/2014 10:39 PM, Laurent Pinchart wrote:
-> >>>>> The RGB666 pixel format doesn't include an alpha channel. Document it
-> >>>>> as such.
-> >>>>> 
-> >>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>>> ---
-> >>>>> 
-> >>>>>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml          | 20 ++++-------
-> >>>>> 
-> >>>>> 1 file changed, 6 insertions(+), 14 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> >>>>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
-> >>>>> 32feac9..c47692a 100644
-> >>>>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> >>>>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> >>>>> @@ -330,20 +330,12 @@ colorspace
-> >>>>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
-> >>>>>  	    <entry></entry>
-> >>>>>  	    <entry>r<subscript>1</subscript></entry>
-> >>>>>  	    <entry>r<subscript>0</subscript></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> -	    <entry></entry>
-> >>>>> +	    <entry>-</entry>
-> >>>>> +	    <entry>-</entry>
-> >>>>> +	    <entry>-</entry>
-> >>>>> +	    <entry>-</entry>
-> >>>>> +	    <entry>-</entry>
-> >>>>> +	    <entry>-</entry>
-> >>>> 
-> >>>> Just to clarify: BGR666 is a three byte format, not a four byte format?
-> >>> 
-> >>> Well... :-)
-> >>> 
-> >>> Three drivers seem to support the BGR666 in mainline : sh_veu, s3c-camif
-> >>> and exynos4-is. Further investigation shows that the sh_veu driver lists
-> >>> the BGR666 format internally but doesn't expose it to userspace and
-> >>> doesn't actually support it, so we're down to two drivers.
-> >>> 
-> >>> Looking at the S3C6410 datasheet, it's unclear how the hardware stores
-> >>> RGB666 pixels in memory. It could be either
-> >>> 
-> >>> Byte 0   Byte 1   Byte 2   Byte 3
-> >>> 
-> >>> -------- ------RR RRRRGGGG GGBBBBBB
-> >>> 
-> >>> or
-> >>> 
-> >>> GGBBBBBB RRRRGGGG ------RR --------
-> >>> 
-> >>> None of those correspond to the RGB666 format defined in the spec.
-> >>> 
-> >>> The Exynos4 FIMC isn't documented in the public datasheet, so I can't
-> >>> check how the format is defined.
-> >>> 
-> >>> Furthermore, various Renesas video-related IP cores support many
-> >>> different RGB666 variants, on either 32 or 24 bits per pixel, with and
-> >>> without alpha.
-> >>> 
-> >>> Beside a loud *sigh*, any comment ? :-)
-> >> 
-> >> You'll have to check with Samsung then. Sylwester, can you shed any light
-> >> on what this format *really* is?
-> > 
-> > Ping ?
-> 
-> My apologies, I didn't notice this earlier.
-> 
-> In case of S5P/Exynos FIMC the format is:
-> 
-> Byte 0   Byte 1   Byte 2   Byte 3
-> 
-> BBBBBBGG GGGGRRRR RR------ --------
-> 
-> i.e. 4 byte per pixel, with 14-bit padding (don't care bits).
-> 
-> As far as S3C6410 CAMIF is concerned it's hard to say. I primarily
-> developed the s3c-camif driver for S3C2440 SoC, which doesn't support
-> BGR666 format. I merged some patches from others adding s3c6410 support,
-> before sending upstream.
-> 
-> Nevertheless, looking at the S3C CAMIF datasheet the RGB666 format seems
-> identical with the FIMC one. See [1], chapter "20.7.4 MEMORY STORING
-> METHOD". This would make sense, since the S5P/Exynos FIMC is basically
-> a significantly evolved S3C CAMIF AFAICT.
+Also move buffer queue disable outside of uvc_video_resume() to remove
+all queue disable operations out of uvc_video.c.
 
-Looking at the figure, I would understand RGB666 as follows
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++----
+ drivers/media/usb/uvc/uvc_v4l2.c   | 15 ++++++++++++---
+ drivers/media/usb/uvc/uvc_video.c  | 22 ++--------------------
+ 3 files changed, 26 insertions(+), 27 deletions(-)
 
-Bits 31     24|23         16|15                    8|7                     0
-     ---- ----|---- -- R5 R4|R3 R2 R1 R0 G5 G4 G3 G2|G1 G0 B5 B4 B3 B2 B1 B0
-
-Assuming little endian memory format, that would thus be
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 30163432..ab1e2fd 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1734,6 +1734,11 @@ static int uvc_register_video(struct uvc_device *dev,
+ 	struct video_device *vdev;
+ 	int ret;
  
-Byte 0   Byte 1   Byte 2   Byte 3
-
-GGBBBBBB RRRRGGGG ------RR --------
-
-If the memory format was big endian it would instead be
-
--------- ------RR RRRRGGGG GGBBBBBB
-
-> [1] http://www.arm9board.net/download/OK6410/docs/S3C6410X.pdf
-
++	/* Initialize the video buffers queue. */
++	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
++	if (ret)
++		return ret;
++
+ 	/* Initialize the streaming interface with default streaming
+ 	 * parameters.
+ 	 */
+@@ -2008,14 +2013,13 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ {
+ 	struct uvc_device *dev = usb_get_intfdata(intf);
+ 	struct uvc_streaming *stream;
++	int ret = 0;
+ 
+ 	uvc_trace(UVC_TRACE_SUSPEND, "Resuming interface %u\n",
+ 		intf->cur_altsetting->desc.bInterfaceNumber);
+ 
+ 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+ 	    UVC_SC_VIDEOCONTROL) {
+-		int ret = 0;
+-
+ 		if (reset) {
+ 			ret = uvc_ctrl_restore_values(dev);
+ 			if (ret < 0)
+@@ -2031,8 +2035,12 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ 	}
+ 
+ 	list_for_each_entry(stream, &dev->streams, list) {
+-		if (stream->intf == intf)
+-			return uvc_video_resume(stream, reset);
++		if (stream->intf == intf) {
++			ret = uvc_video_resume(stream, reset);
++			if (ret < 0)
++				uvc_queue_enable(&stream->queue, 0);
++			return ret;
++		}
+ 	}
+ 
+ 	uvc_trace(UVC_TRACE_SUSPEND, "Resume: video streaming USB interface "
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index a16fe21..e8bf4f1 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -532,6 +532,7 @@ static int uvc_v4l2_release(struct file *file)
+ 	/* Only free resources if this is a privileged handle. */
+ 	if (uvc_has_privileges(handle)) {
+ 		uvc_video_enable(stream, 0);
++		uvc_queue_enable(&stream->queue, 0);
+ 		uvc_free_buffers(&stream->queue);
+ 	}
+ 
+@@ -766,7 +767,15 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
++	ret = uvc_queue_enable(&stream->queue, 1);
++	if (ret < 0)
++		goto done;
++
+ 	ret = uvc_video_enable(stream, 1);
++	if (ret < 0)
++		uvc_queue_enable(&stream->queue, 0);
++
++done:
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return ret;
+@@ -777,7 +786,6 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ {
+ 	struct uvc_fh *handle = fh;
+ 	struct uvc_streaming *stream = handle->stream;
+-	int ret;
+ 
+ 	if (type != stream->type)
+ 		return -EINVAL;
+@@ -786,10 +794,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	ret = uvc_video_enable(stream, 0);
++	uvc_video_enable(stream, 0);
++	uvc_queue_enable(&stream->queue, 0);
+ 	mutex_unlock(&stream->mutex);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int uvc_ioctl_enum_input(struct file *file, void *fh,
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index b9c7dee..9637e8b 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1735,19 +1735,13 @@ int uvc_video_resume(struct uvc_streaming *stream, int reset)
+ 	uvc_video_clock_reset(stream);
+ 
+ 	ret = uvc_commit_video(stream, &stream->ctrl);
+-	if (ret < 0) {
+-		uvc_queue_enable(&stream->queue, 0);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	if (!uvc_queue_streaming(&stream->queue))
+ 		return 0;
+ 
+-	ret = uvc_init_video(stream, GFP_NOIO);
+-	if (ret < 0)
+-		uvc_queue_enable(&stream->queue, 0);
+-
+-	return ret;
++	return uvc_init_video(stream, GFP_NOIO);
+ }
+ 
+ /* ------------------------------------------------------------------------
+@@ -1779,11 +1773,6 @@ int uvc_video_init(struct uvc_streaming *stream)
+ 
+ 	atomic_set(&stream->active, 0);
+ 
+-	/* Initialize the video buffers queue. */
+-	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
+-	if (ret)
+-		return ret;
+-
+ 	/* Alternate setting 0 should be the default, yet the XBox Live Vision
+ 	 * Cam (and possibly other devices) crash or otherwise misbehave if
+ 	 * they don't receive a SET_INTERFACE request before any other video
+@@ -1890,7 +1879,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
+ 			usb_clear_halt(stream->dev->udev, pipe);
+ 		}
+ 
+-		uvc_queue_enable(&stream->queue, 0);
+ 		uvc_video_clock_cleanup(stream);
+ 		return 0;
+ 	}
+@@ -1899,10 +1887,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = uvc_queue_enable(&stream->queue, 1);
+-	if (ret < 0)
+-		goto error_queue;
+-
+ 	/* Commit the streaming parameters. */
+ 	ret = uvc_commit_video(stream, &stream->ctrl);
+ 	if (ret < 0)
+@@ -1917,8 +1901,6 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
+ error_video:
+ 	usb_set_interface(stream->dev->udev, stream->intfnum, 0);
+ error_commit:
+-	uvc_queue_enable(&stream->queue, 0);
+-error_queue:
+ 	uvc_video_clock_cleanup(stream);
+ 
+ 	return ret;
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.4
 
