@@ -1,116 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3186 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbaJRClM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51710 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933791AbaJaPJs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Oct 2014 22:41:12 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s9I2f8ij051174
-	for <linux-media@vger.kernel.org>; Sat, 18 Oct 2014 04:41:10 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AD6BF2A03D2
-	for <linux-media@vger.kernel.org>; Sat, 18 Oct 2014 04:41:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 31 Oct 2014 11:09:48 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 24CCA217D5
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:35 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20141018024102.AD6BF2A03D2@tschai.lan>
-Date: Sat, 18 Oct 2014 04:41:02 +0200 (CEST)
+Subject: [PATCH v3 05/10] uvcvideo: Add function to convert from queue to stream
+Date: Fri, 31 Oct 2014 17:09:46 +0200
+Message-Id: <1414768191-4536-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Factorize the container_of() call into an inline function and update
+callers.
 
-Results of the daily build of media_tree:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-date:		Sat Oct 18 04:00:15 CEST 2014
-git branch:	test
-git hash:	cf3167cf1e969b17671a4d3d956d22718a8ceb85
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-20-g7abd8a7
-host hardware:	x86_64
-host os:	3.17-0.slh.1-amd64
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 6e92d20..9703655 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -36,6 +36,12 @@
+  * the driver.
+  */
+ 
++static inline struct uvc_streaming *
++uvc_queue_to_stream(struct uvc_video_queue *queue)
++{
++	return container_of(queue, struct uvc_streaming, queue);
++}
++
+ /* -----------------------------------------------------------------------------
+  * videobuf2 queue operations
+  */
+@@ -45,8 +51,7 @@ static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 			   unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+-	struct uvc_streaming *stream =
+-			container_of(queue, struct uvc_streaming, queue);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+ 
+ 	/* Make sure the image size is large enough. */
+ 	if (fmt && fmt->fmt.pix.sizeimage < stream->ctrl.dwMaxVideoFrameSize)
+@@ -109,8 +114,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+ static void uvc_buffer_finish(struct vb2_buffer *vb)
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+-	struct uvc_streaming *stream =
+-			container_of(queue, struct uvc_streaming, queue);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+ 	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+ 
+ 	if (vb->state == VB2_BUF_STATE_DONE)
+-- 
+2.0.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-x86_64: WARNINGS
-linux-3.17-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
