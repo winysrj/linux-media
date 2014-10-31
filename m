@@ -1,48 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42622 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758928AbaJ3L2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 07:28:55 -0400
-Date: Thu, 30 Oct 2014 09:28:48 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>,
-	stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Eduard Gilmutdinov <edgilmutdinov@gmail.com>,
-	Vlad Catoi <vladcatoi@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [alsa-devel] [PATCH 1/2] [media] sound: simplify au0828 quirk
- table
-Message-ID: <20141030092848.1b41ab7d@recife.lan>
-In-Reply-To: <54521DFD.5030402@ladisch.de>
-References: <cover.1414666159.git.mchehab@osg.samsung.com>
-	<63287e8b3f1e449376666b55f9174df7d827b5b0.1414666159.git.mchehab@osg.samsung.com>
-	<54521DFD.5030402@ladisch.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:20601 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981AbaJaTx6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 15:53:58 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEB00KFGR9XWH20@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Oct 2014 15:53:57 -0400 (EDT)
+Date: Fri, 31 Oct 2014 17:53:53 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Akihiro TSUKADA <tskd08@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/7] v4l-utils/libdvbv5: add support for ISDB-S scanning
+Message-id: <20141031175353.4b1dec17.m.chehab@samsung.com>
+In-reply-to: <54539EC6.8090001@gmail.com>
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+ <1414323983-15996-4-git-send-email-tskd08@gmail.com>
+ <20141027124650.522d394b.m.chehab@samsung.com> <54539EC6.8090001@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Oct 2014 12:16:13 +0100
-Clemens Ladisch <clemens@ladisch.de> escreveu:
+Em Fri, 31 Oct 2014 23:37:58 +0900
+Akihiro TSUKADA <tskd08@gmail.com> escreveu:
 
-> Mauro Carvalho Chehab wrote:
-> > Add a macro to simplify au0828 quirk table. That makes easier
-> > to check it against the USB IDs at drivers/media/usb/au0828-card.c
-> >
-> > +++ b/sound/usb/quirks-table.h
-> > ...
-> > + * This should be kept in sync with drivers/media/usb/au0828-card.c
+> On 2014年10月27日 23:46, Mauro Carvalho Chehab wrote:
 > 
-> The file does not exist in that directory.  And when you want to
-> keep two files in sync, you need such reminders in both of them.
+> > Always right circular polarization? I guess I read something at the specs
+> > sometime ago about left polarization too. Not sure if this is actually used.
+> 
+> Currently all transponders of ISDB-S use right polarization.
+> but I modifed this part and removed POLARIZATION prop from ISDB-S in v3.
 
-Thanks for reviewing it. 
+Hmm... Is this due to a spec definition, or is it just how satellite
+operators decided?
 
-I'm sending an updated version with those fixes.
+If ARIB spec doesn't allow polarization set, we should remove it from the
+Kernel DocBook. 
 
-Regards,
+Btw, how does the PT1 driver handle those parameters? If it just uses
+frequency (it seems so), then the only valid parameters for ISDB-S are
+	DTV_FREQUENCY
+and
+	DTV_STREAM_ID
+
+(and, eventually, polarization, if ARIB spec allows it)
+
+right?
+
+Could you please send us a patch fixing it at the Kernel DocBook:
+	Documentation/DocBook/media/dvb/dvbproperty.xml
+
+Thanks!
 Mauro
