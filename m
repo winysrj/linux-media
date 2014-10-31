@@ -1,49 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42602 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758162AbaJ3K6y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 06:58:54 -0400
-Date: Thu, 30 Oct 2014 08:58:49 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] si2157: Add support for delivery system SYS_ATSC
-Message-ID: <20141030085849.22f8e1a5@recife.lan>
-In-Reply-To: <alpine.DEB.2.10.1410301229240.1390@dl160.lan>
-References: <1408253089-9487-1-git-send-email-olli.salonen@iki.fi>
-	<20141029070849.0a1c6d56@recife.lan>
-	<CAAZRmGxSDQhKERhMeRqae-8RBsjjuDq0kN6HmEiLfodz7dhCMg@mail.gmail.com>
-	<20141030070628.4f52e9da@recife.lan>
-	<alpine.DEB.2.10.1410301229240.1390@dl160.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:63876 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932646AbaJaNOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 09:14:25 -0400
+Received: by mail-pa0-f44.google.com with SMTP id bj1so7696916pad.17
+        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 06:14:24 -0700 (PDT)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3 4/7] v4l-utils/libdvbv5: add support for ISDB-S tuning
+Date: Fri, 31 Oct 2014 22:13:41 +0900
+Message-Id: <1414761224-32761-5-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
+References: <1414761224-32761-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Em Thu, 30 Oct 2014 12:32:33 +0200
-Olli Salonen <olli.salonen@iki.fi> escreveu:
+Added LNB support for Japanese satellites.
+Currently tested with dvbv5-zap, dvb-fe-tool.
+At least the charset conversion and the parser of
+extended event descriptors are not implemented now,
+as they require some ISDB-S(/T) specific modification.
 
-> On Thu, 30 Oct 2014, Mauro Carvalho Chehab wrote:
-> 
-> > Ah, ok. Are you planning to submit a patch for it, and the patches adding
-> > support for HVR-955Q?
-> 
-> I can submit a patch for that, no problem. 
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ lib/libdvbv5/dvb-sat.c    | 9 +++++++++
+ lib/libdvbv5/dvb-v5-std.c | 4 ----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-Yes, please do that.
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index e8df06b..010aebe 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -91,6 +91,13 @@ static const struct dvb_sat_lnb lnb[] = {
+ 		.freqrange = {
+ 			{ 12200, 12700 }
+ 		}
++	}, {
++		.name = "Japan 110BS/CS LNBf",
++		.alias = "110BS",
++		.lowfreq = 10678,
++		.freqrange = {
++			{ 11710, 12751 }
++		}
+ 	},
+ };
+ 
+@@ -304,6 +311,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+ 		 */
+ 		pol_v = 0;
+ 		high_band = 1;
++		if (parms->p.current_sys == SYS_ISDBS)
++			vol_high = 1;
+ 	} else {
+ 		/* Adjust voltage/tone accordingly */
+ 		if (parms->p.sat_number < 2) {
+diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
+index 871de95..50365cb 100644
+--- a/lib/libdvbv5/dvb-v5-std.c
++++ b/lib/libdvbv5/dvb-v5-std.c
+@@ -154,11 +154,7 @@ const unsigned int sys_turbo_props[] = {
+ 
+ const unsigned int sys_isdbs_props[] = {
+ 	DTV_FREQUENCY,
+-	DTV_INVERSION,
+-	DTV_SYMBOL_RATE,
+-	DTV_INNER_FEC,
+ 	DTV_STREAM_ID,
+-	DTV_POLARIZATION,
+ 	0
+ };
+ 
+-- 
+2.1.3
 
-> However, I'm not working with 
-> HVR-955Q at the moment. I don't have access to ATSC/ClearQAM signal.
-
-Ah, ok. I have it here and I have ATSC/ClearQAM here, so I can do the
-patches. I was just wanting to know if someone else is doing it
-already.
-
-> If someone is working with that, I can put you in contact with someone 
-> who is interested in that device and is able to test.
-
-Regards,
-Mauro
