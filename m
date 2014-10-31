@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from beta.phas.ubc.ca ([142.103.236.75]:46297 "EHLO beta.phas.ubc.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751799AbaJETZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Oct 2014 15:25:54 -0400
-Date: Sun, 5 Oct 2014 12:03:57 -0700 (PDT)
-From: Carl Michal <michal@phas.ubc.ca>
-To: linux-media@vger.kernel.org
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: spurious remote control events
-Message-ID: <alpine.LNX.2.00.1410051147280.26572@tristan>
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:57598 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754521AbaJaP4H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 11:56:07 -0400
+Received: by mail-qc0-f181.google.com with SMTP id w7so6191978qcr.12
+        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 08:56:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+From: Kyle Sanderson <kyle.leet@gmail.com>
+Date: Fri, 31 Oct 2014 08:55:46 -0700
+Message-ID: <CACsaVZLs6-iypj1ZU13iVqBdNWY63NCt3f_+SqdpaLjqupPiNQ@mail.gmail.com>
+Subject: Hauppage HVR-2250 - No Free Sequences
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi All,
 
-I'm using a cubox-i, which has a gpio remote receiver built in. The remote 
-I'm using is a universal remote, using an RC-6 protocol. This is using 
-kernel 3.14.14 (from geexbox)
+So I've been using my tuner for a couple years now with tvheadend,
+works great :-). However, eventually I encounter something like this
+in my dmesg
 
-What happens is that if you press key1, key1, key2 with spaces between the 
-presses that are larger than IR_KEYPRESS_TIMEOUT but shorter than the 
-repeat delay, then the driver often delivers four down/up pairs of events: 
-key1, key1, key1, key2.
+[585870.001641] saa7164_cmd_send() No free sequences
+[585870.001645] saa7164_api_i2c_write() error, ret(1) = 0xc
+[585870.001650] tda10048_writereg: writereg error (ret == -5)
+[585870.024809] saa7164_cmd_send() No free sequences
+[585870.024820] saa7164_api_i2c_read() error, ret(1) = 0xc
+[585870.024826] tda10048_readreg: readreg error (ret == -5)
+[585870.024838] saa7164_cmd_send() No free sequences
+[585870.024843] saa7164_api_i2c_read() error, ret(1) = 0xc
+[585870.024848] tda10048_readreg: readreg error (ret == -5)
+[585870.024856] saa7164_cmd_send() No free sequences
+[585870.024861] saa7164_api_i2c_write() error, ret(1) = 0xc
+[585870.024866] tda10048_writereg: writereg error (ret == -5)
+[585870.024878] saa7164_cmd_send() No free sequences
+[585870.024883] saa7164_api_i2c_write() error, ret(1) = 0xc
 
-Similarly, key1, key2, key2 gives key1, key2, key2, key2
-and key1, key2, key1 gives key1, key2, key2, key1
-Strangely, key1, key1, key1 gives only the three expected events.
+The result is the card stops accepting commands; won't tune to other
+frequencies. Rebooting the box seems to resolve it. The time before
+that starts occurring though varies wildly, usually when it's stormy
+and the ATSC antenna starts cutting in and out (reflection off of the
+tree).
 
-If I set the repeat delay to be equal to the IR_KEYPRESS_TIMEOUT 
-(using ir-keytable --delay) then the problem goes away (or is hidden).
+Is there another way I can get around doing that? would rmmod/insmod work?
 
-I've been looking though the relevant kernel code, and while I don't think 
-I fully understand all the subtleties, one thing I noticed that seems
-odd is that in ir_raw_event_store_edge in ir-raw.c, the repeat delay is 
-used to determine if an edge is part of a new event or not. It seems to me 
-that this might be way too long. Shouldn't it be something more like 
-IR_KEYPRESS_TIMEOUT ? Or even shorter - like just longer than the longest 
-possible gap between edges in a code?
+Looking on the Hauppage site it looks like they're still developing
+drivers for it ( ftp://ftp.hauppauge.com/Support/HVR2250/ ). From
+google-ing around, it looks like people are still using the firmware
+that Steven Toth ripped in 2011.
 
-I tried changing the "delay" value in ir_raw_event_store_edge to match the 
-IR_KEYPRESS_TIMEOUT, and it does seem to resolve the problem for me.
-
-Carl
-
-
-
+Any tips? I've tried a couple horrible kernel patches but didn't get anywhere.
+Kyle.
