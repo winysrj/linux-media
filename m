@@ -1,55 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53360 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827AbaJFRFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 13:05:48 -0400
-Message-ID: <5432CBE7.1040901@infradead.org>
-Date: Mon, 06 Oct 2014 10:05:43 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Jim Davis <jim.epost@gmail.com>
-Subject: [PATCH -next] media: tw68: fix build errors and warnings
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51710 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933848AbaJaPJu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 11:09:50 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 6D6AE217D1
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:07:36 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 09/10] uvcvideo: Rename and split uvc_queue_enable to uvc_queue_stream(on|off)
+Date: Fri, 31 Oct 2014 17:09:50 +0200
+Message-Id: <1414768191-4536-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768191-4536-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+This brings the function name in line with the V4L2 API terminology and
+allows removing the duplicate queue type check.
 
-Fix build errors and kconfig warning: since 'select' does not check
-Kconfig symbol dependencies, add that dependency explicitly.
-
-VIDEO_TW68 selects I2C_ALGOBIT, so it should depend on I2C to
-prevent build errors and warnings.
-
-warning: (CAN_PEAK_PCIEC && SFC && IGB && VIDEO_TW68 && DRM && FB_DDC && FB_VIA) selects I2C_ALGOBIT which has unmet direct dependencies (I2C)
-  CC [M]  drivers/i2c/algos/i2c-algo-bit.o
-../drivers/i2c/algos/i2c-algo-bit.c: In function 'i2c_bit_add_bus':
-../drivers/i2c/algos/i2c-algo-bit.c:658:33: error: 'i2c_add_adapter' undeclared (first use in this function)
-../drivers/i2c/algos/i2c-algo-bit.c:658:33: note: each undeclared identifier is reported only once for each function it appears in
-../drivers/i2c/algos/i2c-algo-bit.c: In function 'i2c_bit_add_numbered_bus':
-../drivers/i2c/algos/i2c-algo-bit.c:664:33: error: 'i2c_add_numbered_adapter' undeclared (first use in this function)
-../drivers/i2c/algos/i2c-algo-bit.c: In function 'i2c_bit_add_bus':
-../drivers/i2c/algos/i2c-algo-bit.c:659:1: warning: control reaches end of non-void function [-Wreturn-type]
-../drivers/i2c/algos/i2c-algo-bit.c: In function 'i2c_bit_add_numbered_bus':
-../drivers/i2c/algos/i2c-algo-bit.c:665:1: warning: control reaches end of non-void function [-Wreturn-type]
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/pci/tw68/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_driver.c |  3 ++-
+ drivers/media/usb/uvc/uvc_queue.c  | 53 ++++++++++++++++----------------------
+ drivers/media/usb/uvc/uvc_v4l2.c   | 10 ++-----
+ drivers/media/usb/uvc/uvcvideo.h   |  5 +++-
+ 4 files changed, 30 insertions(+), 41 deletions(-)
 
---- linux-next-20141001.orig/drivers/media/pci/tw68/Kconfig
-+++ linux-next-20141001/drivers/media/pci/tw68/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_TW68
- 	tristate "Techwell tw68x Video For Linux"
--	depends on VIDEO_DEV && PCI && VIDEO_V4L2
-+	depends on VIDEO_DEV && PCI && VIDEO_V4L2 && I2C
- 	select I2C_ALGOBIT
- 	select VIDEOBUF2_DMA_SG
- 	---help---
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index ab1e2fd..6a4b0b8 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2038,7 +2038,8 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ 		if (stream->intf == intf) {
+ 			ret = uvc_video_resume(stream, reset);
+ 			if (ret < 0)
+-				uvc_queue_enable(&stream->queue, 0);
++				uvc_queue_streamoff(&stream->queue,
++						    stream->queue.queue.type);
+ 			return ret;
+ 		}
+ 	}
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 5c11de0..c295c5c 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -263,6 +263,28 @@ int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
+ 	return ret;
+ }
+ 
++int uvc_queue_streamon(struct uvc_video_queue *queue, enum v4l2_buf_type type)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_streamon(&queue->queue, type);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
++int uvc_queue_streamoff(struct uvc_video_queue *queue, enum v4l2_buf_type type)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_streamoff(&queue->queue, type);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
+ int uvc_queue_mmap(struct uvc_video_queue *queue, struct vm_area_struct *vma)
+ {
+ 	int ret;
+@@ -318,37 +340,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
+ }
+ 
+ /*
+- * Enable or disable the video buffers queue.
+- *
+- * The queue must be enabled before starting video acquisition and must be
+- * disabled after stopping it. This ensures that the video buffers queue
+- * state can be properly initialized before buffers are accessed from the
+- * interrupt handler.
+- *
+- * Enabling the video queue returns -EBUSY if the queue is already enabled.
+- *
+- * Disabling the video queue cancels the queue and removes all buffers from
+- * the main queue.
+- *
+- * This function can't be called from interrupt context. Use
+- * uvc_queue_cancel() instead.
+- */
+-int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
+-{
+-	int ret;
+-
+-	mutex_lock(&queue->mutex);
+-
+-	if (enable)
+-		ret = vb2_streamon(&queue->queue, queue->queue.type);
+-	else
+-		ret = vb2_streamoff(&queue->queue, queue->queue.type);
+-
+-	mutex_unlock(&queue->mutex);
+-	return ret;
+-}
+-
+-/*
+  * Cancel the video buffers queue.
+  *
+  * Cancelling the queue marks all buffers on the irq queue as erroneous,
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 5ba023b..9c5cbcf 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -757,14 +757,11 @@ static int uvc_ioctl_streamon(struct file *file, void *fh,
+ 	struct uvc_streaming *stream = handle->stream;
+ 	int ret;
+ 
+-	if (type != stream->type)
+-		return -EINVAL;
+-
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	ret = uvc_queue_enable(&stream->queue, 1);
++	ret = uvc_queue_streamon(&stream->queue, type);
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return ret;
+@@ -776,14 +773,11 @@ static int uvc_ioctl_streamoff(struct file *file, void *fh,
+ 	struct uvc_fh *handle = fh;
+ 	struct uvc_streaming *stream = handle->stream;
+ 
+-	if (type != stream->type)
+-		return -EINVAL;
+-
+ 	if (!uvc_has_privileges(handle))
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&stream->mutex);
+-	uvc_queue_enable(&stream->queue, 0);
++	uvc_queue_streamoff(&stream->queue, type);
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	return 0;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 2dc247a..f0a04b5 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -634,7 +634,10 @@ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
+ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf, int nonblocking);
+-extern int uvc_queue_enable(struct uvc_video_queue *queue, int enable);
++extern int uvc_queue_streamon(struct uvc_video_queue *queue,
++			      enum v4l2_buf_type type);
++extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
++			       enum v4l2_buf_type type);
+ extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
+ extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf);
+-- 
+2.0.4
+
