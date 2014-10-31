@@ -1,48 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:27929 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814AbaJFNFo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 09:05:44 -0400
-Message-id: <543293A5.1090506@samsung.com>
-Date: Mon, 06 Oct 2014 15:05:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Valentin Rothberg <valentinrothberg@gmail.com>
-Subject: Re: [PATCH 2/4] [media] exynos4-is: Remove optional dependency on
- PLAT_S5P
-References: <1412586485.4054.40.camel@x220>
- <54328D18.2000606@cogentembedded.com>
-In-reply-to: <54328D18.2000606@cogentembedded.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51649 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760189AbaJaNyz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 09:54:55 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 6327C217D6
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:42 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 06/11] uvcvideo: Add function to convert from queue to stream
+Date: Fri, 31 Oct 2014 15:54:52 +0200
+Message-Id: <1414763697-21166-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/14 14:37, Sergei Shtylyov wrote:
->> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
->> index 77c951237744..775c3278d0eb 100644
->> --- a/drivers/media/platform/exynos4-is/Kconfig
->> +++ b/drivers/media/platform/exynos4-is/Kconfig
->> @@ -2,7 +2,7 @@
->>   config VIDEO_SAMSUNG_EXYNOS4_IS
->>   	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
->>   	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->> -	depends on (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
->> +	depends on (ARCH_EXYNOS || COMPILE_TEST)
-> 
->     Perhaps it's time to drop the useless parens?
+Factorize the container_of() call into an inline function and update
+callers.
 
-Good point, let me prepare patches to clean that up.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---
-Thanks,
-Sylwester
-
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 6e92d20..9703655 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -36,6 +36,12 @@
+  * the driver.
+  */
+ 
++static inline struct uvc_streaming *
++uvc_queue_to_stream(struct uvc_video_queue *queue)
++{
++	return container_of(queue, struct uvc_streaming, queue);
++}
++
+ /* -----------------------------------------------------------------------------
+  * videobuf2 queue operations
+  */
+@@ -45,8 +51,7 @@ static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 			   unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+-	struct uvc_streaming *stream =
+-			container_of(queue, struct uvc_streaming, queue);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+ 
+ 	/* Make sure the image size is large enough. */
+ 	if (fmt && fmt->fmt.pix.sizeimage < stream->ctrl.dwMaxVideoFrameSize)
+@@ -109,8 +114,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+ static void uvc_buffer_finish(struct vb2_buffer *vb)
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+-	struct uvc_streaming *stream =
+-			container_of(queue, struct uvc_streaming, queue);
++	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+ 	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+ 
+ 	if (vb->state == VB2_BUF_STATE_DONE)
+-- 
+2.0.4
 
