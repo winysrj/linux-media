@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:35003 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932513AbaJ3UNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 16:13:06 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@osg.samsung.com, crope@iki.fi, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v4 04/14] cx231xx: give each master i2c bus a seperate name
-Date: Thu, 30 Oct 2014 21:12:25 +0100
-Message-Id: <1414699955-5760-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
-References: <1414699955-5760-1-git-send-email-zzam@gentoo.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:62830 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752481AbaJaJJx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 05:09:53 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH] media: soc_camera: rcar_vin: Fix interrupt enable in progressive
+Date: Fri, 31 Oct 2014 18:09:25 +0900
+Message-Id: <1414746565-23142-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V2: Use snprintf to construct the complete name
-V3: Remove unneeded variable.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+The progressive input is captured by the field interrupt.
+Therefore the end of frame interrupt is unnecessary.
+
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-i2c.c | 2 +-
+ drivers/media/platform/soc_camera/rcar_vin.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index a30d400..4505716 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -512,7 +512,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	bus->i2c_adap = cx231xx_adap_template;
- 	bus->i2c_adap.dev.parent = &dev->udev->dev;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index d55e2c5..d3d2f7d 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -692,7 +692,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		vnmc ^= VNMC_BPS;
  
--	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
-+	snprintf(bus->i2c_adap.name, sizeof(bus->i2c_adap.name), "%s-%d", bus->dev->name, bus->nr);
+ 	/* progressive or interlaced mode */
+-	interrupts = progressive ? VNIE_FIE | VNIE_EFE : VNIE_EFE;
++	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
  
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+ 	/* ack interrupts */
+ 	iowrite32(interrupts, priv->base + VNINTS_REG);
 -- 
-2.1.2
+1.9.1
 
