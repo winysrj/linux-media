@@ -1,56 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:57382 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759934AbaJ3N3s (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:40587 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708AbaJaRHb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Oct 2014 09:29:48 -0400
-Date: Thu, 30 Oct 2014 14:15:29 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux1394-devel@lists.sourceforge.net
-Subject: Re: [PATCH] [media] fix a warning on avr32 arch
-Message-ID: <20141030141529.23db53f3@kant>
-In-Reply-To: <3948e2c09f98e556afe11f0e3d348bbe610af31e.1414664215.git.mchehab@osg.samsung.com>
-References: <3948e2c09f98e556afe11f0e3d348bbe610af31e.1414664215.git.mchehab@osg.samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 31 Oct 2014 13:07:31 -0400
+Received: by mail-wi0-f180.google.com with SMTP id hi2so1861321wib.7
+        for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 10:07:30 -0700 (PDT)
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
+	m.chehab@samsung.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH] media: adv7604: Correct G/S_EDID behaviour
+Date: Fri, 31 Oct 2014 18:06:59 +0100
+Message-Id: <1414775219-27127-1-git-send-email-jean-michel.hautbois@vodalys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Oct 30 Mauro Carvalho Chehab wrote:
-> on avr32 arch, those warnings happen:
-> 	drivers/media/firewire/firedtv-fw.c: In function 'node_update':
-> 	drivers/media/firewire/firedtv-fw.c:329: warning: comparison is always true due to limited range of data type
-> 
-> In this particular case, the signal is desired, as the isochannel
-> var can be initalized with -1 inside the driver.
-> 
-> So, change the type to s8, to avoid issues on archs where char
-> is unsigned.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In order to have v4l2-compliance tool pass the G/S_EDID some modifications
+where needed in the driver.
+In particular, the edid.reserved zone must be blanked.
 
-Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+---
+ drivers/media/i2c/adv7604.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-> 
-> diff --git a/drivers/media/firewire/firedtv.h b/drivers/media/firewire/firedtv.h
-> index c2ba085e0d20..346a85be6de2 100644
-> --- a/drivers/media/firewire/firedtv.h
-> +++ b/drivers/media/firewire/firedtv.h
-> @@ -96,7 +96,7 @@ struct firedtv {
->  
->  	enum model_type		type;
->  	char			subunit;
-> -	char			isochannel;
-> +	s8			isochannel;
->  	struct fdtv_ir_context	*ir_context;
->  
->  	fe_sec_voltage_t	voltage;
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 47795ff..0848ee7 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1997,16 +1997,23 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	struct adv7604_state *state = to_state(sd);
+ 	u8 *data = NULL;
+ 
++	memset(edid->reserved, 0, sizeof(edid->reserved));
+ 	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
+ 		return -EINVAL;
+-	if (edid->blocks == 0)
+-		return -EINVAL;
+-	if (edid->blocks > 2)
+-		return -EINVAL;
+-	if (edid->start_block > 1)
++
++	if (edid->start_block == 0 && edid->blocks == 0) {
++		edid->blocks = state->edid.blocks;
++		return 0;
++	}
++
++	if (state->edid.blocks == 0)
++		return -ENODATA;
++
++	if (edid->start_block >= state->edid.blocks)
+ 		return -EINVAL;
+-	if (edid->start_block == 1)
+-		edid->blocks = 1;
++
++	if (edid->start_block + edid->blocks > state->edid.blocks)
++		edid->blocks = state->edid.blocks - edid->start_block;
+ 
+ 	if (edid->blocks > state->edid.blocks)
+ 		edid->blocks = state->edid.blocks;
+@@ -2068,6 +2075,8 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	int err;
+ 	int i;
+ 
++	memset(edid->reserved, 0, sizeof(edid->reserved));
++
+ 	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
+ 		return -EINVAL;
+ 	if (edid->start_block != 0)
+@@ -2164,7 +2173,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		return -EIO;
+ 	}
+ 
+-
+ 	/* enable hotplug after 100 ms */
+ 	queue_delayed_work(state->work_queues,
+ 			&state->delayed_work_enable_hotplug, HZ / 10);
 -- 
-Stefan Richter
--=====-====- =-=- ====-
-http://arcgraph.de/sr/
+2.1.2
+
