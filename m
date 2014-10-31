@@ -1,106 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49692 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932595AbaJ2NRe (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34928 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759483AbaJaOjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Oct 2014 09:17:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Divneil Wadhawan <divneil.wadhawan@st.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] vb2: replace VIDEO_MAX_FRAME with VB2_MAX_FRAME
-Date: Wed, 29 Oct 2014 15:17:40 +0200
-Message-ID: <1478241.MdfDLTXDIM@avalon>
-In-Reply-To: <20141029110534.138af0ab@recife.lan>
-References: <5437932A.7000706@xs4all.nl> <8693824.jOpqngyjmV@avalon> <20141029110534.138af0ab@recife.lan>
+	Fri, 31 Oct 2014 10:39:14 -0400
+Message-ID: <54539F08.3000104@xs4all.nl>
+Date: Fri, 31 Oct 2014 15:39:04 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 03/11] uvcvideo: Add V4L2 debug module parameter
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com> <1414763697-21166-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 10/31/2014 02:54 PM, Laurent Pinchart wrote:
+> Add a new debug module parameter and use it to initialize the V4L2 debug
+> level for all video devices.
 
-On Wednesday 29 October 2014 11:05:34 Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Oct 2014 14:46:55 +0200 Laurent Pinchart escreveu:
-> > > > Hmm, so you think VIDEO_MAX_FRAME should just be updated to 64?
-> > > 
-> > > Yes.
-> > > 
-> > > > I am a bit afraid that that might break applications (especially if
-> > > > there are any that use bits in a 32-bit unsigned variable).
-> > > 
-> > > What 32-bits have to do with that? This is just the maximum number of
-> > > buffers, and not the number of bits.
-> > 
-> > Applications might use a bitmask to track buffers.
-> 
-> True, but then it should be limiting the max buffer to 32, if the
-> implementation won't support more than 32 bits at its bitmask
-> implementation.
-> 
-> Anyway, we need to double check if nothing will break at the open
-> source apps before being able to change its value.
+This patch is unnecessary and can be dropped. You can dynamically set it through
+echo 1 >/sys/class/video4linux/videoX/debug.
 
-I don't think we should change the value of VIDEO_MAX_FRAME. Applications that 
-rely on it will thus allocate a maximum of 32 buffers, nothing should break 
-(provided that no driver requires a minimum number of buffers higher than 32).
+Drivers shouldn't touch debug themselves.
 
-> > > > Should userspace know about this at all? I think that the maximum
-> > > > number of frames is driver dependent, and in fact one of the future
-> > > > vb2 improvements would be to stop hardcoding this and leave the
-> > > > maximum up to the driver.
-> > > 
-> > > It is not driver dependent. It basically depends on the streaming logic.
-> > > Both VB and VB2 are free to set whatever size it is needed. They can
-> > > even change the logic to use a linked list, to avoid pre-allocating
-> > > anything.
-> > > 
-> > > Ok, there's actually a hardware limit, with is the maximum amount of
-> > > memory that could be used for DMA on a given hardware/architecture.
-> > > 
-> > > The 32 limit was just a random number that was chosen.
-> > 
-> > So, can't we just mark VIDEO_MAX_FRAME as deprecated ? We can't remove it
-> > as applications might depend on it, but it's pretty useless otherwise.
->
-> As I pointed below, even the applications _we_ wrote at v4l-utils use
-> it. The good news is that I double-checked xawtv3, xawtv4 and tvtime:
-> none of them use it. Perhaps we're lucky enough, but I wouldn't count
-> with that.
-> 
-> Ok, we can always write a note there saying that this is deprecated,
-> but the same symbol is still used internally on the drivers.
-> 
-> If we're willing to deprecate, we should do something like:
-> 
-> #ifndef __KERNEL__
-> 	/* This define is deprecated because (...) */
-> 	#define VIDEO_MAX_FRAME	32
-> #endif
-> 
-> And then remove all occurrences of it at Kernelspace.
-
-Agreed.
-
-> We should also first fix v4l-utils no not use it, as v4l-utils is currently
-> the reference code for users.
-
-That sounds reasonable to me. There's no urgency, as nothing will break if an 
-application uses VIDEO_MAX_FRAME set to 32 while VB2 can support 64, but we 
-should still remove references to VIDEO_MAX_FRAME from v4l-utils.
-
-> Please notice, however, that v4l-compliance depends on it. I suspect that it
-> wants/needs to test the maximum buffer size. What would be a reasonable way
-> to replace it, and still be able to test the maximum buffer limit?
-
-I'll let Hans comment on that.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index 30163432..1cae974 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -34,6 +34,7 @@
+>  unsigned int uvc_clock_param = CLOCK_MONOTONIC;
+>  unsigned int uvc_no_drop_param;
+>  static unsigned int uvc_quirks_param = -1;
+> +static unsigned int uvc_debug_param;
+>  unsigned int uvc_trace_param;
+>  unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
+>  
+> @@ -1763,6 +1764,7 @@ static int uvc_register_video(struct uvc_device *dev,
+>  	vdev->ioctl_ops = &uvc_ioctl_ops;
+>  	vdev->release = uvc_release;
+>  	vdev->prio = &stream->chain->prio;
+> +	vdev->debug = uvc_debug_param;
+>  	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>  		vdev->vfl_dir = VFL_DIR_TX;
+>  	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+> @@ -2080,6 +2082,8 @@ static int uvc_clock_param_set(const char *val, struct kernel_param *kp)
+>  module_param_call(clock, uvc_clock_param_set, uvc_clock_param_get,
+>  		  &uvc_clock_param, S_IRUGO|S_IWUSR);
+>  MODULE_PARM_DESC(clock, "Video buffers timestamp clock");
+> +module_param_named(debug, uvc_debug_param, uint, S_IRUGO);
+> +MODULE_PARM_DESC(debug, "V4L2 debug level");
+>  module_param_named(nodrop, uvc_no_drop_param, uint, S_IRUGO|S_IWUSR);
+>  MODULE_PARM_DESC(nodrop, "Don't drop incomplete frames");
+>  module_param_named(quirks, uvc_quirks_param, uint, S_IRUGO|S_IWUSR);
+> 
 
