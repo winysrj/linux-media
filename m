@@ -1,122 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu004-omc2s31.hotmail.com ([65.55.111.106]:60583 "EHLO
-	BLU004-OMC2S31.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751343AbaJMXLb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51740 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932570AbaJaPVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Oct 2014 19:11:31 -0400
-Message-ID: <BLU437-SMTP32BE04CD60AF807B75686C5AC0@phx.gbl>
-Date: Tue, 14 Oct 2014 09:11:24 +1000
-From: serrin <serrin19@outlook.com>
-MIME-Version: 1.0
+	Fri, 31 Oct 2014 11:21:19 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id CACFE217D4
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 16:19:05 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: Hauppauge HVR-2200 (saa7164) problems (on Linux Mint 17)
-References: <543C5B34.5090002@outlook.com>
-In-Reply-To: <543C5B34.5090002@outlook.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 4/4] v4l: omap4iss: Stop started entities when pipeline start fails
+Date: Fri, 31 Oct 2014 17:21:22 +0200
+Message-Id: <1414768882-16255-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414768882-16255-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+If an entity can't be started when starting a pipeline we need to clean
+up by stopping all entities that have been successfully started.
+Otherwise the hardware and software states won't match, potentially
+leading to crashes (for instance due to the CSI2 receiver receiving
+interrupts with a NULL pipeline pointer).
 
-I recently built a HTPC/NAS server with linux mint 17. I reused my old 
-DVB-T card from my desktop which was a Hauppauge HVR-2200 with NXP 
-saa7164 IC. This is my first (serious) attempt at installing linux on a 
-computer and everything went well until it came to getting this TV tuner 
-to work.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c | 108 +++++++++++++++++++----------------
+ 1 file changed, 59 insertions(+), 49 deletions(-)
 
-I followed the instructions on the wiki 
-(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200) 
-initially doing the "making it work easily" instructions as it looked 
-simplier than compiling my own drivers.
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index fa05908..d8240a1 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -560,6 +560,61 @@ static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
+  */
+ 
+ /*
++ * iss_pipeline_disable - Disable streaming on a pipeline
++ * @pipe: ISS pipeline
++ * @until: entity at which to stop pipeline walk
++ *
++ * Walk the entities chain starting at the pipeline output video node and stop
++ * all modules in the chain. Wait synchronously for the modules to be stopped if
++ * necessary.
++ *
++ * If the until argument isn't NULL, stop the pipeline walk when reaching the
++ * until entity. This is used to disable a partially started pipeline due to a
++ * subdev start error.
++ */
++static int iss_pipeline_disable(struct iss_pipeline *pipe,
++				struct media_entity *until)
++{
++	struct iss_device *iss = pipe->output->iss;
++	struct media_entity *entity;
++	struct media_pad *pad;
++	struct v4l2_subdev *subdev;
++	int failure = 0;
++	int ret;
++
++	entity = &pipe->output->video.entity;
++	while (1) {
++		pad = &entity->pads[0];
++		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++			break;
++
++		pad = media_entity_remote_pad(pad);
++		if (pad == NULL ||
++		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
++			break;
++
++		entity = pad->entity;
++		if (entity == until)
++			break;
++
++		subdev = media_entity_to_v4l2_subdev(entity);
++		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
++		if (ret < 0) {
++			dev_dbg(iss->dev, "%s: module stop timeout.\n",
++				subdev->name);
++			/* If the entity failed to stopped, assume it has
++			 * crashed. Mark it as such, the ISS will be reset when
++			 * applications will release it.
++			 */
++			iss->crashed |= 1U << subdev->entity.id;
++			failure = -ETIMEDOUT;
++		}
++	}
++
++	return failure;
++}
++
++/*
+  * iss_pipeline_enable - Enable streaming on a pipeline
+  * @pipe: ISS pipeline
+  * @mode: Stream mode (single shot or continuous)
+@@ -610,8 +665,10 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+ 		subdev = media_entity_to_v4l2_subdev(entity);
+ 
+ 		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
+-		if (ret < 0 && ret != -ENOIOCTLCMD)
++		if (ret < 0 && ret != -ENOIOCTLCMD) {
++			iss_pipeline_disable(pipe, entity);
+ 			return ret;
++		}
+ 
+ 		if (subdev == &iss->csi2a.subdev ||
+ 		    subdev == &iss->csi2b.subdev)
+@@ -623,53 +680,6 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+ }
+ 
+ /*
+- * iss_pipeline_disable - Disable streaming on a pipeline
+- * @pipe: ISS pipeline
+- *
+- * Walk the entities chain starting at the pipeline output video node and stop
+- * all modules in the chain. Wait synchronously for the modules to be stopped if
+- * necessary.
+- */
+-static int iss_pipeline_disable(struct iss_pipeline *pipe)
+-{
+-	struct iss_device *iss = pipe->output->iss;
+-	struct media_entity *entity;
+-	struct media_pad *pad;
+-	struct v4l2_subdev *subdev;
+-	int failure = 0;
+-	int ret;
+-
+-	entity = &pipe->output->video.entity;
+-	while (1) {
+-		pad = &entity->pads[0];
+-		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+-			break;
+-
+-		pad = media_entity_remote_pad(pad);
+-		if (pad == NULL ||
+-		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+-			break;
+-
+-		entity = pad->entity;
+-		subdev = media_entity_to_v4l2_subdev(entity);
+-
+-		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
+-		if (ret < 0) {
+-			dev_dbg(iss->dev, "%s: module stop timeout.\n",
+-				subdev->name);
+-			/* If the entity failed to stopped, assume it has
+-			 * crashed. Mark it as such, the ISS will be reset when
+-			 * applications will release it.
+-			 */
+-			iss->crashed |= 1U << subdev->entity.id;
+-			failure = -ETIMEDOUT;
+-		}
+-	}
+-
+-	return failure;
+-}
+-
+-/*
+  * omap4iss_pipeline_set_stream - Enable/disable streaming on a pipeline
+  * @pipe: ISS pipeline
+  * @state: Stream state (stopped, single shot or continuous)
+@@ -687,7 +697,7 @@ int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
+ 	int ret;
+ 
+ 	if (state == ISS_PIPELINE_STREAM_STOPPED)
+-		ret = iss_pipeline_disable(pipe);
++		ret = iss_pipeline_disable(pipe, NULL);
+ 	else
+ 		ret = iss_pipeline_enable(pipe, state);
+ 
+-- 
+2.0.4
 
-Using the NXP7164-2010-03-10.1.fw firmware gave me the dreaded 
-"saa7164_downloadimage() image corrupt" errors in the dmesg though (I 
-figured out the card number using the instructions, it was 6), so I 
-resigned myself to compiling the linuxtv drivers using the Steven Toth's 
-patch and v4l-saa7164-1.0.2-3.fw.
-
-I couldn't figure out how to apply the patch using the patch file, so I 
-manually edited the file (drivers/media/pci/saa7164/saa7164-fw.c), but I 
-kept getting the image corrupt message.
-
-I deleted NXP7164-2010-03-10.1.fw as I figured and options from 
-/etc/modprobe.d as the "making it work" set of instructions didn't 
-mention either of them. However, it now was asking for 
-NXP7164-2010-03-10.1.fw:
-
-[    6.271462] saa7164 driver loaded
-[    6.271499] saa7164 0000:01:00.0: enabling device (0000 -> 0002)
-[    6.271587] CORE saa7164[0]: subsystem: 0070:8901, board: Hauppauge 
-WinTV-HVR2200 [card=6,autodetected]
-[    6.271590] saa7164[0]/0: found at 0000:01:00.0, rev: 129, irq: 16, 
-latency: 0, mmio: 0xf7800000
-[    6.287504] input: Xbox 360 Wireless Receiver (XBOX) as 
-/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.0/input/input18
-[    6.287649] input: Xbox 360 Wireless Receiver (XBOX) as 
-/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.2/input/input19
-[    6.287773] input: Xbox 360 Wireless Receiver (XBOX) as 
-/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.4/input/input20
-[    6.287885] input: Xbox 360 Wireless Receiver (XBOX) as 
-/devices/pci0000:00/0000:00:14.0/usb3/3-8/3-8:1.6/input/input21
-[    6.287954] usbcore: registered new interface driver xpad
-[    6.431062] saa7164_downloadfirmware() no first image
-[    6.431069] saa7164_downloadfirmware() Waiting for firmware upload 
-(NXP7164-2010-03-10.1.fw)
-[    6.431088] saa7164 0000:01:00.0: Direct firmware load failed with 
-error -2
-[    6.431089] saa7164 0000:01:00.0: Falling back to user helper
-[    6.553871] BTRFS info (device sda3): disk space caching is enabled
-[    6.568484] AVX2 version of gcm_enc/dec engaged.
-[    6.761377] BTRFS info (device sdf): disk space caching is enabled
-[    6.929024] device-mapper: multipath: version 1.7.0 loaded
-[    7.085935] iwlwifi 0000:04:00.0: request for firmware file 
-'iwlwifi-7260-9.ucode' failed.
-[    7.106496] saa7164_downloadfirmware() Upload failed. (file not found?)
-[    7.106499] Failed to boot firmware, no features registered
-
-Which was quite weird, so I put back NXP7164-2010-03-10.1.fw (without 
-the options file) but then it just gave me the image corrupt error.
-
-I was quite confused at this point, so I figured I'd try again with a 
-fresh kernel file, ignoring the "making it work easily" instructions and 
-just go with "making it work", so I upgraded to 3.16.3 (prior to this I 
-was running 3.14 that came with LM17 Qiana but I decided to throw 
-caution to the wind and use the latest stable kernel instead) and 
-recompiled the linux TV drivers, this time changing both rev 2 and rev 3 
-to v4l-saa7164-1.0.2-3.fw (and the file sizes as well) instead of the 
-NXP file (I did a cursory search of all the other files in the linuxtv 
-source files but there was no mention of the NXP7164 file in any of the 
-files with saa7164 in their names) but once again, it was asking where 
-the NXP file is (similar file not found? error).
-
-Putting the NXP file in /lib/firmware/ folder gives me image corrupt 
-error, which I thought was strange, as I didn't once mention the NXP 
-file in the v4l drivers I compiled. I assume that the need for the NXP 
-file has since been encorporated into the kernel without the need to 
-compile linuxtv drivers?
-
-I tried renaming v4l-saa7164-1.0.2-3.fw to NXP7164-2010-03-10.1.fw but 
-it checks the file size and booting and refuses it:
-
-[    7.214637] saa7164_downloadfirmware() firmware read 4038864 bytes.
-[    7.214639] xc5000: firmware incorrect size
-[    7.214720] Failed to boot firmware, no features registered
-
-I tried renaming a few files actually, including HcwWiltF103.bin from 
-the latest windows drivers (which Stephen Toth's extract.sh renames as 
-v4l-saa7164-1.0.3.fw from an old set of windows drivers, from what I can 
-tell of the code? I'm not 100% sure of this though, I also tried 
-HcwWiltF.bin which becomes v4l-saa7164-1.0.2.fw) but none of them are 
-the same size and they all get rejected.
-
-I'm out of ideas, can anybody help me? All I want to do is record some 
-TV. Also is any of my trouble shooting incorrect? Should I not have 
-renamed those files? I'm pretty new to Linux so I have no idea what I'm 
-doing. What is the purpose of the /etc/modprobe.d/ folder, or rather 
-what does puting the options file in that folder do? I can provide more 
-details if needed. Thank you for your time.
-
-Yours sincerely
-
-serrin
