@@ -1,90 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51689 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758919AbaJaOnf (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:65167 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932570AbaJaPGz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Oct 2014 10:43:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 03/11] uvcvideo: Add V4L2 debug module parameter
-Date: Fri, 31 Oct 2014 16:43:43 +0200
-Message-ID: <7612779.HqLMMLZQzl@avalon>
-In-Reply-To: <54539F08.3000104@xs4all.nl>
-References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com> <1414763697-21166-4-git-send-email-laurent.pinchart@ideasonboard.com> <54539F08.3000104@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 31 Oct 2014 11:06:55 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v4] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+Date: Sat,  1 Nov 2014 00:06:38 +0900
+Message-Id: <1414767998-8508-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-On Friday 31 October 2014 15:39:04 Hans Verkuil wrote:
-> On 10/31/2014 02:54 PM, Laurent Pinchart wrote:
-> > Add a new debug module parameter and use it to initialize the V4L2 debug
-> > level for all video devices.
-> 
-> This patch is unnecessary and can be dropped. You can dynamically set it
-> through echo 1 >/sys/class/video4linux/videoX/debug.
-> 
-> Drivers shouldn't touch debug themselves.
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
 
-Good point and sorry for the noise. I'll drop the patch.
+This patch is against master branch of linuxtv.org/media_tree.git.
 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_driver.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index 30163432..1cae974 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -34,6 +34,7 @@
-> > 
-> >  unsigned int uvc_clock_param = CLOCK_MONOTONIC;
-> >  unsigned int uvc_no_drop_param;
-> >  static unsigned int uvc_quirks_param = -1;
-> > 
-> > +static unsigned int uvc_debug_param;
-> > 
-> >  unsigned int uvc_trace_param;
-> >  unsigned int uvc_timeout_param = UVC_CTRL_STREAMING_TIMEOUT;
-> > 
-> > @@ -1763,6 +1764,7 @@ static int uvc_register_video(struct uvc_device
-> > *dev,
-> > 
-> >  	vdev->ioctl_ops = &uvc_ioctl_ops;
-> >  	vdev->release = uvc_release;
-> >  	vdev->prio = &stream->chain->prio;
-> > 
-> > +	vdev->debug = uvc_debug_param;
-> > 
-> >  	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> >  	
-> >  		vdev->vfl_dir = VFL_DIR_TX;
-> >  	
-> >  	strlcpy(vdev->name, dev->name, sizeof vdev->name);
-> > 
-> > @@ -2080,6 +2082,8 @@ static int uvc_clock_param_set(const char *val,
-> > struct kernel_param *kp)> 
-> >  module_param_call(clock, uvc_clock_param_set, uvc_clock_param_get,
-> >  
-> >  		  &uvc_clock_param, S_IRUGO|S_IWUSR);
-> >  
-> >  MODULE_PARM_DESC(clock, "Video buffers timestamp clock");
-> > 
-> > +module_param_named(debug, uvc_debug_param, uint, S_IRUGO);
-> > +MODULE_PARM_DESC(debug, "V4L2 debug level");
-> > 
-> >  module_param_named(nodrop, uvc_no_drop_param, uint, S_IRUGO|S_IWUSR);
-> >  MODULE_PARM_DESC(nodrop, "Don't drop incomplete frames");
-> >  module_param_named(quirks, uvc_quirks_param, uint, S_IRUGO|S_IWUSR);
+v4 [Yoshihiro Kaneko]
+* indent with a tab, not with spaces
 
+v3 [Yoshihiro Kaneko]
+* fixes the detection of RGB input
+
+v2 [Yoshihiro Kaneko]
+* remove unused definition as suggested by Sergei Shtylyov
+* use VNMC_INF_RGB888 directly instead of VNMC_INF_RGB_MASK as a bit-field
+  mask
+
+ drivers/media/platform/soc_camera/rcar_vin.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 20defcb..7becec0 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -74,6 +74,7 @@
+ #define VNMC_INF_YUV10_BT656	(2 << 16)
+ #define VNMC_INF_YUV10_BT601	(3 << 16)
+ #define VNMC_INF_YUV16		(5 << 16)
++#define VNMC_INF_RGB888		(6 << 16)
+ #define VNMC_VUP		(1 << 10)
+ #define VNMC_IM_ODD		(0 << 3)
+ #define VNMC_IM_ODD_EVEN	(1 << 3)
+@@ -272,6 +273,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 
+ 	/* input interface */
+ 	switch (icd->current_fmt->code) {
++	case V4L2_MBUS_FMT_RGB888_1X24:
++		/* BT.601/BT.709 24-bit RGB-888 */
++		vnmc |= VNMC_INF_RGB888;
++		break;
+ 	case V4L2_MBUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -331,6 +336,15 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	if (output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
++	/*
++	 * The above assumes YUV input, toggle BPS for RGB input.
++	 * RGB inputs can be detected by checking that the most-significant
++	 * two bits of INF are set. This corresponds to the bits
++	 * set in VNMC_INF_RGB888.
++	 */
++	if ((vnmc & VNMC_INF_RGB888) == VNMC_INF_RGB888)
++		vnmc ^= VNMC_BPS;
++
+ 	/* progressive or interlaced mode */
+ 	interrupts = progressive ? VNIE_FIE | VNIE_EFE : VNIE_EFE;
+ 
+@@ -1013,6 +1027,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 	case V4L2_MBUS_FMT_YUYV8_1X16:
+ 	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 	case V4L2_MBUS_FMT_YUYV10_2X10:
++	case V4L2_MBUS_FMT_RGB888_1X24:
+ 		if (cam->extra_fmt)
+ 			break;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
