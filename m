@@ -1,68 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44681 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753337AbaJ1XfH (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51648 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760614AbaJaNy4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Oct 2014 19:35:07 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 31 Oct 2014 09:54:56 -0400
+Received: from avalon.ideasonboard.com (dsl-hkibrasgw3-50ddcc-40.dhcp.inet.fi [80.221.204.40])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 1C597217D1
+	for <linux-media@vger.kernel.org>; Fri, 31 Oct 2014 14:52:43 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v3 1/1] media: Print information on failed link validation
-Date: Wed, 29 Oct 2014 01:35:04 +0200
-Message-Id: <1414539304-25647-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <3033119.78jigqieeC@avalon>
-References: <3033119.78jigqieeC@avalon>
+Subject: [PATCH v2 08/11] uvcvideo: Don't stop the stream twice at file handle release
+Date: Fri, 31 Oct 2014 15:54:54 +0200
+Message-Id: <1414763697-21166-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414763697-21166-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+When releasing the file handle the driver calls the vb2_queue_release
+which turns the stream off. There's thus no need to turn the stream off
+explicitly beforehand.
 
-The Media controller doesn't tell much to the user in cases such as pipeline
-startup failure. The link validation is the most common media graph (or in
-V4L2's case, format) related reason for the failure. In more complex
-pipelines the reason may not always be obvious to the user, so point them to
-look at the right direction.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-since v2:
-- Omit printing -EPIPE error code since it's always the same.
+ drivers/media/usb/uvc/uvc_queue.c | 14 +++++++-------
+ drivers/media/usb/uvc/uvc_v4l2.c  |  6 ++----
+ drivers/media/usb/uvc/uvcvideo.h  |  2 +-
+ 3 files changed, 10 insertions(+), 12 deletions(-)
 
- drivers/media/media-entity.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c404354..584f858 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -280,8 +280,14 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 				continue;
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 7582470..708478f 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -194,6 +194,13 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ 	return 0;
+ }
  
- 			ret = entity->ops->link_validate(link);
--			if (ret < 0 && ret != -ENOIOCTLCMD)
-+			if (ret < 0 && ret != -ENOIOCTLCMD) {
-+				dev_dbg(entity->parent->dev,
-+					"link validation failed for \"%s\":%u -> \"%s\":%u, error %d\n",
-+					entity->name, link->source->index,
-+					link->sink->entity->name,
-+					link->sink->index, ret);
- 				goto error;
-+			}
- 		}
++void uvc_queue_release(struct uvc_video_queue *queue)
++{
++	mutex_lock(&queue->mutex);
++	vb2_queue_release(&queue->queue);
++	mutex_unlock(&queue->mutex);
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 queue operations
+  */
+@@ -210,13 +217,6 @@ int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ 	return ret ? ret : rb->count;
+ }
  
- 		/* Either no links or validated links are fine. */
-@@ -289,6 +295,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+-void uvc_free_buffers(struct uvc_video_queue *queue)
+-{
+-	mutex_lock(&queue->mutex);
+-	vb2_queue_release(&queue->queue);
+-	mutex_unlock(&queue->mutex);
+-}
+-
+ int uvc_query_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ {
+ 	int ret;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 4619fd6..1b6b6db 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -530,10 +530,8 @@ static int uvc_v4l2_release(struct file *file)
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_release\n");
  
- 		if (!bitmap_full(active, entity->num_pads)) {
- 			ret = -EPIPE;
-+			dev_dbg(entity->parent->dev,
-+				"\"%s\":%u must be connected by an enabled link\n",
-+				entity->name,
-+				find_first_zero_bit(active, entity->num_pads));
- 			goto error;
- 		}
- 	}
+ 	/* Only free resources if this is a privileged handle. */
+-	if (uvc_has_privileges(handle)) {
+-		uvc_queue_enable(&stream->queue, 0);
+-		uvc_free_buffers(&stream->queue);
+-	}
++	if (uvc_has_privileges(handle))
++		uvc_queue_release(&stream->queue);
+ 
+ 	/* Release the file handle. */
+ 	uvc_dismiss_privileges(handle);
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 53db7ed..344aede 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -623,9 +623,9 @@ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
+ /* Video buffers queue management. */
+ extern int uvc_queue_init(struct uvc_video_queue *queue,
+ 		enum v4l2_buf_type type, int drop_corrupted);
++extern void uvc_queue_release(struct uvc_video_queue *queue);
+ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ 		struct v4l2_requestbuffers *rb);
+-extern void uvc_free_buffers(struct uvc_video_queue *queue);
+ extern int uvc_query_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
+ extern int uvc_create_buffers(struct uvc_video_queue *queue,
 -- 
-1.7.10.4
+2.0.4
 
