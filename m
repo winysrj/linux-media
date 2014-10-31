@@ -1,74 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:50341 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbaJTQUV (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:36917 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932508AbaJaOfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Oct 2014 12:20:21 -0400
-Date: Mon, 20 Oct 2014 18:20:16 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+	Fri, 31 Oct 2014 10:35:45 -0400
+Date: Fri, 31 Oct 2014 17:35:41 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
 Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add DT support for r8a7793
- and r8a7794 SoCs
-Message-ID: <20141020162015.GB1362@verge.net.au>
-References: <1413773489-18170-1-git-send-email-ykaneko0929@gmail.com>
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141031143541.GM6890@mwanda>
+References: <20141031130600.GA16310@mwanda>
+ <20141031142644.GA4166@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1413773489-18170-1-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <20141031142644.GA4166@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 20, 2014 at 11:51:29AM +0900, Yoshihiro Kaneko wrote:
-> Based on platform device work by Matsuoka-san.
+On Fri, Oct 31, 2014 at 04:26:45PM +0200, Aya Mahfouz wrote:
+> On Fri, Oct 31, 2014 at 04:06:00PM +0300, Dan Carpenter wrote:
+> > drivers/staging/media/lirc/lirc_zilog.c
+> >   1333  /* Close the IR device */
+> >   1334  static int close(struct inode *node, struct file *filep)
+> >   1335  {
+> >   1336          /* find our IR struct */
+> >   1337          struct IR *ir = filep->private_data;
+> >   1338  
+> >   1339          if (ir == NULL) {
+> >                     ^^^^^^^^^^
+> >   1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
+> >                                 ^^^^^^^^^
+> > 
+> > I suggest you just delete the error message.  Can "ir" actually be NULL
+> > here anyway?
+> >
 > 
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> Since I'm a newbie and this is not my code, I prefer to use pr_err().
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+This driver doesn't belong to anyone.  Go ahead and take ownership.  The
+message is fairly worthless and no one will miss it.
 
-> ---
 > 
-> Compile tested only.
-> 
-> This patch is against master branch of linuxtv.org/media_tree.git.
-> 
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 2 ++
->  drivers/media/platform/soc_camera/rcar_vin.c         | 2 ++
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index ba61782..9dafe6b 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
->  channel which can be either RGB, YUYV or BT656.
->  
->   - compatible: Must be one of the following
-> +   - "renesas,vin-r8a7794" for the R8A7794 device
-> +   - "renesas,vin-r8a7793" for the R8A7793 device
->     - "renesas,vin-r8a7791" for the R8A7791 device
->     - "renesas,vin-r8a7790" for the R8A7790 device
->     - "renesas,vin-r8a7779" for the R8A7779 device
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 234cf86..c023aab 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1871,6 +1871,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
->  
->  #ifdef CONFIG_OF
->  static struct of_device_id rcar_vin_of_table[] = {
-> +	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
-> +	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
->  	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
->  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
->  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> In general, I can send a new patch to fix the aforementioned warnings.
+> Kindly let me know if you prefer that I send a second version of this
+> patch.
+
+No.  The first patch was already applied so send a new patch.
+
+regards,
+dan carpenter
+
