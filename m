@@ -1,79 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:50334 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049AbaJZLq6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Oct 2014 07:46:58 -0400
-Received: by mail-pa0-f43.google.com with SMTP id eu11so3729687pac.30
-        for <linux-media@vger.kernel.org>; Sun, 26 Oct 2014 04:46:58 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v2 0/7] v4l-utils/libdvbv5,dvb: add support for ISDB-S
-Date: Sun, 26 Oct 2014 20:46:16 +0900
-Message-Id: <1414323983-15996-1-git-send-email-tskd08@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:42810 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751457AbaJaQhc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Oct 2014 12:37:32 -0400
+Date: Fri, 31 Oct 2014 14:37:27 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: crope@iki.fi, linux-media@vger.kernel.org
+Subject: Re: [PATCH] cx231xx: remove direct register PWR_CTL_EN modification
+ that switches port3
+Message-ID: <20141031143727.7ea39e30@recife.lan>
+In-Reply-To: <54538A26.70901@gentoo.org>
+References: <20141030182706.09265d37@recife.lan>
+	<1414709035-7729-1-git-send-email-zzam@gentoo.org>
+	<20141031083258.4cfd463a@recife.lan>
+	<54538A26.70901@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Em Fri, 31 Oct 2014 14:09:58 +0100
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-This patch series adds tuning and scanning features for ISDB-S,
-and required modifications to libdvbv5 and utils/dvb to support it.
+> On 31.10.2014 11:32, Mauro Carvalho Chehab wrote:
+> > Em Thu, 30 Oct 2014 23:43:55 +0100
+> > Matthias Schwarzott <zzam@gentoo.org> escreveu:
+> > 
+> >> The only remaining place that modifies the relevant bit is in function
+> >> cx231xx_set_Colibri_For_LowIF
+> >>
+> >> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> >> ---
+> >>  drivers/media/usb/cx231xx/cx231xx-avcore.c | 3 +--
+> >>  1 file changed, 1 insertion(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> >> index b56bc87..781908b 100644
+> >> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> >> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> >> @@ -2270,7 +2270,6 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
+> >>  	case POLARIS_AVMODE_ANALOGT_TV:
+> >>  
+> >>  		tmp |= PWR_DEMOD_EN;
+> >> -		tmp |= (I2C_DEMOD_EN);
+> >>  		value[0] = (u8) tmp;
+> >>  		value[1] = (u8) (tmp >> 8);
+> >>  		value[2] = (u8) (tmp >> 16);
+> >> @@ -2366,7 +2365,7 @@ int cx231xx_set_power_mode(struct cx231xx *dev, enum AV_MODE mode)
+> >>  		}
+> >>  
+> >>  		tmp &= (~PWR_AV_MODE);
+> >> -		tmp |= POLARIS_AVMODE_DIGITAL | I2C_DEMOD_EN;
+> >> +		tmp |= POLARIS_AVMODE_DIGITAL;
+> >>  		value[0] = (u8) tmp;
+> >>  		value[1] = (u8) (tmp >> 8);
+> >>  		value[2] = (u8) (tmp >> 16);
+> > 
+> 
+> Hi Mauro,
+> 
+> > Hmm... Not sure if this patch is right. There is one I2C bus internally
+> > at cx231xx. Some configurations need to go through this I2C bus. 
+> > 
+> 
+> What exactly do you mean by configurations need to go through this I2C
+> bus? Do you mean the port3 switch must have a specific value even when
+> not doing i2c transfers?
 
-Other part of the libdvbv5 API may not work for ISDB-S.
-At least the the parser for extended event descriptors do not work now,
-as they require some ISDB-S(/T) specific modifications.
+No, I think I miss expressed... What I meant to say is that, on Colibri
+(e. g. cx231xx), internal I2C buses are used to control some IP parts of
+the chip design. Maybe setting I2C_DEMOD_EN there is a requirement for
+those commands to go to the right IP block.
 
-Changes from v1:
-* added COUNTER property to distingush country variant of ISDB-T
-* added character conversion modules
-* reflected the reviews on v1.
+> 
+> > Did you test if changing from/to analog/digital mode is working?
+> > 
+> 
+> I did not yet check analog mode.
 
-Akihiro Tsukada (7):
-  v4l-utils/libdvbv5: fix auto generating of channel names
-  v4l-utils/libdvbv5: add support for ISDB-S tuning
-  v4l-utils/libdvbv5: add support for ISDB-S scanning
-  v4l-utils/dvb: add COUNTRY property
-  v4l-utils/libdvbv5: add gconv module for the text translation of
-    ISDB-S/T.
-  v4l-utils/libdvbv5: don't discard config-supplied parameters
-  v4l-utils/libdvbv5, dvbv5-scan: generalize channel duplication check
+Ok. I'll add analog to my test plan.
 
- configure.ac                      |   4 +
- lib/Makefile.am                   |   5 +-
- lib/gconv/arib-std-b24.c          | 775 +++++++++++++++++++++++++++++++++++
- lib/gconv/en300-468-tab00.c       | 564 ++++++++++++++++++++++++++
- lib/gconv/gconv-modules           |   7 +
- lib/gconv/gconv.map               |   8 +
- lib/gconv/iconv/loop.c            | 523 ++++++++++++++++++++++++
- lib/gconv/iconv/skeleton.c        | 829 ++++++++++++++++++++++++++++++++++++++
- lib/gconv/jisx0213.h              | 102 +++++
- lib/include/libdvbv5/countries.h  | 308 ++++++++++++++
- lib/include/libdvbv5/dvb-fe.h     |   4 +
- lib/include/libdvbv5/dvb-scan.h   |   9 +-
- lib/include/libdvbv5/dvb-v5-std.h |   7 +-
- lib/libdvbv5/Makefile.am          |   2 +
- lib/libdvbv5/countries.c          | 403 ++++++++++++++++++
- lib/libdvbv5/dvb-fe.c             |  58 ++-
- lib/libdvbv5/dvb-file.c           |  68 +++-
- lib/libdvbv5/dvb-sat.c            |   9 +
- lib/libdvbv5/dvb-scan.c           | 122 +++++-
- lib/libdvbv5/dvb-v5-std.c         |   6 +-
- lib/libdvbv5/parse_string.c       |  15 +-
- utils/dvb/dvb-format-convert.c    |   3 +-
- utils/dvb/dvbv5-scan.c            |  28 +-
- utils/dvb/dvbv5-zap.c             |  11 +
- 24 files changed, 3815 insertions(+), 55 deletions(-)
- create mode 100644 lib/gconv/arib-std-b24.c
- create mode 100644 lib/gconv/en300-468-tab00.c
- create mode 100644 lib/gconv/gconv-modules
- create mode 100644 lib/gconv/gconv.map
- create mode 100644 lib/gconv/iconv/loop.c
- create mode 100644 lib/gconv/iconv/skeleton.c
- create mode 100644 lib/gconv/jisx0213.h
- create mode 100644 lib/include/libdvbv5/countries.h
- create mode 100644 lib/libdvbv5/countries.c
-
--- 
-2.1.2
-
+> 
+> Regards
+> Matthias
+> 
