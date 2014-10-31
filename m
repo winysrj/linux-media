@@ -1,110 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1321 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888AbaJFHYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Oct 2014 03:24:19 -0400
-Message-ID: <5432439B.5010906@xs4all.nl>
-Date: Mon, 06 Oct 2014 09:24:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:53478 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786AbaJaCzz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Oct 2014 22:55:55 -0400
+Message-ID: <5452FA39.8040608@iki.fi>
+Date: Fri, 31 Oct 2014 04:55:53 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: stable@vger.kernel.org
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.14] media/vb2: fix VBI/poll regression
-Content-Type: text/plain; charset=utf-8
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103forsupporting
+ the demod of M88RS6000
+References: <201410271529188904708@gmail.com>, <201410301238228758761@gmail.com> <201410311034193593814@gmail.com>
+In-Reply-To: <201410311034193593814@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a backport of mainline commit 58d75f4b1ce26324b4d809b18f94819843a98731
-for kernel 3.14.
 
-The recent conversion of saa7134 to vb2 uncovered a poll() bug that
-broke the teletext applications alevt and mtt. These applications
-expect that calling poll() without having called VIDIOC_STREAMON will
-cause poll() to return POLLERR. That did not happen in vb2.
 
-This patch fixes that behavior. It also fixes what should happen when
-poll() is called when STREAMON is called but no buffers have been
-queued. In that case poll() will also return POLLERR.
+On 10/31/2014 04:34 AM, Nibble Max wrote:
+> Hello Antti,
+>
+> On 2014-10-31 01:36:14, Antti Palosaari wrote:
+>>
+>>
+>> On 10/30/2014 06:38 AM, Nibble Max wrote:
+>>
+>>>>> -	if (tab_len > 83) {
+>>>>> +	if (tab_len > 86) {
+>>>>
+>>>> That is not nice, but I could try find better solution and fix it later.
+>>>
+>>> What is the reason to check this parameter?
+>>> How about remove this check?
+>>
+>> It is just to check you will not overwrite buffer accidentally. Buffer
+>> is 83 bytes long, which should be also increased...
+>> The correct solution is somehow calculate max possible tab size on
+>> compile time. It should be possible as init tabs are static const
+>> tables. Use some macro to calculate max value and use it - not plain
+>> numbers.
+>>
+>> Something like that
+>> #define BUF_SIZE   MAX(m88ds3103_tab_dvbs, m88ds3103_tab_dvbs2,
+>> m88rs6000_tab_dvbs, m88rs6000_tab_dvbs2)
+>>
+>>
+>>>> Clock selection. What this does:
+>>>> * select mclk_khz
+>>>> * select target_mclk
+>>>> * calls set_config() in order to pass target_mclk to tuner driver
+>>>> * + some strange looking sleep, which is not likely needed
+>>>
+>>> The clock of M88RS6000's demod comes from tuner dies.
+>>> So the first thing is turning on the demod main clock from tuner die after the demod reset.
+>>> Without this clock, the following register's content will fail to update.
+>>> Before changing the demod main clock, it should close clock path.
+>>> After changing the demod main clock, it open clock path and wait the clock to stable.
+>>>
+>>>>
+>>>> One thing what I don't like this is that you have implemented M88RS6000
+>>>> things here and M88DS3103 elsewhere. Generally speaking, code must have
+>>>> some logic where same things are done in same place. So I expect to see
+>>>> both M88DS3103 and M88RS6000 target_mclk and mclk_khz selection
+>>>> implemented here or these moved to place where M88DS3103 implementation is.
+>>>>
+>>>
+>>> I will move M88DS3103 implementation to here.
+>>>
+>>>> Also, even set_config() is somehow logically correctly used here, I
+>>>> prefer to duplicate that 4 line long target_mclk selection to tuner
+>>>> driver and get rid of whole set_config(). Even better solution could be
+>>>> to register M88RS6000 as a clock provider using clock framework, but
+>>>> imho it is not worth  that simple case.
+>>>
+>>> Do you suggest to set demod main clock and ts clock in tuner's set_params call back?
+>>
+>> Yes, and you did it already on that latest patch, thanks. It is not
+>> logically correct, but a bit hackish solution, but I think it is best in
+>> that special case in order to keep things simple here.
+>>
+>>
+>>
+>> One thing with that new patch I would like to check is this 10us delay
+>> after clock path is enabled. You enable clock just before mcu is stopped
+>> and demod is configured during mcu is on freeze. 10us is almost nothing
+>> and it sounds like having no need in a situation you stop even mcu. It
+>> is about one I2C command which will took longer than 10us. Hard to see
+>> why you need wait 10us to settle clock in such case. What happens if you
+>> don't wait? I assume nothing, it works just as it should as stable
+>> clocks are needed a long after that, when mcu is take out of reset.
+>>
+>
+> usleep_range(10000, 20000);
+> This delay time at least is 10ms, not 10us.
 
-This brings the vb2 behavior in line with the old videobuf behavior.
+ah, yes, you were correct. 10ms is indeed a much larger, it is about 
+century on a digital logic signal path where frequency is around 100MHz. 
+100MHz clock means clock cycle is 10ns, 10ms is 10000000ns => 1,000,000 
+- one million clock cycles. Whilst I don't know how chip designed in a 
+logic level, I have still done some digital logic designing myself and 
+this sounds long.
+If you don't enable clock path, what is next command which will fail? 
+Probably it will not even fail, but never lock to signal as demod core 
+is not clocked at all.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+regards
+Antti
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a127925..06faea4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -745,6 +745,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * to the userspace.
- 	 */
- 	req->count = allocated_buffers;
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	return 0;
- }
-@@ -793,6 +794,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 		q->memory = create->memory;
-+		q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 	}
- 
- 	num_buffers = min(create->count, VIDEO_MAX_FRAME - q->num_buffers);
-@@ -1447,6 +1449,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	 * dequeued in dqbuf.
- 	 */
- 	list_add_tail(&vb->queued_entry, &q->queued_list);
-+	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
- 
- 	/*
-@@ -1841,6 +1844,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 * and videobuf, effectively returning control over them to userspace.
- 	 */
- 	__vb2_queue_cancel(q);
-+	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
- 
- 	dprintk(3, "Streamoff successful\n");
- 	return 0;
-@@ -2150,9 +2154,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffers have already been queued.
-+	 * There is nothing to wait for if the queue isn't streaming.
- 	 */
--	if (list_empty(&q->queued_list))
-+	if (!vb2_is_streaming(q))
-+		return res | POLLERR;
-+	/*
-+	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize waiting_for_buffers to false.
-+	 */
-+	if (q->waiting_for_buffers)
- 		return res | POLLERR;
- 
- 	if (list_empty(&q->done_list))
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index bef53ce..b10682c 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -329,6 +329,9 @@ struct v4l2_fh;
-  * @retry_start_streaming: start_streaming() was called, but there were not enough
-  *		buffers queued. If set, then retry calling start_streaming when
-  *		queuing a new buffer.
-+ * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
-+ *		buffers. Only set for capture queues if qbuf has not yet been
-+ *		called since poll() needs to return POLLERR in that situation.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  */
- struct vb2_queue {
-@@ -362,6 +365,7 @@ struct vb2_queue {
- 
- 	unsigned int			streaming:1;
- 	unsigned int			retry_start_streaming:1;
-+	unsigned int			waiting_for_buffers:1;
- 
- 	struct vb2_fileio_data		*fileio;
- };
+-- 
+http://palosaari.fi/
