@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:27989 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbaKEKTc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 05:19:32 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEK00CZZA5BA640@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Nov 2014 10:22:23 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0NEK007RVA0HTJ50@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Nov 2014 10:19:29 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:54800 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752137AbaKALZb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 07:25:31 -0400
+Received: by mail-pa0-f46.google.com with SMTP id lf10so9236739pab.5
+        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 04:25:31 -0700 (PDT)
+Received: from localhost.localdomain ([202.164.40.61])
+        by mx.google.com with ESMTPSA id zw1sm12242588pbb.82.2014.11.01.04.25.28
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Sat, 01 Nov 2014 04:25:29 -0700 (PDT)
+Message-ID: <5454c329.81a8440a.2b8f.483d@mx.google.com>
+From: amp23140@gmail.com
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL] mem2mem changes
-Date: Wed, 05 Nov 2014 11:19:28 +0100
-Message-id: <15f001cff8e1$fbf32620$f3d97260$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Reply-To: seoexpert309@yahoo.com
+Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
+Date: Sat, 1 Nov 2014 04:25:26 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit a8f29e89f2b54fbf2c52be341f149bc195b63a8b:
+Dear Sir
 
-  [media] media/rc: Send sync space information on the lirc device
-(2014-11-04 20:41:42 -0200)
+Did your website get hit by Google Penguin update on October 17th 2014? What basically is Google Penguin Update? It is actually a code name for Google algorithm which aims at decreasing your websites search engine rankings that violate Google’s guidelines by using black hat SEO techniques to rank your webpage by giving number of spammy links to the page.
+ 
+We are one of those few SEO companies that can help you avoid penalties from Google Updates like Penguin and Panda. Our clients have survived all the previous and present updates with ease. They have never been hit because we use 100% white hat SEO techniques to rank Webpages.  Simple thing that we do to keep websites away from any Penguin or Panda penalties is follow Google guidelines and we give Google users the best answers to their queries.
 
-are available in the git repository at:
+If you are looking to increase the quality of your websites and to get more targeted traffic or save your websites from these Google penalties email us back with your interest. 
 
-  git://linuxtv.org/kdebski/media_tree_2.git for-3.19-2
+We will be glad to serve you and help you grow your business.
 
-for you to fetch changes up to 9a130b69b89ea646bcd44d415e286eaf899bc573:
+Regards
 
-  s5p-mfc: fix sparse error (2014-11-05 11:09:25 +0100)
+Vince G
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      s5p-mfc: fix sparse error
-
-Rasmus Villemoes (1):
-      s5p_mfc: Remove redundant casts
-
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |    4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
+SEO Manager ( TOB )
+B7 Green Avenue, Amritsar 143001 Punjab
+____________________________
+NO CLICK in the subject to STOP EMAILS
