@@ -1,212 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:19746 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751983AbaKFKMU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:20 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEM00CQW4BULR90@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:11:55 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [v4l-utils RFC v3 01/11] mediactl: Introduce ctrl_to_subdev
- configuration
-Date: Thu, 06 Nov 2014 11:11:32 +0100
-Message-id: <1415268702-23685-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
-References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:55258 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759129AbaKANjG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 09:39:06 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] [media] cx231xx: Fix identation
+Date: Sat,  1 Nov 2014 11:38:54 -0200
+Message-Id: <452a20d01e80c6bc96b94dd642e10ce589e53af7.1414849031.git.mchehab@osg.samsung.com>
+In-Reply-To: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
+References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414849031.git.mchehab@osg.samsung.com>
+References: <cover.1414849031.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an infrastructure for a ctrl_to_subdev configuration
-data. The ctrl_to_subdev config entry is designed for
-conveying information about the target sub-device
-in the media device pipeline for a v4l2 control related
-ioctl calls.
+One of the identation blocks is wrong. Fix it.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libmediactl.c   |   26 ++++++++++++++++++++++++++
- utils/media-ctl/libv4l2subdev.c |   31 +++++++++++++++++++++++++++++++
- utils/media-ctl/mediactl-priv.h |    8 ++++++++
- utils/media-ctl/mediactl.h      |   16 ++++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   15 +++++++++++++++
- 5 files changed, 96 insertions(+)
+While here, replace pr_info by pr_debug inside such block and
+add the function name to the print messages, as otherwise they
+will not help much.
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index ec360bd..795aaad 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -647,12 +647,20 @@ static struct media_device *__media_device_new(void)
- 	if (media == NULL)
- 		return NULL;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 9185b05b4fbe..036ffdde6e89 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -2534,34 +2534,33 @@ int cx231xx_initialize_stream_xfer(struct cx231xx *dev, u32 media_type)
+ 			break;
  
-+	media->ctrl_to_subdev = malloc(sizeof(*media->ctrl_to_subdev));
-+	if (!media->ctrl_to_subdev)
-+		goto err_cts_alloc;
-+
- 	media->fd = -1;
- 	media->refcount = 1;
+ 		case TS1_serial_mode:
+-			pr_info("%s: set ts1 registers", __func__);
++			pr_debug("%s: set ts1 registers", __func__);
  
- 	media_debug_set_handler(media, NULL, NULL);
+-		if (dev->board.has_417) {
+-			pr_info(" MPEG\n");
+-			value &= 0xFFFFFFFC;
+-			value |= 0x3;
++			if (dev->board.has_417) {
++				pr_debug("%s: MPEG\n", __func__);
++				value &= 0xFFFFFFFC;
++				value |= 0x3;
  
- 	return media;
-+
-+err_cts_alloc:
-+	free(media);
-+	return NULL;
- }
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, value);
++				status = cx231xx_mode_register(dev, TS_MODE_REG, value);
  
- struct media_device *media_device_new(const char *devnode)
-@@ -710,6 +718,7 @@ void media_device_unref(struct media_device *media)
+-			val[0] = 0x04;
+-			val[1] = 0xA3;
+-			val[2] = 0x3B;
+-			val[3] = 0x00;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_CFG_REG, val, 4);
++				val[0] = 0x04;
++				val[1] = 0xA3;
++				val[2] = 0x3B;
++				val[3] = 0x00;
++				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					 TS1_CFG_REG, val, 4);
  
- 	free(media->entities);
- 	free(media->devnode);
-+	free(media->ctrl_to_subdev);
- 	free(media);
- }
+-			val[0] = 0x00;
+-			val[1] = 0x08;
+-			val[2] = 0x00;
+-			val[3] = 0x08;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_LENGTH_REG, val, 4);
+-
+-		} else {
+-			pr_info(" BDA\n");
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
+-			status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
+-		}
++				val[0] = 0x00;
++				val[1] = 0x08;
++				val[2] = 0x00;
++				val[3] = 0x08;
++				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					 TS1_LENGTH_REG, val, 4);
++			} else {
++				pr_debug("%s: BDA\n", __func__);
++				status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
++				status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
++			}
+ 			break;
  
-@@ -955,3 +964,20 @@ int media_parse_setup_links(struct media_device *media, const char *p)
- 
- 	return *end ? -EINVAL : 0;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Configuration access
-+ */
-+
-+struct media_entity *media_config_get_entity_by_cid(struct media_device *media,
-+						    int cid)
-+{
-+	int i;
-+
-+	for (i = 0; i < media->ctrl_to_subdev_count; ++i) {
-+		if (media->ctrl_to_subdev[i].ctrl_id == cid)
-+			return media->ctrl_to_subdev[i].entity;
-+	}
-+
-+        return NULL;
-+}
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 8015330..99ac6b2 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -755,3 +755,34 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 
- 	return mbus_formats[i].code;
- }
-+
-+int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
-+				   struct media_entity *entity,
-+				   __u32 ctrl_id)
-+{
-+	struct v4l2_query_ext_ctrl queryctrl;
-+	int ret;
-+
-+	ret = v4l2_subdev_open(entity);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Iterate through control ids */
-+
-+	queryctrl.id = ctrl_id;
-+
-+	ret = ioctl(entity->fd, VIDIOC_QUERY_EXT_CTRL, &queryctrl);
-+	if (!ret) {
-+		media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity %s\n",
-+								queryctrl.name,
-+								ctrl_id,
-+								entity->info.name);
-+		return 1;
-+	}
-+
-+	media_dbg(media, "Control (0x%8.8x) not supported on entity %s\n",
-+							queryctrl.name,
-+							ctrl_id,
-+							entity->info.name);
-+	return 0;
-+}
-diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
-index a0d3a55..b9e9b20 100644
---- a/utils/media-ctl/mediactl-priv.h
-+++ b/utils/media-ctl/mediactl-priv.h
-@@ -47,6 +47,9 @@ struct media_device {
- 	struct media_entity *entities;
- 	unsigned int entities_count;
- 
-+	struct media_v4l2_ctrl_to_subdev *ctrl_to_subdev;
-+	unsigned int ctrl_to_subdev_count;
-+
- 	void (*debug_handler)(void *, ...);
- 	void *debug_priv;
- 
-@@ -58,6 +61,11 @@ struct media_device {
- 	} def;
- };
- 
-+struct media_v4l2_ctrl_to_subdev {
-+	__u32 ctrl_id;
-+	struct media_entity *entity;
-+};
-+
- #define media_dbg(media, ...) \
- 	(media)->debug_handler((media)->debug_priv, __VA_ARGS__)
- 
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 77ac182..e358242 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -420,4 +420,20 @@ int media_parse_setup_link(struct media_device *media,
-  */
- int media_parse_setup_links(struct media_device *media, const char *p);
- 
-+/**
-+ * @brief Find target sub-device for the control
-+ * @param media - media device.
-+ * @param cid - v4l2 control identifier
-+ *
-+ * Check if there was a target sub-device defined
-+ * for the control through a ctrl-to-subdev-conf config
-+ * directive.
-+ *
-+ * @return associated entity if defined, or NULL when no
-+ *	   config entry for the control was found
-+ */
-+struct media_entity *media_config_get_entity_by_cid(
-+	struct media_device *media,
-+	int cid);
-+
- #endif
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 1cb53ff..3bc0412 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -255,4 +255,19 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
-  */
- enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 							 unsigned int length);
-+
-+/**
-+ * @brief Validate v4l2 control for a sub-device
-+ * @param media - media device.
-+ * @param entity - subdev-device media entity.
-+ * @param ctrl_id - v4l2 control identifier
-+ *
-+ * Verify if the entity supports v4l2-control with ctrl_id.
-+ *
-+ * @return 1 if the control is supported, 0 otherwise.
-+ */
-+int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
-+	struct media_entity *entity,
-+	__u32 ctrl_id);
-+
- #endif
+ 		case TS1_parallel_mode:
 -- 
-1.7.9.5
+1.9.3
 
