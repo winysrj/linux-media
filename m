@@ -1,57 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58368 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbaK3VQS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 16:16:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-Date: Sun, 30 Nov 2014 23:16:48 +0200
-Message-ID: <1680188.7K1XCBdsCk@avalon>
-In-Reply-To: <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <3017627.SLutb67dz2@avalon> <CA+V-a8tNW8JXKEeaAwEKkB+SCS2_My228spsgpbb5JQPjdC2Og@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54441 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756389AbaKAOBi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Nov 2014 10:01:38 -0400
+Message-ID: <5454E7A8.40707@iki.fi>
+Date: Sat, 01 Nov 2014 16:01:12 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: [PATCH 3/7] [media] cx231xx: Cleanup printk at the driver
+References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com> <c347502e632c69c80dcf5d4df1396cb59973af2f.1414849031.git.mchehab@osg.samsung.com>
+In-Reply-To: <c347502e632c69c80dcf5d4df1396cb59973af2f.1414849031.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 30 November 2014 21:05:50 Prabhakar Lad wrote:
-> On Sat, Nov 29, 2014 at 7:12 PM, Laurent Pinchart wrote:
-> > Hi Prabhakar,
-> 
-> [Snip]
-> 
-> >> > Sure. That's a better choice than removing the config option dependency
-> >> > of the fields struct v4l2_subdev.
-> > 
-> > Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the
-> > in-kernel pad format and selection rectangles helpers is definitely a
-> > good idea. I was thinking about decoupling the try format and rectangles
-> > from v4l2_subdev_fh by creating a kind of configuration store structure
-> > to store them, and embedding that structure in v4l2_subdev_fh. The
-> > pad-level operations would then take a pointer to the configuration store
-> > instead of the v4l2_subdev_fh. Bridge drivers that want to implement
-> > TRY_FMT based on pad-level operations would create a configuration store,
-> > use the pad-level operations, and destroy the configuration store. The
-> > userspace subdev API would use the configuration store from the file
-> > handle.
-> 
-> are planning to work/post any time soon ? Or are you OK with suggestion from
-> Hans ?
+On 11/01/2014 03:38 PM, Mauro Carvalho Chehab wrote:
+> There are lots of debug printks printed with pr_info. Also, the
+> printk's data are not too coherent:
+>
+> - there are duplicated driver name at the print format;
+> - function name format string differs from function to function;
+> - long strings broken into multiple lines;
+> - some printks just produce ugly reports, being almost useless
+>    as-is.
+>
+> Do a cleanup on that.
+>
+> Still, there are much to be done in order to do a better printk
+> job on this driver, but, at least it will now be a way less
+> verbose, if debug printks are disabled, and some logs might
+> actually be useful.
 
-I have no plan to work on that myself now, I was hoping you could implement it 
-;-)
+As you do that kind of cleanup, why don't just use a bit more time and 
+do it properly using dev_foo() logging. Basically all device drivers 
+should use dev_foo() logging, it prints module name, bus number etc. 
+automatically in a standard manner. pr_foo() is worse, which should be 
+only used for cases where pointer to device is not available (like library).
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
