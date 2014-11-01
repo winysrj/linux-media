@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:48830 "EHLO
-	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477AbaK0LFw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 06:05:52 -0500
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH/TRIVIAL 2/4] [media] cx24117: Grammar s/if ... if/if ... is/
-Date: Thu, 27 Nov 2014 12:05:44 +0100
-Message-Id: <1417086346-23698-2-git-send-email-geert+renesas@glider.be>
-In-Reply-To: <1417086346-23698-1-git-send-email-geert+renesas@glider.be>
-References: <1417086346-23698-1-git-send-email-geert+renesas@glider.be>
+Received: from mail-ig0-f170.google.com ([209.85.213.170]:50374 "EHLO
+	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755726AbaKASNV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 14:13:21 -0400
+Received: by mail-ig0-f170.google.com with SMTP id h15so2634314igd.1
+        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 11:13:21 -0700 (PDT)
+Content-Type: text/plain; charset=windows-1252
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Subject: Re: Synching app to live tv
+From: Evol Johnson <evolmark@gmail.com>
+In-Reply-To: <54551BB4.6050001@collabora.com>
+Date: Sat, 1 Nov 2014 14:13:18 -0400
+Cc: linux-media@vger.kernel.org, gstreamer-devel@lists.freedesktop.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <C075FFD2-FE89-4A16-B108-0DC1DBBFF6BD@gmail.com>
+References: <3BC84EDE-BDFE-4742-A442-76639C63B22C@gmail.com> <54551BB4.6050001@collabora.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/dvb-frontends/cx24117.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+my apologies.
 
-diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-index a6c3c9e2e89772ff..acb965ce0358b70e 100644
---- a/drivers/media/dvb-frontends/cx24117.c
-+++ b/drivers/media/dvb-frontends/cx24117.c
-@@ -459,7 +459,7 @@ static int cx24117_firmware_ondemand(struct dvb_frontend *fe)
- 	if (state->priv->skip_fw_load)
- 		return 0;
- 
--	/* check if firmware if already running */
-+	/* check if firmware is already running */
- 	if (cx24117_readreg(state, 0xeb) != 0xa) {
- 		/* Load firmware */
- 		/* request the firmware, this will block until loaded */
--- 
-1.9.1
+On Nov 1, 2014, at 1:43 PM, Nicolas Dufresne <nicolas.dufresne@collabora.com> wrote:
+
+> Please, when cross-posting, make sure to make it really evident, otherwise it's a bit of an abuse of people free time.
+> 
+> cheers,
+> Nicolas
+> 
+> p.s. same message was posted on both GStreamer and linux-media mailing lists
+> 
+> Le 2014-11-01 13:03, Evol Johnson a écrit :
+>> Hi
+>> 
+>> I'm an app developer and no experience with linuxtv.  I want to build an app capable of synch with live tv.
+>> 
+>> What i figured so far is that i could have a linux computer with a capture card,  analyze  the MPEG-2 stream, somehow obtain the PCR(?) and i would be able to broadcast the timestamp and maybe other data that to my app.
+>> 
+>> Questions/comments:
+>> Is this a good approach
+>> This has done before and you only need to download _____XYz software______ (free or $$)
+>> Not done before, but you here a few resources that should get you started.
+>> I use ubuntu and card recommendations are welcomed.
+>> 
+>> Thanks in advance
+>> 
+>> 
+>> Mark Johnson--
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
