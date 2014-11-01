@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42441 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:55264 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbaKBMcr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:47 -0500
+	with ESMTP id S1759134AbaKANjG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 09:39:06 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv2 04/14] [media] cx25840: Don't report an error if max size is adjusted
-Date: Sun,  2 Nov 2014 10:32:27 -0200
-Message-Id: <551e6ce7ad0283aee6236db6a8f850f1b8ec9a1e.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Subject: [PATCH 4/7] [media] cx25840: Don't report an error if max size is adjusted
+Date: Sat,  1 Nov 2014 11:38:56 -0200
+Message-Id: <29596c3093b8ec2833cf4dc5413e2bfc04b3272a.1414849031.git.mchehab@osg.samsung.com>
+In-Reply-To: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
+References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414849031.git.mchehab@osg.samsung.com>
+References: <cover.1414849031.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
