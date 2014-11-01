@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:52919 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbaKRSIm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 13:08:42 -0500
-Received: by mail-lb0-f178.google.com with SMTP id f15so19620752lbj.23
-        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 10:08:41 -0800 (PST)
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:36425 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755267AbaKARnV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 13:43:21 -0400
+Message-ID: <54551BB4.6050001@collabora.com>
+Date: Sat, 01 Nov 2014 13:43:16 -0400
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com>
-References: <CAOMZO5AX0R-s94-5m0G=SKkNb38u+jZo=7Toa+LDOkiJLAh=Tg@mail.gmail.com>
-	<20141117185554.GW25554@pengutronix.de>
-	<CAOMZO5DGR=Y1MVAc46OG6f26s9kEAoT+XCXgyezFOefM6H_NQg@mail.gmail.com>
-Date: Tue, 18 Nov 2014 16:08:41 -0200
-Message-ID: <CAOMZO5CtXEzBw2_McwTpn3S4FB_8wRE-HYTghv=ceBo_AAuMqA@mail.gmail.com>
-Subject: Re: Using the coda driver with Gstreamer
-From: Fabio Estevam <festevam@gmail.com>
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Jean-Michel Hautbois <jhautbois@gmail.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+To: Evol Johnson <evolmark@gmail.com>, linux-media@vger.kernel.org,
+	gstreamer-devel@lists.freedesktop.org
+Subject: Re: Synching app to live tv
+References: <3BC84EDE-BDFE-4742-A442-76639C63B22C@gmail.com>
+In-Reply-To: <3BC84EDE-BDFE-4742-A442-76639C63B22C@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 17, 2014 at 5:58 PM, Fabio Estevam <festevam@gmail.com> wrote:
+Please, when cross-posting, make sure to make it really evident, 
+otherwise it's a bit of an abuse of people free time.
 
->> Just a wild guess - we usually test here with dmabuf capable devices and
->> without X. As you are using gstglimagesink, the code around
->> ext/gl/gstglimagesink.c (453) looks like gst_gl_context_create() went
->> wrong. Does your GL work correctly? Maybe you can test the glimagesink
->> with a simpler pipeline first.
+cheers,
+Nicolas
+
+p.s. same message was posted on both GStreamer and linux-media mailing lists
+
+Le 2014-11-01 13:03, Evol Johnson a écrit :
+> Hi
 >
-> Yes, maybe it would be better to remove X from my initial tests. I
-> will give it a try.
+> I'm an app developer and no experience with linuxtv.  I want to build an app capable of synch with live tv.
+>
+> What i figured so far is that i could have a linux computer with a capture card,  analyze  the MPEG-2 stream, somehow obtain the PCR(?) and i would be able to broadcast the timestamp and maybe other data that to my app.
+>
+> Questions/comments:
+> Is this a good approach
+> This has done before and you only need to download _____XYz software______ (free or $$)
+> Not done before, but you here a few resources that should get you started.
+> I use ubuntu and card recommendations are welcomed.
+>
+> Thanks in advance
+>
+>
+> Mark Johnson--
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Now I have a rootfs without X:
-
-root@imx6qsabresd:/home# gst-inspect-1.0 | grep v4l2
-video4linux2:  v4l2src: Video (video4linux2) Source
-video4linux2:  v4l2sink: Video (video4linux2) Sink
-video4linux2:  v4l2radio: Radio (video4linux2) Tuner
-video4linux2:  v4l2deviceprovider (GstDeviceProviderFactory)
-video4linux2:  v4l2video1dec: V4L2 Video Decoder
-
-Basic test works fine:
-root@imx6qsabresd:/home# gst-launch-1.0 videotestsrc ! fbdevsink
-
-root@imx6qsabresd:/home# gst-launch-1.0 playbin uri=file:///home/H264_test1_Talk
-inghead_mp4_480x360.mp4
-Setting pipeline to PAUSED ...
-Pipeline is PREROLLING ...
-Redistribute latency...
-[  138.267329] coda 2040000.vpu: CODA PIC_RUN timeout
-
-I was not able to switch to Gstreamer 1.4.4 yet, so this was on 1.4.1.
-
-Thanks
