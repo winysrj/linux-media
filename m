@@ -1,134 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44976 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161658AbaKNTkL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 14:40:11 -0500
-Date: Fri, 14 Nov 2014 17:40:05 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:54536 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842AbaKANXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 09:23:40 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/8] rtl28xxu: add support for Panasonic MN88473 slave
- demod
-Message-ID: <20141114174005.23a21434@recife.lan>
-In-Reply-To: <1415766190-24482-6-git-send-email-crope@iki.fi>
-References: <1415766190-24482-1-git-send-email-crope@iki.fi>
-	<1415766190-24482-6-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/7] [media] cx231xx: Fix identation
+Date: Sat,  1 Nov 2014 11:22:39 -0200
+Message-Id: <452a20d01e80c6bc96b94dd642e10ce589e53af7.1414847443.git.mchehab@osg.samsung.com>
+In-Reply-To: <1414848164-18483-1-git-send-email-mchehab@osg.samsung.com>
+References: <1414848164-18483-1-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414847443.git.mchehab@osg.samsung.com>
+References: <cover.1414847443.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 12 Nov 2014 06:23:07 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+One of the identation blocks is wrong. Fix it.
 
-> There is RTL2832P devices having extra MN88473 demodulator. This
-> patch add support for such configuration. Logically MN88473 slave
-> demodulator is connected to RTL2832 master demodulator, both I2C
-> bus and TS input. RTL2832 is integrated to RTL2832U and RTL2832P
-> chips. Chip version RTL2832P has extra TS interface for connecting
-> slave demodulator.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/dvb-usb-v2/Kconfig    |  1 +
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 31 +++++++++++++++++++++++++++++++
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  3 ++-
->  3 files changed, 34 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index 9050933..f452a11 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-> @@ -131,6 +131,7 @@ config DVB_USB_RTL28XXU
->  	select DVB_RTL2832
->  	select DVB_RTL2832_SDR if (MEDIA_SUBDRV_AUTOSELECT && MEDIA_SDR_SUPPORT)
->  	select DVB_MN88472 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_MN88473 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_MXL5005S if MEDIA_SUBDRV_AUTOSELECT
+While here, replace pr_info by pr_debug inside such block and
+add the function name to the print messages, as otherwise they
+will not help much.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This is not a good idea, as the MN88473 is in staging.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 9185b05b4fbe..036ffdde6e89 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -2534,34 +2534,33 @@ int cx231xx_initialize_stream_xfer(struct cx231xx *dev, u32 media_type)
+ 			break;
+ 
+ 		case TS1_serial_mode:
+-			pr_info("%s: set ts1 registers", __func__);
++			pr_debug("%s: set ts1 registers", __func__);
+ 
+-		if (dev->board.has_417) {
+-			pr_info(" MPEG\n");
+-			value &= 0xFFFFFFFC;
+-			value |= 0x3;
++			if (dev->board.has_417) {
++				pr_debug("%s: MPEG\n", __func__);
++				value &= 0xFFFFFFFC;
++				value |= 0x3;
+ 
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, value);
++				status = cx231xx_mode_register(dev, TS_MODE_REG, value);
+ 
+-			val[0] = 0x04;
+-			val[1] = 0xA3;
+-			val[2] = 0x3B;
+-			val[3] = 0x00;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_CFG_REG, val, 4);
++				val[0] = 0x04;
++				val[1] = 0xA3;
++				val[2] = 0x3B;
++				val[3] = 0x00;
++				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					 TS1_CFG_REG, val, 4);
+ 
+-			val[0] = 0x00;
+-			val[1] = 0x08;
+-			val[2] = 0x00;
+-			val[3] = 0x08;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_LENGTH_REG, val, 4);
+-
+-		} else {
+-			pr_info(" BDA\n");
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
+-			status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
+-		}
++				val[0] = 0x00;
++				val[1] = 0x08;
++				val[2] = 0x00;
++				val[3] = 0x08;
++				status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					 TS1_LENGTH_REG, val, 4);
++			} else {
++				pr_debug("%s: BDA\n", __func__);
++				status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
++				status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
++			}
+ 			break;
+ 
+ 		case TS1_parallel_mode:
+-- 
+1.9.3
 
-Select is not recursive, and won't select STAGING. Also, we don't want
-to enable a staging driver by default on distros.
-
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index e3c20f4..93f8afc 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -25,6 +25,7 @@
->  #include "rtl2830.h"
->  #include "rtl2832.h"
->  #include "mn88472.h"
-> +#include "mn88473.h"
->  
->  #include "qt1010.h"
->  #include "mt2060.h"
-> @@ -422,6 +423,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
->  	struct rtl28xxu_req req_r820t = {0x0034, CMD_I2C_RD, 1, buf};
->  	struct rtl28xxu_req req_r828d = {0x0074, CMD_I2C_RD, 1, buf};
->  	struct rtl28xxu_req req_mn88472 = {0xff38, CMD_I2C_RD, 1, buf};
-> +	struct rtl28xxu_req req_mn88473 = {0xff38, CMD_I2C_RD, 1, buf};
->  
->  	dev_dbg(&d->udev->dev, "%s:\n", __func__);
->  
-> @@ -567,6 +569,13 @@ tuner_found:
->  			priv->slave_demod = SLAVE_DEMOD_MN88472;
->  			goto demod_found;
->  		}
-> +
-> +		ret = rtl28xxu_ctrl_msg(d, &req_mn88473);
-> +		if (ret == 0 && buf[0] == 0x03) {
-> +			dev_dbg(&d->udev->dev, "%s: MN88473 found\n", __func__);
-> +			priv->slave_demod = SLAVE_DEMOD_MN88473;
-> +			goto demod_found;
-> +		}
->  	}
->  
->  demod_found:
-> @@ -889,6 +898,28 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
->  			}
->  
->  			priv->i2c_client_slave_demod = client;
-> +		} else {
-> +			struct mn88473_config mn88473_config = {};
-> +
-> +			mn88473_config.fe = &adap->fe[1];
-> +			mn88473_config.i2c_wr_max = 22,
-> +			strlcpy(info.type, "mn88473", I2C_NAME_SIZE);
-> +			info.addr = 0x18;
-> +			info.platform_data = &mn88473_config;
-> +			request_module(info.type);
-> +			client = i2c_new_device(priv->demod_i2c_adapter, &info);
-> +			if (client == NULL || client->dev.driver == NULL) {
-> +				priv->slave_demod = SLAVE_DEMOD_NONE;
-> +				goto err_slave_demod_failed;
-> +			}
-> +
-> +			if (!try_module_get(client->dev.driver->owner)) {
-> +				i2c_unregister_device(client);
-> +				priv->slave_demod = SLAVE_DEMOD_NONE;
-> +				goto err_slave_demod_failed;
-> +			}
-> +
-> +			priv->i2c_client_slave_demod = client;
->  		}
->  
->  		/* override init as we want configure RTL2832 as TS input */
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-> index 58f2730..9c059ac 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-> @@ -62,7 +62,8 @@ struct rtl28xxu_priv {
->  	int (*init)(struct dvb_frontend *fe);
->  	#define SLAVE_DEMOD_NONE           0
->  	#define SLAVE_DEMOD_MN88472        1
-> -	unsigned int slave_demod:1;
-> +	#define SLAVE_DEMOD_MN88473        2
-> +	unsigned int slave_demod:2;
->  };
->  
->  enum rtl28xxu_chip_id {
