@@ -1,305 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:9498 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155AbaKUQOz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 11:14:55 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NFE00DKUD4TZN40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:14:53 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v4 01/11] mediactl: Introduce v4l2_subdev structure
-Date: Fri, 21 Nov 2014 17:14:30 +0100
-Message-id: <1416586480-19982-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:42441 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbaKBMcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:47 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 04/14] [media] cx25840: Don't report an error if max size is adjusted
+Date: Sun,  2 Nov 2014 10:32:27 -0200
+Message-Id: <551e6ce7ad0283aee6236db6a8f850f1b8ec9a1e.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add struct v4l2_subdev as a representation of the v4l2 sub-device
-related to a media entity. Add sd property, the pointer to
-the newly introduced structure, to the struct media_entity
-and move fd property to it.
+There's no reason to report:
+	cx25840 7-0044:  Firmware download size changed to 16 bytes max length
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libmediactl.c   |   30 +++++++++++++++++++++++++-----
- utils/media-ctl/libv4l2subdev.c |   34 +++++++++++++++++-----------------
- utils/media-ctl/mediactl-priv.h |    5 +++++
- utils/media-ctl/mediactl.h      |   22 ++++++++++++++++++++++
- 4 files changed, 69 insertions(+), 22 deletions(-)
+If the driver needs to adjust the buffer's maximum size.
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index ec360bd..53921f5 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -511,7 +511,6 @@ static int media_enum_entities(struct media_device *media)
- 
- 		entity = &media->entities[media->entities_count];
- 		memset(entity, 0, sizeof(*entity));
--		entity->fd = -1;
- 		entity->info.id = id | MEDIA_ENT_ID_FLAG_NEXT;
- 		entity->media = media;
- 
-@@ -529,11 +528,13 @@ static int media_enum_entities(struct media_device *media)
- 
- 		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
- 		entity->links = malloc(entity->max_links * sizeof(*entity->links));
--		if (entity->pads == NULL || entity->links == NULL) {
-+		entity->sd = calloc(1, sizeof(*entity->sd));
-+		if (entity->pads == NULL || entity->links == NULL || entity->sd == NULL) {
- 			ret = -ENOMEM;
- 			break;
- 		}
- 
-+		entity->sd->fd = -1;
- 		media->entities_count++;
- 
- 		if (entity->info.flags & MEDIA_ENT_FL_DEFAULT) {
-@@ -704,8 +705,9 @@ void media_device_unref(struct media_device *media)
- 
- 		free(entity->pads);
- 		free(entity->links);
--		if (entity->fd != -1)
--			close(entity->fd);
-+		if (entity->sd->fd != -1)
-+			close(entity->sd->fd);
-+		free(entity->sd);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/i2c/cx25840/cx25840-firmware.c b/drivers/media/i2c/cx25840/cx25840-firmware.c
+index b3169f94ece8..6092bf71300f 100644
+--- a/drivers/media/i2c/cx25840/cx25840-firmware.c
++++ b/drivers/media/i2c/cx25840/cx25840-firmware.c
+@@ -122,10 +122,9 @@ int cx25840_loadfw(struct i2c_client *client)
+ 		gpio_da = cx25840_read(client, 0x164);
  	}
  
- 	free(media->entities);
-@@ -726,13 +728,17 @@ int media_device_add_entity(struct media_device *media,
- 	if (entity == NULL)
- 		return -ENOMEM;
+-	if (is_cx231xx(state) && MAX_BUF_SIZE > 16) {
+-		v4l_err(client, " Firmware download size changed to 16 bytes max length\n");
+-		MAX_BUF_SIZE = 16;  /* cx231xx cannot accept more than 16 bytes at a time */
+-	}
++	/* cx231xx cannot accept more than 16 bytes at a time */
++	if (is_cx231xx(state) && MAX_BUF_SIZE > 16)
++		MAX_BUF_SIZE = 16;
  
-+	entity->sd = calloc(1, sizeof(*entity->sd));
-+	if (entity->sd == NULL)
-+		return -ENOMEM;
-+
- 	media->entities = entity;
- 	media->entities_count++;
- 
- 	entity = &media->entities[media->entities_count - 1];
- 	memset(entity, 0, sizeof *entity);
- 
--	entity->fd = -1;
-+	entity->sd->fd = -1;
- 	entity->media = media;
- 	strncpy(entity->devname, devnode, sizeof entity->devname);
- 	entity->devname[sizeof entity->devname - 1] = '\0';
-@@ -955,3 +961,17 @@ int media_parse_setup_links(struct media_device *media, const char *p)
- 
- 	return *end ? -EINVAL : 0;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Media entity access
-+ */
-+
-+int media_entity_get_fd(struct media_entity *entity)
-+{
-+	return entity->sd->fd;
-+}
-+
-+void media_entity_set_fd(struct media_entity *entity, int fd)
-+{
-+	entity->sd->fd = fd;
-+}
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 8015330..09e0081 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -41,11 +41,11 @@
- 
- int v4l2_subdev_open(struct media_entity *entity)
- {
--	if (entity->fd != -1)
-+	if (entity->sd->fd != -1)
- 		return 0;
- 
--	entity->fd = open(entity->devname, O_RDWR);
--	if (entity->fd == -1) {
-+	entity->sd->fd = open(entity->devname, O_RDWR);
-+	if (entity->sd->fd == -1) {
- 		int ret = -errno;
- 		media_dbg(entity->media,
- 			  "%s: Failed to open subdev device node %s\n", __func__,
-@@ -58,8 +58,8 @@ int v4l2_subdev_open(struct media_entity *entity)
- 
- void v4l2_subdev_close(struct media_entity *entity)
- {
--	close(entity->fd);
--	entity->fd = -1;
-+	close(entity->sd->fd);
-+	entity->sd->fd = -1;
- }
- 
- int v4l2_subdev_get_format(struct media_entity *entity,
-@@ -77,7 +77,7 @@ int v4l2_subdev_get_format(struct media_entity *entity,
- 	fmt.pad = pad;
- 	fmt.which = which;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FMT, &fmt);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_G_FMT, &fmt);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -101,7 +101,7 @@ int v4l2_subdev_set_format(struct media_entity *entity,
- 	fmt.which = which;
- 	fmt.format = *format;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FMT, &fmt);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_S_FMT, &fmt);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -128,7 +128,7 @@ int v4l2_subdev_get_selection(struct media_entity *entity,
- 	u.sel.target = target;
- 	u.sel.which = which;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_SELECTION, &u.sel);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_G_SELECTION, &u.sel);
- 	if (ret >= 0) {
- 		*rect = u.sel.r;
- 		return 0;
-@@ -140,7 +140,7 @@ int v4l2_subdev_get_selection(struct media_entity *entity,
- 	u.crop.pad = pad;
- 	u.crop.which = which;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_CROP, &u.crop);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_G_CROP, &u.crop);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -168,7 +168,7 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
- 	u.sel.which = which;
- 	u.sel.r = *rect;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_SELECTION, &u.sel);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_S_SELECTION, &u.sel);
- 	if (ret >= 0) {
- 		*rect = u.sel.r;
- 		return 0;
-@@ -181,7 +181,7 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
- 	u.crop.which = which;
- 	u.crop.rect = *rect;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_CROP, &u.crop);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_S_CROP, &u.crop);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -202,7 +202,7 @@ int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
- 	memset(caps, 0, sizeof(*caps));
- 	caps->pad = pad;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_DV_TIMINGS_CAP, caps);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_DV_TIMINGS_CAP, caps);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -220,7 +220,7 @@ int v4l2_subdev_query_dv_timings(struct media_entity *entity,
- 
- 	memset(timings, 0, sizeof(*timings));
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_QUERY_DV_TIMINGS, timings);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_QUERY_DV_TIMINGS, timings);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -238,7 +238,7 @@ int v4l2_subdev_get_dv_timings(struct media_entity *entity,
- 
- 	memset(timings, 0, sizeof(*timings));
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_DV_TIMINGS, timings);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_G_DV_TIMINGS, timings);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -254,7 +254,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
- 	if (ret < 0)
- 		return ret;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_DV_TIMINGS, timings);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_S_DV_TIMINGS, timings);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -273,7 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
- 
- 	memset(&ival, 0, sizeof(ival));
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
- 	if (ret < 0)
- 		return -errno;
- 
-@@ -294,7 +294,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
- 	memset(&ival, 0, sizeof(ival));
- 	ival.interval = *interval;
- 
--	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
-+	ret = ioctl(entity->sd->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
- 	if (ret < 0)
- 		return -errno;
- 
-diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
-index a0d3a55..4bcb1e0 100644
---- a/utils/media-ctl/mediactl-priv.h
-+++ b/utils/media-ctl/mediactl-priv.h
-@@ -34,7 +34,12 @@ struct media_entity {
- 	unsigned int max_links;
- 	unsigned int num_links;
- 
-+	struct v4l2_subdev *sd;
-+
- 	char devname[32];
-+};
-+
-+struct v4l2_subdev {
- 	int fd;
- };
- 
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 77ac182..b8cefe8 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -420,4 +420,26 @@ int media_parse_setup_link(struct media_device *media,
-  */
- int media_parse_setup_links(struct media_device *media, const char *p);
- 
-+/**
-+ * @brief Get file descriptor of the entity sub-device
-+ * @param entity - media entity
-+ *
-+ * This function gets the file descriptor of the opened
-+ * sub-device node related to the entity.
-+ *
-+ * @return file descriptor of the opened sub-device,
-+	   or -1 if the sub-device is closed
-+ */
-+int media_entity_get_fd(struct media_entity *entity);
-+
-+/**
-+ * @brief Set file descriptor of the entity sub-device
-+ * @param entity - media entity
-+ * @param fd - entity sub-device file descriptor
-+ *
-+ * This function sets the file descriptor of the opened
-+ * sub-device node related to the entity.
-+ */
-+void media_entity_set_fd(struct media_entity *entity, int fd);
-+
- #endif
+ 	if (request_firmware(&fw, fwname, FWDEV(client)) != 0) {
+ 		v4l_err(client, "unable to open firmware %s\n", fwname);
 -- 
-1.7.9.5
+1.9.3
 
