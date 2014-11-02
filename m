@@ -1,104 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:39597 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750896AbaK1K2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 05:28:06 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 1/4] media: ov2640: add async probe function
-Date: Fri, 28 Nov 2014 18:28:24 +0800
-Message-ID: <1417170507-11172-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:42448 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbaKBMcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCHv2 05/14] [media] cx25840: convert max_buf_size var to lowercase
+Date: Sun,  2 Nov 2014 10:32:28 -0200
+Message-Id: <5c067f2ed388b0c40ca1e85db328bb76408c8b01.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support async probe for ov2640, we need remove the code to get 'mclk'
-in ov2640_probe() function. oterwise, if soc_camera host is not probed
-in the moment, then we will fail to get 'mclk' and quit the ov2640_probe()
-function.
+CodingStyle fix: vars should be in lowercase.
 
-So in this patch, we move such 'mclk' getting code to ov2640_s_power()
-function. That make ov2640 survive, as we can pass a NULL (priv-clk) to
-soc_camera_set_power() function.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-And if soc_camera host is probed, the when ov2640_s_power() is called,
-then we can get the 'mclk' and that make us enable/disable soc_camera
-host's clock as well.
-
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/i2c/soc_camera/ov2640.c | 31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 1fdce2f..9ee910d 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -739,6 +739,15 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct ov2640_priv *priv = to_ov2640(client);
-+	struct v4l2_clk *clk;
-+
-+	if (!priv->clk) {
-+		clk = v4l2_clk_get(&client->dev, "mclk");
-+		if (IS_ERR(clk))
-+			dev_warn(&client->dev, "Cannot get the mclk. maybe soc-camera host is not probed yet.\n");
-+		else
-+			priv->clk = clk;
-+	}
+diff --git a/drivers/media/i2c/cx25840/cx25840-firmware.c b/drivers/media/i2c/cx25840/cx25840-firmware.c
+index 6092bf71300f..9bbb31adc29d 100644
+--- a/drivers/media/i2c/cx25840/cx25840-firmware.c
++++ b/drivers/media/i2c/cx25840/cx25840-firmware.c
+@@ -113,7 +113,7 @@ int cx25840_loadfw(struct i2c_client *client)
+ 	const u8 *ptr;
+ 	const char *fwname = get_fw_name(client);
+ 	int size, retval;
+-	int MAX_BUF_SIZE = FWSEND;
++	int max_buf_size = FWSEND;
+ 	u32 gpio_oe = 0, gpio_da = 0;
  
- 	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
- }
-@@ -1078,21 +1087,21 @@ static int ov2640_probe(struct i2c_client *client,
- 	if (priv->hdl.error)
- 		return priv->hdl.error;
- 
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk)) {
--		ret = PTR_ERR(priv->clk);
--		goto eclkget;
--	}
--
- 	ret = ov2640_video_probe(client);
- 	if (ret) {
--		v4l2_clk_put(priv->clk);
--eclkget:
--		v4l2_ctrl_handler_free(&priv->hdl);
-+		goto evideoprobe;
- 	} else {
- 		dev_info(&adapter->dev, "OV2640 Probed\n");
+ 	if (is_cx2388x(state)) {
+@@ -123,8 +123,8 @@ int cx25840_loadfw(struct i2c_client *client)
  	}
  
-+	ret = v4l2_async_register_subdev(&priv->subdev);
-+	if (ret < 0)
-+		goto evideoprobe;
-+
-+	return 0;
-+
-+evideoprobe:
-+	v4l2_ctrl_handler_free(&priv->hdl);
- 	return ret;
- }
+ 	/* cx231xx cannot accept more than 16 bytes at a time */
+-	if (is_cx231xx(state) && MAX_BUF_SIZE > 16)
+-		MAX_BUF_SIZE = 16;
++	if (is_cx231xx(state) && max_buf_size > 16)
++		max_buf_size = 16;
  
-@@ -1100,7 +1109,9 @@ static int ov2640_remove(struct i2c_client *client)
- {
- 	struct ov2640_priv       *priv = to_ov2640(client);
+ 	if (request_firmware(&fw, fwname, FWDEV(client)) != 0) {
+ 		v4l_err(client, "unable to open firmware %s\n", fwname);
+@@ -139,7 +139,7 @@ int cx25840_loadfw(struct i2c_client *client)
+ 	size = fw->size;
+ 	ptr = fw->data;
+ 	while (size > 0) {
+-		int len = min(MAX_BUF_SIZE - 2, size);
++		int len = min(max_buf_size - 2, size);
  
--	v4l2_clk_put(priv->clk);
-+	v4l2_async_unregister_subdev(&priv->subdev);
-+	if (priv->clk)
-+		v4l2_clk_put(priv->clk);
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
- 	return 0;
+ 		memcpy(buffer + 2, ptr, len);
+ 
 -- 
-1.9.1
+1.9.3
 
