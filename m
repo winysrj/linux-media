@@ -1,66 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45424 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752112AbaKQKLG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 05:11:06 -0500
-Date: Mon, 17 Nov 2014 08:11:00 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:42488 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752193AbaKBMcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:51 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: =?UTF-8?B?0JHQsNGA0YIg0JPQvtC/0L3QuNC6?= <bart.gopnik@gmail.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Mike Thomas <rmthomas@sciolus.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: STK1160 Sharpness
-Message-ID: <20141117081100.72908b15@recife.lan>
-In-Reply-To: <CAL+AA1=Sbe3D4BmV-Pv7SEhUBQutFiYMQ-H=iUWuAsY5aiTEzA@mail.gmail.com>
-References: <CAL+AA1ntfVxkaHhY8qNciBkHRw0SXOAzBJgV+A9Y7oYtbD38mQ@mail.gmail.com>
-	<CALF0-+VpPttePKF-VTLJ5Y29_EZtSz96PwN9av1SOkkc414CRA@mail.gmail.com>
-	<CAL+AA1nUAgOYUeWxrgeHiWaDSkHvh0yXuwA-gjdUomn-s_HVyA@mail.gmail.com>
-	<CALF0-+WuVtk3SpwCNfJB88jvgXEujVPmT9ute6Ohdhi=0VsOSw@mail.gmail.com>
-	<20141109111200.6fb604c8@recife.lan>
-	<CAL+AA1kQSrOCSxUPkSFa8xxpkCRJUj+46-RCwVhUrUc6Jduv9A@mail.gmail.com>
-	<CAL+AA1=Sbe3D4BmV-Pv7SEhUBQutFiYMQ-H=iUWuAsY5aiTEzA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 12/14] [media] cx231xx: use dev_info() for extension load/unload
+Date: Sun,  2 Nov 2014 10:32:35 -0200
+Message-Id: <58369096f1fee7d71942eae7a40db6d7c1c368bf.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 17 Nov 2014 12:51:46 +0300
-Барт Гопник <bart.gopnik@gmail.com> escreveu:
+Now that we're using dev_foo, the logs become like:
 
-> (Where) can I find the the full list of the (key) differences between
-> SAA7113 and GM7113?
+	usb 1-2: DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
+	usb 1-2: Successfully loaded cx231xx-dvb
+	cx231xx: Cx231xx dvb Extension initialized
 
-I've no idea. Perhaps you would need to get both datasheets and compare
-them.
+It is not clear, by the logs, that usb 1-2 name is an alias for
+cx231xx. So, we also need to use dvb_info() at extension load/unload.
 
-> If it is not hard to do it, can anybody please implement it?
+After the patch, it will print:
+	usb 1-2: Cx231xx dvb Extension initialized
 
-The hardest part seems to graduate the sharpness levels, as sharpness
-actually is split into 3 different controls.
+With is coherent with the other logs.
 
-Of course, one interested on doing that would need to have a device
-with the needed chipsets and time/interest on doing that.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Adding control framework at stk1160 also requires some time. I can't
-volunteer myself of doing that. I don't have any stk1160-based
-devices.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 36c3ecf204c1..64e907f02a02 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -98,10 +98,10 @@ int cx231xx_register_extension(struct cx231xx_ops *ops)
+ 
+ 	mutex_lock(&cx231xx_devlist_mutex);
+ 	list_add_tail(&ops->next, &cx231xx_extension_devlist);
+-	list_for_each_entry(dev, &cx231xx_devlist, devlist)
++	list_for_each_entry(dev, &cx231xx_devlist, devlist) {
+ 		ops->init(dev);
+-
+-	printk(KERN_INFO DRIVER_NAME ": %s initialized\n", ops->name);
++		dev_info(&dev->udev->dev, "%s initialized\n", ops->name);
++	}
+ 	mutex_unlock(&cx231xx_devlist_mutex);
+ 	return 0;
+ }
+@@ -112,11 +112,11 @@ void cx231xx_unregister_extension(struct cx231xx_ops *ops)
+ 	struct cx231xx *dev = NULL;
+ 
+ 	mutex_lock(&cx231xx_devlist_mutex);
+-	list_for_each_entry(dev, &cx231xx_devlist, devlist)
++	list_for_each_entry(dev, &cx231xx_devlist, devlist) {
+ 		ops->fini(dev);
++		dev_info(&dev->udev->dev, "%s removed\n", ops->name);
++	}
+ 
+-
+-	printk(KERN_INFO DRIVER_NAME ": %s removed\n", ops->name);
+ 	list_del(&ops->next);
+ 	mutex_unlock(&cx231xx_devlist_mutex);
+ }
+-- 
+1.9.3
 
-> Unfortunately, I'm not very good with system drivers programming.
-> 
-> I'm interesting only in sharpness control because the image quality
-> (sharpness) during capture using CVBS input is bad (on my EasyCap
-> device). If I use S-Video input, the quality (sharpness) is better. 
-
-Yeah, the saa7115 datasheet (freely available at NXP site) mentions that 
-sharpness control may be needed for some kinds of output.
-
-> It is important to implement it, because the sharpness control
-> implemented in hardware (not in software, post-processing filtering).
-> Control of other parameters like gamma are also don't work, but I'm
-> not sure that gamma control is hardware (not software) implemented
-> (I'm not found any info about gamma in saa7113 datasheet).
-
-Regards,
-Mauro
