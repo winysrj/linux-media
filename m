@@ -1,58 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50366 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965029AbaKNPfk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 10:35:40 -0500
-Date: Fri, 14 Nov 2014 17:35:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 03/11] videodev2.h: rename reserved2 to config_store
- in v4l2_buffer.
-Message-ID: <20141114153505.GE8907@valkosipuli.retiisi.org.uk>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
- <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:39215 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973AbaKBLkV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 06:40:21 -0500
+Date: Sun, 2 Nov 2014 12:40:13 +0100
+From: Konrad Zapalowicz <bergo.torino@gmail.com>
+To: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Gulsah Kose <gulsah.1004@gmail.com>,
+	Matina Maria Trompouki <mtrompou@gmail.com>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: adjust debug messages
+Message-ID: <20141102114013.GD21791@t400>
+References: <20141101213654.GA3191@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1411310909-32825-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <20141101213654.GA3191@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 11/01, Aya Mahfouz wrote:
+> This patch removes one debug message and replaces a dev_err
+> call by pr_err.
 
-One more comment...
+Usually you would like to send this as two separate patches because
+replacing a debug message is way different than removing some code. It
+should look like:
 
-On Sun, Sep 21, 2014 at 04:48:21PM +0200, Hans Verkuil wrote:
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 83ef28a..2ca44ed 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -672,6 +672,7 @@ struct v4l2_plane {
->   * @length:	size in bytes of the buffer (NOT its payload) for single-plane
->   *		buffers (when type != *_MPLANE); number of elements in the
->   *		planes array for multi-plane buffers
-> + * @config_store: this buffer should use this configuration store
->   *
->   * Contains data exchanged by application and driver using one of the Streaming
->   * I/O methods.
-> @@ -695,7 +696,7 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__u32			config_store;
->  	__u32			reserved;
->  };
+	PATCH 0/2 staging: media: adjust debug messages
+		PATCH 1/2 staging: media: replace dev_err...
+		PATCH 2/2 staging: media: remove debug message..
+
+The lirc_zilog.c is not necessary in the topic line, as this can be seen
+from the diff.
+ 
+> Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+> ---
+>  drivers/staging/media/lirc/lirc_zilog.c | 7 +------
+>  1 file changed, 1 insertion(+), 6 deletions(-)
+> 
+> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+> index 11a7cb1..ba538cd4 100644
+> --- a/drivers/staging/media/lirc/lirc_zilog.c
+> +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> @@ -1336,11 +1336,6 @@ static int close(struct inode *node, struct file *filep)
+>  	/* find our IR struct */
+>  	struct IR *ir = filep->private_data;
 >  
+> -	if (ir == NULL) {
+> -		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
+> -		return -ENODEV;
+> -	}
+> -
 
-I would use __u16 instead since the value is 16-bit on the control
-interface.
+What is the reason behind this change? What would happen if the
+filep->private_data is NULL? Are the callers of this function aware that
+it will not return ENODEV anymore?
 
--- 
-Regards,
+thanks,
+konrad
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>  	atomic_dec(&ir->open_count);
+>  
+>  	put_ir_device(ir, false);
+> @@ -1633,7 +1628,7 @@ out_put_xx:
+>  out_put_ir:
+>  	put_ir_device(ir, true);
+>  out_no_ir:
+> -	dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+> +	pr_err("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+>  		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+>  		   ret);
+>  	mutex_unlock(&ir_devices_lock);
+> -- 
+> 1.9.3
+> 
+> _______________________________________________
+> devel mailing list
+> devel@linuxdriverproject.org
+> http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
