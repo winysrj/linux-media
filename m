@@ -1,63 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56481 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbaKER74 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 12:59:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	=?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-Date: Wed, 05 Nov 2014 16:05:12 +0200
-Message-ID: <1786601.8VQNyC75Ox@avalon>
-In-Reply-To: <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com> <54596226.8040403@iki.fi> <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:43090 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751285AbaKBMhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Nov 2014 07:37:35 -0500
+Date: Sun, 2 Nov 2014 10:37:30 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCHv2 00/14] Reduce cx231xx verbosity and do some cleanups
+Message-ID: <20141102103730.61441023@recife.lan>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paulo,
+Em Sun, 02 Nov 2014 10:32:23 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-On Wednesday 05 November 2014 10:13:45 Paulo Assis wrote:
-> 2014-11-04 23:32 GMT+00:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> > Sakari Ailus wrote:
-> >> yavta does, for example, print both the monotonic timestamp from the
-> >> buffer and the time when the buffer has been dequeued:
-> >> 
-> >> <URL:http://git.ideasonboard.org/yavta.git>
-> >> 
-> >>       $ yavta -c /dev/video0
-> >> 
-> >> should do it. The first timestamp is the buffer timestamp, and the latter
-> >> is the one is taken when the buffer is dequeued (by yavta).
+> The cx231xx driver is too verbose. Several debug messages
+> are sent to dmesg. Do some cleanup and fix i2c_scan.
 > 
-> I've done exaclty this with guvcview, and uvcvideo timestamps are completly
-> unreliable, in some devices they may have just a bit of jitter, but in
-> others, values go back and forth in time, making them totally unusable.
->
-> Honestly I wouldn't trust device firmware to provide correct timestamps, or
-> at least I would have the driver perform a couple of tests to make sure
-> these are at least reasonable: within an expected interval (maybe comparing
-> it to a reference monotonic clock) or at the very least making sure the
-> current frame timestamp is not lower than the previous one.
+> After this patch, it will now produce:
+> 
+> [  608.359255] usb 1-2: New device Conexant Corporation Polaris AV Capturb @ 480 Mbps (1554:5010) with 7 interfaces
+> [  608.360009] usb 1-2: Identified as Pixelview PlayTV USB Hybrid (card=10)
+> [  608.363129] i2c i2c-8: Added multiplexed i2c bus 10
+> [  608.363201] i2c i2c-8: Added multiplexed i2c bus 11
+> [  610.968904] cx25840 7-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+> [  611.041317] Chip ID is not zero. It is not a TEA5767
+> [  611.041351] tuner 9-0060: Tuner -1 found with type(s) Radio TV.
+> [  611.041429] tda18271 9-0060: creating new instance
+> [  611.044096] TDA18271HD/C2 detected @ 9-0060
+> [  611.239460] tda18271: performing RF tracking filter calibration
+> [  612.800569] tda18271: RF tracking filter calibration complete
+> [  612.835365] usb 1-2: v4l2 driver version 0.0.3
+> [  613.055006] usb 1-2: Registered video device video0 [v4l2]
+> [  613.055461] usb 1-2: Registered VBI device vbi0
+> [  613.110279] Registered IR keymap rc-pixelview-002t
+> [  613.110574] input: i2c IR (Pixelview PlayTV USB Hy as /devices/virtual/rc/rc0/input12
+> [  613.111398] rc0: i2c IR (Pixelview PlayTV USB Hy as /devices/virtual/rc/rc0
+> [  613.111409] ir-kbd-i2c: i2c IR (Pixelview PlayTV USB Hy detected at i2c-9/9-0030/ir0 [cx231xx #0-2]
+> [  613.111444] usb 1-2: video EndPoint Addr 0x84, Alternate settings: 5
+> [  613.111454] usb 1-2: VBI EndPoint Addr 0x85, Alternate settings: 2
+> [  613.111465] usb 1-2: sliced CC EndPoint Addr 0x86, Alternate settings: 2
+> [  613.111474] usb 1-2: TS EndPoint Addr 0x81, Alternate settings: 6
+> [  613.111654] usbcore: registered new interface driver cx231xx
+> [  613.136510] usb 1-2: audio EndPoint Addr 0x83, Alternate settings: 3
+> [  613.136521] usb 1-2: Cx231xx Audio Extension initialized
+> [  613.199085] usb 1-2: dvb_init: looking for demod on i2c bus: 9
+> [  613.232349] i2c i2c-11: Detected a Fujitsu mb86a20s frontend
+> [  613.232385] tda18271 9-0060: attaching existing instance
+> [  613.232392] DVB: registering new adapter (cx231xx #0)
+> [  613.232402] usb 1-2: DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
+> [  613.234528] usb 1-2: Successfully loaded cx231xx-dvb
+> [  613.234618] usb 1-2: Cx231xx dvb Extension initialized
+> 
+> Still verbose, but at least it doesn't produce extra logs during normal
+> work.
+> 
+> I2C scan is now fixed and not too verbose:
+> 
+> [  608.371656] usb 1-2: i2c scan: found device @ port 0 addr 0x40  [???]
+> [  608.374750] usb 1-2: i2c scan: found device @ port 0 addr 0x60  [colibri]
+> [  608.378433] usb 1-2: i2c scan: found device @ port 0 addr 0x88  [hammerhead]
+> [  608.380226] usb 1-2: i2c scan: found device @ port 0 addr 0x98  [???]
+> [  608.405747] usb 1-2: i2c scan: found device @ port 3 addr 0xa0  [eeprom]
+> [  608.422310] usb 1-2: i2c scan: found device @ port 2 addr 0x60  [colibri]
+> [  608.430229] usb 1-2: i2c scan: found device @ port 2 addr 0xc0  [tuner]
+> [  608.438793] usb 1-2: i2c scan: found device @ port 4 addr 0x20  [demod]
 
-I can add that to the uvcvideo driver, but I'd first like to find out whether 
-the device timestamps are really unreliable, or if the problem comes from a 
-bug in the driver's timestamp conversion code. Could you capture images using 
-yavta with an unreliable device, with the uvcvideo trace parameter set to 
-4096, and send me both the yavta log and the kernel log ? Let's start with a 
-capture sequence of 50 to 100 images.
 
-> > Removing the uvcvideo module and loading it again with trace=4096 before
-> > capturing, and then kernel log would provide more useful information.
+> [  608.560247] cx25840 7-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0-0)
 
--- 
+In time:
+
+Too much cut-and-paste... the above line is shown even if i2c_scan parameter
+is not used ;)
+
 Regards,
-
-Laurent Pinchart
+Mauro
