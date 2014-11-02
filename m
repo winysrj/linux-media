@@ -1,128 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:60971 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbaKIPFm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 10:05:42 -0500
-Received: by mail-qc0-f175.google.com with SMTP id b13so5189578qcw.20
-        for <linux-media@vger.kernel.org>; Sun, 09 Nov 2014 07:05:41 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 9 Nov 2014 16:05:41 +0100
-Message-ID: <CAKm1XeJh9UjYvsoJUeLDwW6whkkm1cfFPHCrH0fX0vX20Fg9hQ@mail.gmail.com>
-Subject: Problems with USB DVB-T stick by MAGIX (TerraTec Cinergy T USB XE Ver.2)
-From: Maksym Gendin <maksym.gendin@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:42449 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018AbaKBMcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCHv2 06/14] [media] cx231xx: use 1 byte read for i2c scan
+Date: Sun,  2 Nov 2014 10:32:29 -0200
+Message-Id: <56a0c18deacf14045b569771d03c8e3a5f82b1bf.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi guys,
+From: Matthias Schwarzott <zzam@gentoo.org>
 
-I'm new here and I have some problems with a TerraTec Cinergy T USB XE
-DVB-T stick by german manufactor MAGIX on Arch Linux.
+Now cx231xx_i2c_check_for_device works like i2c_check_for_device of em28xx driver.
 
-dmesg output when I plug the stick in:
+For me this fixes scanning of all ports but port 2.
 
-[  267.443420] usb 3-2: new high-speed USB device number 2 using ehci-pci
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Here is what lsusb is saying about the stick:
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 1a0d9efeb209..5a0604711be0 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -350,14 +350,15 @@ static int cx231xx_i2c_check_for_device(struct i2c_adapter *i2c_adap,
+ 	struct cx231xx *dev = bus->dev;
+ 	struct cx231xx_i2c_xfer_data req_data;
+ 	int status = 0;
++	u8 buf[1];
+ 
+ 	/* prepare xfer_data struct */
+ 	req_data.dev_addr = msg->addr;
+-	req_data.direction = msg->flags;
++	req_data.direction = I2C_M_RD;
+ 	req_data.saddr_len = 0;
+ 	req_data.saddr_dat = 0;
+-	req_data.buf_size = 0;
+-	req_data.p_buffer = NULL;
++	req_data.buf_size = 1;
++	req_data.p_buffer = buf;
+ 
+ 	/* usb send command */
+ 	status = dev->cx231xx_send_usb_command(bus, &req_data);
+-- 
+1.9.3
 
-Bus 003 Device 002: ID 0ccd:0095 TerraTec Electronic GmbH
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0ccd TerraTec Electronic GmbH
-  idProduct          0x0095
-  bcdDevice            2.00
-  iManufacturer           1 TerraTec
-  iProduct                2 Cinergy T USB XE Ver.2
-  iSerial                 3 10012007
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-It looks like it is a Cinergy T USB XE Ver.2 stick with a different
-USB ID (0095 instead of 0069).
-
-I've tried to change the USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2 value
-to 0x0095 in the file "dvb-usb-ids.h" and to recompile the package.
-The stick was recognized then, but there were other errors when I
-tried to use it in VLC. Is there something else which I have to do to
-get the stick to work? Unfortunately I don't have the error logs
-anymore, but if you need them I can reproduce it.
-
-Best regards,
-Maksym
