@@ -1,36 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54261 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752050AbaKWVel (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 16:34:41 -0500
-Message-ID: <547252EF.3000400@iki.fi>
-Date: Sun, 23 Nov 2014 23:34:39 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] em28xx: Add support for Terratec Cinergy T2 Stick
- HD
-References: <1416773873-27221-1-git-send-email-olli.salonen@iki.fi> <1416773873-27221-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1416773873-27221-2-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53331 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641AbaKBOxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Srikanth Thokala <srikanth.thokala@xilinx.com>
+Subject: [PATCH v2 09/13] dma: xilinx: vdma: Allow only one chunk in a line
+Date: Sun,  2 Nov 2014 16:53:34 +0200
+Message-Id: <1414940018-3016-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/23/2014 10:17 PM, Olli Salonen wrote:
-> Terratec Cinergy T2 Stick HD [eb1a:8179] is a USB DVB-T/T2/C tuner that contains following components:
->
-> * Empia EM28178 USB bridge
-> * Silicon Labs Si2168-A30 demodulator
-> * Silicon Labs Si2146-A10 tuner
->
-> I don't have the remote, so the RC_MAP is a best guess based on the pictures of the remote controllers and other supported Terratec devices with a similar remote.
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+From: Srikanth Thokala <srikanth.thokala@xilinx.com>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+This patch adds a sanity check to see if frame_size is 1.
 
-Antti
+Signed-off-by: Srikanth Thokala <sthokal@xilinx.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+---
+ drivers/dma/xilinx/xilinx_vdma.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
+diff --git a/drivers/dma/xilinx/xilinx_vdma.c b/drivers/dma/xilinx/xilinx_vdma.c
+index 1093794..3d3f70d 100644
+--- a/drivers/dma/xilinx/xilinx_vdma.c
++++ b/drivers/dma/xilinx/xilinx_vdma.c
+@@ -942,6 +942,9 @@ xilinx_vdma_dma_prep_interleaved(struct dma_chan *dchan,
+ 	if (!xt->numf || !xt->sgl[0].size)
+ 		return NULL;
+ 
++	if (xt->frame_size != 1)
++		return NULL;
++
+ 	/* Allocate a transaction descriptor. */
+ 	desc = xilinx_vdma_alloc_tx_descriptor(chan);
+ 	if (!desc)
 -- 
-http://palosaari.fi/
+2.0.4
+
