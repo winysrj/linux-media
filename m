@@ -1,319 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:54398 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932109AbaK0JCU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 04:02:20 -0500
-Message-ID: <5476E896.1070701@xs4all.nl>
-Date: Thu, 27 Nov 2014 10:02:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv7 PATCH 07/12] vb2-dma-sg: add dmabuf import support
-References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-8-git-send-email-hverkuil@xs4all.nl> <1506297.83XqYLfUIF@avalon>
-In-Reply-To: <1506297.83XqYLfUIF@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53328 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244AbaKBOxc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
+Subject: [PATCH v2 00/13] Xilinx Video IP Core support
+Date: Sun,  2 Nov 2014 16:53:25 +0200
+Message-Id: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-On 11/26/2014 10:00 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 18 November 2014 13:51:03 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add support for importing dmabuf to videobuf2-dma-sg.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Pawel Osciak <pawel@osciak.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-dma-sg.c | 149 +++++++++++++++++++++++---
->>  1 file changed, 136 insertions(+), 13 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index f671fab..ad6d5c7 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> @@ -41,11 +41,19 @@ struct vb2_dma_sg_buf {
->>  	int				offset;
->>  	enum dma_data_direction		dma_dir;
->>  	struct sg_table			sg_table;
->> +	/*
->> +	 * This will point to sg_table when used with the MMAP or USERPTR
->> +	 * memory model, and to the dma_buf sglist when used with the
->> +	 * DMABUF memory model.
->> +	 */
->> +	struct sg_table			*dma_sgt;
->>  	size_t				size;
->>  	unsigned int			num_pages;
->>  	atomic_t			refcount;
->>  	struct vb2_vmarea_handler	handler;
->>  	struct vm_area_struct		*vma;
->> +
->> +	struct dma_buf_attachment	*db_attach;
->>  };
->>
->>  static void vb2_dma_sg_put(void *buf_priv);
->> @@ -112,6 +120,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
->> long size, buf->size = size;
->>  	/* size is already page aligned */
->>  	buf->num_pages = size >> PAGE_SHIFT;
->> +	buf->dma_sgt = &buf->sg_table;
->>
->>  	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
->>  			     GFP_KERNEL);
->> @@ -122,7 +131,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
->> long size, if (ret)
->>  		goto fail_pages_alloc;
->>
->> -	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
->> +	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
->>  			buf->num_pages, 0, size, GFP_KERNEL);
->>  	if (ret)
->>  		goto fail_table_alloc;
->> @@ -171,7 +180,7 @@ static void vb2_dma_sg_put(void *buf_priv)
->>  		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->>  		if (buf->vaddr)
->>  			vm_unmap_ram(buf->vaddr, buf->num_pages);
->> -		sg_free_table(&buf->sg_table);
->> +		sg_free_table(buf->dma_sgt);
->>  		while (--i >= 0)
->>  			__free_page(buf->pages[i]);
->>  		kfree(buf->pages);
->> @@ -183,7 +192,11 @@ static void vb2_dma_sg_put(void *buf_priv)
->>  static void vb2_dma_sg_prepare(void *buf_priv)
->>  {
->>  	struct vb2_dma_sg_buf *buf = buf_priv;
->> -	struct sg_table *sgt = &buf->sg_table;
->> +	struct sg_table *sgt = buf->dma_sgt;
->> +
->> +	/* DMABUF exporter will flush the cache for us */
->> +	if (buf->db_attach)
->> +		return;
-> 
-> Is this actually true ? If you look at the export code in patch 08/12, I don't 
-> see where the exporter would sync the buffer for the importer device.
+Here's the second version of the Xilinx FPGA Video IP Cores kernel drivers.
 
-I think this was true at some point in the past. It ties in with my comment for
-patch 06/12: cpu/device syncing for dma-buf is (and was) broken, although nobody
-has noticed since none of the DMABUF-aware drivers that are used as such today
-need CPU access to the buffer, or are only used on Intel architectures where
-this is all moot. Patches 12-16 of my RFCv6 series really fix this. This particular
-comment was copied from the dma-contig version. The basic idea was that when the
-driver needs CPU access it will call the vaddr memop, which will map the buffer
-for CPU access.
+I won't detail in great lengths the Xilinx Video IP architecture here, as that
+would result in dozens of pages of documentation. The interested reader can
+refer to the Zynq ZC702 Base TRD (Targeted Reference Design) User Guide
+(http://www.xilinx.com/support/documentation/boards_and_kits/zc702_zvik/2014_2/ug925-zynq-zc702-base-trd.pdf).
 
-However, I am not sure whether dmabuf actually did the right thing there originally.
-Later dmabuf was extended with begin/end_for_cpu_access ops to make this explicit,
-but that was never implemented in vb2. That's what the second part of RFCv6 does.
+In a nutshell, the Xilinx Video IP Cores architecture specifies how
+video-related IP cores need to be designed to interoperate and how to assemble
+them in pipelines of various complexities. The concepts map neatly to the
+media controller architecture, which this patch set uses extensively.
 
-Right now dma-sg is bug-compatible with dma-contig.
+The series starts with various new V4L2 core features, bug fixes or cleanups,
+with a small documentation enhancement (01/13), the addition of new media bus
+formats needed by the new drivers (02/13 to 04/13) and a new V4L2 OF link
+parsing function (05/13).
 
-I spend 1-2 hours with Pawel in Düsseldorf figuring this out, it is not exactly
-trivial to understand.
+The next two patches (06/13 and 07/13) fix two race conditions in videobuf2.
+They could be applied seperately from this series as they're not specific to
+Xilinx drivers.
 
+The next three patches (08/13 to 10/13) fix bugs in the Xilinx Video DMA
+driver. They are required as a runtime dependency but will not break
+compilation. I will submit a separate pull request for them through the DMA
+engine tree.
+
+The last three patches are the core of this series.
+
+Patch 11/13 adds support for the Xilinx Video IP architecture core in the form
+of a base object to model video IP cores (xilinx-vip.c - Video IP), a
+framework that parses a DT representation of a video pipeline and connects the
+corresponding V4L2 subdevices together (xilinx-vipp.c - Video IP Pipeline) and
+a glue between the Video DMA engine driver and the V4L2 API (xilinx-dma.c).
+
+Patch 12/13 adds a driver for the Video Timing Controller (VTC) IP core. While
+not strictly a video processing IP core, the VTC is required by other video IP
+core drivers.
+
+Finally, patch 13/13 adds a first video IP core driver for the Test Pattern
+Generator (TPG). Drivers for other IP cores will be added in the future.
+
+Cc: devicetree@vger.kernel.org
+
+Hyun Kwon (2):
+  v4l: Sort YUV formats of v4l2_mbus_pixelcode
+  v4l: Add VUY8 24 bits bus format
+
+Laurent Pinchart (8):
+  media: entity: Document the media_entity_ops structure
+  v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
+  v4l: of: Add v4l2_of_parse_link() function
+  v4l: vb2: Fix race condition in vb2_fop_poll
+  v4l: vb2: Fix race condition in _vb2_fop_release
+  v4l: xilinx: Add Xilinx Video IP core
+  v4l: xilinx: Add Video Timing Controller driver
+  v4l: xilinx: Add Test Pattern Generator driver
+
+Srikanth Thokala (3):
+  dma: xilinx: vdma: Check if the segment list is empty in a descriptor
+  dma: xilinx: vdma: Allow only one chunk in a line
+  dma: xilinx: vdma: icg should be difference of stride and hsize
+
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 719 +++++++++-------
+ .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
+ .../devicetree/bindings/media/xilinx/xlnx,v-tc.txt |  33 +
+ .../bindings/media/xilinx/xlnx,v-tpg.txt           |  68 ++
+ .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
+ MAINTAINERS                                        |  10 +
+ drivers/dma/xilinx/xilinx_vdma.c                   |  13 +-
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/xilinx/Kconfig              |  23 +
+ drivers/media/platform/xilinx/Makefile             |   5 +
+ drivers/media/platform/xilinx/xilinx-dma.c         | 770 +++++++++++++++++
+ drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
+ drivers/media/platform/xilinx/xilinx-tpg.c         | 921 +++++++++++++++++++++
+ drivers/media/platform/xilinx/xilinx-vip.c         | 269 ++++++
+ drivers/media/platform/xilinx/xilinx-vip.h         | 227 +++++
+ drivers/media/platform/xilinx/xilinx-vipp.c        | 669 +++++++++++++++
+ drivers/media/platform/xilinx/xilinx-vipp.h        |  49 ++
+ drivers/media/platform/xilinx/xilinx-vtc.c         | 386 +++++++++
+ drivers/media/platform/xilinx/xilinx-vtc.h         |  42 +
+ drivers/media/v4l2-core/v4l2-of.c                  |  61 ++
+ drivers/media/v4l2-core/videobuf2-core.c           |  35 +-
+ include/media/media-entity.h                       |   9 +
+ include/media/v4l2-of.h                            |  27 +
+ include/uapi/linux/Kbuild                          |   1 +
+ include/uapi/linux/v4l2-mediabus.h                 |  19 +-
+ include/uapi/linux/xilinx-v4l2-controls.h          |  73 ++
+ 27 files changed, 4302 insertions(+), 346 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/video.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tc.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
+ create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
+ create mode 100644 drivers/media/platform/xilinx/Kconfig
+ create mode 100644 drivers/media/platform/xilinx/Makefile
+ create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-tpg.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.c
+ create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.h
+ create mode 100644 include/uapi/linux/xilinx-v4l2-controls.h
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
->>
->>  	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->>  }
->> @@ -191,7 +204,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
->>  static void vb2_dma_sg_finish(void *buf_priv)
->>  {
->>  	struct vb2_dma_sg_buf *buf = buf_priv;
->> -	struct sg_table *sgt = &buf->sg_table;
->> +	struct sg_table *sgt = buf->dma_sgt;
->> +
->> +	/* DMABUF exporter will flush the cache for us */
->> +	if (buf->db_attach)
->> +		return;
->>
->>  	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->>  }
->> @@ -219,6 +236,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
->> unsigned long vaddr, buf->dma_dir = dma_dir;
->>  	buf->offset = vaddr & ~PAGE_MASK;
->>  	buf->size = size;
->> +	buf->dma_sgt = &buf->sg_table;
->>
->>  	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
->>  	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
->> @@ -271,7 +289,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
->> unsigned long vaddr, if (num_pages_from_user != buf->num_pages)
->>  		goto userptr_fail_get_user_pages;
->>
->> -	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
->> +	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
->>  			buf->num_pages, buf->offset, size, 0))
->>  		goto userptr_fail_alloc_table_from_pages;
->>
->> @@ -313,7 +331,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->>  	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->>  	if (buf->vaddr)
->>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
->> -	sg_free_table(&buf->sg_table);
->> +	sg_free_table(buf->dma_sgt);
->>  	while (--i >= 0) {
->>  		if (buf->dma_dir == DMA_FROM_DEVICE)
->>  			set_page_dirty_lock(buf->pages[i]);
->> @@ -331,14 +349,16 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
->>
->>  	BUG_ON(!buf);
->>
->> -	if (!buf->vaddr)
->> -		buf->vaddr = vm_map_ram(buf->pages,
->> -					buf->num_pages,
->> -					-1,
->> -					PAGE_KERNEL);
->> +	if (!buf->vaddr) {
->> +		if (buf->db_attach)
->> +			buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
->> +		else
->> +			buf->vaddr = vm_map_ram(buf->pages,
->> +					buf->num_pages, -1, PAGE_KERNEL);
->> +	}
->>
->>  	/* add offset in case userptr is not page-aligned */
->> -	return buf->vaddr + buf->offset;
->> +	return buf->vaddr ? buf->vaddr + buf->offset : NULL;
-> 
-> Just nitpicking here, can vm_map_ram fail and return NULL ? If so this change 
-> is a separate bug fix and should be split to a separate patch.
-> 
->>  }
->>
->>  static unsigned int vb2_dma_sg_num_users(void *buf_priv)
->> @@ -385,11 +405,110 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct
->> vm_area_struct *vma) return 0;
->>  }
->>
->> +/*********************************************/
->> +/*       callbacks for DMABUF buffers        */
->> +/*********************************************/
->> +
->> +static int vb2_dma_sg_map_dmabuf(void *mem_priv)
->> +{
->> +	struct vb2_dma_sg_buf *buf = mem_priv;
->> +	struct sg_table *sgt;
->> +
->> +	if (WARN_ON(!buf->db_attach)) {
->> +		pr_err("trying to pin a non attached buffer\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (WARN_ON(buf->dma_sgt)) {
->> +		pr_err("dmabuf buffer is already pinned\n");
->> +		return 0;
->> +	}
->> +
->> +	/* get the associated scatterlist for this buffer */
->> +	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
->> +	if (IS_ERR(sgt)) {
->> +		pr_err("Error getting dmabuf scatterlist\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	buf->dma_sgt = sgt;
->> +	buf->vaddr = NULL;
->> +
->> +	return 0;
->> +}
->> +
->> +static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
->> +{
->> +	struct vb2_dma_sg_buf *buf = mem_priv;
->> +	struct sg_table *sgt = buf->dma_sgt;
->> +
->> +	if (WARN_ON(!buf->db_attach)) {
->> +		pr_err("trying to unpin a not attached buffer\n");
->> +		return;
->> +	}
->> +
->> +	if (WARN_ON(!sgt)) {
->> +		pr_err("dmabuf buffer is already unpinned\n");
->> +		return;
->> +	}
->> +
->> +	if (buf->vaddr) {
->> +		dma_buf_vunmap(buf->db_attach->dmabuf, buf->vaddr);
->> +		buf->vaddr = NULL;
->> +	}
->> +	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
->> +
->> +	buf->dma_sgt = NULL;
->> +}
->> +
->> +static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
->> +{
->> +	struct vb2_dma_sg_buf *buf = mem_priv;
->> +
->> +	/* if vb2 works correctly you should never detach mapped buffer */
->> +	if (WARN_ON(buf->dma_sgt))
->> +		vb2_dma_sg_unmap_dmabuf(buf);
->> +
->> +	/* detach this attachment */
->> +	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
->> +	kfree(buf);
->> +}
->> +
->> +static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf
->> *dbuf, +	unsigned long size, enum dma_data_direction dma_dir)
->> +{
->> +	struct vb2_dma_sg_conf *conf = alloc_ctx;
->> +	struct vb2_dma_sg_buf *buf;
->> +	struct dma_buf_attachment *dba;
->> +
->> +	if (dbuf->size < size)
->> +		return ERR_PTR(-EFAULT);
->> +
->> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->> +	if (!buf)
->> +		return ERR_PTR(-ENOMEM);
->> +
->> +	buf->dev = conf->dev;
->> +	/* create attachment for the dmabuf with the user device */
->> +	dba = dma_buf_attach(dbuf, buf->dev);
->> +	if (IS_ERR(dba)) {
->> +		pr_err("failed to attach dmabuf\n");
->> +		kfree(buf);
->> +		return dba;
->> +	}
->> +
->> +	buf->dma_dir = dma_dir;
->> +	buf->size = size;
->> +	buf->db_attach = dba;
->> +
->> +	return buf;
->> +}
->> +
->>  static void *vb2_dma_sg_cookie(void *buf_priv)
->>  {
->>  	struct vb2_dma_sg_buf *buf = buf_priv;
->>
->> -	return &buf->sg_table;
->> +	return buf->dma_sgt;
->>  }
->>
->>  const struct vb2_mem_ops vb2_dma_sg_memops = {
->> @@ -402,6 +521,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
->>  	.vaddr		= vb2_dma_sg_vaddr,
->>  	.mmap		= vb2_dma_sg_mmap,
->>  	.num_users	= vb2_dma_sg_num_users,
->> +	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
->> +	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
->> +	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
->> +	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
->>  	.cookie		= vb2_dma_sg_cookie,
->>  };
->>  EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
-> 
