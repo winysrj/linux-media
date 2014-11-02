@@ -1,103 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49920 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757069AbaKTP4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 10:56:07 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/9] rc: sunxi-cir: Add support for an optional reset controller
-Date: Thu, 20 Nov 2014 16:55:23 +0100
-Message-Id: <1416498928-1300-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:42452 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751984AbaKBMcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 02/14] [media] cx231xx: Fix identation
+Date: Sun,  2 Nov 2014 10:32:25 -0200
+Message-Id: <f1b2468ce5cd09ac567c3f14c3440a4c54e21ad7.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On sun6i the cir block is attached to the reset controller, add support
-for de-asserting the reset if a reset controller is specified in dt.
+One of the identation blocks is wrong. Fix it.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/rc/sunxi-cir.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+While here, replace pr_info by pr_debug inside such block and
+add the function name to the print messages, as otherwise they
+will not help much.
 
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index bcee8e1..895fb65 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -23,6 +23,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/of_platform.h>
-+#include <linux/reset.h>
- #include <media/rc-core.h>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 9185b05b4fbe..58b42e63405c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -2534,34 +2534,38 @@ int cx231xx_initialize_stream_xfer(struct cx231xx *dev, u32 media_type)
+ 			break;
  
- #define SUNXI_IR_DEV "sunxi-ir"
-@@ -95,6 +96,7 @@ struct sunxi_ir {
- 	int             irq;
- 	struct clk      *clk;
- 	struct clk      *apb_clk;
-+	struct reset_control *rst;
- 	const char      *map_name;
- };
+ 		case TS1_serial_mode:
+-			pr_info("%s: set ts1 registers", __func__);
++			pr_debug("%s: set ts1 registers", __func__);
  
-@@ -166,15 +168,29 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 		return PTR_ERR(ir->clk);
- 	}
+-		if (dev->board.has_417) {
+-			pr_info(" MPEG\n");
+-			value &= 0xFFFFFFFC;
+-			value |= 0x3;
++			if (dev->board.has_417) {
++				pr_debug("%s: MPEG\n", __func__);
++				value &= 0xFFFFFFFC;
++				value |= 0x3;
  
-+	/* Reset (optional) */
-+	ir->rst = devm_reset_control_get_optional(dev, NULL);
-+	if (IS_ERR(ir->rst)) {
-+		ret = PTR_ERR(ir->rst);
-+		if (ret == -EPROBE_DEFER)
-+			return ret;
-+		ir->rst = NULL;
-+	} else {
-+		ret = reset_control_deassert(ir->rst);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
- 	if (ret) {
- 		dev_err(dev, "set ir base clock failed!\n");
--		return ret;
-+		goto exit_reset_assert;
- 	}
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, value);
++				status = cx231xx_mode_register(dev,
++							 TS_MODE_REG, value);
  
- 	if (clk_prepare_enable(ir->apb_clk)) {
- 		dev_err(dev, "try to enable apb_ir_clk failed\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto exit_reset_assert;
- 	}
+-			val[0] = 0x04;
+-			val[1] = 0xA3;
+-			val[2] = 0x3B;
+-			val[3] = 0x00;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_CFG_REG, val, 4);
++				val[0] = 0x04;
++				val[1] = 0xA3;
++				val[2] = 0x3B;
++				val[3] = 0x00;
++				status = cx231xx_write_ctrl_reg(dev,
++							VRT_SET_REGISTER,
++							TS1_CFG_REG, val, 4);
  
- 	if (clk_prepare_enable(ir->clk)) {
-@@ -271,6 +287,9 @@ exit_clkdisable_clk:
- 	clk_disable_unprepare(ir->clk);
- exit_clkdisable_apb_clk:
- 	clk_disable_unprepare(ir->apb_clk);
-+exit_reset_assert:
-+	if (ir->rst)
-+		reset_control_assert(ir->rst);
+-			val[0] = 0x00;
+-			val[1] = 0x08;
+-			val[2] = 0x00;
+-			val[3] = 0x08;
+-			status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-				 TS1_LENGTH_REG, val, 4);
+-
+-		} else {
+-			pr_info(" BDA\n");
+-			status = cx231xx_mode_register(dev, TS_MODE_REG, 0x101);
+-			status = cx231xx_mode_register(dev, TS1_CFG_REG, 0x010);
+-		}
++				val[0] = 0x00;
++				val[1] = 0x08;
++				val[2] = 0x00;
++				val[3] = 0x08;
++				status = cx231xx_write_ctrl_reg(dev,
++							VRT_SET_REGISTER,
++							TS1_LENGTH_REG, val, 4);
++			} else {
++				pr_debug("%s: BDA\n", __func__);
++				status = cx231xx_mode_register(dev,
++							 TS_MODE_REG, 0x101);
++				status = cx231xx_mode_register(dev,
++							TS1_CFG_REG, 0x010);
++			}
+ 			break;
  
- 	return ret;
- }
-@@ -282,6 +301,8 @@ static int sunxi_ir_remove(struct platform_device *pdev)
- 
- 	clk_disable_unprepare(ir->clk);
- 	clk_disable_unprepare(ir->apb_clk);
-+	if (ir->rst)
-+		reset_control_assert(ir->rst);
- 
- 	spin_lock_irqsave(&ir->ir_lock, flags);
- 	/* disable IR IRQ */
+ 		case TS1_parallel_mode:
 -- 
-2.1.0
+1.9.3
 
