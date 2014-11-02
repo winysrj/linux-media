@@ -1,38 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53556 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555AbaKEMDY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 07:03:24 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/5] [media] cx22700: Fix potential buffer overflow
-Date: Wed,  5 Nov 2014 10:03:15 -0200
-Message-Id: <667c952e7191ffb0a2703c8e173b0d5f0231a764.1415188985.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53334 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbaKBOxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Srikanth Thokala <srikanth.thokala@xilinx.com>
+Subject: [PATCH v2 10/13] dma: xilinx: vdma: icg should be difference of stride and hsize
+Date: Sun,  2 Nov 2014 16:53:35 +0200
+Message-Id: <1414940018-3016-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As new FEC types were added, we need a check to avoid overflows:
-	drivers/media/dvb-frontends/cx22700.c:172 cx22700_set_tps() error: buffer overflow 'fec_tab' 6 <= 6
-	drivers/media/dvb-frontends/cx22700.c:173 cx22700_set_tps() error: buffer overflow 'fec_tab' 6 <= 6
+From: Srikanth Thokala <srikanth.thokala@xilinx.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This patch modifies the icg field to match the description
+as mentioned in the DMA Linux framework.
 
-diff --git a/drivers/media/dvb-frontends/cx22700.c b/drivers/media/dvb-frontends/cx22700.c
-index 3d399d9a6343..86563260d0f2 100644
---- a/drivers/media/dvb-frontends/cx22700.c
-+++ b/drivers/media/dvb-frontends/cx22700.c
-@@ -169,6 +169,9 @@ static int cx22700_set_tps(struct cx22700_state *state,
- 
- 	cx22700_writereg (state, 0x04, val);
- 
-+	if (p->code_rate_HP - FEC_1_2 >= sizeof(fec_tab) ||
-+	    p->code_rate_LP - FEC_1_2 >= sizeof(fec_tab))
-+		return -EINVAL;
- 	val = fec_tab[p->code_rate_HP - FEC_1_2] << 3;
- 	val |= fec_tab[p->code_rate_LP - FEC_1_2];
- 
+Signed-off-by: Srikanth Thokala <sthokal@xilinx.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+---
+ drivers/dma/xilinx/xilinx_vdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/dma/xilinx/xilinx_vdma.c b/drivers/dma/xilinx/xilinx_vdma.c
+index 3d3f70d..4a3a8f3 100644
+--- a/drivers/dma/xilinx/xilinx_vdma.c
++++ b/drivers/dma/xilinx/xilinx_vdma.c
+@@ -963,7 +963,7 @@ xilinx_vdma_dma_prep_interleaved(struct dma_chan *dchan,
+ 	hw = &segment->hw;
+ 	hw->vsize = xt->numf;
+ 	hw->hsize = xt->sgl[0].size;
+-	hw->stride = xt->sgl[0].icg <<
++	hw->stride = (xt->sgl[0].icg + xt->sgl[0].size) <<
+ 			XILINX_VDMA_FRMDLY_STRIDE_STRIDE_SHIFT;
+ 	hw->stride |= chan->config.frm_dly <<
+ 			XILINX_VDMA_FRMDLY_STRIDE_FRMDLY_SHIFT;
 -- 
-1.9.3
+2.0.4
 
