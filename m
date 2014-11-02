@@ -1,80 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:20284 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885AbaKTMsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:48:32 -0500
-Message-id: <546DE31B.20602@samsung.com>
-Date: Thu, 20 Nov 2014 13:48:27 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-References: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
- <546B6D86.8090701@samsung.com> <20141118165148.GA11711@amd>
- <546C66A5.6060201@samsung.com> <20141120121202.GA27527@amd>
-In-reply-to: <20141120121202.GA27527@amd>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:54256 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973AbaKBJw5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 04:52:57 -0500
+Received: by mail-pa0-f50.google.com with SMTP id eu11so10304634pac.23
+        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 01:52:56 -0800 (PST)
+Message-ID: <5455FEF4.6010803@gmail.com>
+Date: Sun, 02 Nov 2014 18:52:52 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/7] v4l-utils/libdvbv5: add support for ISDB-S scanning
+References: <1414323983-15996-1-git-send-email-tskd08@gmail.com> <1414323983-15996-4-git-send-email-tskd08@gmail.com> <20141027124650.522d394b.m.chehab@samsung.com> <54539EC6.8090001@gmail.com> <20141031175353.4b1dec17.m.chehab@samsung.com>
+In-Reply-To: <20141031175353.4b1dec17.m.chehab@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+> Hmm... Is this due to a spec definition, or is it just how satellite
+> operators decided?
+> 
+> If ARIB spec doesn't allow polarization set, we should remove it from the
+> Kernel DocBook. 
 
-On 11/20/2014 01:12 PM, Pavel Machek wrote:
-> Hi!
->
->> I would also swap the segments of a property name to follow the convention
->> as in case of "regulator-max-microamp".
->>
->> Updated version:
->>
->> ==========================================================
->>
->> Optional properties for child nodes:
->> - max-microamp : maximum intensity in microamperes of the LED
->> 		 (torch LED for flash devices)
->> - flash-max-microamp : maximum intensity in microamperes of the
->> 		       flash LED; it is mandatory if the led should
->> 		       support the flash mode
->> - flash-timeout-microsec : timeout in microseconds after which the flash
->> 		           led is turned off
->
-> Works for me. Do you want to submit a patch or should I do it?
+ARIB spec does NOT limit polarization, just the satellite operators do.
 
-You can submit a patch for leds/common.txt and a separate patch for the
-adp1653 with a reference to the leds/common.txt for the child nodes.
+> 
+> Btw, how does the PT1 driver handle those parameters? If it just uses
+> frequency (it seems so), then the only valid parameters for ISDB-S are
+> 	DTV_FREQUENCY
+> and
+> 	DTV_STREAM_ID
+> 
+> (and, eventually, polarization, if ARIB spec allows it)
+> 
+> right?
 
->
->> - indicator-pattern : identifier of the blinking pattern for the
->> 		      indicator led
->>
->
-> This would need a bit more documentation, no?
-
-- indicator-pattern : identifier of the blinking pattern for the
-  		      indicator led; valid identifiers should be
-		      defined in the documentation of the parent
-		      node.
-
-I wouldn't go for pre-defined identifiers as the pattern
-can be a combination of various settings like ramp-up, ramp-down,
-pulse time etc. Drivers should expose only few combinations of
-these settings in my opinion, like e.g. leds-lm355x.c does.
-
-Regards,
-Jacek
-
+Yes, right. PT1 uses DTV_FREQUENCY and DTV_STREAM_ID.
+--
+Akihiro
