@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52946 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753263AbaKHXFR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:05:17 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53331 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406AbaKBOxf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 3/3] smiapp: Support V4L2_SEL_TGT_NATIVE_SIZE
-Date: Sun,  9 Nov 2014 01:04:32 +0200
-Message-Id: <1415487872-27500-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
-References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v2 04/13] v4l: Add VUY8 24 bits bus format
+Date: Sun,  2 Nov 2014 16:53:29 +0200
+Message-Id: <1414940018-3016-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for selection target V4L2_SEL_TGT_NATIVE_SIZE. It is equivalent
-of what V4L2_SEL_TGT_CROP_BOUNDS used to be. Support for
-V4L2_SEL_TGT_CROP_BOUNDS is still supported by the driver as a compatibility
-interface.
+From: Hyun Kwon <hyun.kwon@xilinx.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
+
+Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |  3 ++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index bcc5866..e2d2b8f 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2092,6 +2092,11 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
- 		    == SMIAPP_DIGITAL_CROP_CAPABILITY_INPUT_CROP)
- 			return 0;
- 		return -EINVAL;
-+	case V4L2_SEL_TGT_NATIVE_SIZE:
-+		if (ssd == sensor->pixel_array
-+		    && sel->pad == SMIAPP_PA_PAD_SRC)
-+			return 0;
-+		return -EINVAL;
- 	case V4L2_SEL_TGT_COMPOSE:
- 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
- 		if (sel->pad == ssd->source_pad)
-@@ -2190,6 +2195,7 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 588aed4..aef3c8b 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2999,6 +2999,36 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-VUY8-1X24">
++	      <entry>V4L2_MBUS_FMT_VUY8_1X24</entry>
++	      <entry>0x201a</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-UYVY12-1X24">
+ 	      <entry>V4L2_MBUS_FMT_UYVY12_1X24</entry>
+ 	      <entry>0x2020</entry>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 9be976f..31b4ce1 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -54,7 +54,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+ 	V4L2_MBUS_FMT_RGB888_1X32_PADHI = 0x100f,
  
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
-+	case V4L2_SEL_TGT_NATIVE_SIZE:
- 		if (ssd == sensor->pixel_array) {
- 			sel->r.width =
- 				sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+-	/* YUV (including grey) - next is 0x2024 */
++	/* YUV (including grey) - next is 0x2025 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -84,6 +84,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
++	V4L2_MBUS_FMT_VUY8_1X24 = 0x2024,
+ 	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
+ 	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
+ 	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
 -- 
-1.7.10.4
+2.0.4
 
