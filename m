@@ -1,519 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:25956 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758534AbaKUQPG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 11:15:06 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NFE00AUWD55RXB0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:05 +0900 (KST)
-Content-transfer-encoding: 8BIT
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Teemu Tuominen <teemu.tuominen@intel.com>
-Subject: =?UTF-8?q?=5BPATCH/RFC=20v4=2004/11=5D=20mediatext=3A=20Add=20library?=
-Date: Fri, 21 Nov 2014 17:14:33 +0100
-Message-id: <1416586480-19982-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:43055 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751584AbaKBBYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Nov 2014 21:24:48 -0400
+Date: Sat, 1 Nov 2014 23:24:43 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 6/7] [media] cx231xx-i2c: fix i2c_scan modprobe
+ parameter
+Message-ID: <20141101232443.2512c29f@recife.lan>
+In-Reply-To: <54550E71.9010006@gentoo.org>
+References: <1414849139-29609-1-git-send-email-mchehab@osg.samsung.com>
+	<14a334de4f4b5786e55ce62872f7b033e9f0af3f.1414849031.git.mchehab@osg.samsung.com>
+	<54550E71.9010006@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-libmediatext is a helper library for converting configurations (Media
-controller links, V4L2 controls and V4L2 sub-device media bus formats and
-selections) from text-based form into IOCTLs.
+Em Sat, 01 Nov 2014 17:46:41 +0100
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-libmediatext depends on libv4l2subdev and libmediactl.
+> On 01.11.2014 14:38, Mauro Carvalho Chehab wrote:
+> > This device doesn't properly implement read with a zero bytes
+> > len. So, use 1 byte for I2C scan.
+> > 
+> Yes, the idea sounds good, but we should fix this in the code in
+> cx231xx_i2c_check_for_device.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Teemu Tuominen <teemu.tuominen@intel.com>
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
----
- utils/media-ctl/Makefile.am        |   10 +-
- utils/media-ctl/libmediatext.pc.in |   10 ++
- utils/media-ctl/mediatext-test.c   |   66 +++++++++
- utils/media-ctl/mediatext.c        |  286 ++++++++++++++++++++++++++++++++++++
- utils/media-ctl/mediatext.h        |   52 +++++++
- 5 files changed, 422 insertions(+), 2 deletions(-)
- create mode 100644 utils/media-ctl/libmediatext.pc.in
- create mode 100644 utils/media-ctl/mediatext-test.c
- create mode 100644 utils/media-ctl/mediatext.c
- create mode 100644 utils/media-ctl/mediatext.h
+Yeah, fixing it there has the advantage that it would also be possible
+to scan it via i2cdetect.
 
-diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-index a3931fb..3e883e0 100644
---- a/utils/media-ctl/Makefile.am
-+++ b/utils/media-ctl/Makefile.am
-@@ -1,4 +1,4 @@
--noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la
-+noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
- 
- libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
- libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
-@@ -9,9 +9,15 @@ libv4l2subdev_la_LIBADD = libmediactl.la
- libv4l2subdev_la_CFLAGS = -static
- libv4l2subdev_la_LDFLAGS = -static
- 
-+libmediatext_la_SOURCES = mediatext.c
-+libmediatext_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
-+libmediatext_la_LDFLAGS = -static $(LIBUDEV_LIBS)
-+
- mediactl_includedir=$(includedir)/mediactl
- noinst_HEADERS = mediactl.h v4l2subdev.h
- 
--bin_PROGRAMS = media-ctl
-+bin_PROGRAMS = media-ctl mediatext-test
- media_ctl_SOURCES = media-ctl.c options.c options.h tools.h
- media_ctl_LDADD = libmediactl.la libv4l2subdev.la
-+mediatext_test_SOURCES = mediatext-test.c
-+mediatext_test_LDADD = libmediatext.la libmediactl.la libv4l2subdev.la
-diff --git a/utils/media-ctl/libmediatext.pc.in b/utils/media-ctl/libmediatext.pc.in
-new file mode 100644
-index 0000000..6aa6353
---- /dev/null
-+++ b/utils/media-ctl/libmediatext.pc.in
-@@ -0,0 +1,10 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name: libmediatext
-+Description: Media controller and V4L2 text-based configuration library
-+Version: @PACKAGE_VERSION@
-+Cflags: -I${includedir}
-+Libs: -L${libdir} -lmediatext
-diff --git a/utils/media-ctl/mediatext-test.c b/utils/media-ctl/mediatext-test.c
-new file mode 100644
-index 0000000..29ed38b
---- /dev/null
-+++ b/utils/media-ctl/mediatext-test.c
-@@ -0,0 +1,66 @@
-+/*
-+ * libmediatext test program
-+ *
-+ * Copyright (C) 2013 Intel Corporation
-+ *
-+ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU Lesser General Public License as published
-+ * by the Free Software Foundation; either version 2.1 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU Lesser General Public License
-+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include "mediactl.h"
-+#include "mediatext.h"
-+
-+int main(int argc, char *argv[])
-+{
-+	struct media_device *device;
-+	int rval;
-+
-+	if (argc != 3) {
-+		fprintf(stderr, "usage: %s <media device> <string>\n\n", argv[0]);
-+		fprintf(stderr, "\tstring := [ v4l2-ctrl | v4l2-mbus | link-reset | link-conf]\n\n");
-+		fprintf(stderr, "\tv4l2-ctrl := \"entity\" ctrl_type ctrl_id ctrl_value\n");
-+		fprintf(stderr, "\tctrl_type := [ int | int64 | bitmask ]\n");
-+		fprintf(stderr, "\tctrl_value := [ %%d | %%PRId64 | bitmask_value ]\n");
-+		fprintf(stderr, "\tbitmask_value := b<binary_number>\n\n");
-+		fprintf(stderr, "\tv4l2-mbus := \n");
-+		fprintf(stderr, "\tlink-conf := \"entity\":pad -> \"entity\":pad[link-flags]\n");
-+		fprintf(stderr, "\tctrl-to-subdev-conf := ctrl_id -> \"entity\"\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	device = media_device_new(argv[1]);
-+	if (!device)
-+		return EXIT_FAILURE;
-+
-+	media_debug_set_handler(device, (void (*)(void *, ...))fprintf, stdout);
-+
-+	rval = media_device_enumerate(device);
-+	if (rval)
-+		return EXIT_FAILURE;
-+
-+	rval = mediatext_parse(device, argv[2]);
-+	if (rval) {
-+		fprintf(stderr, "bad string %s (%s)\n", argv[2], strerror(-rval));
-+		return EXIT_FAILURE;
-+	}
-+
-+	media_device_unref(device);
-+
-+	return EXIT_SUCCESS;
-+}
-diff --git a/utils/media-ctl/mediatext.c b/utils/media-ctl/mediatext.c
-new file mode 100644
-index 0000000..7e816f9
---- /dev/null
-+++ b/utils/media-ctl/mediatext.c
-@@ -0,0 +1,286 @@
-+/*
-+ * Media controller text-based configuration library
-+ *
-+ * Copyright (C) 2013 Intel Corporation
-+ *
-+ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU Lesser General Public License as published
-+ * by the Free Software Foundation; either version 2.1 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU Lesser General Public License
-+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <sys/ioctl.h>
-+
-+#include <ctype.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <inttypes.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <sys/stat.h>
-+
-+#include <linux/types.h>
-+
-+#include "mediactl.h"
-+#include "mediactl-priv.h"
-+#include "tools.h"
-+#include "v4l2subdev.h"
-+
-+struct parser {
-+	char *prefix;
-+	int (*parse)(struct media_device *media, const struct parser *p,
-+		     char *string);
-+	struct parser *next;
-+	bool no_args;
-+};
-+
-+static int parse(struct media_device *media, const struct parser *p, char *string)
-+{
-+	for (; p->prefix; p++) {
-+		size_t len = strlen(p->prefix);
-+
-+		if (strncmp(p->prefix, string, len))
-+			continue;
-+
-+		string += len;
-+
-+		for (; isspace(*string); string++);
-+
-+		if (p->no_args)
-+			return p->parse(media, p->next, NULL);
-+
-+		if (strlen(string) == 0)
-+			return -ENOEXEC;
-+
-+		return p->parse(media, p->next, string);
-+	}
-+
-+	media_dbg(media, "Unknown parser prefix\n");
-+
-+	return -ENOENT;
-+}
-+
-+struct ctrl_type {
-+	uint32_t type;
-+	char *str;
-+} ctrltypes[] = {
-+	{ V4L2_CTRL_TYPE_INTEGER, "int" },
-+	{ V4L2_CTRL_TYPE_MENU, "menu" },
-+	{ V4L2_CTRL_TYPE_INTEGER_MENU, "intmenu" },
-+	{ V4L2_CTRL_TYPE_BITMASK, "bitmask" },
-+	{ V4L2_CTRL_TYPE_INTEGER64, "int64" },
-+};
-+
-+static int parse_v4l2_ctrl_id(struct media_device *media, const struct parser *p,
-+			      char *string, char **endp, __u32 *ctrl_id)
-+{
-+	int rval;
-+
-+	for (; isspace(*string); string++);
-+	rval = sscanf(string, "0x%" PRIx32, ctrl_id);
-+	if (rval <= 0)
-+		return -EINVAL;
-+
-+	for (; !isspace(*string) && *string; string++);
-+	for (; isspace(*string); string++);
-+
-+	*endp = string;
-+
-+	return 0;
-+}
-+
-+/* adapted from yavta.c */
-+static int parse_v4l2_ctrl(struct media_device *media, const struct parser *p,
-+			   char *string)
-+{
-+	struct v4l2_ext_control ctrl = { 0 };
-+	struct v4l2_ext_controls ctrls = { .count = 1,
-+					   .controls = &ctrl };
-+	int64_t val;
-+	int rval;
-+	struct media_entity *entity;
-+	struct ctrl_type *ctype;
-+	unsigned int i;
-+
-+	entity = media_parse_entity(media, string, &string);
-+	if (!entity)
-+		return -ENOENT;
-+
-+	for (i = 0; i < ARRAY_SIZE(ctrltypes); i++)
-+		if (!strncmp(string, ctrltypes[i].str,
-+			     strlen(ctrltypes[i].str)))
-+			break;
-+
-+	if (i == ARRAY_SIZE(ctrltypes))
-+		return -ENOENT;
-+
-+	ctype = &ctrltypes[i];
-+
-+	string += strlen(ctrltypes[i].str);
-+
-+	rval = parse_v4l2_ctrl_id(media, p, string, &string, &ctrl.id);
-+	if (rval < 0)
-+		return -EINVAL;
-+
-+	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
-+
-+	switch (ctype->type) {
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		if (*string++ != 'b')
-+			return -EINVAL;
-+		while (*string == '1' || *string == '0') {
-+			val <<= 1;
-+			if (*string == '1')
-+				val++;
-+			string++;
-+		}
-+		break;
-+	default:
-+		rval = sscanf(string, "%" PRId64, &val);
-+		break;
-+	}
-+	if (rval <= 0)
-+		return -EINVAL;
-+
-+	media_dbg(media, "Setting control 0x%8.8x (type %s), value %" PRId64 "\n",
-+		  ctrl.id, ctype->str, val);
-+
-+	if (ctype->type == V4L2_CTRL_TYPE_INTEGER64)
-+		ctrl.value64 = val;
-+	else
-+		ctrl.value = val;
-+
-+	rval = v4l2_subdev_open(entity);
-+	if (rval < 0)
-+		return rval;
-+
-+	rval = ioctl(entity->sd->fd, VIDIOC_S_EXT_CTRLS, &ctrls);
-+	if (ctype->type != V4L2_CTRL_TYPE_INTEGER64) {
-+		if (rval != -1) {
-+			ctrl.value64 = ctrl.value;
-+		} else if (ctype->type != V4L2_CTRL_TYPE_STRING &&
-+			   (errno == EINVAL || errno == ENOTTY)) {
-+			struct v4l2_control old = { .id = ctrl.id,
-+						    .value = val };
-+
-+			rval = ioctl(entity->sd->fd, VIDIOC_S_CTRL, &old);
-+			if (rval != -1)
-+				ctrl.value64 = old.value;
-+		}
-+	}
-+	if (rval == -1) {
-+		media_dbg(media,
-+			  "Failed setting control 0x%8.8x: %s (%d) to value %"
-+			  PRId64 "\n", ctrl.id, strerror(errno), errno, val);
-+		return -errno;
-+	}
-+
-+	if (val != ctrl.value64)
-+		media_dbg(media, "Asking for %" PRId64 ", got %" PRId64 "\n",
-+			  val, ctrl.value64);
-+
-+	return 0;
-+}
-+
-+int parse_ctrl_to_subdev_conf(struct media_device *media, const struct parser *p,
-+			   char *string)
-+{
-+	struct media_entity *entity;
-+	__u32 ctrl_id;
-+	int rval;
-+
-+	media_dbg(media, "Configuring v4l2-control target: %s\n", string);
-+
-+	rval = parse_v4l2_ctrl_id(media, p, string, &string, &ctrl_id);
-+	if (rval < 0)
-+		return -EINVAL;
-+
-+	if (string[0] != '-' || string[1] != '>') {
-+		media_dbg(media, "Expected '->'\n");
-+		return -EINVAL;
-+	}
-+
-+	string += 2;
-+
-+	entity = media_parse_entity(media, string, &string);
-+	if (!entity)
-+		return -ENOENT;
-+
-+	return v4l2_subdev_validate_v4l2_ctrl(media, entity, ctrl_id);
-+}
-+
-+static int parse_v4l2_mbus(struct media_device *media, const struct parser *p,
-+			   char *string)
-+{
-+	media_dbg(media, "Media bus format setup: %s\n", string);
-+	return v4l2_subdev_parse_setup_formats(media, string);
-+}
-+
-+static int parse_link_reset(struct media_device *media, const struct parser *p,
-+			    char *string)
-+{
-+	media_dbg(media, "Resetting links\n");
-+	return media_reset_links(media);
-+}
-+
-+static int parse_link_conf(struct media_device *media, const struct parser *p,
-+			   char *string)
-+{
-+	media_dbg(media, "Configuring links: %s\n", string);
-+	return media_parse_setup_links(media, string);
-+}
-+
-+static const struct parser parsers[] = {
-+	{ "v4l2-ctrl", parse_v4l2_ctrl },
-+	{ "ctrl-to-subdev-conf", parse_ctrl_to_subdev_conf },
-+	{ "v4l2-mbus", parse_v4l2_mbus },
-+	{ "link-reset", parse_link_reset, NULL, true },
-+	{ "link-conf", parse_link_conf },
-+	{ 0 }
-+};
-+
-+int mediatext_parse(struct media_device *media, char *string)
-+{
-+	return parse(media, parsers, string);
-+}
-+
-+int mediatext_parse_setup_config(struct media_device *device, const char *conf_path)
-+{
-+	char *line;
-+	size_t n = 0;
-+	FILE *f;
-+	int ret;
-+
-+	if (conf_path == NULL)
-+		return -EINVAL;
-+
-+	f = fopen(conf_path, "r");
-+	if (!f)
-+		return -EINVAL;
-+
-+	while (getline(&line, &n, f) != -1) {
-+		ret = mediatext_parse(device, line);
-+		if (ret < 0)
-+			goto err_parse;
-+		free(line);
-+		line = NULL;
-+		n = 0;
-+	}
-+
-+err_parse:
-+	fclose(f);
-+	return ret;
-+}
-diff --git a/utils/media-ctl/mediatext.h b/utils/media-ctl/mediatext.h
-new file mode 100644
-index 0000000..7dfbaf6
---- /dev/null
-+++ b/utils/media-ctl/mediatext.h
-@@ -0,0 +1,52 @@
-+/*
-+ * Media controller text-based configuration library
-+ *
-+ * Copyright (C) 2013 Intel Corporation
-+ *
-+ * Contact: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU Lesser General Public License as published
-+ * by the Free Software Foundation; either version 2.1 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU Lesser General Public License
-+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __MEDIATEXT_H__
-+#define __MEDIATEXT_H__
-+
-+struct media_device;
-+
-+/**
-+ * @brief Parse and apply media device command
-+ * @param device - media device
-+ * @param string - string to parse
-+ *
-+ * Parse media device command and apply it to the media device
-+ * passed in the device argument.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int mediatext_parse(struct media_device *device, char *string);
-+
-+/**
-+ * @brief Parse and apply media device configuration
-+ * @param media - media device
-+ * @param conf_path - path to the configuration file
-+ *
-+ * Parse the media device commands listed in the file under
-+ * conf_path and apply them to the media device passed in the
-+ * device argument.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int mediatext_parse_setup_config(struct media_device *device, const char *conf_path);
-+
-+#endif /* __MEDIATEXT_H__ */
--- 
-1.7.9.5
-
+Regards,
+Mauro
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> > index 1a0d9efeb209..9b7e5a155e34 100644
+> > --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> > +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+> > @@ -502,7 +502,7 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
+> >  		i2c_port);
+> >  	for (i = 0; i < 128; i++) {
+> >  		client.addr = i;
+> > -		rc = i2c_master_recv(&client, &buf, 0);
+> > +		rc = i2c_master_recv(&client, &buf, 1);
+> >  		if (rc < 0)
+> >  			continue;
+> >  		pr_info("i2c scan: found device @ 0x%x  [%s]\n",
+> > 
+> 
