@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35000 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754676AbaKPKJ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 05:09:57 -0500
-Message-ID: <546877EF.8010906@suse.de>
-Date: Sun, 16 Nov 2014 11:09:51 +0100
-From: =?windows-1252?Q?Andreas_F=E4rber?= <afaerber@suse.de>
-MIME-Version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-CC: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-References: <20141116075928.GA9763@amd>
-In-Reply-To: <20141116075928.GA9763@amd>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:35677 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbaKBMDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:03:51 -0500
+Received: by mail-pd0-f177.google.com with SMTP id v10so9886538pde.36
+        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 04:03:51 -0800 (PST)
+From: tskd08@gmail.com
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH] v4l-utils/libdvbv5: fix memory leak in dvb_guess_user_country()
+Date: Sun,  2 Nov 2014 21:03:37 +0900
+Message-Id: <1414929817-11834-1-git-send-email-tskd08@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+From: Akihiro Tsukada <tskd08@gmail.com>
 
-Am 16.11.2014 um 08:59 schrieb Pavel Machek:
-> For device tree people: Yes, I know I'll have to create file in
-> documentation, but does the binding below look acceptable?
-[...]
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 739fcf2..ed0bfc1 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -553,6 +561,18 @@
->  
->  		ti,usb-charger-detection = <&isp1704>;
->  	};
-> +
-> +	adp1653: adp1653@30 {
+Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
+---
+ lib/libdvbv5/countries.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-This should probably be led-controller@30 (a generic description not
-specific to the model). The label name is fine.
-
-> +		compatible = "ad,adp1653";
-> +		reg = <0x30>;
-> +
-> +		max-flash-timeout-usec = <500000>;
-> +		max-flash-intensity-uA    = <320000>;
-> +		max-torch-intensity-uA     = <50000>;
-> +		max-indicator-intensity-uA = <17500>;
-> +
-> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* Want 88 */
-
-At least to me, the meaning of "Want 88" is not clear - drop or clarify?
-
-> +	};
->  };
->  
->  &i2c3 {
-[snip]
-
-Regards,
-Andreas
-
+diff --git a/lib/libdvbv5/countries.c b/lib/libdvbv5/countries.c
+index 7acdcc7..9e68ea6 100644
+--- a/lib/libdvbv5/countries.c
++++ b/lib/libdvbv5/countries.c
+@@ -395,13 +395,13 @@ enum dvb_country_t dvb_guess_user_country(void)
+ 		if (! buf || strlen(buf) < 2)
+ 			continue;
+ 
+-		buf = strdup(buf);
+-		pbuf= buf;
+-
+ 		if (! strncmp(buf, "POSIX", MIN(strlen(buf), 5)) ||
+ 		    ! (strncmp(buf, "en", MIN(strlen(buf), 2)) && !isalpha(buf[2])) )
+ 			continue;
+ 
++		buf = strdup(buf);
++		pbuf= buf;
++
+ 		// assuming 'language_country.encoding@variant'
+ 
+ 		// country after '_', if given
 -- 
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
-GF: Jeff Hawn, Jennifer Guild, Felix Imendörffer; HRB 21284 AG Nürnberg
+2.1.3
+
