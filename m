@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53334 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbaKBOxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v2 06/13] v4l: vb2: Fix race condition in vb2_fop_poll
-Date: Sun,  2 Nov 2014 16:53:31 +0200
-Message-Id: <1414940018-3016-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:59250 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbaKBPti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 10:49:38 -0500
+Received: by mail-pd0-f174.google.com with SMTP id p10so10056983pdj.19
+        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 07:49:38 -0800 (PST)
+Message-ID: <5456528D.6080304@gmail.com>
+Date: Mon, 03 Nov 2014 00:49:33 +0900
+From: Akihiro TSUKADA <tskd08@gmail.com>
+MIME-Version: 1.0
+To: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [PATCH v4] v4l-utils/libdvbv5: add gconv module for the text
+ conversions of ISDB-S/T.
+References: <1414761224-32761-8-git-send-email-tskd08@gmail.com> <1414842019-15975-1-git-send-email-tskd08@gmail.com> <54563CE4.2080103@googlemail.com>
+In-Reply-To: <54563CE4.2080103@googlemail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vb2_fop_poll() implementation tries to be clever on whether it needs
-to lock the queue mutex by checking whether polling might start fileio.
-The test requires reading the q->num_buffer field, which is racy if we
-don't hold the queue mutex in the first place.
+Hi,
 
-Remove the extra cleverness and just lock the mutex.
+> I would really prefer if you could use the autotools toolchain
+> (autoconf, automake, libtool) to produce the two gconv modules. You
+> might be able to have a look at the v4l-plugins Makefiles in this project.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+As the upstream glibc does not use autotools,
+I looked through the Makefiles there and they were too complex for me
+to convert to the simple version for just building out-of-tree modules.
+So the current Makefile is pretty premitive.
+But I'll try to investigate it again.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f2e43de..de59465f 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3455,27 +3455,16 @@ unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
- 	struct video_device *vdev = video_devdata(file);
- 	struct vb2_queue *q = vdev->queue;
- 	struct mutex *lock = q->lock ? q->lock : vdev->lock;
--	unsigned long req_events = poll_requested_events(wait);
- 	unsigned res;
- 	void *fileio;
--	bool must_lock = false;
--
--	/* Try to be smart: only lock if polling might start fileio,
--	   otherwise locking will only introduce unwanted delays. */
--	if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
--		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
--				(req_events & (POLLIN | POLLRDNORM)))
--			must_lock = true;
--		else if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE) &&
--				(req_events & (POLLOUT | POLLWRNORM)))
--			must_lock = true;
--	}
- 
--	/* If locking is needed, but this helper doesn't know how, then you
--	   shouldn't be using this helper but you should write your own. */
--	WARN_ON(must_lock && !lock);
-+	/*
-+	 * If this helper doesn't know how to lock, then you shouldn't be using
-+	 * it but you should write your own.
-+	 */
-+	WARN_ON(!lock);
- 
--	if (must_lock && lock && mutex_lock_interruptible(lock))
-+	if (lock && mutex_lock_interruptible(lock))
- 		return POLLERR;
- 
- 	fileio = q->fileio;
-@@ -3483,9 +3472,9 @@ unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
- 	res = vb2_poll(vdev->queue, file, wait);
- 
- 	/* If fileio was started, then we have a new queue owner. */
--	if (must_lock && !fileio && q->fileio)
-+	if (!fileio && q->fileio)
- 		q->owner = file->private_data;
--	if (must_lock && lock)
-+	if (lock)
- 		mutex_unlock(lock);
- 	return res;
- }
--- 
-2.0.4
+> In the existing Makefile I miss an install target.
+
+Those modules are not intended to be installed,
+instead GCONV_PATH is set to the directory at runtime.
+
+> Did you write the whole gconv module by yourself? Please clarify
+> copyright. Because libdvbv5 is useable without the gconv modules I would
+> move them into /contrib rather than /lib.
+
+the work was done by myself but it is based on the other existing
+modules (iso-2022-jp-3 and iso_6937).
+I'd like to assign copyrights to FSF as written in a file header,
+as I intend to contribute them to the upstream glibc.
+
+> Are you aware of any other software that ships gconv modules? I'd like
+> to take a look how it got packaged for distributions.
+
+Unfortunately I don't know one,
+and that's why those gconv modules are so badly packaged;)
+
+--
+Akihiro
 
