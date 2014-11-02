@@ -1,29 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53047 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753045AbaKHXKL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:10:11 -0500
-Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id BA07960097
-	for <linux-media@vger.kernel.org>; Sun,  9 Nov 2014 01:10:09 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 00/10] smiapp OF support
-Date: Sun,  9 Nov 2014 01:09:21 +0200
-Message-Id: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:44385 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbaKBOAK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:00:10 -0500
+Received: by mail-wg0-f45.google.com with SMTP id x12so9421931wgg.32
+        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 06:00:08 -0800 (PST)
+Message-ID: <545638E5.3010004@googlemail.com>
+Date: Sun, 02 Nov 2014 15:00:05 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
+MIME-Version: 1.0
+To: tskd08@gmail.com, linux-media@vger.kernel.org
+CC: m.chehab@samsung.com
+Subject: Re: [PATCH] v4l-utils/libdvbv5: restore deleted functions to keep
+ API/ABI compatible
+References: <1414929719-11748-1-git-send-email-tskd08@gmail.com>
+In-Reply-To: <1414929719-11748-1-git-send-email-tskd08@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 02/11/14 13:01, tskd08@gmail.com wrote:
+> From: Akihiro Tsukada <tskd08@gmail.com>
+> 
+> dvb_new_freq_is_needed() was integrated to dvb_new_entry_is_needed(),
+> and dvb_scan_add_entry() was added a new parameter.
+> As those changes broke API/ABI compatibility,
+> restore the original functions.
 
-This patchset adds support for Device tree in the smiapp driver. Platform   
-data support is retained as well. The actual DT related changes are
-prepended by a few simple cleanups.
+I suppose you introduced the new functions to generalize the API.
+Can't you keep the new functions and make dvb_new_freq_is_needed a thin
+wrapper around them?
 
-A new link-frequency property is defined in video-interfaces.txt, as this is
-hardly something which is specific to the SMIA compliant sensors.
-                                   
--- 
-Kind regards,
-Sakari
+Thanks,
+Gregor
