@@ -1,130 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53328 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbaKBOxc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>, devicetree@vger.kernel.org
-Subject: [PATCH v2 00/13] Xilinx Video IP Core support
-Date: Sun,  2 Nov 2014 16:53:25 +0200
-Message-Id: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:42456 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062AbaKBMcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2 10/14] [media] cx231xx: use dev_foo instead of printk
+Date: Sun,  2 Nov 2014 10:32:33 -0200
+Message-Id: <caa43aeac28acdb1fdab7f105b2107bd8a0c6063.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
+References: <cover.1414929816.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+There are several places at cx231xx that uses printk without
+any special reason. Change all of them to use dev_foo().
 
-Here's the second version of the Xilinx FPGA Video IP Cores kernel drivers.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I won't detail in great lengths the Xilinx Video IP architecture here, as that
-would result in dozens of pages of documentation. The interested reader can
-refer to the Zynq ZC702 Base TRD (Targeted Reference Design) User Guide
-(http://www.xilinx.com/support/documentation/boards_and_kits/zc702_zvik/2014_2/ug925-zynq-zc702-base-trd.pdf).
-
-In a nutshell, the Xilinx Video IP Cores architecture specifies how
-video-related IP cores need to be designed to interoperate and how to assemble
-them in pipelines of various complexities. The concepts map neatly to the
-media controller architecture, which this patch set uses extensively.
-
-The series starts with various new V4L2 core features, bug fixes or cleanups,
-with a small documentation enhancement (01/13), the addition of new media bus
-formats needed by the new drivers (02/13 to 04/13) and a new V4L2 OF link
-parsing function (05/13).
-
-The next two patches (06/13 and 07/13) fix two race conditions in videobuf2.
-They could be applied seperately from this series as they're not specific to
-Xilinx drivers.
-
-The next three patches (08/13 to 10/13) fix bugs in the Xilinx Video DMA
-driver. They are required as a runtime dependency but will not break
-compilation. I will submit a separate pull request for them through the DMA
-engine tree.
-
-The last three patches are the core of this series.
-
-Patch 11/13 adds support for the Xilinx Video IP architecture core in the form
-of a base object to model video IP cores (xilinx-vip.c - Video IP), a
-framework that parses a DT representation of a video pipeline and connects the
-corresponding V4L2 subdevices together (xilinx-vipp.c - Video IP Pipeline) and
-a glue between the Video DMA engine driver and the V4L2 API (xilinx-dma.c).
-
-Patch 12/13 adds a driver for the Video Timing Controller (VTC) IP core. While
-not strictly a video processing IP core, the VTC is required by other video IP
-core drivers.
-
-Finally, patch 13/13 adds a first video IP core driver for the Test Pattern
-Generator (TPG). Drivers for other IP cores will be added in the future.
-
-Cc: devicetree@vger.kernel.org
-
-Hyun Kwon (2):
-  v4l: Sort YUV formats of v4l2_mbus_pixelcode
-  v4l: Add VUY8 24 bits bus format
-
-Laurent Pinchart (8):
-  media: entity: Document the media_entity_ops structure
-  v4l: Add RBG and RGB 8:8:8 media bus formats on 24 and 32 bit busses
-  v4l: of: Add v4l2_of_parse_link() function
-  v4l: vb2: Fix race condition in vb2_fop_poll
-  v4l: vb2: Fix race condition in _vb2_fop_release
-  v4l: xilinx: Add Xilinx Video IP core
-  v4l: xilinx: Add Video Timing Controller driver
-  v4l: xilinx: Add Test Pattern Generator driver
-
-Srikanth Thokala (3):
-  dma: xilinx: vdma: Check if the segment list is empty in a descriptor
-  dma: xilinx: vdma: Allow only one chunk in a line
-  dma: xilinx: vdma: icg should be difference of stride and hsize
-
- Documentation/DocBook/media/v4l/subdev-formats.xml | 719 +++++++++-------
- .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
- .../devicetree/bindings/media/xilinx/xlnx,v-tc.txt |  33 +
- .../bindings/media/xilinx/xlnx,v-tpg.txt           |  68 ++
- .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
- MAINTAINERS                                        |  10 +
- drivers/dma/xilinx/xilinx_vdma.c                   |  13 +-
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/xilinx/Kconfig              |  23 +
- drivers/media/platform/xilinx/Makefile             |   5 +
- drivers/media/platform/xilinx/xilinx-dma.c         | 770 +++++++++++++++++
- drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
- drivers/media/platform/xilinx/xilinx-tpg.c         | 921 +++++++++++++++++++++
- drivers/media/platform/xilinx/xilinx-vip.c         | 269 ++++++
- drivers/media/platform/xilinx/xilinx-vip.h         | 227 +++++
- drivers/media/platform/xilinx/xilinx-vipp.c        | 669 +++++++++++++++
- drivers/media/platform/xilinx/xilinx-vipp.h        |  49 ++
- drivers/media/platform/xilinx/xilinx-vtc.c         | 386 +++++++++
- drivers/media/platform/xilinx/xilinx-vtc.h         |  42 +
- drivers/media/v4l2-core/v4l2-of.c                  |  61 ++
- drivers/media/v4l2-core/videobuf2-core.c           |  35 +-
- include/media/media-entity.h                       |   9 +
- include/media/v4l2-of.h                            |  27 +
- include/uapi/linux/Kbuild                          |   1 +
- include/uapi/linux/v4l2-mediabus.h                 |  19 +-
- include/uapi/linux/xilinx-v4l2-controls.h          |  73 ++
- 27 files changed, 4302 insertions(+), 346 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/video.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tc.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,v-tpg.txt
- create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt
- create mode 100644 drivers/media/platform/xilinx/Kconfig
- create mode 100644 drivers/media/platform/xilinx/Makefile
- create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-tpg.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
- create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.c
- create mode 100644 drivers/media/platform/xilinx/xilinx-vtc.h
- create mode 100644 include/uapi/linux/xilinx-v4l2-controls.h
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 9088a32db2d1..b299242a63dd 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -1208,7 +1208,8 @@ int cx231xx_set_audio_decoder_input(struct cx231xx *dev,
+ 			/* This is just a casual suggestion to people adding
+ 			   new boards in case they use a tuner type we don't
+ 			   currently know about */
+-			printk(KERN_INFO "Unknown tuner type configuring SIF");
++			dev_info(&dev->udev->dev,
++				 "Unknown tuner type configuring SIF");
+ 			break;
+ 		}
+ 		break;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 2e8741314bce..7156344e7022 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1216,11 +1216,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
+ 	cx231xx_add_into_devlist(dev);
+ 
+ 	if (dev->board.has_417) {
+-		printk(KERN_INFO "attach 417 %d\n", dev->model);
++		dev_info(&udev->dev, "attach 417 %d\n", dev->model);
+ 		if (cx231xx_417_register(dev) < 0) {
+-			printk(KERN_ERR
++			dev_err(&udev->dev,
+ 				"%s() Failed to register 417 on VID_B\n",
+-			       __func__);
++				__func__);
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 044ad353d09b..a0d40bda718d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -45,11 +45,6 @@ MODULE_PARM_DESC(debug, "enable debug messages [dvb]");
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+-#define dprintk(level, fmt, arg...) do {			\
+-if (debug >= level) 						\
+-	printk(KERN_DEBUG "%s/2-dvb: " fmt, dev->name, ## arg);	\
+-} while (0)
+-
+ #define CX231XX_DVB_NUM_BUFS 5
+ #define CX231XX_DVB_MAX_PACKETSIZE 564
+ #define CX231XX_DVB_MAX_PACKETS 64
+@@ -196,9 +191,11 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
+ 		break;
+ 	}
+ 	if (packet < 0) {
+-		dprintk(1, "URB status %d [%s].\n", status, errmsg);
++		dev_dbg(&dev->udev->dev,
++			"URB status %d [%s].\n", status, errmsg);
+ 	} else {
+-		dprintk(1, "URB packet %d, status %d [%s].\n",
++		dev_dbg(&dev->udev->dev,
++			"URB packet %d, status %d [%s].\n",
+ 			packet, status, errmsg);
+ 	}
+ }
+@@ -377,20 +374,21 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
+ 	cfg.i2c_addr = addr;
+ 
+ 	if (!dev->dvb->frontend) {
+-		printk(KERN_ERR "%s/2: dvb frontend not attached. "
++		dev_err(&dev->udev->dev, "%s/2: dvb frontend not attached. "
+ 		       "Can't attach xc5000\n", dev->name);
+ 		return -EINVAL;
+ 	}
+ 
+ 	fe = dvb_attach(xc5000_attach, dev->dvb->frontend, &cfg);
+ 	if (!fe) {
+-		printk(KERN_ERR "%s/2: xc5000 attach failed\n", dev->name);
++		dev_err(&dev->udev->dev,
++			"%s/2: xc5000 attach failed\n", dev->name);
+ 		dvb_frontend_detach(dev->dvb->frontend);
+ 		dev->dvb->frontend = NULL;
+ 		return -EINVAL;
+ 	}
+ 
+-	printk(KERN_INFO "%s/2: xc5000 attached\n", dev->name);
++	dev_info(&dev->udev->dev, "%s/2: xc5000 attached\n", dev->name);
+ 
+ 	return 0;
+ }
+@@ -462,7 +460,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 	result = dvb_register_adapter(&dvb->adapter, dev->name, module, device,
+ 				      adapter_nr);
+ 	if (result < 0) {
+-		printk(KERN_WARNING
++		dev_warn(&dev->udev->dev,
+ 		       "%s: dvb_register_adapter failed (errno = %d)\n",
+ 		       dev->name, result);
+ 		goto fail_adapter;
+@@ -476,7 +474,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 	/* register frontend */
+ 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+ 	if (result < 0) {
+-		printk(KERN_WARNING
++		dev_warn(&dev->udev->dev,
+ 		       "%s: dvb_register_frontend failed (errno = %d)\n",
+ 		       dev->name, result);
+ 		goto fail_frontend;
+@@ -494,7 +492,8 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	result = dvb_dmx_init(&dvb->demux);
+ 	if (result < 0) {
+-		printk(KERN_WARNING "%s: dvb_dmx_init failed (errno = %d)\n",
++		dev_warn(&dev->udev->dev,
++			 "%s: dvb_dmx_init failed (errno = %d)\n",
+ 		       dev->name, result);
+ 		goto fail_dmx;
+ 	}
+@@ -504,15 +503,16 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 	dvb->dmxdev.capabilities = 0;
+ 	result = dvb_dmxdev_init(&dvb->dmxdev, &dvb->adapter);
+ 	if (result < 0) {
+-		printk(KERN_WARNING "%s: dvb_dmxdev_init failed (errno = %d)\n",
+-		       dev->name, result);
++		dev_warn(&dev->udev->dev,
++			 "%s: dvb_dmxdev_init failed (errno = %d)\n",
++			 dev->name, result);
+ 		goto fail_dmxdev;
+ 	}
+ 
+ 	dvb->fe_hw.source = DMX_FRONTEND_0;
+ 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+ 	if (result < 0) {
+-		printk(KERN_WARNING
++		dev_warn(&dev->udev->dev,
+ 		       "%s: add_frontend failed (DMX_FRONTEND_0, errno = %d)\n",
+ 		       dev->name, result);
+ 		goto fail_fe_hw;
+@@ -521,17 +521,17 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 	dvb->fe_mem.source = DMX_MEMORY_FE;
+ 	result = dvb->demux.dmx.add_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+ 	if (result < 0) {
+-		printk(KERN_WARNING
+-		       "%s: add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
+-		       dev->name, result);
++		dev_warn(&dev->udev->dev,
++			 "%s: add_frontend failed (DMX_MEMORY_FE, errno = %d)\n",
++			 dev->name, result);
+ 		goto fail_fe_mem;
+ 	}
+ 
+ 	result = dvb->demux.dmx.connect_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+ 	if (result < 0) {
+-		printk(KERN_WARNING
+-		       "%s: connect_frontend failed (errno = %d)\n", dev->name,
+-		       result);
++		dev_warn(&dev->udev->dev,
++			 "%s: connect_frontend failed (errno = %d)\n",
++			 dev->name, result);
+ 		goto fail_fe_conn;
+ 	}
+ 
+@@ -590,7 +590,8 @@ static int dvb_init(struct cx231xx *dev)
+ 	dvb = kzalloc(sizeof(struct cx231xx_dvb), GFP_KERNEL);
+ 
+ 	if (dvb == NULL) {
+-		printk(KERN_INFO "cx231xx_dvb: memory allocation failed\n");
++		dev_info(&dev->udev->dev,
++			 "cx231xx_dvb: memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 	dev->dvb = dvb;
+@@ -612,8 +613,8 @@ static int dvb_init(struct cx231xx *dev)
+ 					demod_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach s5h1432 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach s5h1432 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -637,8 +638,8 @@ static int dvb_init(struct cx231xx *dev)
+ 					       demod_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach s5h1411 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach s5h1411 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -660,8 +661,8 @@ static int dvb_init(struct cx231xx *dev)
+ 					demod_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach s5h1432 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach s5h1432 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -684,8 +685,8 @@ static int dvb_init(struct cx231xx *dev)
+ 					       demod_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach s5h1411 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach s5h1411 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -702,7 +703,8 @@ static int dvb_init(struct cx231xx *dev)
+ 		break;
+ 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
+ 
+-		printk(KERN_INFO "%s: looking for tuner / demod on i2c bus: %d\n",
++		dev_info(&dev->udev->dev,
++			 "%s: looking for tuner / demod on i2c bus: %d\n",
+ 		       __func__, i2c_adapter_id(tuner_i2c));
+ 
+ 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
+@@ -710,8 +712,8 @@ static int dvb_init(struct cx231xx *dev)
+ 						tuner_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach LG3305 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach LG3305 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -732,8 +734,8 @@ static int dvb_init(struct cx231xx *dev)
+ 			);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach SI2165 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -765,8 +767,8 @@ static int dvb_init(struct cx231xx *dev)
+ 			);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach SI2165 front end\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach SI2165 front end\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -810,16 +812,17 @@ static int dvb_init(struct cx231xx *dev)
+ 	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
+ 	case CX231XX_BOARD_KWORLD_UB430_USB_HYBRID:
+ 
+-		printk(KERN_INFO "%s: looking for demod on i2c bus: %d\n",
+-		       __func__, i2c_adapter_id(tuner_i2c));
++		dev_info(&dev->udev->dev,
++			 "%s: looking for demod on i2c bus: %d\n",
++			 __func__, i2c_adapter_id(tuner_i2c));
+ 
+ 		dev->dvb->frontend = dvb_attach(mb86a20s_attach,
+ 						&pv_mb86a20s_config,
+ 						demod_i2c);
+ 
+ 		if (dev->dvb->frontend == NULL) {
+-			printk(DRIVER_NAME
+-			       ": Failed to attach mb86a20s demod\n");
++			dev_err(&dev->udev->dev,
++				"Failed to attach mb86a20s demod\n");
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+@@ -833,12 +836,13 @@ static int dvb_init(struct cx231xx *dev)
+ 		break;
+ 
+ 	default:
+-		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
+-		       " isn't supported yet\n", dev->name);
++		dev_err(&dev->udev->dev,
++			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
++			dev->name);
+ 		break;
+ 	}
+ 	if (NULL == dvb->frontend) {
+-		printk(KERN_ERR
++		dev_err(&dev->udev->dev,
+ 		       "%s/2: frontend initialization failed\n", dev->name);
+ 		result = -EINVAL;
+ 		goto out_free;
+@@ -851,7 +855,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		goto out_free;
+ 
+ 
+-	printk(KERN_INFO "Successfully loaded cx231xx-dvb\n");
++	dev_info(&dev->udev->dev, "Successfully loaded cx231xx-dvb\n");
+ 
+ ret:
+ 	cx231xx_set_mode(dev, CX231XX_SUSPEND);
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
