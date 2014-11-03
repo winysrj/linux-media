@@ -1,36 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:61487 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbaKPNaA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 08:30:00 -0500
-Received: by mail-lb0-f179.google.com with SMTP id l4so14838382lbv.38
-        for <linux-media@vger.kernel.org>; Sun, 16 Nov 2014 05:29:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1415623771-29634-7-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-7-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 16 Nov 2014 21:29:18 +0800
-Message-ID: <CAMm-=zCqm9C0tFtgvYrU+NEuE_mX4DSTK+G--JCN8fjt53y+kA@mail.gmail.com>
-Subject: Re: [RFCv6 PATCH 06/16] vb2-dma-sg: add dmabuf import support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:49775 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751934AbaKCVkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 16:40:08 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] si2168: do not print device is warm every-time when opened
+Date: Mon,  3 Nov 2014 23:39:02 +0200
+Message-Id: <1415050742-17146-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Add support for importing dmabuf to videobuf2-dma-sg.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It repeated "found a 'Silicon Labs Si2168' in warm state" everytime
+when device was opened. Message is aimed to point out firmware is
+downloaded, up and running. So print it only in case firmware download
+is performed.
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 1cd93be..7bac748 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -498,10 +498,9 @@ static int si2168_init(struct dvb_frontend *fe)
+ 
+ 	s->fw_loaded = true;
+ 
+-warm:
+ 	dev_info(&s->client->dev, "found a '%s' in warm state\n",
+ 			si2168_ops.info.name);
+-
++warm:
+ 	s->active = true;
+ 
+ 	return 0;
 -- 
-Best regards,
-Pawel Osciak
+http://palosaari.fi/
+
