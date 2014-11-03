@@ -1,50 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58641 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459AbaKPPJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 10:09:11 -0500
-Message-ID: <5468BE0D.7020609@iki.fi>
-Date: Sun, 16 Nov 2014 17:09:01 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/8] rtl2832: implement PIP mode
-References: <1415766190-24482-1-git-send-email-crope@iki.fi>	<1415766190-24482-3-git-send-email-crope@iki.fi>	<20141114173440.427324a8@recife.lan>	<54669210.1070101@iki.fi> <20141116082518.2144d9af@recife.lan> <54688C45.1080507@southpole.se>
-In-Reply-To: <54688C45.1080507@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:58820 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbaKCKTP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 05:19:15 -0500
+Date: Mon, 03 Nov 2014 08:19:07 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
+ of_graph_get_next_endpoint
+Message-id: <20141103081907.46326b87.m.chehab@samsung.com>
+In-reply-to: <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
+References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+ <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/16/2014 01:36 PM, Benjamin Larsson wrote:
-> On 11/16/2014 11:25 AM, Mauro Carvalho Chehab wrote:
->>
->> [...]
->> What demod(s) are exposed to userspace? both or just demod#1?
->>
->> If both are exposed, how userspace knows that demod#0 should not be
->> used?
->>
->> Regards,
->> Mauro
->>
->
-> Currently both demods are exposed to userspace. While it is nice to have
-> both I suggest that if a NM8847x demod is activated only expose that
-> demod. That would remove the hack in master and would make it possible
-> to faster move the NM8847x demods out of staging. The main reason for
-> this hardware is the DVB-C and DVB-T2 support. Lets focus on getting
-> that in an easy obtainable way.
+Em Mon, 29 Sep 2014 20:03:34 +0200
+Philipp Zabel <p.zabel@pengutronix.de> escreveu:
 
-Yeah, both demods are exposed on single adapter, but two frontends.
-frontend0 == DVB-T demod RTL2832
-frontend1 == DVB-T/T2/C demod MN88472
+> Decrementing the reference count of the previous endpoint node allows to
+> use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> All current users of this function that pass a non-NULL prev parameter
+> (that is, soc_camera and imx-drm) are changed to not decrement the passed
+> prev argument's refcount themselves.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-frontend0 is pretty useless if frontend1 is loaded...
+Feel free to merge it via Grant's tree.
 
-regards
-Antti
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
--- 
-http://palosaari.fi/
+> ---
+> Changes since v4:
+>  - Folded patches 1-3 into this one
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+>  drivers/of/base.c                              |  9 +--------
+>  drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
+>  3 files changed, 5 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index f4308fe..619b2d4 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
+>  		if (!i)
+>  			soc_of_bind(ici, epn, ren->parent);
+>  
+> -		of_node_put(epn);
+>  		of_node_put(ren);
+>  
+>  		if (i) {
+> @@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
+>  			break;
+>  		}
+>  	}
+> +
+> +	of_node_put(epn);
+>  }
+>  
+>  #else
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index 293ed4b..f7a9aa8 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2070,8 +2070,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
+>   * @prev: previous endpoint node, or NULL to get first
+>   *
+>   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+> - * of the passed @prev node is not decremented, the caller have to use
+> - * of_node_put() on it when done.
+> + * of the passed @prev node is decremented.
+>   */
+>  struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+>  					struct device_node *prev)
+> @@ -2107,12 +2106,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+>  		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+>  			      __func__, prev->full_name))
+>  			return NULL;
+> -
+> -		/*
+> -		 * Avoid dropping prev node refcount to 0 when getting the next
+> -		 * child below.
+> -		 */
+> -		of_node_get(prev);
+>  	}
+>  
+>  	while (1) {
+> diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+> index 6b22106..12303b3 100644
+> --- a/drivers/staging/imx-drm/imx-drm-core.c
+> +++ b/drivers/staging/imx-drm/imx-drm-core.c
+> @@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
+>  	return 0;
+>  }
+>  
+> -static struct device_node *imx_drm_of_get_next_endpoint(
+> -		const struct device_node *parent, struct device_node *prev)
+> -{
+> -	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
+> -	of_node_put(prev);
+> -	return node;
+> -}
+> -
+>  int imx_drm_encoder_parse_of(struct drm_device *drm,
+>  	struct drm_encoder *encoder, struct device_node *np)
+>  {
+> @@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
+>  	for (i = 0; ; i++) {
+>  		u32 mask;
+>  
+> -		ep = imx_drm_of_get_next_endpoint(np, ep);
+> +		ep = of_graph_get_next_endpoint(np, ep);
+>  		if (!ep)
+>  			break;
+>  
+> @@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+>  		return -EINVAL;
+>  
+>  	do {
+> -		ep = imx_drm_of_get_next_endpoint(node, ep);
+> +		ep = of_graph_get_next_endpoint(node, ep);
+>  		if (!ep)
+>  			break;
+>  
