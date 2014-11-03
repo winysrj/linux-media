@@ -1,75 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:42448 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbaKZPLs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 10:11:48 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:56026 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752127AbaKCNjx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 08:39:53 -0500
+Message-ID: <545785A5.9000804@iki.fi>
+Date: Mon, 03 Nov 2014 15:39:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20141126130451.5789e7f9@recife.lan>
-References: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
-	<1416342155-26820-3-git-send-email-b.galvani@gmail.com>
-	<20141126130451.5789e7f9@recife.lan>
-Date: Wed, 26 Nov 2014 16:11:35 +0100
-Message-ID: <CAOQ7t2ZTLM6=-V-m5RX6fhY4-Jc-bMkmXspXUYHpCgyE-ui4iQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/3] media: rc: add driver for Amlogic Meson IR remote receiver
-From: Carlo Caione <carlo@caione.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Beniamino Galvani <b.galvani@gmail.com>,
-	Carlo Caione <carlo@caione.org>, linux-media@vger.kernel.org,
-	Sean Young <sean@mess.org>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	devicetree <devicetree@vger.kernel.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media@vger.kernel.org, nibble.max@gmail.com
+Subject: Re: [PATCH 2/4] dvbsky: added debug logging
+References: <1413108191-32510-1-git-send-email-olli.salonen@iki.fi>	<1413108191-32510-2-git-send-email-olli.salonen@iki.fi> <20141103110445.318b50c4@recife.lan>
+In-Reply-To: <20141103110445.318b50c4@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 26, 2014 at 4:04 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Tue, 18 Nov 2014 21:22:34 +0100
-> Beniamino Galvani <b.galvani@gmail.com> escreveu:
+On 11/03/2014 03:04 PM, Mauro Carvalho Chehab wrote:
+> Em Sun, 12 Oct 2014 13:03:09 +0300
+> Olli Salonen <olli.salonen@iki.fi> escreveu:
 >
->> Amlogic Meson SoCs include a infrared remote control receiver that can
->> operate in two modes: "NEC" mode in which the hardware decodes frames
->> using the NEC IR protocol, and "general" mode in which the receiver
->> simply reports the duration of pulses and spaces for software
->> decoding.
->>
->> This is a driver for the IR receiver that implements software decoding
->> of received frames.
->>
->> Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
->> ---
->>  MAINTAINERS                 |   1 +
->>  drivers/media/rc/Kconfig    |  11 +++
->>  drivers/media/rc/Makefile   |   1 +
->>  drivers/media/rc/meson-ir.c | 216 ++++++++++++++++++++++++++++++++++++++++++++
->>  4 files changed, 229 insertions(+)
->>  create mode 100644 drivers/media/rc/meson-ir.c
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 0662378..f1bc045 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -850,6 +850,7 @@ ARM/Amlogic MesonX SoC support
->>  M:   Carlo Caione <carlo@caione.org>
->>  L:   linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
->>  S:   Maintained
->> +F:   drivers/media/rc/meson-ir.c
->>  N:   meson[x68]
->
-> Hmm... you're putting this driver at Carlo's maintenance shoulders.
->
-> I need his ack in order to apply this patch.
+>> Added debug logging using dev_dgb.
 
-Acked-by: Carlo Caione <carlo@caione.org>
 
+>> @@ -396,6 +415,8 @@ static void dvbsky_exit(struct dvb_usb_device *d)
+>>   	struct dvbsky_state *state = d_to_priv(d);
+>>   	struct i2c_client *client;
+>>
+>> +	dev_dbg(&d->udev->dev, "\n");
+>> +
+>
+> No need to add new debug macros that only prints the called functions,
+> as you could get it too with Kernel tracing.
+
+ftrace [1] is a bit heavy tool for module debugs like that. There is 
+many different debugs for different use cases. When you add debugs to 
+module those are usually used just to see how your module works and 
+functions are called. Same is for V4L core debugs too; enable those and 
+you will get tons of unneeded/useless information which makes totally 
+hard to develop driver in question. When you add debugs to driver 
+module, those are generally useful for cases where you want develop that 
+certain driver module and not see zillion lines of unrelated debug data.
+
+Also, I think that kind of debug log will not generate any binary code 
+when debug options are not enabled by Kconfig, so it is not even reason 
+for optimization.
+
+[1] https://www.kernel.org/doc/Documentation/trace/ftrace.txt
+
+regards
+Antti
 
 -- 
-Carlo Caione
+http://palosaari.fi/
