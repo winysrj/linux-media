@@ -1,121 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55719 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933986AbaKLETl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 23:19:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/9] mn88473: add support for DVB-T2
-Date: Wed, 12 Nov 2014 06:19:24 +0200
-Message-Id: <1415765971-24378-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1415765971-24378-1-git-send-email-crope@iki.fi>
-References: <1415765971-24378-1-git-send-email-crope@iki.fi>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:17998 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112AbaKCSPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 13:15:12 -0500
+Date: Mon, 03 Nov 2014 16:15:04 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] video: add RGB444_1X12 and RGB565_1X16 bus formats
+Message-id: <20141103161504.582921ac.m.chehab@samsung.com>
+In-reply-to: <1411999363-28770-3-git-send-email-boris.brezillon@free-electrons.com>
+References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1411999363-28770-3-git-send-email-boris.brezillon@free-electrons.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for DVB-T2.
+Em Mon, 29 Sep 2014 16:02:40 +0200
+Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/mn88473.c | 45 +++++++++++++++++++++++++++++------
- 1 file changed, 38 insertions(+), 7 deletions(-)
+> Add RGB444 format using a 12 bits bus and RGB565 using a 16 bits bus.
+> 
+> These formats will later be used by atmel-hlcdc driver.
+> 
+> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
 
-diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
-index afe59f3..68bfb65 100644
---- a/drivers/media/dvb-frontends/mn88473.c
-+++ b/drivers/media/dvb-frontends/mn88473.c
-@@ -116,19 +116,38 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- {
- 	struct mn88473_dev *dev = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int ret;
-+	int ret, i;
- 	u32 if_frequency = 0;
-+	u8 params[10], delivery_system;
- 
- 	dev_dbg(&dev->i2c->dev,
--			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d\n",
-+			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%d stream_id=%d\n",
- 			__func__, c->delivery_system, c->modulation,
--			c->frequency, c->symbol_rate, c->inversion);
-+			c->frequency, c->bandwidth_hz, c->symbol_rate,
-+			c->inversion, c->stream_id);
- 
- 	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
- 
-+	switch (c->delivery_system) {
-+	case SYS_DVBT2:
-+		delivery_system = 0x03;
-+		if (c->bandwidth_hz <= 7000000)
-+			memcpy(params, "\x2e\xcb\xfb\xc8\x00\x00\x17\x0a\x17\x0a", 10);
-+		else if (c->bandwidth_hz <= 8000000)
-+			memcpy(params, "\x2e\xcb\xfb\xaf\x00\x00\x11\xec\x11\xec", 10);
-+		break;
-+	case SYS_DVBC_ANNEX_A:
-+		delivery_system = 0x04;
-+		memcpy(params, "\x33\xea\xb3\xaf\x00\x00\x11\xec\x11\xec", 10);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	/* program tuner */
- 	if (fe->ops.tuner_ops.set_params) {
- 		ret = fe->ops.tuner_ops.set_params(fe);
-@@ -145,7 +164,11 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 				__func__, if_frequency);
- 	}
- 
--	if (if_frequency != 5070000) {
-+	switch (if_frequency) {
-+	case 4570000:
-+	case 5070000:
-+		break;
-+	default:
- 		dev_err(&dev->i2c->dev, "%s: IF frequency %d not supported\n",
- 				KBUILD_MODNAME, if_frequency);
- 		ret = -EINVAL;
-@@ -159,9 +182,15 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 	ret = mn88473_wregs(dev, 0x1c00, "\x18", 1);
- 	ret = mn88473_wregs(dev, 0x1c01, "\x01", 1);
- 	ret = mn88473_wregs(dev, 0x1c02, "\x21", 1);
--	ret = mn88473_wregs(dev, 0x1c03, "\x04", 1);
-+	ret = mn88473_wreg(dev, 0x1c03, delivery_system);
- 	ret = mn88473_wregs(dev, 0x1c0b, "\x00", 1);
--	ret = mn88473_wregs(dev, 0x1c10, "\x33\xea\xb3\xaf\x00\x00\x11\xec\x11\xec", 10);
-+
-+	for (i = 0; i < 10; i++) {
-+		ret = mn88473_wreg(dev, 0x1c10 + i, params[i]);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	ret = mn88473_wregs(dev, 0x1c2d, "\x3b", 1);
- 	ret = mn88473_wregs(dev, 0x1c2e, "\x00", 1);
- 	ret = mn88473_wregs(dev, 0x1c56, "\x0d", 1);
-@@ -193,6 +222,8 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 	ret = mn88473_wregs(dev, 0x1c08, "\x1d", 1);
- 	ret = mn88473_wregs(dev, 0x18b2, "\x37", 1);
- 	ret = mn88473_wregs(dev, 0x18d7, "\x04", 1);
-+	ret = mn88473_wregs(dev, 0x1c32, "\x80", 1);
-+	ret = mn88473_wregs(dev, 0x1c36, "\x00", 1);
- 	ret = mn88473_wregs(dev, 0x1cf8, "\x9f", 1);
- 	if (ret)
- 		goto err;
-@@ -351,7 +382,7 @@ err:
- EXPORT_SYMBOL(mn88473_attach);
- 
- static struct dvb_frontend_ops mn88473_ops = {
--	.delsys = {SYS_DVBC_ANNEX_AC},
-+	.delsys = {SYS_DVBT2, SYS_DVBC_ANNEX_AC},
- 	.info = {
- 		.name = "Panasonic MN88473",
- 		.caps =	FE_CAN_FEC_1_2			|
--- 
-http://palosaari.fi/
+Not sure if it is too late, but this patch were hidden somewere on my
+queue... so:
 
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+> ---
+>  include/uapi/linux/v4l2-mediabus.h    | 2 ++
+>  include/uapi/linux/video-bus-format.h | 4 +++-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 7b0a06c..05336d6 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -33,6 +33,8 @@ enum v4l2_mbus_pixelcode {
+>  	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
+>  	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
+>  	VIDEO_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB444_1X12),
+> +	VIDEO_BUS_TO_V4L2_MBUS(RGB565_1X16),
+>  
+>  	VIDEO_BUS_TO_V4L2_MBUS(Y8_1X8),
+>  	VIDEO_BUS_TO_V4L2_MBUS(UV8_1X8),
+> diff --git a/include/uapi/linux/video-bus-format.h b/include/uapi/linux/video-bus-format.h
+> index 4abbd5d..f85f7ee 100644
+> --- a/include/uapi/linux/video-bus-format.h
+> +++ b/include/uapi/linux/video-bus-format.h
+> @@ -34,7 +34,7 @@
+>  enum video_bus_format {
+>  	VIDEO_BUS_FMT_FIXED = 0x0001,
+>  
+> -	/* RGB - next is 0x100e */
+> +	/* RGB - next is 0x1010 */
+>  	VIDEO_BUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+>  	VIDEO_BUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+>  	VIDEO_BUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+> @@ -48,6 +48,8 @@ enum video_bus_format {
+>  	VIDEO_BUS_FMT_RGB888_2X12_BE = 0x100b,
+>  	VIDEO_BUS_FMT_RGB888_2X12_LE = 0x100c,
+>  	VIDEO_BUS_FMT_ARGB8888_1X32 = 0x100d,
+> +	VIDEO_BUS_FMT_RGB444_1X12 = 0x100e,
+> +	VIDEO_BUS_FMT_RGB565_1X16 = 0x100f,
+>  
+>  	/* YUV (including grey) - next is 0x2024 */
+>  	VIDEO_BUS_FMT_Y8_1X8 = 0x2001,
