@@ -1,74 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:34126 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751120AbaK0Qog (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 11:44:36 -0500
-Date: Thu, 27 Nov 2014 17:40:56 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Boris Brezillon <boris@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Chen-Yu Tsai <wens@csie.org>,
-	Emilio Lopez <emilio@elopez.com.ar>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-Message-ID: <20141127174056.6697cde3@bbrezillon>
-In-Reply-To: <20141126211318.GN25249@lukather>
-References: <54743DE1.7020704@redhat.com>
-	<20141126211318.GN25249@lukather>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41126 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133AbaKCKCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 05:02:44 -0500
+Message-ID: <1415008955.3060.10.camel@pengutronix.de>
+Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
+ of_graph_get_next_endpoint
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	kernel@pengutronix.de
+Date: Mon, 03 Nov 2014 11:02:35 +0100
+In-Reply-To: <1412064370.3692.1.camel@pengutronix.de>
+References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
+	 <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
+	 <20140929221042.GA9895@kroah.com> <1412064370.3692.1.camel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro, Guennadi,
 
-On Wed, 26 Nov 2014 22:13:18 +0100
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
-
-[...]
-
+Am Dienstag, den 30.09.2014, 10:06 +0200 schrieb Philipp Zabel:
+> Am Montag, den 29.09.2014, 18:10 -0400 schrieb Greg Kroah-Hartman:
+> > On Mon, Sep 29, 2014 at 08:03:34PM +0200, Philipp Zabel wrote:
+> > > Decrementing the reference count of the previous endpoint node allows to
+> > > use the of_graph_get_next_endpoint function in a for_each_... style macro.
+> > > All current users of this function that pass a non-NULL prev parameter
+> > > (that is, soc_camera and imx-drm) are changed to not decrement the passed
+> > > prev argument's refcount themselves.
+> > > 
+> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > > ---
+> > > Changes since v4:
+> > >  - Folded patches 1-3 into this one
+> > > ---
+> > >  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
+> > >  drivers/of/base.c                              |  9 +--------
+> > >  drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
+> > >  3 files changed, 5 insertions(+), 19 deletions(-)
+> > 
+> > No objection from me for this, but Grant is in "charge" of
+> > drivers/of/base.c, so I'll leave it for him to apply.
+> > 
+> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > 
-> I remember someone (Chen-Yu? Boris?) saying that the 1wire clock was
-> not really a mod0 clk. From what I could gather from the source code,
-> it seems to have a wider m divider, so we could argue that it should
-> need a new compatible.
+> Thank you. Guennadi, Mauro, could I get your ack on the soc_camera part?
 
-Wasn't me :-).
+I'd really like to get this series merged through Grant's tree, but
+since it touches the soc_camera core, could you please give me an ack
+for this?
 
-Regarding the rest of the discussion I miss some context, but here's
-what I remember decided us to choose the MFD approach for the PRCM
-block:
+regards
+Philipp
 
-1) it's embedding several unrelated functional blocks (reset, clk, and
-some other things I don't remember).
-2) none of the functionalities provided by the PRCM were required in
-the early boot stage
-3) We wanted to represent the HW blocks as they are really described in
-the memory mapping instead of splitting small register chunks over the
-DT.
-
-Can someone sum-up the current issue you're trying to solve ?
-
-IMHO, if you really want to split those functionalities over the DT
-(some nodes under clks and other under reset controller), then I
-suggest to use..............
-(Maxime, please stop smiling :P)
-..............
-
-SYSCON
-
-Best Regards,
-
-Boris
-
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
