@@ -1,69 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:54459 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758848AbaKAUFc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 16:05:32 -0400
-Received: by mail-wg0-f52.google.com with SMTP id b13so7973989wgh.25
-        for <linux-media@vger.kernel.org>; Sat, 01 Nov 2014 13:05:30 -0700 (PDT)
-Date: Sat, 1 Nov 2014 22:05:26 +0200
-From: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
- with dev_* and pr_*
-Message-ID: <20141101200526.GA2098@localhost.localdomain>
-References: <20141031130600.GA16310@mwanda>
- <20141031142644.GA4166@localhost.localdomain>
- <20141031143541.GM6890@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141031143541.GM6890@mwanda>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54690 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752190AbaKCDbI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Nov 2014 22:31:08 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2F0462A13AF
+	for <linux-media@vger.kernel.org>; Mon,  3 Nov 2014 04:31:03 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141103033103.2F0462A13AF@tschai.lan>
+Date: Mon,  3 Nov 2014 04:31:03 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 31, 2014 at 05:35:41PM +0300, Dan Carpenter wrote:
-> On Fri, Oct 31, 2014 at 04:26:45PM +0200, Aya Mahfouz wrote:
-> > On Fri, Oct 31, 2014 at 04:06:00PM +0300, Dan Carpenter wrote:
-> > > drivers/staging/media/lirc/lirc_zilog.c
-> > >   1333  /* Close the IR device */
-> > >   1334  static int close(struct inode *node, struct file *filep)
-> > >   1335  {
-> > >   1336          /* find our IR struct */
-> > >   1337          struct IR *ir = filep->private_data;
-> > >   1338  
-> > >   1339          if (ir == NULL) {
-> > >                     ^^^^^^^^^^
-> > >   1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
-> > >                                 ^^^^^^^^^
-> > > 
-> > > I suggest you just delete the error message.  Can "ir" actually be NULL
-> > > here anyway?
-> > >
-> > 
-> > Since I'm a newbie and this is not my code, I prefer to use pr_err().
-> 
-> This driver doesn't belong to anyone.  Go ahead and take ownership.  The
-> message is fairly worthless and no one will miss it.
-> 
-ok.
-> > 
-> > In general, I can send a new patch to fix the aforementioned warnings.
-> > Kindly let me know if you prefer that I send a second version of this
-> > patch.
-> 
-> No.  The first patch was already applied so send a new patch.
-> 
-I will fix the static errors that my patch caused. The warning concerning
-the double free will require rewriting some parts of the function and was
-not caused by my patch. I have a couple of ideas in mind but I need
-sometime to apply them. Greg too is not happy about the coding style of
-this driver in general.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> regards,
-> dan carpenter
-> 
+Results of the daily build of media_tree:
 
-Kind Regards,
-Aya Saif El-yazal Mahfouz
+date:		Mon Nov  3 04:00:19 CET 2014
+git branch:	test
+git hash:	082417d10fafe7be835d143ade7114b5ce26cb50
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-34-g71e642a
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
