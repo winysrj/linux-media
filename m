@@ -1,78 +1,869 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:17998 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbaKCSPM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 13:15:12 -0500
-Date: Mon, 03 Nov 2014 16:15:04 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] video: add RGB444_1X12 and RGB565_1X16 bus formats
-Message-id: <20141103161504.582921ac.m.chehab@samsung.com>
-In-reply-to: <1411999363-28770-3-git-send-email-boris.brezillon@free-electrons.com>
-References: <1411999363-28770-1-git-send-email-boris.brezillon@free-electrons.com>
- <1411999363-28770-3-git-send-email-boris.brezillon@free-electrons.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:43148 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753018AbaKCOnR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 09:43:17 -0500
+Date: Mon, 3 Nov 2014 12:43:11 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Nibble Max" <nibble.max@gmail.com>
+Cc: "Antti Palosaari" <crope@iki.fi>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	"Olli Salonen" <olli.salonen@iki.fi>
+Subject: Re: [PATCH v3 2/3] DVBSky V3 PCIe card: add new dvb-s/s2 tuner for
+ integrated chip M88RS6000
+Message-ID: <20141103124311.00da9ead@recife.lan>
+In-Reply-To: <201410301601485155747@gmail.com>
+References: <201410301601485155747@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Sep 2014 16:02:40 +0200
-Boris Brezillon <boris.brezillon@free-electrons.com> escreveu:
+Em Thu, 30 Oct 2014 16:01:51 +0800
+"Nibble Max" <nibble.max@gmail.com> escreveu:
 
-> Add RGB444 format using a 12 bits bus and RGB565 using a 16 bits bus.
+> v3:
+> -config demod mclk in "set_params" call back.
+> -remove "set_config".
+
+Where's patch 1/3 v3?
+
+Regards,
+Mauro
+
 > 
-> These formats will later be used by atmel-hlcdc driver.
+> v2:
+> -make demod mclk selection logic simple.
+> -merge demod mclk and ts mclk into one call back.
+> -make code clean.
 > 
-> Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
-
-Not sure if it is too late, but this patch were hidden somewere on my
-queue... so:
-
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
+> M88RS6000 is the integrated chip, which includes tuner and demod.
+> Here splite its tuner as a standalone driver.
+> .set_config is used to config its demod clock, which sits inside tuner die.
+> 
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
 > ---
->  include/uapi/linux/v4l2-mediabus.h    | 2 ++
->  include/uapi/linux/video-bus-format.h | 4 +++-
->  2 files changed, 5 insertions(+), 1 deletion(-)
+>  drivers/media/tuners/Kconfig      |   8 +
+>  drivers/media/tuners/Makefile     |   1 +
+>  drivers/media/tuners/m88rs6000t.c | 744 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/tuners/m88rs6000t.h |  29 ++
+>  4 files changed, 782 insertions(+)
 > 
-> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> index 7b0a06c..05336d6 100644
-> --- a/include/uapi/linux/v4l2-mediabus.h
-> +++ b/include/uapi/linux/v4l2-mediabus.h
-> @@ -33,6 +33,8 @@ enum v4l2_mbus_pixelcode {
->  	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
->  	VIDEO_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
->  	VIDEO_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
-> +	VIDEO_BUS_TO_V4L2_MBUS(RGB444_1X12),
-> +	VIDEO_BUS_TO_V4L2_MBUS(RGB565_1X16),
+> diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+> index f039dc2..42e5a01 100644
+> --- a/drivers/media/tuners/Kconfig
+> +++ b/drivers/media/tuners/Kconfig
+> @@ -232,6 +232,14 @@ config MEDIA_TUNER_M88TS2022
+>  	help
+>  	  Montage M88TS2022 silicon tuner driver.
 >  
->  	VIDEO_BUS_TO_V4L2_MBUS(Y8_1X8),
->  	VIDEO_BUS_TO_V4L2_MBUS(UV8_1X8),
-> diff --git a/include/uapi/linux/video-bus-format.h b/include/uapi/linux/video-bus-format.h
-> index 4abbd5d..f85f7ee 100644
-> --- a/include/uapi/linux/video-bus-format.h
-> +++ b/include/uapi/linux/video-bus-format.h
-> @@ -34,7 +34,7 @@
->  enum video_bus_format {
->  	VIDEO_BUS_FMT_FIXED = 0x0001,
+> +config MEDIA_TUNER_M88RS6000T
+> +	tristate "Montage M88RS6000 internal tuner"
+> +	depends on MEDIA_SUPPORT && I2C
+> +	select REGMAP_I2C
+> +	default m if !MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  Montage M88RS6000 internal tuner.
+> +
+>  config MEDIA_TUNER_TUA9001
+>  	tristate "Infineon TUA 9001 silicon tuner"
+>  	depends on MEDIA_SUPPORT && I2C
+> diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
+> index 49fcf80..da4fe6e 100644
+> --- a/drivers/media/tuners/Makefile
+> +++ b/drivers/media/tuners/Makefile
+> @@ -41,6 +41,7 @@ obj-$(CONFIG_MEDIA_TUNER_IT913X) += it913x.o
+>  obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t.o
+>  obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+>  obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
+> +obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
 >  
-> -	/* RGB - next is 0x100e */
-> +	/* RGB - next is 0x1010 */
->  	VIDEO_BUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
->  	VIDEO_BUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
->  	VIDEO_BUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
-> @@ -48,6 +48,8 @@ enum video_bus_format {
->  	VIDEO_BUS_FMT_RGB888_2X12_BE = 0x100b,
->  	VIDEO_BUS_FMT_RGB888_2X12_LE = 0x100c,
->  	VIDEO_BUS_FMT_ARGB8888_1X32 = 0x100d,
-> +	VIDEO_BUS_FMT_RGB444_1X12 = 0x100e,
-> +	VIDEO_BUS_FMT_RGB565_1X16 = 0x100f,
->  
->  	/* YUV (including grey) - next is 0x2024 */
->  	VIDEO_BUS_FMT_Y8_1X8 = 0x2001,
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-core
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+> diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
+> new file mode 100644
+> index 0000000..d4c13fe
+> --- /dev/null
+> +++ b/drivers/media/tuners/m88rs6000t.c
+> @@ -0,0 +1,744 @@
+> +/*
+> + * Driver for the internal tuner of Montage M88RS6000
+> + *
+> + * Copyright (C) 2014 Max nibble <nibble.max@gmail.com>
+> + *
+> + *    This program is free software; you can redistribute it and/or modify
+> + *    it under the terms of the GNU General Public License as published by
+> + *    the Free Software Foundation; either version 2 of the License, or
+> + *    (at your option) any later version.
+> + *
+> + *    This program is distributed in the hope that it will be useful,
+> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *    GNU General Public License for more details.
+> + */
+> +
+> +#include "m88rs6000t.h"
+> +#include <linux/regmap.h>
+> +
+> +struct m88rs6000t_dev {
+> +	struct m88rs6000t_config cfg;
+> +	struct i2c_client *client;
+> +	struct regmap *regmap;
+> +	u32 frequency_khz;
+> +};
+> +
+> +struct m88rs6000t_reg_val {
+> +	u8 reg;
+> +	u8 val;
+> +};
+> +
+> +/* set demod main mclk and ts mclk */
+> +static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	u8 reg11, reg15, reg16, reg1D, reg1E, reg1F;
+> +	u8 N, f0 = 0, f1 = 0, f2 = 0, f3 = 0;
+> +	u16 pll_div_fb;
+> +	u32 div, ts_mclk;
+> +	unsigned int utmp;
+> +	int ret;
+> +
+> +	/* select demod main mclk */
+> +	ret = regmap_read(dev->regmap, 0x15, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	reg15 = utmp;
+> +	if (c->symbol_rate > 45010000) {
+> +		reg11 = 0x0E;
+> +		reg15 |= 0x02;
+> +		reg16 = 115; /* mclk = 110.25MHz */
+> +	} else {
+> +		reg11 = 0x0A;
+> +		reg15 &= ~0x02;
+> +		reg16 = 96; /* mclk = 96MHz */
+> +	}
+> +
+> +	/* set ts mclk */
+> +	if (c->delivery_system == SYS_DVBS)
+> +		ts_mclk = 96000;
+> +	else
+> +		ts_mclk = 144000;
+> +
+> +	pll_div_fb = (reg15 & 0x01) << 8;
+> +	pll_div_fb += reg16;
+> +	pll_div_fb += 32;
+> +
+> +	div = 36000 * pll_div_fb;
+> +	div /= ts_mclk;
+> +
+> +	if (div <= 32) {
+> +		N = 2;
+> +		f0 = 0;
+> +		f1 = div / 2;
+> +		f2 = div - f1;
+> +		f3 = 0;
+> +	} else if (div <= 48) {
+> +		N = 3;
+> +		f0 = div / 3;
+> +		f1 = (div - f0) / 2;
+> +		f2 = div - f0 - f1;
+> +		f3 = 0;
+> +	} else if (div <= 64) {
+> +		N = 4;
+> +		f0 = div / 4;
+> +		f1 = (div - f0) / 3;
+> +		f2 = (div - f0 - f1) / 2;
+> +		f3 = div - f0 - f1 - f2;
+> +	} else {
+> +		N = 4;
+> +		f0 = 16;
+> +		f1 = 16;
+> +		f2 = 16;
+> +		f3 = 16;
+> +	}
+> +
+> +	if (f0 == 16)
+> +		f0 = 0;
+> +	if (f1 == 16)
+> +		f1 = 0;
+> +	if (f2 == 16)
+> +		f2 = 0;
+> +	if (f3 == 16)
+> +		f3 = 0;
+> +
+> +	ret = regmap_read(dev->regmap, 0x1D, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	reg1D = utmp;
+> +	reg1D &= ~0x03;
+> +	reg1D |= N - 1;
+> +	reg1E = ((f3 << 4) + f2) & 0xFF;
+> +	reg1F = ((f1 << 4) + f0) & 0xFF;
+> +
+> +	/* program and recalibrate demod PLL */
+> +	ret = regmap_write(dev->regmap, 0x05, 0x40);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x11, 0x08);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x15, reg15);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x16, reg16);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x1D, reg1D);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x1E, reg1E);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x1F, reg1F);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x17, 0xc1);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x17, 0x81);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(5000, 50000);
+> +	ret = regmap_write(dev->regmap, 0x05, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x11, reg11);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(5000, 50000);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
+> +			u32 tuner_freq_MHz)
+> +{
+> +	u32 fcry_KHz, ulNDiv1, ulNDiv2, ulNDiv;
+> +	u8 refDiv, ucLoDiv1, ucLomod1, ucLoDiv2, ucLomod2, ucLoDiv, ucLomod;
+> +	u8 reg27, reg29, reg42, reg42buf;
+> +	unsigned int utmp;
+> +	int ret;
+> +
+> +	fcry_KHz = 27000; /* in kHz */
+> +	refDiv = 27;
+> +
+> +	ret = regmap_write(dev->regmap, 0x36, (refDiv - 8));
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x31, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x2c, 0x02);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (tuner_freq_MHz >= 1550) {
+> +		ucLoDiv1 = 2;
+> +		ucLomod1 = 0;
+> +		ucLoDiv2 = 2;
+> +		ucLomod2 = 0;
+> +	} else if (tuner_freq_MHz >= 1380) {
+> +		ucLoDiv1 = 3;
+> +		ucLomod1 = 16;
+> +		ucLoDiv2 = 2;
+> +		ucLomod2 = 0;
+> +	} else if (tuner_freq_MHz >= 1070) {
+> +		ucLoDiv1 = 3;
+> +		ucLomod1 = 16;
+> +		ucLoDiv2 = 3;
+> +		ucLomod2 = 16;
+> +	} else if (tuner_freq_MHz >= 1000) {
+> +		ucLoDiv1 = 3;
+> +		ucLomod1 = 16;
+> +		ucLoDiv2 = 4;
+> +		ucLomod2 = 64;
+> +	} else if (tuner_freq_MHz >= 775) {
+> +		ucLoDiv1 = 4;
+> +		ucLomod1 = 64;
+> +		ucLoDiv2 = 4;
+> +		ucLomod2 = 64;
+> +	} else if (tuner_freq_MHz >= 700) {
+> +		ucLoDiv1 = 6;
+> +		ucLomod1 = 48;
+> +		ucLoDiv2 = 4;
+> +		ucLomod2 = 64;
+> +	} else if (tuner_freq_MHz >= 520) {
+> +		ucLoDiv1 = 6;
+> +		ucLomod1 = 48;
+> +		ucLoDiv2 = 6;
+> +		ucLomod2 = 48;
+> +	} else {
+> +		ucLoDiv1 = 8;
+> +		ucLomod1 = 96;
+> +		ucLoDiv2 = 8;
+> +		ucLomod2 = 96;
+> +	}
+> +
+> +	ulNDiv1 = ((tuner_freq_MHz * ucLoDiv1 * 1000) * refDiv
+> +			/ fcry_KHz - 1024) / 2;
+> +	ulNDiv2 = ((tuner_freq_MHz * ucLoDiv2 * 1000) * refDiv
+> +			/ fcry_KHz - 1024) / 2;
+> +
+> +	reg27 = (((ulNDiv1 >> 8) & 0x0F) + ucLomod1) & 0x7F;
+> +	ret = regmap_write(dev->regmap, 0x27, reg27);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x28, (u8)(ulNDiv1 & 0xFF));
+> +	if (ret)
+> +		goto err;
+> +	reg29 = (((ulNDiv2 >> 8) & 0x0F) + ucLomod2) & 0x7f;
+> +	ret = regmap_write(dev->regmap, 0x29, reg29);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x2a, (u8)(ulNDiv2 & 0xFF));
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x2F, 0xf5);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x30, 0x05);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x1f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x3f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x20);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x3e, 0x11);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x2f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x3f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x10);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(2000, 50000);
+> +
+> +	ret = regmap_read(dev->regmap, 0x42, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	reg42 = utmp;
+> +
+> +	ret = regmap_write(dev->regmap, 0x3e, 0x10);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x2f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x08, 0x3f);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x10);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x09, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(2000, 50000);
+> +
+> +	ret = regmap_read(dev->regmap, 0x42, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	reg42buf = utmp;
+> +	if (reg42buf < reg42) {
+> +		ret = regmap_write(dev->regmap, 0x3e, 0x11);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +	usleep_range(5000, 50000);
+> +
+> +	ret = regmap_read(dev->regmap, 0x2d, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x2d, utmp);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_read(dev->regmap, 0x2e, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x2e, utmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	ret = regmap_read(dev->regmap, 0x27, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	reg27 = utmp & 0x70;
+> +	ret = regmap_read(dev->regmap, 0x83, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	if (reg27 == (utmp & 0x70)) {
+> +		ucLoDiv	= ucLoDiv1;
+> +		ulNDiv = ulNDiv1;
+> +		ucLomod = ucLomod1 / 16;
+> +	} else {
+> +		ucLoDiv	= ucLoDiv2;
+> +		ulNDiv = ulNDiv2;
+> +		ucLomod = ucLomod2 / 16;
+> +	}
+> +
+> +	if ((ucLoDiv == 3) || (ucLoDiv == 6)) {
+> +		refDiv = 18;
+> +		ret = regmap_write(dev->regmap, 0x36, (refDiv - 8));
+> +		if (ret)
+> +			goto err;
+> +		ulNDiv = ((tuner_freq_MHz * ucLoDiv * 1000) * refDiv
+> +				/ fcry_KHz - 1024) / 2;
+> +	}
+> +
+> +	reg27 = (0x80 + ((ucLomod << 4) & 0x70)
+> +			+ ((ulNDiv >> 8) & 0x0F)) & 0xFF;
+> +	ret = regmap_write(dev->regmap, 0x27, reg27);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x28, (u8)(ulNDiv & 0xFF));
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x29, 0x80);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x31, 0x03);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (ucLoDiv == 3)
+> +		utmp = 0xCE;
+> +	else
+> +		utmp = 0x8A;
+> +	ret = regmap_write(dev->regmap, 0x3b, utmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	dev->frequency_khz = fcry_KHz * (ulNDiv * 2 + 1024) / refDiv / ucLoDiv;
+> +
+> +	dev_dbg(&dev->client->dev,
+> +		"actual tune frequency=%d\n", dev->frequency_khz);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_set_bb(struct m88rs6000t_dev *dev,
+> +		u32 symbol_rate_KSs, s32 lpf_offset_KHz)
+> +{
+> +	u32 f3dB;
+> +	u8  reg40;
+> +
+> +	f3dB = symbol_rate_KSs * 9 / 14 + 2000;
+> +	f3dB += lpf_offset_KHz;
+> +	f3dB = clamp_val(f3dB, 6000U, 43000U);
+> +	reg40 = f3dB / 1000;
+> +	return regmap_write(dev->regmap, 0x40, reg40);
+> +}
+> +
+> +static int m88rs6000t_set_params(struct dvb_frontend *fe)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	int ret;
+> +	s32 lpf_offset_KHz;
+> +	u32 realFreq, freq_MHz;
+> +
+> +	dev_dbg(&dev->client->dev,
+> +			"frequency=%d symbol_rate=%d\n",
+> +			c->frequency, c->symbol_rate);
+> +
+> +	if (c->symbol_rate < 5000000)
+> +		lpf_offset_KHz = 3000;
+> +	else
+> +		lpf_offset_KHz = 0;
+> +
+> +	realFreq = c->frequency + lpf_offset_KHz;
+> +	/* set tuner pll.*/
+> +	freq_MHz = (realFreq + 500) / 1000;
+> +	ret = m88rs6000t_set_pll_freq(dev, freq_MHz);
+> +	if (ret)
+> +		goto err;
+> +	ret = m88rs6000t_set_bb(dev, c->symbol_rate / 1000, lpf_offset_KHz);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x00, 0x01);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x00, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	/* set demod mlck */
+> +	ret = m88rs6000t_set_demod_mclk(fe);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_init(struct dvb_frontend *fe)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +	int ret;
+> +
+> +	dev_dbg(&dev->client->dev, "%s:\n", __func__);
+> +
+> +	ret = regmap_update_bits(dev->regmap, 0x11, 0x08, 0x08);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(5000, 50000);
+> +	ret = regmap_update_bits(dev->regmap, 0x10, 0x01, 0x01);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(10000, 50000);
+> +	ret = regmap_write(dev->regmap, 0x07, 0x7d);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_sleep(struct dvb_frontend *fe)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +	int ret;
+> +
+> +	dev_dbg(&dev->client->dev, "%s:\n", __func__);
+> +
+> +	ret = regmap_write(dev->regmap, 0x07, 0x6d);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(5000, 10000);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +
+> +	dev_dbg(&dev->client->dev, "\n");
+> +
+> +	*frequency = dev->frequency_khz;
+> +	return 0;
+> +}
+> +
+> +static int m88rs6000t_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +
+> +	dev_dbg(&dev->client->dev, "\n");
+> +
+> +	*frequency = 0; /* Zero-IF */
+> +	return 0;
+> +}
+> +
+> +
+> +static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
+> +{
+> +	struct m88rs6000t_dev *dev = fe->tuner_priv;
+> +	unsigned int val, i;
+> +	int ret;
+> +	u16 gain;
+> +	u32 PGA2_cri_GS = 46, PGA2_crf_GS = 290, TIA_GS = 290;
+> +	u32 RF_GC = 1200, IF_GC = 1100, BB_GC = 300;
+> +	u32 PGA2_GC = 300, TIA_GC = 300, PGA2_cri = 0, PGA2_crf = 0;
+> +	u32 RFG = 0, IFG = 0, BBG = 0, PGA2G = 0, TIAG = 0;
+> +	u32 RFGS[13] = {0, 245, 266, 268, 270, 285,
+> +			298, 295, 283, 285, 285, 300, 300};
+> +	u32 IFGS[12] = {0, 300, 230, 270, 270, 285,
+> +			295, 285, 290, 295, 295, 310};
+> +	u32 BBGS[14] = {0, 286, 275, 290, 294, 300, 290,
+> +			290, 285, 283, 260, 295, 290, 260};
+> +
+> +	ret = regmap_read(dev->regmap, 0x5A, &val);
+> +	if (ret)
+> +		goto err;
+> +	RF_GC = val & 0x0f;
+> +
+> +	ret = regmap_read(dev->regmap, 0x5F, &val);
+> +	if (ret)
+> +		goto err;
+> +	IF_GC = val & 0x0f;
+> +
+> +	ret = regmap_read(dev->regmap, 0x3F, &val);
+> +	if (ret)
+> +		goto err;
+> +	TIA_GC = (val >> 4) & 0x07;
+> +
+> +	ret = regmap_read(dev->regmap, 0x77, &val);
+> +	if (ret)
+> +		goto err;
+> +	BB_GC = (val >> 4) & 0x0f;
+> +
+> +	ret = regmap_read(dev->regmap, 0x76, &val);
+> +	if (ret)
+> +		goto err;
+> +	PGA2_GC = val & 0x3f;
+> +	PGA2_cri = PGA2_GC >> 2;
+> +	PGA2_crf = PGA2_GC & 0x03;
+> +
+> +	for (i = 0; i <= RF_GC; i++)
+> +		RFG += RFGS[i];
+> +
+> +	if (RF_GC == 0)
+> +		RFG += 400;
+> +	if (RF_GC == 1)
+> +		RFG += 300;
+> +	if (RF_GC == 2)
+> +		RFG += 200;
+> +	if (RF_GC == 3)
+> +		RFG += 100;
+> +
+> +	for (i = 0; i <= IF_GC; i++)
+> +		IFG += IFGS[i];
+> +
+> +	TIAG = TIA_GC * TIA_GS;
+> +
+> +	for (i = 0; i <= BB_GC; i++)
+> +		BBG += BBGS[i];
+> +
+> +	PGA2G = PGA2_cri * PGA2_cri_GS + PGA2_crf * PGA2_crf_GS;
+> +
+> +	gain = RFG + IFG - TIAG + BBG + PGA2G;
+> +
+> +	/* scale value to 0x0000-0xffff */
+> +	gain = clamp_val(gain, 1000U, 10500U);
+> +	*strength = (10500 - gain) * 0xffff / (10500 - 1000);
+> +err:
+> +	if (ret)
+> +		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static const struct dvb_tuner_ops m88rs6000t_tuner_ops = {
+> +	.info = {
+> +		.name          = "Montage M88RS6000 Internal Tuner",
+> +		.frequency_min = 950000,
+> +		.frequency_max = 2150000,
+> +	},
+> +
+> +	.init = m88rs6000t_init,
+> +	.sleep = m88rs6000t_sleep,
+> +	.set_params = m88rs6000t_set_params,
+> +	.get_frequency = m88rs6000t_get_frequency,
+> +	.get_if_frequency = m88rs6000t_get_if_frequency,
+> +	.get_rf_strength = m88rs6000t_get_rf_strength,
+> +};
+> +
+> +static int m88rs6000t_probe(struct i2c_client *client,
+> +		const struct i2c_device_id *id)
+> +{
+> +	struct m88rs6000t_config *cfg = client->dev.platform_data;
+> +	struct dvb_frontend *fe = cfg->fe;
+> +	struct m88rs6000t_dev *dev;
+> +	int ret, i;
+> +	unsigned int utmp;
+> +	static const struct regmap_config regmap_config = {
+> +		.reg_bits = 8,
+> +		.val_bits = 8,
+> +	};
+> +	static const struct m88rs6000t_reg_val reg_vals[] = {
+> +		{0x10, 0xfb},
+> +		{0x24, 0x38},
+> +		{0x11, 0x0a},
+> +		{0x12, 0x00},
+> +		{0x2b, 0x1c},
+> +		{0x44, 0x48},
+> +		{0x54, 0x24},
+> +		{0x55, 0x06},
+> +		{0x59, 0x00},
+> +		{0x5b, 0x4c},
+> +		{0x60, 0x8b},
+> +		{0x61, 0xf4},
+> +		{0x65, 0x07},
+> +		{0x6d, 0x6f},
+> +		{0x6e, 0x31},
+> +		{0x3c, 0xf3},
+> +		{0x37, 0x0f},
+> +		{0x48, 0x28},
+> +		{0x49, 0xd8},
+> +		{0x70, 0x66},
+> +		{0x71, 0xCF},
+> +		{0x72, 0x81},
+> +		{0x73, 0xA7},
+> +		{0x74, 0x4F},
+> +		{0x75, 0xFC},
+> +	};
+> +
+> +	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+> +	if (!dev) {
+> +		ret = -ENOMEM;
+> +		dev_err(&client->dev, "kzalloc() failed\n");
+> +		goto err;
+> +	}
+> +
+> +	memcpy(&dev->cfg, cfg, sizeof(struct m88rs6000t_config));
+> +	dev->client = client;
+> +	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
+> +	if (IS_ERR(dev->regmap)) {
+> +		ret = PTR_ERR(dev->regmap);
+> +		goto err;
+> +	}
+> +
+> +	ret = regmap_update_bits(dev->regmap, 0x11, 0x08, 0x08);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(5000, 50000);
+> +	ret = regmap_update_bits(dev->regmap, 0x10, 0x01, 0x01);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(10000, 50000);
+> +	ret = regmap_write(dev->regmap, 0x07, 0x7d);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x04, 0x01);
+> +	if (ret)
+> +		goto err;
+> +
+> +	/* check tuner chip id */
+> +	ret = regmap_read(dev->regmap, 0x01, &utmp);
+> +	if (ret)
+> +		goto err;
+> +	dev_info(&dev->client->dev, "chip_id=%02x\n", utmp);
+> +	if (utmp != 0x64) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	/* tuner init. */
+> +	ret = regmap_write(dev->regmap, 0x05, 0x40);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x11, 0x08);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x15, 0x6c);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x17, 0xc1);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x17, 0x81);
+> +	if (ret)
+> +		goto err;
+> +	usleep_range(10000, 50000);
+> +	ret = regmap_write(dev->regmap, 0x05, 0x00);
+> +	if (ret)
+> +		goto err;
+> +	ret = regmap_write(dev->regmap, 0x11, 0x0a);
+> +	if (ret)
+> +		goto err;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
+> +		ret = regmap_write(dev->regmap,
+> +				reg_vals[i].reg, reg_vals[i].val);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	dev_info(&dev->client->dev, "Montage M88RS6000 internal tuner successfully identified\n");
+> +
+> +	fe->tuner_priv = dev;
+> +	memcpy(&fe->ops.tuner_ops, &m88rs6000t_tuner_ops,
+> +			sizeof(struct dvb_tuner_ops));
+> +	i2c_set_clientdata(client, dev);
+> +	return 0;
+> +err:
+> +	dev_dbg(&client->dev, "failed=%d\n", ret);
+> +	kfree(dev);
+> +	return ret;
+> +}
+> +
+> +static int m88rs6000t_remove(struct i2c_client *client)
+> +{
+> +	struct m88rs6000t_dev *dev = i2c_get_clientdata(client);
+> +	struct dvb_frontend *fe = dev->cfg.fe;
+> +
+> +	dev_dbg(&client->dev, "\n");
+> +
+> +	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+> +	fe->tuner_priv = NULL;
+> +	kfree(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id m88rs6000t_id[] = {
+> +	{"m88rs6000t", 0},
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(i2c, m88rs6000t_id);
+> +
+> +static struct i2c_driver m88rs6000t_driver = {
+> +	.driver = {
+> +		.owner	= THIS_MODULE,
+> +		.name	= "m88rs6000t",
+> +	},
+> +	.probe		= m88rs6000t_probe,
+> +	.remove		= m88rs6000t_remove,
+> +	.id_table	= m88rs6000t_id,
+> +};
+> +
+> +module_i2c_driver(m88rs6000t_driver);
+> +
+> +MODULE_AUTHOR("Max nibble <nibble.max@gmail.com>");
+> +MODULE_DESCRIPTION("Montage M88RS6000 internal tuner driver");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/tuners/m88rs6000t.h b/drivers/media/tuners/m88rs6000t.h
+> new file mode 100644
+> index 0000000..264c13e
+> --- /dev/null
+> +++ b/drivers/media/tuners/m88rs6000t.h
+> @@ -0,0 +1,29 @@
+> +/*
+> + * Driver for the internal tuner of Montage M88RS6000
+> + *
+> + * Copyright (C) 2014 Max nibble <nibble.max@gmail.com>
+> + *
+> + *    This program is free software; you can redistribute it and/or modify
+> + *    it under the terms of the GNU General Public License as published by
+> + *    the Free Software Foundation; either version 2 of the License, or
+> + *    (at your option) any later version.
+> + *
+> + *    This program is distributed in the hope that it will be useful,
+> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *    GNU General Public License for more details.
+> + */
+> +
+> +#ifndef _M88RS6000T_H_
+> +#define _M88RS6000T_H_
+> +
+> +#include "dvb_frontend.h"
+> +
+> +struct m88rs6000t_config {
+> +	/*
+> +	 * pointer to DVB frontend
+> +	 */
+> +	struct dvb_frontend *fe;
+> +};
+> +
+> +#endif
+> 
