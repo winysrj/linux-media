@@ -1,45 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44062 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752733AbaKGVlC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 16:41:02 -0500
-Date: Fri, 7 Nov 2014 13:41:00 -0800
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org,
-	mgorman@suse.de, ddstreet@ieee.org, jeffrey.t.kirsher@intel.com,
-	yamada.m@jp.panasonic.com, kenhelias@firemail.de, oleg@redhat.com,
-	akpm@linux-foundation.org, shuah.kh@samsung.com,
-	valentina.manea.m@gmail.com, yann.morin.1998@free.fr,
-	laijs@cn.fujitsu.com, mathieu.desnoyers@efficios.com,
-	rostedt@goodmis.org, josh@joshtriplett.org,
-	paulmck@linux.vnet.ibm.com, m.chehab@samsung.com,
-	awalls@md.metrocast.net, airlied@linux.ie,
-	christian.koenig@amd.com, alexander.deucher@amd.com
-Subject: Re: [PATCH] Replace mentions of "list_struct" to "list_head"
-Message-ID: <20141107214100.GA1640@kroah.com>
-References: <1415395128-7976-1-git-send-email-andrey.krieger.utkin@gmail.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35125 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751384AbaKCNgc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 08:36:32 -0500
+Message-ID: <545784DA.50109@xs4all.nl>
+Date: Mon, 03 Nov 2014 14:36:26 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1415395128-7976-1-git-send-email-andrey.krieger.utkin@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCH v4] media: spi: Add support for LMH0395
+References: <1410342234-7444-1-git-send-email-jean-michel.hautbois@vodalys.com> <1630377.tEqlt7fWO7@avalon>
+In-Reply-To: <1630377.tEqlt7fWO7@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 08, 2014 at 01:18:48AM +0400, Andrey Utkin wrote:
-> There's no such thing as "list_struct".
+On 11/03/2014 02:13 PM, Laurent Pinchart wrote:
+> Hi Jean-Michel,
 > 
-> Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-> ---
->  drivers/gpu/drm/radeon/mkregtable.c  | 24 ++++++++++++------------
->  drivers/media/pci/cx18/cx18-driver.h |  2 +-
->  include/linux/list.h                 | 34 +++++++++++++++++-----------------
->  include/linux/plist.h                | 10 +++++-----
->  include/linux/rculist.h              |  8 ++++----
->  scripts/kconfig/list.h               |  6 +++---
->  tools/usb/usbip/libsrc/list.h        |  2 +-
->  7 files changed, 43 insertions(+), 43 deletions(-)
+> Thank you for the patch.
+> 
+> On Wednesday 10 September 2014 11:43:54 Jean-Michel Hautbois wrote:
 
-Stuff like this should be sent to the trivial maintainer...
+<snip>
+
+> 
+>> +static int lmh0395_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+>> +				u32 config)
+>> +{
+>> +	struct lmh0395_state *state = to_state(sd);
+>> +	int err = 0;
+>> +
+>> +	if (state->output_type != output)
+>> +		err = lmh0395_set_output_type(sd, output);
+>> +
+>> +	return err;
+> 
+>         if (state->output_type == output)
+>                 return 0;
+> 
+>         return lmh0395_set_output_type(sd, output);
+> 
+> You can then get rid of the err variable.
+> 
+> I don't really like this implementation though, the output argument is device-
+> specific, you thus require explicit knowledge of the LMH0395 in your bridge 
+> driver.
+
+Well, that's the way s_routing is defined. It's the bridge driver's job to
+translate between V4L2 inputs/outputs and low-level routing information.
+
+> 
+> I'm not sure what the config argument is used for, but naively I would have 
+
+config is normally not used. There are one or two drivers that need it for
+additional routing configuration, but it's rare.
+
+> used it to tell whether to enable (1) or disable (0) the route from input to 
+> output. The input value should then always be 0, and the output value can be 1 
+> or 2. Another option would be to use the new S_ROUTING userspace ioctl I've 
+> proposed in 
+> http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=xilinx-wip&id=fc094c354338861673464ed4b8fa198089fe7bf0.
+> 
+> Hans, could you comment on that ?
+
+Well, first of all your proposed API isn't merged yet, or even posted on the
+mailinglist, so it's a bit unfair to require someone else to use it :-)
+
+Also, while I do agree with your proposed new API I am a lot less enthusiastic
+about creating yet another duplicate pad op for an existing audio/video routing
+op.
+
+The problem is that existing drivers are never updated for the new op and you are
+stuck with competing internal APIs. Not nice at all.
+
+Bottom line is that this driver uses s_routing like any other driver currently
+in the kernel, so I have no problem with that.
+
+Regards,
+
+	Hans
+
+> 
+>> +}
+
