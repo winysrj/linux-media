@@ -1,65 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43554 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:49413 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753440AbaKEKRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 05:17:18 -0500
-Date: Wed, 5 Nov 2014 08:17:11 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
-	Gulsah Kose <gulsah.1004@gmail.com>,
-	Matina Maria Trompouki <mtrompou@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging: media: lirc: modify print calls
-Message-ID: <20141105081711.4c6abcc3@recife.lan>
-In-Reply-To: <20141104214307.GA6709@localhost.localdomain>
-References: <20141104214307.GA6709@localhost.localdomain>
+	id S1751838AbaKCOx1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 09:53:27 -0500
+Message-ID: <545796E5.2060809@iki.fi>
+Date: Mon, 03 Nov 2014 16:53:25 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Nibble Max <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH v2 3/3] DVBSky V3 PCIe card: add some changes to M88DS3103forsupportingthe
+ demod of M88RS6000
+References: <201410271529188904708@gmail.com>, <201410301238228758761@gmail.com>, <201410311034193593814@gmail.com>, <5452FA39.8040608@iki.fi> <201410311227093432911@gmail.com>
+In-Reply-To: <201410311227093432911@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 4 Nov 2014 23:43:07 +0200
-Aya Mahfouz <mahfouz.saif.elyazal@gmail.com> escreveu:
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-> This patches replaces one pr_debug call by dev_dbg and
-> changes the device used by one of the dev_err calls.
+I am fine with that M88DS3103 driver change and this can be taken from 
+the patchwork.
 
-Also doesn't apply. Probably made to apply on Greg's tree.
+regards
+Antti
 
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-> ---
->  drivers/staging/media/lirc/lirc_zilog.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> index 52f8e91..dca806a 100644
-> --- a/drivers/staging/media/lirc/lirc_zilog.c
-> +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> @@ -1447,7 +1447,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	int ret;
->  	bool tx_probe = false;
->  
-> -	pr_debug("%s: %s on i2c-%d (%s), client addr=0x%02x\n",
-> +	dev_dbg(&client->dev, "%s: %s on i2c-%d (%s), client addr=0x%02x\n",
->  		__func__, id->name, adap->nr, adap->name, client->addr);
->  
->  	/*
-> @@ -1631,7 +1631,7 @@ out_put_xx:
->  out_put_ir:
->  	put_ir_device(ir, true);
->  out_no_ir:
-> -	dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
-> +	dev_err(&client->dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
->  		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
->  		   ret);
->  	mutex_unlock(&ir_devices_lock);
+-- 
+http://palosaari.fi/
