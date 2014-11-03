@@ -1,96 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57082 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbaK2K1q (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55839 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751097AbaKCIvu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 05:27:46 -0500
-Received: from dflxv15.itg.ti.com ([128.247.5.124])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id sATARj3K003677
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 04:27:45 -0600
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id sATARjuh012150
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 04:27:45 -0600
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <nikhil.nd@ti.com>
-Subject: [PATCH v3 2/4] media: ti-vpe: Use line average de-interlacing for first 2 frames
-Date: Sat, 29 Nov 2014 15:57:37 +0530
-Message-ID: <1417256860-20233-3-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
-References: <1417256860-20233-1-git-send-email-nikhil.nd@ti.com>
+	Mon, 3 Nov 2014 03:51:50 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id ED7C72A0376
+	for <linux-media@vger.kernel.org>; Mon,  3 Nov 2014 09:51:40 +0100 (CET)
+Message-ID: <5457421C.4050100@xs4all.nl>
+Date: Mon, 03 Nov 2014 09:51:40 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] cx88: convert to vb2
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Archit Taneja <archit@ti.com>
+Hi Mauro,
 
-For n input fields, the VPE de-interlacer creates n - 2 progressive frames.
+This pull request contains this patch series:
 
-To support this, we use line average mode of de-interlacer for the first 2
-input fields to generate 2 progressive frames. We then revert back to the
-preferred EDI method, and create n - 2 frames, creating a sum of n frames.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg79597.html
 
-Signed-off-by: Archit Taneja <archit@ti.com>
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+It's unchanged except for rebasing to the latest master and for fixing the
+somewhat garbled commit message of patch 02/16.
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index ba26b83..26e44a1 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -807,6 +807,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
- 
-+static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
-+{
-+	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
-+
-+	if (mode & 0x2)
-+		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
-+
-+	if (mode & 0x3)
-+		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
-+
-+	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
-+		VPE_EDI_INP_MODE_SHIFT);
-+
-+	ctx->load_mmrs = true;
-+}
-+
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -1119,6 +1136,15 @@ static void device_run(void *priv)
- 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 	WARN_ON(ctx->dst_vb == NULL);
- 
-+	if (ctx->deinterlacing) {
-+		/*
-+		 * we have output the first 2 frames through line average, we
-+		 * now switch to EDI de-interlacer
-+		 */
-+		if (ctx->sequence == 2)
-+			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
-+	}
-+
- 	/* config descriptors */
- 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
- 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
-@@ -1780,6 +1806,9 @@ static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
- {
- 	struct vpe_ctx *ctx = file2ctx(file);
- 
-+	if (ctx->deinterlacing)
-+		config_edi_input_mode(ctx, 0x0);
-+
- 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
- }
- 
--- 
-1.7.9.5
+I have also re-tested the DMA engine: stress testing with continuously
+switching between TV frequencies (one with and one without a channel) and
+between inputs (one with (TV) and one without a signal (Composite)) while
+streaming without ever detecting any DMA problems.
 
+I am convinced the whole DMA restart mess is due to misunderstandings of
+how format changes are handled. The author apparently thought that format
+changes can be done while streaming, which is not the case since you cannot
+change the size of the buffers without stopping first.
+
+So I am sticking by this patch series :-)
+
+Regards,
+
+	Hans
+
+The following changes since commit 082417d10fafe7be835d143ade7114b5ce26cb50:
+
+  [media] cx231xx: remove direct register PWR_CTL_EN modification that switches port3 (2014-11-01 08:59:06 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cx88
+
+for you to fetch changes up to 1a48165e38da225fa187a756c6dd9941bdd85a9e:
+
+  cx88: fix VBI support (2014-11-03 09:39:12 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (16):
+      cx88: remove fmt from the buffer struct
+      cx88: drop the bogus 'queue' list in dmaqueue.
+      cx88: drop videobuf abuse in cx88-alsa
+      cx88: convert to vb2
+      cx88: fix sparse warning
+      cx88: return proper errors during fw load
+      cx88: drop cx88_free_buffer
+      cx88: remove dependency on btcx-risc
+      cx88: increase API command timeout
+      cx88: don't pollute the kernel log
+      cx88: move width, height and field to core struct
+      cx88: drop mpeg_active field.
+      cx88: don't allow changes while vb2_is_busy
+      cx88: consistently use UNSET for absent tuner
+      cx88: pci_disable_device comes after free_irq.
+      cx88: fix VBI support
+
+ drivers/media/pci/cx88/Kconfig          |   5 +-
+ drivers/media/pci/cx88/Makefile         |   1 -
+ drivers/media/pci/cx88/cx88-alsa.c      | 112 +++++++++--
+ drivers/media/pci/cx88/cx88-blackbird.c | 565 +++++++++++++++++++++++++-----------------------------
+ drivers/media/pci/cx88/cx88-cards.c     |  71 +++----
+ drivers/media/pci/cx88/cx88-core.c      | 113 ++++-------
+ drivers/media/pci/cx88/cx88-dvb.c       | 158 +++++++++++-----
+ drivers/media/pci/cx88/cx88-mpeg.c      | 159 ++++------------
+ drivers/media/pci/cx88/cx88-vbi.c       | 216 +++++++++++----------
+ drivers/media/pci/cx88/cx88-video.c     | 871 ++++++++++++++++++++++++++----------------------------------------------------------
+ drivers/media/pci/cx88/cx88.h           | 104 +++++-----
+ 11 files changed, 985 insertions(+), 1390 deletions(-)
