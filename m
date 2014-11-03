@@ -1,63 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:52901 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751264AbaKJUfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 15:35:14 -0500
-From: Sebastian Reichel <sre@kernel.org>
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 0/4] [media] si4713 DT binding
-Date: Mon, 10 Nov 2014 21:34:40 +0100
-Message-Id: <1415651684-3894-1-git-send-email-sre@kernel.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49225 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751033AbaKCKol (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 05:44:41 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0DC522A0376
+	for <linux-media@vger.kernel.org>; Mon,  3 Nov 2014 11:44:37 +0100 (CET)
+Message-ID: <54575C94.7060205@xs4all.nl>
+Date: Mon, 03 Nov 2014 11:44:36 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.18] vivid: default to single planar device instances
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The default used to be that the first vivid device instance was
+single planar, the second multi planar, the third single planar, etc.
 
-This is the third revision of the si4713 radio transmitter DT support
-patchset needed for the Nokia N900.
+However, that turned out to be unexpected and awkward. Change the
+driver to always default to single planar.
 
-Changes since PATCHv2:
- * Dropped patches 1-4, which have been accepted
- * Patch 1 has been updated according to Sakari's comments
- * Patch 3-4 are unchanged
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/vivid.txt       | 12 +++++-------
+ drivers/media/platform/vivid/vivid-core.c | 11 +++--------
+ 2 files changed, 8 insertions(+), 15 deletions(-)
 
-Apart from that you marked Patch 2 as not applicable last time [0].
-Normally the DT binding documentation is taken by the subsystem
-maintainer together with the driver changes. You can see the details
-in Documentation/devicetree/bindings/submitting-patches.txt
-
-For Patch 3 feedback from Tony is needed. I think the simplest solution
-would be to merge it via the media tree (assuming, that the boardcode
-is not yet removed in 3.19).
-
-[0] https://patchwork.linuxtv.org/patch/26506/
-
--- Sebastian
-
-Sebastian Reichel (4):
-  [media] si4713: add device tree support
-  [media] si4713: add DT binding documentation
-  ARM: OMAP2: RX-51: update si4713 platform data
-  [media] si4713: cleanup platform data
-
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++
- arch/arm/mach-omap2/board-rx51-peripherals.c       | 69 ++++++++++------------
- drivers/media/radio/si4713/radio-platform-si4713.c | 28 ++-------
- drivers/media/radio/si4713/si4713.c                | 31 +++++++++-
- drivers/media/radio/si4713/si4713.h                |  6 ++
- include/media/radio-si4713.h                       | 30 ----------
- include/media/si4713.h                             |  4 +-
- 7 files changed, 103 insertions(+), 95 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
- delete mode 100644 include/media/radio-si4713.h
-
+diff --git a/Documentation/video4linux/vivid.txt b/Documentation/video4linux/vivid.txt
+index eeb11a2..e5a940e 100644
+--- a/Documentation/video4linux/vivid.txt
++++ b/Documentation/video4linux/vivid.txt
+@@ -221,12 +221,11 @@ ccs_out_mode: specify the allowed video output crop/compose/scaling combination
+ 		       key, not quality.
+ 
+ multiplanar: select whether each device instance supports multi-planar formats,
+-	and thus the V4L2 multi-planar API. By default the first device instance
+-	is single-planar, the second multi-planar, and it keeps alternating.
++	and thus the V4L2 multi-planar API. By default device instances are
++	single-planar.
+ 
+ 	This module option can override that for each instance. Values are:
+ 
+-		0: use alternating single and multi-planar devices.
+ 		1: this is a single-planar instance.
+ 		2: this is a multi-planar instance.
+ 
+@@ -975,9 +974,8 @@ is set, then the alpha component is only used for the color red and set to
+ 0 otherwise.
+ 
+ The driver has to be configured to support the multiplanar formats. By default
+-the first driver instance is single-planar, the second is multi-planar, and it
+-keeps alternating. This can be changed by setting the multiplanar module option,
+-see section 1 for more details on that option.
++the driver instances are single-planar. This can be changed by setting the
++multiplanar module option, see section 1 for more details on that option.
+ 
+ If the driver instance is using the multiplanar formats/API, then the first
+ single planar format (YUYV) and the multiplanar NV16M and NV61M formats the
+@@ -1021,7 +1019,7 @@ the output overlay for the video output, turn on video looping and capture
+ to see the blended framebuffer overlay that's being written to by the second
+ instance. This setup would require the following commands:
+ 
+-	$ sudo modprobe vivid n_devs=2 node_types=0x10101,0x1 multiplanar=1,1
++	$ sudo modprobe vivid n_devs=2 node_types=0x10101,0x1
+ 	$ v4l2-ctl -d1 --find-fb
+ 	/dev/fb1 is the framebuffer associated with base address 0x12800000
+ 	$ sudo v4l2-ctl -d2 --set-fbuf fb=1
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 2c61a62..686c3c2 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -100,11 +100,9 @@ MODULE_PARM_DESC(ccs_out_mode, " output crop/compose/scale mode:\n"
+ 			   "\t\t    bit 0=crop, 1=compose, 2=scale,\n"
+ 			   "\t\t    -1=user-controlled (default)");
+ 
+-static unsigned multiplanar[VIVID_MAX_DEVS];
++static unsigned multiplanar[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 1 };
+ module_param_array(multiplanar, uint, NULL, 0444);
+-MODULE_PARM_DESC(multiplanar, " 0 (default) is alternating single and multiplanar devices,\n"
+-			      "\t\t    1 is single planar devices,\n"
+-			      "\t\t    2 is multiplanar devices");
++MODULE_PARM_DESC(multiplanar, " 1 (default) creates a single planar device, 2 creates a multiplanar device.");
+ 
+ /* Default: video + vbi-cap (raw and sliced) + radio rx + radio tx + sdr + vbi-out + vid-out */
+ static unsigned node_types[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0x1d3d };
+@@ -669,10 +667,7 @@ static int __init vivid_create_instance(int inst)
+ 	/* start detecting feature set */
+ 
+ 	/* do we use single- or multi-planar? */
+-	if (multiplanar[inst] == 0)
+-		dev->multiplanar = inst & 1;
+-	else
+-		dev->multiplanar = multiplanar[inst] > 1;
++	dev->multiplanar = multiplanar[inst] > 1;
+ 	v4l2_info(&dev->v4l2_dev, "using %splanar format API\n",
+ 			dev->multiplanar ? "multi" : "single ");
+ 
 -- 
-2.1.1
+2.1.0
 
