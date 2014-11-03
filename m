@@ -1,141 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48042 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756873AbaKTP4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 10:56:07 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/9] clk: sunxi: Give sunxi_factors_register a registers parameter
-Date: Thu, 20 Nov 2014 16:55:20 +0100
-Message-Id: <1416498928-1300-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34154 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750869AbaKCNia (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 08:38:30 -0500
+Message-ID: <54578551.7070002@xs4all.nl>
+Date: Mon, 03 Nov 2014 14:38:25 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 4/5] [media] vivid: add support for contiguous DMA buffers
+References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de> <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before this commit sunxi_factors_register uses of_iomap(node, 0) to get
-the clk registers. The sun6i prcm has factor clocks, for which we want to
-use sunxi_factors_register, but of_iomap(node, 0) does not work for the prcm
-factor clocks, because the prcm uses the mfd framework, so the registers
-are not part of the dt-node, instead they are added to the platform_device,
-as platform_device resources.
+Hi Philipp,
 
-This commit makes getting the registers the callers duty, so that
-sunxi_factors_register can be used with mfd instantiated platform device too.
+I've been playing with this and I cannot make it work. One thing that is missing
+in this patch is that the device struct isn't passed to v4l2_device_register.
+Without that the vb2 allocation context will actually be a NULL pointer.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/clk/sunxi/clk-factors.c    | 10 ++++------
- drivers/clk/sunxi/clk-factors.h    |  7 ++++---
- drivers/clk/sunxi/clk-mod0.c       |  6 ++++--
- drivers/clk/sunxi/clk-sun8i-mbus.c |  2 +-
- drivers/clk/sunxi/clk-sunxi.c      |  3 ++-
- 5 files changed, 15 insertions(+), 13 deletions(-)
+But after fixing that and a few other minor things (see this branch of mine:
+git://linuxtv.org/hverkuil/media_tree.git vivid) it still won't work because
+dma_alloc_coherent fails and that's because the device is not DMA capable.
 
-diff --git a/drivers/clk/sunxi/clk-factors.c b/drivers/clk/sunxi/clk-factors.c
-index f83ba09..fc4f4b5 100644
---- a/drivers/clk/sunxi/clk-factors.c
-+++ b/drivers/clk/sunxi/clk-factors.c
-@@ -156,9 +156,10 @@ static const struct clk_ops clk_factors_ops = {
- 	.set_rate = clk_factors_set_rate,
- };
- 
--struct clk * __init sunxi_factors_register(struct device_node *node,
--					   const struct factors_data *data,
--					   spinlock_t *lock)
-+struct clk *sunxi_factors_register(struct device_node *node,
-+				   const struct factors_data *data,
-+				   spinlock_t *lock,
-+				   void __iomem *reg)
- {
- 	struct clk *clk;
- 	struct clk_factors *factors;
-@@ -168,11 +169,8 @@ struct clk * __init sunxi_factors_register(struct device_node *node,
- 	struct clk_hw *mux_hw = NULL;
- 	const char *clk_name = node->name;
- 	const char *parents[FACTORS_MAX_PARENTS];
--	void __iomem *reg;
- 	int i = 0;
- 
--	reg = of_iomap(node, 0);
--
- 	/* if we have a mux, we will have >1 parents */
- 	while (i < FACTORS_MAX_PARENTS &&
- 	       (parents[i] = of_clk_get_parent_name(node, i)) != NULL)
-diff --git a/drivers/clk/sunxi/clk-factors.h b/drivers/clk/sunxi/clk-factors.h
-index 9913840..1f5526d 100644
---- a/drivers/clk/sunxi/clk-factors.h
-+++ b/drivers/clk/sunxi/clk-factors.h
-@@ -37,8 +37,9 @@ struct clk_factors {
- 	spinlock_t *lock;
- };
- 
--struct clk * __init sunxi_factors_register(struct device_node *node,
--					   const struct factors_data *data,
--					   spinlock_t *lock);
-+struct clk *sunxi_factors_register(struct device_node *node,
-+				   const struct factors_data *data,
-+				   spinlock_t *lock,
-+				   void __iomem *reg);
- 
- #endif
-diff --git a/drivers/clk/sunxi/clk-mod0.c b/drivers/clk/sunxi/clk-mod0.c
-index 4a56385..9530833 100644
---- a/drivers/clk/sunxi/clk-mod0.c
-+++ b/drivers/clk/sunxi/clk-mod0.c
-@@ -78,7 +78,8 @@ static DEFINE_SPINLOCK(sun4i_a10_mod0_lock);
- 
- static void __init sun4i_a10_mod0_setup(struct device_node *node)
- {
--	sunxi_factors_register(node, &sun4i_a10_mod0_data, &sun4i_a10_mod0_lock);
-+	sunxi_factors_register(node, &sun4i_a10_mod0_data,
-+			       &sun4i_a10_mod0_lock, of_iomap(node, 0));
- }
- CLK_OF_DECLARE(sun4i_a10_mod0, "allwinner,sun4i-a10-mod0-clk", sun4i_a10_mod0_setup);
- 
-@@ -86,7 +87,8 @@ static DEFINE_SPINLOCK(sun5i_a13_mbus_lock);
- 
- static void __init sun5i_a13_mbus_setup(struct device_node *node)
- {
--	struct clk *mbus = sunxi_factors_register(node, &sun4i_a10_mod0_data, &sun5i_a13_mbus_lock);
-+	struct clk *mbus = sunxi_factors_register(node, &sun4i_a10_mod0_data,
-+				      &sun5i_a13_mbus_lock, of_iomap(node, 0));
- 
- 	/* The MBUS clocks needs to be always enabled */
- 	__clk_get(mbus);
-diff --git a/drivers/clk/sunxi/clk-sun8i-mbus.c b/drivers/clk/sunxi/clk-sun8i-mbus.c
-index 8e49b44..444d603 100644
---- a/drivers/clk/sunxi/clk-sun8i-mbus.c
-+++ b/drivers/clk/sunxi/clk-sun8i-mbus.c
-@@ -69,7 +69,7 @@ static DEFINE_SPINLOCK(sun8i_a23_mbus_lock);
- static void __init sun8i_a23_mbus_setup(struct device_node *node)
- {
- 	struct clk *mbus = sunxi_factors_register(node, &sun8i_a23_mbus_data,
--						  &sun8i_a23_mbus_lock);
-+				&sun8i_a23_mbus_lock, of_iomap(node, 0));
- 
- 	/* The MBUS clocks needs to be always enabled */
- 	__clk_get(mbus);
-diff --git a/drivers/clk/sunxi/clk-sunxi.c b/drivers/clk/sunxi/clk-sunxi.c
-index d5dc951..f19e0f9 100644
---- a/drivers/clk/sunxi/clk-sunxi.c
-+++ b/drivers/clk/sunxi/clk-sunxi.c
-@@ -521,7 +521,8 @@ static const struct factors_data sun7i_a20_out_data __initconst = {
- static struct clk * __init sunxi_factors_clk_setup(struct device_node *node,
- 						   const struct factors_data *data)
- {
--	return sunxi_factors_register(node, data, &clk_lock);
-+	return sunxi_factors_register(node, data, &clk_lock,
-+				      of_iomap(node, 0));
- }
- 
- 
--- 
-2.1.0
+I'm not sure how to fix this. I'd like to support dma-contig (and dma-sg in the
+future), but I think someone with a better understanding of this needs to look
+at this.
+
+BTW, I'm testing this on a regular x86_64 architecture.
+
+Regards,
+
+	Hans
+
+On 10/22/2014 12:03 PM, Philipp Zabel wrote:
+> To simulate the behaviour of real hardware with such limitations or to
+> connect vivid to real hardware with such limitations, add an option to
+> let vivid use the dma-contig allocator instead of vmalloc.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/vivid/Kconfig         |  1 +
+>  drivers/media/platform/vivid/vivid-core.c    | 30 +++++++++++++++++++++++-----
+>  drivers/media/platform/vivid/vivid-core.h    |  1 +
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  4 +++-
+>  drivers/media/platform/vivid/vivid-vid-out.c |  5 ++++-
+>  5 files changed, 34 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+> index 3bfda25..f48c998 100644
+> --- a/drivers/media/platform/vivid/Kconfig
+> +++ b/drivers/media/platform/vivid/Kconfig
+> @@ -4,6 +4,7 @@ config VIDEO_VIVID
+>  	select FONT_SUPPORT
+>  	select FONT_8x16
+>  	select VIDEOBUF2_VMALLOC
+> +	select VIDEOBUF2_DMA_CONTIG
+>  	select FB_CFB_FILLRECT
+>  	select FB_CFB_COPYAREA
+>  	select FB_CFB_IMAGEBLIT
+> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+> index c79d60d..4c4fc3d 100644
+> --- a/drivers/media/platform/vivid/vivid-core.c
+> +++ b/drivers/media/platform/vivid/vivid-core.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/videodev2.h>
+>  #include <linux/v4l2-dv-timings.h>
+> +#include <media/videobuf2-dma-contig.h>
+>  #include <media/videobuf2-vmalloc.h>
+>  #include <media/v4l2-dv-timings.h>
+>  #include <media/v4l2-ioctl.h>
+> @@ -107,6 +108,11 @@ MODULE_PARM_DESC(multiplanar, " 0 (default) is alternating single and multiplana
+>  			      "\t\t    1 is single planar devices,\n"
+>  			      "\t\t    2 is multiplanar devices");
+>  
+> +static unsigned allocators[VIVID_MAX_DEVS];
+> +module_param_array(allocators, uint, NULL, 0444);
+> +MODULE_PARM_DESC(allocators, " memory allocator selection, default is 0.\n"
+> +			     "\t\t    0=vmalloc, 1=dma-contig");
+> +
+>  /* Default: video + vbi-cap (raw and sliced) + radio rx + radio tx + sdr + vbi-out + vid-out */
+>  static unsigned node_types[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0x1d3d };
+>  module_param_array(node_types, uint, NULL, 0444);
+> @@ -640,6 +646,10 @@ static int __init vivid_create_instance(int inst)
+>  {
+>  	static const struct v4l2_dv_timings def_dv_timings =
+>  					V4L2_DV_BT_CEA_1280X720P60;
+> +	static const struct vb2_mem_ops * const vivid_mem_ops[2] = {
+> +		&vb2_vmalloc_memops,
+> +		&vb2_dma_contig_memops,
+> +	};
+>  	unsigned in_type_counter[4] = { 0, 0, 0, 0 };
+>  	unsigned out_type_counter[4] = { 0, 0, 0, 0 };
+>  	int ccs_cap = ccs_cap_mode[inst];
+> @@ -650,6 +660,7 @@ static int __init vivid_create_instance(int inst)
+>  	struct video_device *vfd;
+>  	struct vb2_queue *q;
+>  	unsigned node_type = node_types[inst];
+> +	unsigned allocator = allocators[inst];
+>  	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
+>  	int ret;
+>  	int i;
+> @@ -1001,6 +1012,15 @@ static int __init vivid_create_instance(int inst)
+>  	dev->fb_cap.fmt.bytesperline = dev->src_rect.width * tpg_g_twopixelsize(&dev->tpg, 0) / 2;
+>  	dev->fb_cap.fmt.sizeimage = dev->src_rect.height * dev->fb_cap.fmt.bytesperline;
+>  
+> +	/* initialize allocator context */
+> +	if (allocator == 1) {
+> +		dev->alloc_ctx = vb2_dma_contig_init_ctx(dev->v4l2_dev.dev);
+> +		if (IS_ERR(dev->alloc_ctx))
+> +			goto unreg_dev;
+> +	} else if (allocator >= ARRAY_SIZE(vivid_mem_ops)) {
+> +		allocator = 0;
+> +	}
+> +
+>  	/* initialize locks */
+>  	spin_lock_init(&dev->slock);
+>  	mutex_init(&dev->mutex);
+> @@ -1022,7 +1042,7 @@ static int __init vivid_create_instance(int inst)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vid_cap_qops;
+> -		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->mem_ops = vivid_mem_ops[allocator];
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  
+> @@ -1040,7 +1060,7 @@ static int __init vivid_create_instance(int inst)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vid_out_qops;
+> -		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->mem_ops = vivid_mem_ops[allocator];
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  
+> @@ -1058,7 +1078,7 @@ static int __init vivid_create_instance(int inst)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vbi_cap_qops;
+> -		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->mem_ops = vivid_mem_ops[allocator];
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  
+> @@ -1076,7 +1096,7 @@ static int __init vivid_create_instance(int inst)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_vbi_out_qops;
+> -		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->mem_ops = vivid_mem_ops[allocator];
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 2;
+>  
+> @@ -1093,7 +1113,7 @@ static int __init vivid_create_instance(int inst)
+>  		q->drv_priv = dev;
+>  		q->buf_struct_size = sizeof(struct vivid_buffer);
+>  		q->ops = &vivid_sdr_cap_qops;
+> -		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->mem_ops = vivid_mem_ops[allocator];
+>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>  		q->min_buffers_needed = 8;
+>  
+> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+> index 811c286..4fefb0d 100644
+> --- a/drivers/media/platform/vivid/vivid-core.h
+> +++ b/drivers/media/platform/vivid/vivid-core.h
+> @@ -142,6 +142,7 @@ struct vivid_dev {
+>  	struct v4l2_ctrl_handler	ctrl_hdl_radio_tx;
+>  	struct video_device		sdr_cap_dev;
+>  	struct v4l2_ctrl_handler	ctrl_hdl_sdr_cap;
+> +	struct vb2_alloc_ctx		*alloc_ctx;
+>  	spinlock_t			slock;
+>  	struct mutex			mutex;
+>  
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> index 331c544..04b5fbf 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -151,8 +151,10 @@ static int vid_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+>  
+>  	/*
+>  	 * videobuf2-vmalloc allocator is context-less so no need to set
+> -	 * alloc_ctxs array.
+> +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
+>  	 */
+> +	for (p = 0; p < planes; p++)
+> +		alloc_ctxs[p] = dev->alloc_ctx;
+>  
+>  	if (planes == 2)
+>  		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
+> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+> index 69c2dbd..6b8dfd6 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-out.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
+> @@ -39,6 +39,7 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+>  	unsigned planes = dev->fmt_out->planes;
+>  	unsigned h = dev->fmt_out_rect.height;
+>  	unsigned size = dev->bytesperline_out[0] * h;
+> +	unsigned p;
+>  
+>  	if (dev->field_out == V4L2_FIELD_ALTERNATE) {
+>  		/*
+> @@ -98,8 +99,10 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
+>  
+>  	/*
+>  	 * videobuf2-vmalloc allocator is context-less so no need to set
+> -	 * alloc_ctxs array.
+> +	 * alloc_ctxs array. videobuf2-dma-contig needs a context, though.
+>  	 */
+> +	for (p = 0; p < planes; p++)
+> +		alloc_ctxs[p] = dev->alloc_ctx;
+>  
+>  	if (planes == 2)
+>  		dprintk(dev, 1, "%s, count=%d, sizes=%u, %u\n", __func__,
+> 
 
