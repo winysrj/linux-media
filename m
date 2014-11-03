@@ -1,242 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:43925 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750729AbaKXWFF (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36807 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751228AbaKCJrJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 17:05:05 -0500
-Date: Mon, 24 Nov 2014 23:03:27 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Emilio Lopez <emilio@elopez.com.ar>,
-	Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 3/9] clk: sunxi: Add prcm mod0 clock driver
-Message-ID: <20141124220327.GS4752@lukather>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
- <1416498928-1300-4-git-send-email-hdegoede@redhat.com>
- <20141121084933.GL24143@lukather>
- <546F0226.2040700@redhat.com>
+	Mon, 3 Nov 2014 04:47:09 -0500
+Message-ID: <54574F17.5070208@xs4all.nl>
+Date: Mon, 03 Nov 2014 10:47:03 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jo46wx5DSA4a/gWG"
-Content-Disposition: inline
-In-Reply-To: <546F0226.2040700@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Michal Simek <michal.simek@xilinx.com>,
+	Chris Kohn <christian.kohn@xilinx.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Radhey Shyam Pandey <radheys@xilinx.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 09/11] v4l: xilinx: Add Xilinx Video IP core
+References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com> <1412022477-28749-10-git-send-email-laurent.pinchart@ideasonboard.com> <542AB836.1060500@xs4all.nl> <1753132.KBqocWzxIH@avalon>
+In-Reply-To: <1753132.KBqocWzxIH@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 11/01/2014 02:24 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the review. I've fixed most of the issues you've pointed out, 
+> please find my replies to the remaining ones below.
+> 
+> On Tuesday 30 September 2014 16:03:34 Hans Verkuil wrote:
+>> On 09/29/14 22:27, Laurent Pinchart wrote:
+>>> Xilinx platforms have no hardwired video capture or video processing
+>>> interface. Users create capture and memory to memory processing
+>>> pipelines in the FPGA fabric to suit their particular needs, by
+>>> instantiating video IP cores from a large library.
+>>>
+>>> The Xilinx Video IP core is a framework that models a video pipeline
+>>> described in the device tree and expose the pipeline to userspace
+>>> through the media controller and V4L2 APIs.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
+>>> Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
+>>> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+>>> ---
+>>>
+>>>  .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
+>>>  .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
+>>>  MAINTAINERS                                        |   9 +
+>>>  drivers/media/platform/Kconfig                     |   1 +
+>>>  drivers/media/platform/Makefile                    |   2 +
+>>>  drivers/media/platform/xilinx/Kconfig              |  10 +
+>>>  drivers/media/platform/xilinx/Makefile             |   3 +
+>>>  drivers/media/platform/xilinx/xilinx-dma.c         | 995 ++++++++++++++++
+>>>  drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
+>>>  drivers/media/platform/xilinx/xilinx-vip.c         | 269 ++++++
+>>>  drivers/media/platform/xilinx/xilinx-vip.h         | 227 +++++
+>>>  drivers/media/platform/xilinx/xilinx-vipp.c        | 666 ++++++++++++++
+>>>  drivers/media/platform/xilinx/xilinx-vipp.h        |  47 +
+>>>  13 files changed, 2445 insertions(+)
+>>>  create mode 100644
+>>>  Documentation/devicetree/bindings/media/xilinx/video.txt
+>>>  create mode 100644
+>>>  Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt create
+>>>  mode 100644 drivers/media/platform/xilinx/Kconfig
+>>>  create mode 100644 drivers/media/platform/xilinx/Makefile
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
+>>>  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
+>>>
+>>> Cc: devicetree@vger.kernel.org
+> 
+> [snip]
+> 
+>>> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
+>>> b/drivers/media/platform/xilinx/xilinx-dma.c new file mode 100644
+>>> index 0000000..e09e8bd
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> 
+> [snip]
+> 
+>>> +static void
+>>> +__xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
+>>> +		      const struct xvip_video_format **fmtinfo)
+>>> +{
+>>> +	const struct xvip_video_format *info;
+>>> +	unsigned int min_width;
+>>> +	unsigned int max_width;
+>>> +	unsigned int min_bpl;
+>>> +	unsigned int max_bpl;
+>>> +	unsigned int width;
+>>> +	unsigned int align;
+>>> +	unsigned int bpl;
+>>> +
+>>> +	/* Retrieve format information and select the default format if the
+>>> +	 * requested format isn't supported.
+>>> +	 */
+>>> +	info = xvip_get_format_by_fourcc(pix->pixelformat);
+>>> +	if (IS_ERR(info))
+>>> +		info = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
+>>> +
+>>> +	pix->pixelformat = info->fourcc;
+>>> +	pix->colorspace = V4L2_COLORSPACE_SRGB;
+>>
+>> Colorspace information can be tricky: for capture the colorspace should
+>> come from the subdevs (e.g. the HDMI receiver), for output the colorspace
+>> is set by the application and passed on to the transmitter.
+> 
+> I agree with you. However, in the general case, this will be impossible to 
+> implement.
+> 
+> Imagine for instance a pipeline with two inputs, one from an HDMI decoder and 
+> one from a sensor. They are both connected to a composing unit that writes the 
+> resulting image to memory. The colorspace on the capture video node is then 
+> undefined.
+> 
+> Given that this driver is media controller based and relies on userspace to 
+> propagate formats through the pipeline during configuration, I believe it 
+> should also be userspace's responsibility to retrieve colorspace information 
+> from the correct subdev(s).
 
---jo46wx5DSA4a/gWG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+But so can your driver. The DMA engine is streaming from/to a subdev, so it should
+ask/set the colorspace from that subdev. This driver certainly does not know the
+colorspace, so setting it to some random value is simply wrong.
 
-On Fri, Nov 21, 2014 at 10:13:10AM +0100, Hans de Goede wrote:
-> Hi,
->=20
-> On 11/21/2014 09:49 AM, Maxime Ripard wrote:
-> > Hi,
-> >=20
-> > On Thu, Nov 20, 2014 at 04:55:22PM +0100, Hans de Goede wrote:
-> >> Add a driver for mod0 clocks found in the prcm. Currently there is only
-> >> one mod0 clocks in the prcm, the ir clock.
-> >>
-> >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >> ---
-> >>  Documentation/devicetree/bindings/clock/sunxi.txt |  1 +
-> >>  drivers/clk/sunxi/Makefile                        |  2 +-
-> >>  drivers/clk/sunxi/clk-sun6i-prcm-mod0.c           | 63 ++++++++++++++=
-+++++++++
-> >>  drivers/mfd/sun6i-prcm.c                          | 14 +++++
-> >>  4 files changed, 79 insertions(+), 1 deletion(-)
-> >>  create mode 100644 drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/clock/sunxi.txt b/Docum=
-entation/devicetree/bindings/clock/sunxi.txt
-> >> index ed116df..342c75a 100644
-> >> --- a/Documentation/devicetree/bindings/clock/sunxi.txt
-> >> +++ b/Documentation/devicetree/bindings/clock/sunxi.txt
-> >> @@ -56,6 +56,7 @@ Required properties:
-> >>  	"allwinner,sun4i-a10-usb-clk" - for usb gates + resets on A10 / A20
-> >>  	"allwinner,sun5i-a13-usb-clk" - for usb gates + resets on A13
-> >>  	"allwinner,sun6i-a31-usb-clk" - for usb gates + resets on A31
-> >> +	"allwinner,sun6i-a31-ir-clk" - for the ir clock on A31
-> >> =20
-> >>  Required properties for all clocks:
-> >>  - reg : shall be the control register address for the clock.
-> >> diff --git a/drivers/clk/sunxi/Makefile b/drivers/clk/sunxi/Makefile
-> >> index 7ddc2b5..daf8b1c 100644
-> >> --- a/drivers/clk/sunxi/Makefile
-> >> +++ b/drivers/clk/sunxi/Makefile
-> >> @@ -10,4 +10,4 @@ obj-y +=3D clk-sun8i-mbus.o
-> >> =20
-> >>  obj-$(CONFIG_MFD_SUN6I_PRCM) +=3D \
-> >>  	clk-sun6i-ar100.o clk-sun6i-apb0.o clk-sun6i-apb0-gates.o \
-> >> -	clk-sun8i-apb0.o
-> >> +	clk-sun8i-apb0.o clk-sun6i-prcm-mod0.o
-> >> diff --git a/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c b/drivers/clk/sun=
-xi/clk-sun6i-prcm-mod0.c
-> >> new file mode 100644
-> >> index 0000000..e80f18e
-> >> --- /dev/null
-> >> +++ b/drivers/clk/sunxi/clk-sun6i-prcm-mod0.c
-> >> @@ -0,0 +1,63 @@
-> >> +/*
-> >> + * Allwinner A31 PRCM mod0 clock driver
-> >> + *
-> >> + * Copyright (C) 2014 Hans de Goede <hdegoede@redhat.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modi=
-fy
-> >> + * it under the terms of the GNU General Public License as published =
-by
-> >> + * the Free Software Foundation; either version 2 of the License, or
-> >> + * (at your option) any later version.
-> >> + *
-> >> + * This program is distributed in the hope that it will be useful,
-> >> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >> + * GNU General Public License for more details.
-> >> + */
-> >> +
-> >> +#include <linux/clk-provider.h>
-> >> +#include <linux/clkdev.h>
-> >> +#include <linux/module.h>
-> >> +#include <linux/of_address.h>
-> >> +#include <linux/platform_device.h>
-> >> +
-> >> +#include "clk-factors.h"
-> >> +#include "clk-mod0.h"
-> >> +
-> >> +static const struct of_device_id sun6i_a31_prcm_mod0_clk_dt_ids[] =3D=
- {
-> >> +	{ .compatible =3D "allwinner,sun6i-a31-ir-clk" },
-> >> +	{ /* sentinel */ }
-> >> +};
-> >> +
-> >> +static DEFINE_SPINLOCK(sun6i_prcm_mod0_lock);
-> >> +
-> >> +static int sun6i_a31_prcm_mod0_clk_probe(struct platform_device *pdev)
-> >> +{
-> >> +	struct device_node *np =3D pdev->dev.of_node;
-> >> +	struct resource *r;
-> >> +	void __iomem *reg;
-> >> +
-> >> +	if (!np)
-> >> +		return -ENODEV;
-> >> +
-> >> +	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >> +	reg =3D devm_ioremap_resource(&pdev->dev, r);
-> >> +	if (IS_ERR(reg))
-> >> +		return PTR_ERR(reg);
-> >> +
-> >> +	sunxi_factors_register(np, &sun4i_a10_mod0_data,
-> >> +			       &sun6i_prcm_mod0_lock, reg);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static struct platform_driver sun6i_a31_prcm_mod0_clk_driver =3D {
-> >> +	.driver =3D {
-> >> +		.name =3D "sun6i-a31-prcm-mod0-clk",
-> >> +		.of_match_table =3D sun6i_a31_prcm_mod0_clk_dt_ids,
-> >> +	},
-> >> +	.probe =3D sun6i_a31_prcm_mod0_clk_probe,
-> >> +};
-> >> +module_platform_driver(sun6i_a31_prcm_mod0_clk_driver);
-> >> +
-> >> +MODULE_DESCRIPTION("Allwinner A31 PRCM mod0 clock driver");
-> >> +MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
-> >> +MODULE_LICENSE("GPL");
-> >=20
-> > I don't think this is the right approach, mainly for two reasons: the
-> > compatible shouldn't change, and you're basically duplicating code
-> > there.
-> >=20
-> > I understand that you need the new compatible in order to avoid a
-> > double probing: one by CLK_OF_DECLARE, and one by the usual mechanism,
-> > and that also implies the second reason.
->=20
-> Not only for that, we need a new compatible also because the mfd framework
-> needs a separate compatible per sub-node as that is how it finds nodes
-> to attach to the platform devices, so we need a new compatible anyways,
-> with your make the mod0 clock driver a platform driver solution we could
-> use:
+I know that if you have a compositor hardware module things will become much more
+complicated, but that is indeed up to userspace to correct (although in practice
+I suspect the whole issue will be ignored). Actually, unless the hardware compositor
+can do the correct colorspace conversion I think the only way to do this correctly
+would be with openGL shaders if your GPU is powerful enough.
 
-We have a single mod0 clock in there, so no, not really.
+Anyway, even compositors should set a colorspace. If different input streams have
+different colorspaces, then it is up to the subdev to decide what colorspace to
+return. I would expect it to be the colorspace of the background color and that it
+would just leave it up to userspace to correct the colorspace of the composed windows.
 
-Plus, that seems like a bogus limitation from MFD, and it really
-shouldn't work that way.
+The only compositors I know are in the video output path and I don't think they have
+any colorspace conversion capabilities at all.
 
-> 	compatible =3D "allwinner,sun6i-a31-ir-clk", "allwinner,sun4i-a10-mod0-c=
-lk";
->=20
-> To work around this, but there are other problems, your make mod0clk a
-> platform driver solution cannot work because the clocks node in the dtsi
-> is not simple-bus compatible, so no platform-devs will be instantiated for
-> the clocks there.
+>> I'll have a presentation on this topic during the media mini-summit.
+> 
+> It was very interesting, thanks again :-)
+> 
+>>> +	pix->field = V4L2_FIELD_NONE;
+>>> +
+>>> +	/* The transfer alignment requirements are expressed in bytes.
+>>> Compute
+>>> +	 * the minimum and maximum values, clamp the requested width and
+>>> convert
+>>> +	 * it back to pixels.
+>>> +	 */
+>>> +	align = lcm(dma->align, info->bpp);
+>>> +	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
+>>> +	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
+>>> +	width = rounddown(pix->width * info->bpp, align);
+>>> +
+>>> +	pix->width = clamp(width, min_width, max_width) / info->bpp;
+>>> +	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
+>>> +			    XVIP_DMA_MAX_HEIGHT);
+>>> +
+>>> +	/* Clamp the requested bytes per line value. If the maximum bytes per
+>>> +	 * line value is zero, the module doesn't support user configurable 
+> line
+>>> +	 * sizes. Override the requested value with the minimum in that case.
+>>> +	 */
+>>> +	min_bpl = pix->width * info->bpp;
+>>> +	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
+>>> +	bpl = rounddown(pix->bytesperline, dma->align);
+>>> +
+>>> +	pix->bytesperline = clamp(bpl, min_bpl, max_bpl);
+>>> +	pix->sizeimage = pix->bytesperline * pix->height;
+>>> +
+>>> +	if (fmtinfo)
+>>> +		*fmtinfo = info;
+>>> +}
+> 
+> [snip]
+> 
+>>> +int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma
+>>> *dma,
+>>> +		  enum v4l2_buf_type type, unsigned int port)
+>>> +{
+>>> +	char name[14];
+>>> +	int ret;
+>>> +
+>>> +	dma->xdev = xdev;
+>>> +	dma->port = port;
+>>> +	mutex_init(&dma->lock);
+>>> +	mutex_init(&dma->pipe.lock);
+>>> +	INIT_LIST_HEAD(&dma->queued_bufs);
+>>> +	spin_lock_init(&dma->queued_lock);
+>>> +
+>>> +	dma->fmtinfo = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
+>>> +	dma->format.pixelformat = dma->fmtinfo->fourcc;
+>>> +	dma->format.colorspace = V4L2_COLORSPACE_SRGB;
+>>> +	dma->format.field = V4L2_FIELD_NONE;
+>>> +	dma->format.width = XVIP_DMA_DEF_WIDTH;
+>>> +	dma->format.height = XVIP_DMA_DEF_HEIGHT;
+>>> +	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
+>>> +	dma->format.sizeimage = dma->format.bytesperline *
+>>> dma->format.height;
+>>> +
+>>> +	/* Initialize the media entity... */
+>>> +	dma->pad.flags = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+>>> +		       ? MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
+>>> +
+>>> +	ret = media_entity_init(&dma->video.entity, 1, &dma->pad, 0);
+>>> +	if (ret < 0)
+>>> +		goto error;
+>>> +
+>>> +	/* ... and the video node... */
+>>> +	dma->video.v4l2_dev = &xdev->v4l2_dev;
+>>> +	dma->video.fops = &xvip_dma_fops;
+>>> +	snprintf(dma->video.name, sizeof(dma->video.name), "%s %s %u",
+>>> +		 xdev->dev->of_node->name,
+>>> +		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE ? "output" : "input",
+>>> +		 port);
+>>> +	dma->video.vfl_type = VFL_TYPE_GRABBER;
+>>> +	dma->video.vfl_dir = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+>>> +			   ? VFL_DIR_RX : VFL_DIR_TX;
+>>> +	dma->video.release = video_device_release_empty;
+>>> +	dma->video.ioctl_ops = &xvip_dma_ioctl_ops;
+>>
+>> Set dma->video.queue to &dma->queue. That's all you need to be able to
+>> use the vb2 helper functions.
+>>
+>>> +
+>>> +	video_set_drvdata(&dma->video, dma);
+>>> +
+>>> +	/* ... and the buffers queue... */
+>>> +	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
+>>> +	if (IS_ERR(dma->alloc_ctx))
+>>> +		goto error;
+>>> +
+>>> +	dma->queue.type = type;
+>>> +	dma->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+>>
+>> Add VB2_READ/WRITE. It's basically for free, so why not?
+> 
+> Because we want to discourage the users from using it ? :-)
 
-Then add the simple-bus compatible.
+Why? I've used it often enough to quickly test the output by just running
+'cat /dev/video0 >x.raw'. No need to compile special programs, works great.
+As I said, you get it for free, it doesn't allocate additional resources,
+so why not?
 
-> Besides the compatible (which as said we need a separate one anyways),
-> your other worry is code duplication, but I've avoided that as much
-> as possible already, the new drivers/clk/sunxi/clk-sun6i-prcm-mod0.c is
-> just a very thin wrapper, waying in with all of 63 lines including
-> 16 lines GPL header.
+Regards,
 
-47 lines that are doing exactly the same thing as the other code is
-doing. I'm sorry but you can't really argue it's not code duplication,
-it really is.
+	Hans
 
-> So sorry, I disagree I believe that this is the best solution.
->=20
-> > However, as those are not critical clocks that need to be here early
-> > at boot, you can also fix this by turning the mod0 driver into a
-> > platform driver itself. The compatible will be kept, the driver will
-> > be the same.
-> >=20
-> > The only thing we need to pay attention to is how "client" drivers
-> > react when they cannot grab their clock. They should return
-> > -EPROBE_DEFER, but that remains to be checked.
->=20
-> -EPROBE_DEFER is yet another reason to not make mod0-clk a platform
-> driver. Yes drivers should be able to handle this, but it is a pain,
-> and the more we use it the more pain it is. Also it makes booting a lot
-> slower as any driver using a mod0 clk now, will not complete its probe
-> until all the other drivers are done probing and the late_initcall
-> which starts the deferred-probe wq runs.
+> 
+>>> +	dma->queue.drv_priv = dma;
+>>> +	dma->queue.buf_struct_size = sizeof(struct xvip_dma_buffer);
+>>> +	dma->queue.ops = &xvip_dma_queue_qops;
+>>> +	dma->queue.mem_ops = &vb2_dma_contig_memops;
+>>> +	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+>>> +				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+>>> +	ret = vb2_queue_init(&dma->queue);
+>>> +	if (ret < 0) {
+>>> +		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
+>>> +		goto error;
+>>> +	}
+>>> +
+>>> +	/* ... and the DMA channel. */
+>>> +	sprintf(name, "port%u", port);
+>>> +	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
+>>> +	if (dma->dma == NULL) {
+>>> +		dev_err(dma->xdev->dev, "no VDMA channel found\n");
+>>> +		ret = -ENODEV;
+>>> +		goto error;
+>>> +	}
+>>> +
+>>> +	dma->align = 1 << dma->dma->device->copy_align;
+>>> +
+>>> +	ret = video_register_device(&dma->video, VFL_TYPE_GRABBER, -1);
+>>> +	if (ret < 0) {
+>>> +		dev_err(dma->xdev->dev, "failed to register video device\n");
+>>> +		goto error;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +
+>>> +error:
+>>> +	xvip_dma_cleanup(dma);
+>>> +	return ret;
+>>> +}
+> 
 
-The whole EPROBE_DEFER mechanism might need some fixing, but it's not
-really the point is it?
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---jo46wx5DSA4a/gWG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUc6suAAoJEBx+YmzsjxAgZXQP/ixn5vw+qyUNdyLXJV7+y9ip
-KNyT2Oai0fb+dKW4zeO3q1WxVw+aCgIDrgyfGCIDrY3kSkbj93zr2SvW0p1y8uEO
-La4Ki901CP2qCloLN0Lv90+I0EojAxL31cdarf34YGYiePo3mee9d2/A9scZMufL
-zYirJeizHEUb2we46bhvGua1UZb5kR+CIPhWTUD48IbLpXJl8M02OIeJADTVlmvd
-hRgwWa2cb6F5SHIXMh6PLcwmmTgc/80g7uNbZjAiwkJxU73+m+NF+W/bUzTIgu/I
-Q/6l3Vu1JJ5JlX62OOWJlvEsgrD3OO2NnBEByW8hiP4/YU3NvXJDOMQugKS9SWkc
-AWKO7fBYrqhTf2h1YBp6ZM3BN/A9vJkq4JOCNTHKb0fZyn8JpzTrc2gHEfSJnLIf
-YQw0U/JBRlp/v/kkZqX7dW2rUXK1KHSE2Zsw9/iOoUDjORL3DVN/lOiQKAEAKJKA
-BRhI8+rpR/vTRxdhfpKYmsWZjcP+dbJCpPaHBLCREZyoWgBGcD7dkWH2eNlfHVoN
-zqiPK2etP+A7gn92FOd/4jVVGH/y8Vm832uKsL65NGyfdqupwRr5eJ1FZ6f16ypI
-iP/lZw0Ow8kOyqQgXSZW7nA8K7aqH8oRLvpReAD9kwriEN2ifVQJJzZDAM9ucH0r
-1CJ22+8k6Kf+jXPBT8W8
-=qkld
------END PGP SIGNATURE-----
-
---jo46wx5DSA4a/gWG--
