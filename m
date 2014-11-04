@@ -1,95 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:62195 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819AbaKDARX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 19:17:23 -0500
-Date: Tue, 4 Nov 2014 02:17:19 +0200
-From: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-To: Konrad Zapalowicz <bergo.torino@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Gulsah Kose <gulsah.1004@gmail.com>,
-	Matina Maria Trompouki <mtrompou@gmail.com>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: adjust debug messages
-Message-ID: <20141104001719.GA14576@localhost.localdomain>
-References: <20141101213654.GA3191@localhost.localdomain>
- <20141102114013.GD21791@t400>
+Received: from gateway05.websitewelcome.com ([69.93.35.13]:56613 "EHLO
+	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751832AbaKDWlm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Nov 2014 17:41:42 -0500
+Received: from cm5.websitewelcome.com (cm5.websitewelcome.com [192.185.178.233])
+	by gateway05.websitewelcome.com (Postfix) with ESMTP id BD38C2C07B4D2
+	for <linux-media@vger.kernel.org>; Tue,  4 Nov 2014 16:20:37 -0600 (CST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141102114013.GD21791@t400>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Tue, 04 Nov 2014 16:20:35 -0600
+From: Dean Anderson <linux-dev@sensoray.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH] [media] s2255drv: fix spinlock issue
+In-Reply-To: <1415133243-9929-1-git-send-email-linux-dev@sensoray.com>
+References: <1415133243-9929-1-git-send-email-linux-dev@sensoray.com>
+Message-ID: <bc42c2ddb9dfa9019862a6c56291dfe6@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 02, 2014 at 12:40:13PM +0100, Konrad Zapalowicz wrote:
-> On 11/01, Aya Mahfouz wrote:
-> > This patch removes one debug message and replaces a dev_err
-> > call by pr_err.
-> 
-> Usually you would like to send this as two separate patches because
-> replacing a debug message is way different than removing some code. It
-> should look like:
-> 
-> 	PATCH 0/2 staging: media: adjust debug messages
-> 		PATCH 1/2 staging: media: replace dev_err...
-> 		PATCH 2/2 staging: media: remove debug message..
-> 
-> The lirc_zilog.c is not necessary in the topic line, as this can be seen
-> from the diff.
-> 
+This patch is not so urgent, but should still be considered.  Please 
+disregard the second comment below, which is not correct.
 
-Thanks Konrad for your pieces of advice.
+The original code, however, holds the spinlock for a long time.  From 
+the structure of videobuf2, we could just hold qlock during buf_list and 
+sequence accesses.
 
-Kind Regards,
-Aya Saif El-yazal Mahfouz
- 
-> > Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
-> > ---
-> >  drivers/staging/media/lirc/lirc_zilog.c | 7 +------
-> >  1 file changed, 1 insertion(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-> > index 11a7cb1..ba538cd4 100644
-> > --- a/drivers/staging/media/lirc/lirc_zilog.c
-> > +++ b/drivers/staging/media/lirc/lirc_zilog.c
-> > @@ -1336,11 +1336,6 @@ static int close(struct inode *node, struct file *filep)
-> >  	/* find our IR struct */
-> >  	struct IR *ir = filep->private_data;
-> >  
-> > -	if (ir == NULL) {
-> > -		dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
-> > -		return -ENODEV;
-> > -	}
-> > -
+
+On 2014-11-04 14:34, Dean Anderson wrote:
+> qlock spinlock controls access to buf_list and sequence.
+> qlock spinlock should not be locked during a copy to video buffers, an
+> operation that may sleep.
 > 
-> What is the reason behind this change? What would happen if the
-> filep->private_data is NULL? Are the callers of this function aware that
-> it will not return ENODEV anymore?
+> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+> ---
+>  drivers/media/usb/s2255/s2255drv.c | 23 +++++++++++------------
+>  1 file changed, 11 insertions(+), 12 deletions(-)
 > 
-> thanks,
-> konrad
+> diff --git a/drivers/media/usb/s2255/s2255drv.c
+> b/drivers/media/usb/s2255/s2255drv.c
+> index ccc0009..24c4413 100644
+> --- a/drivers/media/usb/s2255/s2255drv.c
+> +++ b/drivers/media/usb/s2255/s2255drv.c
+> @@ -558,27 +558,31 @@ static void s2255_fwchunk_complete(struct urb 
+> *urb)
 > 
-> >  	atomic_dec(&ir->open_count);
-> >  
-> >  	put_ir_device(ir, false);
-> > @@ -1633,7 +1628,7 @@ out_put_xx:
-> >  out_put_ir:
-> >  	put_ir_device(ir, true);
-> >  out_no_ir:
-> > -	dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
-> > +	pr_err("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
-> >  		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
-> >  		   ret);
-> >  	mutex_unlock(&ir_devices_lock);
-> > -- 
-> > 1.9.3
-> > 
-> > _______________________________________________
-> > devel mailing list
-> > devel@linuxdriverproject.org
-> > http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+>  }
+> 
+> -static int s2255_got_frame(struct s2255_vc *vc, int jpgsize)
+> +static void s2255_got_frame(struct s2255_vc *vc, int jpgsize)
+>  {
+>  	struct s2255_buffer *buf;
+>  	struct s2255_dev *dev = to_s2255_dev(vc->vdev.v4l2_dev);
+>  	unsigned long flags = 0;
+> -	int rc = 0;
+> +
+>  	spin_lock_irqsave(&vc->qlock, flags);
+>  	if (list_empty(&vc->buf_list)) {
+>  		dprintk(dev, 1, "No active queue to serve\n");
+> -		rc = -1;
+> -		goto unlock;
+> +		spin_unlock_irqrestore(&vc->qlock, flags);
+> +		return;
+>  	}
+>  	buf = list_entry(vc->buf_list.next,
+>  			 struct s2255_buffer, list);
+>  	list_del(&buf->list);
+>  	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+> +	buf->vb.v4l2_buf.field = vc->field;
+> +	buf->vb.v4l2_buf.sequence = vc->frame_count;
+> +	spin_unlock_irqrestore(&vc->qlock, flags);
+> +
+>  	s2255_fillbuff(vc, buf, jpgsize);
+> +	/* tell v4l buffer was filled */
+> +	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+>  	dprintk(dev, 2, "%s: [buf] [%p]\n", __func__, buf);
+> -unlock:
+> -	spin_unlock_irqrestore(&vc->qlock, flags);
+> -	return rc;
+> +	return;
+>  }
+> 
+>  static const struct s2255_fmt *format_by_fourcc(int fourcc)
+> @@ -649,11 +653,6 @@ static void s2255_fillbuff(struct s2255_vc *vc,
+>  	}
+>  	dprintk(dev, 2, "s2255fill at : Buffer 0x%08lx size= %d\n",
+>  		(unsigned long)vbuf, pos);
+> -	/* tell v4l buffer was filled */
+> -	buf->vb.v4l2_buf.field = vc->field;
+> -	buf->vb.v4l2_buf.sequence = vc->frame_count;
+> -	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+> -	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+>  }
+> 
+> 
+> --
+> 1.9.1
