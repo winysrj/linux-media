@@ -1,115 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48484 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751359AbaKRDnk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 22:43:40 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EB03A2A0376
-	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 04:43:25 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20141118034325.EB03A2A0376@tschai.lan>
-Date: Tue, 18 Nov 2014 04:43:25 +0100 (CET)
+Received: from bombadil.infradead.org ([198.137.202.9]:47031 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118AbaKDUfM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 15:35:12 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2] [media] af0933: Don't go past arrays
+Date: Tue,  4 Nov 2014 18:35:07 -0200
+Message-Id: <24ac978937a28c248cc55a3d3f59a061344ec7d3.1415133273.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Fixes the following sparse warnings:
+	drivers/media/dvb-frontends/af9033.c:295 af9033_init() error: buffer overflow 'clock_adc_lut' 11 <= 11
+	drivers/media/dvb-frontends/af9033.c:300 af9033_init() error: buffer overflow 'clock_adc_lut' 11 <= 11
+	drivers/media/dvb-frontends/af9033.c:584 af9033_set_frontend() error: buffer overflow 'coeff_lut' 3 <= 3
+	drivers/media/dvb-frontends/af9033.c:595 af9033_set_frontend() error: buffer overflow 'clock_adc_lut' 11 <= 11
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-date:		Tue Nov 18 04:00:15 CET 2014
-git branch:	test
-git hash:	c02ef64aab828d80040b5dce934729312e698c33
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-35-gc1c3f96
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.17-2.slh.2-amd64
+-
+v2: Only changed the patch subject, as it fixes occurrences on 3
+    different arrays.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-i686: OK
-linux-3.17-i686: OK
-linux-3.18-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-x86_64: OK
-linux-3.17-x86_64: OK
-linux-3.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index c17e34fd0fb4..82ce47bdf5dc 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -291,6 +291,12 @@ static int af9033_init(struct dvb_frontend *fe)
+ 		if (clock_adc_lut[i].clock == dev->cfg.clock)
+ 			break;
+ 	}
++	if (i == ARRAY_SIZE(clock_adc_lut)) {
++		dev_err(&dev->client->dev,
++			"Couldn't find ADC config for clock=%d\n",
++			dev->cfg.clock);
++		goto err;
++	}
+ 
+ 	adc_cw = af9033_div(dev, clock_adc_lut[i].adc, 1000000ul, 19ul);
+ 	buf[0] = (adc_cw >>  0) & 0xff;
+@@ -580,7 +586,15 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
+ 				break;
+ 			}
+ 		}
+-		ret =  af9033_wr_regs(dev, 0x800001,
++		if (i == ARRAY_SIZE(coeff_lut)) {
++			dev_err(&dev->client->dev,
++				"Couldn't find LUT config for clock=%d\n",
++				dev->cfg.clock);
++			ret = -EINVAL;
++			goto err;
++		}
++
++		ret = af9033_wr_regs(dev, 0x800001,
+ 				coeff_lut[i].val, sizeof(coeff_lut[i].val));
+ 	}
+ 
+@@ -592,6 +606,13 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
+ 			if (clock_adc_lut[i].clock == dev->cfg.clock)
+ 				break;
+ 		}
++		if (i == ARRAY_SIZE(clock_adc_lut)) {
++			dev_err(&dev->client->dev,
++				"Couldn't find ADC clock for clock=%d\n",
++				dev->cfg.clock);
++			ret = -EINVAL;
++			goto err;
++		}
+ 		adc_freq = clock_adc_lut[i].adc;
+ 
+ 		/* get used IF frequency */
+-- 
+1.9.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
