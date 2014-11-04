@@ -1,141 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:33363 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519AbaKHIr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 03:47:59 -0500
-Received: by mail-pd0-f170.google.com with SMTP id z10so4748594pdj.15
-        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 00:47:59 -0800 (PST)
-Date: Sat, 8 Nov 2014 16:47:57 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	"Antti Palosaari" <crope@iki.fi>
-Subject: [PATCH 2/2] smipcie: add DVBSky T9580 V3 support
-Message-ID: <201411081647541566078@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:63570 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877AbaKDBha (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 20:37:30 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAK5ve-LMvocfZv+HYvYUjKPk-O+1u+JU2FUm-Ot9XB8SH9daWg@mail.gmail.com>
+References: <1411399266-16375-1-git-send-email-j.anaszewski@samsung.com>
+ <1411399266-16375-2-git-send-email-j.anaszewski@samsung.com> <CAK5ve-LMvocfZv+HYvYUjKPk-O+1u+JU2FUm-Ot9XB8SH9daWg@mail.gmail.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Mon, 3 Nov 2014 17:37:09 -0800
+Message-ID: <CAK5ve-+Qp-T-y9bce2p_+xG+V7kV=feWR_XRDVsbhCv9Ty_53w@mail.gmail.com>
+Subject: Re: [PATCH/RFC v6 1/3] leds: implement sysfs interface locking mechanism
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	b.zolnierkie@samsung.com, Richard Purdie <rpurdie@rpsys.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
-1>DVB-S/S2 frontend: M88DS3103/M88TS2022
-2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
-2>PCIe bridge: SMI PCIe
+On Mon, Oct 20, 2014 at 6:01 PM, Bryan Wu <cooloney@gmail.com> wrote:
+> On Mon, Sep 22, 2014 at 8:21 AM, Jacek Anaszewski
+> <j.anaszewski@samsung.com> wrote:
+>> Add a mechanism for locking LED subsystem sysfs interface.
+>> This patch prepares ground for addition of LED Flash Class
+>> extension, whose API will be integrated with V4L2 Flash API.
+>> Such a fusion enforces introducing a locking scheme, which
+>> will secure consistent access to the LED Flash Class device.
+>>
+>> The mechanism being introduced allows for disabling LED
+>> subsystem sysfs interface by calling led_sysfs_disable function
+>> and enabling it by calling led_sysfs_enable. The functions
+>> alter the LED_SYSFS_DISABLE flag state and must be called
+>> under mutex lock. The state of the lock is checked with use
+>> of led_sysfs_is_disabled function. Such a design allows for
+>> providing immediate feedback to the user space on whether
+>> the LED Flash Class device is available or is under V4L2 Flash
+>> sub-device control.
+>>
+>
+> I'm good with this and will merge it soon.
+>
 
-Signed-off-by: Nibble Max <nibble.max@gmail.com>
----
- drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+Just merged it into my tree.
 
-diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-index c27e45b..a5707ea 100644
---- a/drivers/media/pci/smipcie/smipcie.c
-+++ b/drivers/media/pci/smipcie/smipcie.c
-@@ -18,6 +18,8 @@
- #include "m88ds3103.h"
- #include "m88ts2022.h"
- #include "m88rs6000t.h"
-+#include "si2168.h"
-+#include "si2157.h"
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
-@@ -618,6 +620,58 @@ err_tuner_i2c_device:
- 	return ret;
- }
- 
-+static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
-+{
-+	int ret = 0;
-+	struct smi_dev *dev = port->dev;
-+	struct i2c_adapter *i2c;
-+	struct i2c_adapter *tuner_i2c_adapter;
-+	struct i2c_client *client_tuner, *client_demod;
-+	struct i2c_board_info client_info;
-+	struct si2168_config si2168_config;
-+	struct si2157_config si2157_config;
-+
-+	/* select i2c bus */
-+	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
-+
-+	/* attach demod */
-+	memset(&si2168_config, 0, sizeof(si2168_config));
-+	si2168_config.i2c_adapter = &tuner_i2c_adapter;
-+	si2168_config.fe = &port->fe;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+
-+	memset(&client_info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
-+	client_info.addr = 0x64;
-+	client_info.platform_data = &si2168_config;
-+
-+	client_demod = smi_add_i2c_client(i2c, &client_info);
-+	if (!client_demod) {
-+		ret = -ENODEV;
-+		return ret;
-+	}
-+	port->i2c_client_demod = client_demod;
-+
-+	/* attach tuner */
-+	memset(&si2157_config, 0, sizeof(si2157_config));
-+	si2157_config.fe = port->fe;
-+
-+	memset(&client_info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
-+	client_info.addr = 0x60;
-+	client_info.platform_data = &si2157_config;
-+
-+	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
-+	if (!client_tuner) {
-+		smi_del_i2c_client(port->i2c_client_demod);
-+		port->i2c_client_demod = NULL;
-+		ret = -ENODEV;
-+		return ret;
-+	}
-+	port->i2c_client_tuner = client_tuner;
-+	return ret;
-+}
-+
- static int smi_fe_init(struct smi_port *port)
- {
- 	int ret = 0;
-@@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
- 	case DVBSKY_FE_M88RS6000:
- 		ret = smi_dvbsky_m88rs6000_fe_attach(port);
- 		break;
-+	case DVBSKY_FE_SIT2:
-+		ret = smi_dvbsky_sit2_fe_attach(port);
-+		break;
- 	}
- 	if (ret < 0)
- 		return ret;
-@@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
- 	.fe_1 = DVBSKY_FE_M88RS6000,
- };
- 
-+static struct smi_cfg_info dvbsky_t9580_cfg = {
-+	.type = SMI_DVBSKY_S952,
-+	.name = "DVBSky T9580 V3",
-+	.ts_0 = SMI_TS_DMA_BOTH,
-+	.ts_1 = SMI_TS_DMA_BOTH,
-+	.fe_0 = DVBSKY_FE_SIT2,
-+	.fe_1 = DVBSKY_FE_M88DS3103,
-+};
-+
- /* PCI IDs */
- #define SMI_ID(_subvend, _subdev, _driverdata) {	\
- 	.vendor      = SMI_VID,    .device    = SMI_PID, \
-@@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
- static const struct pci_device_id smi_id_table[] = {
- 	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
- 	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
-+	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
- 	{0}
- };
- MODULE_DEVICE_TABLE(pci, smi_id_table);
- 
--- 
-1.9.1
+Thanks,
+-Bryan
 
+
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> ---
+>>  drivers/leds/led-class.c    |   19 ++++++++++++++++---
+>>  drivers/leds/led-core.c     |   18 ++++++++++++++++++
+>>  drivers/leds/led-triggers.c |   16 +++++++++++++---
+>>  include/linux/leds.h        |   32 ++++++++++++++++++++++++++++++++
+>>  4 files changed, 79 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+>> index 2e124aa2..a39ca8f 100644
+>> --- a/drivers/leds/led-class.c
+>> +++ b/drivers/leds/led-class.c
+>> @@ -39,17 +39,27 @@ static ssize_t brightness_store(struct device *dev,
+>>  {
+>>         struct led_classdev *led_cdev = dev_get_drvdata(dev);
+>>         unsigned long state;
+>> -       ssize_t ret = -EINVAL;
+>> +       ssize_t ret;
+>> +
+>> +       mutex_lock(&led_cdev->led_access);
+>> +
+>> +       if (led_sysfs_is_disabled(led_cdev)) {
+>> +               ret = -EBUSY;
+>> +               goto unlock;
+>> +       }
+>>
+>>         ret = kstrtoul(buf, 10, &state);
+>>         if (ret)
+>> -               return ret;
+>> +               goto unlock;
+>>
+>>         if (state == LED_OFF)
+>>                 led_trigger_remove(led_cdev);
+>>         __led_set_brightness(led_cdev, state);
+>>
+>> -       return size;
+>> +       ret = size;
+>> +unlock:
+>> +       mutex_unlock(&led_cdev->led_access);
+>> +       return ret;
+>>  }
+>>  static DEVICE_ATTR_RW(brightness);
+>>
+>> @@ -213,6 +223,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+>>  #ifdef CONFIG_LEDS_TRIGGERS
+>>         init_rwsem(&led_cdev->trigger_lock);
+>>  #endif
+>> +       mutex_init(&led_cdev->led_access);
+>>         /* add to the list of leds */
+>>         down_write(&leds_list_lock);
+>>         list_add_tail(&led_cdev->node, &leds_list);
+>> @@ -266,6 +277,8 @@ void led_classdev_unregister(struct led_classdev *led_cdev)
+>>         down_write(&leds_list_lock);
+>>         list_del(&led_cdev->node);
+>>         up_write(&leds_list_lock);
+>> +
+>> +       mutex_destroy(&led_cdev->led_access);
+>>  }
+>>  EXPORT_SYMBOL_GPL(led_classdev_unregister);
+>>
+>> diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+>> index 0d15aa9..cca86ab 100644
+>> --- a/drivers/leds/led-core.c
+>> +++ b/drivers/leds/led-core.c
+>> @@ -142,3 +142,21 @@ int led_update_brightness(struct led_classdev *led_cdev)
+>>         return ret;
+>>  }
+>>  EXPORT_SYMBOL(led_update_brightness);
+>> +
+>> +/* Caller must ensure led_cdev->led_access held */
+>> +void led_sysfs_disable(struct led_classdev *led_cdev)
+>> +{
+>> +       lockdep_assert_held(&led_cdev->led_access);
+>> +
+>> +       led_cdev->flags |= LED_SYSFS_DISABLE;
+>> +}
+>> +EXPORT_SYMBOL_GPL(led_sysfs_disable);
+>> +
+>> +/* Caller must ensure led_cdev->led_access held */
+>> +void led_sysfs_enable(struct led_classdev *led_cdev)
+>> +{
+>> +       lockdep_assert_held(&led_cdev->led_access);
+>> +
+>> +       led_cdev->flags &= ~LED_SYSFS_DISABLE;
+>> +}
+>> +EXPORT_SYMBOL_GPL(led_sysfs_enable);
+>> diff --git a/drivers/leds/led-triggers.c b/drivers/leds/led-triggers.c
+>> index c3734f1..e8b1120 100644
+>> --- a/drivers/leds/led-triggers.c
+>> +++ b/drivers/leds/led-triggers.c
+>> @@ -37,6 +37,14 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>>         char trigger_name[TRIG_NAME_MAX];
+>>         struct led_trigger *trig;
+>>         size_t len;
+>> +       int ret = count;
+>> +
+>> +       mutex_lock(&led_cdev->led_access);
+>> +
+>> +       if (led_sysfs_is_disabled(led_cdev)) {
+>> +               ret = -EBUSY;
+>> +               goto unlock;
+>> +       }
+>>
+>>         trigger_name[sizeof(trigger_name) - 1] = '\0';
+>>         strncpy(trigger_name, buf, sizeof(trigger_name) - 1);
+>> @@ -47,7 +55,7 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>>
+>>         if (!strcmp(trigger_name, "none")) {
+>>                 led_trigger_remove(led_cdev);
+>> -               return count;
+>> +               goto unlock;
+>>         }
+>>
+>>         down_read(&triggers_list_lock);
+>> @@ -58,12 +66,14 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+>>                         up_write(&led_cdev->trigger_lock);
+>>
+>>                         up_read(&triggers_list_lock);
+>> -                       return count;
+>> +                       goto unlock;
+>>                 }
+>>         }
+>>         up_read(&triggers_list_lock);
+>>
+>> -       return -EINVAL;
+>> +unlock:
+>> +       mutex_unlock(&led_cdev->led_access);
+>> +       return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(led_trigger_store);
+>>
+>> diff --git a/include/linux/leds.h b/include/linux/leds.h
+>> index f8b2f58..44c8a98 100644
+>> --- a/include/linux/leds.h
+>> +++ b/include/linux/leds.h
+>> @@ -13,6 +13,7 @@
+>>  #define __LINUX_LEDS_H_INCLUDED
+>>
+>>  #include <linux/list.h>
+>> +#include <linux/mutex.h>
+>>  #include <linux/rwsem.h>
+>>  #include <linux/spinlock.h>
+>>  #include <linux/timer.h>
+>> @@ -42,6 +43,7 @@ struct led_classdev {
+>>  #define LED_BLINK_ONESHOT      (1 << 17)
+>>  #define LED_BLINK_ONESHOT_STOP (1 << 18)
+>>  #define LED_BLINK_INVERT       (1 << 19)
+>> +#define LED_SYSFS_DISABLE      (1 << 20)
+>>
+>>         /* Set LED brightness level */
+>>         /* Must not sleep, use a workqueue if needed */
+>> @@ -85,6 +87,9 @@ struct led_classdev {
+>>         /* true if activated - deactivate routine uses it to do cleanup */
+>>         bool                    activated;
+>>  #endif
+>> +
+>> +       /* Ensures consistent access to the LED Flash Class device */
+>> +       struct mutex            led_access;
+>>  };
+>>
+>>  extern int led_classdev_register(struct device *parent,
+>> @@ -151,6 +156,33 @@ extern void led_set_brightness(struct led_classdev *led_cdev,
+>>   */
+>>  extern int led_update_brightness(struct led_classdev *led_cdev);
+>>
+>> +/**
+>> + * led_sysfs_disable - disable LED sysfs interface
+>> + * @led_cdev: the LED to set
+>> + *
+>> + * Disable the led_cdev's sysfs interface.
+>> + */
+>> +extern void led_sysfs_disable(struct led_classdev *led_cdev);
+>> +
+>> +/**
+>> + * led_sysfs_enable - enable LED sysfs interface
+>> + * @led_cdev: the LED to set
+>> + *
+>> + * Enable the led_cdev's sysfs interface.
+>> + */
+>> +extern void led_sysfs_enable(struct led_classdev *led_cdev);
+>> +
+>> +/**
+>> + * led_sysfs_is_disabled - check if LED sysfs interface is disabled
+>> + * @led_cdev: the LED to query
+>> + *
+>> + * Returns: true if the led_cdev's sysfs interface is disabled.
+>> + */
+>> +static inline bool led_sysfs_is_disabled(struct led_classdev *led_cdev)
+>> +{
+>> +       return led_cdev->flags & LED_SYSFS_DISABLE;
+>> +}
+>> +
+>>  /*
+>>   * LED Triggers
+>>   */
+>> --
+>> 1.7.9.5
+>>
