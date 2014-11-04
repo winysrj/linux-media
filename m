@@ -1,248 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46534 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751038AbaKRFoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 00:44:01 -0500
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 3071A60096
-	for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 07:43:58 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:56946 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118AbaKDBHQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Nov 2014 20:07:16 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH v2 01/11] smiapp: Remove FSF's address from the license header
-Date: Tue, 18 Nov 2014 07:43:36 +0200
-Message-Id: <1416289426-804-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
-References: <1416289426-804-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
+Subject: [PATCH 6/6] af9033: continue polling unless critical IO error
+Date: Tue,  4 Nov 2014 03:07:04 +0200
+Message-Id: <1415063224-28453-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1415063224-28453-1-git-send-email-crope@iki.fi>
+References: <1415063224-28453-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove FSF's address information from the license header in the smiapp
-driver and the smiapp-pll PLL calculator. This should no longer be needed,
-and would be rendered outdated in case the FSF chooses to relocate its
-office.
+That case is not IO error, so better to jump out now, but still
+continue polling.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Timo Ahonen <timo.ahonen@nokia.com>
+Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/smiapp-pll.c             |    6 ------
- drivers/media/i2c/smiapp-pll.h             |    6 ------
- drivers/media/i2c/smiapp/smiapp-core.c     |    6 ------
- drivers/media/i2c/smiapp/smiapp-limits.c   |    6 ------
- drivers/media/i2c/smiapp/smiapp-limits.h   |    6 ------
- drivers/media/i2c/smiapp/smiapp-quirk.c    |    6 ------
- drivers/media/i2c/smiapp/smiapp-quirk.h    |    6 ------
- drivers/media/i2c/smiapp/smiapp-reg-defs.h |    6 ------
- drivers/media/i2c/smiapp/smiapp-reg.h      |    6 ------
- drivers/media/i2c/smiapp/smiapp-regs.c     |    6 ------
- drivers/media/i2c/smiapp/smiapp-regs.h     |    6 ------
- drivers/media/i2c/smiapp/smiapp.h          |    6 ------
- 12 files changed, 72 deletions(-)
+ drivers/media/dvb-frontends/af9033.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index e40d902..2b84d09 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index e640701..c17e34f 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -1103,7 +1103,7 @@ static void af9033_stat_work(struct work_struct *work)
+ 			snr_val *= 2;
+ 			break;
+ 		default:
+-			goto err;
++			goto err_schedule_delayed_work;
+ 		}
  
- #include <linux/gcd.h>
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index e8f035a..77f7ff2f 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #ifndef SMIAPP_PLL_H
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 65e4e05..ab917a6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -18,12 +18,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #include <linux/clk.h>
-diff --git a/drivers/media/i2c/smiapp/smiapp-limits.c b/drivers/media/i2c/smiapp/smiapp-limits.c
-index 847cb23..784b114 100644
---- a/drivers/media/i2c/smiapp/smiapp-limits.c
-+++ b/drivers/media/i2c/smiapp/smiapp-limits.c
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #include "smiapp.h"
-diff --git a/drivers/media/i2c/smiapp/smiapp-limits.h b/drivers/media/i2c/smiapp/smiapp-limits.h
-index 343e9c3..b201248 100644
---- a/drivers/media/i2c/smiapp/smiapp-limits.h
-+++ b/drivers/media/i2c/smiapp/smiapp-limits.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #define SMIAPP_LIMIT_ANALOGUE_GAIN_CAPABILITY			0
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
-index e0bee87..dd4ae6f 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.c
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #include <linux/delay.h>
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
-index 46e9ea8..3a3c3e5 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.h
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #ifndef __SMIAPP_QUIRK__
-diff --git a/drivers/media/i2c/smiapp/smiapp-reg-defs.h b/drivers/media/i2c/smiapp/smiapp-reg-defs.h
-index c488ef0..f928d4c 100644
---- a/drivers/media/i2c/smiapp/smiapp-reg-defs.h
-+++ b/drivers/media/i2c/smiapp/smiapp-reg-defs.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- #define SMIAPP_REG_MK_U8(r) ((SMIAPP_REG_8BIT << 16) | (r))
- #define SMIAPP_REG_MK_U16(r) ((SMIAPP_REG_16BIT << 16) | (r))
-diff --git a/drivers/media/i2c/smiapp/smiapp-reg.h b/drivers/media/i2c/smiapp/smiapp-reg.h
-index b0dcbb8..4c8b406 100644
---- a/drivers/media/i2c/smiapp/smiapp-reg.h
-+++ b/drivers/media/i2c/smiapp/smiapp-reg.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #ifndef __SMIAPP_REG_H_
-diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/smiapp/smiapp-regs.c
-index a209800..6b6c20b 100644
---- a/drivers/media/i2c/smiapp/smiapp-regs.c
-+++ b/drivers/media/i2c/smiapp/smiapp-regs.c
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #include <linux/delay.h>
-diff --git a/drivers/media/i2c/smiapp/smiapp-regs.h b/drivers/media/i2c/smiapp/smiapp-regs.h
-index 3552112..6dd0e49 100644
---- a/drivers/media/i2c/smiapp/smiapp-regs.h
-+++ b/drivers/media/i2c/smiapp/smiapp-regs.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #ifndef SMIAPP_REGS_H
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index f88f8ec..8fded46 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -14,12 +14,6 @@
-  * WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-  */
- 
- #ifndef __SMIAPP_PRIV_H_
+ 		/* read current modulation */
 -- 
-1.7.10.4
+http://palosaari.fi/
 
