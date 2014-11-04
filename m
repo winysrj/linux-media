@@ -1,33 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38983 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:43434 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752743AbaKZRx5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 12:53:57 -0500
-Message-ID: <547613B3.6090602@iki.fi>
-Date: Wed, 26 Nov 2014 19:53:55 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752018AbaKDWjn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Nov 2014 17:39:43 -0500
+Date: Tue, 4 Nov 2014 20:39:36 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Martin Kittel <linux@martin-kittel.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Patch mceusb: fix invalid urb interval
+Message-ID: <20141104203936.4398470b@recife.lan>
+In-Reply-To: <20141104212548.GA1508@gofer.mess.org>
+References: <loom.20131110T113621-661@post.gmane.org>
+	<20131211131751.GA434@pequod.mess.org>
+	<l8ai94$cbr$1@ger.gmane.org>
+	<20140115134917.1450f87c@samsung.com>
+	<20140115165245.GA23620@pequod.mess.org>
+	<20140115155923.0b8978da.m.chehab@samsung.com>
+	<52DC3E0B.6010202@martin-kittel.de>
+	<20140119215648.GA15388@pequod.mess.org>
+	<20140120173625.GA18257@redhat.com>
+	<20141103144945.00288499.m.chehab@samsung.com>
+	<20141104212548.GA1508@gofer.mess.org>
 MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/3] cxusb: remove TechnoTrend CT2-4400 and CT2-4650 devices
-References: <201411262035117039244@gmail.com>
-In-Reply-To: <201411262035117039244@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2014 02:35 PM, Nibble Max wrote:
-> Remove TechnoTrend CT2-4400 and CT2-4650 devices from cxusb.
-> They are supported by dvb-usb-dvbsky driver in PATCH 3/3.
->
-> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+Em Tue, 04 Nov 2014 21:25:49 +0000
+Sean Young <sean@mess.org> escreveu:
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+> On Mon, Nov 03, 2014 at 02:49:45PM -0200, Mauro Carvalho Chehab wrote:
+> > Em Mon, 20 Jan 2014 12:36:26 -0500
+> > Jarod Wilson <jarod@redhat.com> escreveu:
+> > 
+> > > On Sun, Jan 19, 2014 at 09:56:48PM +0000, Sean Young wrote:
+> > > > On Sun, Jan 19, 2014 at 10:05:15PM +0100, Martin Kittel wrote:
+> > > > > Hi Mauro, hi Sean,
+> > > ...
+> > > > > >From a71676dad29adef9cafb08598e693ec308ba2e95 Mon Sep 17 00:00:00 2001
+> > > > > From: Martin Kittel <linux@martin-kittel.de>
+> > > > > Date: Sun, 19 Jan 2014 21:24:55 +0100
+> > > > > Subject: [PATCH] mceusb: use endpoint xfer mode as advertised
+> > > > > 
+> > > > > mceusb always sets endpoints to interrupt transfer mode no matter
+> > > > > what the device itself is advertising. This causes trouble on xhci
+> > > > > hubs. This patch changes the behavior to honor the device endpoint
+> > > > > settings.
+> > > > 
+> > > > This patch is wrong. I get:
+> > > > 
+> > > > [   60.962727] ------------[ cut here ]------------
+> > > > [   60.962729] WARNING: CPU: 0 PID: 0 at drivers/usb/core/urb.c:452 usb_submit_u
+> > > > rb+0x1fd/0x5b0()
+> > > > [   60.962730] usb 3-2: BOGUS urb xfer, pipe 1 != type 3
+> > > > 
+> > > > This is because the patch no longer sets the endpoints to interrupt
+> > > > endpoints, but still uses the interrupt functions like
+> > > > usb_fill_int_urb().
+> > > 
+> > > Crap, I sent a working patch to everyone a few days ago, but from a new
+> > > host that didn't have relay stuff set up yet, so I don't think anyone got
+> > > the message. Oops... I'll try to dig it back up. Its a quick fix, but its
+> > > tested as fully functional on multiple devices here, including a mix of
+> > > ones that claim bulk and interrupt, ones with no bInterval, ones with
+> > > different non-0 bIntervals, etc.
+> > 
+> > Hi All,
+> > 
+> > This is still pending on my queue. Any news?
+> 
+> I'm pretty sure the proper fix for this problem has been merged already:
+> 
+> commit 0cacb46ace1f433f0ab02af10686f6dc50b5d268
+> Author: Matt DeVillier <matt.devillier@gmail.com>
+> Date:   Thu Apr 24 11:16:31 2014 -0300
+> 
+>     [media] fix mceusb endpoint type identification/handling
 
-regards
-Antti
+Ah, OK. It seems I forgot to remove this from my queue.
 
--- 
-http://palosaari.fi/
+Marked as superseed.
+
+Thanks!
+Mauro
