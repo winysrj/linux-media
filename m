@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:8229 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbaKCOiB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 09:38:01 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEG004OKWNCVG30@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Nov 2014 09:38:00 -0500 (EST)
-Date: Mon, 03 Nov 2014 12:37:56 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Akihiro TSUKADA <tskd08@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] dvb:tc90522: bugfix of always-false expression
-Message-id: <20141103123756.10394733.m.chehab@samsung.com>
-In-reply-to: <544D20F0.3070109@iki.fi>
-References: <1414325129-16570-1-git-send-email-tskd08@gmail.com>
- <544CE5F1.3040601@iki.fi> <544CFDFE.9030409@gmail.com>
- <544D20F0.3070109@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43156 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751841AbaKDPh1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Nov 2014 10:37:27 -0500
+Date: Tue, 4 Nov 2014 17:36:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Paulo Assis <pj.assis@gmail.com>
+Cc: =?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	Grazvydas Ignotas <notasas@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
+Message-ID: <20141104153650.GO3136@valkosipuli.retiisi.org.uk>
+References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
+ <20141102225704.GM3136@valkosipuli.retiisi.org.uk>
+ <CANOLnONAsh-M7WvRFOhLo-obkS20ffurr9tD5b==yyHCwVRXoQ@mail.gmail.com>
+ <20141104115839.GN3136@valkosipuli.retiisi.org.uk>
+ <fbcc6c6b4b3bb0d049a6d1871d8a79df@roundcube.remlab.net>
+ <CAPueXH4Obd4F99w1g2ehgWbrfukrAhQ+=3TfRoNRuJJTAp70YA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPueXH4Obd4F99w1g2ehgWbrfukrAhQ+=3TfRoNRuJJTAp70YA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 26 Oct 2014 18:27:28 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi,
 
-> 
-> 
-> On 10/26/2014 03:58 PM, Akihiro TSUKADA wrote:
-> >>> Reported by David Binderman
-> >>
-> >> ^^ See Documentation/SubmittingPatches
-> >
-> > Though I knew that Reported-by: tag should not be used,
-> > I wrote it just to express my appreciation for his report,
-> > and did not mean to attach the tag.
-> > But I admit that it is confusing,
-> > so I'd like to beg Mauro to do me the kindness
-> > to delete the line when this patch is committed.
-> > (or I'll re-send the patch if it is necessary.)
-> 
-> Main reason I picked it up, was that tag was formally bad.
+On Tue, Nov 04, 2014 at 03:02:58PM +0000, Paulo Assis wrote:
+> I've add to change guvcview so that it now generates it's own
+> monotonic timestamps, kernel timestamps (uvcvideo at least), caused a
+> similar problem, e.g:
+> I would get a couple of frames with correct timestamps, then I would
+> get at least one with a value lower than the rest, this caused
+> playback to stutter.
+> I didn't had time to check the cause, but it has been like this for
+> quite some time now.
 
-Yeah, the tag should be Reported-by: and should have the email
-of the person who reported the issue.
+Have you looked what kind of timestamps the device gives you? The uvc
+devices provide their own hardware timestamps which the UVC driver uses. If
+the device provides bad timestamps to the driver, the buffer timestamps
+could end up being very wrong. I don't know if the driver tries to cope with
+that. One thing to try would be to capture images with a program which
+prints the buffer timestamps.
 
-But that's not the only thing you forgot... there's no SOB on
-this patch ;)
+yavta does, for example, print both the monotonic timestamp from the buffer
+and the time when the buffer has been dequeued:
 
-Please resend.
+<URL:http://git.ideasonboard.org/yavta.git>
 
-Regards,
-Mauro
+	$ yavta -c /dev/video0
+
+should do it. The first timestamp is the buffer timestamp, and the latter is
+the one is taken when the buffer is dequeued (by yavta).
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
