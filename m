@@ -1,165 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:56278 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519AbaKHLfL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 06:35:11 -0500
-Received: by mail-pd0-f182.google.com with SMTP id fp1so4912871pdb.13
-        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 03:35:10 -0800 (PST)
-Date: Sat, 8 Nov 2014 19:35:08 +0800
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:52671 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732AbaKDO7k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 09:59:40 -0500
+Received: by mail-pa0-f41.google.com with SMTP id rd3so14573872pab.14
+        for <linux-media@vger.kernel.org>; Tue, 04 Nov 2014 06:59:40 -0800 (PST)
+Date: Tue, 4 Nov 2014 22:59:36 +0800
 From: "Nibble Max" <nibble.max@gmail.com>
-To: "Olli Salonen" <olli.salonen@iki.fi>
+To: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
 Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Olli Salonen" <olli.salonen@iki.fi>,
 	"Antti Palosaari" <crope@iki.fi>
-Subject: [PATCH v2 1/2] smipcie: use add_i2c_client and del_i2c_client functions.
-Message-ID: <201411081935055005215@gmail.com>
+Subject: Re: [PATCH 1/1] smipcie: add DVBSky S952 V3 support
+Message-ID: <201411042259337816423@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="gb2312"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v2:
--no change, just resend with other patches.
+Hello Mauro,
 
-"add_i2c_client" and "del_i2c_client" functions make code shorter and easy to maintain.
+I check media_tree.git on linuxtv.org that the media tree does not include S952 V3 code.
+S952 V3 card has M88RS6000 dvb frontend. S950 V3 card has M88TS2022/M88DS3103 dvb frontend.
+There are 2 reasons:
+1> I submit two patchs for smipcie bridge driver.
+ first one for S950 V3: http://patchwork.linuxtv.org/patch/26364/ 
+ later one for S950 V3 and S952 V3: http://patchwork.linuxtv.org/patch/26436
+2> I do not resend the patch for smipcie bridge driver together with the updated patchs for m88rs6000t and m88ds3103.
 
-Signed-off-by: Nibble Max <nibble.max@gmail.com>
----
- drivers/media/pci/smipcie/smipcie.c | 69 +++++++++++++++++++++----------------
- 1 file changed, 40 insertions(+), 29 deletions(-)
+Sorry for my wrong actions. It makes you to pick up the first one which has no S952 V3 code.
+So I submit S952 V3 patch for the current media_tree.git code again.
 
-diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-index d1c1463..c27e45b 100644
---- a/drivers/media/pci/smipcie/smipcie.c
-+++ b/drivers/media/pci/smipcie/smipcie.c
-@@ -477,6 +477,33 @@ static irqreturn_t smi_irq_handler(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-+static struct i2c_client *smi_add_i2c_client(struct i2c_adapter *adapter,
-+			struct i2c_board_info *info)
-+{
-+	struct i2c_client *client;
-+
-+	request_module(info->type);
-+	client = i2c_new_device(adapter, info);
-+	if (client == NULL || client->dev.driver == NULL)
-+		goto err_add_i2c_client;
-+
-+	if (!try_module_get(client->dev.driver->owner)) {
-+		i2c_unregister_device(client);
-+		goto err_add_i2c_client;
-+	}
-+	return client;
-+
-+err_add_i2c_client:
-+	client = NULL;
-+	return client;
-+}
-+
-+static void smi_del_i2c_client(struct i2c_client *client)
-+{
-+	module_put(client->dev.driver->owner);
-+	i2c_unregister_device(client);
-+}
-+
- static const struct m88ds3103_config smi_dvbsky_m88ds3103_cfg = {
- 	.i2c_addr = 0x68,
- 	.clock = 27000000,
-@@ -517,18 +544,12 @@ static int smi_dvbsky_m88ds3103_fe_attach(struct smi_port *port)
- 	strlcpy(tuner_info.type, "m88ts2022", I2C_NAME_SIZE);
- 	tuner_info.addr = 0x60;
- 	tuner_info.platform_data = &m88ts2022_config;
--	request_module("m88ts2022");
--	tuner_client = i2c_new_device(tuner_i2c_adapter, &tuner_info);
--	if (tuner_client == NULL || tuner_client->dev.driver == NULL) {
-+	tuner_client = smi_add_i2c_client(tuner_i2c_adapter, &tuner_info);
-+	if (!tuner_client) {
- 		ret = -ENODEV;
- 		goto err_tuner_i2c_device;
- 	}
- 
--	if (!try_module_get(tuner_client->dev.driver->owner)) {
--		ret = -ENODEV;
--		goto err_tuner_i2c_module;
--	}
--
- 	/* delegate signal strength measurement to tuner */
- 	port->fe->ops.read_signal_strength =
- 			port->fe->ops.tuner_ops.get_rf_strength;
-@@ -536,8 +557,6 @@ static int smi_dvbsky_m88ds3103_fe_attach(struct smi_port *port)
- 	port->i2c_client_tuner = tuner_client;
- 	return ret;
- 
--err_tuner_i2c_module:
--	i2c_unregister_device(tuner_client);
- err_tuner_i2c_device:
- 	dvb_frontend_detach(port->fe);
- 	return ret;
-@@ -581,18 +600,12 @@ static int smi_dvbsky_m88rs6000_fe_attach(struct smi_port *port)
- 	strlcpy(tuner_info.type, "m88rs6000t", I2C_NAME_SIZE);
- 	tuner_info.addr = 0x21;
- 	tuner_info.platform_data = &m88rs6000t_config;
--	request_module("m88rs6000t");
--	tuner_client = i2c_new_device(tuner_i2c_adapter, &tuner_info);
--	if (tuner_client == NULL || tuner_client->dev.driver == NULL) {
-+	tuner_client = smi_add_i2c_client(tuner_i2c_adapter, &tuner_info);
-+	if (!tuner_client) {
- 		ret = -ENODEV;
- 		goto err_tuner_i2c_device;
- 	}
- 
--	if (!try_module_get(tuner_client->dev.driver->owner)) {
--		ret = -ENODEV;
--		goto err_tuner_i2c_module;
--	}
--
- 	/* delegate signal strength measurement to tuner */
- 	port->fe->ops.read_signal_strength =
- 			port->fe->ops.tuner_ops.get_rf_strength;
-@@ -600,8 +613,6 @@ static int smi_dvbsky_m88rs6000_fe_attach(struct smi_port *port)
- 	port->i2c_client_tuner = tuner_client;
- 	return ret;
- 
--err_tuner_i2c_module:
--	i2c_unregister_device(tuner_client);
- err_tuner_i2c_device:
- 	dvb_frontend_detach(port->fe);
- 	return ret;
-@@ -631,7 +642,10 @@ static int smi_fe_init(struct smi_port *port)
- 	/* register dvb frontend */
- 	ret = dvb_register_frontend(adap, port->fe);
- 	if (ret < 0) {
--		i2c_unregister_device(port->i2c_client_tuner);
-+		if (port->i2c_client_tuner)
-+			smi_del_i2c_client(port->i2c_client_tuner);
-+		if (port->i2c_client_demod)
-+			smi_del_i2c_client(port->i2c_client_demod);
- 		dvb_frontend_detach(port->fe);
- 		return ret;
- 	}
-@@ -645,15 +659,12 @@ static int smi_fe_init(struct smi_port *port)
- 
- static void smi_fe_exit(struct smi_port *port)
- {
--	struct i2c_client *tuner_client;
--
- 	dvb_unregister_frontend(port->fe);
--	/* remove I2C tuner */
--	tuner_client = port->i2c_client_tuner;
--	if (tuner_client) {
--		module_put(tuner_client->dev.driver->owner);
--		i2c_unregister_device(tuner_client);
--	}
-+	/* remove I2C demod and tuner */
-+	if (port->i2c_client_tuner)
-+		smi_del_i2c_client(port->i2c_client_tuner);
-+	if (port->i2c_client_demod)
-+		smi_del_i2c_client(port->i2c_client_demod);
- 	dvb_frontend_detach(port->fe);
- }
+BR,
+Max
 
--- 
-1.9.1
+On 2014-11-04 22:46:01, Nibble Max wrote:
+>DVBSky S952 V3 card has a dual channels of dvb-s/s2.
+>1>Frontend: Integrated tuner and demod: M88RS6000
+>2>PCIe bridge: SMI PCIe
+>
+>Signed-off-by: Nibble Max <nibble.max@gmail.com>
+>---
+> drivers/media/pci/smipcie/Kconfig   |  2 +
+> drivers/media/pci/smipcie/smipcie.c | 78 +++++++++++++++++++++++++++++++++++++
+> 2 files changed, 80 insertions(+)
+>
+>diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+>index 78b76ca..75a2992 100644
+>--- a/drivers/media/pci/smipcie/Kconfig
+>+++ b/drivers/media/pci/smipcie/Kconfig
+>@@ -3,9 +3,11 @@ config DVB_SMIPCIE
+> 	depends on DVB_CORE && PCI && I2C
+> 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+>+	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+> 	help
+> 	  Support for cards with SMI PCIe bridge:
+> 	  - DVBSky S950 V3
+>+	  - DVBSky S952 V3
+> 
+> 	  Say Y or M if you own such a device and want to use it.
+> 	  If unsure say N.
+>diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+>index 6ad6cc5..d1c1463 100644
+>--- a/drivers/media/pci/smipcie/smipcie.c
+>+++ b/drivers/media/pci/smipcie/smipcie.c
+>@@ -17,6 +17,7 @@
+> #include "smipcie.h"
+> #include "m88ds3103.h"
+> #include "m88ts2022.h"
+>+#include "m88rs6000t.h"
+> 
+> DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+> 
+>@@ -542,6 +543,70 @@ err_tuner_i2c_device:
+> 	return ret;
+> }
+> 
+>+static const struct m88ds3103_config smi_dvbsky_m88rs6000_cfg = {
+>+	.i2c_addr = 0x69,
+>+	.clock = 27000000,
+>+	.i2c_wr_max = 33,
+>+	.ts_mode = M88DS3103_TS_PARALLEL,
+>+	.ts_clk = 16000,
+>+	.ts_clk_pol = 1,
+>+	.agc = 0x99,
+>+	.lnb_hv_pol = 0,
+>+	.lnb_en_pol = 1,
+>+};
+>+
+>+static int smi_dvbsky_m88rs6000_fe_attach(struct smi_port *port)
+>+{
+>+	int ret = 0;
+>+	struct smi_dev *dev = port->dev;
+>+	struct i2c_adapter *i2c;
+>+	/* tuner I2C module */
+>+	struct i2c_adapter *tuner_i2c_adapter;
+>+	struct i2c_client *tuner_client;
+>+	struct i2c_board_info tuner_info;
+>+	struct m88rs6000t_config m88rs6000t_config;
+>+
+>+	memset(&tuner_info, 0, sizeof(struct i2c_board_info));
+>+	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
+>+
+>+	/* attach demod */
+>+	port->fe = dvb_attach(m88ds3103_attach,
+>+			&smi_dvbsky_m88rs6000_cfg, i2c, &tuner_i2c_adapter);
+>+	if (!port->fe) {
+>+		ret = -ENODEV;
+>+		return ret;
+>+	}
+>+	/* attach tuner */
+>+	m88rs6000t_config.fe = port->fe;
+>+	strlcpy(tuner_info.type, "m88rs6000t", I2C_NAME_SIZE);
+>+	tuner_info.addr = 0x21;
+>+	tuner_info.platform_data = &m88rs6000t_config;
+>+	request_module("m88rs6000t");
+>+	tuner_client = i2c_new_device(tuner_i2c_adapter, &tuner_info);
+>+	if (tuner_client == NULL || tuner_client->dev.driver == NULL) {
+>+		ret = -ENODEV;
+>+		goto err_tuner_i2c_device;
+>+	}
+>+
+>+	if (!try_module_get(tuner_client->dev.driver->owner)) {
+>+		ret = -ENODEV;
+>+		goto err_tuner_i2c_module;
+>+	}
+>+
+>+	/* delegate signal strength measurement to tuner */
+>+	port->fe->ops.read_signal_strength =
+>+			port->fe->ops.tuner_ops.get_rf_strength;
+>+
+>+	port->i2c_client_tuner = tuner_client;
+>+	return ret;
+>+
+>+err_tuner_i2c_module:
+>+	i2c_unregister_device(tuner_client);
+>+err_tuner_i2c_device:
+>+	dvb_frontend_detach(port->fe);
+>+	return ret;
+>+}
+>+
+> static int smi_fe_init(struct smi_port *port)
+> {
+> 	int ret = 0;
+>@@ -556,6 +621,9 @@ static int smi_fe_init(struct smi_port *port)
+> 	case DVBSKY_FE_M88DS3103:
+> 		ret = smi_dvbsky_m88ds3103_fe_attach(port);
+> 		break;
+>+	case DVBSKY_FE_M88RS6000:
+>+		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+>+		break;
+> 	}
+> 	if (ret < 0)
+> 		return ret;
+>@@ -917,6 +985,15 @@ static struct smi_cfg_info dvbsky_s950_cfg = {
+> 	.fe_1 = DVBSKY_FE_M88DS3103,
+> };
+> 
+>+static struct smi_cfg_info dvbsky_s952_cfg = {
+>+	.type = SMI_DVBSKY_S952,
+>+	.name = "DVBSky S952 V3",
+>+	.ts_0 = SMI_TS_DMA_BOTH,
+>+	.ts_1 = SMI_TS_DMA_BOTH,
+>+	.fe_0 = DVBSKY_FE_M88RS6000,
+>+	.fe_1 = DVBSKY_FE_M88RS6000,
+>+};
+>+
+> /* PCI IDs */
+> #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+> 	.vendor      = SMI_VID,    .device    = SMI_PID, \
+>@@ -925,6 +1002,7 @@ static struct smi_cfg_info dvbsky_s950_cfg = {
+> 
+> static const struct pci_device_id smi_id_table[] = {
+> 	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+>+	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
+> 	{0}
+> };
+> MODULE_DEVICE_TABLE(pci, smi_id_table);
+>
+>-- 
+>1.9.1
+>
 
