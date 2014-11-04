@@ -1,68 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33679 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbaKTMMG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:12:06 -0500
-Date: Thu, 20 Nov 2014 13:12:02 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Message-ID: <20141120121202.GA27527@amd>
-References: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com>
- <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com>
- <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com>
- <20141118132159.GA21089@amd>
- <546B6D86.8090701@samsung.com>
- <20141118165148.GA11711@amd>
- <546C66A5.6060201@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546C66A5.6060201@samsung.com>
+Received: from down.free-electrons.com ([37.187.137.238]:60906 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752851AbaKDJzd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 04:55:33 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH 14/15] [media] platform: Replace v4l2-mediabus.h inclusion with v4l2-mbus.h
+Date: Tue,  4 Nov 2014 10:55:09 +0100
+Message-Id: <1415094910-15899-15-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The v4l2-mediabus.h header is now deprecated and should be replaced with
+v4l2-mbus.h.
 
-> I would also swap the segments of a property name to follow the convention
-> as in case of "regulator-max-microamp".
-> 
-> Updated version:
-> 
-> ==========================================================
-> 
-> Optional properties for child nodes:
-> - max-microamp : maximum intensity in microamperes of the LED
-> 		 (torch LED for flash devices)
-> - flash-max-microamp : maximum intensity in microamperes of the
-> 		       flash LED; it is mandatory if the led should
-> 		       support the flash mode
-> - flash-timeout-microsec : timeout in microseconds after which the flash
-> 		           led is turned off
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/media/platform/omap3isp/ispcsi2.c  | 2 +-
+ drivers/media/platform/omap3isp/ispvideo.h | 2 +-
+ drivers/media/platform/vsp1/vsp1_video.c   | 2 +-
+ include/media/soc_mediabus.h               | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-Works for me. Do you want to submit a patch or should I do it?
-
-> - indicator-pattern : identifier of the blinking pattern for the
-> 		      indicator led
-> 
-
-This would need a bit more documentation, no?
-
-									Pavel
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 995a268..64acb66 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -15,7 +15,7 @@
+  */
+ #include <linux/delay.h>
+ #include <media/v4l2-common.h>
+-#include <linux/v4l2-mediabus.h>
++#include <linux/v4l2-mbus.h>
+ #include <linux/mm.h>
+ 
+ #include "isp.h"
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 9de3de5..7738d27 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -16,7 +16,7 @@
+ #ifndef OMAP3_ISP_VIDEO_H
+ #define OMAP3_ISP_VIDEO_H
+ 
+-#include <linux/v4l2-mediabus.h>
++#include <linux/v4l2-mbus.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d91f19a..bb3af00 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -16,7 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+-#include <linux/v4l2-mediabus.h>
++#include <linux/v4l2-mbus.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/media-entity.h>
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 9d8e7a1..e357182 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,7 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-#include <linux/v4l2-mediabus.h>
++#include <linux/v4l2-mbus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.1
+
