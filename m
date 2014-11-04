@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:56711 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117AbaK3V4v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 16:56:51 -0500
-Message-ID: <547B9246.3080209@users.sourceforge.net>
-Date: Sun, 30 Nov 2014 22:55:18 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:33226 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753106AbaKDKXE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 05:23:04 -0500
+Message-ID: <5458A8F7.2050803@cisco.com>
+Date: Tue, 04 Nov 2014 11:22:47 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+To: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 1/1] [media] ddbridge: Deletion of an unnecessary check before
- the function call "dvb_unregister_device"
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
+CC: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 01/15] [media] Move mediabus format definition to a more
+ standard place
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com> <1415094910-15899-2-git-send-email-boris.brezillon@free-electrons.com> <5458A878.3010809@cisco.com>
+In-Reply-To: <5458A878.3010809@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 30 Nov 2014 22:50:20 +0100
 
-The dvb_unregister_device() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
 
-This issue was detected by using the Coccinelle software.
+On 11/04/14 11:20, Hans Verkuil wrote:
+> Hi Boris,
+> 
+> On 11/04/14 10:54, Boris Brezillon wrote:
+>> Rename mediabus formats and move the enum into a separate header file so
+>> that it can be used by DRM/KMS subsystem without any reference to the V4L2
+>> subsystem.
+>>
+>> Old V4L2_MBUS_FMT_ definitions are now referencing MEDIA_BUS_FMT_ value.
+> 
+> I missed earlier that v4l2-mediabus.h contained a struct as well, so it can't be
+> deprecated and neither can a #warning be added.
+> 
+> The best approach, I think, is to use a macro in media-bus-format.h
+> that will either define just the MEDIA_BUS value when compiled in the kernel, or
+> define both MEDIA_BUS and V4L2_MBUS values when compiled for userspace.
+> 
+> E.g. something like this:
+> 
+> #ifdef __KERNEL__
+> #define MEDIA_BUS_FMT_ENTRY(name, val) MEDIA_BUS_FMT_ # name = val
+> #else
+> /* Keep V4L2_MBUS_FMT for backwards compatibility */
+> #define MEDIA_BUS_FMT_ENTRY(name, val) \
+> 	MEDIA_BUS_FMT_ # name = val, \
+> 	V4L2_MBUS_FMT_ # name = val
+> #endif
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+And v4l2-mediabus.h needs this as well:
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index c82e855..9e3492e 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1118,8 +1118,7 @@ static void ddb_ports_detach(struct ddb *dev)
- 			dvb_input_detach(port->input[1]);
- 			break;
- 		case DDB_PORT_CI:
--			if (port->output->dev)
--				dvb_unregister_device(port->output->dev);
-+			dvb_unregister_device(port->output->dev);
- 			if (port->en) {
- 				ddb_input_stop(port->input[0]);
- 				ddb_output_stop(port->output);
--- 
-2.1.3
+#ifndef __KERNEL__
+/* For backwards compatibility */
+#define v4l2_mbus_pixelcode media_bus_format
+#endif
 
+Regards,
+
+	Hans
