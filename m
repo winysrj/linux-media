@@ -1,75 +1,384 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:63136 "EHLO
-	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752203AbaKXMHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 07:07:49 -0500
-Message-ID: <1416830865.10073.35.camel@x220>
-Subject: [PATCH] [media] omap: Fix typo "HAS_MMU"
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 24 Nov 2014 13:07:45 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:36913 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751977AbaKDVF0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 16:05:26 -0500
+Received: by mail-pd0-f182.google.com with SMTP id fp1so14475956pdb.27
+        for <linux-media@vger.kernel.org>; Tue, 04 Nov 2014 13:05:25 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 5 Nov 2014 01:05:25 +0400
+Message-ID: <CANZNk82AqfbSkUd_xONtjAxLePA0TMhS_5wuWERObyGSZ5QYoA@mail.gmail.com>
+Subject: v4l2-ctl bug(?) printing ctrl payload array
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>, hans.verkuil@cisco.com,
+	gjasny@googlemail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 38a073116525 ("[media] omap: be sure that MMU is there for
-COMPILE_TEST") added a dependency on HAS_MMU. There's no Kconfig symbol
-HAS_MMU. Use MMU instead.
+I used today's git master HEAD of v4l-utils.
+There's a device which provides r/w v4l2 control for a map of motion
+thresholds by regions. See
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-0) Perhaps it would have been better to add a line or two explaining why
-MMU is now a separate dependency, as Mauro suggested.
+md_threshold_grid (u16)    : min=0 max=65535 step=1 default=768
+[45][45] flags=has-payload
 
-Commit 38a073116525 tells us that "COMPILE_TEST fail[s] on (some) archs
-without MMU". It doesn't tell on which architectures nor how it fails.
-And I was unable to figure that out myself so I decided to stay silent
-on that aspect of this patch.
+So when i print its value with "-C md_threshold_grid", i see "MD
+Threshold Grid[0]:" in the beginning of every line. I guess it is
+supposed to have a number in brackets increase each line?
+I am not smart enought to fix this in code from first glance, so I'm
+just reporting this.
 
-1) A Fixes: line seems not worth the trouble here.
+00:57:28krieger@zver /usr/local/src/v4l-utils/utils/v4l2-ctl
+ $ git describe --long
+v4l-utils-1.6.0-29-gc873001
 
-2) Tested on top of next-20141124 by doing, in short:
-    cp arch/x86/configs/x86_64_defconfig .config
-    echo CONFIG_COMPILE_TEST=y >> .config
-    echo CONFIG_MEDIA_SUPPORT=y >> .config
-    echo CONFIG_MEDIA_CAMERA_SUPPORT=y >> .config
-    echo CONFIG_V4L_PLATFORM_DRIVERS=y >> .config
-    echo CONFIG_VIDEO_OMAP2_VOUT=[ym] >> .config
-    yes "" | make oldconfig
+00:49:32krieger@zver /usr/local/src/v4l-utils/utils/v4l2-ctl
+ $ ./v4l2-ctl -d /dev/video12 --all
+Driver Info (not using libv4l2):
+        Driver name   : solo6x10
+        Card type     : Softlogic 6x10 Enc 2
+        Bus info      : PCI:0000:07:05.0
+        Driver version: 3.18.0
+        Capabilities  : 0x85200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+Priority: 2
+Video input : 0 (Encoder 3: no signal)
+Video Standard = 0x00001000
+        NTSC-M
+Format Video Capture:
+        Width/Height  : 352/240
+        Pixel Format  : 'H264'
+        Field         : None
+        Bytes per Line: 0
+        Size Image    : 200704
+        Colorspace    : Broadcast NTSC/PAL (SMPTE170M/ITU601)
+        Flags         :
+Streaming Parameters Video Capture:
+        Capabilities     : timeperframe
+        Frames per second: 30.000 (30/1)
+        Read buffers     : 2
 
-both before and after applying this patch and diffing the "before" and
-"after" .config. Only with this patch I see CONFIG_VIDEO_OMAP2_VOUT=[ym]
-appear in the .config.
+User Controls
 
-3) Actually, I've wasted quite a bit of time cobbling together a script
-to test commits locally. The test(s) I want to run is (are) saved in a
-git note for that commit. The script parses this note and runs the
-test(s).
+                     brightness (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                       contrast (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                     saturation (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                            hue (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                      sharpness (int)    : min=0 max=15 step=1
+default=0 value=0 flags=slider
+                       osd_text (str)    : min=0 max=44 step=1
+value='' flags=has-payload
 
-Have I been reinventing the wheel?
+Codec Controls
 
- drivers/media/platform/omap/Kconfig | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+                 video_gop_size (int)    : min=1 max=255 step=1
+default=30 value=30
+          h264_minimum_qp_value (int)    : min=0 max=31 step=1 default=3 value=3
 
-diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
-index 05de442d24e4..8f27cdadf8b8 100644
---- a/drivers/media/platform/omap/Kconfig
-+++ b/drivers/media/platform/omap/Kconfig
-@@ -3,7 +3,8 @@ config VIDEO_OMAP2_VOUT_VRFB
- 
- config VIDEO_OMAP2_VOUT
- 	tristate "OMAP2/OMAP3 V4L2-Display driver"
--	depends on ARCH_OMAP2 || ARCH_OMAP3 || (COMPILE_TEST && HAS_MMU)
-+	depends on MMU
-+	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
- 	select VIDEOBUF_GEN
- 	select VIDEOBUF_DMA_CONTIG
- 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
+Detection Controls
+
+          motion_detection_mode (menu)   : min=0 max=2 default=0 value=2
+            md_global_threshold (int)    : min=0 max=255 step=1
+default=3 value=3 flags=slider
+              md_threshold_grid (u16)    : min=0 max=65535 step=1
+default=768 [45][45] flags=has-payload
+                     brightness (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                       contrast (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                     saturation (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                            hue (int)    : min=0 max=255 step=1
+default=128 value=128 flags=slider
+                      sharpness (int)    : min=0 max=15 step=1
+default=0 value=0 flags=slider
+
+00:53:23krieger@zver /usr/local/src/v4l-utils/utils/v4l2-ctl
+ $ ./v4l2-ctl -d /dev/video12 -C md_threshold_grid
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+MD Threshold Grid[0]:      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,
+     0,      0,      0,      0,      0,      0,      0,      0,
+0,      0,      0,      0,      0,      0,      0,      0,      0,
+ 0,      0,      0,      0,      0,      0,      0,      0,      0,
+  0,      0,      0,      0
+
 -- 
-1.9.3
-
+Andrey Utkin
