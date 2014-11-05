@@ -1,69 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42486 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169AbaKBMcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 07:32:51 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 14/14] [media] cx231xx: simplify I2C scan debug messages
-Date: Sun,  2 Nov 2014 10:32:37 -0200
-Message-Id: <c85e371647e162da4b039785dc829d7659a295e4.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1414929816.git.mchehab@osg.samsung.com>
-References: <cover.1414929816.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58882 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753375AbaKEISD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Nov 2014 03:18:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 6/8] cxusb: fix sparse warnings
+Date: Wed,  5 Nov 2014 09:17:50 +0100
+Message-Id: <1415175472-24203-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't need to show when it starts or stops. Just print lines
-when devices are found.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-After the changes, the output for i2c scan will be like:
+cxusb.c:1443:32: warning: restricted __le16 degrades to integer
+cxusb.c:1487:32: warning: restricted __le16 degrades to integer
 
-	usb 1-2: i2c scan: found device @ port 0 addr 0x40  [???]
-	usb 1-2: i2c scan: found device @ port 0 addr 0x60  [colibri]
-	usb 1-2: i2c scan: found device @ port 0 addr 0x88  [hammerhead]
-	usb 1-2: i2c scan: found device @ port 0 addr 0x98  [???]
-	usb 1-2: i2c scan: found device @ port 3 addr 0xa0  [eeprom]
-	usb 1-2: i2c scan: found device @ port 2 addr 0x60  [colibri]
-	usb 1-2: i2c scan: found device @ port 2 addr 0xc0  [tuner]
-	usb 1-2: i2c scan: found device @ port 4 addr 0x20  [demod]
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/dvb-usb/cxusb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 87b26157cad0..7ccc33d33664 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -502,21 +502,17 @@ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port)
- 	memset(&client, 0, sizeof(client));
- 	client.adapter = cx231xx_get_i2c_adap(dev, i2c_port);
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 8925b3946..b46f84d 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1440,7 +1440,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 	si2168_config.ts_mode = SI2168_TS_PARALLEL;
  
--	dev_info(&dev->udev->dev,
--		"i2c_scan: checking for I2C devices on port=%d ..\n",
--		i2c_port);
- 	for (i = 0; i < 128; i++) {
- 		client.addr = i;
- 		rc = i2c_master_recv(&client, &buf, 0);
- 		if (rc < 0)
- 			continue;
- 		dev_info(&dev->udev->dev,
--			 "i2c scan: found device @ 0x%x  [%s]\n",
-+			 "i2c scan: found device @ port %d addr 0x%x  [%s]\n",
-+			 i2c_port,
- 			 i << 1,
- 			 i2c_devs[i] ? i2c_devs[i] : "???");
- 	}
--	dev_info(&dev->udev->dev, "i2c scan: Completed Checking for I2C devices on port=%d.\n",
--		i2c_port);
+ 	/* CT2-4400v2 TS gets corrupted without this */
+-	if (d->udev->descriptor.idProduct ==
++	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
+ 		USB_PID_TECHNOTREND_TVSTICK_CT2_4400)
+ 		si2168_config.ts_mode |= 0x40;
  
- 	dev->i2c_scan_running = false;
- }
+@@ -1484,7 +1484,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 	st->i2c_client_tuner = client_tuner;
+ 
+ 	/* initialize CI */
+-	if (d->udev->descriptor.idProduct ==
++	if (le16_to_cpu(d->udev->descriptor.idProduct) ==
+ 		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI) {
+ 
+ 		memcpy(o, "\xc0\x01", 2);
 -- 
-1.9.3
+2.1.1
 
