@@ -1,64 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:61991 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751176AbaK1WPg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 17:15:36 -0500
-Received: from axis700.grange ([87.79.214.157]) by mail.gmx.com (mrgmx101)
- with ESMTPSA (Nemesis) id 0MSIf1-1XScFa3oBH-00TUJC for
- <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 23:15:33 +0100
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43954 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752127AbaKEDlN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Nov 2014 22:41:13 -0500
 Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 7890C40BD9
-	for <linux-media@vger.kernel.org>; Fri, 28 Nov 2014 23:15:32 +0100 (CET)
-Date: Fri, 28 Nov 2014 23:15:32 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera: 1st set for 3.19
-Message-ID: <Pine.LNX.4.64.1411282307180.15467@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	by tschai.lan (Postfix) with ESMTPSA id E79E52A009F
+	for <linux-media@vger.kernel.org>; Wed,  5 Nov 2014 04:41:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141105034106.E79E52A009F@tschai.lan>
+Date: Wed,  5 Nov 2014 04:41:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-IIUC, this coming Sunday might be the last -rc, so, postponing pull 
-requests to subsystem maintainers even further isn't a good idea, so, here 
-goes an soc-camera request. I know it isn't complete, there are a few more 
-patches waiting to be pushed upstream, but I won't have time this coming 
-weekend and next two weeks I'm traveling, which won't simplify things 
-either. Some more patches are being reworked, if they arrive soon and we 
-do get another -rc, I might try to push them too, but I don't want to 
-postpone these ones, while waiting. One of these patches has also been 
-modified by me and hasn't been tested yet. But changes weren't too 
-complex. If however I did break something, we'll have to fix it in an 
-incremental patch.
+Results of the daily build of media_tree:
 
-The following changes since commit d298a59791fad3a707c1dadbef0935ee2664a10e:
+date:		Wed Nov  5 04:00:16 CET 2014
+git branch:	test
+git hash:	a8f29e89f2b54fbf2c52be341f149bc195b63a8b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-34-g71e642a
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
-  Merge branch 'patchwork' into to_next (2014-11-21 17:01:46 -0200)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+sparse: ERRORS
 
-are available in the git repository at:
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.19-1
+Full logs are available here:
 
-for you to fetch changes up to d8f5c144e57d99d2a7325bf8877812bf560e22dd:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-  rcar_vin: Fix interrupt enable in progressive (2014-11-23 12:08:19 +0100)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Koji Matsuoka (4):
-      rcar_vin: Add YUYV capture format support
-      rcar_vin: Add scaling support
-      rcar_vin: Enable VSYNC field toggle mode
-      rcar_vin: Fix interrupt enable in progressive
-
-Yoshihiro Kaneko (1):
-      rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
-
- .../devicetree/bindings/media/rcar_vin.txt         |   2 +
- drivers/media/platform/soc_camera/rcar_vin.c       | 466 ++++++++++++++++++++-
- 2 files changed, 457 insertions(+), 11 deletions(-)
-
-Thanks
-Guennadi
+http://www.xs4all.nl/~hverkuil/spec/media.html
