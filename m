@@ -1,75 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48785 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752577AbaKJMti (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51779 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754864AbaKEO5b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 07:49:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 01/16] videobuf2-core.h: improve documentation
-Date: Mon, 10 Nov 2014 13:49:16 +0100
-Message-Id: <1415623771-29634-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 5 Nov 2014 09:57:31 -0500
+Date: Wed, 5 Nov 2014 16:57:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 02/15] [media] v4l: Update subdev-formats doc with new
+ MEDIA_BUS_FMT values
+Message-ID: <20141105145726.GR3136@valkosipuli.retiisi.org.uk>
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1415094910-15899-3-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1415094910-15899-3-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Boris,
 
-Document that drivers can access/modify the buffer contents in buf_prepare
-and buf_finish. That was not clearly stated before.
+On Tue, Nov 04, 2014 at 10:54:57AM +0100, Boris Brezillon wrote:
+> In order to have subsytem agnostic media bus format definitions we've
+> moved media bus definition to include/uapi/linux/media-bus-format.h and
+> prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+> 
+> Update the v4l documentation accordingly.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
+>  Documentation/DocBook/media/Makefile               |   2 +-
+>  Documentation/DocBook/media/v4l/subdev-formats.xml | 308 ++++++++++-----------
+>  include/uapi/linux/v4l2-mediabus.h                 |   2 +
+>  3 files changed, 157 insertions(+), 155 deletions(-)
+> 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+...
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 6ef2d01..70ace7c 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -270,22 +270,24 @@ struct vb2_buffer {
-  *			queue setup from completing successfully; optional.
-  * @buf_prepare:	called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-- *			perform any initialization required before each hardware
-- *			operation in this callback; drivers that support
-- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-- *			if an error is returned, the buffer will not be queued
-- *			in driver; optional.
-+ *			perform any initialization required before each
-+ *			hardware operation in this callback; drivers can
-+ *			access/modify the buffer here as it is still synced for
-+ *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
-+ *			also validate the buffer size; if an error is returned,
-+ *			the buffer will not be queued in driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-- *			userspace; drivers may perform any operations required
-- *			before userspace accesses the buffer; optional. The
-- *			buffer state can be one of the following: DONE and
-- *			ERROR occur while streaming is in progress, and the
-- *			PREPARED state occurs when the queue has been canceled
-- *			and all pending buffers are being returned to their
-- *			default DEQUEUED state. Typically you only have to do
-- *			something if the state is VB2_BUF_STATE_DONE, since in
-- *			all other cases the buffer contents will be ignored
-- *			anyway.
-+ *			userspace; the buffer is synced for the CPU, so drivers
-+ *			can access/modify the buffer contents; drivers may
-+ *			perform any operations required before userspace
-+ *			accesses the buffer; optional. The buffer state can be
-+ *			one of the following: DONE and ERROR occur while
-+ *			streaming is in progress, and the PREPARED state occurs
-+ *			when the queue has been canceled and all pending
-+ *			buffers are being returned to their default DEQUEUED
-+ *			state. Typically you only have to do something if the
-+ *			state is VB2_BUF_STATE_DONE, since in all other cases
-+ *			the buffer contents will be ignored anyway.
-  * @buf_cleanup:	called once before the buffer is freed; drivers may
-  *			perform any additional cleanup; optional.
-  * @start_streaming:	called once to enter 'streaming' state; the driver may
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index f471064..9fbe891 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -32,6 +32,8 @@ enum v4l2_mbus_pixelcode {
+>  	MEDIA_BUS_TO_V4L2_MBUS(RGB888_2X12_BE),
+>  	MEDIA_BUS_TO_V4L2_MBUS(RGB888_2X12_LE),
+>  	MEDIA_BUS_TO_V4L2_MBUS(ARGB8888_1X32),
+> +	MEDIA_BUS_TO_V4L2_MBUS(RGB444_1X12),
+> +	MEDIA_BUS_TO_V4L2_MBUS(RGB565_1X16),
+
+Shouldn't this to go to a separate patch?
+
+>  
+>  	MEDIA_BUS_TO_V4L2_MBUS(Y8_1X8),
+>  	MEDIA_BUS_TO_V4L2_MBUS(UV8_1X8),
+
 -- 
-2.1.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
