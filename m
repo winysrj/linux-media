@@ -1,183 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53148 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754505AbaKNI3u (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52222 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932396AbaKEPX0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 03:29:50 -0500
-Message-ID: <5465BD6F.8030208@xs4all.nl>
-Date: Fri, 14 Nov 2014 09:29:35 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 5 Nov 2014 10:23:26 -0500
+Date: Wed, 5 Nov 2014 17:22:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
+Message-ID: <20141105152252.GV3136@valkosipuli.retiisi.org.uk>
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>
+ <20141105150814.GT3136@valkosipuli.retiisi.org.uk>
+ <20141105161538.7a1686d5@bbrezillon>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] v4l: Clean up sub-device format documentation
-References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi> <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141105161538.7a1686d5@bbrezillon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two small notes...
+Hi Boris,
 
-On 11/09/2014 12:04 AM, Sakari Ailus wrote:
-> The sub-device format documentation documented scaling configuration through
-> formats. Instead the compose selection rectangle is elsewhere documented to
-> be used for the purpose. Remove scaling related part of the documentation.
+On Wed, Nov 05, 2014 at 04:15:38PM +0100, Boris Brezillon wrote:
+> On Wed, 5 Nov 2014 17:08:15 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > I would keep the original file name, even if the compatibility definitions
+> > are there. I don't see any harm in having them around as well.
+> > 
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/dev-subdev.xml |  108 ++++++++++++++----------
->  1 file changed, 62 insertions(+), 46 deletions(-)
+> That's the part I was not sure about.
+> The goal of this patch (and the following ones) is to deprecate
+> v4l2_mbus_pixelcode enum and its values by adding a #warning when
+> v4l2-mediabus.h file is included, thus encouraging people to use new
+> definitions.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> index d15aaf8..dbf9965 100644
-> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> @@ -195,53 +195,59 @@
->  	<title>Sample Pipeline Configuration</title>
->  	<tgroup cols="3">
->  	  <colspec colname="what"/>
-> -	  <colspec colname="sensor-0" />
-> -	  <colspec colname="frontend-0" />
-> -	  <colspec colname="frontend-1" />
-> -	  <colspec colname="scaler-0" />
-> -	  <colspec colname="scaler-1" />
-> +	  <colspec colname="sensor-0 format" />
-> +	  <colspec colname="frontend-0 format" />
-> +	  <colspec colname="frontend-1 format" />
-> +	  <colspec colname="scaler-0 format" />
-> +	  <colspec colname="scaler-0 compose" />
-> +	  <colspec colname="scaler-1 format" />
->  	  <thead>
->  	    <row>
->  	      <entry></entry>
-> -	      <entry>Sensor/0</entry>
-> -	      <entry>Frontend/0</entry>
-> -	      <entry>Frontend/1</entry>
-> -	      <entry>Scaler/0</entry>
-> -	      <entry>Scaler/1</entry>
-> +	      <entry>Sensor/0 format</entry>
-> +	      <entry>Frontend/0 format</entry>
-> +	      <entry>Frontend/1 format</entry>
-> +	      <entry>Scaler/0 format</entry>
-> +	      <entry>Scaler/0 compose selection rectangle</entry>
-> +	      <entry>Scaler/1 format</entry>
->  	    </row>
->  	  </thead>
->  	  <tbody valign="top">
->  	    <row>
->  	      <entry>Initial state</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry>-</entry>
-> -	      <entry>-</entry>
-> -	      <entry>-</entry>
-> -	      <entry>-</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
->  	    </row>
->  	    <row>
-> -	      <entry>Configure frontend input</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry><emphasis>2048x1536</emphasis></entry>
-> -	      <entry><emphasis>2046x1534</emphasis></entry>
-> -	      <entry>-</entry>
-> -	      <entry>-</entry>
-> +	      <entry>Configure frontend sink format</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
-> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
-> +	      <entry>(default)</entry>
->  	    </row>
->  	    <row>
-> -	      <entry>Configure scaler input</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry>2046x1534</entry>
-> -	      <entry><emphasis>2046x1534</emphasis></entry>
-> -	      <entry><emphasis>2046x1534</emphasis></entry>
-> +	      <entry>Configure scaler sink format</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-> +	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
-> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
->  	    </row>
->  	    <row>
-> -	      <entry>Configure scaler output</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry>2048x1536</entry>
-> -	      <entry>2046x1534</entry>
-> -	      <entry>2046x1534</entry>
-> -	      <entry><emphasis>1280x960</emphasis></entry>
-> +	      <entry>Configure scaler sink compose selection</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry>2048x1536/SGRBG8_1X8</entry>
-> +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> +	      <entry>2046x1534/SGRBG8_1X8</entry>
-> +	      <entry><emphasis>0,0/1280x960</emphasis></entry>
-> +	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
->  	    </row>
->  	  </tbody>
->  	</tgroup>
-> @@ -249,19 +255,29 @@
->  
->        <para>
->        <orderedlist>
-> -	<listitem><para>Initial state. The sensor output is set to its native 3MP
-> -	resolution. Resolutions on the host frontend and scaler input and output
-> -	pads are undefined.</para></listitem>
-> -	<listitem><para>The application configures the frontend input pad resolution to
-> -	2048x1536. The driver propagates the format to the frontend output pad.
-> -	Note that the propagated output format can be different, as in this case,
-> -	than the input format, as the hardware might need to crop pixels (for
-> -	instance when converting a Bayer filter pattern to RGB or YUV).
+> Do you see another solution to generate such warnings at compilation
+> time ?
 
-Does this Bayer filter note no longer apply?
+Do you think we need a warning? In a general case we can't start renaming
+interface headers once the preferred interface changes, albeit in this case
+it would be a possibility.
 
-> </para></listitem>
-> -	<listitem><para>The application configures the scaler input pad resolution to
-> -	2046x1534 to match the frontend output resolution. The driver propagates
-> -	the format to the scaler output pad.</para></listitem>
-> -	<listitem><para>The application configures the scaler output pad resolution to
-> -	1280x960.</para></listitem>
-> +	<listitem><para>Initial state. The sensor source pad format is
-> +	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
-> +	media bus code. Formats on the host frontend and scaler sink
-> +	and source pads have the default values, as well as the
-> +	compose rectangle on the scaler's sind pad.</para></listitem>
+The presence of the formats defined from now on only in the new definitions
+should be good enough. There are many cases such as this in the V4L2 and
+other APIs.
 
-sind -> sink
+I wonder what others think.
 
-> +
-> +	<listitem><para>The application configures the frontend sink
-> +	pad format's size to 2048x1536 and its media bus code to
-> +	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the format to
-> +	the frontend source pad.</para></listitem>
-> +
-> +	<listitem><para>The application configures the scaler sink pad
-> +	format's size to 2046x1534 and the media bus code to
-> +	V4L2_MBUS_FMT_SGRBG_1X8 to match the frontend source size and
-> +	media bus code. The media bus code on the sink pad is set to
-> +	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the size to the
-> +	compose selection rectangle on the scaler's sink pad, and the
-> +	format to the scaler source pad.</para></listitem>
-> +
-> +	<listitem><para>The application configures the compose
-> +	selection rectangle of the scaler's sink pad and scaler source
-> +	pad format's size to 1280x960.</para></listitem>
-> +
->        </orderedlist>
->        </para>
->  
-> 
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
