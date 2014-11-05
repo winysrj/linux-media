@@ -1,40 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:49098 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754716AbaKTUtT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 15:49:19 -0500
-Received: by mail-pa0-f68.google.com with SMTP id kq14so2021663pab.7
-        for <linux-media@vger.kernel.org>; Thu, 20 Nov 2014 12:49:18 -0800 (PST)
-Received: from localhost.localdomain ([27.255.216.241])
-        by mx.google.com with ESMTPSA id rh3sm265978pbc.53.2014.11.20.12.49.16
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=RC4-SHA bits=128/128);
-        Thu, 20 Nov 2014 12:49:17 -0800 (PST)
-Message-ID: <546e53cd.23e1440a.4991.147e@mx.google.com>
-From: attiring36612@gmail.com
-To: linux-media@vger.kernel.org
-Reply-To: juliakites@yahoo.com
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Fri, 21 Nov 2014 02:19:20 +0530
+Received: from down.free-electrons.com ([37.187.137.238]:42669 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754982AbaKEPay (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 10:30:54 -0500
+Date: Wed, 5 Nov 2014 16:30:49 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
+Message-ID: <20141105163049.65d02aff@bbrezillon>
+In-Reply-To: <545A401C.8070908@cisco.com>
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>
+	<20141105150814.GT3136@valkosipuli.retiisi.org.uk>
+	<20141105161538.7a1686d5@bbrezillon>
+	<545A401C.8070908@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir
+On Wed, 05 Nov 2014 16:19:56 +0100
+Hans Verkuil <hansverk@cisco.com> wrote:
 
-Did your website get hit by Google Penguin update on October 17th 2014? What basically is Google Penguin Update? It is actually a code name for Google algorithm which aims at decreasing your websites search engine rankings that violate Google’s guidelines by using black hat SEO techniques to rank your webpage by giving number of spammy links to the page.
- 
-We are one of those few SEO companies that can help you avoid penalties from Google Updates like Penguin and Panda. Our clients have survived all the previous and present updates with ease. They have never been hit because we use 100% white hat SEO techniques to rank Webpages.  Simple thing that we do to keep websites away from any Penguin or Panda penalties is follow Google guidelines and we give Google users the best answers to their queries.
+> 
+> 
+> On 11/05/14 16:15, Boris Brezillon wrote:
+> > On Wed, 5 Nov 2014 17:08:15 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > 
+> >> Hi Boris,
+> >>
+> >> On Tue, Nov 04, 2014 at 10:55:06AM +0100, Boris Brezillon wrote:
+> >>> The v4l2_mbus_pixelcode enum (or its values) should be replaced by the
+> >>> media_bus_format enum.
+> >>> Keep this enum in v4l2-mediabus.h and create a new header containing
+> >>> the v4l2_mbus_framefmt struct definition (which is not deprecated) so
+> >>> that we can add a #warning statement in v4l2-mediabus.h and hopefully
+> >>> encourage users to move to the new definitions.
+> >>>
+> >>> Replace inclusion of v4l2-mediabus.h with v4l2-mbus.h in all common headers
+> >>> and update the documentation Makefile to parse v4l2-mbus.h instead of
+> >>> v4l2-mediabus.h.
+> >>>
+> >>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> >>> ---
+> >>>  Documentation/DocBook/media/Makefile |  2 +-
+> >>>  include/media/v4l2-mediabus.h        |  2 +-
+> >>>  include/uapi/linux/Kbuild            |  1 +
+> >>>  include/uapi/linux/v4l2-mbus.h       | 35 +++++++++++++++++++++++++++++++++++
+> >>>  include/uapi/linux/v4l2-mediabus.h   | 26 ++++----------------------
+> >>
+> >> I would keep the original file name, even if the compatibility definitions
+> >> are there. I don't see any harm in having them around as well.
+> >>
+> > 
+> > That's the part I was not sure about.
+> > The goal of this patch (and the following ones) is to deprecate
+> > v4l2_mbus_pixelcode enum and its values by adding a #warning when
+> > v4l2-mediabus.h file is included, thus encouraging people to use new
+> > definitions.
+> 
+> Since v4l2-mediabus.h contains struct v4l2_mbus_framefmt this header remains
+> a legal header, so you can't use #warning here in any case.
+> 
 
-If you are looking to increase the quality of your websites and to get more targeted traffic or save your websites from these Google penalties email us back with your interest. 
+Actually this patch moves the struct v4l2_mbus_framefmt definition into
+another header before adding the warning statement.
 
-We will be glad to serve you and help you grow your business.
+Anyway, this is really a detail, and if everybody agrees that we should
+just leave the old definition in place, I'm fine with that.
 
-Regards
 
-Julia kites
-
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
