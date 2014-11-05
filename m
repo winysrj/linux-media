@@ -1,91 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:55368 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753668AbaKRLYI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:08 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 06/12] media: marvell-ccic: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:35 +0000
-Message-Id: <1416309821-5426-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:41884 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755177AbaKEO6K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 09:58:10 -0500
+Received: by mail-pa0-f44.google.com with SMTP id bj1so946287pad.3
+        for <linux-media@vger.kernel.org>; Wed, 05 Nov 2014 06:58:09 -0800 (PST)
+Date: Wed, 5 Nov 2014 22:58:07 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Olli Salonen" <olli.salonen@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Antti Palosaari" <crope@iki.fi>
+Subject: [PATCH 1/3] cx23885: add DVBSky S950 support
+Message-ID: <201411052258037656794@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/marvell-ccic/mcam-core.c | 29 +++++--------------------
- 1 file changed, 5 insertions(+), 24 deletions(-)
+DVBSky S950 dvb-s/s2 PCIe card:
+1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
+2>PCIe bridge: cx23885
+3>rc: cx23885 integrated.
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index f0eeb6c..eeb87d1 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1100,26 +1100,6 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
- 		mcam_read_setup(cam);
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
+---
+ drivers/media/pci/cx23885/cx23885-cards.c | 20 ++++++++++++++++++++
+ drivers/media/pci/cx23885/cx23885-dvb.c   |  9 ++++++---
+ drivers/media/pci/cx23885/cx23885-input.c |  3 +++
+ drivers/media/pci/cx23885/cx23885.h       |  1 +
+ 4 files changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 9c7e8ac..4b9cb07 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -692,6 +692,10 @@ struct cx23885_board cx23885_boards[] = {
+ 		.name		= "Technotrend TT-budget CT2-4500 CI",
+ 		.portb		= CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_DVBSKY_S950] = {
++		.name		= "DVBSky S950",
++		.portb		= CX23885_MPEG_DVB,
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+ 
+@@ -963,6 +967,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0x13c2,
+ 		.subdevice = 0x3013,
+ 		.card      = CX23885_BOARD_TT_CT2_4500_CI,
++	}, {
++		.subvendor = 0x4254,
++		.subdevice = 0x0950,
++		.card      = CX23885_BOARD_DVBSKY_S950,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -1597,6 +1605,13 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 
+ 		/* enable irq */
+ 		cx_write(GPIO_ISM, 0x00000000); /* INTERRUPTS active low */
++		break;
++	case CX23885_BOARD_DVBSKY_S950:
++		cx23885_gpio_enable(dev, GPIO_2, 1);
++		cx23885_gpio_clear(dev, GPIO_2);
++		msleep(100);
++		cx23885_gpio_set(dev, GPIO_2);
++		break;
+ 	}
  }
  
--
--/*
-- * vb2 uses these to release the mutex when waiting in dqbuf.  I'm
-- * not actually sure we need to do this (I'm not sure that vb2_dqbuf() needs
-- * to be called with the mutex held), but better safe than sorry.
-- */
--static void mcam_vb_wait_prepare(struct vb2_queue *vq)
--{
--	struct mcam_camera *cam = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&cam->s_mutex);
--}
--
--static void mcam_vb_wait_finish(struct vb2_queue *vq)
--{
--	struct mcam_camera *cam = vb2_get_drv_priv(vq);
--
--	mutex_lock(&cam->s_mutex);
--}
--
- /*
-  * These need to be called with the mutex held from vb2
-  */
-@@ -1189,8 +1169,8 @@ static const struct vb2_ops mcam_vb2_ops = {
- 	.buf_queue		= mcam_vb_buf_queue,
- 	.start_streaming	= mcam_vb_start_streaming,
- 	.stop_streaming		= mcam_vb_stop_streaming,
--	.wait_prepare		= mcam_vb_wait_prepare,
--	.wait_finish		= mcam_vb_wait_finish,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
+@@ -1681,6 +1696,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		if (!enable_885_ir)
+ 			break;
+ 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+@@ -1731,6 +1747,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+ 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+ 		dev->sd_ir = NULL;
+@@ -1782,6 +1799,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		if (dev->sd_ir)
+ 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+ 		break;
+@@ -1888,6 +1906,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+@@ -2009,6 +2028,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", 0x88 >> 1, NULL);
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 9da5cf3..3410ab8 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1672,6 +1672,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_DVBSKY_T9580:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		i2c_bus = &dev->i2c_bus[0];
+ 		i2c_bus2 = &dev->i2c_bus[1];
+ 		switch (port->nr) {
+@@ -1922,7 +1923,8 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
+ 		break;
+ 		}
+-	case CX23885_BOARD_DVBSKY_T9580: {
++	case CX23885_BOARD_DVBSKY_T9580:
++	case CX23885_BOARD_DVBSKY_S950: {
+ 		u8 eeprom[256]; /* 24C02 i2c eeprom */
  
+ 		if (port->nr > 2)
+@@ -1932,8 +1934,9 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
+ 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
+ 				sizeof(eeprom));
+-		printk(KERN_INFO "DVBSky T9580 port %d MAC address: %pM\n",
+-			port->nr, eeprom + 0xc0 + (port->nr-1) * 8);
++		printk(KERN_INFO "%s port %d MAC address: %pM\n",
++			cx23885_boards[dev->board].name, port->nr,
++			eeprom + 0xc0 + (port->nr-1) * 8);
+ 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0 +
+ 			(port->nr-1) * 8, 6);
+ 		break;
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 12d8a3d..7523d0a 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -91,6 +91,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		/*
+ 		 * The only boards we handle right now.  However other boards
+ 		 * using the CX2388x integrated IR controller should be similar
+@@ -147,6 +148,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		/*
+ 		 * The IR controller on this board only returns pulse widths.
+ 		 * Any other mode setting will fail to set up the device.
+@@ -316,6 +318,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_T9580:
+ 	case CX23885_BOARD_DVBSKY_T980C:
+ 	case CX23885_BOARD_DVBSKY_S950C:
++	case CX23885_BOARD_DVBSKY_S950:
+ 		/* Integrated CX23885 IR controller */
+ 		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 7eee2ea..f9cd0da 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -96,6 +96,7 @@
+ #define CX23885_BOARD_DVBSKY_T980C             46
+ #define CX23885_BOARD_DVBSKY_S950C             47
+ #define CX23885_BOARD_TT_CT2_4500_CI           48
++#define CX23885_BOARD_DVBSKY_S950              49
  
-@@ -1266,8 +1246,8 @@ static const struct vb2_ops mcam_vb2_sg_ops = {
- 	.buf_cleanup		= mcam_vb_sg_buf_cleanup,
- 	.start_streaming	= mcam_vb_start_streaming,
- 	.stop_streaming		= mcam_vb_stop_streaming,
--	.wait_prepare		= mcam_vb_wait_prepare,
--	.wait_finish		= mcam_vb_wait_finish,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
  
- #endif /* MCAM_MODE_DMA_SG */
-@@ -1279,6 +1259,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 	memset(vq, 0, sizeof(*vq));
- 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	vq->drv_priv = cam;
-+	vq->lock = &cam->s_mutex;
- 	INIT_LIST_HEAD(&cam->buffers);
- 	switch (cam->buffer_mode) {
- 	case B_DMA_contig:
 -- 
 1.9.1
 
