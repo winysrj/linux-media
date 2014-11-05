@@ -1,72 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:60486 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:43544 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754966AbaKPQeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 11:34:07 -0500
-Date: Sun, 16 Nov 2014 17:33:51 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: soc-camera state 3.19
-Message-ID: <Pine.LNX.4.64.1411161711300.21527@axis700.grange>
+	id S1751604AbaKEKOj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Nov 2014 05:14:39 -0500
+Date: Wed, 5 Nov 2014 08:14:33 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Gulsah Kose <gulsah.1004@gmail.com>,
+	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
+	Matina Maria Trompouki <mtrompou@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging: media: lirc: replace dev_err by pr_err
+Message-ID: <20141105081433.4f4003af@recife.lan>
+In-Reply-To: <20141104001319.GA14567@localhost.localdomain>
+References: <20141104001319.GA14567@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em Tue, 4 Nov 2014 02:13:19 +0200
+Aya Mahfouz <mahfouz.saif.elyazal@gmail.com> escreveu:
 
-I've got 10 patches from Koji Matsuoka and Yoshihiro Kaneko on stack for 
-3.19 and a patch from Philipp Zabel, that touches soc-camera, but will 
-probably go via Mauro's tree directly. Below is their respective state and 
-most recent version and their posting dates. If I missed any patches, 
-please let me know!
+> This patch replaces dev_err by pr_err since the value
+> of ir is NULL when the message is displayed.
 
-[PATCH] media: soc_camera: rcar_vin: Add YUYV capture format support
-of 14 Oct
-state: Ok
+This one doesn't apply at the media tree:
 
-[PATCH] media: soc_camera: Fix VIDIOC_S_CROP ioctl miscalculation
-of 14 Oct
-state: comment posted, waiting for reply
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 1ccf6262ab36..babd6470f246 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1636,7 +1636,11 @@ out_put_xx:
+ out_put_ir:
+ 	put_ir_device(ir, true);
+ out_no_ir:
++<<<<<<<
+ 	zilog_error("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
++=======
++	pr_err("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
++>>>>>>>
+ 		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+ 		   ret);
+ 	mutex_unlock(&ir_devices_lock);
 
-[PATCH] media: soc_camera: rcar_vin: Add DT support for r8a7793 and r8a7794 SoCs
-of 20 Oct
-state: Ok
+Perhaps it depends on some patch merged via Greg's tree?
 
-[PATCH v3 1/3] media: soc_camera: rcar_vin: Add scaling support
-of 21 Oct
-state: Ok
-
-[PATCH v3 2/3] media: soc_camera: rcar_vin: Add capture width check for NV16 format
-of 21 Oct
-state: comment posted, waiting for reply
-
-[PATCH v3 3/3] media: soc_camera: rcar_vin: Add NV16 horizontal scaling-up support
-of 21 Oct
-state: comment posted, waiting for reply
-
-[PATCH v2] media: soc_camera: rcar_vin: Enable VSYNC field toggle mode
-of 22 Oct
-state: Ok
-
-[PATCH] media: soc_camera: rcar_vin: Fix alignment of clipping size
-of 31 Oct
-state: waiting for response to Sergei's comments
-
-[PATCH] media: soc_camera: rcar_vin: Fix interrupt enable in progressive
-of 31 Oct
-state: Ok
-
-[PATCH v4] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
-of 1 Nov
-state: Ok
-
-[PATCH v5 1/6] of: Decrement refcount of previous endpoint in of_graph_get_next_endpoint
-of 29 Sep
-state: comment posted, waiting for an update
-
-Thanks
-Guennadi
+Regards,
+Mauro
+> 
+> Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+> ---
+>  drivers/staging/media/lirc/lirc_zilog.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+> index 11a7cb1..ecdd71e 100644
+> --- a/drivers/staging/media/lirc/lirc_zilog.c
+> +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> @@ -1633,7 +1633,7 @@ out_put_xx:
+>  out_put_ir:
+>  	put_ir_device(ir, true);
+>  out_no_ir:
+> -	dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+> +	pr_err("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+>  		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+>  		   ret);
+>  	mutex_unlock(&ir_devices_lock);
