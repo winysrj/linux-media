@@ -1,316 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:62978 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754814AbaKRUZd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 15:25:33 -0500
-From: Beniamino Galvani <b.galvani@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
-	Sean Young <sean@mess.org>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Jerry Cao <jerry.cao@amlogic.com>,
-	Victor Wan <victor.wan@amlogic.com>,
-	Beniamino Galvani <b.galvani@gmail.com>
-Subject: [PATCH v3 2/3] media: rc: add driver for Amlogic Meson IR remote receiver
-Date: Tue, 18 Nov 2014 21:22:34 +0100
-Message-Id: <1416342155-26820-3-git-send-email-b.galvani@gmail.com>
-In-Reply-To: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
-References: <1416342155-26820-1-git-send-email-b.galvani@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:17102 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754655AbaKEQOK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Nov 2014 11:14:10 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: pj.assis@gmail.com
+Cc: remi@remlab.net, notasas@gmail.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com
+Subject: [RFC 1/2] uvc: Add a quirk flag for cameras that do not produce correct timestamps
+Date: Wed,  5 Nov 2014 18:12:33 +0200
+Message-Id: <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
+References: <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Amlogic Meson SoCs include a infrared remote control receiver that can
-operate in two modes: "NEC" mode in which the hardware decodes frames
-using the NEC IR protocol, and "general" mode in which the receiver
-simply reports the duration of pulses and spaces for software
-decoding.
+The UVC devices do produce hardware timestamps according to the spec, but
+not all cameras implement it or implement it correctly. Add a quirk flag for
+such devices, and use monotonic timestamp from the end of the frame instead.
 
-This is a driver for the IR receiver that implements software decoding
-of received frames.
-
-Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- MAINTAINERS                 |   1 +
- drivers/media/rc/Kconfig    |  11 +++
- drivers/media/rc/Makefile   |   1 +
- drivers/media/rc/meson-ir.c | 216 ++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 229 insertions(+)
- create mode 100644 drivers/media/rc/meson-ir.c
+ drivers/media/usb/uvc/uvc_queue.c |  6 ++++--
+ drivers/media/usb/uvc/uvc_video.c | 14 +++++++++++++-
+ drivers/media/usb/uvc/uvcvideo.h  |  4 +++-
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0662378..f1bc045 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -850,6 +850,7 @@ ARM/Amlogic MesonX SoC support
- M:	Carlo Caione <carlo@caione.org>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
-+F:	drivers/media/rc/meson-ir.c
- N:	meson[x68]
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 6e92d20..3f6432f 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -141,7 +141,7 @@ static struct vb2_ops uvc_queue_qops = {
+ };
  
- ARM/ATMEL AT91RM9200 AND AT91SAM ARM ARCHITECTURES
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 1aea732..ddfab25 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -223,6 +223,17 @@ config IR_FINTEK
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called fintek-cir.
+ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+-		    int drop_corrupted)
++		   bool drop_corrupted, bool tstamp_eof)
+ {
+ 	int ret;
  
-+config IR_MESON
-+	tristate "Amlogic Meson IR remote receiver"
-+	depends on RC_CORE
-+	depends on ARCH_MESON || COMPILE_TEST
-+	---help---
-+	   Say Y if you want to use the IR remote receiver available
-+	   on Amlogic Meson SoCs.
+@@ -152,7 +152,9 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+ 	queue->queue.ops = &uvc_queue_qops;
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
+ 	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+-		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
++		| (tstamp_eof ? V4L2_BUF_FLAG_TSTAMP_SRC_EOF
++		   : V4L2_BUF_FLAG_TSTAMP_SRC_SOE);
 +
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called meson-ir.
+ 	ret = vb2_queue_init(&queue->queue);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index df81b9c..f599112 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -382,6 +382,9 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 	u16 host_sof;
+ 	u16 dev_sof;
+ 
++	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
++		return;
 +
- config IR_NUVOTON
- 	tristate "Nuvoton w836x7hg Consumer Infrared Transceiver"
- 	depends on PNP
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 8f509e0..379a5c0 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_IR_IMON) += imon.o
- obj-$(CONFIG_IR_ITE_CIR) += ite-cir.o
- obj-$(CONFIG_IR_MCEUSB) += mceusb.o
- obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
-+obj-$(CONFIG_IR_MESON) += meson-ir.o
- obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
- obj-$(CONFIG_IR_ENE) += ene_ir.o
- obj-$(CONFIG_IR_REDRAT3) += redrat3.o
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-new file mode 100644
-index 0000000..fcc3b82
---- /dev/null
-+++ b/drivers/media/rc/meson-ir.c
-@@ -0,0 +1,216 @@
-+/*
-+ * Driver for Amlogic Meson IR remote receiver
-+ *
-+ * Copyright (C) 2014 Beniamino Galvani <b.galvani@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
-+ */
+ 	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
+ 	case UVC_STREAM_PTS | UVC_STREAM_SCR:
+ 		header_size = 12;
+@@ -490,6 +493,9 @@ static int uvc_video_clock_init(struct uvc_streaming *stream)
+ {
+ 	struct uvc_clock *clock = &stream->clock;
+ 
++	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
++		return 0;
 +
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+
-+#include <media/rc-core.h>
-+
-+#define DRIVER_NAME		"meson-ir"
-+
-+#define IR_DEC_LDR_ACTIVE	0x00
-+#define IR_DEC_LDR_IDLE		0x04
-+#define IR_DEC_LDR_REPEAT	0x08
-+#define IR_DEC_BIT_0		0x0c
-+#define IR_DEC_REG0		0x10
-+#define IR_DEC_FRAME		0x14
-+#define IR_DEC_STATUS		0x18
-+#define IR_DEC_REG1		0x1c
-+
-+#define REG0_RATE_MASK		(BIT(11) - 1)
-+
-+#define REG1_MODE_MASK		(BIT(7) | BIT(8))
-+#define REG1_MODE_NEC		(0 << 7)
-+#define REG1_MODE_GENERAL	(2 << 7)
-+
-+#define REG1_TIME_IV_SHIFT	16
-+#define REG1_TIME_IV_MASK	((BIT(13) - 1) << REG1_TIME_IV_SHIFT)
-+
-+#define REG1_IRQSEL_MASK	(BIT(2) | BIT(3))
-+#define REG1_IRQSEL_NEC_MODE	(0 << 2)
-+#define REG1_IRQSEL_RISE_FALL	(1 << 2)
-+#define REG1_IRQSEL_FALL	(2 << 2)
-+#define REG1_IRQSEL_RISE	(3 << 2)
-+
-+#define REG1_RESET		BIT(0)
-+#define REG1_ENABLE		BIT(15)
-+
-+#define STATUS_IR_DEC_IN	BIT(8)
-+
-+#define MESON_TRATE		10	/* us */
-+
-+struct meson_ir {
-+	void __iomem	*reg;
-+	struct rc_dev	*rc;
-+	int		irq;
-+	spinlock_t	lock;
-+};
-+
-+static void meson_ir_set_mask(struct meson_ir *ir, unsigned int reg,
-+			      u32 mask, u32 value)
-+{
-+	u32 data;
-+
-+	data = readl(ir->reg + reg);
-+	data &= ~mask;
-+	data |= (value & mask);
-+	writel(data, ir->reg + reg);
-+}
-+
-+static irqreturn_t meson_ir_irq(int irqno, void *dev_id)
-+{
-+	struct meson_ir *ir = dev_id;
-+	u32 duration;
-+	DEFINE_IR_RAW_EVENT(rawir);
-+
-+	spin_lock(&ir->lock);
-+
-+	duration = readl(ir->reg + IR_DEC_REG1);
-+	duration = (duration & REG1_TIME_IV_MASK) >> REG1_TIME_IV_SHIFT;
-+	rawir.duration = US_TO_NS(duration * MESON_TRATE);
-+
-+	rawir.pulse = !!(readl(ir->reg + IR_DEC_STATUS) & STATUS_IR_DEC_IN);
-+
-+	ir_raw_event_store_with_filter(ir->rc, &rawir);
-+	ir_raw_event_handle(ir->rc);
-+
-+	spin_unlock(&ir->lock);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int meson_ir_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	struct resource *res;
-+	const char *map_name;
-+	struct meson_ir *ir;
-+	int ret;
-+
-+	ir = devm_kzalloc(dev, sizeof(struct meson_ir), GFP_KERNEL);
-+	if (!ir)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	ir->reg = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(ir->reg)) {
-+		dev_err(dev, "failed to map registers\n");
-+		return PTR_ERR(ir->reg);
+ 	spin_lock_init(&clock->lock);
+ 	clock->size = 32;
+ 
+@@ -615,6 +621,11 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 	u32 rem;
+ 	u64 y;
+ 
++	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP) {
++		v4l2_get_timestamp(&v4l2_buf->timestamp);
++		return;
 +	}
 +
-+	ir->irq = platform_get_irq(pdev, 0);
-+	if (ir->irq < 0) {
-+		dev_err(dev, "no irq resource\n");
-+		return ir->irq;
-+	}
-+
-+	ir->rc = rc_allocate_device();
-+	if (!ir->rc) {
-+		dev_err(dev, "failed to allocate rc device\n");
-+		return -ENOMEM;
-+	}
-+
-+	ir->rc->priv = ir;
-+	ir->rc->input_name = DRIVER_NAME;
-+	ir->rc->input_phys = DRIVER_NAME "/input0";
-+	ir->rc->input_id.bustype = BUS_HOST;
-+	map_name = of_get_property(node, "linux,rc-map-name", NULL);
-+	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
-+	ir->rc->dev.parent = dev;
-+	ir->rc->driver_type = RC_DRIVER_IR_RAW;
-+	ir->rc->allowed_protocols = RC_BIT_ALL;
-+	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
-+	ir->rc->timeout = MS_TO_NS(200);
-+	ir->rc->driver_name = DRIVER_NAME;
-+
-+	spin_lock_init(&ir->lock);
-+	platform_set_drvdata(pdev, ir);
-+
-+	ret = rc_register_device(ir->rc);
-+	if (ret) {
-+		dev_err(dev, "failed to register rc device\n");
-+		goto out_free;
-+	}
-+
-+	ret = devm_request_irq(dev, ir->irq, meson_ir_irq, 0, "ir-meson", ir);
-+	if (ret) {
-+		dev_err(dev, "failed to request irq\n");
-+		goto out_unreg;
-+	}
-+
-+	/* Reset the decoder */
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, REG1_RESET);
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_RESET, 0);
-+	/* Set general operation mode */
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_MODE_MASK, REG1_MODE_GENERAL);
-+	/* Set rate */
-+	meson_ir_set_mask(ir, IR_DEC_REG0, REG0_RATE_MASK, MESON_TRATE - 1);
-+	/* IRQ on rising and falling edges */
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_IRQSEL_MASK,
-+			  REG1_IRQSEL_RISE_FALL);
-+	/* Enable the decoder */
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, REG1_ENABLE);
-+
-+	dev_info(dev, "receiver initialized\n");
-+
-+	return 0;
-+out_unreg:
-+	rc_unregister_device(ir->rc);
-+	ir->rc = NULL;
-+out_free:
-+	rc_free_device(ir->rc);
-+
-+	return ret;
-+}
-+
-+static int meson_ir_remove(struct platform_device *pdev)
-+{
-+	struct meson_ir *ir = platform_get_drvdata(pdev);
-+	unsigned long flags;
-+
-+	/* Disable the decoder */
-+	spin_lock_irqsave(&ir->lock, flags);
-+	meson_ir_set_mask(ir, IR_DEC_REG1, REG1_ENABLE, 0);
-+	spin_unlock_irqrestore(&ir->lock, flags);
-+
-+	rc_unregister_device(ir->rc);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id meson_ir_match[] = {
-+	{ .compatible = "amlogic,meson6-ir" },
-+	{ },
-+};
-+
-+static struct platform_driver meson_ir_driver = {
-+	.probe		= meson_ir_probe,
-+	.remove		= meson_ir_remove,
-+	.driver = {
-+		.name		= DRIVER_NAME,
-+		.of_match_table	= meson_ir_match,
-+	},
-+};
-+
-+module_platform_driver(meson_ir_driver);
-+
-+MODULE_DESCRIPTION("Amlogic Meson IR remote receiver driver");
-+MODULE_AUTHOR("Beniamino Galvani <b.galvani@gmail.com>");
-+MODULE_LICENSE("GPL v2");
+ 	spin_lock_irqsave(&clock->lock, flags);
+ 
+ 	if (clock->count < clock->size)
+@@ -1779,7 +1790,8 @@ int uvc_video_init(struct uvc_streaming *stream)
+ 	atomic_set(&stream->active, 0);
+ 
+ 	/* Initialize the video buffers queue. */
+-	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
++	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param,
++			     stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 864ada7..89a638c 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -148,6 +148,7 @@
+ #define UVC_QUIRK_PROBE_DEF		0x00000100
+ #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+ #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
++#define UVC_QUIRK_BAD_TIMESTAMP		0x00000800
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+@@ -622,7 +623,8 @@ extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
+ 
+ /* Video buffers queue management. */
+ extern int uvc_queue_init(struct uvc_video_queue *queue,
+-		enum v4l2_buf_type type, int drop_corrupted);
++		enum v4l2_buf_type type, bool drop_corrupted,
++		bool tstamp_eof);
+ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ 		struct v4l2_requestbuffers *rb);
+ extern void uvc_free_buffers(struct uvc_video_queue *queue);
 -- 
-1.9.1
+2.1.0.231.g7484e3b
 
