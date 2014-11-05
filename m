@@ -1,40 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:41332 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848AbaKRSV3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52158 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932293AbaKEPTi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 13:21:29 -0500
+	Wed, 5 Nov 2014 10:19:38 -0500
+Date: Wed, 5 Nov 2014 17:19:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 03/15] [media] Make use of the new media_bus_format
+ definitions
+Message-ID: <20141105151931.GU3136@valkosipuli.retiisi.org.uk>
+References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1415094910-15899-4-git-send-email-boris.brezillon@free-electrons.com>
 MIME-Version: 1.0
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Tue, 18 Nov 2014 10:21:05 -0800
-Message-ID: <CAB=NE6Wwec_sq4muj7kshhyLJttcf1CytTPWkjc_+Ub3dqn0tw@mail.gmail.com>
-Subject: [ANN] Kernel integration now merged on backports
-To: "backports@vger.kernel.org" <backports@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-wireless <linux-wireless@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	linux-bluetooth <linux-bluetooth@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	linux-wpan@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1415094910-15899-4-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Full kernel integration is now merged as part of Linux
-backports-20141114. I've written a bit about it [0] [1], what we need
-now are users and developer to give this a good spin as we wind down
-for the v3.19 release, which will be the first release that will
-support kernel integration down to any kernel >= 3.0 -- for now you
-can use the backports-20141114 tag which uses as base supported
-drivers from next-20141114. What this will mean is that you can opt in
-to integrate any device driver we support from any future backports
-release into any of >= 3.0 kernel with full kconfig support, enabling
-you to build everything as built-in. For all this you won't be using
-the packaged releases [2], instead you'll use the git tree directly as
-documented.
+On Tue, Nov 04, 2014 at 10:54:58AM +0100, Boris Brezillon wrote:
+> Replace references to the v4l2_mbus_pixelcode enum with the new
+> media_bus_format enum in all common headers.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 
-[0] http://www.do-not-panic.com/2014/11/automating-backport-kernel-integration.html
-[1] https://backports.wiki.kernel.org/index.php/Documentation/integration
-[2] https://backports.wiki.kernel.org/index.php/Documentation/packaging
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-  Luis
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
