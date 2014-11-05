@@ -1,219 +1,306 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60970 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751987AbaKGOv3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 09:51:29 -0500
-Message-ID: <545CDC59.8020504@xs4all.nl>
-Date: Fri, 07 Nov 2014 15:51:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:52681 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750877AbaKEXNX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Nov 2014 18:13:23 -0500
+Message-ID: <545AAF11.9050003@iki.fi>
+Date: Thu, 06 Nov 2014 01:13:21 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 00/10] [media] Make mediabus format subsystem neutral
-References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/3] cx23885: add DVBSky S952 support
+References: <201411052258322502227@gmail.com>
+In-Reply-To: <201411052258322502227@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/07/14 15:07, Boris Brezillon wrote:
-> Hello,
-> 
-> This patch series prepares the use of media bus formats outside of
-> the V4L2 subsytem (my final goal is to use it in the Atmel HLCDC DRM
-> driver where I have to configure my DPI/RGB bus according to the
-> connected display).
-> 
-> The series first defines MEDIA_BUS_FMT_ macros, and then replace all
-> references to the v4l2_mbus_pixelcode enum and its values within the
-> kernel.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Looks good!
+Patch looks correct for my eyes, but I am not professional here, so lets 
+Olli make final decision.
 
-For patches 1-9:
+regards
+Antti
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/05/2014 04:58 PM, Nibble Max wrote:
+> DVBSky S952 dvb-s/s2 dual PCIe card:
+> 1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
+> 2>PCIe bridge: CX23885(port b: parallel mode, port c: serial mode)
+> 3>rc: cx23885 integrated.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+>   drivers/media/pci/cx23885/cx23885-cards.c | 22 +++++++
+>   drivers/media/pci/cx23885/cx23885-dvb.c   | 99 ++++++++++++++++++++++++++++++-
+>   drivers/media/pci/cx23885/cx23885-input.c |  3 +
+>   drivers/media/pci/cx23885/cx23885.h       |  1 +
+>   4 files changed, 124 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> index 4b9cb07..4bad27d 100644
+> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+> @@ -696,6 +696,11 @@ struct cx23885_board cx23885_boards[] = {
+>   		.name		= "DVBSky S950",
+>   		.portb		= CX23885_MPEG_DVB,
+>   	},
+> +	[CX23885_BOARD_DVBSKY_S952] = {
+> +		.name		= "DVBSky S952",
+> +		.portb		= CX23885_MPEG_DVB,
+> +		.portc		= CX23885_MPEG_DVB,
+> +	},
+>   };
+>   const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+>
+> @@ -971,6 +976,10 @@ struct cx23885_subid cx23885_subids[] = {
+>   		.subvendor = 0x4254,
+>   		.subdevice = 0x0950,
+>   		.card      = CX23885_BOARD_DVBSKY_S950,
+> +	}, {
+> +		.subvendor = 0x4254,
+> +		.subdevice = 0x0952,
+> +		.card      = CX23885_BOARD_DVBSKY_S952,
+>   	},
+>   };
+>   const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+> @@ -1566,6 +1575,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+>   		mdelay(60);
+>   		break;
+>   	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		/* enable GPIO3-18 pins */
+>   		cx_write(MC417_CTL, 0x00000037);
+>   		cx23885_gpio_enable(dev, GPIO_2 | GPIO_11, 1);
+> @@ -1697,6 +1707,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		if (!enable_885_ir)
+>   			break;
+>   		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+> @@ -1748,6 +1759,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+>   		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+>   		dev->sd_ir = NULL;
+> @@ -1800,6 +1812,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		if (dev->sd_ir)
+>   			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+>   		break;
+> @@ -1962,6 +1975,14 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>   		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>   		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>   		break;
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+> +		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+> +		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> +		ts2->gen_ctrl_val  = 0xe; /* Serial bus */
+> +		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+> +		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> +		break;
+>   	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>   	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+>   	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+> @@ -2029,6 +2050,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+>   				&dev->i2c_bus[2].i2c_adap,
+>   				"cx25840", 0x88 >> 1, NULL);
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 3410ab8..2457b64 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -617,6 +617,32 @@ static int dvbsky_t9580_set_voltage(struct dvb_frontend *fe,
+>   	return 0;
+>   }
+>
+> +static int dvbsky_s952_portc_set_voltage(struct dvb_frontend *fe,
+> +					fe_sec_voltage_t voltage)
+> +{
+> +	struct cx23885_tsport *port = fe->dvb->priv;
+> +	struct cx23885_dev *dev = port->dev;
+> +
+> +	cx23885_gpio_enable(dev, GPIO_12 | GPIO_13, 1);
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_13:
+> +		cx23885_gpio_set(dev, GPIO_13);
+> +		cx23885_gpio_clear(dev, GPIO_12);
+> +		break;
+> +	case SEC_VOLTAGE_18:
+> +		cx23885_gpio_set(dev, GPIO_13);
+> +		cx23885_gpio_set(dev, GPIO_12);
+> +		break;
+> +	case SEC_VOLTAGE_OFF:
+> +		cx23885_gpio_clear(dev, GPIO_13);
+> +		cx23885_gpio_clear(dev, GPIO_12);
+> +		break;
+> +	}
+> +	/* call the frontend set_voltage function */
+> +	return port->fe_set_voltage(fe, voltage);
+> +}
+> +
+>   static int cx23885_sp2_ci_ctrl(void *priv, u8 read, int addr,
+>   				u8 data, int *mem)
+>   {
+> @@ -878,6 +904,19 @@ static const struct m88ds3103_config dvbsky_s950c_m88ds3103_config = {
+>   	.agc = 0x99,
+>   };
+>
+> +static const struct m88ds3103_config dvbsky_s952_portc_m88ds3103_config = {
+> +	.i2c_addr = 0x68,
+> +	.clock = 27000000,
+> +	.i2c_wr_max = 33,
+> +	.clock_out = 0,
+> +	.ts_mode = M88DS3103_TS_SERIAL,
+> +	.ts_clk = 96000,
+> +	.ts_clk_pol = 0,
+> +	.lnb_en_pol = 1,
+> +	.lnb_hv_pol = 0,
+> +	.agc = 0x99,
+> +};
+> +
+>   static int netup_altera_fpga_rw(void *device, int flag, int data, int read)
+>   {
+>   	struct cx23885_dev *dev = (struct cx23885_dev *)device;
+> @@ -1034,6 +1073,8 @@ static int dvb_register(struct cx23885_tsport *port)
+>   	struct i2c_board_info info;
+>   	struct i2c_adapter *adapter;
+>   	struct i2c_client *client_demod = NULL, *client_tuner = NULL, *client_ci = NULL;
+> +	const struct m88ds3103_config *p_m88ds3103_config = NULL;
+> +	int (*p_set_voltage)(struct dvb_frontend *fe, fe_sec_voltage_t voltage) = NULL;
+>   	int mfe_shared = 0; /* bus not shared by default */
+>   	int ret;
+>
+> @@ -1849,6 +1890,61 @@ static int dvb_register(struct cx23885_tsport *port)
+>
+>   		port->i2c_client_tuner = client_tuner;
+>   		break;
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		switch (port->nr) {
+> +		/* port b */
+> +		case 1:
+> +			i2c_bus = &dev->i2c_bus[1];
+> +			p_m88ds3103_config = &dvbsky_t9580_m88ds3103_config;
+> +			p_set_voltage = dvbsky_t9580_set_voltage;
+> +			break;
+> +		/* port c */
+> +		case 2:
+> +			i2c_bus = &dev->i2c_bus[0];
+> +			p_m88ds3103_config = &dvbsky_s952_portc_m88ds3103_config;
+> +			p_set_voltage = dvbsky_s952_portc_set_voltage;
+> +			break;
+> +		}
+> +
+> +		/* attach frontend */
+> +		fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
+> +				p_m88ds3103_config,
+> +				&i2c_bus->i2c_adap, &adapter);
+> +		if (fe0->dvb.frontend == NULL)
+> +			break;
+> +
+> +		/* attach tuner */
+> +		memset(&m88ts2022_config, 0, sizeof(m88ts2022_config));
+> +		m88ts2022_config.fe = fe0->dvb.frontend;
+> +		m88ts2022_config.clock = 27000000;
+> +		memset(&info, 0, sizeof(struct i2c_board_info));
+> +		strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
+> +		info.addr = 0x60;
+> +		info.platform_data = &m88ts2022_config;
+> +		request_module(info.type);
+> +		client_tuner = i2c_new_device(adapter, &info);
+> +		if (client_tuner == NULL ||
+> +				client_tuner->dev.driver == NULL)
+> +			goto frontend_detach;
+> +		if (!try_module_get(client_tuner->dev.driver->owner)) {
+> +			i2c_unregister_device(client_tuner);
+> +			goto frontend_detach;
+> +		}
+> +
+> +		/* delegate signal strength measurement to tuner */
+> +		fe0->dvb.frontend->ops.read_signal_strength =
+> +			fe0->dvb.frontend->ops.tuner_ops.get_rf_strength;
+> +
+> +		/*
+> +		 * for setting the voltage we need to set GPIOs on
+> +		 * the card.
+> +		 */
+> +		port->fe_set_voltage =
+> +			fe0->dvb.frontend->ops.set_voltage;
+> +		fe0->dvb.frontend->ops.set_voltage = p_set_voltage;
+> +
+> +		port->i2c_client_tuner = client_tuner;
+> +		break;
+>   	default:
+>   		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+>   			" isn't supported yet\n",
+> @@ -1924,7 +2020,8 @@ static int dvb_register(struct cx23885_tsport *port)
+>   		break;
+>   		}
+>   	case CX23885_BOARD_DVBSKY_T9580:
+> -	case CX23885_BOARD_DVBSKY_S950: {
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952: {
+>   		u8 eeprom[256]; /* 24C02 i2c eeprom */
+>
+>   		if (port->nr > 2)
+> diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+> index 7523d0a..a1f4894 100644
+> --- a/drivers/media/pci/cx23885/cx23885-input.c
+> +++ b/drivers/media/pci/cx23885/cx23885-input.c
+> @@ -92,6 +92,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		/*
+>   		 * The only boards we handle right now.  However other boards
+>   		 * using the CX2388x integrated IR controller should be similar
+> @@ -149,6 +150,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		/*
+>   		 * The IR controller on this board only returns pulse widths.
+>   		 * Any other mode setting will fail to set up the device.
+> @@ -319,6 +321,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_T980C:
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>   		/* Integrated CX23885 IR controller */
+>   		driver_type = RC_DRIVER_IR_RAW;
+>   		allowed_protos = RC_BIT_ALL;
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index f9cd0da..58c5038 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -97,6 +97,7 @@
+>   #define CX23885_BOARD_DVBSKY_S950C             47
+>   #define CX23885_BOARD_TT_CT2_4500_CI           48
+>   #define CX23885_BOARD_DVBSKY_S950              49
+> +#define CX23885_BOARD_DVBSKY_S952              50
+>
+>   #define GPIO_0 0x00000001
+>   #define GPIO_1 0x00000002
+>
 
-Patch 10 needs a bit more work, see my reply to that patch. If I get a
-v4 for that patch and nobody else has any further comments, then I'll
-make a pull request for this on Monday.
-
-Regards,
-
-	Hans
-
-> Best Regards,
-> 
-> Boris
-> 
-> Changes since v2:
-> - drop media_bus_format enum and replace its values with pre-processor
->   macros
-> 
-> Changes since v1:
-> - drop patches deprecating v4l2_mbus_pixelcode for user-space users
-> - put V4L2 legacy format definitions into media-bus-format.h
-> 
-> Boris Brezillon (10):
->   [media] Move mediabus format definition to a more standard place
->   [media] v4l: Update subdev-formats doc with new MEDIA_BUS_FMT values
->   [media] Make use of the new media_bus_format definitions
->   [media] i2c: Make use of media_bus_format enum
->   [media] pci: Make use of MEDIA_BUS_FMT definitions
->   [media] platform: Make use of media_bus_format enum
->   [media] usb: Make use of media_bus_format enum
->   staging: media: Make use of MEDIA_BUS_FMT_ definitions
->   gpu: ipu-v3: Make use of media_bus_format enum
->   [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the
->     kernel
-> 
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 308 ++++++++++-----------
->  Documentation/video4linux/soc-camera.txt           |   2 +-
->  arch/arm/mach-davinci/board-dm355-evm.c            |   2 +-
->  arch/arm/mach-davinci/board-dm365-evm.c            |   4 +-
->  arch/arm/mach-davinci/dm355.c                      |   7 +-
->  arch/arm/mach-davinci/dm365.c                      |   7 +-
->  arch/arm/mach-shmobile/board-mackerel.c            |   2 +-
->  arch/sh/boards/mach-ap325rxa/setup.c               |   2 +-
->  drivers/gpu/ipu-v3/ipu-csi.c                       |  66 ++---
->  drivers/media/i2c/adv7170.c                        |  16 +-
->  drivers/media/i2c/adv7175.c                        |  16 +-
->  drivers/media/i2c/adv7180.c                        |   6 +-
->  drivers/media/i2c/adv7183.c                        |   6 +-
->  drivers/media/i2c/adv7604.c                        |  72 ++---
->  drivers/media/i2c/adv7842.c                        |   6 +-
->  drivers/media/i2c/ak881x.c                         |   8 +-
->  drivers/media/i2c/cx25840/cx25840-core.c           |   2 +-
->  drivers/media/i2c/m5mols/m5mols_core.c             |   6 +-
->  drivers/media/i2c/ml86v7667.c                      |   6 +-
->  drivers/media/i2c/mt9m032.c                        |   6 +-
->  drivers/media/i2c/mt9p031.c                        |   8 +-
->  drivers/media/i2c/mt9t001.c                        |   8 +-
->  drivers/media/i2c/mt9v011.c                        |   6 +-
->  drivers/media/i2c/mt9v032.c                        |  12 +-
->  drivers/media/i2c/noon010pc30.c                    |  12 +-
->  drivers/media/i2c/ov7670.c                         |  16 +-
->  drivers/media/i2c/ov9650.c                         |  10 +-
->  drivers/media/i2c/s5c73m3/s5c73m3.h                |   6 +-
->  drivers/media/i2c/s5k4ecgx.c                       |   4 +-
->  drivers/media/i2c/s5k5baf.c                        |  14 +-
->  drivers/media/i2c/s5k6a3.c                         |   2 +-
->  drivers/media/i2c/s5k6aa.c                         |   8 +-
->  drivers/media/i2c/saa6752hs.c                      |   6 +-
->  drivers/media/i2c/saa7115.c                        |   2 +-
->  drivers/media/i2c/saa717x.c                        |   2 +-
->  drivers/media/i2c/smiapp/smiapp-core.c             |  32 +--
->  drivers/media/i2c/soc_camera/imx074.c              |   8 +-
->  drivers/media/i2c/soc_camera/mt9m001.c             |  14 +-
->  drivers/media/i2c/soc_camera/mt9m111.c             |  70 ++---
->  drivers/media/i2c/soc_camera/mt9t031.c             |  10 +-
->  drivers/media/i2c/soc_camera/mt9t112.c             |  22 +-
->  drivers/media/i2c/soc_camera/mt9v022.c             |  26 +-
->  drivers/media/i2c/soc_camera/ov2640.c              |  54 ++--
->  drivers/media/i2c/soc_camera/ov5642.c              |   8 +-
->  drivers/media/i2c/soc_camera/ov6650.c              |  58 ++--
->  drivers/media/i2c/soc_camera/ov772x.c              |  20 +-
->  drivers/media/i2c/soc_camera/ov9640.c              |  40 +--
->  drivers/media/i2c/soc_camera/ov9740.c              |  12 +-
->  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |  54 ++--
->  drivers/media/i2c/soc_camera/tw9910.c              |  10 +-
->  drivers/media/i2c/sr030pc30.c                      |  14 +-
->  drivers/media/i2c/tvp514x.c                        |  12 +-
->  drivers/media/i2c/tvp5150.c                        |   6 +-
->  drivers/media/i2c/tvp7002.c                        |  10 +-
->  drivers/media/i2c/vs6624.c                         |  18 +-
->  drivers/media/pci/cx18/cx18-av-core.c              |   2 +-
->  drivers/media/pci/cx18/cx18-controls.c             |   2 +-
->  drivers/media/pci/cx18/cx18-ioctl.c                |   2 +-
->  drivers/media/pci/cx23885/cx23885-video.c          |   2 +-
->  drivers/media/pci/ivtv/ivtv-controls.c             |   2 +-
->  drivers/media/pci/ivtv/ivtv-ioctl.c                |   2 +-
->  drivers/media/pci/saa7134/saa7134-empress.c        |   4 +-
->  drivers/media/platform/blackfin/bfin_capture.c     |  14 +-
->  drivers/media/platform/davinci/vpbe.c              |   2 +-
->  drivers/media/platform/davinci/vpfe_capture.c      |   4 +-
->  drivers/media/platform/exynos-gsc/gsc-core.c       |   8 +-
->  drivers/media/platform/exynos-gsc/gsc-core.h       |   2 +-
->  drivers/media/platform/exynos4-is/fimc-capture.c   |   2 +-
->  drivers/media/platform/exynos4-is/fimc-core.c      |  14 +-
->  drivers/media/platform/exynos4-is/fimc-core.h      |   4 +-
->  drivers/media/platform/exynos4-is/fimc-isp.c       |  16 +-
->  drivers/media/platform/exynos4-is/fimc-lite-reg.c  |  26 +-
->  drivers/media/platform/exynos4-is/fimc-lite.c      |  14 +-
->  drivers/media/platform/exynos4-is/fimc-reg.c       |  14 +-
->  drivers/media/platform/exynos4-is/mipi-csis.c      |  14 +-
->  drivers/media/platform/marvell-ccic/mcam-core.c    |  21 +-
->  drivers/media/platform/marvell-ccic/mcam-core.h    |   2 +-
->  drivers/media/platform/omap3isp/ispccdc.c          | 112 ++++----
->  drivers/media/platform/omap3isp/ispccp2.c          |  18 +-
->  drivers/media/platform/omap3isp/ispcsi2.c          |  42 +--
->  drivers/media/platform/omap3isp/isppreview.c       |  60 ++--
->  drivers/media/platform/omap3isp/ispresizer.c       |  19 +-
->  drivers/media/platform/omap3isp/ispvideo.c         |  95 ++++---
->  drivers/media/platform/omap3isp/ispvideo.h         |  10 +-
->  drivers/media/platform/s3c-camif/camif-capture.c   |  10 +-
->  drivers/media/platform/s3c-camif/camif-regs.c      |   8 +-
->  drivers/media/platform/s5p-tv/hdmi_drv.c           |   2 +-
->  drivers/media/platform/s5p-tv/sdo_drv.c            |   2 +-
->  drivers/media/platform/sh_vou.c                    |   8 +-
->  drivers/media/platform/soc_camera/atmel-isi.c      |  22 +-
->  drivers/media/platform/soc_camera/mx2_camera.c     |  26 +-
->  drivers/media/platform/soc_camera/mx3_camera.c     |   6 +-
->  drivers/media/platform/soc_camera/omap1_camera.c   |  36 +--
->  drivers/media/platform/soc_camera/pxa_camera.c     |  16 +-
->  drivers/media/platform/soc_camera/rcar_vin.c       |  14 +-
->  .../platform/soc_camera/sh_mobile_ceu_camera.c     |  20 +-
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c |  38 +--
->  drivers/media/platform/soc_camera/soc_camera.c     |   2 +-
->  .../platform/soc_camera/soc_camera_platform.c      |   2 +-
->  drivers/media/platform/soc_camera/soc_mediabus.c   |  78 +++---
->  drivers/media/platform/via-camera.c                |   8 +-
->  drivers/media/platform/vsp1/vsp1_bru.c             |  14 +-
->  drivers/media/platform/vsp1/vsp1_hsit.c            |  12 +-
->  drivers/media/platform/vsp1/vsp1_lif.c             |  10 +-
->  drivers/media/platform/vsp1/vsp1_lut.c             |  14 +-
->  drivers/media/platform/vsp1/vsp1_rwpf.c            |  10 +-
->  drivers/media/platform/vsp1/vsp1_sru.c             |  12 +-
->  drivers/media/platform/vsp1/vsp1_uds.c             |  10 +-
->  drivers/media/platform/vsp1/vsp1_video.c           |  42 +--
->  drivers/media/usb/cx231xx/cx231xx-417.c            |   2 +-
->  drivers/media/usb/cx231xx/cx231xx-video.c          |   4 +-
->  drivers/media/usb/em28xx/em28xx-camera.c           |   2 +-
->  drivers/media/usb/go7007/go7007-v4l2.c             |   2 +-
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c            |   2 +-
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  18 +-
->  .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    |  26 +-
->  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 100 +++----
->  drivers/staging/media/davinci_vpfe/dm365_isif.c    |  90 +++---
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c |  98 +++----
->  .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  18 +-
->  drivers/staging/media/omap4iss/iss_csi2.c          |  62 ++---
->  drivers/staging/media/omap4iss/iss_ipipe.c         |  16 +-
->  drivers/staging/media/omap4iss/iss_ipipeif.c       |  28 +-
->  drivers/staging/media/omap4iss/iss_resizer.c       |  26 +-
->  drivers/staging/media/omap4iss/iss_video.c         |  78 +++---
->  drivers/staging/media/omap4iss/iss_video.h         |  10 +-
->  include/media/davinci/vpbe.h                       |   2 +-
->  include/media/davinci/vpbe_venc.h                  |   5 +-
->  include/media/exynos-fimc.h                        |   2 +-
->  include/media/soc_camera.h                         |   2 +-
->  include/media/soc_mediabus.h                       |   6 +-
->  include/media/v4l2-mediabus.h                      |   2 +-
->  include/media/v4l2-subdev.h                        |   2 +-
->  include/uapi/linux/Kbuild                          |   1 +
->  include/uapi/linux/media-bus-format.h              | 125 +++++++++
->  include/uapi/linux/v4l2-mediabus.h                 | 189 ++++++-------
->  include/uapi/linux/v4l2-subdev.h                   |   6 +-
->  137 files changed, 1569 insertions(+), 1470 deletions(-)
->  create mode 100644 include/uapi/linux/media-bus-format.h
-> 
-
+-- 
+http://palosaari.fi/
