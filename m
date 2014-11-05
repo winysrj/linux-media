@@ -1,58 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53793 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbaKZT4u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 14:56:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv7 PATCH 04/12] vb2: don't free alloc context if it is ERR_PTR
-Date: Wed, 26 Nov 2014 21:57:16 +0200
-Message-ID: <2976231.bHTBT3GSj5@avalon>
-In-Reply-To: <1416315068-22936-5-git-send-email-hverkuil@xs4all.nl>
-References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-5-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:62741 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408AbaKEIpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 03:45:14 -0500
+Date: Wed, 5 Nov 2014 10:45:04 +0200
+From: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Gulsah Kose <gulsah.1004@gmail.com>,
+	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
+	Matina Maria Trompouki <mtrompou@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging: media: lirc: replace dev_err by pr_err
+Message-ID: <20141105084504.GA2128@localhost.localdomain>
+References: <20141104001319.GA14567@localhost.localdomain>
+ <20141104093653.GA3070@sudip-PC>
+ <20141104214826.GA6793@localhost.localdomain>
+ <20141105072738.GB4881@sudip-PC>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20141105072738.GB4881@sudip-PC>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you for the patch.
-
-On Tuesday 18 November 2014 13:51:00 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Nov 05, 2014 at 12:57:38PM +0530, Sudip Mukherjee wrote:
+> On Tue, Nov 04, 2014 at 11:48:26PM +0200, Aya Mahfouz wrote:
+> > On Tue, Nov 04, 2014 at 03:06:53PM +0530, Sudip Mukherjee wrote:
+> > > On Tue, Nov 04, 2014 at 02:13:19AM +0200, Aya Mahfouz wrote:
+> > > > This patch replaces dev_err by pr_err since the value
+> > > > of ir is NULL when the message is displayed.
+> > > > 
+> > > > Signed-off-by: Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>
+> > > > ---
+> > > >  drivers/staging/media/lirc/lirc_zilog.c | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+> > > > index 11a7cb1..ecdd71e 100644
+> > > > --- a/drivers/staging/media/lirc/lirc_zilog.c
+> > > > +++ b/drivers/staging/media/lirc/lirc_zilog.c
+> > > > @@ -1633,7 +1633,7 @@ out_put_xx:
+> > > >  out_put_ir:
+> > > >  	put_ir_device(ir, true);
+> > > >  out_no_ir:
+> > > > -	dev_err(ir->l.dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+> > > > +	pr_err("%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+> > > hi,
+> > > instead of ir->l.dev , can you please try dev_err like this :
+> > > 
+> > > dev_err(&client->dev, "%s: probing IR %s on %s (i2c-%d) failed with %d\n",
+> > > 	__func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+> > > 	ret);		    
+> > >
+> > 
+> > Thanks Sudip. It works. Please add the Reviewed-by tag to the newer
+> > patch.
+> > 
+> i think you forgot to add cc to the list and Greg K-H in your reply.
+> Greg should know that this patch is now not required, otherwise he might apply it to his tree.
+> so just replying to your mail while adding everyone else in the cc.
 > 
-> Don't try to free a pointer containing an ERR_PTR().
-
-Wouldn't it be easier to return NULL from vb2_dma_contig_alloc_ctx() instead 
-of an ERR_PTR ?
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> thanks
+> sudip
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index c4305bf..0bfc488
-> 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -854,7 +854,8 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
 > 
->  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->  {
-> -	kfree(alloc_ctx);
-> +	if (!IS_ERR_OR_NULL(alloc_ctx))
-> +		kfree(alloc_ctx);
->  }
->  EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
 
--- 
-Regards,
+Apologies Sudip and thanks again!
 
-Laurent Pinchart
+Kind Regards,
+Aya Saif El-yazal Mahfouz
 
+> > > thanks
+> > > sudip
+> > > 
+> > 
+> > Kind Regards,
+> > Aya Saif El-yazal Mahfouz
+> > > 
+> > > >  		    __func__, tx_probe ? "Tx" : "Rx", adap->name, adap->nr,
+> > > >  		   ret);
+> > > >  	mutex_unlock(&ir_devices_lock);
+> > > > -- 
+> > > > 1.9.3
+> > > > 
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > Please read the FAQ at  http://www.tux.org/lkml/
