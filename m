@@ -1,75 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:50776 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751135AbaKQIn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 03:43:26 -0500
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 09:43:19 +0100
-Cc: sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel" <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <20141116075928.GA9763@amd>
-In-Reply-To: <20141116075928.GA9763@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1847905.6cyh1QvJQ8";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:49270 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112AbaKEO7J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 09:59:09 -0500
+Received: by mail-pa0-f41.google.com with SMTP id rd3so949977pab.0
+        for <linux-media@vger.kernel.org>; Wed, 05 Nov 2014 06:59:09 -0800 (PST)
+Date: Wed, 5 Nov 2014 22:59:07 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Olli Salonen" <olli.salonen@iki.fi>
+Subject: [PATCH 3/3] m88ds3103: change ts clock config for serial mode
+Message-ID: <201411052259039219070@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201411170943.20810@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart1847905.6cyh1QvJQ8
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+1> When m88ds3103 works in serial ts mode, its serial ts clock is equal to ts master clock and the clock divider is bypassed.
+2> The serial ts clock is configed by the bridge driver just like parallel ts clock.
 
-On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
-> For device tree people: Yes, I know I'll have to create file
-> in documentation, but does the binding below look acceptable?
->=20
-> I'll clean up driver code a bit more, remove the printks.
-> Anything else obviously wrong?
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> Thanks,
-> 								Pavel
->=20
->=20
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
+---
+ drivers/media/dvb-frontends/m88ds3103.c | 55 +++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 30 deletions(-)
 
-Hello,
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 621d20f..0cd445c 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -245,9 +245,9 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, len;
+ 	const struct m88ds3103_reg_val *init;
+-	u8 u8tmp, u8tmp1, u8tmp2;
++	u8 u8tmp, u8tmp1 = 0, u8tmp2 = 0; /* silence compiler warning */
+ 	u8 buf[3];
+-	u16 u16tmp, divide_ratio;
++	u16 u16tmp, divide_ratio = 0;
+ 	u32 tuner_frequency, target_mclk;
+ 	s32 s32tmp;
+ 
+@@ -319,32 +319,29 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	/* set M88DS3103 mclk and ts mclk. */
+ 		priv->mclk_khz = 96000;
+ 
+-		if (c->delivery_system == SYS_DVBS)
+-			target_mclk = 96000;
+-		else {
+-			switch (priv->cfg->ts_mode) {
+-			case M88DS3103_TS_SERIAL:
+-			case M88DS3103_TS_SERIAL_D7:
+-				if (c->symbol_rate < 18000000)
+-					target_mclk = 96000;
+-				else
+-					target_mclk = 144000;
+-				break;
+-			case M88DS3103_TS_PARALLEL:
+-			case M88DS3103_TS_CI:
++		switch (priv->cfg->ts_mode) {
++		case M88DS3103_TS_SERIAL:
++		case M88DS3103_TS_SERIAL_D7:
++			target_mclk = priv->cfg->ts_clk;
++			break;
++		case M88DS3103_TS_PARALLEL:
++		case M88DS3103_TS_CI:
++			if (c->delivery_system == SYS_DVBS)
++				target_mclk = 96000;
++			else {
+ 				if (c->symbol_rate < 18000000)
+ 					target_mclk = 96000;
+ 				else if (c->symbol_rate < 28000000)
+ 					target_mclk = 144000;
+ 				else
+ 					target_mclk = 192000;
+-				break;
+-			default:
+-				dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n",
+-						__func__);
+-				ret = -EINVAL;
+-				goto err;
+ 			}
++			break;
++		default:
++			dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n",
++					__func__);
++			ret = -EINVAL;
++			goto err;
+ 		}
+ 
+ 		switch (target_mclk) {
+@@ -434,7 +431,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	u8tmp1 = 0; /* silence compiler warning */
+ 	switch (priv->cfg->ts_mode) {
+ 	case M88DS3103_TS_SERIAL:
+ 		u8tmp1 = 0x00;
+@@ -470,16 +466,15 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 		ret = m88ds3103_wr_reg_mask(priv, 0x29, u8tmp1, 0x20);
+ 		if (ret)
+ 			goto err;
+-	}
+-
+-	if (priv->cfg->ts_clk) {
+-		divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
+-		u8tmp1 = divide_ratio / 2;
+-		u8tmp2 = DIV_ROUND_UP(divide_ratio, 2);
+-	} else {
+-		divide_ratio = 0;
+ 		u8tmp1 = 0;
+ 		u8tmp2 = 0;
++		break;
++	default:
++		if (priv->cfg->ts_clk) {
++			divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
++			u8tmp1 = divide_ratio / 2;
++			u8tmp2 = DIV_ROUND_UP(divide_ratio, 2);
++		}
+ 	}
+ 
+ 	dev_dbg(&priv->i2c->dev,
 
-I think that this patch is probably not good and specially not=20
-for n900. adp1653 should be registered throw omap3 isp camera=20
-subsystem which does not have DT support yet.
+-- 
+1.9.1
 
-See n900 legacy board camera code in file board-rx51-camera.c.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1847905.6cyh1QvJQ8
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRptSgACgkQi/DJPQPkQ1Jp/gCcDXvCk21znfd1oIRrJyc1nuQm
-Aq0Ani3PDwgQk4b7tvcNNpAAy7HkvB6o
-=b1Is
------END PGP SIGNATURE-----
-
---nextPart1847905.6cyh1QvJQ8--
