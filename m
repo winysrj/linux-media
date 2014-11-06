@@ -1,132 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:48762 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753695AbaKHNgp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 08:36:45 -0500
-Message-ID: <1415454115.1881.3.camel@palomino.walls.org>
-Subject: Re: [PATCH 05/11] cx25840/cx18: Use standard ordering of mask and
- shift
-From: Andy Walls <awalls@md.metrocast.net>
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Sat, 08 Nov 2014 08:41:55 -0500
-In-Reply-To: <0f1e7b544283cd5d8ef1ca6f759af5e208dbc2fd.1414387334.git.joe@perches.com>
-References: <cover.1414387334.git.joe@perches.com>
-	 <0f1e7b544283cd5d8ef1ca6f759af5e208dbc2fd.1414387334.git.joe@perches.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:51249 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330AbaKFKMN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:13 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEM00KF74CC5250@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:12 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils RFC v3 06/11] mediactl: Add subdev_fmt property to the
+ media_entity
+Date: Thu, 06 Nov 2014 11:11:37 +0100
+Message-id: <1415268702-23685-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2014-10-26 at 22:25 -0700, Joe Perches wrote:
-> Precedence of & and >> is not the same and is not left to right.
-> shift has higher precedence and should be done after the mask.
-> 
-> This use has a mask then shift which is not the normal style.
-> 
-> Move the shift before the mask to match nearly all the other
-> uses in kernel.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+Add subdev_fmt field to the structure media_entity.
+Added is also API for setting the media_entity
+format and comparing two subdev formats.
 
-The patch is technically correct.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c   |    6 ++++++
+ utils/media-ctl/libv4l2subdev.c |   34 ++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl-priv.h |    3 +++
+ utils/media-ctl/mediactl.h      |   12 ++++++++++++
+ utils/media-ctl/v4l2subdev.h    |   12 ++++++++++++
+ 5 files changed, 67 insertions(+)
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-
-> ---
->  drivers/media/i2c/cx25840/cx25840-core.c | 12 ++++++------
->  drivers/media/pci/cx18/cx18-av-core.c    | 16 ++++++++--------
->  2 files changed, 14 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-> index e453a3f..0327032 100644
-> --- a/drivers/media/i2c/cx25840/cx25840-core.c
-> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
-> @@ -879,7 +879,7 @@ void cx25840_std_setup(struct i2c_client *client)
->  	/* Sets horizontal blanking delay and active lines */
->  	cx25840_write(client, 0x470, hblank);
->  	cx25840_write(client, 0x471,
-> -			0xff & (((hblank >> 8) & 0x3) | (hactive << 4)));
-> +		      (((hblank >> 8) & 0x3) | (hactive << 4)) & 0xff);
->  	cx25840_write(client, 0x472, hactive >> 4);
->  
->  	/* Sets burst gate delay */
-> @@ -888,13 +888,13 @@ void cx25840_std_setup(struct i2c_client *client)
->  	/* Sets vertical blanking delay and active duration */
->  	cx25840_write(client, 0x474, vblank);
->  	cx25840_write(client, 0x475,
-> -			0xff & (((vblank >> 8) & 0x3) | (vactive << 4)));
-> +		      (((vblank >> 8) & 0x3) | (vactive << 4)) & 0xff);
->  	cx25840_write(client, 0x476, vactive >> 4);
->  	cx25840_write(client, 0x477, vblank656);
->  
->  	/* Sets src decimation rate */
-> -	cx25840_write(client, 0x478, 0xff & src_decimation);
-> -	cx25840_write(client, 0x479, 0xff & (src_decimation >> 8));
-> +	cx25840_write(client, 0x478, src_decimation & 0xff);
-> +	cx25840_write(client, 0x479, (src_decimation >> 8) & 0xff);
->  
->  	/* Sets Luma and UV Low pass filters */
->  	cx25840_write(client, 0x47a, luma_lpf << 6 | ((uv_lpf << 4) & 0x30));
-> @@ -904,8 +904,8 @@ void cx25840_std_setup(struct i2c_client *client)
->  
->  	/* Sets SC Step*/
->  	cx25840_write(client, 0x47c, sc);
-> -	cx25840_write(client, 0x47d, 0xff & sc >> 8);
-> -	cx25840_write(client, 0x47e, 0xff & sc >> 16);
-> +	cx25840_write(client, 0x47d, (sc >> 8) & 0xff);
-> +	cx25840_write(client, 0x47e, (sc >> 16) & 0xff);
->  
->  	/* Sets VBI parameters */
->  	if (std & V4L2_STD_625_50) {
-> diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
-> index 2d3afe0..45be26c 100644
-> --- a/drivers/media/pci/cx18/cx18-av-core.c
-> +++ b/drivers/media/pci/cx18/cx18-av-core.c
-> @@ -490,8 +490,8 @@ void cx18_av_std_setup(struct cx18 *cx)
->  
->  	/* Sets horizontal blanking delay and active lines */
->  	cx18_av_write(cx, 0x470, hblank);
-> -	cx18_av_write(cx, 0x471, 0xff & (((hblank >> 8) & 0x3) |
-> -						(hactive << 4)));
-> +	cx18_av_write(cx, 0x471,
-> +		      (((hblank >> 8) & 0x3) | (hactive << 4)) & 0xff);
->  	cx18_av_write(cx, 0x472, hactive >> 4);
->  
->  	/* Sets burst gate delay */
-> @@ -499,14 +499,14 @@ void cx18_av_std_setup(struct cx18 *cx)
->  
->  	/* Sets vertical blanking delay and active duration */
->  	cx18_av_write(cx, 0x474, vblank);
-> -	cx18_av_write(cx, 0x475, 0xff & (((vblank >> 8) & 0x3) |
-> -						(vactive << 4)));
-> +	cx18_av_write(cx, 0x475,
-> +		      (((vblank >> 8) & 0x3) | (vactive << 4)) & 0xff);
->  	cx18_av_write(cx, 0x476, vactive >> 4);
->  	cx18_av_write(cx, 0x477, vblank656);
->  
->  	/* Sets src decimation rate */
-> -	cx18_av_write(cx, 0x478, 0xff & src_decimation);
-> -	cx18_av_write(cx, 0x479, 0xff & (src_decimation >> 8));
-> +	cx18_av_write(cx, 0x478, src_decimation & 0xff);
-> +	cx18_av_write(cx, 0x479, (src_decimation >> 8) & 0xff);
->  
->  	/* Sets Luma and UV Low pass filters */
->  	cx18_av_write(cx, 0x47a, luma_lpf << 6 | ((uv_lpf << 4) & 0x30));
-> @@ -516,8 +516,8 @@ void cx18_av_std_setup(struct cx18 *cx)
->  
->  	/* Sets SC Step*/
->  	cx18_av_write(cx, 0x47c, sc);
-> -	cx18_av_write(cx, 0x47d, 0xff & sc >> 8);
-> -	cx18_av_write(cx, 0x47e, 0xff & sc >> 16);
-> +	cx18_av_write(cx, 0x47d, (sc >> 8) & 0xff);
-> +	cx18_av_write(cx, 0x47e, (sc >> 16) & 0xff);
->  
->  	if (std & V4L2_STD_625_50) {
->  		state->slicer_line_delay = 1;
-
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 10f0491..27e7329 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -1260,3 +1260,9 @@ int media_entity_get_fd(struct media_entity *entity)
+ {
+ 	return entity->fd;
+ }
++
++void media_entity_set_subdev_fmt(struct media_entity *entity,
++				struct v4l2_subdev_format *fmt)
++{
++	entity->subdev_fmt = *fmt;
++}
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 99ac6b2..449565c 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -786,3 +786,37 @@ int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
+ 							entity->info.name);
+ 	return 0;
+ }
++
++int v4l2_subdev_format_compare(struct v4l2_mbus_framefmt *fmt1,
++				struct v4l2_mbus_framefmt *fmt2)
++{
++	if (fmt1 == NULL || fmt2 == NULL)
++		return 0;
++
++	if (fmt1->width != fmt2->width) {
++		printf("width mismatch\n");
++		return 0;
++	}
++
++	if (fmt1->height != fmt2->height) {
++		printf("height mismatch\n");
++		return 0;
++	}
++
++	if (fmt1->code != fmt2->code) {
++		printf("mbus code mismatch\n");
++		return 0;
++	}
++
++	if (fmt1->field != fmt2->field) {
++		printf("field mismatch\n");
++		return 0;
++	}
++
++	if (fmt1->colorspace != fmt2->colorspace) {
++		printf("colorspace mismatch\n");
++		return 0;
++	}
++
++	return 1;
++}
+diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
+index b9e9b20..b2c466b 100644
+--- a/utils/media-ctl/mediactl-priv.h
++++ b/utils/media-ctl/mediactl-priv.h
+@@ -23,6 +23,7 @@
+ #define __MEDIA_PRIV_H__
+ 
+ #include <linux/media.h>
++#include <linux/v4l2-subdev.h>
+ 
+ #include "mediactl.h"
+ 
+@@ -34,6 +35,8 @@ struct media_entity {
+ 	unsigned int max_links;
+ 	unsigned int num_links;
+ 
++	struct v4l2_subdev_format subdev_fmt;
++
+ 	char devname[32];
+ 	int fd;
+ };
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 0dc7f95..d28b0a8 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -42,6 +42,7 @@ struct media_pad {
+ 
+ struct media_device;
+ struct media_entity;
++struct v4l2_subdev_format;
+ 
+ /**
+  * @brief Create a new media device.
+@@ -611,4 +612,15 @@ int media_entity_get_sink_pad_index(struct media_entity *entity);
+  */
+ int media_entity_get_fd(struct media_entity *entity);
+ 
++/**
++ * @brief Set sub-device format
++ * @param entity - media entity
++ * @param fmt - pointer to the sub-device format structure
++ *
++ * This function sets the format of the sub-device related
++ * to this entity.
++ */
++void media_entity_set_subdev_fmt(struct media_entity *entity,
++				struct v4l2_subdev_format *fmt);
++
+ #endif
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 3bc0412..2c9d507 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -270,4 +270,16 @@ int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
+ 	struct media_entity *entity,
+ 	__u32 ctrl_id);
+ 
++/**
++ * @brief Compare mbus formats
++ * @param fmt1 - 1st mbus format to compare
++ * @param fmt2 - 2nd mbus format to compare
++ *
++ * Check whether two mbus formats are compatible.
++ *
++ * @return 1 if formats are compatible, 0 otherwise
++ */
++int v4l2_subdev_format_compare(struct v4l2_mbus_framefmt *fmt1,
++	struct v4l2_mbus_framefmt *fmt2);
++
+ #endif
+-- 
+1.7.9.5
 
