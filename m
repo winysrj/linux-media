@@ -1,110 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:9520 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758534AbaKUQPC (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51711 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751438AbaKFJcK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 11:15:02 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NFE00F2DD51CU40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:01 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v4 03/11] mediactl: Separate entity and pad parsing
-Date: Fri, 21 Nov 2014 17:14:32 +0100
-Message-id: <1416586480-19982-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 6 Nov 2014 04:32:10 -0500
+Message-ID: <545B4006.1010401@xs4all.nl>
+Date: Thu, 06 Nov 2014 10:31:50 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	hans.verkuil@cisco.com, Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: v4l2-ctl bug(?) printing ctrl payload array
+References: <CANZNk82AqfbSkUd_xONtjAxLePA0TMhS_5wuWERObyGSZ5QYoA@mail.gmail.com> <CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com>
+In-Reply-To: <CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes it's useful to be able to parse the entity independent of the pad.
-Separate entity parsing into media_parse_entity().
+On 11/05/14 20:52, Andrey Utkin wrote:
+> More on the same topic.
+> I believe there's another bug on displaying of payload.
+> Let's say we have the same [45][45] array, and this is what is posted to it:
+> uint16_t buf[45 * 45] = {0, };
+>         buf[0] = 1;
+>         buf[1] = 2;
+>         buf[45] = 3;
+>         buf[45 * 45 - 1] = 0xff;
+> 
+> What is shown by v4l2-ctl you can see here:
+> https://dl.dropboxusercontent.com/u/43104344/v4l2-ctl_payload_bug.png
+> 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/libmediactl.c |   28 ++++++++++++++++++++++++----
- utils/media-ctl/mediactl.h    |   14 ++++++++++++++
- 2 files changed, 38 insertions(+), 4 deletions(-)
+I'll look at this Friday or Monday.
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 4c4ddbe..af7dd43 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -787,10 +787,10 @@ int media_device_add_entity(struct media_device *media,
- 	return 0;
- }
- 
--struct media_pad *media_parse_pad(struct media_device *media,
--				  const char *p, char **endp)
-+struct media_entity *media_parse_entity(struct media_device *media,
-+					const char *p, char **endp)
- {
--	unsigned int entity_id, pad;
-+	unsigned int entity_id;
- 	struct media_entity *entity;
- 	char *end;
- 
-@@ -827,7 +827,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 			return NULL;
- 		}
- 	}
--	for (; isspace(*end); ++end);
-+	for (p = end; isspace(*p); ++p);
-+
-+	*endp = (char *)p;
-+
-+	return entity;
-+}
-+
-+struct media_pad *media_parse_pad(struct media_device *media,
-+				  const char *p, char **endp)
-+{
-+	unsigned int pad;
-+	struct media_entity *entity;
-+	char *end;
-+
-+	if (endp == NULL)
-+		endp = &end;
-+
-+	entity = media_parse_entity(media, p, &end);
-+	if (!entity)
-+		return NULL;
-+	*endp = end;
- 
- 	if (*end != ':') {
- 		media_dbg(media, "Expected ':'\n", *end);
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index b8cefe8..7309b16 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
- int media_reset_links(struct media_device *media);
- 
- /**
-+ * @brief Parse string to an entity on the media device.
-+ * @param media - media device.
-+ * @param p - input string
-+ * @param endp - pointer to string where parsing ended
-+ *
-+ * Parse NULL terminated string describing an entity and return its
-+ * struct media_entity instance.
-+ *
-+ * @return Pointer to struct media_entity on success, NULL on failure.
-+ */
-+struct media_entity *media_parse_entity(struct media_device *media,
-+					const char *p, char **endp);
-+
-+/**
-  * @brief Parse string to a pad on the media device.
-  * @param media - media device.
-  * @param p - input string
--- 
-1.7.9.5
+I want to add some test array controls to the vivid driver as well to make
+it easier to test such controls, so that will be a good test case.
 
+Regards,
+
+	Hans
