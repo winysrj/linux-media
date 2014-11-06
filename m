@@ -1,72 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:44888 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664AbaKZWn1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 17:43:27 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 11/11] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-Date: Wed, 26 Nov 2014 22:42:34 +0000
-Message-Id: <1417041754-8714-12-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1417041754-8714-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:43785 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751732AbaKFNFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Nov 2014 08:05:55 -0500
+Date: Thu, 6 Nov 2014 11:05:49 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141106110549.1812acc7@recife.lan>
+In-Reply-To: <20141106124629.GA898@gofer.mess.org>
+References: <20141031130600.GA16310@mwanda>
+	<20141031142644.GA4166@localhost.localdomain>
+	<20141031143541.GM6890@mwanda>
+	<20141106124629.GA898@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch drops driver specific wait_prepare() and
-wait_finish() callbacks from vb2_ops and instead uses
-the the helpers vb2_ops_wait_prepare/finish() provided
-by the vb2 core, the lock member of the queue needs
-to be initalized to a mutex so that vb2 helpers
-vb2_ops_wait_prepare/finish() can make use of it.
+Hi Sean,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+Em Thu, 06 Nov 2014 12:46:29 +0000
+Sean Young <sean@mess.org> escreveu:
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cc96072..64147b5 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
- 		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
- }
- 
--static void uvc_wait_prepare(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_unlock(&queue->mutex);
--}
--
--static void uvc_wait_finish(struct vb2_queue *vq)
--{
--	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
--
--	mutex_lock(&queue->mutex);
--}
--
- static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-@@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
- 	.buf_prepare = uvc_buffer_prepare,
- 	.buf_queue = uvc_buffer_queue,
- 	.buf_finish = uvc_buffer_finish,
--	.wait_prepare = uvc_wait_prepare,
--	.wait_finish = uvc_wait_finish,
-+	.wait_prepare = vb2_ops_wait_prepare,
-+	.wait_finish = vb2_ops_wait_finish,
- 	.start_streaming = uvc_start_streaming,
- 	.stop_streaming = uvc_stop_streaming,
- };
--- 
-1.9.1
+> On Fri, Oct 31, 2014 at 05:35:41PM +0300, Dan Carpenter wrote:
+> > On Fri, Oct 31, 2014 at 04:26:45PM +0200, Aya Mahfouz wrote:
+> > > On Fri, Oct 31, 2014 at 04:06:00PM +0300, Dan Carpenter wrote:
+> > > > drivers/staging/media/lirc/lirc_zilog.c
+> > > >   1333  /* Close the IR device */
+> > > >   1334  static int close(struct inode *node, struct file *filep)
+> > > >   1335  {
+> > > >   1336          /* find our IR struct */
+> > > >   1337          struct IR *ir = filep->private_data;
+> > > >   1338  
+> > > >   1339          if (ir == NULL) {
+> > > >                     ^^^^^^^^^^
+> > > >   1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
+> > > >                                 ^^^^^^^^^
+> > > > 
+> > > > I suggest you just delete the error message.  Can "ir" actually be NULL
+> > > > here anyway?
+> > > >
+> > > 
+> > > Since I'm a newbie and this is not my code, I prefer to use pr_err().
+> > 
+> > This driver doesn't belong to anyone.  Go ahead and take ownership.  The
+> > message is fairly worthless and no one will miss it.
+> 
+> Speaking of ownership, what this driver really needs is to be ported to 
+> rc-core. In order to do this it'll need to be able to send raw IR rather
+> key codes; I've been peering at the firmware but it neither looks like
+> zilog z8 opcodes nor space/pulse information.
 
+Actually, I think that all features provided by this driver were already
+migrated into the ir-kbd-i2c (drivers/media/i2c/ir-kbd-i2c.c) driver.
+
+Andy and Jarod worked on this conversion, but we decided, on that time,
+to keep lirc_zilog for a while (can't remember why).
+
+Andy/Jarod,
+
+What's the status of the ir-kbd-i2c with regards to Zilog z8 support?
+
+> Does anyone have any contacts at Hauppauge who could help with this?
+
+Probably, it won't be easy to get someone there that worked on it,
+as this device is too old.
+
+Anyway, if are there anything still pending, I may be able to get
+some contacts at the vendor.
+
+Regards,
+Mauro
