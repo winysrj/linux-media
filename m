@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45425 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752190AbaKKMLj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 07:11:39 -0500
-Message-ID: <5461FCDC.3050501@xs4all.nl>
-Date: Tue, 11 Nov 2014 13:11:08 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sebastian Reichel <sre@kernel.org>
-Subject: Re: [GIT PULL FOR v3.19] Various fixes
-References: <54609BD2.8070200@xs4all.nl> <20141111090940.61626e4f@recife.lan>
-In-Reply-To: <20141111090940.61626e4f@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:51265 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbaKFKMR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:17 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEM00MRK4CFF220@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:15 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils RFC v3 07/11] mediactl: Add VYUY8_2X8 media bus format
+Date: Thu, 06 Nov 2014 11:11:38 +0100
+Message-id: <1415268702-23685-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/14 12:09, Mauro Carvalho Chehab wrote:
-> Em Mon, 10 Nov 2014 12:04:50 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Sparse fixes for saa7164, adv EDID fixes and si4713 improvements in preparation
->> for adding DT support. Tested the si4713 with my USB dev board.
->>
->> Regards,
->>
->> 	Hans
->>
->> The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
->>
->>   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
->>
->> are available in the git repository at:
->>
->>   git://linuxtv.org/hverkuil/media_tree.git for-v3.19f
->>
->> for you to fetch changes up to 017f179ebd74ec3bd3f2484c3cc0fe48c306a36e:
->>
->>   si4713: use managed irq request (2014-11-10 12:03:30 +0100)
->>
-> 
-> ...
-> 
->> Sebastian Reichel (4):
->>       si4713: switch to devm regulator API
->>       si4713: switch reset gpio to devm_gpiod API
->>       si4713: use managed memory allocation
->>       si4713: use managed irq request
-> 
-> None of the above was applied, as the first si4713 patch broke compilation.
+The VYUY8_2X8 media bus format is the only one supported
+by the S5C73M3 camera sensor, that is a part of the media
+device on the Exynos4412-trats2 board.
 
-No problem, I'll look at this on Friday. I should have checked this myself,
-sorry about that.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libv4l2subdev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Regards,
-
-	Hans
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 449565c..0c6aaef 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -705,6 +705,7 @@ static struct {
+ 	{ "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
+ 	{ "YUYV1_5X8", V4L2_MBUS_FMT_YUYV8_1_5X8 },
+ 	{ "YUYV2X8", V4L2_MBUS_FMT_YUYV8_2X8 },
++	{ "VYUY8_2X8", V4L2_MBUS_FMT_VYUY8_2X8 },
+ 	{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+ 	{ "UYVY1_5X8", V4L2_MBUS_FMT_UYVY8_1_5X8 },
+ 	{ "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+-- 
+1.7.9.5
 
