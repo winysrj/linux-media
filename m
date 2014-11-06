@@ -1,137 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:58820 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbaKCKTP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 05:19:15 -0500
-Date: Mon, 03 Nov 2014 08:19:07 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
- of_graph_get_next_endpoint
-Message-id: <20141103081907.46326b87.m.chehab@samsung.com>
-In-reply-to: <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
- <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:40304 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbaKFKMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:06 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEM00G404BYWSC0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:11:58 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com
+Subject: [v4l-utils RFC v3 02/11] mediactl: Separate entity and pad parsing
+Date: Thu, 06 Nov 2014 11:11:33 +0100
+Message-id: <1415268702-23685-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Sep 2014 20:03:34 +0200
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> Decrementing the reference count of the previous endpoint node allows to
-> use the of_graph_get_next_endpoint function in a for_each_... style macro.
-> All current users of this function that pass a non-NULL prev parameter
-> (that is, soc_camera and imx-drm) are changed to not decrement the passed
-> prev argument's refcount themselves.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Sometimes it's useful to be able to parse the entity independent of the pad.
+Separate entity parsing into media_parse_entity().
 
-Feel free to merge it via Grant's tree.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/libmediactl.c |   28 ++++++++++++++++++++++++----
+ utils/media-ctl/mediactl.h    |   14 ++++++++++++++
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 795aaad..b549a90 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -779,10 +779,10 @@ int media_device_add_entity(struct media_device *media,
+ 	return 0;
+ }
+ 
+-struct media_pad *media_parse_pad(struct media_device *media,
+-				  const char *p, char **endp)
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp)
+ {
+-	unsigned int entity_id, pad;
++	unsigned int entity_id;
+ 	struct media_entity *entity;
+ 	char *end;
+ 
+@@ -819,7 +819,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
+ 			return NULL;
+ 		}
+ 	}
+-	for (; isspace(*end); ++end);
++	for (p = end; isspace(*p); ++p);
++
++	*endp = (char *)p;
++
++	return entity;
++}
++
++struct media_pad *media_parse_pad(struct media_device *media,
++				  const char *p, char **endp)
++{
++	unsigned int pad;
++	struct media_entity *entity;
++	char *end;
++
++	if (endp == NULL)
++		endp = &end;
++
++	entity = media_parse_entity(media, p, &end);
++	if (!entity)
++		return NULL;
++	*endp = end;
+ 
+ 	if (*end != ':') {
+ 		media_dbg(media, "Expected ':'\n", *end);
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index e358242..5246978 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
+ int media_reset_links(struct media_device *media);
+ 
+ /**
++ * @brief Parse string to an entity on the media device.
++ * @param media - media device.
++ * @param p - input string
++ * @param endp - pointer to string where parsing ended
++ *
++ * Parse NULL terminated string describing an entity and return its
++ * struct media_entity instance.
++ *
++ * @return Pointer to struct media_entity on success, NULL on failure.
++ */
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp);
++
++/**
+  * @brief Parse string to a pad on the media device.
+  * @param media - media device.
+  * @param p - input string
+-- 
+1.7.9.5
 
-> ---
-> Changes since v4:
->  - Folded patches 1-3 into this one
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
->  drivers/of/base.c                              |  9 +--------
->  drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
->  3 files changed, 5 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index f4308fe..619b2d4 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
->  		if (!i)
->  			soc_of_bind(ici, epn, ren->parent);
->  
-> -		of_node_put(epn);
->  		of_node_put(ren);
->  
->  		if (i) {
-> @@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
->  			break;
->  		}
->  	}
-> +
-> +	of_node_put(epn);
->  }
->  
->  #else
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 293ed4b..f7a9aa8 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2070,8 +2070,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
->   * @prev: previous endpoint node, or NULL to get first
->   *
->   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-> - * of the passed @prev node is not decremented, the caller have to use
-> - * of_node_put() on it when done.
-> + * of the passed @prev node is decremented.
->   */
->  struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  					struct device_node *prev)
-> @@ -2107,12 +2106,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
->  			      __func__, prev->full_name))
->  			return NULL;
-> -
-> -		/*
-> -		 * Avoid dropping prev node refcount to 0 when getting the next
-> -		 * child below.
-> -		 */
-> -		of_node_get(prev);
->  	}
->  
->  	while (1) {
-> diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-> index 6b22106..12303b3 100644
-> --- a/drivers/staging/imx-drm/imx-drm-core.c
-> +++ b/drivers/staging/imx-drm/imx-drm-core.c
-> @@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
->  	return 0;
->  }
->  
-> -static struct device_node *imx_drm_of_get_next_endpoint(
-> -		const struct device_node *parent, struct device_node *prev)
-> -{
-> -	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
-> -	of_node_put(prev);
-> -	return node;
-> -}
-> -
->  int imx_drm_encoder_parse_of(struct drm_device *drm,
->  	struct drm_encoder *encoder, struct device_node *np)
->  {
-> @@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
->  	for (i = 0; ; i++) {
->  		u32 mask;
->  
-> -		ep = imx_drm_of_get_next_endpoint(np, ep);
-> +		ep = of_graph_get_next_endpoint(np, ep);
->  		if (!ep)
->  			break;
->  
-> @@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
->  		return -EINVAL;
->  
->  	do {
-> -		ep = imx_drm_of_get_next_endpoint(node, ep);
-> +		ep = of_graph_get_next_endpoint(node, ep);
->  		if (!ep)
->  			break;
->  
