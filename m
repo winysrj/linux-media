@@ -1,87 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38431 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751574AbaK2UuS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 15:50:18 -0500
-Date: Sat, 29 Nov 2014 18:50:12 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ISDB caption support
-Message-ID: <20141129185012.714473bc@recife.lan>
-In-Reply-To: <5479F19A.9000408@cogweb.net>
-References: <5478D31E.5000402@cogweb.net>
-	<CAGoCfizK4kN5QnmFs_trAk2w3xuSVtXYVF2wSmdXDazxbhk=yQ@mail.gmail.com>
-	<547934E1.3050609@cogweb.net>
-	<CAGoCfix11OiF5_kojJ4jKZadz3XYdYJccPGtivtzDepFfn4Rnw@mail.gmail.com>
-	<20141129090408.1b52c9ea@recife.lan>
-	<5479F19A.9000408@cogweb.net>
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:50048 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963AbaKFUPR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 15:15:17 -0500
+Received: by mail-lb0-f173.google.com with SMTP id n15so1584690lbi.18
+        for <linux-media@vger.kernel.org>; Thu, 06 Nov 2014 12:15:15 -0800 (PST)
+Date: Thu, 6 Nov 2014 22:15:05 +0200 (EET)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Nibble Max <nibble.max@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] cx23885: add DVBSky S950 support
+In-Reply-To: <201411052258037656794@gmail.com>
+Message-ID: <alpine.DEB.2.10.1411062212120.1386@dl160.lan>
+References: <201411052258037656794@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI David,
+Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
 
-Em Sat, 29 Nov 2014 08:17:30 -0800
-David Liontooth <lionteeth@cogweb.net> escreveu:
+On Wed, 5 Nov 2014, Nibble Max wrote:
 
-> 
-> Hi Mauro,
-> 
-> Thank you; that's extremely helpful. We are looking into how much work it will be to write an ISDB-Tb captioning decoder for CCExtractor.
-> 
-> Can we find a list of television capture hardware devices known to work in Brazil? Our friends in Rio are new to all this, and
-> 
->        linux/Documentation/dvb# grep -i ISDB *
-> 
-> finds nothing. I'm aware of Linux TV's list of ISDB resources, but they don't specify ISDB subtype (ISDB-Tb) -- are they interchangeable?
-
-Yes, the demod here is the same as the ones used in Japan. The only
-difference is that the devices sold in Japan has the additional crypto
-modules.
-
-There are drivers that supports ISDB-T:
-
-$ git grep -l SYS_ISDBT|grep -v tuners
-Documentation/DocBook/media/dvb/dvbproperty.xml
-drivers/media/common/siano/smsdvb-main.c
-drivers/media/dvb-core/dvb_frontend.c
-drivers/media/dvb-frontends/dib0070.c
-drivers/media/dvb-frontends/dib0090.c
-drivers/media/dvb-frontends/dib8000.c
-drivers/media/dvb-frontends/mb86a20s.c
-drivers/media/dvb-frontends/s921.c
-drivers/media/dvb-frontends/tc90522.c
-drivers/media/pci/pt1/va1j5jf8007t.c
-drivers/media/pci/pt3/pt3.c
-drivers/media/usb/dvb-usb/friio-fe.c
-include/uapi/linux/dvb/frontend.h
-
-I never found any PT1 or PT3 devices here. The friio is also sold
-only in Japan, afaikt. The devices based on s921 are really crap
-(and only 1seg).
-
-So, basically the devices supported are based on either one of
-those demods:
-	Dibcom 80xx
-	Toshiba mb86a20s
-	Siano Rio
-
-I suspect that the easier ones to find nowadays are the PixelView ones
-that are based on cx231xx/mb86a20s:
-	PixelView PlayTV USB 2.0 SBTVD Full-Seg - PV-D231U(RN)-F
-
-Not the best ISDB-T chip, but it works if they have a good antenna.
-There are other devices too, but the brand names change a lot, and,
-as I didn't buy or received any new isdb-t devices those days, I'm
-unsure what other devices have inside.
-
-If your friends want, they could ping me back and I can try to help
-them to find some devices.
-
-With regards to CC decoding, IMHO, the best would be to add a parser
-for ISDB CC at libdvbv5.
-
-Regards,
+> DVBSky S950 dvb-s/s2 PCIe card:
+> 1>dvb frontend: M88TS2022(tuner),M88DS3103(demod)
+> 2>PCIe bridge: cx23885
+> 3>rc: cx23885 integrated.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+> ---
+> drivers/media/pci/cx23885/cx23885-cards.c | 20 ++++++++++++++++++++
+> drivers/media/pci/cx23885/cx23885-dvb.c   |  9 ++++++---
+> drivers/media/pci/cx23885/cx23885-input.c |  3 +++
+> drivers/media/pci/cx23885/cx23885.h       |  1 +
+> 4 files changed, 30 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> index 9c7e8ac..4b9cb07 100644
+> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+> @@ -692,6 +692,10 @@ struct cx23885_board cx23885_boards[] = {
+> 		.name		= "Technotrend TT-budget CT2-4500 CI",
+> 		.portb		= CX23885_MPEG_DVB,
+> 	},
+> +	[CX23885_BOARD_DVBSKY_S950] = {
+> +		.name		= "DVBSky S950",
+> +		.portb		= CX23885_MPEG_DVB,
+> +	},
+> };
+> const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+>
+> @@ -963,6 +967,10 @@ struct cx23885_subid cx23885_subids[] = {
+> 		.subvendor = 0x13c2,
+> 		.subdevice = 0x3013,
+> 		.card      = CX23885_BOARD_TT_CT2_4500_CI,
+> +	}, {
+> +		.subvendor = 0x4254,
+> +		.subdevice = 0x0950,
+> +		.card      = CX23885_BOARD_DVBSKY_S950,
+> 	},
+> };
+> const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+> @@ -1597,6 +1605,13 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+>
+> 		/* enable irq */
+> 		cx_write(GPIO_ISM, 0x00000000); /* INTERRUPTS active low */
+> +		break;
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +		cx23885_gpio_enable(dev, GPIO_2, 1);
+> +		cx23885_gpio_clear(dev, GPIO_2);
+> +		msleep(100);
+> +		cx23885_gpio_set(dev, GPIO_2);
+> +		break;
+> 	}
+> }
+>
+> @@ -1681,6 +1696,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		if (!enable_885_ir)
+> 			break;
+> 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+> @@ -1731,6 +1747,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+> 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+> 		dev->sd_ir = NULL;
+> @@ -1782,6 +1799,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		if (dev->sd_ir)
+> 			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+> 		break;
+> @@ -1888,6 +1906,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+> 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+> 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> @@ -2009,6 +2028,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+> 				&dev->i2c_bus[2].i2c_adap,
+> 				"cx25840", 0x88 >> 1, NULL);
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 9da5cf3..3410ab8 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -1672,6 +1672,7 @@ static int dvb_register(struct cx23885_tsport *port)
+> 		}
+> 		break;
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		i2c_bus = &dev->i2c_bus[0];
+> 		i2c_bus2 = &dev->i2c_bus[1];
+> 		switch (port->nr) {
+> @@ -1922,7 +1923,8 @@ static int dvb_register(struct cx23885_tsport *port)
+> 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
+> 		break;
+> 		}
+> -	case CX23885_BOARD_DVBSKY_T9580: {
+> +	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_S950: {
+> 		u8 eeprom[256]; /* 24C02 i2c eeprom */
+>
+> 		if (port->nr > 2)
+> @@ -1932,8 +1934,9 @@ static int dvb_register(struct cx23885_tsport *port)
+> 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
+> 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
+> 				sizeof(eeprom));
+> -		printk(KERN_INFO "DVBSky T9580 port %d MAC address: %pM\n",
+> -			port->nr, eeprom + 0xc0 + (port->nr-1) * 8);
+> +		printk(KERN_INFO "%s port %d MAC address: %pM\n",
+> +			cx23885_boards[dev->board].name, port->nr,
+> +			eeprom + 0xc0 + (port->nr-1) * 8);
+> 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0 +
+> 			(port->nr-1) * 8, 6);
+> 		break;
+> diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+> index 12d8a3d..7523d0a 100644
+> --- a/drivers/media/pci/cx23885/cx23885-input.c
+> +++ b/drivers/media/pci/cx23885/cx23885-input.c
+> @@ -91,6 +91,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		/*
+> 		 * The only boards we handle right now.  However other boards
+> 		 * using the CX2388x integrated IR controller should be similar
+> @@ -147,6 +148,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> 	case CX23885_BOARD_TT_CT2_4500_CI:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		/*
+> 		 * The IR controller on this board only returns pulse widths.
+> 		 * Any other mode setting will fail to set up the device.
+> @@ -316,6 +318,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+> 	case CX23885_BOARD_DVBSKY_T9580:
+> 	case CX23885_BOARD_DVBSKY_T980C:
+> 	case CX23885_BOARD_DVBSKY_S950C:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> 		/* Integrated CX23885 IR controller */
+> 		driver_type = RC_DRIVER_IR_RAW;
+> 		allowed_protos = RC_BIT_ALL;
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index 7eee2ea..f9cd0da 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -96,6 +96,7 @@
+> #define CX23885_BOARD_DVBSKY_T980C             46
+> #define CX23885_BOARD_DVBSKY_S950C             47
+> #define CX23885_BOARD_TT_CT2_4500_CI           48
+> +#define CX23885_BOARD_DVBSKY_S950              49
+>
+> #define GPIO_0 0x00000001
+> #define GPIO_1 0x00000002
+>
+> -- 
+> 1.9.1
+>
+>
