@@ -1,218 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48282 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752576AbaKJMtl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 07:49:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [RFCv6 PATCH 07/16] vb2-dma-sg: add support for dmabuf exports
-Date: Mon, 10 Nov 2014 13:49:22 +0100
-Message-Id: <1415623771-29634-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+Received: from down.free-electrons.com ([37.187.137.238]:48487 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752155AbaKFJ5W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 04:57:22 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 09/10] gpu: ipu-v3: Make use of media_bus_format enum
+Date: Thu,  6 Nov 2014 10:57:07 +0100
+Message-Id: <1415267829-4177-10-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+In order to have subsytem agnostic media bus format definitions we've
+moved media bus definition to include/uapi/linux/media-bus-format.h and
+prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
 
-Add DMABUF export support to vb2-dma-sg.
+Reference new definitions in the ipu-v3 driver.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+ drivers/gpu/ipu-v3/ipu-csi.c | 66 ++++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 85e2e09..0f7d293 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -411,6 +411,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- }
- 
- /*********************************************/
-+/*         DMABUF ops for exporters          */
-+/*********************************************/
-+
-+struct vb2_dma_sg_attachment {
-+	struct sg_table sgt;
-+	enum dma_data_direction dma_dir;
-+};
-+
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-+	struct dma_buf_attachment *dbuf_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
-+	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+	int ret;
-+
-+	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-+	if (!attach)
-+		return -ENOMEM;
-+
-+	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(attach);
-+		return -ENOMEM;
-+	}
-+
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
-+	}
-+
-+	attach->dma_dir = DMA_NONE;
-+	dbuf_attach->priv = attach;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-+	struct dma_buf_attachment *db_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	struct sg_table *sgt;
-+
-+	if (!attach)
-+		return;
-+
-+	sgt = &attach->sgt;
-+
-+	/* release the scatterlist cache */
-+	if (attach->dma_dir != DMA_NONE)
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dma_dir);
-+	sg_free_table(sgt);
-+	kfree(attach);
-+	db_attach->priv = NULL;
-+}
-+
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	/* stealing dmabuf mutex to serialize map/unmap operations */
-+	struct mutex *lock = &db_attach->dmabuf->lock;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	mutex_lock(lock);
-+
-+	sgt = &attach->sgt;
-+	/* return previously mapped sg table */
-+	if (attach->dma_dir == dma_dir) {
-+		mutex_unlock(lock);
-+		return sgt;
-+	}
-+
-+	/* release any previous cache */
-+	if (attach->dma_dir != DMA_NONE) {
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dma_dir);
-+		attach->dma_dir = DMA_NONE;
-+	}
-+
-+	/* mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
-+	if (ret <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		mutex_unlock(lock);
-+		return ERR_PTR(-EIO);
-+	}
-+
-+	attach->dma_dir = dma_dir;
-+
-+	mutex_unlock(lock);
-+
-+	return sgt;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-+	struct sg_table *sgt, enum dma_data_direction dma_dir)
-+{
-+	/* nothing to be done here */
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-+{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return vb2_dma_sg_vaddr(buf);
-+}
-+
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
-+	struct vm_area_struct *vma)
-+{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
-+}
-+
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
-+};
-+
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct dma_buf *dbuf;
-+
-+	if (WARN_ON(!buf->dma_sgt))
-+		return NULL;
-+
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
-+	if (IS_ERR(dbuf))
-+		return NULL;
-+
-+	/* dmabuf keeps reference to vb2 buffer */
-+	atomic_inc(&buf->refcount);
-+
-+	return dbuf;
-+}
-+
-+/*********************************************/
- /*       callbacks for DMABUF buffers        */
- /*********************************************/
- 
-@@ -526,6 +695,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index d6f56471..752cdd2 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -227,83 +227,83 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
+ static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
+ {
+ 	switch (mbus_code) {
+-	case V4L2_MBUS_FMT_BGR565_2X8_BE:
+-	case V4L2_MBUS_FMT_BGR565_2X8_LE:
+-	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+-	case V4L2_MBUS_FMT_RGB565_2X8_LE:
++	case MEDIA_BUS_FMT_BGR565_2X8_BE:
++	case MEDIA_BUS_FMT_BGR565_2X8_LE:
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
+ 		cfg->mipi_dt = MIPI_DT_RGB565;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
+ 		cfg->mipi_dt = MIPI_DT_RGB444;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
+ 		cfg->mipi_dt = MIPI_DT_RGB555;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_2X8:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_2X8:
++	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_1X16:
++	case MEDIA_BUS_FMT_UYVY8_1X16:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_1X16:
++	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR8_1X8:
+-	case V4L2_MBUS_FMT_SGBRG8_1X8:
+-	case V4L2_MBUS_FMT_SGRBG8_1X8:
+-	case V4L2_MBUS_FMT_SRGGB8_1X8:
++	case MEDIA_BUS_FMT_SBGGR8_1X8:
++	case MEDIA_BUS_FMT_SGBRG8_1X8:
++	case MEDIA_BUS_FMT_SGRBG8_1X8:
++	case MEDIA_BUS_FMT_SRGGB8_1X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW8;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE:
++	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW10;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR10_1X10:
+-	case V4L2_MBUS_FMT_SGBRG10_1X10:
+-	case V4L2_MBUS_FMT_SGRBG10_1X10:
+-	case V4L2_MBUS_FMT_SRGGB10_1X10:
++	case MEDIA_BUS_FMT_SBGGR10_1X10:
++	case MEDIA_BUS_FMT_SGBRG10_1X10:
++	case MEDIA_BUS_FMT_SGRBG10_1X10:
++	case MEDIA_BUS_FMT_SRGGB10_1X10:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW10;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR12_1X12:
+-	case V4L2_MBUS_FMT_SGBRG12_1X12:
+-	case V4L2_MBUS_FMT_SGRBG12_1X12:
+-	case V4L2_MBUS_FMT_SRGGB12_1X12:
++	case MEDIA_BUS_FMT_SBGGR12_1X12:
++	case MEDIA_BUS_FMT_SGBRG12_1X12:
++	case MEDIA_BUS_FMT_SGRBG12_1X12:
++	case MEDIA_BUS_FMT_SRGGB12_1X12:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW12;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
+ 		break;
+-	case V4L2_MBUS_FMT_JPEG_1X8:
++	case MEDIA_BUS_FMT_JPEG_1X8:
+ 		/* TODO */
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
+ 		cfg->mipi_dt = MIPI_DT_RAW8;
 -- 
-2.1.1
+1.9.1
 
