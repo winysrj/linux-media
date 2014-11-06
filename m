@@ -1,186 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56546 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750876AbaKUK5b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 05:57:31 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B35AB2A002F
-	for <linux-media@vger.kernel.org>; Fri, 21 Nov 2014 11:57:12 +0100 (CET)
-Message-ID: <546F1A88.3080702@xs4all.nl>
-Date: Fri, 21 Nov 2014 11:57:12 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from down.free-electrons.com ([37.187.137.238]:48494 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752157AbaKFJ5X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 04:57:23 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
+Date: Thu,  6 Nov 2014 10:57:08 +0100
+Message-Id: <1415267829-4177-11-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Never use sg++, always use sg = sg_next(sg). Scatterlist entries can
-be combined if the memory is contiguous but sg++ won't know about that.
+Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
+users don't have access to these definitions.
 
-As far as I can tell cx88 and ivtv are really broken because of this,
-and bttv and cx25821 are OK because vb1 doesn't combine scatterlist
-entries.
+We have to keep this definition for user-space users even though they're
+encouraged to move to the new media_bus_format enum.
 
-But regardless, sg++ should never be used, only sg_next is safe.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
- drivers/media/pci/bt8xx/bttv-risc.c      | 12 ++++++------
- drivers/media/pci/cx25821/cx25821-core.c | 12 ++++++------
- drivers/media/pci/cx88/cx88-core.c       |  6 +++---
- drivers/media/pci/ivtv/ivtv-udma.c       |  2 +-
- 4 files changed, 16 insertions(+), 16 deletions(-)
+ include/uapi/linux/media-bus-format.h | 5 +++++
+ include/uapi/linux/v4l2-mediabus.h    | 2 ++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-risc.c b/drivers/media/pci/bt8xx/bttv-risc.c
-index 82cc47d..4d3f05a 100644
---- a/drivers/media/pci/bt8xx/bttv-risc.c
-+++ b/drivers/media/pci/bt8xx/bttv-risc.c
-@@ -84,7 +84,7 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
- 			continue;
- 		while (offset && offset >= sg_dma_len(sg)) {
- 			offset -= sg_dma_len(sg);
--			sg++;
-+			sg = sg_next(sg);
- 		}
- 		if (bpl <= sg_dma_len(sg)-offset) {
- 			/* fits into current chunk */
-@@ -100,13 +100,13 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
- 			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
- 			todo -= (sg_dma_len(sg)-offset);
- 			offset = 0;
--			sg++;
-+			sg = sg_next(sg);
- 			while (todo > sg_dma_len(sg)) {
- 				*(rp++)=cpu_to_le32(BT848_RISC_WRITE|
- 						    sg_dma_len(sg));
- 				*(rp++)=cpu_to_le32(sg_dma_address(sg));
- 				todo -= sg_dma_len(sg);
--				sg++;
-+				sg = sg_next(sg);
- 			}
- 			*(rp++)=cpu_to_le32(BT848_RISC_WRITE|BT848_RISC_EOL|
- 					    todo);
-@@ -187,15 +187,15 @@ bttv_risc_planar(struct bttv *btv, struct btcx_riscmem *risc,
- 			/* go to next sg entry if needed */
- 			while (yoffset && yoffset >= sg_dma_len(ysg)) {
- 				yoffset -= sg_dma_len(ysg);
--				ysg++;
-+				ysg = sg_next(ysg);
- 			}
- 			while (uoffset && uoffset >= sg_dma_len(usg)) {
- 				uoffset -= sg_dma_len(usg);
--				usg++;
-+				usg = sg_next(usg);
- 			}
- 			while (voffset && voffset >= sg_dma_len(vsg)) {
- 				voffset -= sg_dma_len(vsg);
--				vsg++;
-+				vsg = sg_next(vsg);
- 			}
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index 251a902..d7f9ea2 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -31,9 +31,14 @@
+  * new pixel codes.
+  */
  
- 			/* calculate max number of bytes we can write */
-diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
-index e81173c..389fffd 100644
---- a/drivers/media/pci/cx25821/cx25821-core.c
-+++ b/drivers/media/pci/cx25821/cx25821-core.c
-@@ -996,7 +996,7 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
- 	for (line = 0; line < lines; line++) {
- 		while (offset && offset >= sg_dma_len(sg)) {
- 			offset -= sg_dma_len(sg);
--			sg++;
-+			sg = sg_next(sg);
- 		}
- 		if (bpl <= sg_dma_len(sg) - offset) {
- 			/* fits into current chunk */
-@@ -1014,14 +1014,14 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
- 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
- 			todo -= (sg_dma_len(sg) - offset);
- 			offset = 0;
--			sg++;
-+			sg = sg_next(sg);
- 			while (todo > sg_dma_len(sg)) {
- 				*(rp++) = cpu_to_le32(RISC_WRITE |
- 						sg_dma_len(sg));
- 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
- 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
- 				todo -= sg_dma_len(sg);
--				sg++;
-+				sg = sg_next(sg);
- 			}
- 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
- 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
-@@ -1101,7 +1101,7 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
- 	for (line = 0; line < lines; line++) {
- 		while (offset && offset >= sg_dma_len(sg)) {
- 			offset -= sg_dma_len(sg);
--			sg++;
-+			sg = sg_next(sg);
- 		}
++#ifdef __KERNEL__
++#define MEDIA_BUS_FMT_ENTRY(name, val)	MEDIA_BUS_FMT_ ## name = val
++#else
++/* Keep V4L2_MBUS_FMT for backwards compatibility */
+ #define MEDIA_BUS_FMT_ENTRY(name, val)	\
+ 	MEDIA_BUS_FMT_ ## name = val,	\
+ 	V4L2_MBUS_FMT_ ## name = val
++#endif
  
- 		if (lpi && line > 0 && !(line % lpi))
-@@ -1125,14 +1125,14 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
- 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
- 			todo -= (sg_dma_len(sg) - offset);
- 			offset = 0;
--			sg++;
-+			sg = sg_next(sg);
- 			while (todo > sg_dma_len(sg)) {
- 				*(rp++) = cpu_to_le32(RISC_WRITE |
- 						sg_dma_len(sg));
- 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
- 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
- 				todo -= sg_dma_len(sg);
--				sg++;
-+				sg = sg_next(sg);
- 			}
- 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
- 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
-diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
-index 9fa4acb..dee177e 100644
---- a/drivers/media/pci/cx88/cx88-core.c
-+++ b/drivers/media/pci/cx88/cx88-core.c
-@@ -95,7 +95,7 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
- 	for (line = 0; line < lines; line++) {
- 		while (offset && offset >= sg_dma_len(sg)) {
- 			offset -= sg_dma_len(sg);
--			sg++;
-+			sg = sg_next(sg);
- 		}
- 		if (lpi && line>0 && !(line % lpi))
- 			sol = RISC_SOL | RISC_IRQ1 | RISC_CNT_INC;
-@@ -114,13 +114,13 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
- 			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
- 			todo -= (sg_dma_len(sg)-offset);
- 			offset = 0;
--			sg++;
-+			sg = sg_next(sg);
- 			while (todo > sg_dma_len(sg)) {
- 				*(rp++)=cpu_to_le32(RISC_WRITE|
- 						    sg_dma_len(sg));
- 				*(rp++)=cpu_to_le32(sg_dma_address(sg));
- 				todo -= sg_dma_len(sg);
--				sg++;
-+				sg = sg_next(sg);
- 			}
- 			*(rp++)=cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
- 			*(rp++)=cpu_to_le32(sg_dma_address(sg));
-diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
-index 7338cb2..bee2329 100644
---- a/drivers/media/pci/ivtv/ivtv-udma.c
-+++ b/drivers/media/pci/ivtv/ivtv-udma.c
-@@ -76,7 +76,7 @@ void ivtv_udma_fill_sg_array (struct ivtv_user_dma *dma, u32 buffer_offset, u32
- 	int i;
- 	struct scatterlist *sg;
+ enum media_bus_format {
+ 	MEDIA_BUS_FMT_ENTRY(FIXED, 0x0001),
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index d30526c..8759002 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -15,7 +15,9 @@
+ #include <linux/videodev2.h>
+ #include <linux/media-bus-format.h>
  
--	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg++) {
-+	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg = sg_next(sg)) {
- 		dma->SGarray[i].size = cpu_to_le32(sg_dma_len(sg));
- 		dma->SGarray[i].src = cpu_to_le32(sg_dma_address(sg));
- 		dma->SGarray[i].dst = cpu_to_le32(buffer_offset);
++#ifndef __KERNEL__
+ #define v4l2_mbus_pixelcode media_bus_format
++#endif
+ 
+ /**
+  * struct v4l2_mbus_framefmt - frame format on the media bus
 -- 
-2.1.1
+1.9.1
 
