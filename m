@@ -1,84 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:51488 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212AbaKRLYC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:02 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Subject: [PATCH 02/12] media: ti-vpe: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:31 +0000
-Message-Id: <1416309821-5426-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:54056 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560AbaKFMyN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 07:54:13 -0500
+Received: by mail-lb0-f170.google.com with SMTP id z12so849192lbi.1
+        for <linux-media@vger.kernel.org>; Thu, 06 Nov 2014 04:54:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAB0d6Edzi1MNBkB0K+Src+oj2x3oiAt-XChbd5OsEpfLqH3pXw@mail.gmail.com>
+References: <CAB0d6EdsnrRmMxz=d2Di=NvitX3LLxzJMRM7ee1ZKsFViG0EDA@mail.gmail.com>
+	<20141029170853.1ee823cb.m.chehab@samsung.com>
+	<CAB0d6EcD9OGqmHVm+tt8rrdpqSBqv6pMWWE3NeYR85Z=CH3ntQ@mail.gmail.com>
+	<CAB0d6Edzi1MNBkB0K+Src+oj2x3oiAt-XChbd5OsEpfLqH3pXw@mail.gmail.com>
+Date: Thu, 6 Nov 2014 10:54:11 -0200
+Message-ID: <CAB0d6EdmYNn2XiVJo1--GsgS7-B-967JpX4vP+y+qqYthbqRCw@mail.gmail.com>
+Subject: Re: Issues with Empia + saa7115
+From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+Found out, the problem that "dd" was not getting any data was due
+BeagleBoneBlack usb dma configuration on kernel:
+config_musb_pio_only
+This should be true to  Disable DMA (always use PIO).
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 9a081c2..d5d745d 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1913,30 +1913,19 @@ static void vpe_buf_queue(struct vb2_buffer *vb)
- 	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
- }
- 
--static void vpe_wait_prepare(struct vb2_queue *q)
--{
--	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
--	vpe_unlock(ctx);
--}
--
--static void vpe_wait_finish(struct vb2_queue *q)
--{
--	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
--	vpe_lock(ctx);
--}
--
- static struct vb2_ops vpe_qops = {
- 	.queue_setup	 = vpe_queue_setup,
- 	.buf_prepare	 = vpe_buf_prepare,
- 	.buf_queue	 = vpe_buf_queue,
--	.wait_prepare	 = vpe_wait_prepare,
--	.wait_finish	 = vpe_wait_finish,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
- };
- 
- static int queue_init(void *priv, struct vb2_queue *src_vq,
- 		      struct vb2_queue *dst_vq)
- {
- 	struct vpe_ctx *ctx = priv;
-+	struct vpe_dev *dev = ctx->dev;
- 	int ret;
- 
- 	memset(src_vq, 0, sizeof(*src_vq));
-@@ -1947,6 +1936,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &vpe_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->lock = &dev->dev_mutex;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -1960,6 +1950,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->ops = &vpe_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->lock = &dev->dev_mutex;
- 
- 	return vb2_queue_init(dst_vq);
- }
+Now I can debug if the problem is the saa711x driver version.
+
+2014-11-03 10:03 GMT-02:00 Rafael Coutinho <rafael.coutinho@phiinnovations.com>:
+> I have tried now with a newer kernel (3.14) and I can't even get an
+> stream from /dev/video0. The file is always empty.
+>
+> Here is the dmesg of it:
+> http://pastebin.com/pm720UnR
+>
+> It is correctly identifying the device, however it cannot grab any
+> bytes from the dd command as below:
+> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
+>
+> Any tips on how to investigate it further?
+>
+> 2014-10-29 18:13 GMT-02:00 Rafael Coutinho <rafael.coutinho@phiinnovations.com>:
+>> Ok, just to be sure, I have others capture boards like  Silan SC8113,
+>> that's only on newer kernels? If so I'll backport it.
+>>
+>> 2014-10-29 17:08 GMT-02:00 Mauro Carvalho Chehab <m.chehab@samsung.com>:
+>>> Em Wed, 29 Oct 2014 16:34:09 -0200
+>>> Rafael Coutinho <rafael.coutinho@phiinnovations.com> escreveu:
+>>>
+>>>> Hi all,
+>>>>
+>>>> I'm having trouble to make an SAA7115 (Actually it's the generic
+>>>> GM7113 version) video capture board to work on a beagle board running
+>>>> Android (4.0.3).
+>>>> For some reason I cannot capture any image, it always output a green image file.
+>>>> The kernel is Linux-3.2.0
+>>>
+>>> Support for GM7113 were added only on a recent version.
+>>>
+>>> So, you need to get a newer driver. So, you'll need to either upgrade
+>>> the Kernel, use either Linux backports or media-build to get a newer
+>>> driver set or do the manual work of backporting saa7115 and the bridge
+>>> driver changes for gm7113 for it to work.
+>>>
+>>> Regards,
+>>> Mauro
+>>>
+>>>>
+>>>> My current approach is the simplest I have found so far, to avoid any
+>>>> issues with other sw layers. I'm forcing a 'dd' from the /dev/video
+>>>> device.
+>>>>
+>>>> dd if=/dev/video0 of=ImageOut.raw bs=10065748 count=1
+>>>>
+>>>> And then I open the raw image file converting it on an image editor.
+>>>>
+>>>> In my ubuntu PC (kernel 3.13.0) it works fine. however on the Beagle
+>>>> Bone with android it fails to get an image.
+>>>>
+>>>> I have now tried with a Linux (angstron) on beagle bone with 3.8
+>>>> kernel and this time is even worse, the 'dd' command does not result
+>>>> on any byte written on the output file.
+>>>>
+>>>> The v4l2-ctl works fine on the 3 environments. I can even set values
+>>>> as standard, input etc...
+>>>>
+>>>> I have attached the dmesg of the environments here:
+>>>>
+>>>> * Android - dmesg http://pastebin.com/AFdB9N9c
+>>>>
+>>>> * Linux Angstron - dmesg http://pastebin.com/s3S3iCph
+>>>> * Linux Angstron - lsmod http://pastebin.com/vh89TBKQ
+>>>>
+>>>> * Desktop PC - dmesg http://pastebin.com/HXzHwnUJ
+>>>>
+>>>> I have one restriction on the kernel of android due the HAL drivers
+>>>> for BBB. So changing kernel is not a choice.
+>>>>
+>>>> Anyone could give me some tips on where to look for other issues or debug it?
+>>>>
+>>>> Thanks in advance
+>>>>
+>>
+>>
+>>
+>> --
+>> Regards,
+>> Coutinho
+>> www.phiinnovations.com
+>
+>
+>
+> --
+> Regards,
+> Coutinho
+> www.phiinnovations.com
+
+
+
 -- 
-1.9.1
-
+Regards,
+Coutinho
+www.phiinnovations.com
