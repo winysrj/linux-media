@@ -1,221 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45233 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754300AbaKOSzF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 13:55:05 -0500
-Date: Sat, 15 Nov 2014 16:54:58 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Stephan Raue <mailinglists@openelec.tv>
-Cc: linux-input@vger.kernel.org, david@hardeman.nu,
-	linux-media@vger.kernel.org
-Subject: Re: bisected: IR press/release behavior changed in 3.17, repeat
- events
-Message-ID: <20141115165458.5e788b44@recife.lan>
-In-Reply-To: <54679469.1010500@openelec.tv>
-References: <54679469.1010500@openelec.tv>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.samsung.com ([203.254.224.25]:40314 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbaKFKMK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:10 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEM00GBE4C8R8C0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:08 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils RFC v3 05/11] mediactl: Add media_device creation helpers
+Date: Thu, 06 Nov 2014 11:11:36 +0100
+Message-id: <1415268702-23685-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stephan,
+Add helper functions that allow for easy instantiation
+of media_device object basing on whether the media device
+contains video device with given node name.
 
-C/C linux-media, as this is the right ML for IR discussions.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c |   75 +++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl.h    |   29 ++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-Em Sat, 15 Nov 2014 18:59:05 +0100
-Stephan Raue <mailinglists@openelec.tv> escreveu:
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 5b43aff..10f0491 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -855,6 +855,43 @@ struct media_device *media_device_new(const char *devnode)
+ 	return media;
+ }
+ 
++struct media_device *media_device_new_by_entity_devname(char *entity_devname)
++{
++	struct media_device *media;
++	char media_devname[32];
++	int i, ret;
++
++	if (entity_devname == NULL)
++		return NULL;
++
++	/* query all available media devices */
++	for (i = 0;; ++i) {
++		sprintf(media_devname, "/dev/media%d", i);
++
++		media = media_device_new(media_devname);
++		if (media == NULL)
++			return NULL;
++
++		ret = media_device_enumerate(media);
++		if (ret < 0) {
++			media_dbg(media, "Failed to enumerate %s (%d)\n", media_devname, ret);
++			goto err_dev_enum;
++		}
++
++		/* Check if the media device contains entity with entity_devname */
++		if (media_get_entity_by_devname(media, entity_devname, strlen(entity_devname)))
++			return media;
++
++		if (media)
++			media_device_unref(media);
++	}
++
++err_dev_enum:
++	if (media)
++		media_device_unref(media);
++	return NULL;
++}
++
+ struct media_device *media_device_new_emulated(struct media_device_info *info)
+ {
+ 	struct media_device *media;
+@@ -897,6 +934,44 @@ void media_device_unref(struct media_device *media)
+ 	free(media);
+ }
+ 
++int media_get_devname_by_fd(int fd, char *node_name)
++{
++	struct udev *udev;
++	struct media_entity tmp_entity;
++	struct stat stat;
++	int ret;
++
++	if (node_name == NULL)
++		return -EINVAL;
++
++	ret = fstat(fd, &stat);
++	if (ret < 0)
++		return -EINVAL;
++
++	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
++	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
++
++	ret = media_udev_open(&udev);
++	if (ret < 0)
++		printf("Can't get udev context\n");
++
++	/* Try to get the device name via udev */
++	ret = media_get_devname_udev(udev, &tmp_entity);
++	if (!ret)
++		goto out;
++
++	ret = media_get_devname_sysfs(&tmp_entity);
++	if (ret < 0)
++		goto err_get_devname;
++
++out:
++	strcpy(node_name, tmp_entity.devname);
++err_get_devname:
++	media_udev_close(udev);
++	return ret;
++}
++
++
+ int media_device_add_entity(struct media_device *media,
+ 			    const struct media_entity_desc *desc,
+ 			    const char *devnode)
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 8341c50..0dc7f95 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -77,6 +77,23 @@ struct media_device *media_device_new(const char *devnode);
+ struct media_device *media_device_new_emulated(struct media_device_info *info);
+ 
+ /**
++ * @brief Create a new media device if it comprises entity with entity_devname
++ * @param entity_devname - device node name of the entity to be matched
++ *
++ * Query all media devices available in the system to find the one comprising
++ * the entity with device node name equal to entity_devname. If the media
++ * device is matched then its instance is created and initialized with
++ * enumerated entities and links. The returned device can be accessed.
++ *
++ * Media devices are reference-counted, see media_device_ref() and
++ * media_device_unref() for more information.
++ *
++ * @return A pointer to the new media device or NULL if video_devname cannot
++ * be matched or memory cannot be allocated.
++ */
++struct media_device *media_device_new_by_entity_devname(char *video_devname);
++
++/**
+  * @brief Take a reference to the device.
+  * @param media - device instance.
+  *
+@@ -242,6 +259,18 @@ const char *media_entity_get_devname(struct media_entity *entity);
+ const char *media_entity_get_name(struct media_entity *entity);
+ 
+ /**
++ * @brief Get the device node name by its file descriptor
++ * @param fd - file descriptor of a device
++ * @param node_name - output device node name string
++ *
++ * This function returns the full path and name to the device node corresponding
++ * to the given file descriptor.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_get_devname_by_fd(int fd, char *node_name);
++
++/**
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
+-- 
+1.7.9.5
 
-> Hi
-> 
-> with kernel 3.17 using a RC6 remote with a buildin nuvoton IR receiver 
-> (not tested others, but i think its a common problem) when 
-> pressing/releasing the same button often within 1 second there will no 
-> release event sent. Instead we get repeat events. To get the release 
-> event i must press the same button with a delay of ~ 1sec.
-> 
-> the evtest output for kernel with the difference 3.16 and 3.17 looks like
-> 
-> kernel 3.16
-> 
-> Event: time 1415452412.497503, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> Event: time 1415452412.497503, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452412.497503, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415452412.497503, -------------- SYN_REPORT ------------
-> Event: time 1415452412.672387, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452412.672387, -------------- SYN_REPORT ------------
-> Event: time 1415452412.919799, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> Event: time 1415452412.919799, -------------- SYN_REPORT ------------
-> Event: time 1415452414.363169, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452414.363169, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415452414.363169, -------------- SYN_REPORT ------------
-> Event: time 1415452414.538010, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452414.538010, -------------- SYN_REPORT ------------
-> Event: time 1415452414.621916, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> Event: time 1415452414.621916, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452414.621916, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415452414.621916, -------------- SYN_REPORT ------------
-> Event: time 1415452414.818869, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> Event: time 1415452414.818869, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452414.818869, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415452414.818869, -------------- SYN_REPORT ------------
-> Event: time 1415452414.994902, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> Event: time 1415452414.994902, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415452414.994902, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415452414.994902, -------------- SYN_REPORT ------------
-> 
-> 
-> 
-> kernel 3.17
-> 
-> Event: time 1415454057.620687, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454057.620687, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-> Event: time 1415454057.620687, -------------- SYN_REPORT ------------
-> Event: time 1415454057.795567, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454057.795567, -------------- SYN_REPORT ------------
-> Event: time 1415454057.896636, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454057.896636, -------------- SYN_REPORT ------------
-> Event: time 1415454058.056369, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.056369, -------------- SYN_REPORT ------------
-> Event: time 1415454058.210349, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.210349, -------------- SYN_REPORT ------------
-> Event: time 1415454058.371157, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.371157, -------------- SYN_REPORT ------------
-> Event: time 1415454058.540551, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.540551, -------------- SYN_REPORT ------------
-> Event: time 1415454058.622935, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454058.622935, -------------- SYN_REPORT ------------
-> Event: time 1415454058.696211, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.696211, -------------- SYN_REPORT ------------
-> Event: time 1415454058.749595, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454058.749595, -------------- SYN_REPORT ------------
-> Event: time 1415454058.849992, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454058.849992, -------------- SYN_REPORT ------------
-> Event: time 1415454058.876332, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454058.876332, -------------- SYN_REPORT ------------
-> Event: time 1415454059.002998, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454059.002998, -------------- SYN_REPORT ------------
-> Event: time 1415454059.008823, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454059.008823, -------------- SYN_REPORT ------------
-> Event: time 1415454059.129614, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454059.129614, -------------- SYN_REPORT ------------
-> Event: time 1415454059.179093, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454059.179093, -------------- SYN_REPORT ------------
-> Event: time 1415454059.256285, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454059.256285, -------------- SYN_REPORT ------------
-> Event: time 1415454059.346881, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-> 800f041f
-> Event: time 1415454059.346881, -------------- SYN_REPORT ------------
-> Event: time 1415454059.382993, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454059.382993, -------------- SYN_REPORT ------------
-> Event: time 1415454059.509617, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-> Event: time 1415454059.509617, -------------- SYN_REPORT ------------
-> Event: time 1415454059.596281, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-> 
-> with irw it looks like:
-> 
-> kernel 3.16
-> OpenELEC:~ # irw
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 
-> kernel 3.17 (the first 2 presses was pressed with a delay of more then 1 
-> sec:
-> OpenELEC:~ # irw
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 6c 0 KEY_DOWN devinput
-> 6c 1 KEY_DOWN devinput
-> 6c 2 KEY_DOWN devinput
-> 6c 3 KEY_DOWN devinput
-> 6c 4 KEY_DOWN devinput
-> 6c 5 KEY_DOWN devinput
-> 6c 6 KEY_DOWN devinput
-> 6c 7 KEY_DOWN devinput
-> 6c 8 KEY_DOWN devinput
-> 6c 9 KEY_DOWN devinput
-> 6c a KEY_DOWN devinput
-> 6c b KEY_DOWN devinput
-> 6c c KEY_DOWN devinput
-> 6c d KEY_DOWN devinput
-> 6c e KEY_DOWN devinput
-> 6c f KEY_DOWN devinput
-> 6c 10 KEY_DOWN devinput
-> 6c 11 KEY_DOWN devinput
-> 6c 12 KEY_DOWN devinput
-> 6c 13 KEY_DOWN devinput
-> 6c 14 KEY_DOWN devinput
-> 6c 15 KEY_DOWN devinput
-> 6c 0 KEY_DOWN_UP devinput
-> 
-> 
-> i have bisected the issue:
-> 
-> [stephan@buildserver linux-3.17-bisect]$ git bisect good
-> 120703f9eb32033f0e39bdc552c0273c8ab45f33 is the first bad commit
-> commit 120703f9eb32033f0e39bdc552c0273c8ab45f33
-> Author: David Härdeman <david@hardeman.nu>
-> Date:   Thu Apr 3 20:31:30 2014 -0300
-> 
->      [media] rc-core: document the protocol type
-> 
->      Right now the protocol information is not preserved, rc-core gets 
-> handed a
->      scancode but has no idea which protocol it corresponds to.
-> 
->      This patch (which required reading through the source/keymap for 
-> all drivers,
->      not fun) makes the protocol information explicit which is important
->      documentation and makes it easier to e.g. support multiple 
-> protocols with one
->      decoder (think rc5 and rc-streamzap). The information isn't used 
-> yet so there
->      should be no functional changes.
-> 
->      [m.chehab@samsung.com: rebased, added cxusb and removed bad 
-> whitespacing]
->      Signed-off-by: David Härdeman <david@hardeman.nu>
->      Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> 
-> :040000 040000 3db25c8acb78f27a4c6613e9fddbf9af8d1ea65e 
-> bc5866551b8c1a7dc8d4eaf35def332f20321122 M    drivers
-> :040000 040000 e69773356627779a7cdf905e11619a310fbfaeee 
-> aef9c358ea71385d2b83b498ce1e2c5568f257a7 M    include
-> 
