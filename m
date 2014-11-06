@@ -1,239 +1,348 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60005 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754174AbaKXSh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 13:37:57 -0500
-Message-ID: <54737AFC.3080801@xs4all.nl>
-Date: Mon, 24 Nov 2014 19:37:48 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for v3.18] media: use sg = sg_next(sg) instead of sg++
-References: <546F03F8.9000301@xs4all.nl> <20141124162451.5de16d9d@recife.lan>
-In-Reply-To: <20141124162451.5de16d9d@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:19406 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330AbaKFKMU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Nov 2014 05:12:20 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NEM00D6G4CIBT60@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Nov 2014 19:12:18 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
+	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
+	sakari.ailus@linux.intel.com, kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [v4l-utils RFC v3 08/11] mediactl: Add support for media device
+ pipelines
+Date: Thu, 06 Nov 2014 11:11:39 +0100
+Message-id: <1415268702-23685-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415268702-23685-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/24/2014 07:24 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Nov 2014 10:20:56 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Several drivers (mostly copy-and-paste) still used sg++ instead of
->> sg = sg_next(sg). Fix them since sg++ won't work if contiguous scatter
->> entries where combined into one larger entry.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: stable@vger.kernel.org      # for v3.7 and up
->> ---
->>  drivers/media/pci/bt8xx/bttv-risc.c      | 12 ++++++------
->>  drivers/media/pci/cx23885/cx23885-core.c |  6 +++---
->>  drivers/media/pci/cx25821/cx25821-core.c | 12 ++++++------
->>  drivers/media/pci/cx88/cx88-core.c       |  6 +++---
->>  drivers/media/pci/ivtv/ivtv-udma.c       |  2 +-
->>  5 files changed, 19 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/media/pci/bt8xx/bttv-risc.c b/drivers/media/pci/bt8xx/bttv-risc.c
->> index 82cc47d..4d3f05a 100644
->> --- a/drivers/media/pci/bt8xx/bttv-risc.c
->> +++ b/drivers/media/pci/bt8xx/bttv-risc.c
->> @@ -84,7 +84,7 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
->>  			continue;
->>  		while (offset && offset >= sg_dma_len(sg)) {
->>  			offset -= sg_dma_len(sg);
->> -			sg++;
->> +			sg = sg_next(sg);
->>  		}
->>  		if (bpl <= sg_dma_len(sg)-offset) {
->>  			/* fits into current chunk */
->> @@ -100,13 +100,13 @@ bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
->>  			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
->>  			todo -= (sg_dma_len(sg)-offset);
->>  			offset = 0;
->> -			sg++;
->> +			sg = sg_next(sg);
->>  			while (todo > sg_dma_len(sg)) {
->>  				*(rp++)=cpu_to_le32(BT848_RISC_WRITE|
->>  						    sg_dma_len(sg));
->>  				*(rp++)=cpu_to_le32(sg_dma_address(sg));
->>  				todo -= sg_dma_len(sg);
->> -				sg++;
->> +				sg = sg_next(sg);
->>  			}
->>  			*(rp++)=cpu_to_le32(BT848_RISC_WRITE|BT848_RISC_EOL|
->>  					    todo);
->> @@ -187,15 +187,15 @@ bttv_risc_planar(struct bttv *btv, struct btcx_riscmem *risc,
->>  			/* go to next sg entry if needed */
->>  			while (yoffset && yoffset >= sg_dma_len(ysg)) {
->>  				yoffset -= sg_dma_len(ysg);
->> -				ysg++;
->> +				ysg = sg_next(ysg);
->>  			}
->>  			while (uoffset && uoffset >= sg_dma_len(usg)) {
->>  				uoffset -= sg_dma_len(usg);
->> -				usg++;
->> +				usg = sg_next(usg);
->>  			}
->>  			while (voffset && voffset >= sg_dma_len(vsg)) {
->>  				voffset -= sg_dma_len(vsg);
->> -				vsg++;
->> +				vsg = sg_next(vsg);
->>  			}
->>  
->>  			/* calculate max number of bytes we can write */
->> diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
->> index 331edda..3bd386c 100644
->> --- a/drivers/media/pci/cx23885/cx23885-core.c
->> +++ b/drivers/media/pci/cx23885/cx23885-core.c
->> @@ -1078,7 +1078,7 @@ static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
->>  	for (line = 0; line < lines; line++) {
->>  		while (offset && offset >= sg_dma_len(sg)) {
->>  			offset -= sg_dma_len(sg);
->> -			sg++;
->> +			sg = sg_next(sg);
->>  		}
->>  
->>  		if (lpi && line > 0 && !(line % lpi))
->> @@ -1101,14 +1101,14 @@ static __le32 *cx23885_risc_field(__le32 *rp, struct scatterlist *sglist,
->>  			*(rp++) = cpu_to_le32(0); /* bits 63-32 */
->>  			todo -= (sg_dma_len(sg)-offset);
->>  			offset = 0;
->> -			sg++;
->> +			sg = sg_next(sg);
->>  			while (todo > sg_dma_len(sg)) {
->>  				*(rp++) = cpu_to_le32(RISC_WRITE|
->>  						    sg_dma_len(sg));
->>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>  				*(rp++) = cpu_to_le32(0); /* bits 63-32 */
->>  				todo -= sg_dma_len(sg);
->> -				sg++;
->> +				sg = sg_next(sg);
->>  			}
->>  			*(rp++) = cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
->>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->> diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
->> index e81173c..389fffd 100644
->> --- a/drivers/media/pci/cx25821/cx25821-core.c
->> +++ b/drivers/media/pci/cx25821/cx25821-core.c
->> @@ -996,7 +996,7 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
->>  	for (line = 0; line < lines; line++) {
->>  		while (offset && offset >= sg_dma_len(sg)) {
->>  			offset -= sg_dma_len(sg);
->> -			sg++;
->> +			sg = sg_next(sg);
->>  		}
->>  		if (bpl <= sg_dma_len(sg) - offset) {
->>  			/* fits into current chunk */
->> @@ -1014,14 +1014,14 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
->>  			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>  			todo -= (sg_dma_len(sg) - offset);
->>  			offset = 0;
->> -			sg++;
->> +			sg = sg_next(sg);
->>  			while (todo > sg_dma_len(sg)) {
->>  				*(rp++) = cpu_to_le32(RISC_WRITE |
->>  						sg_dma_len(sg));
->>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>  				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>  				todo -= sg_dma_len(sg);
->> -				sg++;
->> +				sg = sg_next(sg);
->>  			}
->>  			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
->>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->> @@ -1101,7 +1101,7 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
->>  	for (line = 0; line < lines; line++) {
->>  		while (offset && offset >= sg_dma_len(sg)) {
->>  			offset -= sg_dma_len(sg);
->> -			sg++;
->> +			sg = sg_next(sg);
->>  		}
->>  
->>  		if (lpi && line > 0 && !(line % lpi))
->> @@ -1125,14 +1125,14 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
->>  			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>  			todo -= (sg_dma_len(sg) - offset);
->>  			offset = 0;
->> -			sg++;
->> +			sg = sg_next(sg);
->>  			while (todo > sg_dma_len(sg)) {
->>  				*(rp++) = cpu_to_le32(RISC_WRITE |
->>  						sg_dma_len(sg));
->>  				*(rp++) = cpu_to_le32(sg_dma_address(sg));
->>  				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
->>  				todo -= sg_dma_len(sg);
->> -				sg++;
->> +				sg = sg_next(sg);
->>  			}
->>  			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
->>  			*(rp++) = cpu_to_le32(sg_dma_address(sg));
->> diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
->> index 9fa4acb..dee177e 100644
->> --- a/drivers/media/pci/cx88/cx88-core.c
->> +++ b/drivers/media/pci/cx88/cx88-core.c
->> @@ -95,7 +95,7 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
->>  	for (line = 0; line < lines; line++) {
->>  		while (offset && offset >= sg_dma_len(sg)) {
->>  			offset -= sg_dma_len(sg);
->> -			sg++;
->> +			sg = sg_next(sg);
->>  		}
->>  		if (lpi && line>0 && !(line % lpi))
->>  			sol = RISC_SOL | RISC_IRQ1 | RISC_CNT_INC;
->> @@ -114,13 +114,13 @@ static __le32* cx88_risc_field(__le32 *rp, struct scatterlist *sglist,
->>  			*(rp++)=cpu_to_le32(sg_dma_address(sg)+offset);
->>  			todo -= (sg_dma_len(sg)-offset);
->>  			offset = 0;
->> -			sg++;
->> +			sg = sg_next(sg);
->>  			while (todo > sg_dma_len(sg)) {
->>  				*(rp++)=cpu_to_le32(RISC_WRITE|
->>  						    sg_dma_len(sg));
->>  				*(rp++)=cpu_to_le32(sg_dma_address(sg));
->>  				todo -= sg_dma_len(sg);
->> -				sg++;
->> +				sg = sg_next(sg);
->>  			}
->>  			*(rp++)=cpu_to_le32(RISC_WRITE|RISC_EOL|todo);
->>  			*(rp++)=cpu_to_le32(sg_dma_address(sg));
->> diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
->> index 7338cb2..bee2329 100644
->> --- a/drivers/media/pci/ivtv/ivtv-udma.c
->> +++ b/drivers/media/pci/ivtv/ivtv-udma.c
->> @@ -76,7 +76,7 @@ void ivtv_udma_fill_sg_array (struct ivtv_user_dma *dma, u32 buffer_offset, u32
->>  	int i;
->>  	struct scatterlist *sg;
->>  
->> -	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg++) {
->> +	for (i = 0, sg = dma->SGlist; i < dma->SG_length; i++, sg = sg_next(sg)) {
-> 
-> This hunk seems awkward, at least on my eyes. 
-> 
-> As you've pointed at the description, S/G can be grouped into bigger
-> segments. So, the maximum number of S/G can actually be less than
-> dma->SGlist.
+Add infrastructure for linking media entities,
+discovering pipelines of media entities and
+opening/closing all sub-devices in the pipeline
+at one go.
 
-That's correct, and dma->SG_length is equal to that number. SG_length is assigned
-with the result of dma_map_sg() which returns "the number of bus address segments
-mapped (this may be shorter than <nents> passed in if some elements of the
-scatter/gather list are physically or virtually adjacent and an IOMMU maps them
-with a single entry)."
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c   |  166 +++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl-priv.h |    6 ++
+ utils/media-ctl/mediactl.h      |   79 +++++++++++++++++++
+ 3 files changed, 251 insertions(+)
 
-So the patch is correct.
-
-Regards,
-
-	Hans
-
-> 
-> The proper fix here seems to convert it into a while that will stop
-> if the accumulated size matches the transfer size, just like the loops
-> at the other similar drivers.
-> 
->>  		dma->SGarray[i].size = cpu_to_le32(sg_dma_len(sg));
->>  		dma->SGarray[i].src = cpu_to_le32(sg_dma_address(sg));
->>  		dma->SGarray[i].dst = cpu_to_le32(buffer_offset);
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 27e7329..75021e7 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -1253,9 +1253,165 @@ struct media_entity *media_config_get_entity_by_cid(struct media_device *media,
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * Pipeline operations
++ */
++
++int media_discover_pipeline_by_entity(struct media_device *media,
++				      struct media_entity *entity)
++{
++	struct media_entity *pipe_head = NULL;
++	struct media_pad *sink_pads, sink_pad, *src_pad;
++	struct media_link *link;
++	int num_sink_pads, ret;
++	struct media_pad *prev_link_src_pad = NULL;
++
++	if (entity == NULL)
++		return -EINVAL;
++
++	for (;;) {
++		if (pipe_head == NULL) {
++			pipe_head = entity;
++		} else {
++			entity->next = pipe_head;
++			pipe_head = entity;
++		}
++
++		entity->pipe_src_pad = prev_link_src_pad;
++
++		ret = media_get_busy_pads_by_entity(media, entity,
++						    MEDIA_PAD_FL_SINK,
++						    &sink_pads,
++						    &num_sink_pads);
++		if (ret < 0)
++			return ret;
++
++		/* check if pipeline source entity has been reached */
++		if (num_sink_pads > 2) {
++			media_dbg(media, "Unexpected number of busy sink pads (%d)\n", num_sink_pads);
++			goto err_check_sink_pads;
++		} else if (num_sink_pads == 2) {
++			/* Allow two active pads only in case of S5C73M3-OIF entity */
++			if (strcmp(entity->info.name, "S5C73M3-OIF")) {
++				media_dbg(media, "Ambiguous media device topology: two busy sink pads");
++				goto err_check_sink_pads;
++			}
++			/*
++			 * Two active links are allowed betwen S5C73M3-OIF and S5C73M3 entities.
++			 * In such a case a route through pad 0 has to be selected.
++			 */
++			ret = media_get_pad_by_index(sink_pads, num_sink_pads,
++							0, &sink_pad);
++			if (ret < 0)
++				goto err_check_sink_pads;
++		} else if (num_sink_pads == 1) {
++			sink_pad = sink_pads[0];
++		} else {
++			break;
++		}
++		if (num_sink_pads > 0)
++			free(sink_pads);
++
++		ret = media_get_link_by_sink_pad(media, &sink_pad, &link);
++
++		prev_link_src_pad = link->source;
++		entity->pipe_sink_pad = link->sink;
++
++		src_pad = media_entity_remote_source(link->sink);
++		if (!src_pad)
++			return -EINVAL;
++
++		entity = src_pad->entity;
++	}
++
++	media->pipeline = pipe_head;
++
++	return 0;
++
++err_check_sink_pads:
++	free(sink_pads);
++	return -EINVAL;
++}
++
++int media_has_pipeline_entity(struct media_entity *pipeline, char *entity_name)
++{
++	if (pipeline == NULL || entity_name == NULL)
++		return -EINVAL;
++
++	while (pipeline) {
++		if (!strcmp(pipeline->info.name, entity_name))
++			return 1;
++		pipeline = pipeline->next;
++	}
++
++	return 0;
++}
++
++int media_open_pipeline_subdevs(struct media_device *media)
++{
++	struct media_entity *entity = media->pipeline;
++
++	if (entity == NULL)
++		return 0;
++
++	while (entity->next) {
++		media_dbg(media, "Opening sub-device: %s\n", entity->devname);
++		entity->fd = open(entity->devname, O_RDWR);
++
++		if (entity->fd < 0) {
++			media_dbg(media, "Could not open device %s", entity->devname);
++			goto err_open_subdev;
++		}
++
++		entity = entity->next;
++	}
++
++	return 0;
++
++err_open_subdev:
++	media_close_pipeline_subdevs(media);
++
++	return -EINVAL;
++}
++
++void media_close_pipeline_subdevs(struct media_device *media)
++{
++	struct media_entity *entity = media->pipeline;
++
++	if (entity == NULL)
++		return;
++
++	while (entity->next) {
++		if (entity->fd >= 0) {
++			media_dbg(media, "Closing sub-device: %s\n", entity->devname);
++			close(entity->fd);
++		} else {
++			break;
++		}
++
++		entity->fd = -1;
++		entity = entity->next;
++	}
++}
++
++/* -----------------------------------------------------------------------------
+  * Media entity access
+  */
+ 
++struct media_entity *media_get_pipeline(struct media_device *media)
++{
++	return media->pipeline;
++}
++
++int media_entity_get_src_pad_index(struct media_entity *entity)
++{
++	return entity->pipe_src_pad->index;
++}
++
++int media_entity_get_sink_pad_index(struct media_entity *entity)
++{
++	return entity->pipe_sink_pad->index;
++}
++
+ int media_entity_get_fd(struct media_entity *entity)
+ {
+ 	return entity->fd;
+@@ -1266,3 +1422,13 @@ void media_entity_set_subdev_fmt(struct media_entity *entity,
+ {
+ 	entity->subdev_fmt = *fmt;
+ }
++
++struct media_entity *media_entity_get_next(struct media_entity *entity)
++{
++	return entity->next;
++}
++
++void media_entity_set_next(struct media_entity *entity, struct media_entity *next)
++{
++	entity->next = next;
++}
+diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
+index b2c466b..0866491 100644
+--- a/utils/media-ctl/mediactl-priv.h
++++ b/utils/media-ctl/mediactl-priv.h
+@@ -35,10 +35,15 @@ struct media_entity {
+ 	unsigned int max_links;
+ 	unsigned int num_links;
+ 
++	struct media_pad *pipe_src_pad;
++	struct media_pad *pipe_sink_pad;
++
+ 	struct v4l2_subdev_format subdev_fmt;
+ 
+ 	char devname[32];
+ 	int fd;
++
++	struct media_entity *next;
+ };
+ 
+ struct media_device {
+@@ -49,6 +54,7 @@ struct media_device {
+ 	struct media_device_info info;
+ 	struct media_entity *entities;
+ 	unsigned int entities_count;
++	struct media_entity *pipeline;
+ 
+ 	struct media_v4l2_ctrl_to_subdev *ctrl_to_subdev;
+ 	unsigned int ctrl_to_subdev_count;
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index d28b0a8..459345a 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -582,6 +582,32 @@ int media_get_pad_by_index(struct media_pad *pads, int num_pads,
+ 				int index, struct media_pad *out_pad);
+ 
+ /**
++ * @brief Check presence of the entity in the pipeline
++ * @param pipeline - video pipeline within a media device
++ * @param entity_name - name of the entity to search for
++ *
++ * Check if the entity with entity_name belongs to
++ * the pipeline.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_has_pipeline_entity(struct media_entity *pipeline, char *entity_name);
++
++/**
++ * @brief Discover the video pipeline
++ * @param media - media device
++ * @param entity - media entity
++ *
++ * Discover the pipeline of sub-devices, by walking
++ * upstream starting from the passed sink entity until
++ * the camera sensor entity is encountered.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_discover_pipeline_by_entity(struct media_device *media,
++				struct media_entity *entity);
++
++/**
+  * @brief Get source pad of the pipeline entity
+  * @param entity - media entity
+  *
+@@ -623,4 +649,57 @@ int media_entity_get_fd(struct media_entity *entity);
+ void media_entity_set_subdev_fmt(struct media_entity *entity,
+ 				struct v4l2_subdev_format *fmt);
+ 
++/**
++ * @brief Get next entity in the pipeline
++ * @param entity - media entity
++ *
++ * This function gets the entity connected to a
++ * source pad of this entity.
++ *
++ * @return next enetity in the pipeline,
++ *	   or NULL if the entity is not linked
++ */
++struct media_entity *media_entity_get_next(struct media_entity *entity);
++
++/**
++ * @brief Set next entity in the pipeline
++ * @param entity - media entity
++ * @param next - the entity to add
++ *
++ * This function adds a new entity to the pipeline.
++ */
++void media_entity_set_next(struct media_entity *entity, struct media_entity *next);
++
++/**
++ * @brief Get the video pipeline
++ * @param media - media device
++ *
++ * This function gets the pipeline of media entities. The pipeline
++ * source entity is a camera sensor and the sink one is the entity
++ * representing opened video device node. The pipeline has to be
++ * discovered with use of the function media_discover_pipeline_by_entity.
++ *
++ * @return first media_entity in the pipeline,
++ *	   or NULL if the pipeline hasn't been discovered
++ */
++struct media_entity *media_get_pipeline(struct media_device *media);
++
++/**
++ * @brief Open pipeline sub-devices
++ * @param media - media device
++ *
++ * Open all sub-devices in the pipeline.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_open_pipeline_subdevs(struct media_device *media);
++
++/**
++ * @brief Close pipeline sub-devices
++ * @param media - media device
++ *
++ * Close all sub-devices in the pipeline.
++ */
++void media_close_pipeline_subdevs(struct media_device *media);
++
+ #endif
+-- 
+1.7.9.5
 
