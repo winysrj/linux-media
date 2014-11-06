@@ -1,55 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51869 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754978AbaKEPA7 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53646 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750881AbaKFMHG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 10:00:59 -0500
-Date: Wed, 5 Nov 2014 17:00:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 01/15] [media] Move mediabus format definition to a more
- standard place
-Message-ID: <20141105150025.GS3136@valkosipuli.retiisi.org.uk>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
- <1415094910-15899-2-git-send-email-boris.brezillon@free-electrons.com>
- <5458A878.3010809@cisco.com>
- <20141104114503.309cb54f@bbrezillon>
- <5458B407.6050701@cisco.com>
+	Thu, 6 Nov 2014 07:07:06 -0500
+Received: from [10.54.92.107] (173-38-208-170.cisco.com [173.38.208.170])
+	by tschai.lan (Postfix) with ESMTPSA id E5AA62A009D
+	for <linux-media@vger.kernel.org>; Thu,  6 Nov 2014 13:07:00 +0100 (CET)
+Message-ID: <545B6456.2080607@xs4all.nl>
+Date: Thu, 06 Nov 2014 13:06:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5458B407.6050701@cisco.com>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] vivid: add test array controls
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add array controls to test support for such controls. There is one
+array with just one element, one 8x16 matrix control and one 4 dimensional
+2x3x4x5 control.
 
-On Tue, Nov 04, 2014 at 12:09:59PM +0100, Hans Verkuil wrote:
-> Well, I gave two alternatives :-)
-> 
-> Both are fine as far as I am concerned, but it would be nice to hear
-> what others think.
+This makes it possible to experiment with such controls without requiring
+hard-to-get hardware.
 
-In fact I think both are good options. :-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'd perhaps lean towards the latter, for it has the benefit of pushing to
-use the new definitions and the old ones can be deprecated (and eventually
-removed in year 2030 or so ;)).
-
-Either way, preprocessor macros should be used instead of an enum since that
-way it's possible to figure out at that phase whether something is defined
-or not. There is for enums, too, but it results in a compilation error...
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index d5cbf00..d584773 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -40,6 +40,9 @@
+ #define VIVID_CID_STRING		(VIVID_CID_CUSTOM_BASE + 5)
+ #define VIVID_CID_BITMASK		(VIVID_CID_CUSTOM_BASE + 6)
+ #define VIVID_CID_INTMENU		(VIVID_CID_CUSTOM_BASE + 7)
++#define VIVID_CID_U32_ARRAY		(VIVID_CID_CUSTOM_BASE + 8)
++#define VIVID_CID_U16_MATRIX		(VIVID_CID_CUSTOM_BASE + 9)
++#define VIVID_CID_U8_4D_ARRAY		(VIVID_CID_CUSTOM_BASE + 10)
+ 
+ #define VIVID_CID_VIVID_BASE		(0x00f00000 | 0xf000)
+ #define VIVID_CID_VIVID_CLASS		(0x00f00000 | 1)
+@@ -163,6 +166,42 @@ static const struct v4l2_ctrl_config vivid_ctrl_int64 = {
+ 	.step = 1,
+ };
+ 
++static const struct v4l2_ctrl_config vivid_ctrl_u32_array = {
++	.ops = &vivid_user_gen_ctrl_ops,
++	.id = VIVID_CID_U32_ARRAY,
++	.name = "U32 1 Element Array",
++	.type = V4L2_CTRL_TYPE_U32,
++	.def = 0x18,
++	.min = 0x10,
++	.max = 0x20000,
++	.step = 1,
++	.dims = { 1 },
++};
++
++static const struct v4l2_ctrl_config vivid_ctrl_u16_matrix = {
++	.ops = &vivid_user_gen_ctrl_ops,
++	.id = VIVID_CID_U16_MATRIX,
++	.name = "U16 8x16 Matrix",
++	.type = V4L2_CTRL_TYPE_U16,
++	.def = 0x18,
++	.min = 0x10,
++	.max = 0x2000,
++	.step = 1,
++	.dims = { 8, 16 },
++};
++
++static const struct v4l2_ctrl_config vivid_ctrl_u8_4d_array = {
++	.ops = &vivid_user_gen_ctrl_ops,
++	.id = VIVID_CID_U8_4D_ARRAY,
++	.name = "U8 2x3x4x5 Array",
++	.type = V4L2_CTRL_TYPE_U8,
++	.def = 0x18,
++	.min = 0x10,
++	.max = 0x20,
++	.step = 1,
++	.dims = { 2, 3, 4, 5 },
++};
++
+ static const char * const vivid_ctrl_menu_strings[] = {
+ 	"Menu Item 0 (Skipped)",
+ 	"Menu Item 1",
+@@ -1222,6 +1261,9 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	dev->string = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_string, NULL);
+ 	dev->bitmask = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_bitmask, NULL);
+ 	dev->int_menu = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_int_menu, NULL);
++	v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_u32_array, NULL);
++	v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_u16_matrix, NULL);
++	v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_u8_4d_array, NULL);
+ 
+ 	if (dev->has_vid_cap) {
+ 		/* Image Processing Controls */
