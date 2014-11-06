@@ -1,82 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:44250 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbaK1K3S (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35648 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750931AbaKFDnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 05:29:18 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>, <linux-arm-kernel@lists.infradead.org>,
-	<g.liakhovetski@gmx.de>, <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>, <devicetree@vger.kernel.org>
-Subject: [PATCH 4/4] media: ov2640: dt: add the device tree binding document
-Date: Fri, 28 Nov 2014 18:28:27 +0800
-Message-ID: <1417170507-11172-5-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-References: <1417170507-11172-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 5 Nov 2014 22:43:08 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0CDE82A0432
+	for <linux-media@vger.kernel.org>; Thu,  6 Nov 2014 04:43:01 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141106034301.0CDE82A0432@tschai.lan>
+Date: Thu,  6 Nov 2014 04:43:01 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the document for ov2640 dt.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- .../devicetree/bindings/media/i2c/ov2640.txt       | 43 ++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-new file mode 100644
-index 0000000..adec147
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-@@ -0,0 +1,43 @@
-+* Omnivision ov2640 CMOS sensor
-+
-+The Omnivision OV2640 sensor support multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
-+output format.
-+
-+Required Properties :
-+- compatible      : Must be "omnivision,ov2640"
-+- reset-gpio      : reset pin
-+- power-down-gpio : power down pin
-+
-+Optional Properties:
-+- clocks          : reference master clock, if using external fixed clock, you
-+                    no need to have such property.
-+- clock-names     : Must be "mck", it means the master clock for ov2640.
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c1: i2c@f0018000 {
-+		ov2640: camera@0x30 {
-+			compatible = "omnivision,ov2640";
-+			reg = <0x30>;
-+
-+			... ...
-+
-+			reset-gpio = <&pioE 24 GPIO_ACTIVE_HIGH>;
-+			power-down-gpio = <&pioE 29 GPIO_ACTIVE_HIGH>;
-+
-+			/* use pck1 for the master clock of ov2640 */
-+			clocks = <&pck1>;
-+			clock-names = "mck";
-+
-+			port {
-+				ov2640_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+					bus-width = <8>;
-+				};
-+			};
-+		};
-+	};
--- 
-1.9.1
+date:		Thu Nov  6 04:00:16 CET 2014
+git branch:	test
+git hash:	4895cc47a072dcb32d3300d0a46a251a8c6db5f1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
