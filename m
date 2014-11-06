@@ -1,80 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38495 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751678AbaK1OvG (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58323 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750846AbaKFL5g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 09:51:06 -0500
+	Thu, 6 Nov 2014 06:57:36 -0500
+Message-ID: <545B621C.7080601@xs4all.nl>
+Date: Thu, 06 Nov 2014 12:57:16 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Thierry Reding <thierry.reding@avionic-design.de>,
-	marbugge@cisco.com, dri-devel@lists.freedesktop.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/3] hdmi: add new HDMI 2.0 defines
-Date: Fri, 28 Nov 2014 15:50:49 +0100
-Message-Id: <1417186251-6542-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
-References: <1417186251-6542-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	hans.verkuil@cisco.com, Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: v4l2-ctl bug(?) printing ctrl payload array
+References: <CANZNk82AqfbSkUd_xONtjAxLePA0TMhS_5wuWERObyGSZ5QYoA@mail.gmail.com> <CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com> <545B4006.1010401@xs4all.nl>
+In-Reply-To: <545B4006.1010401@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/06/14 10:31, Hans Verkuil wrote:
+> On 11/05/14 20:52, Andrey Utkin wrote:
+>> More on the same topic.
+>> I believe there's another bug on displaying of payload.
+>> Let's say we have the same [45][45] array, and this is what is posted to it:
+>> uint16_t buf[45 * 45] = {0, };
+>>         buf[0] = 1;
+>>         buf[1] = 2;
+>>         buf[45] = 3;
+>>         buf[45 * 45 - 1] = 0xff;
+>>
+>> What is shown by v4l2-ctl you can see here:
+>> https://dl.dropboxusercontent.com/u/43104344/v4l2-ctl_payload_bug.png
+>>
+> 
+> I'll look at this Friday or Monday.
+> 
+> I want to add some test array controls to the vivid driver as well to make
+> it easier to test such controls, so that will be a good test case.
 
-Add new Video InfoFrame colorspace information introduced in HDMI 2.0
-and new Audio Coding Extension Types, also from HDMI 2.0.
+OK, I had some time and I made several fixes. Please pull from v4l-utils.git
+and verify that it is now working correctly.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/linux/hdmi.h | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+Thanks for reporting this!
 
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index 11c0182..38fd2a0 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -37,6 +37,8 @@ enum hdmi_colorspace {
- 	HDMI_COLORSPACE_RGB,
- 	HDMI_COLORSPACE_YUV422,
- 	HDMI_COLORSPACE_YUV444,
-+	HDMI_COLORSPACE_YUV420,
-+	HDMI_COLORSPACE_IDO_DEFINED = 7,
- };
- 
- enum hdmi_scan_mode {
-@@ -77,6 +79,10 @@ enum hdmi_extended_colorimetry {
- 	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
- 	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
-+
-+	/* The following EC values are only defined in CEA-861-F. */
-+	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
-+	HDMI_EXTENDED_COLORIMETRY_BT2020,
- };
- 
- enum hdmi_quantization_range {
-@@ -201,9 +207,23 @@ enum hdmi_audio_sample_frequency {
- 
- enum hdmi_audio_coding_type_ext {
- 	HDMI_AUDIO_CODING_TYPE_EXT_STREAM,
-+
-+	/*
-+	 * The next three CXT values are defined in CEA-861-E only.
-+	 * They do not exist in older versions, and in CEA-861-F they are
-+	 * defined as 'Not in use'.
-+	 */
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC,
- 	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2,
- 	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND,
-+
-+	/* The following CXT values are only defined in CEA-861-F. */
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC,
-+	HDMI_AUDIO_CODING_TYPE_EXT_DRA,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_HE_AAC_SURROUND,
-+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_AAC_LC_SURROUND = 10,
- };
- 
- struct hdmi_audio_infoframe {
--- 
-2.1.3
+Regards,
 
+	Hans
