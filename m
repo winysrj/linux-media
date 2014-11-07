@@ -1,157 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:64619 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752534AbaKGWGj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 17:06:39 -0500
-Date: Fri, 7 Nov 2014 23:06:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-cc: Grant Likely <grant.likely@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
- of_graph_get_next_endpoint
-In-Reply-To: <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1411072255130.4252@axis700.grange>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
- <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49029 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751307AbaKGJAD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Nov 2014 04:00:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 14/15] vb2: drop the unused vb2_plane_vaddr function.
+Date: Fri,  7 Nov 2014 09:50:33 +0100
+Message-Id: <1415350234-9826-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch and sorry for a late reply. I did look at your 
-patches earlier too, but maybe not attentively enough, or maybe I'm 
-misunderstanding something now. In the scan_of_host() function in 
-soc_camera.c as of current -next I see:
+Now that all drivers have been converted, this function can be dropped.
 
-		epn = of_graph_get_next_endpoint(np, epn);
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       |  8 +-------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 11 -----------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |  1 -
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |  1 -
+ include/media/videobuf2-core.h                 |  6 +-----
+ 5 files changed, 2 insertions(+), 25 deletions(-)
 
-which already looks like a refcount leak to me. If epn != NULL, its 
-refcount is incremented, but then immediately the variable gets 
-overwritten, and there's no extra copy of that variable to fix this. If 
-I'm right, then that bug in itself should be fixed, ideally before your 
-patch is applied. But in fact, your patch fixes this, since it modifies 
-of_graph_get_next_endpoint() to return with prev's refcount not 
-incremented, right? Whereas the of_node_put(epn) later down in 
-scan_of_host() decrements refcount of the _next_ endpoint, not the 
-previous one, so, it should be left alone? I.e. AFAICT your modification 
-to of_graph_get_next_endpoint() fixes soc_camera.c with no further 
-modifications to it required?
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 036b947..5138a9f 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1129,15 +1129,9 @@ void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no)
+ 		return NULL;
+ 
+ 	return call_ptr_memop(vb, begin_cpu_access, vb->planes[plane_no].mem_priv);
+-}
+-EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
+ 
+-/* Keep this for backwards compatibility. Will be removed soon. */
+-void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+-{
+-	return vb2_plane_begin_cpu_access(vb, plane_no);
+ }
+-EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
++EXPORT_SYMBOL_GPL(vb2_plane_begin_cpu_access);
+ 
+ /**
+  * vb2_plane_end_cpu_access() - Return a kernel virtual address of a given plane
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 58a4bf2..629ca2e 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -94,16 +94,6 @@ static void *vb2_dc_cookie(void *buf_priv)
+ 	return &buf->dma_addr;
+ }
+ 
+-static void *vb2_dc_vaddr(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	if (!buf->vaddr && buf->db_attach)
+-		buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
+-
+-	return buf->vaddr;
+-}
+-
+ static unsigned int vb2_dc_num_users(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+@@ -895,7 +885,6 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.put		= vb2_dc_put,
+ 	.get_dmabuf	= vb2_dc_get_dmabuf,
+ 	.cookie		= vb2_dc_cookie,
+-	.vaddr		= vb2_dc_vaddr,
+ 	.mmap		= vb2_dc_mmap,
+ 	.get_userptr	= vb2_dc_get_userptr,
+ 	.put_userptr	= vb2_dc_put_userptr,
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 954ce74..0281a85 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -769,7 +769,6 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.put_userptr	= vb2_dma_sg_put_userptr,
+ 	.prepare	= vb2_dma_sg_prepare,
+ 	.finish		= vb2_dma_sg_finish,
+-	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
+ 	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 8623752..5c21190 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -478,7 +478,6 @@ const struct vb2_mem_ops vb2_vmalloc_memops = {
+ 	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
+ 	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
+-	.vaddr		= vb2_vmalloc_vaddr,
+ 	.begin_cpu_access = vb2_vmalloc_begin_cpu_access,
+ 	.end_cpu_access = vb2_vmalloc_end_cpu_access,
+ 	.mmap		= vb2_vmalloc_mmap,
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 91c1216..4632341 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -63,7 +63,6 @@ struct vb2_threadio_data;
+  *		driver, useful for cache synchronisation, optional.
+  * @finish:	called every time the buffer is passed back from the driver
+  *		to the userspace, also optional.
+- * @vaddr:	return a kernel virtual address to a given memory buffer
+  * @begin_cpu_access: return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists. This memory buffer can be written by the
+@@ -80,7 +79,7 @@ struct vb2_threadio_data;
+  *
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+- * Required ops for read/write access types: alloc, put, num_users, vaddr,
++ * Required ops for read/write access types: alloc, put, num_users,
+  * 			begin_cpu_access, end_cpu_access.
+  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
+  *			unmap_dmabuf, begin_cpu_access, end_cpu_access.
+@@ -109,7 +108,6 @@ struct vb2_mem_ops {
+ 	void		*(*begin_cpu_access)(void *buf_priv);
+ 	void		(*end_cpu_access)(void *buf_priv);
+ 
+-	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
+ 	unsigned int	(*num_users)(void *buf_priv);
+@@ -231,7 +229,6 @@ struct vb2_buffer {
+ 	u32		cnt_mem_detach_dmabuf;
+ 	u32		cnt_mem_map_dmabuf;
+ 	u32		cnt_mem_unmap_dmabuf;
+-	u32		cnt_mem_vaddr;
+ 	u32		cnt_mem_begin_cpu_access;
+ 	u32		cnt_mem_end_cpu_access;
+ 	u32		cnt_mem_cookie;
+@@ -454,7 +451,6 @@ struct vb2_queue {
+ #endif
+ };
+ 
+-void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_begin_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
+ void vb2_plane_end_cpu_access(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+-- 
+2.1.1
 
-Thanks
-Guennadi
-
-On Mon, 29 Sep 2014, Philipp Zabel wrote:
-
-> Decrementing the reference count of the previous endpoint node allows to
-> use the of_graph_get_next_endpoint function in a for_each_... style macro.
-> All current users of this function that pass a non-NULL prev parameter
-> (that is, soc_camera and imx-drm) are changed to not decrement the passed
-> prev argument's refcount themselves.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v4:
->  - Folded patches 1-3 into this one
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
->  drivers/of/base.c                              |  9 +--------
->  drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
->  3 files changed, 5 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index f4308fe..619b2d4 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1696,7 +1696,6 @@ static void scan_of_host(struct soc_camera_host *ici)
->  		if (!i)
->  			soc_of_bind(ici, epn, ren->parent);
->  
-> -		of_node_put(epn);
->  		of_node_put(ren);
->  
->  		if (i) {
-> @@ -1704,6 +1703,8 @@ static void scan_of_host(struct soc_camera_host *ici)
->  			break;
->  		}
->  	}
-> +
-> +	of_node_put(epn);
->  }
->  
->  #else
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 293ed4b..f7a9aa8 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2070,8 +2070,7 @@ EXPORT_SYMBOL(of_graph_parse_endpoint);
->   * @prev: previous endpoint node, or NULL to get first
->   *
->   * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-> - * of the passed @prev node is not decremented, the caller have to use
-> - * of_node_put() on it when done.
-> + * of the passed @prev node is decremented.
->   */
->  struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  					struct device_node *prev)
-> @@ -2107,12 +2106,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
->  			      __func__, prev->full_name))
->  			return NULL;
-> -
-> -		/*
-> -		 * Avoid dropping prev node refcount to 0 when getting the next
-> -		 * child below.
-> -		 */
-> -		of_node_get(prev);
->  	}
->  
->  	while (1) {
-> diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-> index 6b22106..12303b3 100644
-> --- a/drivers/staging/imx-drm/imx-drm-core.c
-> +++ b/drivers/staging/imx-drm/imx-drm-core.c
-> @@ -434,14 +434,6 @@ static uint32_t imx_drm_find_crtc_mask(struct imx_drm_device *imxdrm,
->  	return 0;
->  }
->  
-> -static struct device_node *imx_drm_of_get_next_endpoint(
-> -		const struct device_node *parent, struct device_node *prev)
-> -{
-> -	struct device_node *node = of_graph_get_next_endpoint(parent, prev);
-> -	of_node_put(prev);
-> -	return node;
-> -}
-> -
->  int imx_drm_encoder_parse_of(struct drm_device *drm,
->  	struct drm_encoder *encoder, struct device_node *np)
->  {
-> @@ -453,7 +445,7 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
->  	for (i = 0; ; i++) {
->  		u32 mask;
->  
-> -		ep = imx_drm_of_get_next_endpoint(np, ep);
-> +		ep = of_graph_get_next_endpoint(np, ep);
->  		if (!ep)
->  			break;
->  
-> @@ -502,7 +494,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
->  		return -EINVAL;
->  
->  	do {
-> -		ep = imx_drm_of_get_next_endpoint(node, ep);
-> +		ep = of_graph_get_next_endpoint(node, ep);
->  		if (!ep)
->  			break;
->  
-> -- 
-> 2.1.0
-> 
