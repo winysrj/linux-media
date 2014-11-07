@@ -1,55 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52195 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752562AbaKQORK (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59485 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752317AbaKGMfG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 09:17:10 -0500
-Received: from tschai.cisco.com (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 02A7E2A0376
-	for <linux-media@vger.kernel.org>; Mon, 17 Nov 2014 15:16:55 +0100 (CET)
+	Fri, 7 Nov 2014 07:35:06 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [RFCv1 PATCH 0/8] improve colorspace support
-Date: Mon, 17 Nov 2014 15:16:46 +0100
-Message-Id: <1416233814-40579-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: jean-michel.hautbois@vodalys.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/3] adv7604: Correct G/S_EDID behaviour
+Date: Fri,  7 Nov 2014 13:34:57 +0100
+Message-Id: <1415363697-32583-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415363697-32583-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415363697-32583-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series improves the V4L2 colorspace support. Specifically
-it adds support for AdobeRGB and BT.2020 (UHDTV) colorspaces and it allows
-configuring the Y'CbCr encoding and the quantization explicitly if
-non-standard methods are used.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It's almost identical to the version shown during the mini-summit in Düsseldorf,
-but the V4L2_QUANTIZATION_ALT_RANGE has been replaced by LIM_RANGE and
-FULL_RANGE. After some more research additional YCbCr encodings have
-been added as well:
+In order to have v4l2-compliance tool pass the G/S_EDID some modifications
+where needed in the driver.
+In particular, the edid.reserved zone must be blanked.
 
-- V4L2_YCBCR_ENC_BT2020NC
-- V4L2_YCBCR_ENC_SYCC
-- V4L2_YCBCR_ENC_SMPTE240M
+Based on a patch from Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+but reworked it a bit. It should use edid.present instead of edid.blocks as the
+check whether edid data is present.
 
-The SYCC encoding was missing (I thought I could use ENC_601 for this, but
-it's not quite the same) and the other two were implicitly defined via
-YCBCR_ENC_DEFAULT and the current colorspace. That's a bit too magical
-and these encodings should be defined explicitly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 37 ++++++++++++++++++-------------------
+ 1 file changed, 18 insertions(+), 19 deletions(-)
 
-The first three patches add the new defines and fields to the core. The 
-changes are very minor.
-
-The fourth patch completely overhauls the Colorspace chapter in the spec.
-There is no point trying to read the diff, instead I've made the html
-available here:
-
-http://hverkuil.home.xs4all.nl/colorspace.html#colorspaces
-
-The remaining patches add support for the new colorspace functionality
-to the test pattern generator and the vivid driver.
-
-Regards,
-
-        Hans
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 47795ff..d64fbd9 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1997,19 +1997,7 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	struct adv7604_state *state = to_state(sd);
+ 	u8 *data = NULL;
+ 
+-	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
+-		return -EINVAL;
+-	if (edid->blocks == 0)
+-		return -EINVAL;
+-	if (edid->blocks > 2)
+-		return -EINVAL;
+-	if (edid->start_block > 1)
+-		return -EINVAL;
+-	if (edid->start_block == 1)
+-		edid->blocks = 1;
+-
+-	if (edid->blocks > state->edid.blocks)
+-		edid->blocks = state->edid.blocks;
++	memset(edid->reserved, 0, sizeof(edid->reserved));
+ 
+ 	switch (edid->pad) {
+ 	case ADV7604_PAD_HDMI_PORT_A:
+@@ -2021,14 +2009,24 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		break;
+ 	default:
+ 		return -EINVAL;
+-		break;
+ 	}
+-	if (!data)
++
++	if (edid->start_block == 0 && edid->blocks == 0) {
++		edid->blocks = state->edid.blocks;
++		return 0;
++	}
++
++	if (data == NULL)
+ 		return -ENODATA;
+ 
+-	memcpy(edid->edid,
+-	       data + edid->start_block * 128,
+-	       edid->blocks * 128);
++	if (edid->start_block >= state->edid.blocks)
++		return -EINVAL;
++
++	if (edid->start_block + edid->blocks > state->edid.blocks)
++		edid->blocks = state->edid.blocks - edid->start_block;
++
++	memcpy(edid->edid, data + edid->start_block * 128, edid->blocks * 128);
++
+ 	return 0;
+ }
+ 
+@@ -2068,6 +2066,8 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	int err;
+ 	int i;
+ 
++	memset(edid->reserved, 0, sizeof(edid->reserved));
++
+ 	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
+ 		return -EINVAL;
+ 	if (edid->start_block != 0)
+@@ -2164,7 +2164,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		return -EIO;
+ 	}
+ 
+-
+ 	/* enable hotplug after 100 ms */
+ 	queue_delayed_work(state->work_queues,
+ 			&state->delayed_work_enable_hotplug, HZ / 10);
+-- 
+2.1.1
 
