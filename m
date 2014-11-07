@@ -1,64 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:37759 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447AbaKEKOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 05:14:07 -0500
-Received: by mail-ig0-f182.google.com with SMTP id hn18so1077180igb.9
-        for <linux-media@vger.kernel.org>; Wed, 05 Nov 2014 02:14:06 -0800 (PST)
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57724 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751983AbaKGNKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Nov 2014 08:10:54 -0500
+Message-ID: <545CC4C4.6080600@xs4all.nl>
+Date: Fri, 07 Nov 2014 14:10:28 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <54596226.8040403@iki.fi>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
- <20141102225704.GM3136@valkosipuli.retiisi.org.uk> <CANOLnONAsh-M7WvRFOhLo-obkS20ffurr9tD5b==yyHCwVRXoQ@mail.gmail.com>
- <20141104115839.GN3136@valkosipuli.retiisi.org.uk> <fbcc6c6b4b3bb0d049a6d1871d8a79df@roundcube.remlab.net>
- <CAPueXH4Obd4F99w1g2ehgWbrfukrAhQ+=3TfRoNRuJJTAp70YA@mail.gmail.com>
- <20141104153650.GO3136@valkosipuli.retiisi.org.uk> <54596226.8040403@iki.fi>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Wed, 5 Nov 2014 10:13:45 +0000
-Message-ID: <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: =?UTF-8?Q?R=C3=A9mi_Denis=2DCourmont?= <remi@remlab.net>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 01/10] [media] Move mediabus format definition to a
+ more standard place
+References: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com> <1415267829-4177-2-git-send-email-boris.brezillon@free-electrons.com> <20141107114358.GB3136@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20141107114358.GB3136@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 11/07/14 12:43, Sakari Ailus wrote:
+> Hi Boris,
+> 
+> Thank you for the update.
+> 
+> On Thu, Nov 06, 2014 at 10:56:59AM +0100, Boris Brezillon wrote:
+>> Rename mediabus formats and move the enum into a separate header file so
+>> that it can be used by DRM/KMS subsystem without any reference to the V4L2
+>> subsystem.
+>>
+>> Old v4l2_mbus_pixelcode now points to media_bus_format.
+>>
+>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+>> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> ---
+>>  include/uapi/linux/Kbuild             |   1 +
+>>  include/uapi/linux/media-bus-format.h | 131 ++++++++++++++++++++++++++++++++++
+>>  include/uapi/linux/v4l2-mediabus.h    | 114 +----------------------------
+>>  3 files changed, 134 insertions(+), 112 deletions(-)
+>>  create mode 100644 include/uapi/linux/media-bus-format.h
+>>
+>> diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+>> index b70237e..b2c23f8 100644
+>> --- a/include/uapi/linux/Kbuild
+>> +++ b/include/uapi/linux/Kbuild
+>> @@ -414,6 +414,7 @@ header-y += veth.h
+>>  header-y += vfio.h
+>>  header-y += vhost.h
+>>  header-y += videodev2.h
+>> +header-y += media-bus-format.h
+> 
+> Could you arrange this to the list alphabetically, please?
+> 
+>>  header-y += virtio_9p.h
+>>  header-y += virtio_balloon.h
+>>  header-y += virtio_blk.h
+>> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+>> new file mode 100644
+>> index 0000000..251a902
+>> --- /dev/null
+>> +++ b/include/uapi/linux/media-bus-format.h
+>> @@ -0,0 +1,131 @@
+>> +/*
+>> + * Media Bus API header
+>> + *
+>> + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef __LINUX_MEDIA_BUS_FORMAT_H
+>> +#define __LINUX_MEDIA_BUS_FORMAT_H
+>> +
+>> +/*
+>> + * These bus formats uniquely identify data formats on the data bus. Format 0
+>> + * is reserved, MEDIA_BUS_FMT_FIXED shall be used by host-client pairs, where
+>> + * the data format is fixed. Additionally, "2X8" means that one pixel is
+>> + * transferred in two 8-bit samples, "BE" or "LE" specify in which order those
+>> + * samples are transferred over the bus: "LE" means that the least significant
+>> + * bits are transferred first, "BE" means that the most significant bits are
+>> + * transferred first, and "PADHI" and "PADLO" define which bits - low or high,
+>> + * in the incomplete high byte, are filled with padding bits.
+>> + *
+>> + * The bus formats are grouped by type, bus_width, bits per component, samples
+>> + * per pixel and order of subsamples. Numerical values are sorted using generic
+>> + * numerical sort order (8 thus comes before 10).
+>> + *
+>> + * As their value can't change when a new bus format is inserted in the
+>> + * enumeration, the bus formats are explicitly given a numerical value. The next
+>> + * free values for each category are listed below, update them when inserting
+>> + * new pixel codes.
+>> + */
+>> +
+>> +#define MEDIA_BUS_FMT_ENTRY(name, val)	\
+>> +	MEDIA_BUS_FMT_ ## name = val,	\
+>> +	V4L2_MBUS_FMT_ ## name = val
+>> +
+>> +enum media_bus_format {
+> 
+> There's no really a need to keep the definitions inside the enum. It looks a
+> little bit confusing to me. That made me realise something I missed
+> yesterday.
+> 
+> There's a difference: the enum in C++ is a different thing than in C, and
+> the enum type isn't able to contain any other values than those defined in
+> the enumeration.
+> 
+> So what I propose is the following. Keep enum v4l2_mbus_pixelcode around,
+> including the enum values. Define new values for MEDIA_BUS_* equivalents
+> using preprocessor macros, as you've done below. Drop the definition of enum
+> media_bus_format, and use u32 (or uint32_t) type for the variables.
+> 
+> This way the enum stays intact for existing C++ applications, and new
+> applications will have to use a 32-bit type.
+> 
+> I'd like to get an ok from Hans to this as well.
 
-2014-11-04 23:32 GMT+00:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> Sakari Ailus wrote:
->> yavta does, for example, print both the monotonic timestamp from the buffer
->> and the time when the buffer has been dequeued:
->>
->> <URL:http://git.ideasonboard.org/yavta.git>
->>
->>       $ yavta -c /dev/video0
->>
->> should do it. The first timestamp is the buffer timestamp, and the latter is
->> the one is taken when the buffer is dequeued (by yavta).
+OK, let's do this. Let's keep enum v4l2_mbus_pixelcode but only under #ifndef
+__KERNEL and with a comment that this enum is deprecated and frozen and that
+the values from the new header should be used.
 
-I've done exaclty this with guvcview, and uvcvideo timestamps are
-completly unreliable, in some devices they may have just a bit of
-jitter, but in others, values go back and forth in time, making them
-totally unusable.
-Honestly I wouldn't trust device firmware to provide correct
-timestamps, or at least I would have the driver perform a couple of
-tests to make sure these are at least reasonable: within an expected
-interval (maybe comparing it to a reference monotonic clock) or at the
-very least making sure the current frame timestamp is not lower than
-the previous one.
+And make the new MEDIA_BUS_FMT_ values defines instead of an enum.
 
 Regards,
-Paulo
 
->
-> Removing the uvcvideo module and loading it again with trace=4096 before
-> capturing, and then kernel log would provide more useful information.
->
-> --
-> Sakari Ailus
-> sakari.ailus@iki.fi
+	Hans
