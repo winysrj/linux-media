@@ -1,190 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:37385 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218AbaKRLYF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:05 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 04/12] media: soc_camera: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:33 +0000
-Message-Id: <1416309821-5426-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from down.free-electrons.com ([37.187.137.238]:59128 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752719AbaKGOID (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:08:03 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 09/10] gpu: ipu-v3: Make use of media_bus_format enum
+Date: Fri,  7 Nov 2014 15:07:48 +0100
+Message-Id: <1415369269-5064-10-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Josh Wu <josh.wu@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/atmel-isi.c            |  7 +++++--
- drivers/media/platform/soc_camera/mx3_camera.c           |  7 +++++--
- drivers/media/platform/soc_camera/rcar_vin.c             |  7 +++++--
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |  7 +++++--
- drivers/media/platform/soc_camera/soc_camera.c           | 16 ----------------
- 5 files changed, 20 insertions(+), 24 deletions(-)
+In order to have subsytem agnostic media bus format definitions we've
+moved media bus definition to include/uapi/linux/media-bus-format.h and
+prefixed enum values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index ee5650f..6306ba5 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -455,8 +455,8 @@ static struct vb2_ops isi_video_qops = {
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
- 	.stop_streaming		= stop_streaming,
--	.wait_prepare		= soc_camera_unlock,
--	.wait_finish		= soc_camera_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /* ------------------------------------------------------------------
-@@ -465,6 +465,8 @@ static struct vb2_ops isi_video_qops = {
- static int isi_camera_init_videobuf(struct vb2_queue *q,
- 				     struct soc_camera_device *icd)
+Reference new definitions in the ipu-v3 driver.
+
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/gpu/ipu-v3/ipu-csi.c | 66 ++++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index d6f56471..752cdd2 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -227,83 +227,83 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
+ static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
  {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP;
- 	q->drv_priv = icd;
-@@ -472,6 +474,7 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
- 	q->ops = &isi_video_qops;
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &ici->host_lock;
- 
- 	return vb2_queue_init(q);
- }
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 8e52ccc..1000c2e 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -435,14 +435,16 @@ static struct vb2_ops mx3_videobuf_ops = {
- 	.buf_queue	= mx3_videobuf_queue,
- 	.buf_cleanup	= mx3_videobuf_release,
- 	.buf_init	= mx3_videobuf_init,
--	.wait_prepare	= soc_camera_unlock,
--	.wait_finish	= soc_camera_lock,
-+	.wait_prepare	= vb2_ops_wait_prepare,
-+	.wait_finish	= vb2_ops_wait_finish,
- 	.stop_streaming	= mx3_stop_streaming,
- };
- 
- static int mx3_camera_init_videobuf(struct vb2_queue *q,
- 				     struct soc_camera_device *icd)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = icd;
-@@ -450,6 +452,7 @@ static int mx3_camera_init_videobuf(struct vb2_queue *q,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct mx3_camera_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &ici->host_lock;
- 
- 	return vb2_queue_init(q);
- }
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 8d8438b..724e239 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -535,8 +535,8 @@ static struct vb2_ops rcar_vin_vb2_ops = {
- 	.buf_cleanup	= rcar_vin_videobuf_release,
- 	.buf_queue	= rcar_vin_videobuf_queue,
- 	.stop_streaming	= rcar_vin_stop_streaming,
--	.wait_prepare	= soc_camera_unlock,
--	.wait_finish	= soc_camera_lock,
-+	.wait_prepare	= vb2_ops_wait_prepare,
-+	.wait_finish	= vb2_ops_wait_finish,
- };
- 
- static irqreturn_t rcar_vin_irq(int irq, void *data)
-@@ -1364,6 +1364,8 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
- static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
- 				   struct soc_camera_device *icd)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
- 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	vq->drv_priv = icd;
-@@ -1371,6 +1373,7 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
- 	vq->mem_ops = &vb2_dma_contig_memops;
- 	vq->buf_struct_size = sizeof(struct rcar_vin_buffer);
- 	vq->timestamp_flags  = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	vq->lock = &ici->host_lock;
- 
- 	return vb2_queue_init(vq);
- }
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 5f58ed9..d92b746 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -496,8 +496,8 @@ static struct vb2_ops sh_mobile_ceu_videobuf_ops = {
- 	.buf_queue	= sh_mobile_ceu_videobuf_queue,
- 	.buf_cleanup	= sh_mobile_ceu_videobuf_release,
- 	.buf_init	= sh_mobile_ceu_videobuf_init,
--	.wait_prepare	= soc_camera_unlock,
--	.wait_finish	= soc_camera_lock,
-+	.wait_prepare	= vb2_ops_wait_prepare,
-+	.wait_finish	= vb2_ops_wait_finish,
- 	.stop_streaming	= sh_mobile_ceu_stop_streaming,
- };
- 
-@@ -1659,6 +1659,8 @@ static int sh_mobile_ceu_querycap(struct soc_camera_host *ici,
- static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
- 				       struct soc_camera_device *icd)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = icd;
-@@ -1666,6 +1668,7 @@ static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct sh_mobile_ceu_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &ici->host_lock;
- 
- 	return vb2_queue_init(q);
- }
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index f4be2a1..5aad197 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -843,22 +843,6 @@ static unsigned int soc_camera_poll(struct file *file, poll_table *pt)
- 	return res;
- }
- 
--void soc_camera_lock(struct vb2_queue *vq)
--{
--	struct soc_camera_device *icd = vb2_get_drv_priv(vq);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	mutex_lock(&ici->host_lock);
--}
--EXPORT_SYMBOL(soc_camera_lock);
--
--void soc_camera_unlock(struct vb2_queue *vq)
--{
--	struct soc_camera_device *icd = vb2_get_drv_priv(vq);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	mutex_unlock(&ici->host_lock);
--}
--EXPORT_SYMBOL(soc_camera_unlock);
--
- static struct v4l2_file_operations soc_camera_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= soc_camera_open,
+ 	switch (mbus_code) {
+-	case V4L2_MBUS_FMT_BGR565_2X8_BE:
+-	case V4L2_MBUS_FMT_BGR565_2X8_LE:
+-	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+-	case V4L2_MBUS_FMT_RGB565_2X8_LE:
++	case MEDIA_BUS_FMT_BGR565_2X8_BE:
++	case MEDIA_BUS_FMT_BGR565_2X8_LE:
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
+ 		cfg->mipi_dt = MIPI_DT_RGB565;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
+ 		cfg->mipi_dt = MIPI_DT_RGB444;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
+ 		cfg->mipi_dt = MIPI_DT_RGB555;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_2X8:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_2X8:
++	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_UYVY8_1X16:
++	case MEDIA_BUS_FMT_UYVY8_1X16:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
+-	case V4L2_MBUS_FMT_YUYV8_1X16:
++	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
+ 		cfg->mipi_dt = MIPI_DT_YUV422;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR8_1X8:
+-	case V4L2_MBUS_FMT_SGBRG8_1X8:
+-	case V4L2_MBUS_FMT_SGRBG8_1X8:
+-	case V4L2_MBUS_FMT_SRGGB8_1X8:
++	case MEDIA_BUS_FMT_SBGGR8_1X8:
++	case MEDIA_BUS_FMT_SGBRG8_1X8:
++	case MEDIA_BUS_FMT_SGRBG8_1X8:
++	case MEDIA_BUS_FMT_SRGGB8_1X8:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW8;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE:
+-	case V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE:
++	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW10;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR10_1X10:
+-	case V4L2_MBUS_FMT_SGBRG10_1X10:
+-	case V4L2_MBUS_FMT_SGRBG10_1X10:
+-	case V4L2_MBUS_FMT_SRGGB10_1X10:
++	case MEDIA_BUS_FMT_SBGGR10_1X10:
++	case MEDIA_BUS_FMT_SGBRG10_1X10:
++	case MEDIA_BUS_FMT_SGRBG10_1X10:
++	case MEDIA_BUS_FMT_SRGGB10_1X10:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW10;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR12_1X12:
+-	case V4L2_MBUS_FMT_SGBRG12_1X12:
+-	case V4L2_MBUS_FMT_SGRBG12_1X12:
+-	case V4L2_MBUS_FMT_SRGGB12_1X12:
++	case MEDIA_BUS_FMT_SBGGR12_1X12:
++	case MEDIA_BUS_FMT_SGBRG12_1X12:
++	case MEDIA_BUS_FMT_SGRBG12_1X12:
++	case MEDIA_BUS_FMT_SRGGB12_1X12:
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+ 		cfg->mipi_dt = MIPI_DT_RAW12;
+ 		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
+ 		break;
+-	case V4L2_MBUS_FMT_JPEG_1X8:
++	case MEDIA_BUS_FMT_JPEG_1X8:
+ 		/* TODO */
+ 		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
+ 		cfg->mipi_dt = MIPI_DT_RAW8;
 -- 
 1.9.1
 
