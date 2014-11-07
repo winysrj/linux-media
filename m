@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:56285 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895AbaKZUc0 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56748 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752664AbaKGOsI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 15:32:26 -0500
-Received: by mail-qg0-f45.google.com with SMTP id f51so2623124qge.32
-        for <linux-media@vger.kernel.org>; Wed, 26 Nov 2014 12:32:25 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: p.zabel@pengutronix.de
-Cc: linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 1/2] of: Add new compatibles for CODA bindings
-Date: Wed, 26 Nov 2014 18:32:03 -0200
-Message-Id: <1417033924-27513-1-git-send-email-festevam@gmail.com>
+	Fri, 7 Nov 2014 09:48:08 -0500
+Message-ID: <545CDB8D.4080406@xs4all.nl>
+Date: Fri, 07 Nov 2014 15:47:41 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions
+ inside the kernel
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com> <1415369269-5064-11-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415369269-5064-11-git-send-email-boris.brezillon@free-electrons.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Nitpicks:
 
-This patch adds new compatibles using the new Chips&Media vendor
-prefix "cnm" and CODA model name as well as a Freescale specific
-compatible value for i.MX6DL/S.
-The latter is because for some reason the i.MX6DL/S firmware
-provided by Freescale differs from the i.MX6Q/D version.
+On 11/07/14 15:07, Boris Brezillon wrote:
+> Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
+> users don't have access to these definitions.
+> 
+> We have to keep this definition for user-space users even though they're
+> encouraged to move to the new media_bus_format enum.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
+>  include/uapi/linux/v4l2-mediabus.h | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 3d87db7..4f31d0e 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -15,6 +15,14 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/media-bus-format.h>
+>  
+> +#ifndef __KERNEL__
+> +
+> +/*
+> + * enum v4l2_mbus_pixelcode and its defintions are now deprecated, and
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- Documentation/devicetree/bindings/media/coda.txt | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+defintions -> definitions
 
-diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
-index 2865d04..f5e4d4b 100644
---- a/Documentation/devicetree/bindings/media/coda.txt
-+++ b/Documentation/devicetree/bindings/media/coda.txt
-@@ -5,10 +5,11 @@ Coda codec IPs are present in i.MX SoCs in various versions,
- called VPU (Video Processing Unit).
- 
- Required properties:
--- compatible : should be "fsl,<chip>-src" for i.MX SoCs:
--  (a) "fsl,imx27-vpu" for CodaDx6 present in i.MX27
--  (b) "fsl,imx53-vpu" for CODA7541 present in i.MX53
--  (c) "fsl,imx6q-vpu" for CODA960 present in i.MX6q
-+- compatible : should be "fsl,<chip>-src", "cnm,coda<model>" for i.MX SoCs:
-+  (a) "fsl,imx27-vpu", "cnm,codadx6" for CodaDx6 present in i.MX27
-+  (b) "fsl,imx53-vpu", "cnm,coda7541" for CODA7541 present in i.MX53
-+  (c) "fsl,imx6q-vpu", "cnm,coda960" for CODA960 present in i.MX6Q/D
-+  (d) "fsl,imx6dl-vpu", "cnm,coda960" for CODA960 present in i.MX6DL/S
- - reg: should be register base and length as documented in the
-   SoC reference manual
- - interrupts : Should contain the VPU interrupt. For CODA960,
-@@ -21,7 +22,7 @@ Required properties:
- Example:
- 
- vpu: vpu@63ff4000 {
--	compatible = "fsl,imx53-vpu";
-+	compatible = "fsl,imx53-vpu", "cnm,coda7541";
- 	reg = <0x63ff4000 0x1000>;
- 	interrupts = <9>;
- 	clocks = <&clks 63>, <&clks 63>;
--- 
-1.9.1
+> + * MEDIA_BUS_FMT_ defintions (defined in media-bus-format.h) should be
 
+and again...
+
+> + * used instead.
+
+I would also add something like this:
+
+"New defines should only be added to media-bus-format.h. The v4l2_mbus_pixelcode
+enum is frozen."
+
+> + */
+> +
+>  #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
+>  	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
+>  
+> @@ -102,6 +110,7 @@ enum v4l2_mbus_pixelcode {
+>  
+>  	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
+>  };
+> +#endif /* __KERNEL__ */
+>  
+>  /**
+>   * struct v4l2_mbus_framefmt - frame format on the media bus
+> 
+
+Can you move this struct forward to before the v4l2_mbus_pixelcode enum? That way
+the obsolete code is at the end of the header. People might miss this struct
+otherwise.
+
+Regards,
+
+	Hans
