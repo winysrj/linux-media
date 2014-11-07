@@ -1,332 +1,389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:44290 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbaKCXpI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 18:45:08 -0500
-Date: Tue, 4 Nov 2014 08:44:57 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH] v4l: vsp1: Remove support for platform data
-Message-ID: <20141103234457.GA8941@verge.net.au>
-References: <1414678153-11676-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1414678153-11676-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from down.free-electrons.com ([37.187.137.238]:59100 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752015AbaKGOHy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:07:54 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 01/10] [media] Move mediabus format definition to a more standard place
+Date: Fri,  7 Nov 2014 15:07:40 +0100
+Message-Id: <1415369269-5064-2-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 30, 2014 at 04:09:13PM +0200, Laurent Pinchart wrote:
-> Now that all platforms instantiate the VSP1 through DT, platform data
-> support isn't needed anymore.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Define MEDIA_BUS_FMT macros (re-using the values defined in the
+v4l2_mbus_pixelcode enum) into a separate header file so that they can be
+used from the DRM/KMS subsystem without any reference to the V4L2
+subsystem.
 
-Very nice :)
+Then set V4L2_MBUS_FMT definitions to the MEDIA_BUS_FMT values using the
+V4L2_MBUS_FROM_MEDIA_BUS_FMT macro.
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ include/uapi/linux/Kbuild             |   1 +
+ include/uapi/linux/media-bus-format.h | 125 +++++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h    | 184 +++++++++++++++-------------------
+ 3 files changed, 206 insertions(+), 104 deletions(-)
+ create mode 100644 include/uapi/linux/media-bus-format.h
 
-> ---
->  drivers/media/platform/Kconfig         |  2 +-
->  drivers/media/platform/vsp1/vsp1.h     | 14 +++++-
->  drivers/media/platform/vsp1/vsp1_drv.c | 81 ++++++++++++----------------------
->  drivers/media/platform/vsp1/vsp1_wpf.c |  2 +-
->  include/linux/platform_data/vsp1.h     | 27 ------------
->  5 files changed, 43 insertions(+), 83 deletions(-)
->  delete mode 100644 include/linux/platform_data/vsp1.h
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 0c61155699f7..0c301d8ded7f 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -231,7 +231,7 @@ config VIDEO_SH_VEU
->  config VIDEO_RENESAS_VSP1
->  	tristate "Renesas VSP1 Video Processing Engine"
->  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
-> -	depends on ARCH_SHMOBILE || COMPILE_TEST
-> +	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
-> diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-> index 12467191dff4..989e96f7e360 100644
-> --- a/drivers/media/platform/vsp1/vsp1.h
-> +++ b/drivers/media/platform/vsp1/vsp1.h
-> @@ -16,7 +16,6 @@
->  #include <linux/io.h>
->  #include <linux/list.h>
->  #include <linux/mutex.h>
-> -#include <linux/platform_data/vsp1.h>
->  
->  #include <media/media-device.h>
->  #include <media/v4l2-device.h>
-> @@ -40,9 +39,20 @@ struct vsp1_uds;
->  #define VSP1_MAX_UDS		3
->  #define VSP1_MAX_WPF		4
->  
-> +#define VSP1_HAS_LIF		(1 << 0)
-> +#define VSP1_HAS_LUT		(1 << 1)
-> +#define VSP1_HAS_SRU		(1 << 2)
-> +
-> +struct vsp1_platform_data {
-> +	unsigned int features;
-> +	unsigned int rpf_count;
-> +	unsigned int uds_count;
-> +	unsigned int wpf_count;
-> +};
-> +
->  struct vsp1_device {
->  	struct device *dev;
-> -	struct vsp1_platform_data *pdata;
-> +	struct vsp1_platform_data pdata;
->  
->  	void __iomem *mmio;
->  	struct clk *clock;
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-> index 3e6601b5b4de..d1911f8f1d55 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -40,7 +40,7 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
->  	irqreturn_t ret = IRQ_NONE;
->  	unsigned int i;
->  
-> -	for (i = 0; i < vsp1->pdata->wpf_count; ++i) {
-> +	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
->  		struct vsp1_rwpf *wpf = vsp1->wpf[i];
->  		struct vsp1_pipeline *pipe;
->  		u32 status;
-> @@ -181,7 +181,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  
->  	list_add_tail(&vsp1->hst->entity.list_dev, &vsp1->entities);
->  
-> -	if (vsp1->pdata->features & VSP1_HAS_LIF) {
-> +	if (vsp1->pdata.features & VSP1_HAS_LIF) {
->  		vsp1->lif = vsp1_lif_create(vsp1);
->  		if (IS_ERR(vsp1->lif)) {
->  			ret = PTR_ERR(vsp1->lif);
-> @@ -191,7 +191,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  		list_add_tail(&vsp1->lif->entity.list_dev, &vsp1->entities);
->  	}
->  
-> -	if (vsp1->pdata->features & VSP1_HAS_LUT) {
-> +	if (vsp1->pdata.features & VSP1_HAS_LUT) {
->  		vsp1->lut = vsp1_lut_create(vsp1);
->  		if (IS_ERR(vsp1->lut)) {
->  			ret = PTR_ERR(vsp1->lut);
-> @@ -201,7 +201,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  		list_add_tail(&vsp1->lut->entity.list_dev, &vsp1->entities);
->  	}
->  
-> -	for (i = 0; i < vsp1->pdata->rpf_count; ++i) {
-> +	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
->  		struct vsp1_rwpf *rpf;
->  
->  		rpf = vsp1_rpf_create(vsp1, i);
-> @@ -214,7 +214,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
->  	}
->  
-> -	if (vsp1->pdata->features & VSP1_HAS_SRU) {
-> +	if (vsp1->pdata.features & VSP1_HAS_SRU) {
->  		vsp1->sru = vsp1_sru_create(vsp1);
->  		if (IS_ERR(vsp1->sru)) {
->  			ret = PTR_ERR(vsp1->sru);
-> @@ -224,7 +224,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  		list_add_tail(&vsp1->sru->entity.list_dev, &vsp1->entities);
->  	}
->  
-> -	for (i = 0; i < vsp1->pdata->uds_count; ++i) {
-> +	for (i = 0; i < vsp1->pdata.uds_count; ++i) {
->  		struct vsp1_uds *uds;
->  
->  		uds = vsp1_uds_create(vsp1, i);
-> @@ -237,7 +237,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  		list_add_tail(&uds->entity.list_dev, &vsp1->entities);
->  	}
->  
-> -	for (i = 0; i < vsp1->pdata->wpf_count; ++i) {
-> +	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
->  		struct vsp1_rwpf *wpf;
->  
->  		wpf = vsp1_wpf_create(vsp1, i);
-> @@ -261,7 +261,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
->  			goto done;
->  	}
->  
-> -	if (vsp1->pdata->features & VSP1_HAS_LIF) {
-> +	if (vsp1->pdata.features & VSP1_HAS_LIF) {
->  		ret = media_entity_create_link(
->  			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
->  			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
-> @@ -294,7 +294,7 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
->  	/* Reset any channel that might be running. */
->  	status = vsp1_read(vsp1, VI6_STATUS);
->  
-> -	for (i = 0; i < vsp1->pdata->wpf_count; ++i) {
-> +	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
->  		unsigned int timeout;
->  
->  		if (!(status & VI6_STATUS_SYS_ACT(i)))
-> @@ -318,10 +318,10 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
->  	vsp1_write(vsp1, VI6_CLK_DCSWT, (8 << VI6_CLK_DCSWT_CSTPW_SHIFT) |
->  		   (8 << VI6_CLK_DCSWT_CSTRW_SHIFT));
->  
-> -	for (i = 0; i < vsp1->pdata->rpf_count; ++i)
-> +	for (i = 0; i < vsp1->pdata.rpf_count; ++i)
->  		vsp1_write(vsp1, VI6_DPR_RPF_ROUTE(i), VI6_DPR_NODE_UNUSED);
->  
-> -	for (i = 0; i < vsp1->pdata->uds_count; ++i)
-> +	for (i = 0; i < vsp1->pdata.uds_count; ++i)
->  		vsp1_write(vsp1, VI6_DPR_UDS_ROUTE(i), VI6_DPR_NODE_UNUSED);
->  
->  	vsp1_write(vsp1, VI6_DPR_SRU_ROUTE, VI6_DPR_NODE_UNUSED);
-> @@ -428,28 +428,36 @@ static const struct dev_pm_ops vsp1_pm_ops = {
->   * Platform Driver
->   */
->  
-> -static int vsp1_validate_platform_data(struct platform_device *pdev,
-> -				       struct vsp1_platform_data *pdata)
-> +static int vsp1_parse_dt(struct vsp1_device *vsp1)
->  {
-> -	if (pdata == NULL) {
-> -		dev_err(&pdev->dev, "missing platform data\n");
-> -		return -EINVAL;
-> -	}
-> +	struct device_node *np = vsp1->dev->of_node;
-> +	struct vsp1_platform_data *pdata = &vsp1->pdata;
-> +
-> +	if (of_property_read_bool(np, "renesas,has-lif"))
-> +		pdata->features |= VSP1_HAS_LIF;
-> +	if (of_property_read_bool(np, "renesas,has-lut"))
-> +		pdata->features |= VSP1_HAS_LUT;
-> +	if (of_property_read_bool(np, "renesas,has-sru"))
-> +		pdata->features |= VSP1_HAS_SRU;
-> +
-> +	of_property_read_u32(np, "renesas,#rpf", &pdata->rpf_count);
-> +	of_property_read_u32(np, "renesas,#uds", &pdata->uds_count);
-> +	of_property_read_u32(np, "renesas,#wpf", &pdata->wpf_count);
->  
->  	if (pdata->rpf_count <= 0 || pdata->rpf_count > VSP1_MAX_RPF) {
-> -		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
-> +		dev_err(vsp1->dev, "invalid number of RPF (%u)\n",
->  			pdata->rpf_count);
->  		return -EINVAL;
->  	}
->  
->  	if (pdata->uds_count <= 0 || pdata->uds_count > VSP1_MAX_UDS) {
-> -		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
-> +		dev_err(vsp1->dev, "invalid number of UDS (%u)\n",
->  			pdata->uds_count);
->  		return -EINVAL;
->  	}
->  
->  	if (pdata->wpf_count <= 0 || pdata->wpf_count > VSP1_MAX_WPF) {
-> -		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
-> +		dev_err(vsp1->dev, "invalid number of WPF (%u)\n",
->  			pdata->wpf_count);
->  		return -EINVAL;
->  	}
-> @@ -457,33 +465,6 @@ static int vsp1_validate_platform_data(struct platform_device *pdev,
->  	return 0;
->  }
->  
-> -static struct vsp1_platform_data *
-> -vsp1_get_platform_data(struct platform_device *pdev)
-> -{
-> -	struct device_node *np = pdev->dev.of_node;
-> -	struct vsp1_platform_data *pdata;
-> -
-> -	if (!IS_ENABLED(CONFIG_OF) || np == NULL)
-> -		return pdev->dev.platform_data;
-> -
-> -	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> -	if (pdata == NULL)
-> -		return NULL;
-> -
-> -	if (of_property_read_bool(np, "renesas,has-lif"))
-> -		pdata->features |= VSP1_HAS_LIF;
-> -	if (of_property_read_bool(np, "renesas,has-lut"))
-> -		pdata->features |= VSP1_HAS_LUT;
-> -	if (of_property_read_bool(np, "renesas,has-sru"))
-> -		pdata->features |= VSP1_HAS_SRU;
-> -
-> -	of_property_read_u32(np, "renesas,#rpf", &pdata->rpf_count);
-> -	of_property_read_u32(np, "renesas,#uds", &pdata->uds_count);
-> -	of_property_read_u32(np, "renesas,#wpf", &pdata->wpf_count);
-> -
-> -	return pdata;
-> -}
-> -
->  static int vsp1_probe(struct platform_device *pdev)
->  {
->  	struct vsp1_device *vsp1;
-> @@ -499,11 +480,7 @@ static int vsp1_probe(struct platform_device *pdev)
->  	mutex_init(&vsp1->lock);
->  	INIT_LIST_HEAD(&vsp1->entities);
->  
-> -	vsp1->pdata = vsp1_get_platform_data(pdev);
-> -	if (vsp1->pdata == NULL)
-> -		return -ENODEV;
-> -
-> -	ret = vsp1_validate_platform_data(pdev, vsp1->pdata);
-> +	ret = vsp1_parse_dt(vsp1);
->  	if (ret < 0)
->  		return ret;
->  
-> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-> index 6e057762c933..b1089d05583a 100644
-> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> @@ -280,7 +280,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
->  	 * except for the WPF0 source link if a LIF is present.
->  	 */
->  	flags = MEDIA_LNK_FL_ENABLED;
-> -	if (!(vsp1->pdata->features & VSP1_HAS_LIF) || index != 0)
-> +	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || index != 0)
->  		flags |= MEDIA_LNK_FL_IMMUTABLE;
->  
->  	ret = media_entity_create_link(&wpf->entity.subdev.entity,
-> diff --git a/include/linux/platform_data/vsp1.h b/include/linux/platform_data/vsp1.h
-> deleted file mode 100644
-> index 63170e2614b3..000000000000
-> --- a/include/linux/platform_data/vsp1.h
-> +++ /dev/null
-> @@ -1,27 +0,0 @@
-> -/*
-> - * vsp1.h  --  R-Car VSP1 Platform Data
-> - *
-> - * Copyright (C) 2013 Renesas Corporation
-> - *
-> - * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - */
-> -#ifndef __PLATFORM_VSP1_H__
-> -#define __PLATFORM_VSP1_H__
-> -
-> -#define VSP1_HAS_LIF		(1 << 0)
-> -#define VSP1_HAS_LUT		(1 << 1)
-> -#define VSP1_HAS_SRU		(1 << 2)
-> -
-> -struct vsp1_platform_data {
-> -	unsigned int features;
-> -	unsigned int rpf_count;
-> -	unsigned int uds_count;
-> -	unsigned int wpf_count;
-> -};
-> -
-> -#endif /* __PLATFORM_VSP1_H__ */
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+index b70237e..ed39ac8 100644
+--- a/include/uapi/linux/Kbuild
++++ b/include/uapi/linux/Kbuild
+@@ -241,6 +241,7 @@ header-y += map_to_7segment.h
+ header-y += matroxfb.h
+ header-y += mdio.h
+ header-y += media.h
++header-y += media-bus-format.h
+ header-y += mei.h
+ header-y += memfd.h
+ header-y += mempolicy.h
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+new file mode 100644
+index 0000000..23b4090
+--- /dev/null
++++ b/include/uapi/linux/media-bus-format.h
+@@ -0,0 +1,125 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_MEDIA_BUS_FORMAT_H
++#define __LINUX_MEDIA_BUS_FORMAT_H
++
++/*
++ * These bus formats uniquely identify data formats on the data bus. Format 0
++ * is reserved, MEDIA_BUS_FMT_FIXED shall be used by host-client pairs, where
++ * the data format is fixed. Additionally, "2X8" means that one pixel is
++ * transferred in two 8-bit samples, "BE" or "LE" specify in which order those
++ * samples are transferred over the bus: "LE" means that the least significant
++ * bits are transferred first, "BE" means that the most significant bits are
++ * transferred first, and "PADHI" and "PADLO" define which bits - low or high,
++ * in the incomplete high byte, are filled with padding bits.
++ *
++ * The bus formats are grouped by type, bus_width, bits per component, samples
++ * per pixel and order of subsamples. Numerical values are sorted using generic
++ * numerical sort order (8 thus comes before 10).
++ *
++ * As their value can't change when a new bus format is inserted in the
++ * enumeration, the bus formats are explicitly given a numerical value. The next
++ * free values for each category are listed below, update them when inserting
++ * new pixel codes.
++ */
++
++#define MEDIA_BUS_FMT_FIXED			0x0001
++
++/* RGB - next is	0x100e */
++#define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
++#define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
++#define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
++#define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
++#define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
++#define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
++#define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
++#define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
++#define MEDIA_BUS_FMT_RGB666_1X18		0x1009
++#define MEDIA_BUS_FMT_RGB888_1X24		0x100a
++#define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
++#define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
++#define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
++
++/* YUV (including grey) - next is	0x2024 */
++#define MEDIA_BUS_FMT_Y8_1X8			0x2001
++#define MEDIA_BUS_FMT_UV8_1X8			0x2015
++#define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
++#define MEDIA_BUS_FMT_VYUY8_1_5X8		0x2003
++#define MEDIA_BUS_FMT_YUYV8_1_5X8		0x2004
++#define MEDIA_BUS_FMT_YVYU8_1_5X8		0x2005
++#define MEDIA_BUS_FMT_UYVY8_2X8			0x2006
++#define MEDIA_BUS_FMT_VYUY8_2X8			0x2007
++#define MEDIA_BUS_FMT_YUYV8_2X8			0x2008
++#define MEDIA_BUS_FMT_YVYU8_2X8			0x2009
++#define MEDIA_BUS_FMT_Y10_1X10			0x200a
++#define MEDIA_BUS_FMT_UYVY10_2X10		0x2018
++#define MEDIA_BUS_FMT_VYUY10_2X10		0x2019
++#define MEDIA_BUS_FMT_YUYV10_2X10		0x200b
++#define MEDIA_BUS_FMT_YVYU10_2X10		0x200c
++#define MEDIA_BUS_FMT_Y12_1X12			0x2013
++#define MEDIA_BUS_FMT_UYVY8_1X16		0x200f
++#define MEDIA_BUS_FMT_VYUY8_1X16		0x2010
++#define MEDIA_BUS_FMT_YUYV8_1X16		0x2011
++#define MEDIA_BUS_FMT_YVYU8_1X16		0x2012
++#define MEDIA_BUS_FMT_YDYUYDYV8_1X16		0x2014
++#define MEDIA_BUS_FMT_UYVY10_1X20		0x201a
++#define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
++#define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
++#define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
++#define MEDIA_BUS_FMT_YUV10_1X30		0x2016
++#define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
++#define MEDIA_BUS_FMT_UYVY12_2X12		0x201c
++#define MEDIA_BUS_FMT_VYUY12_2X12		0x201d
++#define MEDIA_BUS_FMT_YUYV12_2X12		0x201e
++#define MEDIA_BUS_FMT_YVYU12_2X12		0x201f
++#define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
++#define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
++#define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
++#define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
++
++/* Bayer - next is	0x3019 */
++#define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
++#define MEDIA_BUS_FMT_SGBRG8_1X8		0x3013
++#define MEDIA_BUS_FMT_SGRBG8_1X8		0x3002
++#define MEDIA_BUS_FMT_SRGGB8_1X8		0x3014
++#define MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8		0x3015
++#define MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8		0x3016
++#define MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8		0x3017
++#define MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8		0x3018
++#define MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8		0x300b
++#define MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8		0x300c
++#define MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8		0x3009
++#define MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8		0x300d
++#define MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE	0x3003
++#define MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE	0x3004
++#define MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE	0x3005
++#define MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE	0x3006
++#define MEDIA_BUS_FMT_SBGGR10_1X10		0x3007
++#define MEDIA_BUS_FMT_SGBRG10_1X10		0x300e
++#define MEDIA_BUS_FMT_SGRBG10_1X10		0x300a
++#define MEDIA_BUS_FMT_SRGGB10_1X10		0x300f
++#define MEDIA_BUS_FMT_SBGGR12_1X12		0x3008
++#define MEDIA_BUS_FMT_SGBRG12_1X12		0x3010
++#define MEDIA_BUS_FMT_SGRBG12_1X12		0x3011
++#define MEDIA_BUS_FMT_SRGGB12_1X12		0x3012
++
++/* JPEG compressed formats - next is	0x4002 */
++#define MEDIA_BUS_FMT_JPEG_1X8			0x4001
++
++/* Vendor specific formats - next is	0x5002 */
++
++/* S5C73M3 sensor specific interleaved UYVY and JPEG */
++#define MEDIA_BUS_FMT_S5C_UYVY_JPEG_1X8		0x5001
++
++/* HSV - next is	0x6002 */
++#define MEDIA_BUS_FMT_AHSV8888_1X32		0x6001
++
++#endif /* __LINUX_MEDIA_BUS_FORMAT_H */
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 1445e85..3d87db7 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -13,118 +13,94 @@
+ 
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
++#include <linux/media-bus-format.h>
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- *
+- * The pixel codes are grouped by type, bus_width, bits per component, samples
+- * per pixel and order of subsamples. Numerical values are sorted using generic
+- * numerical sort order (8 thus comes before 10).
+- *
+- * As their value can't change when a new pixel code is inserted in the
+- * enumeration, the pixel codes are explicitly given a numerical value. The next
+- * free values for each category are listed below, update them when inserting
+- * new pixel codes.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 0x0001,
++#define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
++	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
+ 
+-	/* RGB - next is 0x100e */
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+-	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
+-	V4L2_MBUS_FMT_BGR565_2X8_BE = 0x1005,
+-	V4L2_MBUS_FMT_BGR565_2X8_LE = 0x1006,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+-	V4L2_MBUS_FMT_RGB666_1X18 = 0x1009,
+-	V4L2_MBUS_FMT_RGB888_1X24 = 0x100a,
+-	V4L2_MBUS_FMT_RGB888_2X12_BE = 0x100b,
+-	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+-	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(FIXED),
+ 
+-	/* YUV (including grey) - next is 0x2024 */
+-	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+-	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+-	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+-	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+-	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+-	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
+-	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
+-	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
+-	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+-	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+-	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
+-	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
+-	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
+-	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+-	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
+-	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
+-	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
+-	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
+-	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
+-	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+-	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
+-	V4L2_MBUS_FMT_UYVY10_1X20 = 0x201a,
+-	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
+-	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+-	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+-	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
+-	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
+-	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
+-	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
+-	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
+-	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
+-	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
+-	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
+-	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
+-	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB444_2X8_PADHI_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB444_2X8_PADHI_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB555_2X8_PADHI_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB555_2X8_PADHI_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(BGR565_2X8_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(BGR565_2X8_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB565_2X8_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB565_2X8_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB666_1X18),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB888_1X24),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB888_2X12_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(RGB888_2X12_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(ARGB8888_1X32),
+ 
+-	/* Bayer - next is 0x3019 */
+-	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+-	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+-	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+-	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
+-	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
+-	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
+-	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
+-	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+-	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
+-	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+-	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+-	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
+-	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
+-	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
+-	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
+-	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
+-	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
+-	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+-	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+-	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(Y8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UV8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY8_1_5X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY8_1_5X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV8_1_5X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU8_1_5X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY8_2X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY8_2X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV8_2X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU8_2X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(Y10_1X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY10_2X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY10_2X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV10_2X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU10_2X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(Y12_1X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY8_1X16),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY8_1X16),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV8_1X16),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU8_1X16),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YDYUYDYV8_1X16),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY10_1X20),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY10_1X20),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV10_1X20),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU10_1X20),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUV10_1X30),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AYUV8_1X32),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY12_2X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY12_2X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV12_2X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU12_2X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(UYVY12_1X24),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(VYUY12_1X24),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YUYV12_1X24),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(YVYU12_1X24),
+ 
+-	/* JPEG compressed formats - next is 0x4002 */
+-	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGBRG8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGRBG8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SRGGB8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_ALAW8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGBRG10_ALAW8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGRBG10_ALAW8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SRGGB10_ALAW8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_DPCM8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGBRG10_DPCM8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGRBG10_DPCM8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SRGGB10_DPCM8_1X8),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_2X8_PADHI_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_2X8_PADHI_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_2X8_PADLO_BE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_2X8_PADLO_LE),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR10_1X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGBRG10_1X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGRBG10_1X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SRGGB10_1X10),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SBGGR12_1X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGBRG12_1X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SGRBG12_1X12),
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(SRGGB12_1X12),
+ 
+-	/* Vendor specific formats - next is 0x5002 */
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(JPEG_1X8),
+ 
+-	/* S5C73M3 sensor specific interleaved UYVY and JPEG */
+-	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x5001,
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(S5C_UYVY_JPEG_1X8),
+ 
+-	/* HSV - next is 0x6002 */
+-	V4L2_MBUS_FMT_AHSV8888_1X32 = 0x6001,
++	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
+ };
+ 
+ /**
+-- 
+1.9.1
+
