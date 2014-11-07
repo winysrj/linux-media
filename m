@@ -1,81 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52888 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755148AbaKEQLv (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51806 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751216AbaKGDnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 11:11:51 -0500
-Date: Wed, 5 Nov 2014 18:11:47 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: =?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-Message-ID: <20141105161147.GW3136@valkosipuli.retiisi.org.uk>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com>
- <20141102225704.GM3136@valkosipuli.retiisi.org.uk>
- <CANOLnONAsh-M7WvRFOhLo-obkS20ffurr9tD5b==yyHCwVRXoQ@mail.gmail.com>
- <20141104115839.GN3136@valkosipuli.retiisi.org.uk>
- <fbcc6c6b4b3bb0d049a6d1871d8a79df@roundcube.remlab.net>
- <CAPueXH4Obd4F99w1g2ehgWbrfukrAhQ+=3TfRoNRuJJTAp70YA@mail.gmail.com>
- <20141104153650.GO3136@valkosipuli.retiisi.org.uk>
- <54596226.8040403@iki.fi>
- <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPueXH5kQG7zm3W-ghcVoq-rrqyE3rcYnfmGO+bPR=S91L3qpw@mail.gmail.com>
+	Thu, 6 Nov 2014 22:43:23 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4B5B12A009D
+	for <linux-media@vger.kernel.org>; Fri,  7 Nov 2014 04:43:13 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141107034313.4B5B12A009D@tschai.lan>
+Date: Fri,  7 Nov 2014 04:43:13 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paolo,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, Nov 05, 2014 at 10:13:45AM +0000, Paulo Assis wrote:
-> Hi,
-> 
-> 2014-11-04 23:32 GMT+00:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> > Sakari Ailus wrote:
-> >> yavta does, for example, print both the monotonic timestamp from the buffer
-> >> and the time when the buffer has been dequeued:
-> >>
-> >> <URL:http://git.ideasonboard.org/yavta.git>
-> >>
-> >>       $ yavta -c /dev/video0
-> >>
-> >> should do it. The first timestamp is the buffer timestamp, and the latter is
-> >> the one is taken when the buffer is dequeued (by yavta).
-> 
-> I've done exaclty this with guvcview, and uvcvideo timestamps are
-> completly unreliable, in some devices they may have just a bit of
-> jitter, but in others, values go back and forth in time, making them
-> totally unusable.
-> Honestly I wouldn't trust device firmware to provide correct
-> timestamps, or at least I would have the driver perform a couple of
-> tests to make sure these are at least reasonable: within an expected
-> interval (maybe comparing it to a reference monotonic clock) or at the
-> very least making sure the current frame timestamp is not lower than
-> the previous one.
+Results of the daily build of media_tree:
 
-Using the hardware timestamps provides much better accuracy than the
-software ones --- the real time capabilities of the USB aren't exactly the
-same as on some other busses.
+date:		Fri Nov  7 04:00:15 CET 2014
+git branch:	test
+git hash:	4895cc47a072dcb32d3300d0a46a251a8c6db5f1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
-Freel free to try the follow-up patches; I've only compile tested them so
-far.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
 
-It might be possible to add some heuristics to detect bad implementations
-but perhaps we could simply flag them for now. If heuristics would be used,
-then one would likely have a few bad timestamps every time the device is
-accessed the first time anyway. Besides, the timestamp type changes as a
-result.
+Detailed results are available here:
 
-I wonder what Laurent thinks. :-)
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
--- 
-Kind regards,
+Full logs are available here:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
