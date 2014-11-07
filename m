@@ -1,180 +1,557 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:31429 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932288AbaKUQPN (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42666 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751293AbaKGIur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Nov 2014 11:15:13 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NFE00GWCD5CL030@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 22 Nov 2014 01:15:12 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+	Fri, 7 Nov 2014 03:50:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, gjasny@googlemail.com, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v4 06/11] mediactl: Add media_device creation helpers
-Date: Fri, 21 Nov 2014 17:14:35 +0100
-Message-id: <1416586480-19982-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 07/15] vb2: replace 'write' by 'dma_dir'
+Date: Fri,  7 Nov 2014 09:50:26 +0100
+Message-Id: <1415350234-9826-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper functions that allow for easy instantiation
-of media_device object basing on whether the media device
-contains video device with given node name.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+The 'write' argument is very ambiguous. I first assumed that if it is 1,
+then we're doing video output but instead it meant the reverse.
+
+Since it is used to setup the dma_dir value anyway it is now replaced by
+the correct dma_dir value which is unambiguous.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- utils/media-ctl/libmediactl.c |   75 +++++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/mediactl.h    |   29 ++++++++++++++++
- 2 files changed, 104 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c       | 15 +++++----
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 46 ++++++++++++++------------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 46 ++++++++++++--------------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 20 ++++++-----
+ include/media/videobuf2-core.h                 | 11 +++---
+ 5 files changed, 73 insertions(+), 65 deletions(-)
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index a476601..9c81711 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -853,6 +853,43 @@ struct media_device *media_device_new(const char *devnode)
- 	return media;
- }
- 
-+struct media_device *media_device_new_by_entity_devname(char *entity_devname)
-+{
-+	struct media_device *media;
-+	char media_devname[32];
-+	int i, ret;
-+
-+	if (entity_devname == NULL)
-+		return NULL;
-+
-+	/* query all available media devices */
-+	for (i = 0;; ++i) {
-+		sprintf(media_devname, "/dev/media%d", i);
-+
-+		media = media_device_new(media_devname);
-+		if (media == NULL)
-+			return NULL;
-+
-+		ret = media_device_enumerate(media);
-+		if (ret < 0) {
-+			media_dbg(media, "Failed to enumerate %s (%d)\n", media_devname, ret);
-+			goto err_dev_enum;
-+		}
-+
-+		/* Check if the media device contains entity with entity_devname */
-+		if (media_get_entity_by_devname(media, entity_devname, strlen(entity_devname)))
-+			return media;
-+
-+		if (media)
-+			media_device_unref(media);
-+	}
-+
-+err_dev_enum:
-+	if (media)
-+		media_device_unref(media);
-+	return NULL;
-+}
-+
- struct media_device *media_device_new_emulated(struct media_device_info *info)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 490defb..7aed8f2 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -189,7 +189,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
+ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
  {
- 	struct media_device *media;
-@@ -896,6 +933,44 @@ void media_device_unref(struct media_device *media)
- 	free(media);
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	enum dma_data_direction dma_dir =
++		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	void *mem_priv;
+ 	int plane;
+ 
+@@ -201,7 +202,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+ 
+ 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+-				      size, write, q->gfp_flags);
++				      size, dma_dir, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+@@ -1359,7 +1360,8 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	void *mem_priv;
+ 	unsigned int plane;
+ 	int ret;
+-	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	enum dma_data_direction dma_dir =
++		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+@@ -1401,7 +1403,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
+ 				      planes[plane].m.userptr,
+-				      planes[plane].length, write);
++				      planes[plane].length, dma_dir);
+ 		if (IS_ERR_OR_NULL(mem_priv)) {
+ 			dprintk(1, "failed acquiring userspace "
+ 						"memory for plane %d\n", plane);
+@@ -1462,7 +1464,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	void *mem_priv;
+ 	unsigned int plane;
+ 	int ret;
+-	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	enum dma_data_direction dma_dir =
++		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+@@ -1510,7 +1513,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
+-			dbuf, planes[plane].length, write);
++			dbuf, planes[plane].length, dma_dir);
+ 		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "failed to attach dmabuf\n");
+ 			ret = PTR_ERR(mem_priv);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 6675f12..c4305bf 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -155,8 +155,8 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
  }
  
-+int media_get_devname_by_fd(int fd, char *node_name)
-+{
-+	struct udev *udev;
-+	struct media_entity tmp_entity;
-+	struct stat stat;
-+	int ret;
-+
-+	if (node_name == NULL)
-+		return -EINVAL;
-+
-+	ret = fstat(fd, &stat);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
-+	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
-+
-+	ret = media_udev_open(&udev);
-+	if (ret < 0)
-+		printf("Can't get udev context\n");
-+
-+	/* Try to get the device name via udev */
-+	ret = media_get_devname_udev(udev, &tmp_entity);
-+	if (!ret)
-+		goto out;
-+
-+	ret = media_get_devname_sysfs(&tmp_entity);
-+	if (ret < 0)
-+		goto err_get_devname;
-+
-+out:
-+	strcpy(node_name, tmp_entity.devname);
-+err_get_devname:
-+	media_udev_close(udev);
-+	return ret;
-+}
-+
-+
- int media_device_add_entity(struct media_device *media,
- 			    const struct media_entity_desc *desc,
- 			    const char *devnode)
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 18a1e0e..7f16097 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -77,6 +77,23 @@ struct media_device *media_device_new(const char *devnode);
- struct media_device *media_device_new_emulated(struct media_device_info *info);
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
+-			  gfp_t gfp_flags)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
++			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -177,7 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	/* Prevent the device from being released while the buffer is used */
+ 	buf->dev = get_device(dev);
+ 	buf->size = size;
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
  
- /**
-+ * @brief Create a new media device if it comprises entity with entity_devname
-+ * @param entity_devname - device node name of the entity to be matched
-+ *
-+ * Query all media devices available in the system to find the one comprising
-+ * the entity with device node name equal to entity_devname. If the media
-+ * device is matched then its instance is created and initialized with
-+ * enumerated entities and links. The returned device can be accessed.
-+ *
-+ * Media devices are reference-counted, see media_device_ref() and
-+ * media_device_unref() for more information.
-+ *
-+ * @return A pointer to the new media device or NULL if video_devname cannot
-+ * be matched or memory cannot be allocated.
-+ */
-+struct media_device *media_device_new_by_entity_devname(char *video_devname);
-+
-+/**
-  * @brief Take a reference to the device.
-  * @param media - device instance.
-  *
-@@ -242,6 +259,18 @@ const char *media_entity_get_devname(struct media_entity *entity);
- const char *media_entity_get_name(struct media_entity *entity);
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dc_put;
+@@ -231,7 +231,7 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
  
- /**
-+ * @brief Get the device node name by its file descriptor
-+ * @param fd - file descriptor of a device
-+ * @param node_name - output device node name string
-+ *
-+ * This function returns the full path and name to the device node corresponding
-+ * to the given file descriptor.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int media_get_devname_by_fd(int fd, char *node_name);
-+
-+/**
-  * @brief Get the type of an entity.
-  * @param entity - the entity.
-  *
+ struct vb2_dc_attachment {
+ 	struct sg_table sgt;
+-	enum dma_data_direction dir;
++	enum dma_data_direction dma_dir;
+ };
+ 
+ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+@@ -266,7 +266,7 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+ 		wr = sg_next(wr);
+ 	}
+ 
+-	attach->dir = DMA_NONE;
++	attach->dma_dir = DMA_NONE;
+ 	dbuf_attach->priv = attach;
+ 
+ 	return 0;
+@@ -284,16 +284,16 @@ static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
+ 	sgt = &attach->sgt;
+ 
+ 	/* release the scatterlist cache */
+-	if (attach->dir != DMA_NONE)
++	if (attach->dma_dir != DMA_NONE)
+ 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+-			attach->dir);
++			attach->dma_dir);
+ 	sg_free_table(sgt);
+ 	kfree(attach);
+ 	db_attach->priv = NULL;
+ }
+ 
+ static struct sg_table *vb2_dc_dmabuf_ops_map(
+-	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dc_attachment *attach = db_attach->priv;
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+@@ -305,27 +305,27 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 
+ 	sgt = &attach->sgt;
+ 	/* return previously mapped sg table */
+-	if (attach->dir == dir) {
++	if (attach->dma_dir == dma_dir) {
+ 		mutex_unlock(lock);
+ 		return sgt;
+ 	}
+ 
+ 	/* release any previous cache */
+-	if (attach->dir != DMA_NONE) {
++	if (attach->dma_dir != DMA_NONE) {
+ 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+-			attach->dir);
+-		attach->dir = DMA_NONE;
++			attach->dma_dir);
++		attach->dma_dir = DMA_NONE;
+ 	}
+ 
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+ 	if (ret <= 0) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+-	attach->dir = dir;
++	attach->dma_dir = dma_dir;
+ 
+ 	mutex_unlock(lock);
+ 
+@@ -333,7 +333,7 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ }
+ 
+ static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
+-	struct sg_table *sgt, enum dma_data_direction dir)
++	struct sg_table *sgt, enum dma_data_direction dma_dir)
+ {
+ 	/* nothing to be done here */
+ }
+@@ -462,7 +462,8 @@ static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
+ }
+ 
+ static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
+-	int n_pages, struct vm_area_struct *vma, int write)
++	int n_pages, struct vm_area_struct *vma,
++	enum dma_data_direction dma_dir)
+ {
+ 	if (vma_is_io(vma)) {
+ 		unsigned int i;
+@@ -484,7 +485,7 @@ static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
+ 		int n;
+ 
+ 		n = get_user_pages(current, current->mm, start & PAGE_MASK,
+-			n_pages, write, 1, pages, NULL);
++			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
+ 		/* negative error means that no page was pinned */
+ 		n = max(n, 0);
+ 		if (n != n_pages) {
+@@ -553,7 +554,7 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
+ #endif
+ 
+ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-	unsigned long size, int write)
++	unsigned long size, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+@@ -584,7 +585,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	buf->dev = conf->dev;
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
+ 
+ 	start = vaddr & PAGE_MASK;
+ 	offset = vaddr & ~PAGE_MASK;
+@@ -620,7 +621,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	}
+ 
+ 	/* extract page list from userspace mapping */
+-	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
++	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma,
++				    dma_dir == DMA_FROM_DEVICE);
+ 	if (ret) {
+ 		unsigned long pfn;
+ 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
+@@ -784,7 +786,7 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
+ }
+ 
+ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+-	unsigned long size, int write)
++	unsigned long size, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+@@ -806,7 +808,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 		return dba;
+ 	}
+ 
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
+ 	buf->size = size;
+ 	buf->db_attach = dba;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index ca28a50..49ba502 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -38,7 +38,6 @@ struct vb2_dma_sg_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
+-	int				write;
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+@@ -96,8 +95,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+ 	return 0;
+ }
+ 
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+-			      gfp_t gfp_flags)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
++			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+@@ -112,12 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 		return NULL;
+ 
+ 	buf->vaddr = NULL;
+-	buf->write = write;
+ 	buf->offset = 0;
+ 	buf->size = size;
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
+ 	buf->dma_sgt = &buf->sg_table;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+@@ -217,7 +215,8 @@ static inline int vma_is_io(struct vm_area_struct *vma)
+ }
+ 
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-				    unsigned long size, int write)
++				    unsigned long size,
++				    enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+@@ -231,10 +230,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		return NULL;
+ 
+ 	buf->vaddr = NULL;
+-	buf->write = write;
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
+ 	buf->dma_sgt = &buf->sg_table;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+@@ -280,7 +278,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		num_pages_from_user = get_user_pages(current, current->mm,
+ 					     vaddr & PAGE_MASK,
+ 					     buf->num_pages,
+-					     write,
++					     buf->dma_dir == DMA_FROM_DEVICE,
+ 					     1, /* force */
+ 					     buf->pages,
+ 					     NULL);
+@@ -335,7 +333,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 	sg_free_table(buf->dma_sgt);
+ 	while (--i >= 0) {
+-		if (buf->write)
++		if (buf->dma_dir == DMA_FROM_DEVICE)
+ 			set_page_dirty_lock(buf->pages[i]);
+ 		if (!vma_is_io(buf->vma))
+ 			put_page(buf->pages[i]);
+@@ -412,7 +410,7 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 
+ struct vb2_dma_sg_attachment {
+ 	struct sg_table sgt;
+-	enum dma_data_direction dir;
++	enum dma_data_direction dma_dir;
+ };
+ 
+ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+@@ -447,7 +445,7 @@ static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev
+ 		wr = sg_next(wr);
+ 	}
+ 
+-	attach->dir = DMA_NONE;
++	attach->dma_dir = DMA_NONE;
+ 	dbuf_attach->priv = attach;
+ 
+ 	return 0;
+@@ -465,16 +463,16 @@ static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
+ 	sgt = &attach->sgt;
+ 
+ 	/* release the scatterlist cache */
+-	if (attach->dir != DMA_NONE)
++	if (attach->dma_dir != DMA_NONE)
+ 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+-			attach->dir);
++			attach->dma_dir);
+ 	sg_free_table(sgt);
+ 	kfree(attach);
+ 	db_attach->priv = NULL;
+ }
+ 
+ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+-	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_attachment *attach = db_attach->priv;
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+@@ -486,27 +484,27 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 
+ 	sgt = &attach->sgt;
+ 	/* return previously mapped sg table */
+-	if (attach->dir == dir) {
++	if (attach->dma_dir == dma_dir) {
+ 		mutex_unlock(lock);
+ 		return sgt;
+ 	}
+ 
+ 	/* release any previous cache */
+-	if (attach->dir != DMA_NONE) {
++	if (attach->dma_dir != DMA_NONE) {
+ 		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+-			attach->dir);
+-		attach->dir = DMA_NONE;
++			attach->dma_dir);
++		attach->dma_dir = DMA_NONE;
+ 	}
+ 
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+ 	if (ret <= 0) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+-	attach->dir = dir;
++	attach->dma_dir = dma_dir;
+ 
+ 	mutex_unlock(lock);
+ 
+@@ -514,7 +512,7 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ }
+ 
+ static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
+-	struct sg_table *sgt, enum dma_data_direction dir)
++	struct sg_table *sgt, enum dma_data_direction dma_dir)
+ {
+ 	/* nothing to be done here */
+ }
+@@ -640,7 +638,7 @@ static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
+ }
+ 
+ static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+-	unsigned long size, int write)
++	unsigned long size, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+@@ -662,7 +660,7 @@ static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 		return dba;
+ 	}
+ 
+-	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_dir = dma_dir;
+ 	buf->size = size;
+ 	buf->db_attach = dba;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 437fbcd..0f79f8d 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -25,7 +25,7 @@ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
+ 	struct page			**pages;
+ 	struct vm_area_struct		*vma;
+-	int				write;
++	enum dma_data_direction		dma_dir;
+ 	unsigned long			size;
+ 	unsigned int			n_pages;
+ 	atomic_t			refcount;
+@@ -38,8 +38,8 @@ struct vb2_vmalloc_buf {
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, int write,
+-			       gfp_t gfp_flags)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
++			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+@@ -74,7 +74,8 @@ static void vb2_vmalloc_put(void *buf_priv)
+ }
+ 
+ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-				     unsigned long size, int write)
++				     unsigned long size,
++				     enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 	unsigned long first, last;
+@@ -86,7 +87,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf)
+ 		return NULL;
+ 
+-	buf->write = write;
++	buf->dma_dir = dma_dir;
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+@@ -111,7 +112,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		/* current->mm->mmap_sem is taken by videobuf2 core */
+ 		n_pages = get_user_pages(current, current->mm,
+ 					 vaddr & PAGE_MASK, buf->n_pages,
+-					 write, 1, /* force */
++					 dma_dir == DMA_FROM_DEVICE,
++					 1, /* force */
+ 					 buf->pages, NULL);
+ 		if (n_pages != buf->n_pages)
+ 			goto fail_get_user_pages;
+@@ -148,7 +150,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 		if (vaddr)
+ 			vm_unmap_ram((void *)vaddr, buf->n_pages);
+ 		for (i = 0; i < buf->n_pages; ++i) {
+-			if (buf->write)
++			if (buf->dma_dir == DMA_FROM_DEVICE)
+ 				set_page_dirty_lock(buf->pages[i]);
+ 			put_page(buf->pages[i]);
+ 		}
+@@ -414,7 +416,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
+ }
+ 
+ static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+-	unsigned long size, int write)
++	unsigned long size, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+@@ -426,7 +428,7 @@ static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	buf->dbuf = dbuf;
+-	buf->write = write;
++	buf->dma_dir = dma_dir;
+ 	buf->size = size;
+ 
+ 	return buf;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 49e278b..fcd2af6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -82,20 +82,23 @@ struct vb2_threadio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size, int write,
+-				  gfp_t gfp_flags);
++	void		*(*alloc)(void *alloc_ctx, unsigned long size,
++				enum dma_data_direction dma_dir,
++				gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+-					unsigned long size, int write);
++					unsigned long size,
++					enum dma_data_direction dma_dir);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
+ 	void		(*prepare)(void *buf_priv);
+ 	void		(*finish)(void *buf_priv);
+ 
+ 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
+-				unsigned long size, int write);
++					  unsigned long size,
++					  enum dma_data_direction dma_dir);
+ 	void		(*detach_dmabuf)(void *buf_priv);
+ 	int		(*map_dmabuf)(void *buf_priv);
+ 	void		(*unmap_dmabuf)(void *buf_priv);
 -- 
-1.7.9.5
+2.1.1
 
