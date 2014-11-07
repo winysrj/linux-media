@@ -1,67 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:42505 "EHLO
+Received: from down.free-electrons.com ([37.187.137.238]:60065 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754771AbaKEPPm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 10:15:42 -0500
-Date: Wed, 5 Nov 2014 16:15:38 +0100
+	with ESMTP id S1751338AbaKGPbq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 10:31:46 -0500
+Date: Fri, 7 Nov 2014 16:31:41 +0100
 From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
-Message-ID: <20141105161538.7a1686d5@bbrezillon>
-In-Reply-To: <20141105150814.GT3136@valkosipuli.retiisi.org.uk>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>
-	<20141105150814.GT3136@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH v3 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT
+ definitions inside the kernel
+Message-ID: <20141107163141.3866f3c4@bbrezillon>
+In-Reply-To: <545CDB8D.4080406@xs4all.nl>
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1415369269-5064-11-git-send-email-boris.brezillon@free-electrons.com>
+	<545CDB8D.4080406@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 5 Nov 2014 17:08:15 +0200
-Sakari Ailus <sakari.ailus@iki.fi> wrote:
+On Fri, 07 Nov 2014 15:47:41 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-> Hi Boris,
+> Nitpicks:
 > 
-> On Tue, Nov 04, 2014 at 10:55:06AM +0100, Boris Brezillon wrote:
-> > The v4l2_mbus_pixelcode enum (or its values) should be replaced by the
-> > media_bus_format enum.
-> > Keep this enum in v4l2-mediabus.h and create a new header containing
-> > the v4l2_mbus_framefmt struct definition (which is not deprecated) so
-> > that we can add a #warning statement in v4l2-mediabus.h and hopefully
-> > encourage users to move to the new definitions.
+> On 11/07/14 15:07, Boris Brezillon wrote:
+> > Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
+> > users don't have access to these definitions.
 > > 
-> > Replace inclusion of v4l2-mediabus.h with v4l2-mbus.h in all common headers
-> > and update the documentation Makefile to parse v4l2-mbus.h instead of
-> > v4l2-mediabus.h.
+> > We have to keep this definition for user-space users even though they're
+> > encouraged to move to the new media_bus_format enum.
 > > 
 > > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 > > ---
-> >  Documentation/DocBook/media/Makefile |  2 +-
-> >  include/media/v4l2-mediabus.h        |  2 +-
-> >  include/uapi/linux/Kbuild            |  1 +
-> >  include/uapi/linux/v4l2-mbus.h       | 35 +++++++++++++++++++++++++++++++++++
-> >  include/uapi/linux/v4l2-mediabus.h   | 26 ++++----------------------
+> >  include/uapi/linux/v4l2-mediabus.h | 9 +++++++++
+> >  1 file changed, 9 insertions(+)
+> > 
+> > diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> > index 3d87db7..4f31d0e 100644
+> > --- a/include/uapi/linux/v4l2-mediabus.h
+> > +++ b/include/uapi/linux/v4l2-mediabus.h
+> > @@ -15,6 +15,14 @@
+> >  #include <linux/videodev2.h>
+> >  #include <linux/media-bus-format.h>
+> >  
+> > +#ifndef __KERNEL__
+> > +
+> > +/*
+> > + * enum v4l2_mbus_pixelcode and its defintions are now deprecated, and
 > 
-> I would keep the original file name, even if the compatibility definitions
-> are there. I don't see any harm in having them around as well.
+> defintions -> definitions
 > 
+> > + * MEDIA_BUS_FMT_ defintions (defined in media-bus-format.h) should be
+> 
+> and again...
+> 
+> > + * used instead.
+> 
+> I would also add something like this:
+> 
+> "New defines should only be added to media-bus-format.h. The v4l2_mbus_pixelcode
+> enum is frozen."
 
-That's the part I was not sure about.
-The goal of this patch (and the following ones) is to deprecate
-v4l2_mbus_pixelcode enum and its values by adding a #warning when
-v4l2-mediabus.h file is included, thus encouraging people to use new
-definitions.
+I'll fix those typos and add this sentence.
 
-Do you see another solution to generate such warnings at compilation
-time ?
+> 
+> > + */
+> > +
+> >  #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
+> >  	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
+> >  
+> > @@ -102,6 +110,7 @@ enum v4l2_mbus_pixelcode {
+> >  
+> >  	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
+> >  };
+> > +#endif /* __KERNEL__ */
+> >  
+> >  /**
+> >   * struct v4l2_mbus_framefmt - frame format on the media bus
+> > 
+> 
+> Can you move this struct forward to before the v4l2_mbus_pixelcode enum? That way
+> the obsolete code is at the end of the header. People might miss this struct
+> otherwise.
+
+Sure.
+
+Regards,
+
+Boris
 
 -- 
 Boris Brezillon, Free Electrons
