@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:55937 "EHLO mout.web.de"
+Received: from vader.hardeman.nu ([95.142.160.32]:42630 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750838AbaKTIUE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 03:20:04 -0500
-Message-ID: <546DA419.7050405@users.sourceforge.net>
-Date: Thu, 20 Nov 2014 09:19:37 +0100
-From: SF Markus Elfring <elfring@users.sourceforge.net>
+	id S1751435AbaKGJyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Nov 2014 04:54:36 -0500
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] [media] rc-main: Fix =?UTF-8?Q?rc=5Ftype=20handling?=
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: [PATCH 0/3] [media] DVB-frontends: Deletion of a few unnecessary
- checks
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date: Fri, 07 Nov 2014 10:54:29 +0100
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+In-Reply-To: <fb9b1641ba30385e1c142ecef2b631d31a881fd1.1415190468.git.mchehab@osg.samsung.com>
+References: <fb9b1641ba30385e1c142ecef2b631d31a881fd1.1415190468.git.mchehab@osg.samsung.com>
+Message-ID: <7b470908627a92aca71494999af3cd63@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 19 Nov 2014 23:30:37 +0100
+On 2014-11-05 13:27, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+> 	drivers/media/rc/rc-main.c:1426 rc_register_device() warn: should '1
+> << rc_map->rc_type' be a 64 bit type?
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 296de853a25d..66eabc5dd000 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1423,7 +1423,7 @@ int rc_register_device(struct rc_dev *dev)
+>  	}
+> 
+>  	if (dev->change_protocol) {
+> -		u64 rc_type = (1 << rc_map->rc_type);
+> +		u64 rc_type = (1ll << rc_map->rc_type);
 
-Another update suggestion was taken into account after a patch was applied
-from static source code analysis.
+Just a minor nitpick, but I think "ull" is more consistent with "u64"
 
-Markus Elfring (3):
-  DVB-frontends: Deletion of unnecessary checks before the function
-    call "release_firmware"
-  m88ds3103: One function call less in m88ds3103_init() after error detection
-  si2168: One function call less in si2168_init() after error detection
-
- drivers/media/dvb-frontends/drx39xyj/drxj.c |  3 +--
- drivers/media/dvb-frontends/drxk_hard.c     |  3 +--
- drivers/media/dvb-frontends/m88ds3103.c     | 12 ++++++------
- drivers/media/dvb-frontends/si2168.c        | 10 +++++-----
- 4 files changed, 13 insertions(+), 15 deletions(-)
-
--- 
-2.1.3
-
+>  		rc = dev->change_protocol(dev, &rc_type);
+>  		if (rc < 0)
+>  			goto out_raw;
