@@ -1,58 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:43235 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbaKRJpD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 04:45:03 -0500
-Received: by mail-lb0-f178.google.com with SMTP id f15so19011606lbj.23
-        for <linux-media@vger.kernel.org>; Tue, 18 Nov 2014 01:45:01 -0800 (PST)
+Received: from down.free-electrons.com ([37.187.137.238]:58046 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752285AbaKGMVN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 07:21:13 -0500
+Date: Fri, 7 Nov 2014 13:21:08 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 01/10] [media] Move mediabus format definition to a
+ more standard place
+Message-ID: <20141107132108.0f30dafb@bbrezillon>
+In-Reply-To: <20141107114358.GB3136@valkosipuli.retiisi.org.uk>
+References: <1415267829-4177-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1415267829-4177-2-git-send-email-boris.brezillon@free-electrons.com>
+	<20141107114358.GB3136@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1415623771-29634-10-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl> <1415623771-29634-10-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Tue, 18 Nov 2014 17:38:22 +0800
-Message-ID: <CAMm-=zDy+yRYrGT+WYaVRxSjt9vFDnZ9aF2P=4qdYLTrr1Y=eg@mail.gmail.com>
-Subject: Re: [RFCv6 PATCH 09/16] vivid: enable vb2_expbuf support.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 10, 2014 at 8:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Now that vb2 supports DMABUF export for dma-sg and vmalloc memory
-> modes, we can enable the vb2_expbuf support in vivid.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 7 Nov 2014 13:43:59 +0200
+Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-Reviewed-by: Pawel Osciak <pawel@osciak.com>
+> Hi Boris,
+> 
+> Thank you for the update.
+> 
+> On Thu, Nov 06, 2014 at 10:56:59AM +0100, Boris Brezillon wrote:
+> > Rename mediabus formats and move the enum into a separate header file so
+> > that it can be used by DRM/KMS subsystem without any reference to the V4L2
+> > subsystem.
+> > 
+> > Old v4l2_mbus_pixelcode now points to media_bus_format.
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >  include/uapi/linux/Kbuild             |   1 +
+> >  include/uapi/linux/media-bus-format.h | 131 ++++++++++++++++++++++++++++++++++
+> >  include/uapi/linux/v4l2-mediabus.h    | 114 +----------------------------
+> >  3 files changed, 134 insertions(+), 112 deletions(-)
+> >  create mode 100644 include/uapi/linux/media-bus-format.h
+> > 
+> > diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+> > index b70237e..b2c23f8 100644
+> > --- a/include/uapi/linux/Kbuild
+> > +++ b/include/uapi/linux/Kbuild
+> > @@ -414,6 +414,7 @@ header-y += veth.h
+> >  header-y += vfio.h
+> >  header-y += vhost.h
+> >  header-y += videodev2.h
+> > +header-y += media-bus-format.h
+> 
+> Could you arrange this to the list alphabetically, please?
+> 
+> >  header-y += virtio_9p.h
+> >  header-y += virtio_balloon.h
+> >  header-y += virtio_blk.h
+> > diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+> > new file mode 100644
+> > index 0000000..251a902
+> > --- /dev/null
+> > +++ b/include/uapi/linux/media-bus-format.h
+> > @@ -0,0 +1,131 @@
+> > +/*
+> > + * Media Bus API header
+> > + *
+> > + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef __LINUX_MEDIA_BUS_FORMAT_H
+> > +#define __LINUX_MEDIA_BUS_FORMAT_H
+> > +
+> > +/*
+> > + * These bus formats uniquely identify data formats on the data bus. Format 0
+> > + * is reserved, MEDIA_BUS_FMT_FIXED shall be used by host-client pairs, where
+> > + * the data format is fixed. Additionally, "2X8" means that one pixel is
+> > + * transferred in two 8-bit samples, "BE" or "LE" specify in which order those
+> > + * samples are transferred over the bus: "LE" means that the least significant
+> > + * bits are transferred first, "BE" means that the most significant bits are
+> > + * transferred first, and "PADHI" and "PADLO" define which bits - low or high,
+> > + * in the incomplete high byte, are filled with padding bits.
+> > + *
+> > + * The bus formats are grouped by type, bus_width, bits per component, samples
+> > + * per pixel and order of subsamples. Numerical values are sorted using generic
+> > + * numerical sort order (8 thus comes before 10).
+> > + *
+> > + * As their value can't change when a new bus format is inserted in the
+> > + * enumeration, the bus formats are explicitly given a numerical value. The next
+> > + * free values for each category are listed below, update them when inserting
+> > + * new pixel codes.
+> > + */
+> > +
+> > +#define MEDIA_BUS_FMT_ENTRY(name, val)	\
+> > +	MEDIA_BUS_FMT_ ## name = val,	\
+> > +	V4L2_MBUS_FMT_ ## name = val
+> > +
+> > +enum media_bus_format {
+> 
+> There's no really a need to keep the definitions inside the enum. It looks a
+> little bit confusing to me. That made me realise something I missed
+> yesterday.
+> 
+> There's a difference: the enum in C++ is a different thing than in C, and
+> the enum type isn't able to contain any other values than those defined in
+> the enumeration.
+> 
+> So what I propose is the following. Keep enum v4l2_mbus_pixelcode around,
+> including the enum values. Define new values for MEDIA_BUS_* equivalents
+> using preprocessor macros, as you've done below. Drop the definition of enum
+> media_bus_format, and use u32 (or uint32_t) type for the variables.
+> 
+> This way the enum stays intact for existing C++ applications, and new
+> applications will have to use a 32-bit type.
+> 
 
-> ---
->  drivers/media/platform/vivid/vivid-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index 2c61a62..7de8d9d 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -588,7 +588,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
->         .vidioc_querybuf                = vb2_ioctl_querybuf,
->         .vidioc_qbuf                    = vb2_ioctl_qbuf,
->         .vidioc_dqbuf                   = vb2_ioctl_dqbuf,
-> -/* Not yet     .vidioc_expbuf          = vb2_ioctl_expbuf,*/
-> +       .vidioc_expbuf                  = vb2_ioctl_expbuf,
->         .vidioc_streamon                = vb2_ioctl_streamon,
->         .vidioc_streamoff               = vb2_ioctl_streamoff,
->
-> --
-> 2.1.1
->
+Fair enough. If Hans agree I'll rework the series and drop the
+media_bus_format enum.
 
+Thanks,
+
+Boris
 
 -- 
-Best regards,
-Pawel Osciak
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
