@@ -1,85 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35963 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756319AbaKSSBR (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38206 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750993AbaKGJTT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Nov 2014 13:01:17 -0500
-Message-ID: <546CDADD.3080003@iki.fi>
-Date: Wed, 19 Nov 2014 20:01:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 7 Nov 2014 04:19:19 -0500
+Message-ID: <545C8E92.30709@xs4all.nl>
+Date: Fri, 07 Nov 2014 10:19:14 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
-CC: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, sre@debian.org,
-	sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-References: <20141116075928.GA9763@amd> <20141117101553.GA21151@amd> <20141117145545.GC7046@atomide.com> <201411171601.32311@pali> <20141117150617.GD7046@atomide.com> <20141118183545.GA16999@amd>
-In-Reply-To: <20141118183545.GA16999@amd>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+CC: pawel@osciak.com, m.szyprowski@samsung.com
+Subject: Re: [RFCv5 PATCH 00/15] vb2: improve dma-sg, expbuf
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
-
-Pavel Machek wrote:
-> On Mon 2014-11-17 07:06:17, Tony Lindgren wrote:
->> * Pali Rohár <pali.rohar@gmail.com> [141117 07:03]:
->>> On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
->>>>
->>>> There's nothing stopping us from initializing the camera code
->>>> from pdata-quirks.c for now to keep it working. Certainly the
->>>> binding should be added to the driver, but that removes a
->>>> dependency to the legacy booting mode if things are otherwise
->>>> working.
->>>
->>> Tony, legacy board code for n900 is not in mainline tree. And 
->>> that omap3 camera subsystem for n900 is broken since 3.5 
->>> kernel... (both Front and Back camera on n900 show only green 
->>> picture).
->>
->> I'm still seeing the legacy board code for n900 in mainline tree :)
->> It's deprecated, but still there.
->>
->> Are you maybe talking about some other piece of platform_data that's
->> no longer in the mainline kernel?
->>
->> No idea what might be wrong with the camera though.
+On 11/07/2014 09:50 AM, Hans Verkuil wrote:
+> Changes since v4:
+> - Rebased to latest media_tree master
 > 
-> Camera support for main and secondary cameras was never mainline, AFAICT.
+> Changes since v3:
 > 
-> Merging it will not be easy, as it lacks DT support... and was broken
-> for long time.
+> - Dropped patch 02/10: succeeded by patch 10/15 in this series
+> - Added patches 11-15 to correctly handle syncing/mapping dmabuf
+>   buffers for CPU access. This was never done correctly before.
+>   Many thanks to Pawel Osciak for helping me with this during the
+>   media mini-summit last week.
+> 
+> The patch series adds an allocation context to dma-sg and uses that to move
+> dma_(un)map_sg into the vb2 framework, which is where it belongs.
+> 
+> Some drivers needs to fixup the buffers before giving it back to userspace
+> (or before handing it over to the kernel). Document that this can be done
+> in buf_prepare and buf_finish.
+> 
+> The last 5 patches make this more strict by requiring all cpu access to
+> be bracketed by calls to vb2_plane_begin/end_cpu_access() which replaces
+> the old vb2_plane_vaddr() call.
+> 
+> Note: two drivers still use the vb2_plane_addr() call: coda and
+> exynos4-is/fimc-capture.c. For both drivers I will need some help since
+> I am not sure where to put the begin/end calls. Patch 14 removes
+> the vb2_plane_vaddr call, so obviously those two drivers won't compile
+> after that.
+> 
+> DMABUF export support is added to dma-sg and vmalloc, so now all memory
+> models support DMABUF importing and exporting.
+> 
+> I am inclined to make a pull request for patches 1-10 if there are no
+> new comments. The issues that patches 11-15 address are separate from
+> the patches 1-10 and this is only an issue when using dmabuf with
+> drivers that need cpu access.
 
-I have a smiapp patchset for DT support that I posted a while ago, here:
+To be specific: consider patches 1-10 as being patches ready to merge,
+while patches 11-15 are still in the RFC stage.
 
-<URL:http://www.spinics.net/lists/linux-media/msg83285.html>
+Regards,
 
-What's missing on top of that is the omap3isp support, plus something to
-toggle the sysctl registers based on the chosen receiver. I have a
-preliminary, not RFC yet but functional set here:
+	Hans
 
-<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/rm696-045-dt>
+> 
+> Reviews are very welcome.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-The main camera support requires et8ek8 driver as well, and resolving
-the breakage with the image capture on 3430.
-
-N9/N950 will be first, though. Lens controllers are another matter, but
-nothing too difficult on that side either.
-
-> Anyway, flash is kind of important for me, since it makes phone useful
-> as backup light; and it is simple piece of hw, so I intend to keep it
-> useful.
-
-Me, too. :-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
