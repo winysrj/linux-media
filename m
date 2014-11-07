@@ -1,262 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:54148 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751849AbaKWOYX (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58760 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751398AbaKGIuq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 09:24:23 -0500
+	Fri, 7 Nov 2014 03:50:46 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: "Ira W. Snyder" <iws@ovro.caltech.edu>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] carma-fpga-program: drop videobuf dependency
-Date: Sun, 23 Nov 2014 15:23:50 +0100
-Message-Id: <1416752630-47360-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [RFCv5 PATCH 05/15] vb2-dma-sg: add get_dmabuf
+Date: Fri,  7 Nov 2014 09:50:24 +0100
+Message-Id: <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-This driver abuses videobuf helper functions. This is a bad idea
-because:
+Add DMABUF export support to vb2-dma-sg.
 
-1) this driver is completely unrelated to media drivers
-2) the videobuf API is deprecated and will be removed eventually
-
-This patch replaces the videobuf functions with the normal DMA kernel
-API.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/misc/carma/Kconfig              |  3 +-
- drivers/misc/carma/carma-fpga-program.c | 97 +++++++++++++++++++++++++++------
- 2 files changed, 81 insertions(+), 19 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
+ 1 file changed, 170 insertions(+)
 
-diff --git a/drivers/misc/carma/Kconfig b/drivers/misc/carma/Kconfig
-index c6047fb..295882b 100644
---- a/drivers/misc/carma/Kconfig
-+++ b/drivers/misc/carma/Kconfig
-@@ -8,8 +8,7 @@ config CARMA_FPGA
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 2795c27..ca28a50 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -407,6 +407,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ }
  
- config CARMA_FPGA_PROGRAM
- 	tristate "CARMA DATA-FPGA Programmer"
--	depends on FSL_SOC && PPC_83xx && MEDIA_SUPPORT && HAS_DMA && FSL_DMA
--	select VIDEOBUF_DMA_SG
-+	depends on FSL_SOC && PPC_83xx && HAS_DMA && FSL_DMA
- 	default n
- 	help
- 	  Say Y here to include support for programming the data processing
-diff --git a/drivers/misc/carma/carma-fpga-program.c b/drivers/misc/carma/carma-fpga-program.c
-index eb8942b..a7496e3 100644
---- a/drivers/misc/carma/carma-fpga-program.c
-+++ b/drivers/misc/carma/carma-fpga-program.c
-@@ -19,6 +19,7 @@
- #include <linux/fsldma.h>
- #include <linux/interrupt.h>
- #include <linux/highmem.h>
-+#include <linux/vmalloc.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-@@ -30,8 +31,6 @@
- #include <linux/fs.h>
- #include <linux/io.h>
- 
--#include <media/videobuf-dma-sg.h>
--
- /* MPC8349EMDS specific get_immrbase() */
- #include <sysdev/fsl_soc.h>
- 
-@@ -67,14 +66,79 @@ struct fpga_dev {
- 	/* FPGA Bitfile */
- 	struct mutex lock;
- 
--	struct videobuf_dmabuf vb;
--	bool vb_allocated;
-+	void *vaddr;
-+	struct scatterlist *sglist;
-+	int sglen;
-+	int nr_pages;
-+	bool buf_allocated;
- 
- 	/* max size and written bytes */
- 	size_t fw_size;
- 	size_t bytes;
- };
- 
-+static int fpga_dma_init(struct fpga_dev *priv, int nr_pages)
-+{
-+	struct page *pg;
-+	int i;
+ /*********************************************/
++/*         DMABUF ops for exporters          */
++/*********************************************/
 +
-+	priv->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
-+	if (NULL == priv->vaddr) {
-+		pr_debug("vmalloc_32(%d pages) failed\n", nr_pages);
++struct vb2_dma_sg_attachment {
++	struct sg_table sgt;
++	enum dma_data_direction dir;
++};
++
++static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++	struct dma_buf_attachment *dbuf_attach)
++{
++	struct vb2_dma_sg_attachment *attach;
++	unsigned int i;
++	struct scatterlist *rd, *wr;
++	struct sg_table *sgt;
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++	int ret;
++
++	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
++	if (!attach)
++		return -ENOMEM;
++
++	sgt = &attach->sgt;
++	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
++	 * map the same scatter list to multiple attachments at the same time.
++	 */
++	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
++	if (ret) {
++		kfree(attach);
 +		return -ENOMEM;
 +	}
 +
-+	pr_debug("vmalloc is at addr 0x%08lx, size=%d\n",
-+				(unsigned long)priv->vaddr,
-+				nr_pages << PAGE_SHIFT);
-+
-+	memset(priv->vaddr, 0, nr_pages << PAGE_SHIFT);
-+	priv->nr_pages = nr_pages;
-+
-+	priv->sglist = vzalloc(priv->nr_pages * sizeof(*priv->sglist));
-+	if (NULL == priv->sglist)
-+		goto vzalloc_err;
-+
-+	sg_init_table(priv->sglist, priv->nr_pages);
-+	for (i = 0; i < priv->nr_pages; i++) {
-+		pg = vmalloc_to_page(priv->vaddr + i * PAGE_SIZE);
-+		if (NULL == pg)
-+			goto vmalloc_to_page_err;
-+		sg_set_page(&priv->sglist[i], pg, PAGE_SIZE, 0);
++	rd = buf->dma_sgt->sgl;
++	wr = sgt->sgl;
++	for (i = 0; i < sgt->orig_nents; ++i) {
++		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
++		rd = sg_next(rd);
++		wr = sg_next(wr);
 +	}
-+	return 0;
 +
-+vmalloc_to_page_err:
-+	vfree(priv->sglist);
-+	priv->sglist = NULL;
-+vzalloc_err:
-+	vfree(priv->vaddr);
-+	priv->vaddr = NULL;
-+	return -ENOMEM;
++	attach->dir = DMA_NONE;
++	dbuf_attach->priv = attach;
++
++	return 0;
 +}
 +
-+static int fpga_dma_map(struct fpga_dev *priv)
++static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
++	struct dma_buf_attachment *db_attach)
 +{
-+	priv->sglen = dma_map_sg(priv->dev, priv->sglist,
-+			priv->nr_pages, DMA_TO_DEVICE);
++	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
 +
-+	if (0 == priv->sglen) {
-+		pr_warn("%s: dma_map_sg failed\n", __func__);
-+		return -ENOMEM;
++	if (!attach)
++		return;
++
++	sgt = &attach->sgt;
++
++	/* release the scatterlist cache */
++	if (attach->dir != DMA_NONE)
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++	sg_free_table(sgt);
++	kfree(attach);
++	db_attach->priv = NULL;
++}
++
++static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++{
++	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	/* stealing dmabuf mutex to serialize map/unmap operations */
++	struct mutex *lock = &db_attach->dmabuf->lock;
++	struct sg_table *sgt;
++	int ret;
++
++	mutex_lock(lock);
++
++	sgt = &attach->sgt;
++	/* return previously mapped sg table */
++	if (attach->dir == dir) {
++		mutex_unlock(lock);
++		return sgt;
 +	}
-+	return 0;
++
++	/* release any previous cache */
++	if (attach->dir != DMA_NONE) {
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++		attach->dir = DMA_NONE;
++	}
++
++	/* mapping to the client with new direction */
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	if (ret <= 0) {
++		pr_err("failed to map scatterlist\n");
++		mutex_unlock(lock);
++		return ERR_PTR(-EIO);
++	}
++
++	attach->dir = dir;
++
++	mutex_unlock(lock);
++
++	return sgt;
 +}
 +
-+static int fpga_dma_unmap(struct fpga_dev *priv)
++static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++	struct sg_table *sgt, enum dma_data_direction dir)
 +{
-+	if (!priv->sglen)
-+		return 0;
-+
-+	dma_unmap_sg(priv->dev, priv->sglist, priv->sglen, DMA_TO_DEVICE);
-+	priv->sglen = 0;
-+	return 0;
++	/* nothing to be done here */
 +}
 +
- /*
-  * FPGA Bitfile Helpers
-  */
-@@ -87,8 +151,9 @@ struct fpga_dev {
-  */
- static void fpga_drop_firmware_data(struct fpga_dev *priv)
- {
--	videobuf_dma_free(&priv->vb);
--	priv->vb_allocated = false;
-+	vfree(priv->sglist);
-+	vfree(priv->vaddr);
-+	priv->buf_allocated = false;
- 	priv->bytes = 0;
- }
++static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
++{
++	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
++	vb2_dma_sg_put(dbuf->priv);
++}
++
++static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
++{
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++
++	return buf->vaddr + pgnum * PAGE_SIZE;
++}
++
++static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
++{
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++
++	return vb2_dma_sg_vaddr(buf);
++}
++
++static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
++	struct vm_area_struct *vma)
++{
++	return vb2_dma_sg_mmap(dbuf->priv, vma);
++}
++
++static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
++	.attach = vb2_dma_sg_dmabuf_ops_attach,
++	.detach = vb2_dma_sg_dmabuf_ops_detach,
++	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
++	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
++	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
++	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
++	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
++	.release = vb2_dma_sg_dmabuf_ops_release,
++};
++
++static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct dma_buf *dbuf;
++
++	if (WARN_ON(!buf->dma_sgt))
++		return NULL;
++
++	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags, NULL);
++	if (IS_ERR(dbuf))
++		return NULL;
++
++	/* dmabuf keeps reference to vb2 buffer */
++	atomic_inc(&buf->refcount);
++
++	return dbuf;
++}
++
++/*********************************************/
+ /*       callbacks for DMABUF buffers        */
+ /*********************************************/
  
-@@ -427,7 +492,7 @@ static noinline int fpga_program_cpu(struct fpga_dev *priv)
- 	dev_dbg(priv->dev, "enabled the controller\n");
- 
- 	/* Write each chunk of the FPGA bitfile to FPGA programmer */
--	ret = fpga_program_block(priv, priv->vb.vaddr, priv->bytes);
-+	ret = fpga_program_block(priv, priv->vaddr, priv->bytes);
- 	if (ret)
- 		goto out_disable_controller;
- 
-@@ -463,7 +528,6 @@ out_disable_controller:
-  */
- static noinline int fpga_program_dma(struct fpga_dev *priv)
- {
--	struct videobuf_dmabuf *vb = &priv->vb;
- 	struct dma_chan *chan = priv->chan;
- 	struct dma_async_tx_descriptor *tx;
- 	size_t num_pages, len, avail = 0;
-@@ -505,7 +569,7 @@ static noinline int fpga_program_dma(struct fpga_dev *priv)
- 	}
- 
- 	/* Map the buffer for DMA */
--	ret = videobuf_dma_map(priv->dev, &priv->vb);
-+	ret = fpga_dma_map(priv);
- 	if (ret) {
- 		dev_err(priv->dev, "Unable to map buffer for DMA\n");
- 		goto out_free_table;
-@@ -534,7 +598,7 @@ static noinline int fpga_program_dma(struct fpga_dev *priv)
- 	/* setup and submit the DMA transaction */
- 
- 	tx = dmaengine_prep_dma_sg(chan, table.sgl, num_pages,
--			vb->sglist, vb->sglen, 0);
-+			priv->sglist, priv->sglen, 0);
- 	if (!tx) {
- 		dev_err(priv->dev, "Unable to prep DMA transaction\n");
- 		ret = -ENOMEM;
-@@ -572,7 +636,7 @@ static noinline int fpga_program_dma(struct fpga_dev *priv)
- out_disable_controller:
- 	fpga_programmer_disable(priv);
- out_dma_unmap:
--	videobuf_dma_unmap(priv->dev, vb);
-+	fpga_dma_unmap(priv);
- out_free_table:
- 	sg_free_table(&table);
- out_return:
-@@ -702,12 +766,12 @@ static int fpga_open(struct inode *inode, struct file *filp)
- 		priv->bytes = 0;
- 
- 	/* Check if we have already allocated a buffer */
--	if (priv->vb_allocated)
-+	if (priv->buf_allocated)
- 		return 0;
- 
- 	/* Allocate a buffer to hold enough data for the bitfile */
- 	nr_pages = DIV_ROUND_UP(priv->fw_size, PAGE_SIZE);
--	ret = videobuf_dma_init_kernel(&priv->vb, DMA_TO_DEVICE, nr_pages);
-+	ret = fpga_dma_init(priv, nr_pages);
- 	if (ret) {
- 		dev_err(priv->dev, "unable to allocate data buffer\n");
- 		mutex_unlock(&priv->lock);
-@@ -715,7 +779,7 @@ static int fpga_open(struct inode *inode, struct file *filp)
- 		return ret;
- 	}
- 
--	priv->vb_allocated = true;
-+	priv->buf_allocated = true;
- 	return 0;
- }
- 
-@@ -738,7 +802,7 @@ static ssize_t fpga_write(struct file *filp, const char __user *buf,
- 		return -ENOSPC;
- 
- 	count = min_t(size_t, priv->fw_size - priv->bytes, count);
--	if (copy_from_user(priv->vb.vaddr + priv->bytes, buf, count))
-+	if (copy_from_user(priv->vaddr + priv->bytes, buf, count))
- 		return -EFAULT;
- 
- 	priv->bytes += count;
-@@ -750,7 +814,7 @@ static ssize_t fpga_read(struct file *filp, char __user *buf, size_t count,
- {
- 	struct fpga_dev *priv = filp->private_data;
- 	return simple_read_from_buffer(buf, count, f_pos,
--				       priv->vb.vaddr, priv->bytes);
-+				       priv->vaddr, priv->bytes);
- }
- 
- static loff_t fpga_llseek(struct file *filp, loff_t offset, int origin)
-@@ -952,7 +1016,6 @@ static int fpga_of_probe(struct platform_device *op)
- 	priv->dev = &op->dev;
- 	mutex_init(&priv->lock);
- 	init_completion(&priv->completion);
--	videobuf_dma_init(&priv->vb);
- 
- 	dev_set_drvdata(priv->dev, priv);
- 	dma_cap_zero(mask);
+@@ -517,6 +686,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
+ 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
+ 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
 -- 
-2.1.3
+2.1.1
 
