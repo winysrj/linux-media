@@ -1,169 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52951 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753547AbaKHXFR (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33215 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751660AbaKGMvv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:05:17 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 1/3] v4l: Clean up sub-device format documentation
-Date: Sun,  9 Nov 2014 01:04:30 +0200
-Message-Id: <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
-References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
+	Fri, 7 Nov 2014 07:51:51 -0500
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id D8C342A002F
+	for <linux-media@vger.kernel.org>; Fri,  7 Nov 2014 13:51:46 +0100 (CET)
+Message-ID: <545CC052.9090104@xs4all.nl>
+Date: Fri, 07 Nov 2014 13:51:30 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.19] Various fixes and improvements.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device format documentation documented scaling configuration through
-formats. Instead the compose selection rectangle is elsewhere documented to
-be used for the purpose. Remove scaling related part of the documentation.
+The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/dev-subdev.xml |  108 ++++++++++++++----------
- 1 file changed, 62 insertions(+), 46 deletions(-)
+  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index d15aaf8..dbf9965 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -195,53 +195,59 @@
- 	<title>Sample Pipeline Configuration</title>
- 	<tgroup cols="3">
- 	  <colspec colname="what"/>
--	  <colspec colname="sensor-0" />
--	  <colspec colname="frontend-0" />
--	  <colspec colname="frontend-1" />
--	  <colspec colname="scaler-0" />
--	  <colspec colname="scaler-1" />
-+	  <colspec colname="sensor-0 format" />
-+	  <colspec colname="frontend-0 format" />
-+	  <colspec colname="frontend-1 format" />
-+	  <colspec colname="scaler-0 format" />
-+	  <colspec colname="scaler-0 compose" />
-+	  <colspec colname="scaler-1 format" />
- 	  <thead>
- 	    <row>
- 	      <entry></entry>
--	      <entry>Sensor/0</entry>
--	      <entry>Frontend/0</entry>
--	      <entry>Frontend/1</entry>
--	      <entry>Scaler/0</entry>
--	      <entry>Scaler/1</entry>
-+	      <entry>Sensor/0 format</entry>
-+	      <entry>Frontend/0 format</entry>
-+	      <entry>Frontend/1 format</entry>
-+	      <entry>Scaler/0 format</entry>
-+	      <entry>Scaler/0 compose selection rectangle</entry>
-+	      <entry>Scaler/1 format</entry>
- 	    </row>
- 	  </thead>
- 	  <tbody valign="top">
- 	    <row>
- 	      <entry>Initial state</entry>
--	      <entry>2048x1536</entry>
--	      <entry>-</entry>
--	      <entry>-</entry>
--	      <entry>-</entry>
--	      <entry>-</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
- 	    </row>
- 	    <row>
--	      <entry>Configure frontend input</entry>
--	      <entry>2048x1536</entry>
--	      <entry><emphasis>2048x1536</emphasis></entry>
--	      <entry><emphasis>2046x1534</emphasis></entry>
--	      <entry>-</entry>
--	      <entry>-</entry>
-+	      <entry>Configure frontend sink format</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
-+	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
-+	      <entry>(default)</entry>
- 	    </row>
- 	    <row>
--	      <entry>Configure scaler input</entry>
--	      <entry>2048x1536</entry>
--	      <entry>2048x1536</entry>
--	      <entry>2046x1534</entry>
--	      <entry><emphasis>2046x1534</emphasis></entry>
--	      <entry><emphasis>2046x1534</emphasis></entry>
-+	      <entry>Configure scaler sink format</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry>2046x1534/SGRBG8_1X8</entry>
-+	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
-+	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
-+	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
- 	    </row>
- 	    <row>
--	      <entry>Configure scaler output</entry>
--	      <entry>2048x1536</entry>
--	      <entry>2048x1536</entry>
--	      <entry>2046x1534</entry>
--	      <entry>2046x1534</entry>
--	      <entry><emphasis>1280x960</emphasis></entry>
-+	      <entry>Configure scaler sink compose selection</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry>2048x1536/SGRBG8_1X8</entry>
-+	      <entry>2046x1534/SGRBG8_1X8</entry>
-+	      <entry>2046x1534/SGRBG8_1X8</entry>
-+	      <entry><emphasis>0,0/1280x960</emphasis></entry>
-+	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
- 	    </row>
- 	  </tbody>
- 	</tgroup>
-@@ -249,19 +255,29 @@
- 
-       <para>
-       <orderedlist>
--	<listitem><para>Initial state. The sensor output is set to its native 3MP
--	resolution. Resolutions on the host frontend and scaler input and output
--	pads are undefined.</para></listitem>
--	<listitem><para>The application configures the frontend input pad resolution to
--	2048x1536. The driver propagates the format to the frontend output pad.
--	Note that the propagated output format can be different, as in this case,
--	than the input format, as the hardware might need to crop pixels (for
--	instance when converting a Bayer filter pattern to RGB or YUV).</para></listitem>
--	<listitem><para>The application configures the scaler input pad resolution to
--	2046x1534 to match the frontend output resolution. The driver propagates
--	the format to the scaler output pad.</para></listitem>
--	<listitem><para>The application configures the scaler output pad resolution to
--	1280x960.</para></listitem>
-+	<listitem><para>Initial state. The sensor source pad format is
-+	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
-+	media bus code. Formats on the host frontend and scaler sink
-+	and source pads have the default values, as well as the
-+	compose rectangle on the scaler's sind pad.</para></listitem>
-+
-+	<listitem><para>The application configures the frontend sink
-+	pad format's size to 2048x1536 and its media bus code to
-+	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the format to
-+	the frontend source pad.</para></listitem>
-+
-+	<listitem><para>The application configures the scaler sink pad
-+	format's size to 2046x1534 and the media bus code to
-+	V4L2_MBUS_FMT_SGRBG_1X8 to match the frontend source size and
-+	media bus code. The media bus code on the sink pad is set to
-+	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the size to the
-+	compose selection rectangle on the scaler's sink pad, and the
-+	format to the scaler source pad.</para></listitem>
-+
-+	<listitem><para>The application configures the compose
-+	selection rectangle of the scaler's sink pad and scaler source
-+	pad format's size to 1280x960.</para></listitem>
-+
-       </orderedlist>
-       </para>
- 
--- 
-1.7.10.4
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.19e
+
+for you to fetch changes up to a66997d1b637fb110a50e5d770a6aa13630b560c:
+
+  media: davinci: vpbe: missing clk_put (2014-11-07 13:37:33 +0100)
+
+----------------------------------------------------------------
+Andrey Utkin (4):
+      solo6x10: clean up properly in stop_streaming
+      solo6x10: free DMA allocation when releasing encoder
+      solo6x10: bind start & stop of encoded frames processing thread to device (de)init
+      solo6x10: don't turn off/on encoder interrupt in processing loop
+
+Hans Verkuil (1):
+      vivid: add test array controls
+
+Joe Perches (1):
+      cx25840/cx18: Use standard ordering of mask and shift
+
+Prabhakar Lad (1):
+      media: davinci: vpbe: add support for VIDIOC_CREATE_BUFS
+
+Sudip Mukherjee (1):
+      media: davinci: vpbe: missing clk_put
+
+sensoray-dev (1):
+      s2255drv: fix spinlock issue
+
+ drivers/media/i2c/cx25840/cx25840-core.c       | 12 ++++++------
+ drivers/media/pci/cx18/cx18-av-core.c          | 16 ++++++++--------
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 28 ++++++++++++++++++----------
+ drivers/media/platform/davinci/vpbe.c          |  1 +
+ drivers/media/platform/davinci/vpbe_display.c  | 10 +++++++---
+ drivers/media/platform/vivid/vivid-ctrls.c     | 42 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/usb/s2255/s2255drv.c             | 22 ++++++++++------------
+ include/media/davinci/vpbe_display.h           |  2 --
+ 8 files changed, 92 insertions(+), 41 deletions(-)
