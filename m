@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47964 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbaKDBHQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 20:07:16 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Bimow Chen <Bimow.Chen@ite.com.tw>
-Subject: [PATCH 2/6] af9033: fix AF9033 DVBv3 signal strength measurement
-Date: Tue,  4 Nov 2014 03:07:00 +0200
-Message-Id: <1415063224-28453-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1415063224-28453-1-git-send-email-crope@iki.fi>
-References: <1415063224-28453-1-git-send-email-crope@iki.fi>
+Received: from down.free-electrons.com ([37.187.137.238]:59139 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752015AbaKGOID (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 09:08:03 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v3 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
+Date: Fri,  7 Nov 2014 15:07:49 +0100
+Message-Id: <1415369269-5064-11-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previous patch changes used signal strength firmware register from
-0x800048 to 0x80004a in case of AF9033/AF9035 chip. In practice
-reported values were running upside-down, when RR strength increases
-reported value decreases and vice versa. That is because of 0x80004a
-returns values that are dBm scale, but negative RF strength dBm
-returned as positive number.
+Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
+users don't have access to these definitions.
 
-0x800048 returns 0-100, like percentage
-0x80004a returns 0-255 dBm, without a negative sign
+We have to keep this definition for user-space users even though they're
+encouraged to move to the new media_bus_format enum.
 
-So restore old measurement now.
-
-Cc: Bimow Chen <Bimow.Chen@ite.com.tw>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
- drivers/media/dvb-frontends/af9033.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/uapi/linux/v4l2-mediabus.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 2b3d2f0..e3bae77 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -867,7 +867,11 @@ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	u8 u8tmp, gain_offset, buf[7];
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 3d87db7..4f31d0e 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -15,6 +15,14 @@
+ #include <linux/videodev2.h>
+ #include <linux/media-bus-format.h>
  
- 	if (dev->is_af9035) {
--		ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
-+		/* read signal strength of 0-100 scale */
-+		ret = af9033_rd_reg(dev, 0x800048, &u8tmp);
-+		if (ret < 0)
-+			goto err;
++#ifndef __KERNEL__
 +
- 		/* scale value to 0x0000-0xffff */
- 		*strength = u8tmp * 0xffff / 100;
- 	} else {
++/*
++ * enum v4l2_mbus_pixelcode and its defintions are now deprecated, and
++ * MEDIA_BUS_FMT_ defintions (defined in media-bus-format.h) should be
++ * used instead.
++ */
++
+ #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
+ 	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
+ 
+@@ -102,6 +110,7 @@ enum v4l2_mbus_pixelcode {
+ 
+ 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
+ };
++#endif /* __KERNEL__ */
+ 
+ /**
+  * struct v4l2_mbus_framefmt - frame format on the media bus
 -- 
-http://palosaari.fi/
+1.9.1
 
