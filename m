@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:54768 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751064AbaKWMkT (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43212 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751278AbaKGJAD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 07:40:19 -0500
+	Fri, 7 Nov 2014 04:00:03 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/3] v4l2-ctrl: move function prototypes from common.h to ctrls.h
-Date: Sun, 23 Nov 2014 13:39:54 +0100
-Message-Id: <1416746395-48631-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416746395-48631-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416746395-48631-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 15/15] vb2: update the buf_prepare/finish documentation
+Date: Fri,  7 Nov 2014 09:50:34 +0100
+Message-Id: <1415350234-9826-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-For some unknown reason several control prototypes where in v4l2-common.c
-instead of in v4l2-ctrls.h. Move them and document them.
+Document how the new vb2_plane_begin/end_cpu_access() functions should
+be used in buf_prepare/finish.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/media/v4l2-common.h |  3 ---
- include/media/v4l2-ctrls.h  | 25 +++++++++++++++++++++++++
- 2 files changed, 25 insertions(+), 3 deletions(-)
+ include/media/videobuf2-core.h | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 6b4951d..c69d91d 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -84,9 +84,6 @@
- 
- int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
- 		const char * const *menu_items);
--const char *v4l2_ctrl_get_name(u32 id);
--const char * const *v4l2_ctrl_get_menu(u32 id);
--const s64 *v4l2_ctrl_get_int_menu(u32 id, u32 *len);
- int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def);
- 
- /* ------------------------------------------------------------------------- */
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index b7cd7a6..911f3e5 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -670,6 +670,31 @@ static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
-   */
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv);
- 
-+/** v4l2_ctrl_get_name() - Get the name of the control
-+ * @id:		The control ID.
-+ *
-+ * This function returns the name of the given control ID or NULL if it isn't
-+ * a known control.
-+ */
-+const char *v4l2_ctrl_get_name(u32 id);
-+
-+/** v4l2_ctrl_get_menu() - Get the menu string array of the control
-+ * @id:		The control ID.
-+ *
-+ * This function returns the NULL-terminated menu string array name of the
-+ * given control ID or NULL if it isn't a known menu control.
-+ */
-+const char * const *v4l2_ctrl_get_menu(u32 id);
-+
-+/** v4l2_ctrl_get_int_menu() - Get the integer menu array of the control
-+ * @id:		The control ID.
-+ * @len:	The size of the integer array.
-+ *
-+ * This function returns the integer array of the given control ID or NULL if it
-+ * if it isn't a known integer menu control.
-+ */
-+const s64 *v4l2_ctrl_get_int_menu(u32 id, u32 *len);
-+
- /** v4l2_ctrl_g_ctrl() - Helper function to get the control's value from within a driver.
-   * @ctrl:	The control.
-   *
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 4632341..6a15eb8 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -282,21 +282,30 @@ struct vb2_buffer {
+  *			perform any initialization required before each
+  *			hardware operation in this callback; drivers can
+  *			access/modify the buffer here as it is still synced for
+- *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
+- *			also validate the buffer size; if an error is returned,
+- *			the buffer will not be queued in driver; optional.
++ *			the CPU, provided you bracket the cpu access part with
++ *			@vb2_plane_begin_cpu_access and @vb2_plane_end_cpu_access;
++ *			when using videobuf2-vmalloc.h you can postpone the call
++ *			to @vb2_plane_end_cpu_access to @buf_finish; drivers
++ *			that support VIDIOC_CREATE_BUFS must also validate
++ *			the buffer size; if an error is returned, the buffer
++ *			will not be queued in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; the buffer is synced for the CPU, so drivers
+- *			can access/modify the buffer contents; drivers may
+- *			perform any operations required before userspace
+- *			accesses the buffer; optional. The buffer state can be
+- *			one of the following: DONE and ERROR occur while
+- *			streaming is in progress, and the PREPARED state occurs
+- *			when the queue has been canceled and all pending
+- *			buffers are being returned to their default DEQUEUED
+- *			state. Typically you only have to do something if the
+- *			state is VB2_BUF_STATE_DONE, since in all other cases
+- *			the buffer contents will be ignored anyway.
++ *			can access/modify the buffer contents provided you
++ *			bracket the cpu access part with
++ *			@vb2_plane_begin_cpu_access and @vb2_plane_end_cpu_access;
++ *			when using videobuf2-vmalloc.h you can call
++ *			@vb2_plane_end_cpu_access here to bracket a corresponding
++ *			@vb2_plane_begin_cpu_access call in @buf_prepare;
++ *			drivers may perform any operations required before
++ *			userspace accesses the buffer; optional. The buffer
++ *			state can be one of the following: DONE and ERROR
++ *			occur while streaming is in progress, and the PREPARED
++ *			state occurs when the queue has been canceled and all
++ *			pending buffers are being returned to their default
++ *			DEQUEUED state. Typically you only have to do something
++ *			if the state is VB2_BUF_STATE_DONE, since in all other
++ *			cases the buffer contents will be ignored anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+  *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
 -- 
-2.1.3
+2.1.1
 
