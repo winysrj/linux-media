@@ -1,85 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50250 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751978AbaKXJG2 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59692 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751278AbaKGIum (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 04:06:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR v3.19] uvcvideo changes
-Date: Mon, 24 Nov 2014 11:06:49 +0200
-Message-ID: <2578174.1LaTmadn8H@avalon>
-In-Reply-To: <20141111085626.3f1201dc@recife.lan>
-References: <1524049.TLSF8qZEUD@avalon> <20141111085626.3f1201dc@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 7 Nov 2014 03:50:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 04/15] vb2-dma-sg: add dmabuf import support
+Date: Fri,  7 Nov 2014 09:50:23 +0100
+Message-Id: <1415350234-9826-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tuesday 11 November 2014 08:56:26 Mauro Carvalho Chehab wrote:
-> Em Fri, 07 Nov 2014 08:16:28 +0200 Laurent Pinchart escreveu:
-> > Hi Mauro,
-> > 
-> > The following changes since commit 
-4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
-> >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
-> 
-> It seems that there's something weird with this URL... remotes????
+Add support for dmabuf to vb2-dma-sg.
 
-git isn't playing nicely :-/
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 126 +++++++++++++++++++++++++++--
+ 1 file changed, 119 insertions(+), 7 deletions(-)
 
-I've pushed the changes to the uvc/next branch on 
-git://linuxtv.org/pinchartl/media.git, up to commit a1bee5f9f606. 
-http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=uvc/next 
-confirms that everything is in order.
-
-However, running
-
-git request-pull local-linuxtv-master media remotes/media/uvc/next
-
-with the media remote pointing to git://linuxtv.org/pinchartl/media.git 
-generates
-
-----------
-warn: No match for commit a1bee5f9f606f89ff30171658a82bf532cca7f3d found at 
-git://linuxtv.org/pinchartl/media.git
-warn: Are you sure you pushed 'remotes/media/uvc/next' there?
-The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
-
-  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
-
-for you to fetch changes up to a1bee5f9f606f89ff30171658a82bf532cca7f3d:
-
-  uvcvideo: Return all buffers to vb2 at stream stop and start failure 
-(2014-11-07 08:13:21 +0200)
-----------
-
-For some reason git can't find the remote branch (hence the warning) and thus 
-generates the URL line incorrectly.
-
-I've tried upgrading from git 2.0.4 to git 2.1.3 but the problem is still 
-present. Creating a local branch named uvc/next fixes the problem. I wonder if 
-I'm doing something really stupid or if it's a git bug.
-
-Can you pull from
-
-        git://linuxtv.org/pinchartl/media.git uvc/next
-
-? I haven't updated the branch since I've sent the last pull request.
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 7375923..2795c27 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,11 +42,15 @@ struct vb2_dma_sg_buf {
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
++	struct sg_table			*dma_sgt;
+ 	size_t				size;
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct vm_area_struct		*vma;
++
++	/* DMABUF related */
++	struct dma_buf_attachment	*db_attach;
+ };
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+@@ -114,6 +118,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	/* size is already page aligned */
+ 	buf->num_pages = size >> PAGE_SHIFT;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -124,7 +129,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, int write,
+ 	if (ret)
+ 		goto fail_pages_alloc;
+ 
+-	ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	ret = sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, 0, size, GFP_KERNEL);
+ 	if (ret)
+ 		goto fail_table_alloc;
+@@ -173,7 +178,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+-		sg_free_table(&buf->sg_table);
++		sg_free_table(buf->dma_sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
+@@ -185,7 +190,11 @@ static void vb2_dma_sg_put(void *buf_priv)
+ static void vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -193,7 +202,11 @@ static void vb2_dma_sg_prepare(void *buf_priv)
+ static void vb2_dma_sg_finish(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	struct sg_table *sgt = &buf->sg_table;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	/* DMABUF exporter will flush the cache for us */
++	if (buf->db_attach)
++		return;
+ 
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+@@ -222,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->dma_sgt = &buf->sg_table;
+ 
+ 	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+@@ -274,7 +288,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+-	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
++	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
+@@ -319,7 +333,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+-	sg_free_table(&buf->sg_table);
++	sg_free_table(buf->dma_sgt);
+ 	while (--i >= 0) {
+ 		if (buf->write)
+ 			set_page_dirty_lock(buf->pages[i]);
+@@ -392,11 +406,105 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++/*********************************************/
++/*       callbacks for DMABUF buffers        */
++/*********************************************/
++
++static int vb2_dma_sg_map_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to pin a non attached buffer\n");
++		return -EINVAL;
++	}
++
++	if (WARN_ON(buf->dma_sgt)) {
++		pr_err("dmabuf buffer is already pinned\n");
++		return 0;
++	}
++
++	/* get the associated scatterlist for this buffer */
++	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	if (IS_ERR_OR_NULL(sgt)) {
++		pr_err("Error getting dmabuf scatterlist\n");
++		return -EINVAL;
++	}
++
++	buf->dma_sgt = sgt;
++
++	return 0;
++}
++
++static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (WARN_ON(!buf->db_attach)) {
++		pr_err("trying to unpin a not attached buffer\n");
++		return;
++	}
++
++	if (WARN_ON(!sgt)) {
++		pr_err("dmabuf buffer is already unpinned\n");
++		return;
++	}
++
++	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++
++	buf->dma_sgt = NULL;
++}
++
++static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
++{
++	struct vb2_dma_sg_buf *buf = mem_priv;
++
++	/* if vb2 works correctly you should never detach mapped buffer */
++	if (WARN_ON(buf->dma_sgt))
++		vb2_dma_sg_unmap_dmabuf(buf);
++
++	/* detach this attachment */
++	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
++	kfree(buf);
++}
++
++static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
++	unsigned long size, int write)
++{
++	struct vb2_dma_sg_conf *conf = alloc_ctx;
++	struct vb2_dma_sg_buf *buf;
++	struct dma_buf_attachment *dba;
++
++	if (dbuf->size < size)
++		return ERR_PTR(-EFAULT);
++
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	if (!buf)
++		return ERR_PTR(-ENOMEM);
++
++	buf->dev = conf->dev;
++	/* create attachment for the dmabuf with the user device */
++	dba = dma_buf_attach(dbuf, buf->dev);
++	if (IS_ERR(dba)) {
++		pr_err("failed to attach dmabuf\n");
++		kfree(buf);
++		return dba;
++	}
++
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++	buf->size = size;
++	buf->db_attach = dba;
++
++	return buf;
++}
++
+ static void *vb2_dma_sg_cookie(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 
+-	return &buf->sg_table;
++	return buf->dma_sgt;
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_sg_memops = {
+@@ -409,6 +517,10 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
++	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
++	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
++	.detach_dmabuf	= vb2_dma_sg_detach_dmabuf,
+ 	.cookie		= vb2_dma_sg_cookie,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.1
 
