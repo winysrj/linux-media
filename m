@@ -1,119 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from edernet.hu ([78.131.56.161]:44832 "EHLO mail.edernet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750864AbaKWMYR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 07:24:17 -0500
-Message-ID: <5471D1CA.1060600@edernet.hu>
-Date: Sun, 23 Nov 2014 13:23:38 +0100
-From: =?UTF-8?B?w4lkZXIgWnNvbHQ=?= <zsolt.eder@edernet.hu>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: SAA7164 firmware for Asus MyCinema
-References: <546C5494.4000908@edernet.hu>	<alpine.DEB.2.10.1411202148420.1388@dl160.lan>	<54710310.6070806@edernet.hu> <CAAZRmGz03-BTEzKP815LtxNb+AxMThHw3o6F5gHP80oeQyC8vw@mail.gmail.com>
-In-Reply-To: <CAAZRmGz03-BTEzKP815LtxNb+AxMThHw3o6F5gHP80oeQyC8vw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49987 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751302AbaKGIum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Nov 2014 03:50:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 01/15] videobuf2-core.h: improve documentation
+Date: Fri,  7 Nov 2014 09:50:20 +0100
+Message-Id: <1415350234-9826-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you very much for your answer.
+Document that drivers can access/modify the buffer contents in buf_prepare
+and buf_finish. That was not clearly stated before.
 
-I found a data-sheet for TUA6034 at 
-http://pdf.datasheetcatalog.com/datasheet2/4/084ailjhz4xq79otdj14u5laz3py.pdf 
-(found at 
-http://www.datasheetcatalog.com/datasheets_pdf/T/U/A/_/TUA_6034-T.shtml)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-At the 46th page of the PDF file I found some programming instructions.
-It may be a good start for write driver for this tuner?
-I will try to find programming instructions to how can I write driver, 
-but if you (or anybody) have any good start-up instruction for me I am 
-very glade for it.
-
-Regards,
-Zsolt
-
-2014.11.23. 8:54 keltezéssel, Olli Salonen írta:
-> Hi Zsolt,
->
-> In order to support a card in Linux in general, there needs to be a
-> driver for the PCIe bridge, the demodulator and the tuner. Then these
-> building blocks must be put together in a way that makes sense.
->
-> You've already identified the PCIe bridge (NXP SAA7164), the
-> demodulator (TDA 10046) and the tuner (Taifun 6034T aka Infineon
-> TUA6034). Now here comes the bad news - even if the PCIe bridge and
-> the demod are supported by existing drivers, the TUA6034 is not
-> supported by currently. You would need to write or get someone to
-> write a driver for the TUA6034. In order for this to be possible you'd
-> need to get the specifications from the manufacturer (often not
-> possible, but worth trying) or reverse-engineer the Windows driver
-> (often quite tricky, especially since taking a trace from a PCIe
-> device can be a lot of work).
->
-> Might I suggest that you add also a wiki page in the LinuxTV wiki if
-> you're anyway looking at this? Basically you can document the same
-> things you've very well documented on your website there, but please
-> use the template that the other devices on the site are more or less
-> using. http://www.linuxtv.org/wiki/index.php/ASUS is a good starting
-> point. Even if the conclusion is that the card will not work your
-> research might save someone else time in the future.
->
-> Cheers,
-> -olli
->
->
-> On 22 November 2014 at 23:41, Éder Zsolt <zsolt.eder@edernet.hu> wrote:
->> Hi Olli,
->>
->> Sorry, unfortunately was not me on IRC.
->>
->> So as you wrote, I followed your instructions, and I collect as information
->> as I can from the board.
->> I made a small site quickly with some photos, you found it here:
->> http://myoop.hu/tuner.html
->>
->> While I took the photos I found that my card is Asus MyCinema
->> EHD2-100/PT/FM/AV/RC.
->>
->> Can you help me how should I continue my work with this tuner?
->>
->> Thank you very much in advance.
->>
->> Best regards,
->> Zsolt
->>
->> 2014.11.20. 20:51 keltezéssel, Olli Salonen írta:
->>> On Wed, 19 Nov 2014, Éder Zsolt wrote:
->>>
->>>> Hi,
->>>>
->>>> I found at the site:
->>>> http://www.linuxtv.org/wiki/index.php/ATSC_PCIe_Cards that if I have a
->>>> TV-tuner card which is currently unsupported, you may help me how I can make
->>>> workable this device.
->>>>
->>>> I have an Asus MyCinema EHD3-100/NAQ/FM/AV/MCE RC dual TV-Tuner card with
->>>> SAA7164 chipset.
->>>
->>> Did we talk about this in IRC a couple of days ago?
->>>
->>> If not, you will need to find out which demodulator and tuner are used on
->>> that card. You can find those by looking at the physical card. Read the text
->>> on the bigger ICs and try to put them in the google to find out the
->>> components used. The tuner might be under metal shielding, in which case it
->>> might be a bit more tricky to find out.
->>>
->>> Looking at the files in the Windows driver package might give you some
->>> hints as well.
->>>
->>> Cheers,
->>> -olli
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 6ef2d01..70ace7c 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -270,22 +270,24 @@ struct vb2_buffer {
+  *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+- *			perform any initialization required before each hardware
+- *			operation in this callback; drivers that support
+- *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+- *			if an error is returned, the buffer will not be queued
+- *			in driver; optional.
++ *			perform any initialization required before each
++ *			hardware operation in this callback; drivers can
++ *			access/modify the buffer here as it is still synced for
++ *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
++ *			also validate the buffer size; if an error is returned,
++ *			the buffer will not be queued in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+- *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional. The
+- *			buffer state can be one of the following: DONE and
+- *			ERROR occur while streaming is in progress, and the
+- *			PREPARED state occurs when the queue has been canceled
+- *			and all pending buffers are being returned to their
+- *			default DEQUEUED state. Typically you only have to do
+- *			something if the state is VB2_BUF_STATE_DONE, since in
+- *			all other cases the buffer contents will be ignored
+- *			anyway.
++ *			userspace; the buffer is synced for the CPU, so drivers
++ *			can access/modify the buffer contents; drivers may
++ *			perform any operations required before userspace
++ *			accesses the buffer; optional. The buffer state can be
++ *			one of the following: DONE and ERROR occur while
++ *			streaming is in progress, and the PREPARED state occurs
++ *			when the queue has been canceled and all pending
++ *			buffers are being returned to their default DEQUEUED
++ *			state. Typically you only have to do something if the
++ *			state is VB2_BUF_STATE_DONE, since in all other cases
++ *			the buffer contents will be ignored anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+  *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
+-- 
+2.1.1
 
