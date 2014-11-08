@@ -1,107 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59428 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750837AbaKWMOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 07:14:07 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 87F492A0083
-	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 13:14:01 +0100 (CET)
-Message-ID: <5471CF89.30209@xs4all.nl>
-Date: Sun, 23 Nov 2014 13:14:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
-Content-Type: text/plain; charset=utf-8
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:50290 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629AbaKHLfW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 06:35:22 -0500
+Received: by mail-pd0-f179.google.com with SMTP id g10so4842916pdj.24
+        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 03:35:22 -0800 (PST)
+Date: Sat, 8 Nov 2014 19:35:20 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Olli Salonen" <olli.salonen@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Antti Palosaari" <crope@iki.fi>
+Subject: [PATCH v2 2/2] smipcie: add DVBSky T9580 V3 support
+Message-ID: <201411081935169219971@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These days vdev->v4l2_dev must always be set. This means that some
-old code that still tests for a NULL vdev->v4l2_dev can be removed
-or simplified.
+v2:
+- Update Kconfig file.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
+1>DVB-S/S2 frontend: M88DS3103/M88TS2022
+2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
+2>PCIe bridge: SMI PCIe
+
+Signed-off-by: Nibble Max <nibble.max@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 34 ++++++++++++++--------------------
- 1 file changed, 14 insertions(+), 20 deletions(-)
+ drivers/media/pci/smipcie/Kconfig   |  3 ++
+ drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 33617c3..9aa530a 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -194,7 +194,7 @@ static void v4l2_device_release(struct device *cd)
- 	mutex_unlock(&videodev_lock);
+diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+index 75a2992..35ace80 100644
+--- a/drivers/media/pci/smipcie/Kconfig
++++ b/drivers/media/pci/smipcie/Kconfig
+@@ -2,12 +2,15 @@ config DVB_SMIPCIE
+ 	tristate "SMI PCIe DVBSky cards"
+ 	depends on DVB_CORE && PCI && I2C
+ 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Support for cards with SMI PCIe bridge:
+ 	  - DVBSky S950 V3
+ 	  - DVBSky S952 V3
++	  - DVBSky T9580 V3
  
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	if (v4l2_dev && v4l2_dev->mdev &&
-+	if (v4l2_dev->mdev &&
- 	    vdev->vfl_type != VFL_TYPE_SUBDEV)
- 		media_device_unregister_entity(&vdev->entity);
- #endif
-@@ -207,7 +207,7 @@ static void v4l2_device_release(struct device *cd)
- 	 * TODO: In the long run all drivers that use v4l2_device should use the
- 	 * v4l2_device release callback. This check will then be unnecessary.
- 	 */
--	if (v4l2_dev && v4l2_dev->release == NULL)
-+	if (v4l2_dev->release == NULL)
- 		v4l2_dev = NULL;
+ 	  Say Y or M if you own such a device and want to use it.
+ 	  If unsure say N.
+diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+index c27e45b..5d1932b 100644
+--- a/drivers/media/pci/smipcie/smipcie.c
++++ b/drivers/media/pci/smipcie/smipcie.c
+@@ -18,6 +18,8 @@
+ #include "m88ds3103.h"
+ #include "m88ts2022.h"
+ #include "m88rs6000t.h"
++#include "si2168.h"
++#include "si2157.h"
  
- 	/* Release video_device and perform other
-@@ -360,27 +360,22 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 		 * hack but it will have to do for those drivers that are not
- 		 * yet converted to use unlocked_ioctl.
- 		 *
--		 * There are two options: if the driver implements struct
--		 * v4l2_device, then the lock defined there is used to
--		 * serialize the ioctls. Otherwise the v4l2 core lock defined
--		 * below is used. This lock is really bad since it serializes
--		 * completely independent devices.
-+		 * All drivers implement struct v4l2_device, so we use the
-+		 * lock defined there to serialize the ioctls.
- 		 *
--		 * Both variants suffer from the same problem: if the driver
--		 * sleeps, then it blocks all ioctls since the lock is still
--		 * held. This is very common for VIDIOC_DQBUF since that
--		 * normally waits for a frame to arrive. As a result any other
--		 * ioctl calls will proceed very, very slowly since each call
--		 * will have to wait for the VIDIOC_QBUF to finish. Things that
--		 * should take 0.01s may now take 10-20 seconds.
-+		 * However, if the driver sleeps, then it blocks all ioctls
-+		 * since the lock is still held. This is very common for
-+		 * VIDIOC_DQBUF since that normally waits for a frame to arrive.
-+		 * As a result any other ioctl calls will proceed very, very
-+		 * slowly since each call will have to wait for the VIDIOC_QBUF
-+		 * to finish. Things that should take 0.01s may now take 10-20
-+		 * seconds.
- 		 *
- 		 * The workaround is to *not* take the lock for VIDIOC_DQBUF.
- 		 * This actually works OK for videobuf-based drivers, since
- 		 * videobuf will take its own internal lock.
- 		 */
--		static DEFINE_MUTEX(v4l2_ioctl_mutex);
--		struct mutex *m = vdev->v4l2_dev ?
--			&vdev->v4l2_dev->ioctl_lock : &v4l2_ioctl_mutex;
-+		struct mutex *m = &vdev->v4l2_dev->ioctl_lock;
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- 		if (cmd != VIDIOC_DQBUF && mutex_lock_interruptible(m))
- 			return -ERESTARTSYS;
-@@ -938,12 +933,11 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 			name_base, nr, video_device_node_name(vdev));
+@@ -618,6 +620,58 @@ err_tuner_i2c_device:
+ 	return ret;
+ }
  
- 	/* Increase v4l2_device refcount */
--	if (vdev->v4l2_dev)
--		v4l2_device_get(vdev->v4l2_dev);
-+	v4l2_device_get(vdev->v4l2_dev);
++static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
++{
++	int ret = 0;
++	struct smi_dev *dev = port->dev;
++	struct i2c_adapter *i2c;
++	struct i2c_adapter *tuner_i2c_adapter;
++	struct i2c_client *client_tuner, *client_demod;
++	struct i2c_board_info client_info;
++	struct si2168_config si2168_config;
++	struct si2157_config si2157_config;
++
++	/* select i2c bus */
++	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
++
++	/* attach demod */
++	memset(&si2168_config, 0, sizeof(si2168_config));
++	si2168_config.i2c_adapter = &tuner_i2c_adapter;
++	si2168_config.fe = &port->fe;
++	si2168_config.ts_mode = SI2168_TS_PARALLEL;
++
++	memset(&client_info, 0, sizeof(struct i2c_board_info));
++	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
++	client_info.addr = 0x64;
++	client_info.platform_data = &si2168_config;
++
++	client_demod = smi_add_i2c_client(i2c, &client_info);
++	if (!client_demod) {
++		ret = -ENODEV;
++		return ret;
++	}
++	port->i2c_client_demod = client_demod;
++
++	/* attach tuner */
++	memset(&si2157_config, 0, sizeof(si2157_config));
++	si2157_config.fe = port->fe;
++
++	memset(&client_info, 0, sizeof(struct i2c_board_info));
++	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
++	client_info.addr = 0x60;
++	client_info.platform_data = &si2157_config;
++
++	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
++	if (!client_tuner) {
++		smi_del_i2c_client(port->i2c_client_demod);
++		port->i2c_client_demod = NULL;
++		ret = -ENODEV;
++		return ret;
++	}
++	port->i2c_client_tuner = client_tuner;
++	return ret;
++}
++
+ static int smi_fe_init(struct smi_port *port)
+ {
+ 	int ret = 0;
+@@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
+ 	case DVBSKY_FE_M88RS6000:
+ 		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+ 		break;
++	case DVBSKY_FE_SIT2:
++		ret = smi_dvbsky_sit2_fe_attach(port);
++		break;
+ 	}
+ 	if (ret < 0)
+ 		return ret;
+@@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+ 	.fe_1 = DVBSKY_FE_M88RS6000,
+ };
  
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	/* Part 5: Register the entity. */
--	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-+	if (vdev->v4l2_dev->mdev &&
- 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
- 		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
- 		vdev->entity.name = vdev->name;
++static struct smi_cfg_info dvbsky_t9580_cfg = {
++	.type = SMI_DVBSKY_T9580,
++	.name = "DVBSky T9580 V3",
++	.ts_0 = SMI_TS_DMA_BOTH,
++	.ts_1 = SMI_TS_DMA_BOTH,
++	.fe_0 = DVBSKY_FE_SIT2,
++	.fe_1 = DVBSKY_FE_M88DS3103,
++};
++
+ /* PCI IDs */
+ #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+ 	.vendor      = SMI_VID,    .device    = SMI_PID, \
+@@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+ static const struct pci_device_id smi_id_table[] = {
+ 	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+ 	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
++	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
+ 	{0}
+ };
+ MODULE_DEVICE_TABLE(pci, smi_id_table);
+ 
 -- 
-2.1.3
+1.9.1
 
