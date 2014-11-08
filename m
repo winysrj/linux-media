@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33782 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418AbaKTMNu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52940 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753463AbaKHXFR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 07:13:50 -0500
-Date: Thu, 20 Nov 2014 13:13:48 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Message-ID: <20141120121348.GB27527@amd>
-References: <546AFEA5.9020000@samsung.com>
- <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com>
- <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com>
- <20141118132159.GA21089@amd>
- <546B6D86.8090701@samsung.com>
- <20141118165148.GA11711@amd>
- <546C66A5.6060201@samsung.com>
- <546CD90B.8060903@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <546CD90B.8060903@iki.fi>
+	Sat, 8 Nov 2014 18:05:17 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 2/3] v4l: Add V4L2_SEL_TGT_NATIVE_SIZE selection target
+Date: Sun,  9 Nov 2014 01:04:31 +0200
+Message-Id: <1415487872-27500-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
+References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The V4L2_SEL_TGT_NATIVE_SIZE target is used to denote e.g. the size of a
+sensor's pixel array.
 
-> >> But regulators already have "regulator-max-microamp" property. So what
-> >> about:
-> >>
-> >> max-microamp :     maximum intensity in microamperes of the LED
-> >>                 (torch LED for flash devices)
-> >> max-flash-microamp :     initial intensity in microamperes of the
-> >>               flash LED; it is required to enable support
-> >>               for the flash led
-> >> flash-timeout-microseconds : timeout in microseconds after which flash
-> >>               led is turned off
-> >>
-> >> If you had indicator on the same led, I guess
-> >>
-> >> indicator-microamp : recommended intensity in microamperes of the LED
-> >>                  for indication
-> 
-> The value for the indicator is maximum as well, not just a
-> recommendation.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/selections-common.xml |    8 ++++++++
+ include/uapi/linux/v4l2-common.h                      |    2 ++
+ 2 files changed, 10 insertions(+)
 
-Actually, no.
-
-This is all for one LED, if you want to use it as a flash, torch and
-indicator. You already know the maximum value with max-microamp.
-
-Best regards,
-									Pavel
+diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+index 7502f78..5fc833a 100644
+--- a/Documentation/DocBook/media/v4l/selections-common.xml
++++ b/Documentation/DocBook/media/v4l/selections-common.xml
+@@ -63,6 +63,14 @@
+ 	    <entry>Yes</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_SEL_TGT_NATIVE_SIZE</constant></entry>
++	    <entry>0x0003</entry>
++	    <entry>The native size of the device, e.g. a sensor's
++	    pixel array.</entry>
++	    <entry>Yes</entry>
++	    <entry>Yes</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+ 	    <entry>0x0100</entry>
+ 	    <entry>Compose rectangle. Used to configure scaling
+diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+index 2f6f8ca..1527398 100644
+--- a/include/uapi/linux/v4l2-common.h
++++ b/include/uapi/linux/v4l2-common.h
+@@ -43,6 +43,8 @@
+ #define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+ /* Cropping bounds */
+ #define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
++/* Native frame size */
++#define V4L2_SEL_TGT_NATIVE_SIZE	0x0003
+ /* Current composing area */
+ #define V4L2_SEL_TGT_COMPOSE		0x0100
+ /* Default composing area */
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.10.4
+
