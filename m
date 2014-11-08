@@ -1,74 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41315 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbaK2TFy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 14:05:54 -0500
-Date: Sat, 29 Nov 2014 20:05:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com
-Subject: Re: [PATCH/RFC v8 12/14] leds: Add driver for AAT1290 current
- regulator
-Message-ID: <20141129190550.GA17355@amd>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-13-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:56421 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551AbaKHKx2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 05:53:28 -0500
+Received: by mail-la0-f48.google.com with SMTP id gq15so5754458lab.35
+        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 02:53:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417166286-27685-13-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl> <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sat, 8 Nov 2014 19:45:19 +0900
+Message-ID: <CAMm-=zBMODk93vYHHaJ8MbP2VQRVqEzJ5vcUJqirhF-jWhH8Hw@mail.gmail.com>
+Subject: Re: [RFCv5 PATCH 05/15] vb2-dma-sg: add get_dmabuf
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Hans,
+Thank you for the patch.
 
+On Fri, Nov 7, 2014 at 5:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+>
+> Add DMABUF export support to vb2-dma-sg.
 
-> @@ -0,0 +1,472 @@
-> +/*
-> + *	LED Flash class driver for the AAT1290
-> + *	1.5A Step-Up Current Regulator for Flash LEDs
-> + *
-> + *	Copyright (C) 2014, Samsung Electronics Co., Ltd.
-> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + */
+I think we should mention in the subject that this adds dmabuf export to dma-sg.
+
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
+>  1 file changed, 170 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 2795c27..ca28a50 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -407,6 +407,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+>  }
+>
+>  /*********************************************/
+> +/*         DMABUF ops for exporters          */
+> +/*********************************************/
 > +
+> +struct vb2_dma_sg_attachment {
+> +       struct sg_table sgt;
+> +       enum dma_data_direction dir;
+> +};
+> +
+> +static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+> +       struct dma_buf_attachment *dbuf_attach)
+> +{
+> +       struct vb2_dma_sg_attachment *attach;
+> +       unsigned int i;
+> +       struct scatterlist *rd, *wr;
+> +       struct sg_table *sgt;
+> +       struct vb2_dma_sg_buf *buf = dbuf->priv;
+> +       int ret;
+> +
+> +       attach = kzalloc(sizeof(*attach), GFP_KERNEL);
+> +       if (!attach)
+> +               return -ENOMEM;
+> +
+> +       sgt = &attach->sgt;
+> +       /* Copy the buf->base_sgt scatter list to the attachment, as we can't
+> +        * map the same scatter list to multiple attachments at the same time.
+> +        */
+> +       ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
+> +       if (ret) {
+> +               kfree(attach);
+> +               return -ENOMEM;
+> +       }
+> +
+> +       rd = buf->dma_sgt->sgl;
+> +       wr = sgt->sgl;
+> +       for (i = 0; i < sgt->orig_nents; ++i) {
+> +               sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
+> +               rd = sg_next(rd);
+> +               wr = sg_next(wr);
+> +       }
+> +
+> +       attach->dir = DMA_NONE;
+> +       dbuf_attach->priv = attach;
+> +
+> +       return 0;
+> +}
+> +
+> +static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
+> +       struct dma_buf_attachment *db_attach)
+> +{
+> +       struct vb2_dma_sg_attachment *attach = db_attach->priv;
+> +       struct sg_table *sgt;
+> +
+> +       if (!attach)
+> +               return;
+> +
+> +       sgt = &attach->sgt;
+> +
+> +       /* release the scatterlist cache */
+> +       if (attach->dir != DMA_NONE)
+> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +                       attach->dir);
+> +       sg_free_table(sgt);
+> +       kfree(attach);
+> +       db_attach->priv = NULL;
+> +}
+> +
+> +static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+> +       struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
+> +{
+> +       struct vb2_dma_sg_attachment *attach = db_attach->priv;
+> +       /* stealing dmabuf mutex to serialize map/unmap operations */
+> +       struct mutex *lock = &db_attach->dmabuf->lock;
+> +       struct sg_table *sgt;
+> +       int ret;
+> +
+> +       mutex_lock(lock);
+> +
+> +       sgt = &attach->sgt;
+> +       /* return previously mapped sg table */
+> +       if (attach->dir == dir) {
+> +               mutex_unlock(lock);
+> +               return sgt;
+> +       }
+> +
+> +       /* release any previous cache */
+> +       if (attach->dir != DMA_NONE) {
+> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
+> +                       attach->dir);
+> +               attach->dir = DMA_NONE;
+> +       }
+> +
+> +       /* mapping to the client with new direction */
+> +       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
+> +       if (ret <= 0) {
+> +               pr_err("failed to map scatterlist\n");
+> +               mutex_unlock(lock);
+> +               return ERR_PTR(-EIO);
+> +       }
+> +
+> +       attach->dir = dir;
+> +
+> +       mutex_unlock(lock);
+> +
+> +       return sgt;
+> +}
+> +
+> +static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
+> +       struct sg_table *sgt, enum dma_data_direction dir)
+> +{
+> +       /* nothing to be done here */
+> +}
+> +
+> +static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
+> +{
+> +       /* drop reference obtained in vb2_dma_sg_get_dmabuf */
+> +       vb2_dma_sg_put(dbuf->priv);
+> +}
+> +
+> +static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
+> +{
+> +       struct vb2_dma_sg_buf *buf = dbuf->priv;
+> +
+> +       return buf->vaddr + pgnum * PAGE_SIZE;
 
-> +#define AAT1290_MM_TO_FL_1_92	1
-> +#define AAT1290_MM_TO_FL_3_7	2
-> +#define AAT1290_MM_TO_FL_5_5	3
-> +#define AAT1290_MM_TO_FL_7_3	4
-> +#define AAT1290_MM_TO_FL_9	5
-> +#define AAT1290_MM_TO_FL_10_7	6
-> +#define AAT1290_MM_TO_FL_12_4	7
-> +#define AAT1290_MM_TO_FL_14	8
-> +#define AAT1290_MM_TO_FL_15_9	9
-> +#define AAT1290_MM_TO_FL_17_5	10
-> +#define AAT1290_MM_TO_FL_19_1	11
-> +#define AAT1290_MM_TO_FL_20_8	12
-> +#define AAT1290_MM_TO_FL_22_4	13
-> +#define AAT1290_MM_TO_FL_24	14
-> +#define AAT1290_MM_TO_FL_25_6	15
-> +#define AAT1290_MM_TO_FL_OFF	16
-
-Only one of these defines is unused.
-
-> +static struct of_device_id aat1290_led_dt_match[] = {
-
-> +	{.compatible = "skyworks,aat1290"},
-
-spaces after { and before } ?
-
-Otherwise looks ok, 
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+As opposed to contig, which assigns vaddr on alloc(), vaddr can very
+well be NULL here for sg.
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Best regards,
+Pawel Osciak
