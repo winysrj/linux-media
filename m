@@ -1,51 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:32917 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbaKBKSK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 05:18:10 -0500
-Received: by mail-wg0-f53.google.com with SMTP id b13so9032337wgh.26
-        for <linux-media@vger.kernel.org>; Sun, 02 Nov 2014 02:18:09 -0800 (PST)
-Message-ID: <545604DD.2080703@googlemail.com>
-Date: Sun, 02 Nov 2014 11:18:05 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:44055 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753654AbaKHMOE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Nov 2014 07:14:04 -0500
+Date: Sat, 8 Nov 2014 10:13:57 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.18-rc4] media fixes
+Message-ID: <20141108101357.74a10248@recife.lan>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Akihiro TSUKADA <tskd08@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-utils/master] libdvbv5, dvbv5-scan: generalize channel
- duplication check
-References: <E1XkI3i-00082l-Jd@www.linuxtv.org>	<54556AC9.40309@googlemail.com>	<5455F9C6.4070002@gmail.com> <20141102074153.7cbad706@recife.lan>
-In-Reply-To: <20141102074153.7cbad706@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/14 10:41, Mauro Carvalho Chehab wrote:
-> Em Sun, 02 Nov 2014 18:30:46 +0900
-> Akihiro TSUKADA <tskd08@gmail.com> escreveu:
-> 
->> Hi,
->>
->> After I re-checked the source,
->> I noticed that dvb_scan_add_entry() also breaks API/ABI compatibility
->> as well as dvb_new_freq_is_needed(), and those functions are
->> marked as "ancillary functions used internally inside the library"
->> in dvb-scan.h.
->> So I think it would rather be better to move those funcs to a private
->> header (dvb-scan-priv.h?).
->> Which way should we go? ver bump/compat-soname.c/dvb-scan-priv.h ?
-> 
-> I would keep them exported. It shouldn't be hard to provide a backward
-> compatible function with the same name where the extra parameter would
-> be filled internally, and passed to a new function with one extra argument.
+Hi Linus,
 
-As far as I understand dvb-scan uses these functions, so they are not
-that internal like intended. Providing a backward compatible function
-would be the way to go.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media master
 
-FYI: The Ubuntu buildbot discovered the breakage:
-> https://launchpad.net/~libv4l/+archive/ubuntu/development/+build/6528719/+files/buildlog_ubuntu-trusty-i386.v4l-utils_1.6.0%2Br2607-66%7Eubuntu14.04.1_FAILEDTOBUILD.txt.gz
+For:
+  - Some regression fixes at the Remote Controller core and imon driver;
+  - A build fix for certain randconfigs with ir-hix5hd2;
+  - Don't feed power to satellite system at ds3000 driver init.
+
+It also contains some fixes for drivers added for Kernel 3.18:
+  - Some fixes at the new ISDB-S driver, and the corresponding bits to fix
+    some descriptors for this Japanese TV standard at the DVB core;
+  - Two warning cleanups for sp2 driver if PM is disabled;
+  - Change the default mode for the new vivid driver;
 
 Thanks,
--Gregor
+Mauro
+
+The following changes since commit f7e87a44ef60ad379e39b45437604141453bf0ec:
+
+  Merge tag 'media/v3.18-rc2' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2014-10-27 15:05:40 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media master
+
+for you to fetch changes up to 167921cb0ff2bdbf25138dad799fec88c99ed316:
+
+  [media] sp2: sp2_init() can be static (2014-11-03 19:08:06 -0200)
+
+----------------------------------------------------------------
+media fixes for v3.18-rc4
+
+----------------------------------------------------------------
+Akihiro Tsukada (3):
+      [media] dvb:tc90522: fix stats report
+      [media] dvb-core: set default properties of ISDB-S
+      [media] dvb:tc90522: fix always-false expression
+
+Fengguang Wu (1):
+      [media] sp2: sp2_init() can be static
+
+Hans Verkuil (1):
+      [media] vivid: default to single planar device instances
+
+Mauro Carvalho Chehab (1):
+      [media] rc5-decoder: BZ#85721: Fix RC5-SZ decoding
+
+Tomas Melin (1):
+      [media] rc-core: fix protocol_change regression in ir_raw_event_register
+
+Ulrich Eckhardt (2):
+      [media] ds3000: fix LNB supply voltage on Tevii S480 on initialization
+      [media] imon: fix other RC type protocol support
+
+Zhangfei Gao (1):
+      [media] ir-hix5hd2 fix build warning
+
+ Documentation/video4linux/vivid.txt       | 12 +++++-------
+ drivers/media/dvb-core/dvb_frontend.c     |  6 ++++++
+ drivers/media/dvb-frontends/ds3000.c      |  7 +++++++
+ drivers/media/dvb-frontends/sp2.c         |  4 ++--
+ drivers/media/dvb-frontends/tc90522.c     | 18 ++++++++----------
+ drivers/media/platform/vivid/vivid-core.c | 11 +++--------
+ drivers/media/rc/imon.c                   |  3 ++-
+ drivers/media/rc/ir-hix5hd2.c             |  2 +-
+ drivers/media/rc/ir-rc5-decoder.c         |  2 +-
+ drivers/media/rc/rc-ir-raw.c              |  1 -
+ drivers/media/rc/rc-main.c                |  2 ++
+ 11 files changed, 37 insertions(+), 31 deletions(-)
+
