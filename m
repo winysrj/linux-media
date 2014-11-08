@@ -1,88 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:33301 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753071AbaKDKpH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 05:45:07 -0500
-Date: Tue, 4 Nov 2014 11:45:03 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 01/15] [media] Move mediabus format definition to a more
- standard place
-Message-ID: <20141104114503.309cb54f@bbrezillon>
-In-Reply-To: <5458A878.3010809@cisco.com>
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1415094910-15899-2-git-send-email-boris.brezillon@free-electrons.com>
-	<5458A878.3010809@cisco.com>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:34329 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753458AbaKHCVm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 21:21:42 -0500
+Received: by mail-ob0-f180.google.com with SMTP id wp4so3469244obc.39
+        for <linux-media@vger.kernel.org>; Fri, 07 Nov 2014 18:21:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Date: Sat, 8 Nov 2014 10:21:42 +0800
+Message-ID: <CANC6fRFjG6002rDiJjfDHteQSAnRkwfpyWV8wB39oHu5P8Q2mA@mail.gmail.com>
+Subject: Add controls to query camera read only paramters
+From: Bin Chen <bin.chen@linaro.org>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Everyone,
 
-On Tue, 04 Nov 2014 11:20:40 +0100
-Hans Verkuil <hansverk@cisco.com> wrote:
+I need suggestions with regard to adding controls to query camera read
+only parameters (e.g maxZoom/maxExposureCompensation) as needed by
+Android Camera API[1].
 
-> Hi Boris,
-> 
-> On 11/04/14 10:54, Boris Brezillon wrote:
-> > Rename mediabus formats and move the enum into a separate header file so
-> > that it can be used by DRM/KMS subsystem without any reference to the V4L2
-> > subsystem.
-> > 
-> > Old V4L2_MBUS_FMT_ definitions are now referencing MEDIA_BUS_FMT_ value.
-> 
-> I missed earlier that v4l2-mediabus.h contained a struct as well, so it can't be
-> deprecated and neither can a #warning be added.
-> 
-> The best approach, I think, is to use a macro in media-bus-format.h
-> that will either define just the MEDIA_BUS value when compiled in the kernel, or
-> define both MEDIA_BUS and V4L2_MBUS values when compiled for userspace.
-> 
-> E.g. something like this:
-> 
-> #ifdef __KERNEL__
-> #define MEDIA_BUS_FMT_ENTRY(name, val) MEDIA_BUS_FMT_ # name = val
-> #else
-> /* Keep V4L2_MBUS_FMT for backwards compatibility */
-> #define MEDIA_BUS_FMT_ENTRY(name, val) \
-> 	MEDIA_BUS_FMT_ # name = val, \
-> 	V4L2_MBUS_FMT_ # name = val
-> #endif
+What is in my mind is to add a customized camera control ID for each
+parameter I want to query and return EACCES when being used wit
+VIDIOC_S_EXT_CTRLS.
 
-Okay, but this means we keep adding V4L2_MBUS_FMT_ definitions even for
-new formats (which definitely doesn't encourage people to move on).
-Moreover, we add a V4L2 prefix in what was supposed to be a subsystem
-neutral header.
+Or, I can port the compound controls [2] patch and then I only need to
+add one customized control ID.
 
-Anyway, these are just nitpicks, and if you prefer this approach
-I'll rework my series :-).
+Comments? What is the better way to do this?
 
-> 
-> An alternative approach is to have v4l2-mediabus.h include media-bus-format.h,
-> put #ifndef __KERNEL__ around the enum v4l2_mbus_pixelcode and add a big comment
-> there that applications should use the defines from media-bus-format.h and that
-> this enum is frozen (i.e. new values are only added to media-bus-format.h).
-> 
-> But I think I like the macro idea best.
-
-As you wish, my only intent is to use those bus format definitions in a
-DRM driver :-).
-
-Thanks,
-
-Boris
-
+[1] http://developer.android.com/reference/android/hardware/Camera.Parameters.html
+[2]http://comments.gmane.org/gmane.comp.video.linuxtv.scm/19545
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Regards,
+Bin
