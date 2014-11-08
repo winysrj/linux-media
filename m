@@ -1,79 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42680 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbaKRJkF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53004 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752786AbaKHXJn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 04:40:05 -0500
-Message-ID: <546B13CC.6050605@xs4all.nl>
-Date: Tue, 18 Nov 2014 10:39:24 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API
- for v4l2_subdev_get_try_*()
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 8 Nov 2014 18:09:43 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 04/10] smiapp: Register async subdev
+Date: Sun,  9 Nov 2014 01:09:25 +0200
+Message-Id: <1415488171-27636-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+References: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/17/14 11:41, Lad, Prabhakar wrote:
-> this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
-> for v4l2_subdev_get_try_*() functions.
-> In cases where a subdev using v4l2_subdev_get_try_*() calls
-> internally and the bridge using subdev pad ops which is
-> not MC aware forces to select MEDIA_CONTROLLER, as
-> VIDEO_V4L2_SUBDEV_API is dependent on it.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  include/media/v4l2-subdev.h | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5860292..076ca11 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
->  #define to_v4l2_subdev_fh(fh)	\
->  	container_of(fh, struct v4l2_subdev_fh, vfh)
->  
-> -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->  #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
->  	static inline struct rtype *					\
->  	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
-> @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
->  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
->  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
->  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
-> -#endif
->  
->  extern const struct v4l2_file_operations v4l2_subdev_fops;
->  
-> 
+Register and unregister async sub-device for DT.
 
-The problem is that v4l2_subdev_get_try_*() needs a v4l2_subdev_fh which
-you don't have if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined. So I don't
-see how removing the guards help with that.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-What can be done is that if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
-then these functions return NULL.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 512eeed..7c79e72 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2943,8 +2943,21 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sensor = sensor;
+ 
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	return media_entity_init(&sensor->src->sd.entity, 2,
++	rval = media_entity_init(&sensor->src->sd.entity, 2,
+ 				 sensor->src->pads, 0);
++	if (rval < 0)
++		return rval;
++
++	rval = v4l2_async_register_subdev(&sensor->src->sd);
++	if (rval < 0)
++		goto out_media_entity_cleanup;
++
++	return 0;
++
++out_media_entity_cleanup:
++	media_entity_cleanup(&sensor->src->sd.entity);
++
++	return rval;
+ }
+ 
+ static int smiapp_remove(struct i2c_client *client)
+@@ -2953,6 +2966,8 @@ static int smiapp_remove(struct i2c_client *client)
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+ 	unsigned int i;
+ 
++	v4l2_async_unregister_subdev(subdev);
++
+ 	if (sensor->power_count) {
+ 		if (gpio_is_valid(sensor->platform_data->xshutdown))
+ 			gpio_set_value(sensor->platform_data->xshutdown, 0);
+-- 
+1.7.10.4
 
-BTW, one patch I will very happily accept is one where the __V4L2_SUBDEV_MK_GET_TRY
-is removed and these three try functions are just written as proper
-static inlines. I find it very obfuscated code.
-
-In addition, because it is a macro you won't find the function definitions
-if you grep on the function name.
-
-But any functional changes here need to be Acked by Laurent first.
-
-Regards,
-
-	Hans
