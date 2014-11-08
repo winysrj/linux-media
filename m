@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49775 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751934AbaKCVkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Nov 2014 16:40:08 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] si2168: do not print device is warm every-time when opened
-Date: Mon,  3 Nov 2014 23:39:02 +0200
-Message-Id: <1415050742-17146-1-git-send-email-crope@iki.fi>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:40497 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695AbaKHL0o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 06:26:44 -0500
+Received: by mail-lb0-f177.google.com with SMTP id u10so632821lbd.22
+        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 03:26:43 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1415350234-9826-8-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl> <1415350234-9826-8-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sat, 8 Nov 2014 20:19:39 +0900
+Message-ID: <CAMm-=zA9oeVbi6DR3gpZhM5V+psCySJj6EnWDjj+eMUgp2hLQA@mail.gmail.com>
+Subject: Re: [RFCv5 PATCH 07/15] vb2: replace 'write' by 'dma_dir'
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It repeated "found a 'Silicon Labs Si2168' in warm state" everytime
-when device was opened. Message is aimed to point out firmware is
-downloaded, up and running. So print it only in case firmware download
-is performed.
+Hi Hans,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Fri, Nov 7, 2014 at 5:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> The 'write' argument is very ambiguous. I first assumed that if it is 1,
+> then we're doing video output but instead it meant the reverse.
+>
+> Since it is used to setup the dma_dir value anyway it is now replaced by
+> the correct dma_dir value which is unambiguous.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 1cd93be..7bac748 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -498,10 +498,9 @@ static int si2168_init(struct dvb_frontend *fe)
- 
- 	s->fw_loaded = true;
- 
--warm:
- 	dev_info(&s->client->dev, "found a '%s' in warm state\n",
- 			si2168_ops.info.name);
--
-+warm:
- 	s->active = true;
- 
- 	return 0;
+Do we need the first patch adding write then? Maybe we could squash
+somehow and redo the series please?
+
 -- 
-http://palosaari.fi/
-
+Best regards,
+Pawel Osciak
