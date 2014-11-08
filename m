@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35475 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616AbaK2Kof (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53053 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753389AbaKHXKM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 05:44:35 -0500
-Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id D0FA92A008E
-	for <linux-media@vger.kernel.org>; Sat, 29 Nov 2014 11:44:19 +0100 (CET)
-Message-ID: <5479A386.9090606@xs4all.nl>
-Date: Sat, 29 Nov 2014 11:44:22 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [RFC] pms/bw-qcam/c-qcam/w9966: deprecate and remove
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sat, 8 Nov 2014 18:10:12 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 02/10] smiapp-pll: include linux/device.h in smiapp-pll.c, not in smiapp-pll.h
+Date: Sun,  9 Nov 2014 01:09:23 +0200
+Message-Id: <1415488171-27636-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+References: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I propose that these four drivers are deprecated and moved to staging and that
-1-2 kernel cycles later these drivers are removed.
+struct device has a forward declaration in the header already. The header is
+only needed in the .c file.
 
-bw-qcam, c-qcam and w9966 are all parallel port webcams. The w9966 driver
-hasn't been tested in a very long time since nobody has hardware. I do have
-hardware for bw-qcam and c-qcam although the c-qcam never gave me a good picture.
-I don't know whether that's due to hardware problems or driver problems.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp-pll.c |    1 +
+ drivers/media/i2c/smiapp-pll.h |    2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-The bw-qcam works for the most part but it can do weird things occasionally,
-especially if you fiddle around too much with the camera controls.
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 2b84d09..e3348db 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -16,6 +16,7 @@
+  * General Public License for more details.
+  */
+ 
++#include <linux/device.h>
+ #include <linux/gcd.h>
+ #include <linux/lcm.h>
+ #include <linux/module.h>
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index 77f7ff2f..b98d143 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -19,8 +19,6 @@
+ #ifndef SMIAPP_PLL_H
+ #define SMIAPP_PLL_H
+ 
+-#include <linux/device.h>
+-
+ /* CSI-2 or CCP-2 */
+ #define SMIAPP_PLL_BUS_TYPE_CSI2				0x00
+ #define SMIAPP_PLL_BUS_TYPE_PARALLEL				0x01
+-- 
+1.7.10.4
 
-All three webcam drivers are useless in practice since the quality and framerate
-is so poor. And vastly better cheap alternatives are available today.
-
-These drivers do use the latest frameworks, so from the point-of-view of kernel
-APIs they are OK. But it is extremely unlikely that anyone is still using such
-webcams and with easy availability of alternatives I think it is time to retire
-them.
-
-The pms driver is a video capture ISA card. I do have hardware, although the last
-time I tested it streaming didn't work anymore for no clear reason. While the
-code is OK it has the same issue as the parallel webcams: poor quality and frame
-rate, nobody uses it anymore and cheap and much better alternatives exist today.
-
-I believe it is time to retire these four drivers.
-
-Regards,
-
-	Hans
