@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:22776 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbaKQMSI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Nov 2014 07:18:08 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [REVIEW PATCH 4/5] img-ir: Don't set driver's module owner
-Date: Mon, 17 Nov 2014 12:17:48 +0000
-Message-ID: <1416226669-2983-5-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
-References: <1416226669-2983-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:37498 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444AbaKHJwo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 04:52:44 -0500
+Received: by mail-la0-f41.google.com with SMTP id s18so5672956lam.0
+        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 01:52:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1415350234-9826-4-git-send-email-hverkuil@xs4all.nl>
+References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl> <1415350234-9826-4-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Sat, 8 Nov 2014 18:44:45 +0900
+Message-ID: <CAMm-=zDr-cfOptyGb-Qs3S4KEdA9hWShiqPZBb658zDEoc=9Pg@mail.gmail.com>
+Subject: Re: [RFCv5 PATCH 03/15] vb2-dma-sg: move dma_(un)map_sg here
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't bother setting .owner = THIS_MODULE, since it's already handled by
-the platform_driver_register macro.
+Hi Hans,
+Thank you for the patch.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/rc/img-ir/img-ir-core.c | 1 -
- 1 file changed, 1 deletion(-)
+On Fri, Nov 7, 2014 at 5:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This moves dma_(un)map_sg to the get_userptr/put_userptr and alloc/put
+> memops of videobuf2-dma-sg.c and adds dma_sync_sg_for_device/cpu to the
+> prepare/finish memops.
+>
+> Now that vb2-dma-sg will sync the buffers for you in the prepare/finish
+> memops we can drop that from the drivers that use dma-sg.
+>
+> For the solo6x10 driver that was a bit more involved because it needs to
+> copy JPEG or MPEG headers to the buffer before returning it to userspace,
+> and that cannot be done in the old place since the buffer there is still
+> setup for DMA access, not for CPU access. However, the buf_finish
+> op is the ideal place to do this. By the time buf_finish is called
+> the buffer is available for CPU access, so copying to the buffer is fine.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
-index a0cac2f09109..77c78de4f5bf 100644
---- a/drivers/media/rc/img-ir/img-ir-core.c
-+++ b/drivers/media/rc/img-ir/img-ir-core.c
-@@ -166,7 +166,6 @@ MODULE_DEVICE_TABLE(of, img_ir_match);
- static struct platform_driver img_ir_driver = {
- 	.driver = {
- 		.name = "img-ir",
--		.owner	= THIS_MODULE,
- 		.of_match_table	= img_ir_match,
- 		.pm = &img_ir_pmops,
- 	},
+Acked-by: Pawel Osciak <pawel@osciak.com>
+
 -- 
-2.0.4
-
+Best regards,
+Pawel Osciak
