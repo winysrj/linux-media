@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58064 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729AbaK0WMk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 17:12:40 -0500
-Message-ID: <5477A1D5.70505@iki.fi>
-Date: Fri, 28 Nov 2014 00:12:37 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] si2168: add support for firmware files in new format
-References: <1417117343-1793-1-git-send-email-olli.salonen@iki.fi> <1417117343-1793-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1417117343-1793-2-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:45133 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbaKIIen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 03:34:43 -0500
+From: Beniamino Galvani <b.galvani@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, Carlo Caione <carlo@caione.org>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Jerry Cao <jerry.cao@amlogic.com>,
+	Victor Wan <victor.wan@amlogic.com>,
+	Beniamino Galvani <b.galvani@gmail.com>
+Subject: [PATCH v2 1/3] media: rc: meson: document device tree bindings
+Date: Sun,  9 Nov 2014 09:32:06 +0100
+Message-Id: <1415521928-25251-2-git-send-email-b.galvani@gmail.com>
+In-Reply-To: <1415521928-25251-1-git-send-email-b.galvani@gmail.com>
+References: <1415521928-25251-1-git-send-email-b.galvani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/27/2014 09:42 PM, Olli Salonen wrote:
-> This patch adds support for new type of firmware versions of Si2168 chip.
->
-> Old type: n x 8 bytes (all data, first byte seems to be 04 or 05)
-> New type: n x 17 bytes (1 byte indicates len and max 16 bytes data)
->
-> New version of TechnoTrend CT2-4400 drivers
-> (http://www.tt-downloads.de/bda-treiber_4.3.0.0.zip) contains newer
-> firmware for Si2168-B40 that is in the new format. It can be extracted
-> with the following command:
->
-> dd if=ttTVStick4400_64.sys ibs=1 skip=323872 count=6919 of=dvb-demod-si2168-b40-01.fw
->
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+This adds binding documentation for the infrared remote control
+receiver available in Amlogic Meson SoCs.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Beniamino Galvani <b.galvani@gmail.com>
+---
+ Documentation/devicetree/bindings/media/meson-ir.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/meson-ir.txt
 
-That change makes anyhow some headache on case driver is old and does 
-not support that newer firmware format... On that case it fails and 
-error is printed, though. But we can live with it as there is no 
-regression - kernel update is still possible. Only kernel downgrade 
-could cause problem if new format firmware is installed.
-
-regards
-Antti
-
+diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
+new file mode 100644
+index 0000000..407848e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/meson-ir.txt
+@@ -0,0 +1,14 @@
++* Amlogic Meson IR remote control receiver
++
++Required properties:
++ - compatible	: should be "amlogic,meson6-ir"
++ - reg		: physical base address and length of the device registers
++ - interrupts	: a single specifier for the interrupt from the device
++
++Example:
++
++	ir-receiver@c8100480 {
++		compatible= "amlogic,meson6-ir";
++		reg = <0xc8100480 0x20>;
++		interrupts = <0 15 1>;
++	};
 -- 
-http://palosaari.fi/
+1.9.1
+
