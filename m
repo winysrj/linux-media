@@ -1,67 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40618 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116AbaKWObk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 09:31:40 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8EB152A0083
-	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 15:31:34 +0100 (CET)
-Message-ID: <5471EFC6.6040806@xs4all.nl>
-Date: Sun, 23 Nov 2014 15:31:34 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:43535 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751350AbaKIWNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Nov 2014 17:13:07 -0500
+Message-ID: <545FE6F1.8090409@iki.fi>
+Date: Mon, 10 Nov 2014 00:13:05 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] Various cleanups &  sg_next fix
-Content-Type: text/plain; charset=utf-8
+To: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] smipcie: add DVBSky T9580 V3 support
+References: <201411081935169219971@gmail.com>
+In-Reply-To: <201411081935169219971@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This supersedes the previous pull request. It's identical, but the omap24xx
-Makefile patch was added.
+On 11/08/2014 01:35 PM, Nibble Max wrote:
+> v2:
+> - Update Kconfig file.
+>
+> DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
+> 1>DVB-S/S2 frontend: M88DS3103/M88TS2022
+> 2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
+> 2>PCIe bridge: SMI PCIe
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
 
-	Hans
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
+I reviewed the patch v1 also :]
 
-  [media] staging: media: bcm2048: fix coding style error (2014-11-21 16:50:37 -0200)
+Antti
 
-are available in the git repository at:
+> ---
+>   drivers/media/pci/smipcie/Kconfig   |  3 ++
+>   drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
+>   2 files changed, 70 insertions(+)
+>
+> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+> index 75a2992..35ace80 100644
+> --- a/drivers/media/pci/smipcie/Kconfig
+> +++ b/drivers/media/pci/smipcie/Kconfig
+> @@ -2,12 +2,15 @@ config DVB_SMIPCIE
+>   	tristate "SMI PCIe DVBSky cards"
+>   	depends on DVB_CORE && PCI && I2C
+>   	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+>   	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+>   	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+> +	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>   	help
+>   	  Support for cards with SMI PCIe bridge:
+>   	  - DVBSky S950 V3
+>   	  - DVBSky S952 V3
+> +	  - DVBSky T9580 V3
+>
+>   	  Say Y or M if you own such a device and want to use it.
+>   	  If unsure say N.
+> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+> index c27e45b..5d1932b 100644
+> --- a/drivers/media/pci/smipcie/smipcie.c
+> +++ b/drivers/media/pci/smipcie/smipcie.c
+> @@ -18,6 +18,8 @@
+>   #include "m88ds3103.h"
+>   #include "m88ts2022.h"
+>   #include "m88rs6000t.h"
+> +#include "si2168.h"
+> +#include "si2157.h"
+>
+>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+> @@ -618,6 +620,58 @@ err_tuner_i2c_device:
+>   	return ret;
+>   }
+>
+> +static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+> +{
+> +	int ret = 0;
+> +	struct smi_dev *dev = port->dev;
+> +	struct i2c_adapter *i2c;
+> +	struct i2c_adapter *tuner_i2c_adapter;
+> +	struct i2c_client *client_tuner, *client_demod;
+> +	struct i2c_board_info client_info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +
+> +	/* select i2c bus */
+> +	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &tuner_i2c_adapter;
+> +	si2168_config.fe = &port->fe;
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +
+> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
+> +	client_info.addr = 0x64;
+> +	client_info.platform_data = &si2168_config;
+> +
+> +	client_demod = smi_add_i2c_client(i2c, &client_info);
+> +	if (!client_demod) {
+> +		ret = -ENODEV;
+> +		return ret;
+> +	}
+> +	port->i2c_client_demod = client_demod;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = port->fe;
+> +
+> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+> +	client_info.addr = 0x60;
+> +	client_info.platform_data = &si2157_config;
+> +
+> +	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
+> +	if (!client_tuner) {
+> +		smi_del_i2c_client(port->i2c_client_demod);
+> +		port->i2c_client_demod = NULL;
+> +		ret = -ENODEV;
+> +		return ret;
+> +	}
+> +	port->i2c_client_tuner = client_tuner;
+> +	return ret;
+> +}
+> +
+>   static int smi_fe_init(struct smi_port *port)
+>   {
+>   	int ret = 0;
+> @@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
+>   	case DVBSKY_FE_M88RS6000:
+>   		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+>   		break;
+> +	case DVBSKY_FE_SIT2:
+> +		ret = smi_dvbsky_sit2_fe_attach(port);
+> +		break;
+>   	}
+>   	if (ret < 0)
+>   		return ret;
+> @@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>   	.fe_1 = DVBSKY_FE_M88RS6000,
+>   };
+>
+> +static struct smi_cfg_info dvbsky_t9580_cfg = {
+> +	.type = SMI_DVBSKY_T9580,
+> +	.name = "DVBSky T9580 V3",
+> +	.ts_0 = SMI_TS_DMA_BOTH,
+> +	.ts_1 = SMI_TS_DMA_BOTH,
+> +	.fe_0 = DVBSKY_FE_SIT2,
+> +	.fe_1 = DVBSKY_FE_M88DS3103,
+> +};
+> +
+>   /* PCI IDs */
+>   #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+>   	.vendor      = SMI_VID,    .device    = SMI_PID, \
+> @@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>   static const struct pci_device_id smi_id_table[] = {
+>   	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+>   	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
+> +	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
+>   	{0}
+>   };
+>   MODULE_DEVICE_TABLE(pci, smi_id_table);
+>
+>
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19i
-
-for you to fetch changes up to b0856f476664018cd75dedde9fc1e8d28a194e3c:
-
-  staging/media/Makefile: drop omap24xx reference (2014-11-23 15:29:48 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
-      v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
-      v4l2-common: remove unused helper functions.
-      v4l2-ctrl: move function prototypes from common.h to ctrls.h
-      v4l2-common: move v4l2_ctrl_check to cx2341x
-      staging/media/Makefile: drop omap24xx reference
-
-Prabhakar Lad (1):
-      media: vivid: use vb2_ops_wait_prepare/finish helper
-
- drivers/media/common/cx2341x.c               |  29 +++++++++++++++++++
- drivers/media/pci/bt8xx/bttv-risc.c          |  12 ++++----
- drivers/media/pci/cx25821/cx25821-core.c     |  12 ++++----
- drivers/media/pci/cx88/cx88-core.c           |   6 ++--
- drivers/media/pci/ivtv/ivtv-udma.c           |   2 +-
- drivers/media/platform/vivid/vivid-core.c    |  19 ++++--------
- drivers/media/platform/vivid/vivid-core.h    |   3 --
- drivers/media/platform/vivid/vivid-sdr-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vbi-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vbi-out.c |   4 +--
- drivers/media/platform/vivid/vivid-vid-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vid-out.c |   4 +--
- drivers/media/v4l2-core/v4l2-common.c        | 125 -------------------------------------------------------------------------------
- drivers/media/v4l2-core/v4l2-dev.c           |  34 +++++++++-------------
- drivers/staging/media/Makefile               |   1 -
- include/media/v4l2-common.h                  |  17 +----------
- include/media/v4l2-ctrls.h                   |  25 ++++++++++++++++
- 17 files changed, 100 insertions(+), 205 deletions(-)
+-- 
+http://palosaari.fi/
