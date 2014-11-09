@@ -1,201 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53835 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587AbaKZUnE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 15:43:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv7 PATCH 06/12] vb2-dma-sg: move dma_(un)map_sg here
-Date: Wed, 26 Nov 2014 22:43:27 +0200
-Message-ID: <1932278.iP6q74Eg9b@avalon>
-In-Reply-To: <1416315068-22936-7-git-send-email-hverkuil@xs4all.nl>
-References: <1416315068-22936-1-git-send-email-hverkuil@xs4all.nl> <1416315068-22936-7-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:60971 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbaKIPFm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 10:05:42 -0500
+Received: by mail-qc0-f175.google.com with SMTP id b13so5189578qcw.20
+        for <linux-media@vger.kernel.org>; Sun, 09 Nov 2014 07:05:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Sun, 9 Nov 2014 16:05:41 +0100
+Message-ID: <CAKm1XeJh9UjYvsoJUeLDwW6whkkm1cfFPHCrH0fX0vX20Fg9hQ@mail.gmail.com>
+Subject: Problems with USB DVB-T stick by MAGIX (TerraTec Cinergy T USB XE Ver.2)
+From: Maksym Gendin <maksym.gendin@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi guys,
 
-Thank you for the patch.
+I'm new here and I have some problems with a TerraTec Cinergy T USB XE
+DVB-T stick by german manufactor MAGIX on Arch Linux.
 
-On Tuesday 18 November 2014 13:51:02 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This moves dma_(un)map_sg to the get_userptr/put_userptr and alloc/put
-> memops of videobuf2-dma-sg.c and adds dma_sync_sg_for_device/cpu to the
-> prepare/finish memops.
-> 
-> Now that vb2-dma-sg will sync the buffers for you in the prepare/finish
-> memops we can drop that from the drivers that use dma-sg.
-> 
-> For the solo6x10 driver that was a bit more involved because it needs to
-> copy JPEG or MPEG headers to the buffer before returning it to userspace,
-> and that cannot be done in the old place since the buffer there is still
-> setup for DMA access, not for CPU access. However, the buf_finish
-> op is the ideal place to do this. By the time buf_finish is called
-> the buffer is available for CPU access, so copying to the buffer is fine.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pawel Osciak <pawel@osciak.com>
-> ---
->  drivers/media/pci/cx23885/cx23885-417.c         |  3 --
->  drivers/media/pci/cx23885/cx23885-core.c        |  5 ---
->  drivers/media/pci/cx23885/cx23885-dvb.c         |  3 --
->  drivers/media/pci/cx23885/cx23885-vbi.c         |  9 -----
->  drivers/media/pci/cx23885/cx23885-video.c       |  9 -----
->  drivers/media/pci/saa7134/saa7134-empress.c     |  1 -
->  drivers/media/pci/saa7134/saa7134-ts.c          | 16 --------
->  drivers/media/pci/saa7134/saa7134-vbi.c         | 15 --------
->  drivers/media/pci/saa7134/saa7134-video.c       | 15 --------
->  drivers/media/pci/saa7134/saa7134.h             |  1 -
->  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 50 ++++++++++------------
->  drivers/media/pci/tw68/tw68-video.c             |  8 ----
->  drivers/media/platform/marvell-ccic/mcam-core.c | 18 +--------
->  drivers/media/v4l2-core/videobuf2-dma-sg.c      | 39 +++++++++++++++++++
->  14 files changed, 62 insertions(+), 130 deletions(-)
+dmesg output when I plug the stick in:
 
-[snip]
+[  267.443420] usb 3-2: new high-speed USB device number 2 using ehci-pci
 
+Here is what lsusb is saying about the stick:
 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 2bf13dc..f671fab 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -96,6 +96,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
-> long size, {
->  	struct vb2_dma_sg_conf *conf = alloc_ctx;
->  	struct vb2_dma_sg_buf *buf;
-> +	struct sg_table *sgt;
->  	int ret;
->  	int num_pages;
-> 
-> @@ -128,6 +129,12 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
-> long size,
-> 
->  	/* Prevent the device from being released while the buffer is used */
->  	buf->dev = get_device(conf->dev);
-> +
-> +	sgt = &buf->sg_table;
-> +	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-> +		goto fail_map;
-> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+Bus 003 Device 002: ID 0ccd:0095 TerraTec Electronic GmbH
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x0ccd TerraTec Electronic GmbH
+  idProduct          0x0095
+  bcdDevice            2.00
+  iManufacturer           1 TerraTec
+  iProduct                2 Cinergy T USB XE Ver.2
+  iSerial                 3 10012007
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
 
-I can't help feeling there's a problem here if we need to sync the buffer for 
-the CPU right before mapping it. I wonder whether we could just remove the 
-dma_sync_sg_for_cpu() call. It depends on whether the cpu to dev sync 
-implicitly performed by dma_map_sg is defined as only making the memory 
-consistent for the device without making it inconsistent for the CPU, or as 
-passing the memory ownership from the CPU to the device completely.
+It looks like it is a Cinergy T USB XE Ver.2 stick with a different
+USB ID (0095 instead of 0069).
 
-Some comment for the similar implementation in put_userptr.
+I've tried to change the USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2 value
+to 0x0095 in the file "dvb-usb-ids.h" and to recompile the package.
+The stick was recognized then, but there were other errors when I
+tried to use it in VLC. Is there something else which I have to do to
+get the stick to work? Unfortunately I don't have the error logs
+anymore, but if you need them I can reproduce it.
 
->  	buf->handler.refcount = &buf->refcount;
->  	buf->handler.put = vb2_dma_sg_put;
->  	buf->handler.arg = buf;
-> @@ -138,6 +145,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
-> long size, __func__, buf->num_pages);
->  	return buf;
-> 
-> +fail_map:
-> +	put_device(buf->dev);
-> +	sg_free_table(buf->dma_sgt);
-
-That's an unrelated bug fix, it should be split to a separate patch.
-
->  fail_table_alloc:
->  	num_pages = buf->num_pages;
->  	while (num_pages--)
-> @@ -152,11 +162,13 @@ fail_pages_array_alloc:
->  static void vb2_dma_sg_put(void *buf_priv)
->  {
->  	struct vb2_dma_sg_buf *buf = buf_priv;
-> +	struct sg_table *sgt = &buf->sg_table;
->  	int i = buf->num_pages;
-> 
->  	if (atomic_dec_and_test(&buf->refcount)) {
->  		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
->  			buf->num_pages);
-> +		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->  		if (buf->vaddr)
->  			vm_unmap_ram(buf->vaddr, buf->num_pages);
->  		sg_free_table(&buf->sg_table);
-> @@ -168,6 +180,22 @@ static void vb2_dma_sg_put(void *buf_priv)
->  	}
->  }
-> 
-> +static void vb2_dma_sg_prepare(void *buf_priv)
-> +{
-> +	struct vb2_dma_sg_buf *buf = buf_priv;
-> +	struct sg_table *sgt = &buf->sg_table;
-> +
-> +	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +}
-> +
-> +static void vb2_dma_sg_finish(void *buf_priv)
-> +{
-> +	struct vb2_dma_sg_buf *buf = buf_priv;
-> +	struct sg_table *sgt = &buf->sg_table;
-> +
-> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +}
-> +
->  static inline int vma_is_io(struct vm_area_struct *vma)
->  {
->  	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-> @@ -181,6 +209,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
-> unsigned long vaddr, unsigned long first, last;
->  	int num_pages_from_user;
->  	struct vm_area_struct *vma;
-> +	struct sg_table *sgt;
-> 
->  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->  	if (!buf)
-> @@ -246,8 +275,14 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
-> unsigned long vaddr, buf->num_pages, buf->offset, size, 0))
->  		goto userptr_fail_alloc_table_from_pages;
-> 
-> +	sgt = &buf->sg_table;
-> +	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-> +		goto userptr_fail_map;
-> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +
->  	return buf;
-> 
-> +userptr_fail_map:
-> +	sg_free_table(&buf->sg_table);
->  userptr_fail_alloc_table_from_pages:
->  userptr_fail_get_user_pages:
->  	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
-> @@ -270,10 +305,12 @@ userptr_fail_alloc_pages:
->  static void vb2_dma_sg_put_userptr(void *buf_priv)
->  {
->  	struct vb2_dma_sg_buf *buf = buf_priv;
-> +	struct sg_table *sgt = &buf->sg_table;
->  	int i = buf->num_pages;
-> 
->  	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
->  	       __func__, buf->num_pages);
-> +	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
->  	if (buf->vaddr)
->  		vm_unmap_ram(buf->vaddr, buf->num_pages);
->  	sg_free_table(&buf->sg_table);
-> @@ -360,6 +397,8 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
->  	.put		= vb2_dma_sg_put,
->  	.get_userptr	= vb2_dma_sg_get_userptr,
->  	.put_userptr	= vb2_dma_sg_put_userptr,
-> +	.prepare	= vb2_dma_sg_prepare,
-> +	.finish		= vb2_dma_sg_finish,
->  	.vaddr		= vb2_dma_sg_vaddr,
->  	.mmap		= vb2_dma_sg_mmap,
->  	.num_users	= vb2_dma_sg_num_users,
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Best regards,
+Maksym
