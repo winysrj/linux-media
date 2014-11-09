@@ -1,111 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:45886 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699AbaK0Ajf (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48635 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751232AbaKIDnb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Nov 2014 19:39:35 -0500
-Date: Thu, 27 Nov 2014 00:39:19 +0000
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Joe Perches <joe@perches.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	jarod <jarod@wilsonet.com>, "m.chehab" <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"mahfouz.saif.elyazal" <mahfouz.saif.elyazal@gmail.com>,
-	"dan.carpenter" <dan.carpenter@oracle.com>,
-	"tuomas.tynkkynen" <tuomas.tynkkynen@iki.fi>,
-	"gulsah.1004" <gulsah.1004@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] staging: media: lirc: lirc_zilog.c: fix quoted strings
- split across lines
-Message-ID: <20141127003919.GB3249@biggie>
-References: <20141125201905.GA10900@biggie>
- <1416947244.8358.12.camel@perches.com>
- <20141125204056.GA12162@biggie>
- <1416949207.8358.14.camel@perches.com>
- <20141125211428.GA12346@biggie>
- <1416966580.8358.17.camel@perches.com>
- <CAPA4HGVJ_gJacLtgtQSJgSjgks9_7aGSuy2+aLOtkz01+Ng7CQ@mail.gmail.com>
- <1417017955.19695.3.camel@perches.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1417017955.19695.3.camel@perches.com>
+	Sat, 8 Nov 2014 22:43:31 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3E9EA2A0433
+	for <linux-media@vger.kernel.org>; Sun,  9 Nov 2014 04:43:23 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141109034323.3E9EA2A0433@tschai.lan>
+Date: Sun,  9 Nov 2014 04:43:23 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 26, 2014 at 08:05:55AM -0800, Joe Perches wrote:
-> On Wed, 2014-11-26 at 15:42 +0000, Luis de Bethencourt wrote:
-> > On 26 November 2014 at 01:49, Joe Perches <joe@perches.com> wrote:
-> []
-> > > There is a script I posted a while back that
-> > > groups various checkpatch "types" together and
-> > > makes it a bit easier to do cleanup style
-> > > patches.
-> > >
-> > > https://lkml.org/lkml/2014/7/11/794
-> > That is useful! I just run it on staging/octeon/ and it wrote two patches.
-> > Will submit them in a minute.
-> 
-> Please make sure and write better commit messages
-> than the script produces.
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Will do :)
+Results of the daily build of media_tree:
 
-> > > Using checkpatch to get familiar with kernel
-> > > development is fine and all, but fixing actual
-> > > defects and submitting new code is way more
-> > > useful.
-> []
-> > I agree. I was just using checkpatch to learn about the development process.
-> > How to create patches, submit patches, follow review, and such. Better to
-> > do it
-> > with small changes like this first.
-> 
-> That's a good way to start.
-> 
-> > Which makes me wonder. Is my patch accepted? Will it be merged? I can do the
-> > proposed logging macro additions in a few days. Not sure yet how the final
-> > step of the process when patches get accepted and merged works.
-> 
-> You will generally get an email from a maintainer
-> when patches are accepted/rejected or you get
-> feedback asking for various changes.
-> 
-> Greg KH does that for drivers/staging but not for
-> drivers/staging/media.  Mauro Carvalho Chehab does.
-> 
-> These emails are not immediate.  It can take 2 or 3
-> weeks for a response.  Sometimes longer, sometimes
-> shorter, sometimes no response ever comes.
->
+date:		Sun Nov  9 04:00:15 CET 2014
+git branch:	test
+git hash:	4895cc47a072dcb32d3300d0a46a251a8c6db5f1
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
-I understand. Busy people.
- 
-> After a month or so, if you get no response, maybe
-> the maintainer never saw it.  You should maybe
-> expand the cc: list for the email.
-> 
-> When the patch is more than a trivial style cleanup,
-> Andrew Morton generally picks up orphan patches.
-> 
-> For some subsystems, there are "tracking" mechanisms
-> like patchwork:
-> 
-> For instance, netdev (net/ and drivers/net/) uses:
-> http://patchwork.ozlabs.org/project/netdev/list/
-> and David Miller, the primary networking maintainer
-> is very prompt about updating it.
-> 
-> There's this list of patchwork entries, but maintainer
-> activity of these lists vary:
-> 
-> https://patchwork.kernel.org/
-> 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Very interesting.
+Detailed results are available here:
 
-I will follow the process through and learn on the way.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Thanks Joe!
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
