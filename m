@@ -1,113 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:42434 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754829AbaKPIYn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Nov 2014 03:24:43 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v2] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
-Date: Sun, 16 Nov 2014 09:24:38 +0100
-Message-Id: <1416126278-17708-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42923 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751350AbaKIWLZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Nov 2014 17:11:25 -0500
+Message-ID: <545FE68B.8080905@iki.fi>
+Date: Mon, 10 Nov 2014 00:11:23 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] smipcie: add DVBSky T9580 V3 support
+References: <201411081647541566078@gmail.com>
+In-Reply-To: <201411081647541566078@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add RGB444_1X12 and RGB565_1X16 format definitions and update the
-documentation.
+On 11/08/2014 10:47 AM, Nibble Max wrote:
+> DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
+> 1>DVB-S/S2 frontend: M88DS3103/M88TS2022
+> 2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
+> 2>PCIe bridge: SMI PCIe
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
-Changes since v1:
-- keep BPP and bits per sample ordering
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
- Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 ++-
- 2 files changed, 43 insertions(+), 1 deletion(-)
+Antti
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 18730b9..0d6f731 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -176,6 +176,24 @@
- 	    </row>
- 	  </thead>
- 	  <tbody valign="top">
-+	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
-+	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
-+	      <entry>0x100d</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
- 	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
- 	      <entry>0x1001</entry>
-@@ -288,6 +306,28 @@
- 	      <entry>g<subscript>4</subscript></entry>
- 	      <entry>g<subscript>3</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
-+	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
-+	      <entry>0x100d</entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
- 	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
- 	      <entry>0x1005</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 23b4090..37091c6 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,11 +33,13 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x100e */
-+/* RGB - next is	0x1010 */
-+#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
-+#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
- #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
- #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
+> ---
+>   drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
+>   1 file changed, 67 insertions(+)
+>
+> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+> index c27e45b..a5707ea 100644
+> --- a/drivers/media/pci/smipcie/smipcie.c
+> +++ b/drivers/media/pci/smipcie/smipcie.c
+> @@ -18,6 +18,8 @@
+>   #include "m88ds3103.h"
+>   #include "m88ts2022.h"
+>   #include "m88rs6000t.h"
+> +#include "si2168.h"
+> +#include "si2157.h"
+>
+>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+> @@ -618,6 +620,58 @@ err_tuner_i2c_device:
+>   	return ret;
+>   }
+>
+> +static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+> +{
+> +	int ret = 0;
+> +	struct smi_dev *dev = port->dev;
+> +	struct i2c_adapter *i2c;
+> +	struct i2c_adapter *tuner_i2c_adapter;
+> +	struct i2c_client *client_tuner, *client_demod;
+> +	struct i2c_board_info client_info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +
+> +	/* select i2c bus */
+> +	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &tuner_i2c_adapter;
+> +	si2168_config.fe = &port->fe;
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +
+> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
+> +	client_info.addr = 0x64;
+> +	client_info.platform_data = &si2168_config;
+> +
+> +	client_demod = smi_add_i2c_client(i2c, &client_info);
+> +	if (!client_demod) {
+> +		ret = -ENODEV;
+> +		return ret;
+> +	}
+> +	port->i2c_client_demod = client_demod;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = port->fe;
+> +
+> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+> +	client_info.addr = 0x60;
+> +	client_info.platform_data = &si2157_config;
+> +
+> +	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
+> +	if (!client_tuner) {
+> +		smi_del_i2c_client(port->i2c_client_demod);
+> +		port->i2c_client_demod = NULL;
+> +		ret = -ENODEV;
+> +		return ret;
+> +	}
+> +	port->i2c_client_tuner = client_tuner;
+> +	return ret;
+> +}
+> +
+>   static int smi_fe_init(struct smi_port *port)
+>   {
+>   	int ret = 0;
+> @@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
+>   	case DVBSKY_FE_M88RS6000:
+>   		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+>   		break;
+> +	case DVBSKY_FE_SIT2:
+> +		ret = smi_dvbsky_sit2_fe_attach(port);
+> +		break;
+>   	}
+>   	if (ret < 0)
+>   		return ret;
+> @@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>   	.fe_1 = DVBSKY_FE_M88RS6000,
+>   };
+>
+> +static struct smi_cfg_info dvbsky_t9580_cfg = {
+> +	.type = SMI_DVBSKY_S952,
+> +	.name = "DVBSky T9580 V3",
+> +	.ts_0 = SMI_TS_DMA_BOTH,
+> +	.ts_1 = SMI_TS_DMA_BOTH,
+> +	.fe_0 = DVBSKY_FE_SIT2,
+> +	.fe_1 = DVBSKY_FE_M88DS3103,
+> +};
+> +
+>   /* PCI IDs */
+>   #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+>   	.vendor      = SMI_VID,    .device    = SMI_PID, \
+> @@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>   static const struct pci_device_id smi_id_table[] = {
+>   	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+>   	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
+> +	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
+>   	{0}
+>   };
+>   MODULE_DEVICE_TABLE(pci, smi_id_table);
+>
+>
+
 -- 
-1.9.1
-
+http://palosaari.fi/
