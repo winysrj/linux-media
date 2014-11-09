@@ -1,112 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36919 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751648AbaK1Oi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Nov 2014 09:38:26 -0500
-Date: Fri, 28 Nov 2014 14:38:23 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"b.zolnierkie@samsung.com" <b.zolnierkie@samsung.com>,
-	"pavel@ucw.cz" <pavel@ucw.cz>,
-	"cooloney@gmail.com" <cooloney@gmail.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH/RFC v8 08/14] DT: Add documentation for exynos4-is
- 'flashes' property
-Message-ID: <20141128143823.GJ25883@leverpostej>
-References: <1417166286-27685-1-git-send-email-j.anaszewski@samsung.com>
- <1417166286-27685-9-git-send-email-j.anaszewski@samsung.com>
- <20141128111404.GB25883@leverpostej>
- <547865EA.5010700@samsung.com>
- <20141128123003.GE25883@leverpostej>
- <54788278.7080101@samsung.com>
+Received: from gofer.mess.org ([80.229.237.210]:46096 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751510AbaKIVfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Nov 2014 16:35:22 -0500
+Date: Sun, 9 Nov 2014 21:35:17 +0000
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andy Walls <awalls.cx18@gmail.com>,
+	Jarod Wilson <jwilson@redhat.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	linux-media@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
+ with dev_* and pr_*
+Message-ID: <20141109213517.GA1349@gofer.mess.org>
+References: <20141031130600.GA16310@mwanda>
+ <20141031142644.GA4166@localhost.localdomain>
+ <20141031143541.GM6890@mwanda>
+ <20141106124629.GA898@gofer.mess.org>
+ <20141106110549.1812acc7@recife.lan>
+ <20141106132113.GA1367@gofer.mess.org>
+ <697D038C-4BD9-4113-8E7E-B89BACF09AC2@gmail.com>
+ <6BB6C08A-32A2-4A37-B6F7-332556C9626E@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54788278.7080101@samsung.com>
+In-Reply-To: <6BB6C08A-32A2-4A37-B6F7-332556C9626E@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 28, 2014 at 02:11:04PM +0000, Jacek Anaszewski wrote:
-> On 11/28/2014 01:30 PM, Mark Rutland wrote:
-> > On Fri, Nov 28, 2014 at 12:09:14PM +0000, Jacek Anaszewski wrote:
-> >> On 11/28/2014 12:14 PM, Mark Rutland wrote:
-> >>> On Fri, Nov 28, 2014 at 09:18:00AM +0000, Jacek Anaszewski wrote:
-> >>>> This patch adds a description of 'flashes' property
-> >>>> to the samsung-fimc.txt.
-> >>>>
-> >>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >>>> Cc: Rob Herring <robh+dt@kernel.org>
-> >>>> Cc: Pawel Moll <pawel.moll@arm.com>
-> >>>> Cc: Mark Rutland <mark.rutland@arm.com>
-> >>>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> >>>> Cc: Kumar Gala <galak@codeaurora.org>
-> >>>> Cc: <devicetree@vger.kernel.org>
-> >>>> ---
-> >>>>    .../devicetree/bindings/media/samsung-fimc.txt     |    7 +++++++
-> >>>>    1 file changed, 7 insertions(+)
-> >>>>
-> >>>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>>> index 922d6f8..4b7ed03 100644
-> >>>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>>> @@ -40,6 +40,12 @@ should be inactive. For the "active-a" state the camera port A must be activated
-> >>>>    and the port B deactivated and for the state "active-b" it should be the other
-> >>>>    way around.
-> >>>>
-> >>>> +Optional properties:
-> >>>> +
-> >>>> +- flashes - array of strings with flash led names; the name has to
-> >>>> +	    be same with the related led label
-> >>>> +	    (see Documentation/devicetree/bindings/leds/common.txt)
-> >>>> +
-> >>>
-> >>> Why is this not an array of phandles to the LED nodes? That's much
-> >>> better than strings.
-> >>
-> >> This is because a single flash led device can control many sub-leds,
-> >> which are represented by child nodes in the Device Tree.
-> >> Every sub-led is registered as a separate LED Flash class device
-> >> in the LED subsystem, but in fact they share the same struct device
-> >> and thus have access only to the parent's phandle.
+On Thu, Nov 06, 2014 at 08:56:47AM -0500, Andy Walls wrote:
+> On November 6, 2014 8:54:28 AM EST, Andy Walls <awalls.cx18@gmail.com> wrote:
+> >Sean,
 > >
-> > But that's a Linux infrastrcture issue, no? You don't have to use the
-> > node from the struct device to find the relevant phandle.
-> 
-> Right.
-> 
-> >> The LED Flash
-> >> class devices are wrapped by V4L2 sub-devices and register
-> >> asynchronously within a media device. Since the v4l2_subdev structure
-> >> has a 'name' field, it is convenient to initialize it with
-> >> parsed 'label' property of a child led node and match the
-> >> sub-devices in the media device basing on it.
+> >Ir-kbd-i2c was never intended for Tx.
 > >
-> > While that might be convenient, I don't think it's fantastic to use that
-> > to describe the relationship, as this leaks Linux internals (e.g. I can
-> > refer to a name that doesn't exist in the DT but happens to be what
-> > Linux used, and it would work). Also, are the labels guaranteed to be
-> > globally unique?
-> 
-> The labels are used for initializing class device name and kernel
-> doesn't allow to initialize two devices with same names.
-> This implies that labels are guaranteed to be globally unique.
+> >You can transmit *short* arbitrary pulse-space streams with the zilog
+> >chip, by feeding it a parameter block that has the pulse timing
+> >information and then subsequently has been obfuscated.  The firmware
+> >file that LIRC uses in userspace is full of predefined versions of
+> >these things for RC5 and NEC IIRC.  This LIRC firmware file also holds
+> >the (de)obfuscation key.
+> >
+> >I've got a bunch of old notes on this stuff from essentially reverse
+> >engineering the firmware in the Z8.  IANAL, but to me, its use in
+> >developing in-kernel stuff could be dubious.
+> >
+> >Regards,
+> >Andy
 
-On Linux, yes, but that's an implementation detail, not a property of
-the binding·
+Very interesting.
 
-Mark.
+I had considered reverse engineering the z8 firmware but I never found a
+way to access it. I guess we have three options:
+
+1. I could use Andy's notes to implement Tx. I have not seen the original
+   firmware code so I'm not contaminated by reverse engineering it. IANAL 
+   but I thought this is an acceptable way of writing a driver.
+
+2. Hauppauge could prove us with documentation to write a driver with.
+
+3. Leave it as-is, lirc_zilog will eventually be deleted from staging as it
+   can't be ported to rc-core.
+
+
+Sean
