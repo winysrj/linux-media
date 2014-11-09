@@ -1,175 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:56421 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753551AbaKHKx2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Nov 2014 05:53:28 -0500
-Received: by mail-la0-f48.google.com with SMTP id gq15so5754458lab.35
-        for <linux-media@vger.kernel.org>; Sat, 08 Nov 2014 02:53:26 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:38320 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751350AbaKIV2i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Nov 2014 16:28:38 -0500
+Message-ID: <545FDC84.4020602@iki.fi>
+Date: Sun, 09 Nov 2014 23:28:36 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
-References: <1415350234-9826-1-git-send-email-hverkuil@xs4all.nl> <1415350234-9826-6-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sat, 8 Nov 2014 19:45:19 +0900
-Message-ID: <CAMm-=zBMODk93vYHHaJ8MbP2VQRVqEzJ5vcUJqirhF-jWhH8Hw@mail.gmail.com>
-Subject: Re: [RFCv5 PATCH 05/15] vb2-dma-sg: add get_dmabuf
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+To: Jan Tisje <jan.tisje@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Technisat DVB-S2 USB: reduced buffer sizes
+References: <545E4FA1.9010509@gmx.de>
+In-Reply-To: <545E4FA1.9010509@gmx.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Thank you for the patch.
+Hello
+I forget to mention, but the technique I use some error and trial to 
+find out smallest possible buffer in a worst case. Worst case is case 
+where stream bandwidth is ~biggest possible. Most effective modulation, 
+less error coding, maximum channel bandwidth (symbol rate). Then add 
+some 20% extra to that. You will see it immediately when USB buffers are 
+too small - data starts dropping, which means audio and video are so 
+broken you could see pixels on video and crackle on audio.
 
-On Fri, Nov 7, 2014 at 5:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
+Minimum size of needed USB buffer is largely dependent use USB chip 
+buffer size (FIFO) and data stream size which is transferred over the USB.
+
+According to interface descriptors, that chip supports both bulk and 
+isochronous transfers (select using different alternative setting). I 
+would prefer always bulk over isoc due to performance reasons. Isoc 
+guarantee some timing and bandwidth for just this device, whilst bulk is 
+just like a best-effort delivery. For DVB streaming timing issues are 
+not critical and you surely find it very soon if you try use too many 
+devices on same bus, which are using all the bus bandwidth, as the 
+stream goes garbage. I think isoc device will be just rejected if USB 
+core cannot reserve bandwidth it requests (from interface descriptors(?)).
+
+Also, it is very often seen that those interface descriptors are wrong. 
+Even it says isoc payload 2x 1024, it could be something else, like 
+1x1024. Using maximum 3x1024 and adding debugs will print real used size.
+
+regards
+Antti
+
+
+On 11/08/2014 07:15 PM, Jan Tisje wrote:
+> Hi,
 >
-> Add DMABUF export support to vb2-dma-sg.
-
-I think we should mention in the subject that this adds dmabuf export to dma-sg.
-
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
->  1 file changed, 170 insertions(+)
+> I reduced the buffer size in order to make this driver work on my NAS
+> station. It's an arm system and thus only has limited resources.
 >
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index 2795c27..ca28a50 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -407,6 +407,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
->  }
+> I compiled and ran with kernel 3.16.3 for some weeks and now compiled
+> and booted kernel 3.17.2 today.
+> Without this patch the device doesn't work at all, in both kernel versions.
 >
->  /*********************************************/
-> +/*         DMABUF ops for exporters          */
-> +/*********************************************/
-> +
-> +struct vb2_dma_sg_attachment {
-> +       struct sg_table sgt;
-> +       enum dma_data_direction dir;
-> +};
-> +
-> +static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-> +       struct dma_buf_attachment *dbuf_attach)
-> +{
-> +       struct vb2_dma_sg_attachment *attach;
-> +       unsigned int i;
-> +       struct scatterlist *rd, *wr;
-> +       struct sg_table *sgt;
-> +       struct vb2_dma_sg_buf *buf = dbuf->priv;
-> +       int ret;
-> +
-> +       attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-> +       if (!attach)
-> +               return -ENOMEM;
-> +
-> +       sgt = &attach->sgt;
-> +       /* Copy the buf->base_sgt scatter list to the attachment, as we can't
-> +        * map the same scatter list to multiple attachments at the same time.
-> +        */
-> +       ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-> +       if (ret) {
-> +               kfree(attach);
-> +               return -ENOMEM;
-> +       }
-> +
-> +       rd = buf->dma_sgt->sgl;
-> +       wr = sgt->sgl;
-> +       for (i = 0; i < sgt->orig_nents; ++i) {
-> +               sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-> +               rd = sg_next(rd);
-> +               wr = sg_next(wr);
-> +       }
-> +
-> +       attach->dir = DMA_NONE;
-> +       dbuf_attach->priv = attach;
-> +
-> +       return 0;
-> +}
-> +
-> +static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-> +       struct dma_buf_attachment *db_attach)
-> +{
-> +       struct vb2_dma_sg_attachment *attach = db_attach->priv;
-> +       struct sg_table *sgt;
-> +
-> +       if (!attach)
-> +               return;
-> +
-> +       sgt = &attach->sgt;
-> +
-> +       /* release the scatterlist cache */
-> +       if (attach->dir != DMA_NONE)
-> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> +                       attach->dir);
-> +       sg_free_table(sgt);
-> +       kfree(attach);
-> +       db_attach->priv = NULL;
-> +}
-> +
-> +static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-> +       struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-> +{
-> +       struct vb2_dma_sg_attachment *attach = db_attach->priv;
-> +       /* stealing dmabuf mutex to serialize map/unmap operations */
-> +       struct mutex *lock = &db_attach->dmabuf->lock;
-> +       struct sg_table *sgt;
-> +       int ret;
-> +
-> +       mutex_lock(lock);
-> +
-> +       sgt = &attach->sgt;
-> +       /* return previously mapped sg table */
-> +       if (attach->dir == dir) {
-> +               mutex_unlock(lock);
-> +               return sgt;
-> +       }
-> +
-> +       /* release any previous cache */
-> +       if (attach->dir != DMA_NONE) {
-> +               dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-> +                       attach->dir);
-> +               attach->dir = DMA_NONE;
-> +       }
-> +
-> +       /* mapping to the client with new direction */
-> +       ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-> +       if (ret <= 0) {
-> +               pr_err("failed to map scatterlist\n");
-> +               mutex_unlock(lock);
-> +               return ERR_PTR(-EIO);
-> +       }
-> +
-> +       attach->dir = dir;
-> +
-> +       mutex_unlock(lock);
-> +
-> +       return sgt;
-> +}
-> +
-> +static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-> +       struct sg_table *sgt, enum dma_data_direction dir)
-> +{
-> +       /* nothing to be done here */
-> +}
-> +
-> +static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-> +{
-> +       /* drop reference obtained in vb2_dma_sg_get_dmabuf */
-> +       vb2_dma_sg_put(dbuf->priv);
-> +}
-> +
-> +static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-> +{
-> +       struct vb2_dma_sg_buf *buf = dbuf->priv;
-> +
-> +       return buf->vaddr + pgnum * PAGE_SIZE;
-
-As opposed to contig, which assigns vaddr on alloc(), vaddr can very
-well be NULL here for sg.
+> This is what Antti Palosaar crope@iki.fi wrote:
+>> If I didn't remember wrong, that means allocated buffers are 8 * 32 * 2048 = 524288 bytes.
+>> It sounds rather big for my taste. Probably even wrong. IIRC USB2.0 frames are 1024 and there could be 1-3 frames.
+>> You could use lsusb with all verbosity levels to see if it is 1024/2048/3072. And set value according to that info.
+>> So I would recommend .count = 6, .framesperurb = 8, .framesize = 1024
+>
+>
+> I only changed one value because this was sufficient to make it work.
+>
+> I believe these sizes correspond to the output of lsusb -v
+> But to be honest: I don't have any idea of what this all is about. USB
+> wasn't invented yet when I studied computer science. ;)
+> maybe someone knows better.
+>
+>      Interface Descriptor:
+>        bAlternateSetting       0
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x82  EP 2 IN
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x81  EP 1 IN
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x01  EP 1 OUT
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>      Interface Descriptor:
+>        bAlternateSetting       1
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x82  EP 2 IN
+>          wMaxPacketSize     0x0c00  2x 1024 bytes
+>            Transfer Type            Isochronous
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x81  EP 1 IN
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>        Endpoint Descriptor:
+>          bEndpointAddress     0x01  EP 1 OUT
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>
+>
+> This is the first kernel patch I submitted. I hope everything is fine.
+>
+> Jan
+>
+>
+> diff -uNr linux-3.17.2.orig/drivers/media/usb/dvb-usb/technisat-usb2.c
+> linux-3.17.2/drivers/media/usb/dvb-usb/technisat-usb2.c
+> --- linux-3.17.2.orig/drivers/media/usb/dvb-usb/technisat-usb2.c
+> 2014-10-30 17:43:25.000000000 +0100
+> +++ linux-3.17.2/drivers/media/usb/dvb-usb/technisat-usb2.c
+> 2014-11-08 17:31:18.716668708 +0100
+> @@ -708,7 +708,7 @@
+>                                  .endpoint = 0x2,
+>                                  .u = {
+>                                          .isoc = {
+> -                                               .framesperurb = 32,
+> +                                               .framesperurb = 8,
+>                                                  .framesize = 2048,
+>                                                  .interval = 1,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 -- 
-Best regards,
-Pawel Osciak
+http://palosaari.fi/
