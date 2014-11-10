@@ -1,52 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48186 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751820AbaKGWrd (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48405 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752757AbaKJMtm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 17:47:33 -0500
-Message-ID: <545D4BFD.6000206@iki.fi>
-Date: Sat, 08 Nov 2014 00:47:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 10/10] [media] v4l: Forbid usage of
- V4L2_MBUS_FMT definitions inside the kernel
-References: <545CDB8D.4080406@xs4all.nl> <1415377630-16564-1-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1415377630-16564-1-git-send-email-boris.brezillon@free-electrons.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Nov 2014 07:49:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 13/16] videobuf2-dvb.c: convert to vb2_plane_begin_cpu_access()
+Date: Mon, 10 Nov 2014 13:49:28 +0100
+Message-Id: <1415623771-29634-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Boris Brezillon wrote:
-> @@ -102,6 +113,7 @@ enum v4l2_mbus_pixelcode {
->  
->  	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
->  };
-> +#endif /* __KERNEL__ */
->  
->  /**
->   * struct v4l2_mbus_framefmt - frame format on the media bus
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dvb.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Was it intended to be this way, or did I miss something? I'd put this to
-beginning of the file, as Hans suggested.
-
-With this matter sorted out, for the set:
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dvb.c b/drivers/media/v4l2-core/videobuf2-dvb.c
+index d092698..d954bb8 100644
+--- a/drivers/media/v4l2-core/videobuf2-dvb.c
++++ b/drivers/media/v4l2-core/videobuf2-dvb.c
+@@ -30,9 +30,12 @@ MODULE_LICENSE("GPL");
+ static int dvb_fnc(struct vb2_buffer *vb, void *priv)
+ {
+ 	struct vb2_dvb *dvb = priv;
++	void *p = vb2_plane_begin_cpu_access(vb, 0);
+ 
+-	dvb_dmx_swfilter(&dvb->demux, vb2_plane_vaddr(vb, 0),
+-				      vb2_get_plane_payload(vb, 0));
++	if (p == NULL)
++		return -ENOMEM;
++	dvb_dmx_swfilter(&dvb->demux, p, vb2_get_plane_payload(vb, 0));
++	vb2_plane_end_cpu_access(vb, 0);
+ 	return 0;
+ }
+ 
 -- 
-Kind regards,
+2.1.1
 
-Sakari Ailus
-sakari.ailus@iki.fi
