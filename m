@@ -1,135 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56203 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757241AbaKTP4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Nov 2014 10:56:07 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Emilio Lopez <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	devicetree <devicetree@vger.kernel.org>,
-	linux-sunxi@googlegroups.com, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 5/9] rc: sunxi-cir: Add support for the larger fifo found on sun5i and sun6i
-Date: Thu, 20 Nov 2014 16:55:24 +0100
-Message-Id: <1416498928-1300-6-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
-References: <1416498928-1300-1-git-send-email-hdegoede@redhat.com>
+Received: from down.free-electrons.com ([37.187.137.238]:45103 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751918AbaKJRWC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 12:22:02 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v6 05/10] [media] pci: Make use of MEDIA_BUS_FMT definitions
+Date: Mon, 10 Nov 2014 18:21:49 +0100
+Message-Id: <1415640114-14930-6-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the larger fifo found on sun5i and sun6i, having a separate
-compatible for the ir found on sun5i & sun6i also is useful if we ever want
-to add ir transmit support, because the sun5i & sun6i version do not have
-transmit support.
+In order to have subsytem agnostic media bus format definitions we've
+moved media bus definition to include/uapi/linux/media-bus-format.h and
+prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
 
-Note this commits also adds checking for the end-of-packet interrupt flag
-(which was already enabled), as the fifo-data-available interrupt flag only
-gets set when the trigger-level is exceeded. So far we've been getting away
-with not doing this because of the low trigger-level, but this is something
-which we should have done since day one.
+Replace all references to the old definitions in pci drivers.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../devicetree/bindings/media/sunxi-ir.txt          |  2 +-
- drivers/media/rc/sunxi-cir.c                        | 21 ++++++++++++---------
- 2 files changed, 13 insertions(+), 10 deletions(-)
+ drivers/media/pci/cx18/cx18-av-core.c       | 2 +-
+ drivers/media/pci/cx18/cx18-controls.c      | 2 +-
+ drivers/media/pci/cx18/cx18-ioctl.c         | 2 +-
+ drivers/media/pci/cx23885/cx23885-video.c   | 2 +-
+ drivers/media/pci/ivtv/ivtv-controls.c      | 2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c         | 2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-index 23dd5ad..5767128 100644
---- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -1,7 +1,7 @@
- Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index 2d3afe0..4c6ce21 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -952,7 +952,7 @@ static int cx18_av_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
+ 	int HSC, VSC, Vsrc, Hsrc, filter, Vlines;
+ 	int is_50Hz = !(state->std & V4L2_STD_525_60);
  
- Required properties:
--- compatible	    : should be "allwinner,sun4i-a10-ir";
-+- compatible	    : "allwinner,sun4i-a10-ir" or "allwinner,sun5i-a13-ir"
- - clocks	    : list of clock specifiers, corresponding to
- 		      entries in clock-names property;
- - clock-names	    : should contain "apb" and "ir" entries;
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index 895fb65..559b0e3 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -56,12 +56,12 @@
- #define REG_RXINT_RAI_EN		BIT(4)
+-	if (fmt->code != V4L2_MBUS_FMT_FIXED)
++	if (fmt->code != MEDIA_BUS_FMT_FIXED)
+ 		return -EINVAL;
  
- /* Rx FIFO available byte level */
--#define REG_RXINT_RAL(val)    (((val) << 8) & (GENMASK(11, 8)))
-+#define REG_RXINT_RAL(val)    ((val) << 8)
+ 	fmt->field = V4L2_FIELD_INTERLACED;
+diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
+index 282a3d2..4aeb7c6 100644
+--- a/drivers/media/pci/cx18/cx18-controls.c
++++ b/drivers/media/pci/cx18/cx18-controls.c
+@@ -98,7 +98,7 @@ static int cx18_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
+ 	/* fix videodecoder resolution */
+ 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
+ 	fmt.height = cxhdl->height;
+-	fmt.code = V4L2_MBUS_FMT_FIXED;
++	fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &fmt);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index 6f2b590..71963db 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -294,7 +294,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
  
- /* Rx Interrupt Status */
- #define SUNXI_IR_RXSTA_REG    0x30
- /* RX FIFO Get Available Counter */
--#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (GENMASK(5, 0)))
-+#define REG_RXSTA_GET_AC(val) (((val) >> 8) & (ir->fifo_size * 2 - 1))
- /* Clear all interrupt status value */
- #define REG_RXSTA_CLEARALL    0xff
+ 	mbus_fmt.width = cx->cxhdl.width = w;
+ 	mbus_fmt.height = cx->cxhdl.height = h;
+-	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
++	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &mbus_fmt);
+ 	return cx18_g_fmt_vid_cap(file, fh, fmt);
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 682a4f9..091f5db 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -608,7 +608,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	dev->field	= f->fmt.pix.field;
+ 	dprintk(2, "%s() width=%d height=%d field=%d\n", __func__,
+ 		dev->width, dev->height, dev->field);
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 	/* s_mbus_fmt overwrites f->fmt.pix.field, restore it */
+diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
+index 2b0ab26..ccf548c 100644
+--- a/drivers/media/pci/ivtv/ivtv-controls.c
++++ b/drivers/media/pci/ivtv/ivtv-controls.c
+@@ -69,7 +69,7 @@ static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
+ 	/* fix videodecoder resolution */
+ 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
+ 	fmt.height = cxhdl->height;
+-	fmt.code = V4L2_MBUS_FMT_FIXED;
++	fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &fmt);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 3e0cb77..4d8ee18 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -595,7 +595,7 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
+ 		fmt->fmt.pix.width /= 2;
+ 	mbus_fmt.width = fmt->fmt.pix.width;
+ 	mbus_fmt.height = h;
+-	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
++	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &mbus_fmt);
+ 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
+ }
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index e4ea85f..8b3bb78 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -140,7 +140,7 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct v4l2_mbus_framefmt mbus_fmt;
  
-@@ -72,10 +72,6 @@
- /* CIR_REG register idle threshold */
- #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	saa_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
  
--/* Hardware supported fifo size */
--#define SUNXI_IR_FIFO_SIZE    16
--/* How many messages in FIFO trigger IRQ */
--#define TRIGGER_LEVEL         8
- /* Required frequency for IR0 or IR1 clock in CIR mode */
- #define SUNXI_IR_BASE_CLK     8000000
- /* Frequency after IR internal divider  */
-@@ -94,6 +90,7 @@ struct sunxi_ir {
- 	struct rc_dev   *rc;
- 	void __iomem    *base;
- 	int             irq;
-+	int		fifo_size;
- 	struct clk      *clk;
- 	struct clk      *apb_clk;
- 	struct reset_control *rst;
-@@ -115,11 +112,11 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
- 	/* clean all pending statuses */
- 	writel(status | REG_RXSTA_CLEARALL, ir->base + SUNXI_IR_RXSTA_REG);
+@@ -157,7 +157,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct v4l2_mbus_framefmt mbus_fmt;
  
--	if (status & REG_RXINT_RAI_EN) {
-+	if (status & (REG_RXINT_RAI_EN | REG_RXINT_RPEI_EN)) {
- 		/* How many messages in fifo */
- 		rc  = REG_RXSTA_GET_AC(status);
- 		/* Sanity check */
--		rc = rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
-+		rc = rc > ir->fifo_size ? ir->fifo_size : rc;
- 		/* If we have data */
- 		for (cnt = 0; cnt < rc; cnt++) {
- 			/* for each bit in fifo */
-@@ -156,6 +153,11 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	if (!ir)
- 		return -ENOMEM;
- 
-+	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
-+		ir->fifo_size = 64;
-+	else
-+		ir->fifo_size = 16;
-+
- 	/* Clock */
- 	ir->apb_clk = devm_clk_get(dev, "apb");
- 	if (IS_ERR(ir->apb_clk)) {
-@@ -271,7 +273,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	 * level
- 	 */
- 	writel(REG_RXINT_ROI_EN | REG_RXINT_RPEI_EN |
--	       REG_RXINT_RAI_EN | REG_RXINT_RAL(TRIGGER_LEVEL - 1),
-+	       REG_RXINT_RAI_EN | REG_RXINT_RAL(ir->fifo_size / 2 - 1),
- 	       ir->base + SUNXI_IR_RXINT_REG);
- 
- 	/* Enable IR Module */
-@@ -319,6 +321,7 @@ static int sunxi_ir_remove(struct platform_device *pdev)
- 
- static const struct of_device_id sunxi_ir_match[] = {
- 	{ .compatible = "allwinner,sun4i-a10-ir", },
-+	{ .compatible = "allwinner,sun5i-a13-ir", },
- 	{},
- };
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
  
 -- 
-2.1.0
+1.9.1
 
