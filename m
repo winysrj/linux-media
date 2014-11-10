@@ -1,62 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56477 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080AbaKER7z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 12:59:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: (bisected) Logitech C920 (uvcvideo) stutters since 3.9
-Date: Wed, 05 Nov 2014 16:05:59 +0200
-Message-ID: <7185728.KDKlKP9htJ@avalon>
-In-Reply-To: <36286542.DzZr56uF9K@basile.remlab.net>
-References: <CANOLnONA8jaVJNna36sNOeoKtU=+iBFEEnG2h1K+KGg5Y3q7dA@mail.gmail.com> <fbcc6c6b4b3bb0d049a6d1871d8a79df@roundcube.remlab.net> <36286542.DzZr56uF9K@basile.remlab.net>
+Received: from lists.s-osg.org ([54.187.51.154]:44228 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752644AbaKJUyi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 15:54:38 -0500
+Date: Mon, 10 Nov 2014 18:54:33 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL for v3.18-rc1] media updates
+Message-ID: <20141110185433.3c53e438@recife.lan>
+In-Reply-To: <1415652356.21229.31.camel@x220>
+References: <20141009141849.137e738d@recife.lan>
+	<1413793905.16435.6.camel@x220>
+	<1415652356.21229.31.camel@x220>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rémi,
+Em Mon, 10 Nov 2014 21:45:56 +0100
+Paul Bolle <pebolle@tiscali.nl> escreveu:
 
-On Tuesday 04 November 2014 22:41:44 Rémi Denis-Courmont wrote:
-> Le mardi 04 novembre 2014, 15:42:37 Rémi Denis-Courmont a écrit :
-> > Le 2014-11-04 14:58, Sakari Ailus a écrit :
-> > >> > Have you tried with a different application to see if the problem
-> > >> > persists?
-> > >> 
-> > >> Tried mplayer and cheese now, and it seems they are not affected, so
-> > >> it's an issue with vlc. I wonder why it doesn't like newer flags..
-> > >> 
-> > >> Ohwell, sorry for the noise.
-> > > 
-> > > I guess the newer VLC could indeed pay attention to the monotonic
-> > > timestamp flag. Remi, any idea?
+> Hi Mauro,
+> 
+> On Mon, 2014-10-20 at 10:31 +0200, Paul Bolle wrote:
+> > This became commit 38a073116525 ("[media] omap: be sure that MMU is
+> > there for COMPILE_TEST").
 > > 
-> > VLC takes the kernel timestamp, if monotonic, since version 2.1.
-> > Otherwise, it generates its own inaccurate timestamp. So either that
-> > code is wrong, or the kernel timestamps are.
+> > As I reported in
+> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/82299
+> > it adds an (optional) test for a Kconfig symbol HAS_MMU. There's no
+> > such symbol. So that test will always fail. Did you perhaps mean
+> > simply "MMU"?
 > 
-> From a quick check with C920, the timestamps from the kernel are quite
-> jittery, and but seem to follow a pattern. When requesting a 10 Hz frame
-> rate, I actually get a frame interval of about 8/9 (i.e. 89ms) jumping to
-> 1/3 every approximately 2 seconds.
+> This typo is still present in both next-20141110 and v3.18-rc4. And I've
+> first reported it nearly two months ago. I see two fixes:
+>     1) s/HAS_MMU/MMU/
+>     2) s/ || (COMPILE_TEST && HAS_MMU)//
 > 
-> From my user-space point of view, this is a kernel issue. The problem
-> probably just manifests when both VLC and Linux versions support monotonic
-> timestamps.
-> 
-> Whether the root cause is in the kernel, the device driver or the firmware,
-> I can´t say.
+> Which would you prefer?
 
-Would you be able to capture images from the C920 using yavta, with the 
-uvcvideo trace parameter set to 4096, and send me both the yavta log and the 
-kernel log ? Let's start with a capture sequence of 50 to 100 images.
+Hmm... Probably patchwork didn't get your patch.
 
--- 
+IMHO, the best would be:
+
+	depends on HAS_MMU
+	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
