@@ -1,66 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38205 "EHLO lists.s-osg.org"
+Received: from ring0.de ([5.45.105.125]:52901 "EHLO ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750792AbaK0S7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 13:59:31 -0500
-Date: Thu, 27 Nov 2014 16:59:25 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] tda18271: Fix identation
-Message-ID: <20141127165925.05723c7b@recife.lan>
-In-Reply-To: <CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
-References: <ebd316f3f4f7cefa937562adba8ce60f2057ca9d.1417015567.git.mchehab@osg.samsung.com>
-	<CAOcJUbwiDEvp3-c+j7B1L9MxFjnrw9mT0116C+Dy9p4hOQNEhg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751264AbaKJUfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 15:35:14 -0500
+From: Sebastian Reichel <sre@kernel.org>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv3 0/4] [media] si4713 DT binding
+Date: Mon, 10 Nov 2014 21:34:40 +0100
+Message-Id: <1415651684-3894-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 27 Nov 2014 13:47:09 -0500
-Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+Hi,
 
-> On Wed, Nov 26, 2014 at 10:26 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > As reported by smatch:
-> >         drivers/media/tuners/tda18271-common.c:176 tda18271_read_extended() warn: if statement not indented
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
-> > index 86e5e3110118..6118203543ea 100644
-> > --- a/drivers/media/tuners/tda18271-common.c
-> > +++ b/drivers/media/tuners/tda18271-common.c
-> > @@ -173,12 +173,9 @@ int tda18271_read_extended(struct dvb_frontend *fe)
-> >
-> >         for (i = 0; i < TDA18271_NUM_REGS; i++) {
-> >                 /* don't update write-only registers */
-> > -               if ((i != R_EB9)  &&
-> > -                   (i != R_EB16) &&
-> > -                   (i != R_EB17) &&
-> > -                   (i != R_EB19) &&
-> > -                   (i != R_EB20))
-> > -               regs[i] = regdump[i];
-> > +               if ((i != R_EB9)  && (i != R_EB16) && (i != R_EB17) &&
-> > +                   (i != R_EB19) && (i != R_EB20))
-> > +                       regs[i] = regdump[i];
-> >         }
-> >
-> >         if (tda18271_debug & DBG_REG)
-> > --
-> > 1.9.3
-> >
-> 
-> Mauro,
-> 
-> I would actually rather NOT merge this patch.  This hurts the
-> readability of the code.  If applied already, please revert it.
+This is the third revision of the si4713 radio transmitter DT support
+patchset needed for the Nokia N900.
 
-What hurts readability is to not indent regs[i] = regdump[i];
+Changes since PATCHv2:
+ * Dropped patches 1-4, which have been accepted
+ * Patch 1 has been updated according to Sakari's comments
+ * Patch 3-4 are unchanged
 
-> 
-> Cheers,
-> 
-> Mike
+Apart from that you marked Patch 2 as not applicable last time [0].
+Normally the DT binding documentation is taken by the subsystem
+maintainer together with the driver changes. You can see the details
+in Documentation/devicetree/bindings/submitting-patches.txt
+
+For Patch 3 feedback from Tony is needed. I think the simplest solution
+would be to merge it via the media tree (assuming, that the boardcode
+is not yet removed in 3.19).
+
+[0] https://patchwork.linuxtv.org/patch/26506/
+
+-- Sebastian
+
+Sebastian Reichel (4):
+  [media] si4713: add device tree support
+  [media] si4713: add DT binding documentation
+  ARM: OMAP2: RX-51: update si4713 platform data
+  [media] si4713: cleanup platform data
+
+ Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c       | 69 ++++++++++------------
+ drivers/media/radio/si4713/radio-platform-si4713.c | 28 ++-------
+ drivers/media/radio/si4713/si4713.c                | 31 +++++++++-
+ drivers/media/radio/si4713/si4713.h                |  6 ++
+ include/media/radio-si4713.h                       | 30 ----------
+ include/media/si4713.h                             |  4 +-
+ 7 files changed, 103 insertions(+), 95 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+ delete mode 100644 include/media/radio-si4713.h
+
+-- 
+2.1.1
+
