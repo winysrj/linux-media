@@ -1,268 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52401 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755499AbaKANYZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Nov 2014 09:24:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Radhey Shyam Pandey <radheys@xilinx.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 09/11] v4l: xilinx: Add Xilinx Video IP core
-Date: Sat, 01 Nov 2014 15:24:32 +0200
-Message-ID: <1753132.KBqocWzxIH@avalon>
-In-Reply-To: <542AB836.1060500@xs4all.nl>
-References: <1412022477-28749-1-git-send-email-laurent.pinchart@ideasonboard.com> <1412022477-28749-10-git-send-email-laurent.pinchart@ideasonboard.com> <542AB836.1060500@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:40019 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570AbaKJCJP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Nov 2014 21:09:15 -0500
+Received: by mail-pa0-f54.google.com with SMTP id rd3so7234683pab.27
+        for <linux-media@vger.kernel.org>; Sun, 09 Nov 2014 18:09:14 -0800 (PST)
+Date: Mon, 10 Nov 2014 10:09:13 +0800
+From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
+To: "=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
+	"=?utf-8?B?T2xsaSBTYWxvbmVu?=" <olli.salonen@iki.fi>
+References: <201411081935169219971@gmail.com>
+Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggdjIgMi8yXSBzbWlwY2llOiBhZGQgRFZCU2t5IFQ5NTgwIFYzIHN1cHBvcnQ=?=
+Message-ID: <201411101009107186933@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello Antti,
 
-Thank you for the review. I've fixed most of the issues you've pointed out, 
-please find my replies to the remaining ones below.
+On 2014-11-10 06:13:07, Antti Palosaari wrote:
+>On 11/08/2014 01:35 PM, Nibble Max wrote:
+>> v2:
+>> - Update Kconfig file.
+>>
+>> DVBSky T9580 V3 card is the dual tuner card, which supports S/S2 and T2/T/C.
+>> 1>DVB-S/S2 frontend: M88DS3103/M88TS2022
+>> 2>DVB-T2/T/C frontend: SI2168B40/SI2157A30
+>> 2>PCIe bridge: SMI PCIe
+>>
+>> Signed-off-by: Nibble Max <nibble.max@gmail.com>
+>
+>Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+>I reviewed the patch v1 also :]
+>
+>Antti
 
-On Tuesday 30 September 2014 16:03:34 Hans Verkuil wrote:
-> On 09/29/14 22:27, Laurent Pinchart wrote:
-> > Xilinx platforms have no hardwired video capture or video processing
-> > interface. Users create capture and memory to memory processing
-> > pipelines in the FPGA fabric to suit their particular needs, by
-> > instantiating video IP cores from a large library.
-> > 
-> > The Xilinx Video IP core is a framework that models a video pipeline
-> > described in the device tree and expose the pipeline to userspace
-> > through the media controller and V4L2 APIs.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-> > Signed-off-by: Radhey Shyam Pandey <radheys@xilinx.com>
-> > Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> > ---
-> > 
-> >  .../devicetree/bindings/media/xilinx/video.txt     |  52 ++
-> >  .../bindings/media/xilinx/xlnx,video.txt           |  55 ++
-> >  MAINTAINERS                                        |   9 +
-> >  drivers/media/platform/Kconfig                     |   1 +
-> >  drivers/media/platform/Makefile                    |   2 +
-> >  drivers/media/platform/xilinx/Kconfig              |  10 +
-> >  drivers/media/platform/xilinx/Makefile             |   3 +
-> >  drivers/media/platform/xilinx/xilinx-dma.c         | 995 ++++++++++++++++
-> >  drivers/media/platform/xilinx/xilinx-dma.h         | 109 +++
-> >  drivers/media/platform/xilinx/xilinx-vip.c         | 269 ++++++
-> >  drivers/media/platform/xilinx/xilinx-vip.h         | 227 +++++
-> >  drivers/media/platform/xilinx/xilinx-vipp.c        | 666 ++++++++++++++
-> >  drivers/media/platform/xilinx/xilinx-vipp.h        |  47 +
-> >  13 files changed, 2445 insertions(+)
-> >  create mode 100644
-> >  Documentation/devicetree/bindings/media/xilinx/video.txt
-> >  create mode 100644
-> >  Documentation/devicetree/bindings/media/xilinx/xlnx,video.txt create
-> >  mode 100644 drivers/media/platform/xilinx/Kconfig
-> >  create mode 100644 drivers/media/platform/xilinx/Makefile
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.c
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-dma.h
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.c
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-vip.h
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.c
-> >  create mode 100644 drivers/media/platform/xilinx/xilinx-vipp.h
-> > 
-> > Cc: devicetree@vger.kernel.org
+Thanks for your review!
 
-[snip]
+Best Regards,
+Max
 
-> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
-> > b/drivers/media/platform/xilinx/xilinx-dma.c new file mode 100644
-> > index 0000000..e09e8bd
-> > --- /dev/null
-> > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-
-[snip]
-
-> > +static void
-> > +__xvip_dma_try_format(struct xvip_dma *dma, struct v4l2_pix_format *pix,
-> > +		      const struct xvip_video_format **fmtinfo)
-> > +{
-> > +	const struct xvip_video_format *info;
-> > +	unsigned int min_width;
-> > +	unsigned int max_width;
-> > +	unsigned int min_bpl;
-> > +	unsigned int max_bpl;
-> > +	unsigned int width;
-> > +	unsigned int align;
-> > +	unsigned int bpl;
-> > +
-> > +	/* Retrieve format information and select the default format if the
-> > +	 * requested format isn't supported.
-> > +	 */
-> > +	info = xvip_get_format_by_fourcc(pix->pixelformat);
-> > +	if (IS_ERR(info))
-> > +		info = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
-> > +
-> > +	pix->pixelformat = info->fourcc;
-> > +	pix->colorspace = V4L2_COLORSPACE_SRGB;
-> 
-> Colorspace information can be tricky: for capture the colorspace should
-> come from the subdevs (e.g. the HDMI receiver), for output the colorspace
-> is set by the application and passed on to the transmitter.
-
-I agree with you. However, in the general case, this will be impossible to 
-implement.
-
-Imagine for instance a pipeline with two inputs, one from an HDMI decoder and 
-one from a sensor. They are both connected to a composing unit that writes the 
-resulting image to memory. The colorspace on the capture video node is then 
-undefined.
-
-Given that this driver is media controller based and relies on userspace to 
-propagate formats through the pipeline during configuration, I believe it 
-should also be userspace's responsibility to retrieve colorspace information 
-from the correct subdev(s).
-
-> I'll have a presentation on this topic during the media mini-summit.
-
-It was very interesting, thanks again :-)
-
-> > +	pix->field = V4L2_FIELD_NONE;
-> > +
-> > +	/* The transfer alignment requirements are expressed in bytes.
-> > Compute
-> > +	 * the minimum and maximum values, clamp the requested width and
-> > convert
-> > +	 * it back to pixels.
-> > +	 */
-> > +	align = lcm(dma->align, info->bpp);
-> > +	min_width = roundup(XVIP_DMA_MIN_WIDTH, align);
-> > +	max_width = rounddown(XVIP_DMA_MAX_WIDTH, align);
-> > +	width = rounddown(pix->width * info->bpp, align);
-> > +
-> > +	pix->width = clamp(width, min_width, max_width) / info->bpp;
-> > +	pix->height = clamp(pix->height, XVIP_DMA_MIN_HEIGHT,
-> > +			    XVIP_DMA_MAX_HEIGHT);
-> > +
-> > +	/* Clamp the requested bytes per line value. If the maximum bytes per
-> > +	 * line value is zero, the module doesn't support user configurable 
-line
-> > +	 * sizes. Override the requested value with the minimum in that case.
-> > +	 */
-> > +	min_bpl = pix->width * info->bpp;
-> > +	max_bpl = rounddown(XVIP_DMA_MAX_WIDTH, dma->align);
-> > +	bpl = rounddown(pix->bytesperline, dma->align);
-> > +
-> > +	pix->bytesperline = clamp(bpl, min_bpl, max_bpl);
-> > +	pix->sizeimage = pix->bytesperline * pix->height;
-> > +
-> > +	if (fmtinfo)
-> > +		*fmtinfo = info;
-> > +}
-
-[snip]
-
-> > +int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma
-> > *dma,
-> > +		  enum v4l2_buf_type type, unsigned int port)
-> > +{
-> > +	char name[14];
-> > +	int ret;
-> > +
-> > +	dma->xdev = xdev;
-> > +	dma->port = port;
-> > +	mutex_init(&dma->lock);
-> > +	mutex_init(&dma->pipe.lock);
-> > +	INIT_LIST_HEAD(&dma->queued_bufs);
-> > +	spin_lock_init(&dma->queued_lock);
-> > +
-> > +	dma->fmtinfo = xvip_get_format_by_fourcc(XVIP_DMA_DEF_FORMAT);
-> > +	dma->format.pixelformat = dma->fmtinfo->fourcc;
-> > +	dma->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +	dma->format.field = V4L2_FIELD_NONE;
-> > +	dma->format.width = XVIP_DMA_DEF_WIDTH;
-> > +	dma->format.height = XVIP_DMA_DEF_HEIGHT;
-> > +	dma->format.bytesperline = dma->format.width * dma->fmtinfo->bpp;
-> > +	dma->format.sizeimage = dma->format.bytesperline *
-> > dma->format.height;
-> > +
-> > +	/* Initialize the media entity... */
-> > +	dma->pad.flags = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
-> > +		       ? MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-> > +
-> > +	ret = media_entity_init(&dma->video.entity, 1, &dma->pad, 0);
-> > +	if (ret < 0)
-> > +		goto error;
-> > +
-> > +	/* ... and the video node... */
-> > +	dma->video.v4l2_dev = &xdev->v4l2_dev;
-> > +	dma->video.fops = &xvip_dma_fops;
-> > +	snprintf(dma->video.name, sizeof(dma->video.name), "%s %s %u",
-> > +		 xdev->dev->of_node->name,
-> > +		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE ? "output" : "input",
-> > +		 port);
-> > +	dma->video.vfl_type = VFL_TYPE_GRABBER;
-> > +	dma->video.vfl_dir = type == V4L2_BUF_TYPE_VIDEO_CAPTURE
-> > +			   ? VFL_DIR_RX : VFL_DIR_TX;
-> > +	dma->video.release = video_device_release_empty;
-> > +	dma->video.ioctl_ops = &xvip_dma_ioctl_ops;
-> 
-> Set dma->video.queue to &dma->queue. That's all you need to be able to
-> use the vb2 helper functions.
-> 
-> > +
-> > +	video_set_drvdata(&dma->video, dma);
-> > +
-> > +	/* ... and the buffers queue... */
-> > +	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
-> > +	if (IS_ERR(dma->alloc_ctx))
-> > +		goto error;
-> > +
-> > +	dma->queue.type = type;
-> > +	dma->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-> 
-> Add VB2_READ/WRITE. It's basically for free, so why not?
-
-Because we want to discourage the users from using it ? :-)
-
-> > +	dma->queue.drv_priv = dma;
-> > +	dma->queue.buf_struct_size = sizeof(struct xvip_dma_buffer);
-> > +	dma->queue.ops = &xvip_dma_queue_qops;
-> > +	dma->queue.mem_ops = &vb2_dma_contig_memops;
-> > +	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> > +				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
-> > +	ret = vb2_queue_init(&dma->queue);
-> > +	if (ret < 0) {
-> > +		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
-> > +		goto error;
-> > +	}
-> > +
-> > +	/* ... and the DMA channel. */
-> > +	sprintf(name, "port%u", port);
-> > +	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
-> > +	if (dma->dma == NULL) {
-> > +		dev_err(dma->xdev->dev, "no VDMA channel found\n");
-> > +		ret = -ENODEV;
-> > +		goto error;
-> > +	}
-> > +
-> > +	dma->align = 1 << dma->dma->device->copy_align;
-> > +
-> > +	ret = video_register_device(&dma->video, VFL_TYPE_GRABBER, -1);
-> > +	if (ret < 0) {
-> > +		dev_err(dma->xdev->dev, "failed to register video device\n");
-> > +		goto error;
-> > +	}
-> > +
-> > +	return 0;
-> > +
-> > +error:
-> > +	xvip_dma_cleanup(dma);
-> > +	return ret;
-> > +}
-
--- 
-Regards,
-
-Laurent Pinchart
+>
+>> ---
+>>   drivers/media/pci/smipcie/Kconfig   |  3 ++
+>>   drivers/media/pci/smipcie/smipcie.c | 67 +++++++++++++++++++++++++++++++++++++
+>>   2 files changed, 70 insertions(+)
+>>
+>> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+>> index 75a2992..35ace80 100644
+>> --- a/drivers/media/pci/smipcie/Kconfig
+>> +++ b/drivers/media/pci/smipcie/Kconfig
+>> @@ -2,12 +2,15 @@ config DVB_SMIPCIE
+>>   	tristate "SMI PCIe DVBSky cards"
+>>   	depends on DVB_CORE && PCI && I2C
+>>   	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
+>> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+>>   	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+>>   	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+>> +	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>>   	help
+>>   	  Support for cards with SMI PCIe bridge:
+>>   	  - DVBSky S950 V3
+>>   	  - DVBSky S952 V3
+>> +	  - DVBSky T9580 V3
+>>
+>>   	  Say Y or M if you own such a device and want to use it.
+>>   	  If unsure say N.
+>> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+>> index c27e45b..5d1932b 100644
+>> --- a/drivers/media/pci/smipcie/smipcie.c
+>> +++ b/drivers/media/pci/smipcie/smipcie.c
+>> @@ -18,6 +18,8 @@
+>>   #include "m88ds3103.h"
+>>   #include "m88ts2022.h"
+>>   #include "m88rs6000t.h"
+>> +#include "si2168.h"
+>> +#include "si2157.h"
+>>
+>>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>>
+>> @@ -618,6 +620,58 @@ err_tuner_i2c_device:
+>>   	return ret;
+>>   }
+>>
+>> +static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+>> +{
+>> +	int ret = 0;
+>> +	struct smi_dev *dev = port->dev;
+>> +	struct i2c_adapter *i2c;
+>> +	struct i2c_adapter *tuner_i2c_adapter;
+>> +	struct i2c_client *client_tuner, *client_demod;
+>> +	struct i2c_board_info client_info;
+>> +	struct si2168_config si2168_config;
+>> +	struct si2157_config si2157_config;
+>> +
+>> +	/* select i2c bus */
+>> +	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
+>> +
+>> +	/* attach demod */
+>> +	memset(&si2168_config, 0, sizeof(si2168_config));
+>> +	si2168_config.i2c_adapter = &tuner_i2c_adapter;
+>> +	si2168_config.fe = &port->fe;
+>> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+>> +
+>> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+>> +	strlcpy(client_info.type, "si2168", I2C_NAME_SIZE);
+>> +	client_info.addr = 0x64;
+>> +	client_info.platform_data = &si2168_config;
+>> +
+>> +	client_demod = smi_add_i2c_client(i2c, &client_info);
+>> +	if (!client_demod) {
+>> +		ret = -ENODEV;
+>> +		return ret;
+>> +	}
+>> +	port->i2c_client_demod = client_demod;
+>> +
+>> +	/* attach tuner */
+>> +	memset(&si2157_config, 0, sizeof(si2157_config));
+>> +	si2157_config.fe = port->fe;
+>> +
+>> +	memset(&client_info, 0, sizeof(struct i2c_board_info));
+>> +	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+>> +	client_info.addr = 0x60;
+>> +	client_info.platform_data = &si2157_config;
+>> +
+>> +	client_tuner = smi_add_i2c_client(tuner_i2c_adapter, &client_info);
+>> +	if (!client_tuner) {
+>> +		smi_del_i2c_client(port->i2c_client_demod);
+>> +		port->i2c_client_demod = NULL;
+>> +		ret = -ENODEV;
+>> +		return ret;
+>> +	}
+>> +	port->i2c_client_tuner = client_tuner;
+>> +	return ret;
+>> +}
+>> +
+>>   static int smi_fe_init(struct smi_port *port)
+>>   {
+>>   	int ret = 0;
+>> @@ -635,6 +689,9 @@ static int smi_fe_init(struct smi_port *port)
+>>   	case DVBSKY_FE_M88RS6000:
+>>   		ret = smi_dvbsky_m88rs6000_fe_attach(port);
+>>   		break;
+>> +	case DVBSKY_FE_SIT2:
+>> +		ret = smi_dvbsky_sit2_fe_attach(port);
+>> +		break;
+>>   	}
+>>   	if (ret < 0)
+>>   		return ret;
+>> @@ -1005,6 +1062,15 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>>   	.fe_1 = DVBSKY_FE_M88RS6000,
+>>   };
+>>
+>> +static struct smi_cfg_info dvbsky_t9580_cfg = {
+>> +	.type = SMI_DVBSKY_T9580,
+>> +	.name = "DVBSky T9580 V3",
+>> +	.ts_0 = SMI_TS_DMA_BOTH,
+>> +	.ts_1 = SMI_TS_DMA_BOTH,
+>> +	.fe_0 = DVBSKY_FE_SIT2,
+>> +	.fe_1 = DVBSKY_FE_M88DS3103,
+>> +};
+>> +
+>>   /* PCI IDs */
+>>   #define SMI_ID(_subvend, _subdev, _driverdata) {	\
+>>   	.vendor      = SMI_VID,    .device    = SMI_PID, \
+>> @@ -1014,6 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+>>   static const struct pci_device_id smi_id_table[] = {
+>>   	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
+>>   	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
+>> +	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
+>>   	{0}
+>>   };
+>>   MODULE_DEVICE_TABLE(pci, smi_id_table);
+>>
+>>
+>
+>-- 
+>http://palosaari.fi/
 
