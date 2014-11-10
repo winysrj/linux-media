@@ -1,124 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:56414 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252AbaKRLYL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:11 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>
-Subject: [PATCH 09/12] media: s5p-mfc: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:38 +0000
-Message-Id: <1416309821-5426-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.kernel.org ([198.145.19.201]:49077 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751298AbaKJU6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 15:58:21 -0500
+Date: Mon, 10 Nov 2014 21:58:14 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [RFCv2 5/8] [media] si4713: add device tree support
+Message-ID: <20141110205814.GA2591@earth.universe>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+ <1413904027-16767-6-git-send-email-sre@kernel.org>
+ <54594962.2090207@iki.fi>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
+In-Reply-To: <54594962.2090207@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
-Cc: Jeongtae Park <jtp.park@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 20 ++------------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 20 ++------------------
- 3 files changed, 5 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 03204fd..52f65e9 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -810,6 +810,7 @@ static int s5p_mfc_open(struct file *file)
- 	q = &ctx->vq_dst;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
- 	q->drv_priv = &ctx->fh;
-+	q->lock = &dev->mfc_mutex;
- 	if (vdev == dev->vfd_dec) {
- 		q->io_modes = VB2_MMAP;
- 		q->ops = get_dec_queue_ops();
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 74bcec8..78b3e0e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -946,22 +946,6 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
- 
--static void s5p_mfc_unlock(struct vb2_queue *q)
--{
--	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
--
--	mutex_unlock(&dev->mfc_mutex);
--}
--
--static void s5p_mfc_lock(struct vb2_queue *q)
--{
--	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
--
--	mutex_lock(&dev->mfc_mutex);
--}
--
- static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
-@@ -1109,8 +1093,8 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 
- static struct vb2_ops s5p_mfc_dec_qops = {
- 	.queue_setup		= s5p_mfc_queue_setup,
--	.wait_prepare		= s5p_mfc_unlock,
--	.wait_finish		= s5p_mfc_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- 	.buf_init		= s5p_mfc_buf_init,
- 	.start_streaming	= s5p_mfc_start_streaming,
- 	.stop_streaming		= s5p_mfc_stop_streaming,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index e7240cb..ffa9c1d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1869,22 +1869,6 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
- 
--static void s5p_mfc_unlock(struct vb2_queue *q)
--{
--	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
--
--	mutex_unlock(&dev->mfc_mutex);
--}
--
--static void s5p_mfc_lock(struct vb2_queue *q)
--{
--	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
--
--	mutex_lock(&dev->mfc_mutex);
--}
--
- static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
-@@ -2054,8 +2038,8 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 
- static struct vb2_ops s5p_mfc_enc_qops = {
- 	.queue_setup		= s5p_mfc_queue_setup,
--	.wait_prepare		= s5p_mfc_unlock,
--	.wait_finish		= s5p_mfc_lock,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- 	.buf_init		= s5p_mfc_buf_init,
- 	.buf_prepare		= s5p_mfc_buf_prepare,
- 	.start_streaming	= s5p_mfc_start_streaming,
--- 
-1.9.1
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi Sakari,
+
+On Tue, Nov 04, 2014 at 11:47:14PM +0200, Sakari Ailus wrote:
+> Nice set of patches! Thanks! :-)
+
+Thanks :)
+
+> > [...]
+> >  	struct si4713_device *sdev;
+> > -	struct si4713_platform_data *pdata =3D client->dev.platform_data;
+> >  	struct v4l2_ctrl_handler *hdl;
+> > -	int rval, i;
+> > +	struct si4713_platform_data *pdata =3D client->dev.platform_data;
+> > +	struct device_node *np =3D client->dev.of_node;
+> > +	int rval;
+> > +
+>=20
+> Why empty line here?
+>=20
+> It's not a bad practice to declare short temporary variables etc. as last.
+
+Fixed in PATCHv3.
+
+> > +	struct radio_si4713_platform_data si4713_pdev_pdata;
+> > +	struct platform_device *si4713_pdev;
+> > =20
+> >  	sdev =3D devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
+> >  	if (!sdev) {
+> > @@ -1608,8 +1612,31 @@ static int si4713_probe(struct i2c_client *clien=
+t,
+> >  		goto free_ctrls;
+> >  	}
+> > =20
+> > +	if ((pdata && pdata->is_platform_device) || np) {
+> > +		si4713_pdev =3D platform_device_alloc("radio-si4713", -1);
+>=20
+> You could declare si4713_pdev here since you're not using it elsewhere.
+
+It has been used in the put_main_pdev jump label at the bottom
+outside of the scope and all access will happen out of the scope
+after the refactoring you suggested below.
+
+> > +		if (!si4713_pdev)
+> > +			goto put_main_pdev;
+> > +
+> > +		si4713_pdev_pdata.subdev =3D client;
+> > +		rval =3D platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
+> > +						sizeof(si4713_pdev_pdata));
+> > +		if (rval)
+> > +			goto put_main_pdev;
+> > +
+> > +		rval =3D platform_device_add(si4713_pdev);
+> > +		if (rval)
+> > +			goto put_main_pdev;
+> > +
+> > +		sdev->pd =3D si4713_pdev;
+> > +	} else {
+> > +		sdev->pd =3D NULL;
+>=20
+> sdev->pd is NULL already here. You could simply return in if () and
+> proceed to create the platform device if need be.
+
+Right. I simplified the code accordingly in PATCHv3.
+
+> Speaking of which --- I wonder if there are other than historical
+> reasons to create the platform device. I guess that's out of the scope
+> of the set anyway.
+
+I think this was done, so that the usb device can export its own
+control functions.
+
+> > [...]
+> >
+> > +	if (sdev->pd)
+> > +		platform_device_unregister(sdev->pd);
+>=20
+> platform_device_unregister() may be safely called with NULL argument.
+
+Ok. Changed in PATCHv3.
+
+> > [...]
+
+-- Sebastian
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUYSbmAAoJENju1/PIO/qa90IP/22e/fi1cIzIKoCeIjQKQsXB
+nMxwX5/ejk8JMbRe4d3dDVWtIBYE/FqDFpM5jwfF295WzykKqZUpwlrzPff+iDjV
+SRt33b163fim/qu7NhpgaMH4/i0dTJYtIoyx+pIlXdWy560j+YIN+FIU92DZvShp
+ZekibJUQRPiL8uXp8qLWngdO4A7oCEGDWr5G5Kb5aj5bzuXvcJGpTvx7aSOqfOen
+Rt1XXmLRd9314je1bMdtszjdXGqXmnejUnqynANtI7l7MyV9FgMWUaAqc97ei1o0
+uHZ4cYzBtocOUFqbHnUp3uOmbrp8ulBJAfn0xq+C/6d86qwVL/Oqgrxipy4cRDZl
+jPaI3GlPJz690OBGg4YfnjTXae/AHnWkLpgz39XaSOdmdG26KKg1jav0wosfsvsV
+3VbotsVwDQsgzIHUbKmYQmv4Pc7bHSaJLRHtsz/BJjcT46qSbe8I7ozyQFmAkFJ+
+o8uVybLrfaDdt9weH6WeJKJEmQBzMz66C2YoZEKRB8K86ILF8aCq1K7lmMorAQvH
+Nc0JDlp/CRlfCZdIuJqe2VES99bGOMnoQmdYiAC08f3Ns3K31cLlTS3cwTI/gG9B
+JSrJXRMPCycpw5lnS0SduHsK9tVWo/F/BU5EOoYLmDQ4LUFhy5ipPIVArmJJOKsq
+xiuIClevWOzCji0IXQZH
+=GQV+
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
