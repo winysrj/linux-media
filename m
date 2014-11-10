@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:46170 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754276AbaKRLYO (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:45229 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752862AbaKJRZw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Nov 2014 06:24:14 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 11/12] media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper
-Date: Tue, 18 Nov 2014 11:23:40 +0000
-Message-Id: <1416309821-5426-12-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1416309821-5426-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 10 Nov 2014 12:25:52 -0500
+Date: Mon, 10 Nov 2014 18:25:50 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v6 00/10]  [media] Make mediabus format subsystem
+ neutral
+Message-ID: <20141110182550.18d95bce@bbrezillon>
+In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Mon, 10 Nov 2014 18:21:44 +0100
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 3ccb26f..d8e1b98 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -311,6 +311,8 @@ static struct vb2_ops video_qops = {
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
- 	.buf_queue		= vpif_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- /**
+> Hello,
+> 
+> This patch series prepares the use of media bus formats outside of
+> the V4L2 subsytem (my final goal is to use it in the Atmel HLCDC DRM
+> driver where I have to configure my DPI/RGB bus according to the
+> connected display).
+> 
+> The series first defines MEDIA_BUS_FMT_ macros, and then replace all
+> references to the v4l2_mbus_pixelcode enum and its values within the
+> kernel.
+> 
+> Best Regards,
+> 
+> Boris
+> 
+> Changes since v5:
+> - fix V4L2_MBUS_FROM_MEDIA_BUS_FMT macro definition
+
+Sorry for the noise, I sent the wrong patch set :-(.
+
 -- 
-1.9.1
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
