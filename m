@@ -1,108 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43563 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753888AbaKEMac (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 07:30:32 -0500
-Date: Wed, 5 Nov 2014 10:30:27 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv2] [media] af0933: Don't go past arrays
-Message-ID: <20141105103027.0d79f76b@recife.lan>
-In-Reply-To: <54598F06.1090904@iki.fi>
-References: <24ac978937a28c248cc55a3d3f59a061344ec7d3.1415133273.git.mchehab@osg.samsung.com>
-	<54598F06.1090904@iki.fi>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56590 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752512AbaKJUiV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 15:38:21 -0500
+Date: Mon, 10 Nov 2014 12:37:36 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCHv3 0/4] [media] si4713 DT binding
+Message-ID: <20141110203736.GW31454@atomide.com>
+References: <1415651684-3894-1-git-send-email-sre@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 05 Nov 2014 04:44:22 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
-
-> Acked-by: Antti Palosaari <crope@iki.fi>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
+* Sebastian Reichel <sre@kernel.org> [141110 12:36]:
+> Hi,
 > 
-> anyhow, I think these branches could never taken in real life.
-
-Yes, probably this never happens with current code.
-
-> But as a 
-> killing warnings and potential future changes I am pretty fine!
-
-The main goal is to kill warnings, but it also prevents future
-mistakes. It is a way better to have a warning printed than
-to go past the buffer and get random errors.
-
-Regards,
-Mauro
-
+> This is the third revision of the si4713 radio transmitter DT support
+> patchset needed for the Nokia N900.
 > 
-> regards
-> Antti
+> Changes since PATCHv2:
+>  * Dropped patches 1-4, which have been accepted
+>  * Patch 1 has been updated according to Sakari's comments
+>  * Patch 3-4 are unchanged
 > 
-> On 11/04/2014 10:35 PM, Mauro Carvalho Chehab wrote:
-> > Fixes the following sparse warnings:
-> > 	drivers/media/dvb-frontends/af9033.c:295 af9033_init() error: buffer overflow 'clock_adc_lut' 11 <= 11
-> > 	drivers/media/dvb-frontends/af9033.c:300 af9033_init() error: buffer overflow 'clock_adc_lut' 11 <= 11
-> > 	drivers/media/dvb-frontends/af9033.c:584 af9033_set_frontend() error: buffer overflow 'coeff_lut' 3 <= 3
-> > 	drivers/media/dvb-frontends/af9033.c:595 af9033_set_frontend() error: buffer overflow 'clock_adc_lut' 11 <= 11
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > -
-> > v2: Only changed the patch subject, as it fixes occurrences on 3
-> >      different arrays.
-> >
-> > diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-> > index c17e34fd0fb4..82ce47bdf5dc 100644
-> > --- a/drivers/media/dvb-frontends/af9033.c
-> > +++ b/drivers/media/dvb-frontends/af9033.c
-> > @@ -291,6 +291,12 @@ static int af9033_init(struct dvb_frontend *fe)
-> >   		if (clock_adc_lut[i].clock == dev->cfg.clock)
-> >   			break;
-> >   	}
-> > +	if (i == ARRAY_SIZE(clock_adc_lut)) {
-> > +		dev_err(&dev->client->dev,
-> > +			"Couldn't find ADC config for clock=%d\n",
-> > +			dev->cfg.clock);
-> > +		goto err;
-> > +	}
-> >
-> >   	adc_cw = af9033_div(dev, clock_adc_lut[i].adc, 1000000ul, 19ul);
-> >   	buf[0] = (adc_cw >>  0) & 0xff;
-> > @@ -580,7 +586,15 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
-> >   				break;
-> >   			}
-> >   		}
-> > -		ret =  af9033_wr_regs(dev, 0x800001,
-> > +		if (i == ARRAY_SIZE(coeff_lut)) {
-> > +			dev_err(&dev->client->dev,
-> > +				"Couldn't find LUT config for clock=%d\n",
-> > +				dev->cfg.clock);
-> > +			ret = -EINVAL;
-> > +			goto err;
-> > +		}
-> > +
-> > +		ret = af9033_wr_regs(dev, 0x800001,
-> >   				coeff_lut[i].val, sizeof(coeff_lut[i].val));
-> >   	}
-> >
-> > @@ -592,6 +606,13 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
-> >   			if (clock_adc_lut[i].clock == dev->cfg.clock)
-> >   				break;
-> >   		}
-> > +		if (i == ARRAY_SIZE(clock_adc_lut)) {
-> > +			dev_err(&dev->client->dev,
-> > +				"Couldn't find ADC clock for clock=%d\n",
-> > +				dev->cfg.clock);
-> > +			ret = -EINVAL;
-> > +			goto err;
-> > +		}
-> >   		adc_freq = clock_adc_lut[i].adc;
-> >
-> >   		/* get used IF frequency */
-> >
+> Apart from that you marked Patch 2 as not applicable last time [0].
+> Normally the DT binding documentation is taken by the subsystem
+> maintainer together with the driver changes. You can see the details
+> in Documentation/devicetree/bindings/submitting-patches.txt
+> 
+> For Patch 3 feedback from Tony is needed. I think the simplest solution
+> would be to merge it via the media tree (assuming, that the boardcode
+> is not yet removed in 3.19).
+
+Yes just acked it thanks.
+
+Tony
+ 
+> [0] https://patchwork.linuxtv.org/patch/26506/
+> 
+> -- Sebastian
+> 
+> Sebastian Reichel (4):
+>   [media] si4713: add device tree support
+>   [media] si4713: add DT binding documentation
+>   ARM: OMAP2: RX-51: update si4713 platform data
+>   [media] si4713: cleanup platform data
+> 
+>  Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++
+>  arch/arm/mach-omap2/board-rx51-peripherals.c       | 69 ++++++++++------------
+>  drivers/media/radio/si4713/radio-platform-si4713.c | 28 ++-------
+>  drivers/media/radio/si4713/si4713.c                | 31 +++++++++-
+>  drivers/media/radio/si4713/si4713.h                |  6 ++
+>  include/media/radio-si4713.h                       | 30 ----------
+>  include/media/si4713.h                             |  4 +-
+>  7 files changed, 103 insertions(+), 95 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+>  delete mode 100644 include/media/radio-si4713.h
+> 
+> -- 
+> 2.1.1
 > 
