@@ -1,71 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58116 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbaKGGQP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Nov 2014 01:16:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v3.19] uvcvideo changes
-Date: Fri, 07 Nov 2014 08:16:28 +0200
-Message-ID: <1524049.TLSF8qZEUD@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from down.free-electrons.com ([37.187.137.238]:45144 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752886AbaKJRWH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 12:22:07 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v6 10/10] [media] v4l: Forbid usage of V4L2_MBUS_FMT definitions inside the kernel
+Date: Mon, 10 Nov 2014 18:21:54 +0100
+Message-Id: <1415640114-14930-11-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415640114-14930-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Place v4l2_mbus_pixelcode in a #ifndef __KERNEL__ section so that kernel
+users don't have access to these definitions.
 
-The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+We have to keep this definition for user-space users even though they're
+encouraged to move to the new media_bus_format enum.
 
-  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/uapi/linux/v4l2-mediabus.h | 45 ++++++++++++++++++++++++--------------
+ 1 file changed, 28 insertions(+), 17 deletions(-)
 
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
-
-for you to fetch changes up to a1bee5f9f606f89ff30171658a82bf532cca7f3d:
-
-  uvcvideo: Return all buffers to vb2 at stream stop and start failure 
-(2014-11-07 08:13:21 +0200)
-
-The "v4l2: get/set prio using video_dev prio structure" patch hasn't been 
-acked yet. I'm leaving now for two weeks of holidays and I would like to avoid 
-missing the merge window, so I'd appreciate if someone (Hans ? :-)) could 
-review it in my absence and ack the pull request. If it needs to be delayed 
-for some reason, could the first two patches (from Philipp and Takashi) still 
-get in ?
-
-----------------------------------------------------------------
-Laurent Pinchart (10):
-      v4l2: get/set prio using video_dev prio structure
-      uvcvideo: Move to video_ioctl2
-      uvcvideo: Set buffer field to V4L2_FIELD_NONE
-      uvcvideo: Separate video and queue enable/disable operations
-      uvcvideo: Add function to convert from queue to stream
-      uvcvideo: Implement vb2 queue start and stop stream operations
-      uvcvideo: Don't stop the stream twice at file handle release
-      uvcvideo: Rename uvc_alloc_buffers to uvc_request_buffers
-      uvcvideo: Rename and split uvc_queue_enable to uvc_queue_stream(on|off)
-      uvcvideo: Return all buffers to vb2 at stream stop and start failure
-
-Philipp Zabel (1):
-      uvcvideo: Add quirk to force the Oculus DK2 IR tracker to grayscale
-
-Takashi Iwai (1):
-      uvcvideo: Fix destruction order in uvc_delete()
-
- drivers/media/usb/uvc/uvc_driver.c   |   51 ++-
- drivers/media/usb/uvc/uvc_queue.c    |  161 ++++---
- drivers/media/usb/uvc/uvc_v4l2.c     | 1009 +++++++++++++++++++--------------
- drivers/media/usb/uvc/uvc_video.c    |   23 +-
- drivers/media/usb/uvc/uvcvideo.h     |   12 +-
- drivers/media/v4l2-core/v4l2-ioctl.c |    4 +-
- 6 files changed, 705 insertions(+), 555 deletions(-)
-
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index d712df8..5c9410d 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -15,6 +15,33 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code (from enum v4l2_mbus_pixelcode)
++ * @field:	used interlacing type (from enum v4l2_field)
++ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
++ */
++struct v4l2_mbus_framefmt {
++	__u32			width;
++	__u32			height;
++	__u32			code;
++	__u32			field;
++	__u32			colorspace;
++	__u32			reserved[7];
++};
++
++#ifndef __KERNEL__
++/*
++ * enum v4l2_mbus_pixelcode and its definitions are now deprecated, and
++ * MEDIA_BUS_FMT_ definitions (defined in media-bus-format.h) should be
++ * used instead.
++ *
++ * New defines should only be added to media-bus-format.h. The
++ * v4l2_mbus_pixelcode enum is frozen.
++ */
++
+ #define V4L2_MBUS_FROM_MEDIA_BUS_FMT(name)	\
+ 	MEDIA_BUS_FMT_ ## name = V4L2_MBUS_FMT_ ## name
+ 
+@@ -102,22 +129,6 @@ enum v4l2_mbus_pixelcode {
+ 
+ 	V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32),
+ };
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code (from enum v4l2_mbus_pixelcode)
+- * @field:	used interlacing type (from enum v4l2_field)
+- * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32			width;
+-	__u32			height;
+-	__u32			code;
+-	__u32			field;
+-	__u32			colorspace;
+-	__u32			reserved[7];
+-};
++#endif /* __KERNEL__ */
+ 
+ #endif
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
