@@ -1,60 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35346 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754039AbaKELXt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 06:23:49 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] [media] stv090x: Fix delivery system setting
-Date: Wed,  5 Nov 2014 09:23:38 -0200
-Message-Id: <1011d24a2148f77aaa2d4afc1c0f48e40589d020.1415186611.git.mchehab@osg.samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56405 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752543AbaKJMti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 07:49:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 03/16] vb2: add dma_dir to the alloc memop.
+Date: Mon, 10 Nov 2014 13:49:18 +0100
+Message-Id: <1415623771-29634-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As sparse complains:
-	drivers/media/dvb-frontends/stv090x.c:3471:30: warning: mixing different enum types
-	drivers/media/dvb-frontends/stv090x.c:3471:30:     int enum fe_delivery_system  versus
-	drivers/media/dvb-frontends/stv090x.c:3471:30:     int enum stv090x_delsys
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There's actually an error when setting the delivery system on
-stv090x_search(): it is using the DVBv5 macros as if they were
-the stv090x ones.
+This is needed for the next patch where the dma-sg alloc memop needs
+to know the dma_dir.
 
-Instead, we should convert between the two namespaces, returning
-an error if an unsupported delivery system is requested.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       | 4 +++-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 +++-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 5 +++--
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 4 +++-
+ include/media/videobuf2-core.h                 | 4 +++-
+ 5 files changed, 15 insertions(+), 6 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 93f4979ea6e9..f8050b984a8f 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -3468,7 +3468,20 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
- 	if (props->frequency == 0)
- 		return DVBFE_ALGO_SEARCH_INVALID;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 573f6fb..7aed8f2 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -189,6 +189,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
+ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	enum dma_data_direction dma_dir =
++		V4L2_TYPE_IS_OUTPUT(q->type) ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	void *mem_priv;
+ 	int plane;
  
--	state->delsys = props->delivery_system;
-+	switch (props->delivery_system) {
-+	case SYS_DSS:
-+		state->delsys = STV090x_DSS;
-+		break;
-+	case SYS_DVBS:
-+		state->delsys = STV090x_DVBS1;
-+		break;
-+	case SYS_DVBS2:
-+		state->delsys = STV090x_DVBS2;
-+		break;
-+	default:
-+		return DVBFE_ALGO_SEARCH_INVALID;
-+	}
-+
- 	state->frequency = props->frequency;
- 	state->srate = props->symbol_rate;
- 	state->search_mode = STV090x_SEARCH_AUTO;
+@@ -200,7 +202,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+ 
+ 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+-				      size, q->gfp_flags);
++				      size, dma_dir, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 2bdffd3..c4305bf 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -155,7 +155,8 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
+ }
+ 
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
++			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -176,6 +177,7 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ 	/* Prevent the device from being released while the buffer is used */
+ 	buf->dev = get_device(dev);
+ 	buf->size = size;
++	buf->dma_dir = dma_dir;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dc_put;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 6b54a14..2529b83 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -86,7 +86,8 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+ 	return 0;
+ }
+ 
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
++			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+ 	int ret;
+@@ -97,7 +98,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 		return NULL;
+ 
+ 	buf->vaddr = NULL;
+-	buf->dma_dir = DMA_NONE;
++	buf->dma_dir = dma_dir;
+ 	buf->offset = 0;
+ 	buf->size = size;
+ 	/* size is already page aligned */
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index fc1eb45..bba2460 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -35,7 +35,8 @@ struct vb2_vmalloc_buf {
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
++			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+@@ -45,6 +46,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fl
+ 
+ 	buf->size = size;
+ 	buf->vaddr = vmalloc_user(buf->size);
++	buf->dma_dir = dma_dir;
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_vmalloc_put;
+ 	buf->handler.arg = buf;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d607871..bd2cec2 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -82,7 +82,9 @@ struct vb2_threadio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
++	void		*(*alloc)(void *alloc_ctx, unsigned long size,
++				  enum dma_data_direction dma_dir,
++				  gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+ 
 -- 
-1.9.3
+2.1.1
 
