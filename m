@@ -1,104 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55325 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754AbaK0Vbn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Nov 2014 16:31:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] media: usb: uvc: use vb2_ops_wait_prepare/finish helper
-Date: Thu, 27 Nov 2014 23:32:09 +0200
-Message-ID: <4838705.gmGJIAUqrM@avalon>
-In-Reply-To: <1417044344-20611-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1417044344-20611-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:44247 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928AbaKJWUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 17:20:20 -0500
+Date: Mon, 10 Nov 2014 20:20:13 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL for v3.18-rc1] media updates
+Message-ID: <20141110202013.2a83ff9f@recife.lan>
+In-Reply-To: <1415653538.21229.37.camel@x220>
+References: <20141009141849.137e738d@recife.lan>
+	<1413793905.16435.6.camel@x220>
+	<1415652356.21229.31.camel@x220>
+	<20141110185433.3c53e438@recife.lan>
+	<1415653538.21229.37.camel@x220>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Em Mon, 10 Nov 2014 22:05:38 +0100
+Paul Bolle <pebolle@tiscali.nl> escreveu:
 
-Thank you for the patch.
-
-On Wednesday 26 November 2014 23:25:44 Lad, Prabhakar wrote:
-> This patch drops driver specific wait_prepare() and
-> wait_finish() callbacks from vb2_ops and instead uses
-> the the helpers vb2_ops_wait_prepare/finish() provided
-> by the vb2 core, the lock member of the queue needs
-> to be initalized to a mutex so that vb2 helpers
-> vb2_ops_wait_prepare/finish() can make use of it.
+> On Mon, 2014-11-10 at 18:54 -0200, Mauro Carvalho Chehab wrote:
+> > Em Mon, 10 Nov 2014 21:45:56 +0100
+> > Paul Bolle <pebolle@tiscali.nl> escreveu: 
+> > > This typo is still present in both next-20141110 and v3.18-rc4. And I've
+> > > first reported it nearly two months ago. I see two fixes:
+> > >     1) s/HAS_MMU/MMU/
+> > >     2) s/ || (COMPILE_TEST && HAS_MMU)//
+> > > 
+> > > Which would you prefer?
+> > 
+> > Hmm... Probably patchwork didn't get your patch.
 > 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_queue.c | 19 +++----------------
->  1 file changed, 3 insertions(+), 16 deletions(-)
+> There's no patch, not yet. I try to report stuff like this before
+> sending patches. The idea here being that the people familiar with the
+> code tend to fix things better and quicker.
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> b/drivers/media/usb/uvc/uvc_queue.c index cc96072..10c554e 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -143,20 +143,6 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
->  		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
->  }
+> > IMHO, the best would be:
+> > 
+> > 	depends on HAS_MMU
 > 
-> -static void uvc_wait_prepare(struct vb2_queue *vq)
-> -{
-> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> -
-> -	mutex_unlock(&queue->mutex);
-> -}
-> -
-> -static void uvc_wait_finish(struct vb2_queue *vq)
-> -{
-> -	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> -
-> -	mutex_lock(&queue->mutex);
-> -}
-> -
->  static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
-> @@ -195,8 +181,8 @@ static struct vb2_ops uvc_queue_qops = {
->  	.buf_prepare = uvc_buffer_prepare,
->  	.buf_queue = uvc_buffer_queue,
->  	.buf_finish = uvc_buffer_finish,
-> -	.wait_prepare = uvc_wait_prepare,
-> -	.wait_finish = uvc_wait_finish,
-> +	.wait_prepare = vb2_ops_wait_prepare,
-> +	.wait_finish = vb2_ops_wait_finish,
->  	.start_streaming = uvc_start_streaming,
->  	.stop_streaming = uvc_stop_streaming,
->  };
-> @@ -214,6 +200,7 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum
-> v4l2_buf_type type, queue->queue.mem_ops = &vb2_vmalloc_memops;
->  	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> You really like the HAS_MMU symbol, don't you?
+
+
+I got distracted by your (2) alternative:
+
+> > >     2) s/ || (COMPILE_TEST && HAS_MMU)//
+
+anyway you got it ;)
+
 > 
->  		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
+> > 	depends on ARCH_OMAP2 || ARCH_OMAP3 || COMPILE_TEST
 > 
-> +	queue->queue.lock = &queue->mutex;
+> But I understand what you're suggesting here. Should I draft a, probably
+> untested, patch?
 
-I'm a bit concerned that this would introduce future breakages. Setting the 
-queue.lock pointer enables locking in all vb2_fop_* and vb2_ops_wait_* 
-functions. The uvcvideo driver isn't ready for that, but doesn't use the 
-vb2_fop_* functions yet, so that's not an issue. However, in the future, 
-videobuf2 might use the lock in more places, including functions used by the 
-uvcvideo driver. This could then cause breakages.
+Sure.
 
-It would be better to completely convert the uvcvideo driver to the vb2_fop_* 
-functions if we want to use vb2_ops_*. I'm not sure how complex that would be 
-though, and whether it would be possible while still keeping the fine-grained 
-locking implemented by the uvcvideo driver. Do you think it should be 
-attempted ?
-
->  	ret = vb2_queue_init(&queue->queue);
->  	if (ret)
->  		return ret;
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks!
+Mauro
