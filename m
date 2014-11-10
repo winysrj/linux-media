@@ -1,135 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50373 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033AbaKXKkt (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:45338 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753850AbaKJR2n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 05:40:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR v3.19] uvcvideo changes
-Date: Mon, 24 Nov 2014 12:41:10 +0200
-Message-ID: <3359544.inIet0M21q@avalon>
-In-Reply-To: <20141124081211.46d546d3@recife.lan>
-References: <1524049.TLSF8qZEUD@avalon> <2578174.1LaTmadn8H@avalon> <20141124081211.46d546d3@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 10 Nov 2014 12:28:43 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-api@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v6 RESEND 05/10] [media] pci: Make use of MEDIA_BUS_FMT definitions
+Date: Mon, 10 Nov 2014 18:28:30 +0100
+Message-Id: <1415640515-15069-6-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1415640515-15069-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In order to have subsytem agnostic media bus format definitions we've
+moved media bus definition to include/uapi/linux/media-bus-format.h and
+prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
 
-On Monday 24 November 2014 08:12:11 Mauro Carvalho Chehab wrote:
-> Em Mon, 24 Nov 2014 11:06:49 +0200 Laurent Pinchart escreveu:
-> > On Tuesday 11 November 2014 08:56:26 Mauro Carvalho Chehab wrote:
-> > > Em Fri, 07 Nov 2014 08:16:28 +0200 Laurent Pinchart escreveu:
-> > > > Hi Mauro,
-> > > > 
-> > > > The following changes since commit
-> > 
-> > 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
-> > > >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
-> > > > 
-> > > > are available in the git repository at:
-> > > >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
-> > > 
-> > > It seems that there's something weird with this URL... remotes????
-> > 
-> > git isn't playing nicely :-/
-> > 
-> > I've pushed the changes to the uvc/next branch on
-> > git://linuxtv.org/pinchartl/media.git, up to commit a1bee5f9f606.
-> > http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=uvc/next
-> > confirms that everything is in order.
-> > 
-> > However, running
-> > 
-> > git request-pull local-linuxtv-master media remotes/media/uvc/next
-> 
-> Seriously? Do you want git to change remotes? I don't think you can
-> do that. The remotes branches are to track something remote, e. g.
-> the references there should be already at the remote tree.
+Replace all references to the old definitions in pci drivers.
 
-I don't want git to change remotes, I want git to react to what is in the 
-remote tree.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/pci/cx18/cx18-av-core.c       | 2 +-
+ drivers/media/pci/cx18/cx18-controls.c      | 2 +-
+ drivers/media/pci/cx18/cx18-ioctl.c         | 2 +-
+ drivers/media/pci/cx23885/cx23885-video.c   | 2 +-
+ drivers/media/pci/ivtv/ivtv-controls.c      | 2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c         | 2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-For historical reasons my local branch is named uvcvideo/next, while the 
-remote branch is named uvc/next. They both point to the same commit. Before 
-upgrading to git v2.0.4 running
-
-	git request-pull local-linuxtv-master media remotes/media/uvc/next
-
-would not incorrectly warn that the commit ID isn't available remotely (as it 
-is available) and would produce the git URL
-
-	git://linuxtv.org/pinchartl/media.git uvc/next
-
-> You should, instead, create a local branch and push it upstream.
-
-I've done that, the problem is that the local and remote branches have 
-different names.
-
-I should of course have read the latest git-request-pull man page and run
-
-	git request-pull local-linuxtv-master media uvcvideo/next:uvc/next
-
-That works fine.
-
-> > with the media remote pointing to git://linuxtv.org/pinchartl/media.git
-> > generates
-> > 
-> > ----------
-> > warn: No match for commit a1bee5f9f606f89ff30171658a82bf532cca7f3d found
-> > at git://linuxtv.org/pinchartl/media.git
-> > warn: Are you sure you pushed 'remotes/media/uvc/next' there?
-> > 
-> > The following changes since commit 
-4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
-> >   [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/media.git remotes/media/uvc/next
-> > 
-> > for you to fetch changes up to a1bee5f9f606f89ff30171658a82bf532cca7f3d:
-> >   uvcvideo: Return all buffers to vb2 at stream stop and start failure
-> > 
-> > (2014-11-07 08:13:21 +0200)
-> > ----------
-> > 
-> > For some reason git can't find the remote branch (hence the warning) and
-> > thus generates the URL line incorrectly.
-> > 
-> > I've tried upgrading from git 2.0.4 to git 2.1.3 but the problem is still
-> > present. Creating a local branch named uvc/next fixes the problem.
-> 
-> Yes, that's the right thing to do. Only modify local branches.
-> 
-> Git considers that the branches under remotes/* will be handled by
-> it. If you ever do a "git remote update". You'll see that git will override
-> all references that are on a remote branch and you'll loose your work!
-> 
-> I think that even git revlog won't help you to recover the missing heads,
-> as it won't track branches under remotes/*.
-> 
-> > I wonder if I'm doing something really stupid or if it's a git bug.
-> 
-> Well, git is right. You should not use remotes/foo for the branches
-> you're modifying. Such namespace is reserved for git to be able to
-> track the upstream branches.
->
-> > Can you pull from
-> > 
-> >         git://linuxtv.org/pinchartl/media.git uvc/next
-> 
-> Sure, I'll do it along this week.
-
-Thank you.
-
-> > ? I haven't updated the branch since I've sent the last pull request.
-
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index 2d3afe0..4c6ce21 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -952,7 +952,7 @@ static int cx18_av_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
+ 	int HSC, VSC, Vsrc, Hsrc, filter, Vlines;
+ 	int is_50Hz = !(state->std & V4L2_STD_525_60);
+ 
+-	if (fmt->code != V4L2_MBUS_FMT_FIXED)
++	if (fmt->code != MEDIA_BUS_FMT_FIXED)
+ 		return -EINVAL;
+ 
+ 	fmt->field = V4L2_FIELD_INTERLACED;
+diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
+index 282a3d2..4aeb7c6 100644
+--- a/drivers/media/pci/cx18/cx18-controls.c
++++ b/drivers/media/pci/cx18/cx18-controls.c
+@@ -98,7 +98,7 @@ static int cx18_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
+ 	/* fix videodecoder resolution */
+ 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
+ 	fmt.height = cxhdl->height;
+-	fmt.code = V4L2_MBUS_FMT_FIXED;
++	fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &fmt);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index 6f2b590..71963db 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -294,7 +294,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
+ 
+ 	mbus_fmt.width = cx->cxhdl.width = w;
+ 	mbus_fmt.height = cx->cxhdl.height = h;
+-	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
++	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(cx->sd_av, video, s_mbus_fmt, &mbus_fmt);
+ 	return cx18_g_fmt_vid_cap(file, fh, fmt);
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 682a4f9..091f5db 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -608,7 +608,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	dev->field	= f->fmt.pix.field;
+ 	dprintk(2, "%s() width=%d height=%d field=%d\n", __func__,
+ 		dev->width, dev->height, dev->field);
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	call_all(dev, video, s_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 	/* s_mbus_fmt overwrites f->fmt.pix.field, restore it */
+diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
+index 2b0ab26..ccf548c 100644
+--- a/drivers/media/pci/ivtv/ivtv-controls.c
++++ b/drivers/media/pci/ivtv/ivtv-controls.c
+@@ -69,7 +69,7 @@ static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
+ 	/* fix videodecoder resolution */
+ 	fmt.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
+ 	fmt.height = cxhdl->height;
+-	fmt.code = V4L2_MBUS_FMT_FIXED;
++	fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &fmt);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 3e0cb77..4d8ee18 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -595,7 +595,7 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
+ 		fmt->fmt.pix.width /= 2;
+ 	mbus_fmt.width = fmt->fmt.pix.width;
+ 	mbus_fmt.height = h;
+-	mbus_fmt.code = V4L2_MBUS_FMT_FIXED;
++	mbus_fmt.code = MEDIA_BUS_FMT_FIXED;
+ 	v4l2_subdev_call(itv->sd_video, video, s_mbus_fmt, &mbus_fmt);
+ 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
+ }
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index e4ea85f..8b3bb78 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -140,7 +140,7 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct v4l2_mbus_framefmt mbus_fmt;
+ 
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	saa_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 
+@@ -157,7 +157,7 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct v4l2_mbus_framefmt mbus_fmt;
+ 
+-	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, MEDIA_BUS_FMT_FIXED);
+ 	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
