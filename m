@@ -1,69 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:45919 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751955AbaK3MkO (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56405 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752654AbaKJMtl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Nov 2014 07:40:14 -0500
-Date: Sun, 30 Nov 2014 13:40:08 +0100
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dave Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org,
-	Thierry Reding <thierry.reding@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: Re: [PATCH v3 0/3] drm: describe display bus format
-Message-ID: <20141130134008.4471abdd@bbrezillon>
-In-Reply-To: <7292023.aOo0xYF6kL@avalon>
-References: <1416318380-20122-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20141127143750.3984ddd0@bbrezillon>
-	<7292023.aOo0xYF6kL@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Nov 2014 07:49:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 09/16] vivid: enable vb2_expbuf support.
+Date: Mon, 10 Nov 2014 13:49:24 +0100
+Message-Id: <1415623771-29634-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sat, 29 Nov 2014 00:29:10 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+Now that vb2 supports DMABUF export for dma-sg and vmalloc memory
+modes, we can enable the vb2_expbuf support in vivid.
 
-> Hi Boris,
-> 
-> On Thursday 27 November 2014 14:37:50 Boris Brezillon wrote:
-> > On Tue, 18 Nov 2014 14:46:17 +0100 Boris Brezillon wrote:
-> > > Hello,
-> > > 
-> > > This series makes use of the MEDIA_BUS_FMT definition to describe how
-> > > the data are transmitted to the display.
-> > > 
-> > > This will allow drivers to configure their output display bus according
-> > > to the display capabilities.
-> > > For example some display controllers support DPI (or raw RGB) connectors
-> > > and need to specify which format will be transmitted on the DPI bus
-> > > (RGB444, RGB565, RGB888, ...).
-> > > 
-> > > This series also adds a field to the panel_desc struct so that one
-> > > can specify which format is natevely supported by a panel.
-> > 
-> > Thierry, Laurent, Dave, can you take a look at this patch series: this
-> > is the last missing dependency to get the atmel-hlcdc DRM driver
-> > mainlined, and I was expecting to get this driver in 3.19...
-> 
-> I've reviewed the series, it looks globally fine to me. I just had two small 
-> comments on patch 1/3.
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the review, I'll address your comments in the next version.
-
-Regards,
-
-Boris
-
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 2c61a62..7de8d9d 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -588,7 +588,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
+ 	.vidioc_querybuf		= vb2_ioctl_querybuf,
+ 	.vidioc_qbuf			= vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+-/* Not yet	.vidioc_expbuf		= vb2_ioctl_expbuf,*/
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
+ 	.vidioc_streamon		= vb2_ioctl_streamon,
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+ 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+2.1.1
+
