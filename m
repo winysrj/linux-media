@@ -1,75 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:40294 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932332AbaKEPUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Nov 2014 10:20:18 -0500
-Message-ID: <545A401C.8070908@cisco.com>
-Date: Wed, 05 Nov 2014 16:19:56 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 11/15] [media] Deprecate v4l2_mbus_pixelcode
-References: <1415094910-15899-1-git-send-email-boris.brezillon@free-electrons.com>	<1415094910-15899-12-git-send-email-boris.brezillon@free-electrons.com>	<20141105150814.GT3136@valkosipuli.retiisi.org.uk> <20141105161538.7a1686d5@bbrezillon>
-In-Reply-To: <20141105161538.7a1686d5@bbrezillon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from ring0.de ([5.45.105.125]:52931 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752185AbaKJUfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 15:35:22 -0500
+From: Sebastian Reichel <sre@kernel.org>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv3 2/4] [media] si4713: add DT binding documentation
+Date: Mon, 10 Nov 2014 21:34:42 +0100
+Message-Id: <1415651684-3894-3-git-send-email-sre@kernel.org>
+In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
+References: <1415651684-3894-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
+radio transmitter.
 
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
 
-On 11/05/14 16:15, Boris Brezillon wrote:
-> On Wed, 5 Nov 2014 17:08:15 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> 
->> Hi Boris,
->>
->> On Tue, Nov 04, 2014 at 10:55:06AM +0100, Boris Brezillon wrote:
->>> The v4l2_mbus_pixelcode enum (or its values) should be replaced by the
->>> media_bus_format enum.
->>> Keep this enum in v4l2-mediabus.h and create a new header containing
->>> the v4l2_mbus_framefmt struct definition (which is not deprecated) so
->>> that we can add a #warning statement in v4l2-mediabus.h and hopefully
->>> encourage users to move to the new definitions.
->>>
->>> Replace inclusion of v4l2-mediabus.h with v4l2-mbus.h in all common headers
->>> and update the documentation Makefile to parse v4l2-mbus.h instead of
->>> v4l2-mediabus.h.
->>>
->>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->>> ---
->>>  Documentation/DocBook/media/Makefile |  2 +-
->>>  include/media/v4l2-mediabus.h        |  2 +-
->>>  include/uapi/linux/Kbuild            |  1 +
->>>  include/uapi/linux/v4l2-mbus.h       | 35 +++++++++++++++++++++++++++++++++++
->>>  include/uapi/linux/v4l2-mediabus.h   | 26 ++++----------------------
->>
->> I would keep the original file name, even if the compatibility definitions
->> are there. I don't see any harm in having them around as well.
->>
-> 
-> That's the part I was not sure about.
-> The goal of this patch (and the following ones) is to deprecate
-> v4l2_mbus_pixelcode enum and its values by adding a #warning when
-> v4l2-mediabus.h file is included, thus encouraging people to use new
-> definitions.
+diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
+new file mode 100644
+index 0000000..5ee5552
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/si4713.txt
+@@ -0,0 +1,30 @@
++* Silicon Labs FM Radio transmitter
++
++The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
++supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
++and a digital interface, which supports I2S, left-justified and a custom
++DSP-mode format. It is programmable through an I2C interface.
++
++Required Properties:
++- compatible: Should contain "silabs,si4713"
++- reg: the I2C address of the device
++
++Optional Properties:
++- interrupts-extended: Interrupt specifier for the chips interrupt
++- reset-gpios: GPIO specifier for the chips reset line
++- vdd-supply: phandle for Vdd regulator
++- vio-supply: phandle for Vio regulator
++
++Example:
++
++&i2c2 {
++        fmtx: si4713@63 {
++                compatible = "silabs,si4713";
++                reg = <0x63>;
++
++                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
++                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
++                vio-supply = <&vio>;
++                vdd-supply = <&vaux1>;
++        };
++};
+-- 
+2.1.1
 
-Since v4l2-mediabus.h contains struct v4l2_mbus_framefmt this header remains
-a legal header, so you can't use #warning here in any case.
-
-Regards,
-
-	Hans
-
-> 
-> Do you see another solution to generate such warnings at compilation
-> time ?
-> 
