@@ -1,60 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57253 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754225AbaKORpk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 12:45:40 -0500
-Date: Sat, 15 Nov 2014 19:44:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 06/11] videodev2.h: add new v4l2_ext_control flags
- field
-Message-ID: <20141115174459.GH8907@valkosipuli.retiisi.org.uk>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
- <1411310909-32825-7-git-send-email-hverkuil@xs4all.nl>
- <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
+Received: from lists.s-osg.org ([54.187.51.154]:44304 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422AbaKKLHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 06:07:18 -0500
+Date: Tue, 11 Nov 2014 09:07:10 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
+Message-ID: <20141111090710.7a60a846@recife.lan>
+In-Reply-To: <1413904027-16767-2-git-send-email-sre@kernel.org>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+	<1413904027-16767-2-git-send-email-sre@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20141115141858.GG8907@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Tue, 21 Oct 2014 17:07:00 +0200
+Sebastian Reichel <sre@kernel.org> escreveu:
 
-On Sat, Nov 15, 2014 at 04:18:59PM +0200, Sakari Ailus wrote:
-...
-> >  	union {
-> >  		__s32 value;
-> >  		__s64 value64;
-> > @@ -1294,6 +1294,10 @@ struct v4l2_ext_control {
-> >  	};
-> >  } __attribute__ ((packed));
-> >  
-> > +/* v4l2_ext_control flags */
-> > +#define V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE	0x00000001
-> > +#define V4L2_EXT_CTRL_FL_IGN_STORE		0x00000002
-> 
-> Do we need both? Aren't these mutually exclusive, and you must have either
-> to be meaningful in the context of a store?
+> This switches back to the normal regulator API (but use
+> managed variant) in preparation for device tree support.
 
-Ah. Now I think I understand what do these mean. Please ignore my previous
-comment.
+This patch broke compilation. Please be sure that none of the patches in
+the series would break it, as otherwise git bisect would be broken.
 
-I might call them differently. What would you think of
-V4L2_EXT_CTRL_FL_STORE_IGNORE and V4L2_EXT_CTRL_FL_STORE_ONCE?
-V4L2_EXT_CTRL_FL_IGN_STORE_AFTER_USE is quite long IMO. Up to you.
+Thanks,
+Mauro
 
-I wonder if we need EXT in V4L2_EXT_CTRL_FL. It's logical but also
-redundant since the old control interface won't have flags either.
-
-I'd assume that for cameras the vast majority of users will always want to
-just apply the values once. How are the use cases in video decoding?
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
+drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_device' has no member named 'supplies'
+ 
+          ^
+drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_device' has no member named 'supplies'
+  if (sdev->vdd) {
+                                   ^
+drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_device' has no member named 'supply_data'
+  if (sdev->vdd) {
+                                                   ^
+drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_device' has no member named 'supplies'
+   v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+          ^
+drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_device' has no member named 'supplies'
+   sdev->power_state = POWER_ON;
+                                    ^
+drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_device' has no member named 'supply_data'
+   sdev->power_state = POWER_ON;
+                                                    ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
+drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_device' has no member named 'supplies'
+  int err;
+           ^
+drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_device' has no member named 'supplies'
+  u8 resp[SI4713_PWDN_NRESP];
+                                     ^
+drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_device' has no member named 'supply_data'
+ 
+                ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
+drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_device' has no member named 'supplies'
+ /* si4713_probe - probe for the device */
+       ^
+drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_device' has no member named 'supplies'
+ {
+                      ^
+drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_device' has no member named 'supply_data'
+  struct si4713_device *sdev;
+       ^
+drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_device' has no member named 'supplies'
+  struct v4l2_ctrl_handler *hdl;
+                                              ^
+drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_device' has no member named 'supply_data'
+  int rval, i;
+           ^
+drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_device' has no member named 'supplies'
+ 
+                          ^
+drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_device' has no member named 'supply_data'
+ 
+                                          ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
+drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_device' has no member named 'supplies'
+   goto free_irq;
+                          ^
+drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_device' has no member named 'supply_data'
+   goto free_irq;
