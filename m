@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37558 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934123AbaKLELg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Nov 2014 23:11:36 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/11] mn88472: add small delay to wait DVB-C lock
-Date: Wed, 12 Nov 2014 06:11:09 +0200
-Message-Id: <1415765477-23153-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1415765477-23153-1-git-send-email-crope@iki.fi>
-References: <1415765477-23153-1-git-send-email-crope@iki.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:48599 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbaKKEnz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Nov 2014 23:43:55 -0500
+Message-ID: <546193CF.8090107@ti.com>
+Date: Tue, 11 Nov 2014 10:12:55 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	linux-api <linux-api@vger.kernel.org>,
+	OSUOSL Drivers <devel@driverdev.osuosl.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3 06/10] [media] platform: Make use of media_bus_format
+ enum
+References: <1415369269-5064-1-git-send-email-boris.brezillon@free-electrons.com> <1415369269-5064-7-git-send-email-boris.brezillon@free-electrons.com> <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com>
+In-Reply-To: <CA+V-a8t79gYYGcgg5wvM-eqW8H2D6WD7xM9t2Px=WHb2rf34ow@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-400ms delay seems to be enough in order to gain DVB-C lock.
+On Saturday 08 November 2014 02:48 PM, Prabhakar Lad wrote:
+> Hi,
+> 
+> Thanks for the patch,
+> 
+> On Fri, Nov 7, 2014 at 2:07 PM, Boris Brezillon
+> <boris.brezillon@free-electrons.com> wrote:
+>> In order to have subsytem agnostic media bus format definitions we've
+>> moved media bus definition to include/uapi/linux/media-bus-format.h and
+>> prefixed values with MEDIA_BUS_FMT instead of V4L2_MBUS_FMT.
+>>
+>> Reference new definitions in all platform drivers.
+>>
+>> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+>> ---
+>>  arch/arm/mach-davinci/board-dm355-evm.c            |   2 +-
+>>  arch/arm/mach-davinci/board-dm365-evm.c            |   4 +-
+>>  arch/arm/mach-davinci/dm355.c                      |   7 +-
+>>  arch/arm/mach-davinci/dm365.c                      |   7 +-
+> 
+> @Sekhar can you ack for the machine changes for davinci ?
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/mn88472_c.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Heh, I don't have 6/10 in my inbox but have rest of the series. Can you
+forward 6/10 to me?
 
-diff --git a/drivers/media/dvb-frontends/mn88472_c.c b/drivers/media/dvb-frontends/mn88472_c.c
-index 59d48e7..b5bd326 100644
---- a/drivers/media/dvb-frontends/mn88472_c.c
-+++ b/drivers/media/dvb-frontends/mn88472_c.c
-@@ -105,6 +105,13 @@ static int mn88472_rreg(struct mn88472_state *s, u16 reg, u8 *val)
- 	return mn88472_rregs(s, reg, val, 1);
- }
- 
-+static int mn88472_get_tune_settings(struct dvb_frontend *fe,
-+	struct dvb_frontend_tune_settings *s)
-+{
-+	s->min_delay_ms = 400;
-+	return 0;
-+}
-+
- static int mn88472_set_frontend_c(struct dvb_frontend *fe)
- {
- 	struct mn88472_state *s = fe->demodulator_priv;
-@@ -398,6 +405,8 @@ static struct dvb_frontend_ops mn88472_ops_c = {
- 
- 	.release = mn88472_release_c,
- 
-+	.get_tune_settings = mn88472_get_tune_settings,
-+
- 	.init = mn88472_init_c,
- 	.sleep = mn88472_sleep_c,
- 
--- 
-http://palosaari.fi/
+Thanks,
+Sekhar
 
