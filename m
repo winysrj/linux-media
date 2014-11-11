@@ -1,85 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:49747 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142AbaKZCHe (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42961 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753179AbaKKKgj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Nov 2014 21:07:34 -0500
-Message-ID: <547535AC.3000204@atmel.com>
-Date: Wed, 26 Nov 2014 10:06:36 +0800
-From: Josh Wu <josh.wu@atmel.com>
+	Tue, 11 Nov 2014 05:36:39 -0500
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6F16A60097
+	for <linux-media@vger.kernel.org>; Tue, 11 Nov 2014 12:36:36 +0200 (EET)
+Date: Tue, 11 Nov 2014 12:36:04 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES for v3.18] Fix unintended BUG() in smiapp driver
+Message-ID: <20141111103604.GB8214@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/2] media: v4l2-image-sizes.h: add SVGA, XGA and UXGA
- size definitions
-References: <1416905668-23029-1-git-send-email-josh.wu@atmel.com> <54745B2F.70003@samsung.com>
-In-Reply-To: <54745B2F.70003@samsung.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sylwester and Mauro
+Hi Mauro,
 
-On 11/25/2014 6:34 PM, Sylwester Nawrocki wrote:
-> Hi Josh,
->
-> On 25/11/14 09:54, Josh Wu wrote:
->> Add SVGA, UXGA and XGA size definitions to v4l2-image-sizes.h.
->> The definitions are sorted by alphabet order.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>   include/media/v4l2-image-sizes.h | 9 +++++++++
->>   1 file changed, 9 insertions(+)
->>
->> diff --git a/include/media/v4l2-image-sizes.h b/include/media/v4l2-image-sizes.h
->> index 10daf92..c70c917 100644
->> --- a/include/media/v4l2-image-sizes.h
->> +++ b/include/media/v4l2-image-sizes.h
->> @@ -25,10 +25,19 @@
->>   #define QVGA_WIDTH	320
->>   #define QVGA_HEIGHT	240
->>   
->> +#define SVGA_WIDTH	800
->> +#define SVGA_HEIGHT	680
-> I think this should be 600. With that fixed, for both patches:
+This simple patch fixes an unintended BUG() in the smiapp driver. This
+should go to stable as well.
 
-Yes, right, It should be 600. It's my bad with such terrible typo here.
+The patch in the tree is the same than sent to the list, except it cc's
+stable@vger.kernel.org. This issue has existed since the very beginning so
+the patch should be applied to the stable series as well.
 
-Hi, Mauro
+The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
 
-I saw this patch is already merged in the media_tree. But not changing 
-the SVGA_HEIGHT to 600.
+  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
 
-Would it possible for you to re-modify this commit in the media_tree to 
-fix the SVGA_HEIGHT as 600?
-Or need I resend the patch or a fix for this?
+are available in the git repository at:
 
-Sorry for such an inconvinencie.
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-fix-v3.18
 
->
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Thanks a again.
+for you to fetch changes up to b88104c04eb9611a34a6e6ab3fead33d0e93a19c:
 
-Best Regards,
-Josh Wu
->
->>   #define SXGA_WIDTH	1280
->>   #define SXGA_HEIGHT	1024
->>   
->>   #define VGA_WIDTH	640
->>   #define VGA_HEIGHT	480
->>   
->> +#define UXGA_WIDTH	1600
->> +#define UXGA_HEIGHT	1200
->> +
->> +#define XGA_WIDTH	1024
->> +#define XGA_HEIGHT	768
->> +
->>   #endif /* _IMAGE_SIZES_H */
-> --
-> Regards,
-> Sylwester
+  smiapp: Only some selection targets are settable (2014-11-09 01:57:49 +0200)
 
+----------------------------------------------------------------
+Sakari Ailus (1):
+      smiapp: Only some selection targets are settable
+
+ drivers/media/i2c/smiapp/smiapp-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
