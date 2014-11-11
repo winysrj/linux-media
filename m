@@ -1,95 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36642 "EHLO arroyo.ext.ti.com"
+Received: from lists.s-osg.org ([54.187.51.154]:44295 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964995AbaKNLU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 06:20:57 -0500
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id sAEBKvT7031193
-	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:57 -0600
-Received: from DLEE71.ent.ti.com (dlee71.ent.ti.com [157.170.170.114])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id sAEBKvLw002908
-	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:57 -0600
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <nikhil.nd@ti.com>
-Subject: [PATCH v2 2/4] media: ti-vpe: Use line average de-interlacing for first 2 frames
-Date: Fri, 14 Nov 2014 16:50:50 +0530
-Message-ID: <1415964052-30351-3-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
-References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
+	id S1752414AbaKKK2m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 05:28:42 -0500
+Date: Tue, 11 Nov 2014 08:28:38 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Joerg Riechardt <J.Riechardt@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] stv090x: use lookup tables for carrier/noise ratio
+Message-ID: <20141111082838.05369439@recife.lan>
+In-Reply-To: <5238E030.8040203@gmx.de>
+References: <5238E030.8040203@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Archit Taneja <archit@ti.com>
+Em Wed, 18 Sep 2013 01:05:20 +0200
+Joerg Riechardt <J.Riechardt@gmx.de> escreveu:
 
-For n input fields, the VPE de-interlacer creates n - 2 progressive frames.
+> The stv090x driver uses the lookup table for signal strength already, 
+> with this patch we use the lookup tables for carrier/noise ratio as well.
+> This has the advantage, that values for DVB-S and DVB-S2 are now 
+> corresponding, while before they were way off. The values are now 
+> proportional to real carrier/noise ratio, while before they were 
+> corresponding to register values. So now applications are able to give 
+> the user real carrier/noise ratio.
+> 
+> Because the output has to be within 0x0000...0xFFFF the three negative 
+> values for DVB-S2 are omitted. This is no significant loss, because 
+> reception is lost at 7.5 dB already (TT S2-1600, Cine S2), so the 
+> negative values are not really important, and also for DVB-S they don´t 
+> exist.
+> 
+> Signed-off-by: Joerg Riechardt <j.riechardt@gmx.de>
+> 
+> Regards,
+> Joerg
+> 
+> --- stv090x.c.bak	2013-09-06 20:59:01.132365872 +0200
+> +++ stv090x.c	2013-09-10 03:21:48.884115191 +0200
+> @@ -173,9 +173,9 @@
+>  
+>  /* DVBS2 C/N Lookup table */
+>  static const struct stv090x_tab stv090x_s2cn_tab[] = {
+> -	{ -30, 13348 }, /* -3.0dB */
+> -	{ -20, 12640 }, /* -2d.0B */
+> -	{ -10, 11883 }, /* -1.0dB */
+> +//	{ -30, 13348 }, /* -3.0dB */
+> +//	{ -20, 12640 }, /* -2d.0B */
+> +//	{ -10, 11883 }, /* -1.0dB */
+>  	{   0, 11101 }, /* -0.0dB */
+>  	{   5, 10718 }, /*  0.5dB */
+>  	{  10, 10339 }, /*  1.0dB */
 
-To support this, we use line average mode of de-interlacer for the first 2
-input fields to generate 2 progressive frames. We then revert back to the
-preferred EDI method, and create n - 2 frames, creating a sum of n frames.
+Instead of commenting, just truncate the value at the DVBv3 stats
+function.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+> @@ -3697,9 +3697,10 @@
+>  			}
+>  			val /= 16;
+>  			last = ARRAY_SIZE(stv090x_s2cn_tab) - 1;
+> -			div = stv090x_s2cn_tab[0].read -
+> -			      stv090x_s2cn_tab[last].read;
+> -			*cnr = 0xFFFF - ((val * 0xFFFF) / div);
+> +			div = stv090x_s2cn_tab[last].real -
+> +			      stv090x_s2cn_tab[0].real;
+> +			val = stv090x_table_lookup(stv090x_s2cn_tab, last, val);
+> +			*cnr = val * 0xFFFF / div;
+>  		}
+>  		break;
+>  
+> @@ -3719,9 +3720,10 @@
+>  			}
+>  			val /= 16;
+>  			last = ARRAY_SIZE(stv090x_s1cn_tab) - 1;
+> -			div = stv090x_s1cn_tab[0].read -
+> -			      stv090x_s1cn_tab[last].read;
+> -			*cnr = 0xFFFF - ((val * 0xFFFF) / div);
+> +			div = stv090x_s1cn_tab[last].real -
+> +			      stv090x_s1cn_tab[0].real;
+> +			val = stv090x_table_lookup(stv090x_s1cn_tab, last, val);
+> +			*cnr = val * 0xFFFF / div;
+>  		}
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index e59eb81..4d3ab43 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -806,6 +806,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
- 
-+static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
-+{
-+	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
-+
-+	if (mode & 0x2)
-+		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
-+
-+	if (mode & 0x3)
-+		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
-+
-+	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
-+		VPE_EDI_INP_MODE_SHIFT);
-+
-+	ctx->load_mmrs = true;
-+}
-+
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -1118,6 +1135,15 @@ static void device_run(void *priv)
- 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 	WARN_ON(ctx->dst_vb == NULL);
- 
-+	if (ctx->deinterlacing) {
-+		/*
-+		 * we have output the first 2 frames through line average, we
-+		 * now switch to EDI de-interlacer
-+		 */
-+		if (ctx->sequence == 2)
-+			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
-+	}
-+
- 	/* config descriptors */
- 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
- 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
-@@ -1779,6 +1805,9 @@ static int vpe_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
- {
- 	struct vpe_ctx *ctx = file2ctx(file);
- 
-+	if (ctx->deinterlacing)
-+		config_edi_input_mode(ctx, 0x0);
-+
- 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
- }
- 
--- 
-1.7.9.5
+As, with this patch, C/N will be a properly scaled value, the best
+is to add support for DVBv5 stats. With DVBv5 stats, the scale can
+be sent to userspace.
 
+>  		break;
+>  	default:
+
+Regards,
+Mauro
