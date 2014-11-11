@@ -1,119 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49313 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754509AbaKNOGb (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:65165 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758AbaKKEhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Nov 2014 09:06:31 -0500
-Date: Fri, 14 Nov 2014 15:58:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH] [media] Add RGB444_1X12 and RGB565_1X16 media bus formats
-Message-ID: <20141114135831.GC8907@valkosipuli.retiisi.org.uk>
-References: <1415961360-14898-1-git-send-email-boris.brezillon@free-electrons.com>
+	Mon, 10 Nov 2014 23:37:07 -0500
+Received: by mail-oi0-f44.google.com with SMTP id h136so6521655oig.17
+        for <linux-media@vger.kernel.org>; Mon, 10 Nov 2014 20:37:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1415961360-14898-1-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <Pine.LNX.4.64.1411101243230.23739@axis700.grange>
+References: <CANC6fRFjG6002rDiJjfDHteQSAnRkwfpyWV8wB39oHu5P8Q2mA@mail.gmail.com>
+	<Pine.LNX.4.64.1411101243230.23739@axis700.grange>
+Date: Tue, 11 Nov 2014 12:37:06 +0800
+Message-ID: <CANC6fRGVdWq5sBxLW=Z2ijVTrLv-RsuMkiq94uQV7yHQq7vi3Q@mail.gmail.com>
+Subject: Re: Add controls to query camera read only paramters
+From: Bin Chen <bin.chen@linaro.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Boris,
+Hi Guennadi,
 
-On Fri, Nov 14, 2014 at 11:36:00AM +0100, Boris Brezillon wrote:
-> Add RGB444_1X12 and RGB565_1X16 format definitions and update the
-> documentation.
-> 
-> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
->  include/uapi/linux/media-bus-format.h              |  4 ++-
->  2 files changed, 43 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index 18730b9..8c396db 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -563,6 +563,46 @@
->  	      <entry>b<subscript>1</subscript></entry>
->  	      <entry>b<subscript>0</subscript></entry>
->  	    </row>
-> +	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
-> +	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
-> +	      <entry>0x100d</entry>
-> +	      <entry></entry>
-> +	      &dash-ent-20;
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
-> +	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
-> +	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
-> +	      <entry>0x100d</entry>
-> +	      <entry></entry>
-> +	      &dash-ent-16;
-> +	      <entry>r<subscript>4</subscript></entry>
-> +	      <entry>r<subscript>3</subscript></entry>
-> +	      <entry>r<subscript>2</subscript></entry>
-> +	      <entry>r<subscript>1</subscript></entry>
-> +	      <entry>r<subscript>0</subscript></entry>
-> +	      <entry>g<subscript>5</subscript></entry>
-> +	      <entry>g<subscript>4</subscript></entry>
-> +	      <entry>g<subscript>3</subscript></entry>
-> +	      <entry>g<subscript>2</subscript></entry>
-> +	      <entry>g<subscript>1</subscript></entry>
-> +	      <entry>g<subscript>0</subscript></entry>
-> +	      <entry>b<subscript>4</subscript></entry>
-> +	      <entry>b<subscript>3</subscript></entry>
-> +	      <entry>b<subscript>2</subscript></entry>
-> +	      <entry>b<subscript>1</subscript></entry>
-> +	      <entry>b<subscript>0</subscript></entry>
-> +	    </row>
->  	  </tbody>
->  	</tgroup>
->        </table>
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 23b4090..cc7b79e 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
->  
->  #define MEDIA_BUS_FMT_FIXED			0x0001
->  
-> -/* RGB - next is	0x100e */
-> +/* RGB - next is	0x1010 */
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
->  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
-> @@ -47,6 +47,8 @@
->  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
->  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
-> +#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
-> +#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+On 10 November 2014 19:46, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hi Bin,
+>
+> On Sat, 8 Nov 2014, Bin Chen wrote:
+>
+>> Hi Everyone,
+>>
+>> I need suggestions with regard to adding controls to query camera read
+>> only parameters (e.g maxZoom/maxExposureCompensation) as needed by
+>> Android Camera API[1].
+>
+> I'm not sure all Android HAL metadata tags should be 1-to-1 implemented in
+> V4L2.
 
-I'd arrange these according to BPP and bits per sample, both in the header
-and documentation.
+Yes, we won't need 1-1 mapping and I'm just trying to identify the
+gaps and will add only those that are make sense.
 
->  /* YUV (including grey) - next is	0x2024 */
->  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Some of them can be derived from existing information, some are even
+> more relevant to the HAL, then to the camera (kernel driver).
+We can do it in both places and the boundary is kind of blur, at least
+for me:). Any guideline to follow? Putting them in driver maybe
+reasonable in the sense that all hardware related information are put
+together in one place - the driver. V4L2_CID_PIXEL_RATE is an example
+in V4l2 to provide such read-only information.
