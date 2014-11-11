@@ -1,94 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:26177 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752665AbaKCUeZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 15:34:25 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NEH00748D5C9YB0@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Nov 2014 15:34:24 -0500 (EST)
-Date: Mon, 03 Nov 2014 18:34:19 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: kbuild test robot <fengguang.wu@intel.com>, kbuild@01.org,
-	linux-media@vger.kernel.org
-Subject: Re: [linuxtv-media:master 489/499]
- drivers/media/usb/cx231xx/cx231xx-audio.c:445:16-20: ERROR: dev is NULL but
- dereferenced.
-Message-id: <20141103183419.2d9323ba.m.chehab@samsung.com>
-In-reply-to: <alpine.DEB.2.02.1411032120180.2038@localhost6.localdomain6>
-References: <201411040301.F0BzMPnl%fengguang.wu@intel.com>
- <alpine.DEB.2.02.1411032120180.2038@localhost6.localdomain6>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48335 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751282AbaKKR7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 12:59:44 -0500
+Message-ID: <54624E83.1060404@xs4all.nl>
+Date: Tue, 11 Nov 2014 18:59:31 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sebastian Reichel <sre@kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>	<1413904027-16767-2-git-send-email-sre@kernel.org> <20141111090710.7a60a846@recife.lan>
+In-Reply-To: <20141111090710.7a60a846@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 03 Nov 2014 21:20:42 +0100
-Julia Lawall <julia.lawall@lip6.fr> escreveu:
+Hi Mauro,
 
-> Clearly a bug.
+On 11/11/2014 12:07 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 21 Oct 2014 17:07:00 +0200
+> Sebastian Reichel <sre@kernel.org> escreveu:
+> 
+>> This switches back to the normal regulator API (but use
+>> managed variant) in preparation for device tree support.
+> 
+> This patch broke compilation. Please be sure that none of the patches in
+> the series would break it, as otherwise git bisect would be broken.
 
-Actually, this is a bogus test. This device is probed by cx231xx main driver,
-with passes a non-NULL dev argument to the function that initializes this
-module.
+Weird, as reported by Sebastian, it works for me.
 
-So, it is not possible for it to be NULL.
+However, after applying this patch I get these new warnings:
 
-Thanks for reporting!
-I'm sending a patch that removes the bogus check.
+  CC      drivers/media/radio/si4713/radio-usb-si4713.o
+drivers/media/radio/si4713/si4713.c: In function ‘si4713_probe’:
+drivers/media/radio/si4713/si4713.c:1617:1: warning: label ‘free_gpio’ defined but not used [-Wunused-label]
+ free_gpio:
+ ^
+drivers/media/radio/si4713/si4713.c:1451:12: warning: unused variable ‘i’ [-Wunused-variable]
+  int rval, i;
+            ^
 
-Regards,
-Mauro
+So it's probably not a good idea to merge this patch anyway until this is fixed.
+
+Sebastian, can you fix these warnings and repost?
+
+Thanks!
+
+	Hans
 
 > 
-> On Tue, 4 Nov 2014, kbuild test robot wrote:
+> Thanks,
+> Mauro
 > 
-> > TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > CC: linux-media@vger.kernel.org
-> > 
-> > tree:   git://linuxtv.org/media_tree.git master
-> > head:   ed3da2bf2e1800e7c6e31e7d31917dacce599458
-> > commit: b7085c08647598aafbf8f6223ebcdd413745449c [489/499] [media] cx231xx: convert from pr_foo to dev_foo
-> > :::::: branch date: 81 minutes ago
-> > :::::: commit date: 2 hours ago
-> > 
-> > >> drivers/media/usb/cx231xx/cx231xx-audio.c:445:16-20: ERROR: dev is NULL but dereferenced.
-> > 
-> > git remote add linuxtv-media git://linuxtv.org/media_tree.git
-> > git remote update linuxtv-media
-> > git checkout b7085c08647598aafbf8f6223ebcdd413745449c
-> > vim +445 drivers/media/usb/cx231xx/cx231xx-audio.c
-> > 
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  429  	.buffer_bytes_max = 62720 * 8,	/* just about the value in usbaudio.c */
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  430  	.period_bytes_min = 64,		/* 12544/2, */
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  431  	.period_bytes_max = 12544,
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  432  	.periods_min = 2,
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  433  	.periods_max = 98,		/* 12544, */
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  434  };
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  435  
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  436  static int snd_cx231xx_capture_open(struct snd_pcm_substream *substream)
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  437  {
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  438  	struct cx231xx *dev = snd_pcm_substream_chip(substream);
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  439  	struct snd_pcm_runtime *runtime = substream->runtime;
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  440  	int ret = 0;
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  441  
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  442  	dprintk("opening device and trying to acquire exclusive lock\n");
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  443  
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  444  	if (!dev) {
-> > b7085c08 drivers/media/usb/cx231xx/cx231xx-audio.c   Mauro Carvalho Chehab 2014-11-02 @445  		dev_err(&dev->udev->dev,
-> > b7085c08 drivers/media/usb/cx231xx/cx231xx-audio.c   Mauro Carvalho Chehab 2014-11-02  446  			"BUG: cx231xx can't find device struct. Can't proceed with open\n");
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  447  		return -ENODEV;
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  448  	}
-> > e0d3bafd drivers/media/video/cx231xx/cx231xx-audio.c Sri Deevi             2009-03-03  449  
-> > 990862a2 drivers/media/video/cx231xx/cx231xx-audio.c Mauro Carvalho Chehab 2012-01-10  450  	if (dev->state & DEV_DISCONNECTED) {
-> > b7085c08 drivers/media/usb/cx231xx/cx231xx-audio.c   Mauro Carvalho Chehab 2014-11-02  451  		dev_err(&dev->udev->dev,
-> > b7085c08 drivers/media/usb/cx231xx/cx231xx-audio.c   Mauro Carvalho Chehab 2014-11-02  452  			"Can't open. the device was removed.\n");
-> > 990862a2 drivers/media/video/cx231xx/cx231xx-audio.c Mauro Carvalho Chehab 2012-01-10  453  		return -ENODEV;
-> > 
-> > ---
-> > 0-DAY kernel test infrastructure                Open Source Technology Center
-> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> > 
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
+> drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_device' has no member named 'supplies'
+>  
+>           ^
+> drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_device' has no member named 'supplies'
+>   if (sdev->vdd) {
+>                                    ^
+> drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_device' has no member named 'supply_data'
+>   if (sdev->vdd) {
+>                                                    ^
+> drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_device' has no member named 'supplies'
+>    v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+>           ^
+> drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_device' has no member named 'supplies'
+>    sdev->power_state = POWER_ON;
+>                                     ^
+> drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_device' has no member named 'supply_data'
+>    sdev->power_state = POWER_ON;
+>                                                     ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
+> drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_device' has no member named 'supplies'
+>   int err;
+>            ^
+> drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_device' has no member named 'supplies'
+>   u8 resp[SI4713_PWDN_NRESP];
+>                                      ^
+> drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_device' has no member named 'supply_data'
+>  
+>                 ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
+> drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_device' has no member named 'supplies'
+>  /* si4713_probe - probe for the device */
+>        ^
+> drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_device' has no member named 'supplies'
+>  {
+>                       ^
+> drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_device' has no member named 'supply_data'
+>   struct si4713_device *sdev;
+>        ^
+> drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_device' has no member named 'supplies'
+>   struct v4l2_ctrl_handler *hdl;
+>                                               ^
+> drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_device' has no member named 'supply_data'
+>   int rval, i;
+>            ^
+> drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_device' has no member named 'supplies'
+>  
+>                           ^
+> drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_device' has no member named 'supply_data'
+>  
+>                                           ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
+> drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_device' has no member named 'supplies'
+>    goto free_irq;
+>                           ^
+> drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_device' has no member named 'supply_data'
+>    goto free_irq;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
