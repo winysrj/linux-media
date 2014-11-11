@@ -1,84 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:49737 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519AbaKGUut (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Nov 2014 15:50:49 -0500
-Date: Fri, 7 Nov 2014 21:50:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Chew <AChew@nvidia.com>
-cc: "Pawel Osciak (posciak@google.com)" <posciak@google.com>,
-	Bryan Wu <pengw@nvidia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: soc-camera and focuser vcm devices
-In-Reply-To: <c0b17f2320f74b0f96b2618a2d9e15d4@HQMAIL103.nvidia.com>
-Message-ID: <Pine.LNX.4.64.1411072143470.4252@axis700.grange>
-References: <804f809f79cf4e5ca24ec02be61402bd@HQMAIL103.nvidia.com>
- <Pine.LNX.4.64.1411062304450.25946@axis700.grange>
- <c0b17f2320f74b0f96b2618a2d9e15d4@HQMAIL103.nvidia.com>
+Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:42079 "EHLO
+	elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752038AbaKKWld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 17:41:33 -0500
+Message-ID: <54629099.5060607@earthlink.net>
+Date: Tue, 11 Nov 2014 16:41:29 -0600
+From: The Bit Pit <thebitpit@earthlink.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH]  KWorld UB435Q V3 (ATSC) tuner
+References: <545D25E8.5080701@earthlink.net> <20141111155627.63713572@recife.lan>
+In-Reply-To: <20141111155627.63713572@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrew,
+I initially was unable to make my tuner work with the released driver
+because I was using a USB-2 slot on my ASUS Z87-EXPERT motherboard.  It
+sometimes initialized on USB-2 according to information in dmesg.  When
+I tried w_scan, it always immediately disconnected.  Frustrated, I tried
+USB-3 -- and my patches worked perfectly including a functioning LED,
 
-On Fri, 7 Nov 2014, Andrew Chew wrote:
+Today, I retested the linux 3.16.7 release driver on USB-3 and it works.
 
-> > On Tue, 4 Nov 2014, Andrew Chew wrote:
-> > 
-> > > Hello, Guennadi
-> > >
-> > > I was wondering if you can provide some advice as to how focuser vcm
-> > > devices would fit into the soc-camera framework.  We have a raw sensor
-> > > (an IMX219) with an AD5823 VCM (it's just a simple I2C device) to
-> > > provide variable focus.
-> > >
-> > > I currently have the sensor and camera host driver instantiated via
-> > > device tree, following the guidelines in
-> > > Documentation/devicetree/bindings/media/video-interfaces.txt, by using
-> > > the of_graph stuff, and that all works fine.  However, I'm not sure
-> > > what the proper way is to associate a focuser with that particular
-> > > image pipeline, and I couldn't find any examples to draw from.
-> > 
-> > As discussed in an earlier thread [1], in principle soc-camera has support for
-> > attaching multiple subdevices to a camera-host (camera DMA engine) driver.
-> > In [2] you can see how I initially implemented DT for soc-camera, which also
-> > supported multiple subdevices. Beware, very old code. Some more
-> > comments are in [3].
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> > [1] http://www.spinics.net/lists/linux-sh/msg31436.html - see comment,
-> > following "Hm, I think, this isn't quite correct."
-> > 
-> > [2] http://marc.info/?l=linux-sh&m=134875489304837&w=1
-> > 
-> > [3] https://www.mail-archive.com/linux-media@vger.kernel.org/msg70514.html
-> 
-> I think I get it, but just to clarify...currently, I'm going with the 
-> patch in [1], and I currently have multiple subdevs (sensors) hooked up 
-> and working with my soc-camera host driver.  [2] was an alternate 
-> implementation, right? (as in, I don't need it).
+More comments below.
 
-No. [1] you don't need, it is already in the mainline, resp. its slightly 
-updated version. I only quoted that thread for you above to read 
-explanations about why that implementation didn't support multiple 
-subdevices per host. To fix that support for multiple devices should be 
-added to the current soc-camera mainline. To help with this task I quoted 
-[2], which is my very early implementation attempt. [3] is just some more 
-reading for general understanding.
+On 11/11/2014 11:56 AM, Mauro Carvalho Chehab wrote:
+> Hi,
+>
+> Em Fri, 07 Nov 2014 14:04:56 -0600
+> The Bit Pit <thebitpit@earthlink.net> escreveu:
+>
+>> From Wilson Michaels <thebitpit@earthlink.net>
+>>
+>> This patch fixes the KWorld UB435-Q V3 (ATSC) tuner functions:
+>> 1) The LED indicator now works.
+>> 2) Start up initialization is faster.
+>> 3) Add "lgdt330x" device name i2c_devs array used for debugging
+>> 4) Correct comments about the UB435-Q V3
+>>
+>> Signed-off-by: Wilson Michaels <thebitpit@earthlink.net>
+>>
+>> #
+>> # On branch media_tree/master
+>> # Your branch is up-to-date with 'r_media_tree/master'.
+>> #
+>> # Changes to be committed:
+>> # modified:   drivers/media/usb/em28xx/em28xx-cards.c
+>> # modified:   drivers/media/usb/em28xx/em28xx-i2c.c
+>> #
+>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c
+>> b/drivers/media/usb/em28xx/em28xx-cards.c
+>> index 3c97bf1..96835de 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>> @@ -189,11 +189,19 @@ static struct em28xx_reg_seq kworld_a340_digital[] = {
+>>         {       -1,             -1,     -1,             -1},
+>>  };
+>>  
+>> +/*
+>> + * KWorld UB435-Q V3 (ATSC) GPIOs map:
+>> + * EM_GPIO_0 - i2c disable/enable (1 = off, 0 = on)
+>> + * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
+>> + * EM_GPIO_2 - currently unknown
+>> + * EM_GPIO_3 - currently unknown
+>> + * EM_GPIO_4 - currently unknown
+>> + * EM_GPIO_5 - TDA18272/M tuner (1 = active, 0 = in reset)
+>> + * EM_GPIO_6 - LGDT3304 ATSC/QAM demod (1 = active, 0 = in reset)
+>> + * EM_GPIO_7 - currently unknown
+>> + */
+> This is wrong.
+>
+> At least here on my Kworld UB435-Q v3, I'm pretty sure that
+> the LED is controlled by EM_GPIO_7.
+>
+> This is something easy to test with:
+>
+> # v4l2-dbg -s 0x80 0x80
+> Register 0x00000080 set to 0x80
+> # v4l2-dbg -s 0x80 0x00 
+> Register 0x00000080 set to 0x0
+I was concerned that the test was also setting bits other than EM_GPIO_7
+so I read the register first then set only the EM_GPIO_7 bit:
 
-> So I understand that I can just hook up the focuser and flash subdevs to 
-> the camera host via device tree, in the same exact way of using the 
-> of_graph stuff to hook up the sensor subdev.  My question is, is it then 
-> left up to the camera host driver to make sense of which subdevs do 
-> what?  Or should/will there be a common mechanism to bind ports on a 
-> camera host to a sensor, focuser, and flash under a common group which 
-> makes up an image pipeline?
+# v4l2-dbg -g 0x80
+ioctl: VIDIOC_DBG_G_REGISTER
+Register 0x00000080 = feh (254d  11111110b)
+# v4l2-dbg -s 0x80 0x7e
+Register 0x00000080 set to 0x7e
+# v4l2-dbg -s 0x80 0xfe
+Register 0x00000080 set to 0xfe
 
-Exactly, that's why you need multiple subdevices in groups, to have the 
-whole pipeline probe only after all subdevices are available.
+This actually controls the LED.  You are correct and I am wrong,  My
+incorrect initialization was leaving the LED turned on.
 
-Thanks
-Guennadi
+
+>
+> And the patch below to force the creation of a video device, allowing
+> the usage of the VIDIOC_DBG_S_REGISTER ioctl at the /dev/video0 interface:
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 0db880c..120c689 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -3342,6 +3342,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>  		}
+>  	}
+>  
+> +/* HACK! */
+> +has_video=1;
+>  	if (!(has_vendor_audio || has_video || has_dvb)) {
+>  		retval = -ENODEV;
+>  		goto err_free;
+Helpful hack ;-)
+>
+>>  static struct em28xx_reg_seq kworld_ub435q_v3_digital[] = {
+>> -       {EM2874_R80_GPIO_P0_CTRL,       0xff,   0xff,   100},
+>> -       {EM2874_R80_GPIO_P0_CTRL,       0xfe,   0xff,   100},
+>> -       {EM2874_R80_GPIO_P0_CTRL,       0xbe,   0xff,   100},
+>> -       {EM2874_R80_GPIO_P0_CTRL,       0xfe,   0xff,   100},
+>> +       {EM2874_R80_GPIO_P0_CTRL,       0x6e,   ~EM_GPIO_4,     10},
+>>         {       -1,                     -1,     -1,     -1},
+>>  };
+> Also, the above sequence were obtained from the original driver,
+> by sniffing its traffic. 
+>
+> Perhaps you have a different model?
+Same model, my error made it seem to work properly.
+>
+>> @@ -532,7 +540,7 @@ static struct em28xx_led kworld_ub435q_v3_leds[] = {
+>>         {
+>>                 .role      = EM28XX_LED_DIGITAL_CAPTURING,
+>>                 .gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
+>> -               .gpio_mask = 0x80,
+>> +               .gpio_mask = 0x02,
+>>                 .inverted  = 1,
+>>         },
+>>         {-1, 0, 0, 0},
+> The above is wrong, as 0x80 is where the led is, as shown above.
+I agree.
+>
+>> @@ -2182,7 +2190,7 @@ struct em28xx_board em28xx_boards[] = {
+>>         },
+>>         /*
+>>          * 1b80:e34c KWorld USB ATSC TV Stick UB435-Q V3
+>> -        * Empia EM2874B + LG DT3305 + NXP TDA18271HDC2
+>> +        * Empia EM2874B + LG DT3305 + NXP TDA18272/M
+> I think I didn't actually open the hardware, to check what's
+> inside, but you're probably right: for sure it has a 18272 tuner.
+I did open up my hardware, the part is marked TDA18272/M.
+>>          */
+>>         [EM2874_BOARD_KWORLD_UB435Q_V3] = {
+>>                 .name           = "KWorld USB ATSC TV Stick UB435-Q V3",
+>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> index 1048c1a..5bc6ef1 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> @@ -877,6 +877,7 @@ static struct i2c_client em28xx_client_template = {
+>>   * incomplete list of known devices
+>>   */
+>>  static char *i2c_devs[128] = {
+>> +       [0x1c >> 1] = "lgdt330x",
+>>         [0x3e >> 1] = "remote IR sensor",
+>>         [0x4a >> 1] = "saa7113h",
+>>         [0x52 >> 1] = "drxk",
+> You can send this on a separate patch.
+Yes, I will send it.
+> Regards,
+> Mauro
+>
+
