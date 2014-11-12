@@ -1,55 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews02.kpnxchange.com ([213.75.39.5]:54994 "EHLO
-	cpsmtpb-ews02.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbaKXKyB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Nov 2014 05:54:01 -0500
-Message-ID: <1416826438.10073.11.camel@x220>
-Subject: [PATCH] [media] omap24xx/tcm825x: remove pointless Makefile entry
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Mon, 24 Nov 2014 11:53:58 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:48020 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932503AbaKLEX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:23:28 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 7/8] rtl28xxu: remove unused SDR attach logic
+Date: Wed, 12 Nov 2014 06:23:09 +0200
+Message-Id: <1415766190-24482-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1415766190-24482-1-git-send-email-crope@iki.fi>
+References: <1415766190-24482-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The deprecated omap2 camera drivers were recently removed. Both the
-Kconfig symbol VIDEO_TCM825X and the drivers/staging/media/omap24xx
-directory are gone. So the Makefile entry that references both is now
-pointless. Remove it too.
+That logic was duplicated from rtl2832_sdr.h in order to avoid hard
+dependency for staging directory. rtl2832_sdr is moved to media, so
+we could remove that code now.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Tested by grepping the tree.
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
 
-Triggered by commit db85a0403be4 ("[media] omap24xx/tcm825x: remove
-deprecated omap2 camera drivers."), which is included in next-20141124.
-What happened is that it removed only one of the two Makefile entries
-for omap24xx.
-
- drivers/staging/media/Makefile | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index 97bfef97f838..30fb352fc4a9 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -4,7 +4,6 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
--obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
- obj-$(CONFIG_DVB_MN88472)       += mn88472/
- obj-$(CONFIG_DVB_MN88473)       += mn88473/
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 47360d3..eadde72 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,6 +24,7 @@
  
+ #include "rtl2830.h"
+ #include "rtl2832.h"
++#include "rtl2832_sdr.h"
+ #include "mn88472.h"
+ #include "mn88473.h"
+ 
+@@ -37,25 +38,6 @@
+ #include "tua9001.h"
+ #include "r820t.h"
+ 
+-/*
+- * RTL2832_SDR module is in staging. That logic is added in order to avoid any
+- * hard dependency to drivers/staging/ directory as we want compile mainline
+- * driver even whole staging directory is missing.
+- */
+-#include <media/v4l2-subdev.h>
+-
+-#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
+-struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+-	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
+-	struct v4l2_subdev *sd);
+-#else
+-static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+-	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
+-	struct v4l2_subdev *sd)
+-{
+-	return NULL;
+-}
+-#endif
+ 
+ #ifdef CONFIG_MEDIA_ATTACH
+ #define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
 -- 
-1.9.3
+http://palosaari.fi/
 
