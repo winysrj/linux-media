@@ -1,43 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51711 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbaKFJcK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Nov 2014 04:32:10 -0500
-Message-ID: <545B4006.1010401@xs4all.nl>
-Date: Thu, 06 Nov 2014 10:31:50 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	hans.verkuil@cisco.com, Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: v4l2-ctl bug(?) printing ctrl payload array
-References: <CANZNk82AqfbSkUd_xONtjAxLePA0TMhS_5wuWERObyGSZ5QYoA@mail.gmail.com> <CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com>
-In-Reply-To: <CANZNk81oAbQ+t3gNqMH6b=ieGfyxEJu7oT=oFY9xABv=t7+f=w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:38208 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934068AbaKLETl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:19:41 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/9] mn88473: improve IF frequency and BW handling
+Date: Wed, 12 Nov 2014 06:19:26 +0200
+Message-Id: <1415765971-24378-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1415765971-24378-1-git-send-email-crope@iki.fi>
+References: <1415765971-24378-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/05/14 20:52, Andrey Utkin wrote:
-> More on the same topic.
-> I believe there's another bug on displaying of payload.
-> Let's say we have the same [45][45] array, and this is what is posted to it:
-> uint16_t buf[45 * 45] = {0, };
->         buf[0] = 1;
->         buf[1] = 2;
->         buf[45] = 3;
->         buf[45 * 45 - 1] = 0xff;
-> 
-> What is shown by v4l2-ctl you can see here:
-> https://dl.dropboxusercontent.com/u/43104344/v4l2-ctl_payload_bug.png
-> 
+Separate IF and BW based registers.
+Add support for DVB-T and DVB-T2 6MHz channel bandwidth.
 
-I'll look at this Friday or Monday.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/mn88473.c | 64 +++++++++++++++++++++++++----------
+ 1 file changed, 47 insertions(+), 17 deletions(-)
 
-I want to add some test array controls to the vivid driver as well to make
-it easier to test such controls, so that will be a good test case.
+diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
+index cda0bdb..2c81a83 100644
+--- a/drivers/media/dvb-frontends/mn88473.c
++++ b/drivers/media/dvb-frontends/mn88473.c
+@@ -117,8 +117,8 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+ 	struct mn88473_dev *dev = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+-	u32 if_frequency = 0;
+-	u8 params[10], delivery_system;
++	u32 if_frequency;
++	u8 delivery_system_val, if_val[3], bw_val[7];
+ 
+ 	dev_dbg(&dev->i2c->dev,
+ 			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%d stream_id=%d\n",
+@@ -133,22 +133,43 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
+-		delivery_system = 0x02;
+-		if (c->bandwidth_hz <= 7000000)
+-			memcpy(params, "\x2e\xcb\xfb\xc8\x00\x00\x17\x0a\x17\x0a", 10);
+-		else if (c->bandwidth_hz <= 8000000)
+-			memcpy(params, "\x2e\xcb\xfb\xaf\x00\x00\x11\xec\x11\xec", 10);
++		delivery_system_val = 0x02;
+ 		break;
+ 	case SYS_DVBT2:
+-		delivery_system = 0x03;
+-		if (c->bandwidth_hz <= 7000000)
+-			memcpy(params, "\x2e\xcb\xfb\xc8\x00\x00\x17\x0a\x17\x0a", 10);
+-		else if (c->bandwidth_hz <= 8000000)
+-			memcpy(params, "\x2e\xcb\xfb\xaf\x00\x00\x11\xec\x11\xec", 10);
++		delivery_system_val = 0x03;
+ 		break;
+ 	case SYS_DVBC_ANNEX_A:
+-		delivery_system = 0x04;
+-		memcpy(params, "\x33\xea\xb3\xaf\x00\x00\x11\xec\x11\xec", 10);
++		delivery_system_val = 0x04;
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (c->bandwidth_hz <= 6000000) {
++			/* IF 3570000 Hz, BW 6000000 Hz */
++			memcpy(if_val, "\x24\x8e\x8a", 3);
++			memcpy(bw_val, "\xe9\x55\x55\x1c\x29\x1c\x29", 7);
++		} else if (c->bandwidth_hz <= 7000000) {
++			/* IF 4570000 Hz, BW 7000000 Hz */
++			memcpy(if_val, "\x2e\xcb\xfb", 3);
++			memcpy(bw_val, "\xc8\x00\x00\x17\x0a\x17\x0a", 7);
++		} else if (c->bandwidth_hz <= 8000000) {
++			/* IF 4570000 Hz, BW 8000000 Hz */
++			memcpy(if_val, "\x2e\xcb\xfb", 3);
++			memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
++		} else {
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	case SYS_DVBC_ANNEX_A:
++		/* IF 5070000 Hz, BW 8000000 Hz */
++		memcpy(if_val, "\x33\xea\xb3", 3);
++		memcpy(bw_val, "\xaf\x00\x00\x11\xec\x11\xec", 7);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -169,9 +190,12 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+ 
+ 		dev_dbg(&dev->i2c->dev, "%s: get_if_frequency=%d\n",
+ 				__func__, if_frequency);
++	} else {
++		if_frequency = 0;
+ 	}
+ 
+ 	switch (if_frequency) {
++	case 3570000:
+ 	case 4570000:
+ 	case 5070000:
+ 		break;
+@@ -189,11 +213,17 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+ 	ret = mn88473_wregs(dev, 0x1c00, "\x18", 1);
+ 	ret = mn88473_wregs(dev, 0x1c01, "\x01", 1);
+ 	ret = mn88473_wregs(dev, 0x1c02, "\x21", 1);
+-	ret = mn88473_wreg(dev, 0x1c03, delivery_system);
++	ret = mn88473_wreg(dev, 0x1c03, delivery_system_val);
+ 	ret = mn88473_wregs(dev, 0x1c0b, "\x00", 1);
+ 
+-	for (i = 0; i < 10; i++) {
+-		ret = mn88473_wreg(dev, 0x1c10 + i, params[i]);
++	for (i = 0; i < sizeof(if_val); i++) {
++		ret = mn88473_wreg(dev, 0x1c10 + i, if_val[i]);
++		if (ret)
++			goto err;
++	}
++
++	for (i = 0; i < sizeof(bw_val); i++) {
++		ret = mn88473_wreg(dev, 0x1c13 + i, bw_val[i]);
+ 		if (ret)
+ 			goto err;
+ 	}
+-- 
+http://palosaari.fi/
 
-Regards,
-
-	Hans
