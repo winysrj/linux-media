@@ -1,81 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43785 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:38078 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732AbaKFNFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Nov 2014 08:05:55 -0500
-Date: Thu, 6 Nov 2014 11:05:49 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sean Young <sean@mess.org>, Jarod Wilson <jwilson@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: staging: media: lirc: lirc_zilog.c: replace custom print macros
- with dev_* and pr_*
-Message-ID: <20141106110549.1812acc7@recife.lan>
-In-Reply-To: <20141106124629.GA898@gofer.mess.org>
-References: <20141031130600.GA16310@mwanda>
-	<20141031142644.GA4166@localhost.localdomain>
-	<20141031143541.GM6890@mwanda>
-	<20141106124629.GA898@gofer.mess.org>
+	id S1752052AbaKLEkg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:40:36 -0500
+Message-ID: <5462E4C2.7060703@iki.fi>
+Date: Wed, 12 Nov 2014 06:40:34 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Nibble Max <nibble.max@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] cx23885: add DVBSky T982(Dual DVB-T2/T/C) support
+References: <201411121223097349719@gmail.com>
+In-Reply-To: <201411121223097349719@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Moikka!
 
-Em Thu, 06 Nov 2014 12:46:29 +0000
-Sean Young <sean@mess.org> escreveu:
+On 11/12/2014 06:23 AM, Nibble Max wrote:
+> DVBSky T982 DVB-T2/T/C dual PCIe card:
+> 1>dvb frontend: SI2158A20(tuner),SI2168A30(demod)
+> 2>PCIe bridge: CX23885(port b: parallel mode, port c: serial mode)
+> 3>rc: cx23885 integrated.
+>
+> Signed-off-by: Nibble Max <nibble.max@gmail.com>
 
-> On Fri, Oct 31, 2014 at 05:35:41PM +0300, Dan Carpenter wrote:
-> > On Fri, Oct 31, 2014 at 04:26:45PM +0200, Aya Mahfouz wrote:
-> > > On Fri, Oct 31, 2014 at 04:06:00PM +0300, Dan Carpenter wrote:
-> > > > drivers/staging/media/lirc/lirc_zilog.c
-> > > >   1333  /* Close the IR device */
-> > > >   1334  static int close(struct inode *node, struct file *filep)
-> > > >   1335  {
-> > > >   1336          /* find our IR struct */
-> > > >   1337          struct IR *ir = filep->private_data;
-> > > >   1338  
-> > > >   1339          if (ir == NULL) {
-> > > >                     ^^^^^^^^^^
-> > > >   1340                  dev_err(ir->l.dev, "close: no private_data attached to the file!\n");
-> > > >                                 ^^^^^^^^^
-> > > > 
-> > > > I suggest you just delete the error message.  Can "ir" actually be NULL
-> > > > here anyway?
-> > > >
-> > > 
-> > > Since I'm a newbie and this is not my code, I prefer to use pr_err().
-> > 
-> > This driver doesn't belong to anyone.  Go ahead and take ownership.  The
-> > message is fairly worthless and no one will miss it.
-> 
-> Speaking of ownership, what this driver really needs is to be ported to 
-> rc-core. In order to do this it'll need to be able to send raw IR rather
-> key codes; I've been peering at the firmware but it neither looks like
-> zilog z8 opcodes nor space/pulse information.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Actually, I think that all features provided by this driver were already
-migrated into the ir-kbd-i2c (drivers/media/i2c/ir-kbd-i2c.c) driver.
+Antti
 
-Andy and Jarod worked on this conversion, but we decided, on that time,
-to keep lirc_zilog for a while (can't remember why).
 
-Andy/Jarod,
+> ---
+>   drivers/media/pci/cx23885/cx23885-cards.c | 15 ++++++++
+>   drivers/media/pci/cx23885/cx23885-dvb.c   | 60 ++++++++++++++++++++++++++++++-
+>   drivers/media/pci/cx23885/cx23885-input.c |  3 ++
+>   drivers/media/pci/cx23885/cx23885.h       |  1 +
+>   4 files changed, 78 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> index 4bad27d..db99ca2 100644
+> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+> @@ -701,6 +701,11 @@ struct cx23885_board cx23885_boards[] = {
+>   		.portb		= CX23885_MPEG_DVB,
+>   		.portc		= CX23885_MPEG_DVB,
+>   	},
+> +	[CX23885_BOARD_DVBSKY_T982] = {
+> +		.name		= "DVBSky T982",
+> +		.portb		= CX23885_MPEG_DVB,
+> +		.portc		= CX23885_MPEG_DVB,
+> +	},
+>   };
+>   const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+>
+> @@ -980,6 +985,10 @@ struct cx23885_subid cx23885_subids[] = {
+>   		.subvendor = 0x4254,
+>   		.subdevice = 0x0952,
+>   		.card      = CX23885_BOARD_DVBSKY_S952,
+> +	}, {
+> +		.subvendor = 0x4254,
+> +		.subdevice = 0x0982,
+> +		.card      = CX23885_BOARD_DVBSKY_T982,
+>   	},
+>   };
+>   const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+> @@ -1576,6 +1585,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+>   		break;
+>   	case CX23885_BOARD_DVBSKY_T9580:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		/* enable GPIO3-18 pins */
+>   		cx_write(MC417_CTL, 0x00000037);
+>   		cx23885_gpio_enable(dev, GPIO_2 | GPIO_11, 1);
+> @@ -1708,6 +1718,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		if (!enable_885_ir)
+>   			break;
+>   		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+> @@ -1760,6 +1771,7 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+>   		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+>   		dev->sd_ir = NULL;
+> @@ -1813,6 +1825,7 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		if (dev->sd_ir)
+>   			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+>   		break;
+> @@ -1968,6 +1981,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>   		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>   		break;
+>   	case CX23885_BOARD_DVBSKY_T9580:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+>   		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>   		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> @@ -2051,6 +2065,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+>   				&dev->i2c_bus[2].i2c_adap,
+>   				"cx25840", 0x88 >> 1, NULL);
+> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+> index 2457b64..1ed92ee 100644
+> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+> @@ -1945,6 +1945,63 @@ static int dvb_register(struct cx23885_tsport *port)
+>
+>   		port->i2c_client_tuner = client_tuner;
+>   		break;
+> +	case CX23885_BOARD_DVBSKY_T982:
+> +		memset(&si2168_config, 0, sizeof(si2168_config));
+> +		switch (port->nr) {
+> +		/* port b */
+> +		case 1:
+> +			i2c_bus = &dev->i2c_bus[1];
+> +			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +			break;
+> +		/* port c */
+> +		case 2:
+> +			i2c_bus = &dev->i2c_bus[0];
+> +			si2168_config.ts_mode = SI2168_TS_SERIAL;
+> +			break;
+> +		}
+> +
+> +		/* attach frontend */
+> +		si2168_config.i2c_adapter = &adapter;
+> +		si2168_config.fe = &fe0->dvb.frontend;
+> +		memset(&info, 0, sizeof(struct i2c_board_info));
+> +		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> +		info.addr = 0x64;
+> +		info.platform_data = &si2168_config;
+> +		request_module(info.type);
+> +		client_demod = i2c_new_device(&i2c_bus->i2c_adap, &info);
+> +		if (client_demod == NULL ||
+> +				client_demod->dev.driver == NULL)
+> +			goto frontend_detach;
+> +		if (!try_module_get(client_demod->dev.driver->owner)) {
+> +			i2c_unregister_device(client_demod);
+> +			goto frontend_detach;
+> +		}
+> +		port->i2c_client_demod = client_demod;
+> +
+> +		/* attach tuner */
+> +		memset(&si2157_config, 0, sizeof(si2157_config));
+> +		si2157_config.fe = fe0->dvb.frontend;
+> +		memset(&info, 0, sizeof(struct i2c_board_info));
+> +		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> +		info.addr = 0x60;
+> +		info.platform_data = &si2157_config;
+> +		request_module(info.type);
+> +		client_tuner = i2c_new_device(adapter, &info);
+> +		if (client_tuner == NULL ||
+> +				client_tuner->dev.driver == NULL) {
+> +			module_put(client_demod->dev.driver->owner);
+> +			i2c_unregister_device(client_demod);
+> +			goto frontend_detach;
+> +		}
+> +		if (!try_module_get(client_tuner->dev.driver->owner)) {
+> +			i2c_unregister_device(client_tuner);
+> +			module_put(client_demod->dev.driver->owner);
+> +			i2c_unregister_device(client_demod);
+> +			port->i2c_client_demod = NULL;
+> +			goto frontend_detach;
+> +		}
+> +		port->i2c_client_tuner = client_tuner;
+> +		break;
+>   	default:
+>   		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+>   			" isn't supported yet\n",
+> @@ -2021,7 +2078,8 @@ static int dvb_register(struct cx23885_tsport *port)
+>   		}
+>   	case CX23885_BOARD_DVBSKY_T9580:
+>   	case CX23885_BOARD_DVBSKY_S950:
+> -	case CX23885_BOARD_DVBSKY_S952: {
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982: {
+>   		u8 eeprom[256]; /* 24C02 i2c eeprom */
+>
+>   		if (port->nr > 2)
+> diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+> index a1f4894..088799c 100644
+> --- a/drivers/media/pci/cx23885/cx23885-input.c
+> +++ b/drivers/media/pci/cx23885/cx23885-input.c
+> @@ -93,6 +93,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		/*
+>   		 * The only boards we handle right now.  However other boards
+>   		 * using the CX2388x integrated IR controller should be similar
+> @@ -151,6 +152,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_TT_CT2_4500_CI:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		/*
+>   		 * The IR controller on this board only returns pulse widths.
+>   		 * Any other mode setting will fail to set up the device.
+> @@ -322,6 +324,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+>   	case CX23885_BOARD_DVBSKY_S950C:
+>   	case CX23885_BOARD_DVBSKY_S950:
+>   	case CX23885_BOARD_DVBSKY_S952:
+> +	case CX23885_BOARD_DVBSKY_T982:
+>   		/* Integrated CX23885 IR controller */
+>   		driver_type = RC_DRIVER_IR_RAW;
+>   		allowed_protos = RC_BIT_ALL;
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index 58c5038..cf4efa4 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -98,6 +98,7 @@
+>   #define CX23885_BOARD_TT_CT2_4500_CI           48
+>   #define CX23885_BOARD_DVBSKY_S950              49
+>   #define CX23885_BOARD_DVBSKY_S952              50
+> +#define CX23885_BOARD_DVBSKY_T982              51
+>
+>   #define GPIO_0 0x00000001
+>   #define GPIO_1 0x00000002
+>
 
-What's the status of the ir-kbd-i2c with regards to Zilog z8 support?
-
-> Does anyone have any contacts at Hauppauge who could help with this?
-
-Probably, it won't be easy to get someone there that worked on it,
-as this device is too old.
-
-Anyway, if are there anything still pending, I may be able to get
-some contacts at the vendor.
-
-Regards,
-Mauro
+-- 
+http://palosaari.fi/
