@@ -1,79 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45371 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752541AbaKJM5v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 07:57:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:37558 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934123AbaKLELg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:11:36 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 16/16] vb2: update the buf_prepare/finish documentation
-Date: Mon, 10 Nov 2014 13:49:31 +0100
-Message-Id: <1415623771-29634-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/11] mn88472: add small delay to wait DVB-C lock
+Date: Wed, 12 Nov 2014 06:11:09 +0200
+Message-Id: <1415765477-23153-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1415765477-23153-1-git-send-email-crope@iki.fi>
+References: <1415765477-23153-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+400ms delay seems to be enough in order to gain DVB-C lock.
 
-Document how the new vb2_plane_begin/end_cpu_access() functions should
-be used in buf_prepare/finish.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- include/media/videobuf2-core.h | 35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ drivers/media/dvb-frontends/mn88472_c.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 2f53252..1619248 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -282,21 +282,30 @@ struct vb2_buffer {
-  *			perform any initialization required before each
-  *			hardware operation in this callback; drivers can
-  *			access/modify the buffer here as it is still synced for
-- *			the CPU; drivers that support VIDIOC_CREATE_BUFS must
-- *			also validate the buffer size; if an error is returned,
-- *			the buffer will not be queued in driver; optional.
-+ *			the CPU, provided you bracket the cpu access part with
-+ *			@vb2_plane_begin_cpu_access and @vb2_plane_end_cpu_access;
-+ *			when using videobuf2-vmalloc.h you can postpone the call
-+ *			to @vb2_plane_end_cpu_access to @buf_finish; drivers
-+ *			that support VIDIOC_CREATE_BUFS must also validate
-+ *			the buffer size; if an error is returned, the buffer
-+ *			will not be queued in driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; the buffer is synced for the CPU, so drivers
-- *			can access/modify the buffer contents; drivers may
-- *			perform any operations required before userspace
-- *			accesses the buffer; optional. The buffer state can be
-- *			one of the following: DONE and ERROR occur while
-- *			streaming is in progress, and the PREPARED state occurs
-- *			when the queue has been canceled and all pending
-- *			buffers are being returned to their default DEQUEUED
-- *			state. Typically you only have to do something if the
-- *			state is VB2_BUF_STATE_DONE, since in all other cases
-- *			the buffer contents will be ignored anyway.
-+ *			can access/modify the buffer contents provided you
-+ *			bracket the cpu access part with
-+ *			@vb2_plane_begin_cpu_access and @vb2_plane_end_cpu_access;
-+ *			when using videobuf2-vmalloc.h you can call
-+ *			@vb2_plane_end_cpu_access here to bracket a corresponding
-+ *			@vb2_plane_begin_cpu_access call in @buf_prepare;
-+ *			drivers may perform any operations required before
-+ *			userspace accesses the buffer; optional. The buffer
-+ *			state can be one of the following: DONE and ERROR
-+ *			occur while streaming is in progress, and the PREPARED
-+ *			state occurs when the queue has been canceled and all
-+ *			pending buffers are being returned to their default
-+ *			DEQUEUED state. Typically you only have to do something
-+ *			if the state is VB2_BUF_STATE_DONE, since in all other
-+ *			cases the buffer contents will be ignored anyway.
-  * @buf_cleanup:	called once before the buffer is freed; drivers may
-  *			perform any additional cleanup; optional.
-  * @start_streaming:	called once to enter 'streaming' state; the driver may
+diff --git a/drivers/media/dvb-frontends/mn88472_c.c b/drivers/media/dvb-frontends/mn88472_c.c
+index 59d48e7..b5bd326 100644
+--- a/drivers/media/dvb-frontends/mn88472_c.c
++++ b/drivers/media/dvb-frontends/mn88472_c.c
+@@ -105,6 +105,13 @@ static int mn88472_rreg(struct mn88472_state *s, u16 reg, u8 *val)
+ 	return mn88472_rregs(s, reg, val, 1);
+ }
+ 
++static int mn88472_get_tune_settings(struct dvb_frontend *fe,
++	struct dvb_frontend_tune_settings *s)
++{
++	s->min_delay_ms = 400;
++	return 0;
++}
++
+ static int mn88472_set_frontend_c(struct dvb_frontend *fe)
+ {
+ 	struct mn88472_state *s = fe->demodulator_priv;
+@@ -398,6 +405,8 @@ static struct dvb_frontend_ops mn88472_ops_c = {
+ 
+ 	.release = mn88472_release_c,
+ 
++	.get_tune_settings = mn88472_get_tune_settings,
++
+ 	.init = mn88472_init_c,
+ 	.sleep = mn88472_sleep_c,
+ 
 -- 
-2.1.1
+http://palosaari.fi/
 
