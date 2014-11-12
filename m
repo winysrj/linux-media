@@ -1,44 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54033 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbaKDLvs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Nov 2014 06:51:48 -0500
-Message-ID: <1415101898.3701.11.camel@pengutronix.de>
-Subject: Re: [PATCH 4/5] [media] vivid: add support for contiguous DMA
- buffers
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Tue, 04 Nov 2014 12:51:38 +0100
-In-Reply-To: <54578551.7070002@xs4all.nl>
-References: <1413972221-13669-1-git-send-email-p.zabel@pengutronix.de>
-	 <1413972221-13669-5-git-send-email-p.zabel@pengutronix.de>
-	 <54578551.7070002@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53707 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934144AbaKLELh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:11:37 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/11] mn88472: add staging TODO
+Date: Wed, 12 Nov 2014 06:11:16 +0200
+Message-Id: <1415765477-23153-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1415765477-23153-1-git-send-email-crope@iki.fi>
+References: <1415765477-23153-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add TODO for mainlining.
 
-Am Montag, den 03.11.2014, 14:38 +0100 schrieb Hans Verkuil:
-> Hi Philipp,
-> 
-> I've been playing with this and I cannot make it work. One thing that is missing
-> in this patch is that the device struct isn't passed to v4l2_device_register.
-> Without that the vb2 allocation context will actually be a NULL pointer.
-> 
-> But after fixing that and a few other minor things (see this branch of mine:
-> git://linuxtv.org/hverkuil/media_tree.git vivid) it still won't work because
-> dma_alloc_coherent fails and that's because the device is not DMA capable.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/mn88472/TODO | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 drivers/staging/media/mn88472/TODO
 
-Thanks you. Unfortunately I don't have experience with coherent dma on
-x86 either, I've only tested this on ARM with CMA. I suspect a missing
-call to dma_set_mask_and_coherent in the probe function be the issue?
-
-regards
-Philipp
+diff --git a/drivers/staging/media/mn88472/TODO b/drivers/staging/media/mn88472/TODO
+new file mode 100644
+index 0000000..b90a14b
+--- /dev/null
++++ b/drivers/staging/media/mn88472/TODO
+@@ -0,0 +1,21 @@
++Driver general quality is not good enough for mainline. Also, other
++device drivers (USB-bridge, tuner) needed for Astrometa receiver in
++question could need some changes. However, if that driver is mainlined
++due to some other device than Astrometa, unrelated TODOs could be
++skipped. In that case rtl28xxu driver needs module parameter to prevent
++driver loading.
++
++Required TODOs:
++* missing lock flags
++* I2C errors
++* tuner sensitivity
++
++*Do not* send any patch fixing checkpatch.pl issues. Currently it passes
++checkpatch.pl tests. I don't want waste my time to review this kind of
++trivial stuff. *Do not* add missing register I/O error checks. Those are
++missing for the reason it is much easier to compare I2C data sniffs when
++there is less lines. Those error checks are about the last thing to be added.
++
++Patches should be submitted to:
++linux-media@vger.kernel.org and Antti Palosaari <crope@iki.fi>
++
+-- 
+http://palosaari.fi/
 
