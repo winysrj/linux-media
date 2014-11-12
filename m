@@ -1,30 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:55505 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751469AbaKOKEa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Nov 2014 05:04:30 -0500
-Received: by mail-pa0-f49.google.com with SMTP id lj1so19065684pab.36
-        for <linux-media@vger.kernel.org>; Sat, 15 Nov 2014 02:04:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CANZNk82OVwQP3aZO3uherp3jcL1LYyF8z9Lx2hzZr-FccODhdQ@mail.gmail.com>
-References: <m3lhneez9h.fsf@t19.piap.pl>
-	<CANZNk82C9SmBXx4T=CxRjLGOZPuRdahwF4mXYUk8pJ427vdCPQ@mail.gmail.com>
-	<m3wq6xpivf.fsf@t19.piap.pl>
-	<CANZNk82OVwQP3aZO3uherp3jcL1LYyF8z9Lx2hzZr-FccODhdQ@mail.gmail.com>
-Date: Sat, 15 Nov 2014 14:04:29 +0400
-Message-ID: <CANZNk8226SU_Nsc8jmp7Sy2vmsJ9mUkkPyYjvOTTc82Of-avHw@mail.gmail.com>
-Subject: Re: SOLO6x10: fix a race in IRQ handler.
-From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-To: =?ISO-8859-2?Q?Krzysztof_Ha=B3asa?= <khalasa@piap.pl>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:40429 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756200AbaKLEXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:23:23 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/8] Astrometa DVB USB support
+Date: Wed, 12 Nov 2014 06:23:02 +0200
+Message-Id: <1415766190-24482-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Krzysztof, it seems to really help. The host is working stable for 2.5
-hours at the moment, with original framerate of 2 fps.
-Thank you very much.
+There is 2 device versions. Other has Panasonic MN88472 demod and
+the other Panasonic MN88473 demod.
+
+Both demod drivers will go to staging due to multiple problems.
+
+Antti Palosaari (8):
+  r820t: add DVB-C config
+  rtl2832: implement PIP mode
+  rtl28xxu: enable demod ADC only when needed
+  rtl28xxu: add support for Panasonic MN88472 slave demod
+  rtl28xxu: add support for Panasonic MN88473 slave demod
+  rtl28xxu: rename tuner I2C client pointer
+  rtl28xxu: remove unused SDR attach logic
+  rtl28xxu: add SDR module for devices having R828D tuner
+
+ drivers/media/dvb-frontends/rtl2832.c   |  42 +++++-
+ drivers/media/tuners/r820t.c            |  12 ++
+ drivers/media/usb/dvb-usb-v2/Kconfig    |   2 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 239 +++++++++++++++++++++++---------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |   8 +-
+ 5 files changed, 235 insertions(+), 68 deletions(-)
 
 -- 
-Andrey Utkin
+http://palosaari.fi/
+
