@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59534 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751118AbaKWM4H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 07:56:07 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8A9292A0083
-	for <linux-media@vger.kernel.org>; Sun, 23 Nov 2014 13:56:01 +0100 (CET)
-Message-ID: <5471D961.5080607@xs4all.nl>
-Date: Sun, 23 Nov 2014 13:56:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] Various cleanups &  sg_next fix
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:51173 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934147AbaKLELi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Nov 2014 23:11:38 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 11/11] MAINTAINERS: add mn88472 (Panasonic MN88472)
+Date: Wed, 12 Nov 2014 06:11:17 +0200
+Message-Id: <1415765477-23153-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1415765477-23153-1-git-send-email-crope@iki.fi>
+References: <1415765477-23153-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 5937a784c3e5fe8fd1e201f42a2b1ece6c36a6c0:
+Add mn88472 driver from staging. DVB-T/T2/C demodulator driver.
 
-  [media] staging: media: bcm2048: fix coding style error (2014-11-21 16:50:37 -0200)
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-are available in the git repository at:
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2a9cff1..644a1ae 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6115,6 +6115,17 @@ S:	Supported
+ F:	include/linux/mlx5/
+ F:	drivers/infiniband/hw/mlx5/
+ 
++MN88472 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/mn88472/
++F:	drivers/media/dvb-frontends/mn88472.h
++
+ MODULE SUPPORT
+ M:	Rusty Russell <rusty@rustcorp.com.au>
+ S:	Maintained
+-- 
+http://palosaari.fi/
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19i
-
-for you to fetch changes up to 8b81fc8f5b8b92ff280fe7dc5071eae29c1a7fd3:
-
-  v4l2-common: move v4l2_ctrl_check to cx2341x (2014-11-23 13:54:21 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (5):
-      bttv/cx25821/cx88/ivtv: use sg_next instead of sg++
-      v4l2-dev: vdev->v4l2_dev is always set, so simplify code.
-      v4l2-common: remove unused helper functions.
-      v4l2-ctrl: move function prototypes from common.h to ctrls.h
-      v4l2-common: move v4l2_ctrl_check to cx2341x
-
-Prabhakar Lad (1):
-      media: vivid: use vb2_ops_wait_prepare/finish helper
-
- drivers/media/common/cx2341x.c               |  29 +++++++++++++++++++
- drivers/media/pci/bt8xx/bttv-risc.c          |  12 ++++----
- drivers/media/pci/cx25821/cx25821-core.c     |  12 ++++----
- drivers/media/pci/cx88/cx88-core.c           |   6 ++--
- drivers/media/pci/ivtv/ivtv-udma.c           |   2 +-
- drivers/media/platform/vivid/vivid-core.c    |  19 ++++--------
- drivers/media/platform/vivid/vivid-core.h    |   3 --
- drivers/media/platform/vivid/vivid-sdr-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vbi-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vbi-out.c |   4 +--
- drivers/media/platform/vivid/vivid-vid-cap.c |   4 +--
- drivers/media/platform/vivid/vivid-vid-out.c |   4 +--
- drivers/media/v4l2-core/v4l2-common.c        | 125 -------------------------------------------------------------------------------
- drivers/media/v4l2-core/v4l2-dev.c           |  34 +++++++++-------------
- include/media/v4l2-common.h                  |  17 +----------
- include/media/v4l2-ctrls.h                   |  25 ++++++++++++++++
- 16 files changed, 100 insertions(+), 204 deletions(-)
