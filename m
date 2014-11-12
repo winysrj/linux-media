@@ -1,64 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41240 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752553AbaKJLE4 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42508 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932834AbaKLDmv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 06:04:56 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F0EF22A0377
-	for <linux-media@vger.kernel.org>; Mon, 10 Nov 2014 12:04:50 +0100 (CET)
-Message-ID: <54609BD2.8070200@xs4all.nl>
-Date: Mon, 10 Nov 2014 12:04:50 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.19] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Nov 2014 22:42:51 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 46F972A008C
+	for <linux-media@vger.kernel.org>; Wed, 12 Nov 2014 04:42:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20141112034244.46F972A008C@tschai.lan>
+Date: Wed, 12 Nov 2014 04:42:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sparse fixes for saa7164, adv EDID fixes and si4713 improvements in preparation
-for adding DT support. Tested the si4713 with my USB dev board.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Regards,
+Results of the daily build of media_tree:
 
-	Hans
+date:		Wed Nov 12 04:00:15 CET 2014
+git branch:	test
+git hash:	dd0a6fe2bc3055cd61e369f97982c88183b1f0a0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
-The following changes since commit 4895cc47a072dcb32d3300d0a46a251a8c6db5f1:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-  [media] s5p-mfc: fix sparse error (2014-11-05 08:29:27 -0200)
+Detailed results are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.19f
+Full logs are available here:
 
-for you to fetch changes up to 017f179ebd74ec3bd3f2484c3cc0fe48c306a36e:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-  si4713: use managed irq request (2014-11-10 12:03:30 +0100)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Hans Verkuil (4):
-      adv7842: fix G/S_EDID behavior
-      adv7511: fix G/S_EDID behavior
-      adv7604: Correct G/S_EDID behaviour
-      saa7164: fix sparse warnings
-
-Sebastian Reichel (4):
-      si4713: switch to devm regulator API
-      si4713: switch reset gpio to devm_gpiod API
-      si4713: use managed memory allocation
-      si4713: use managed irq request
-
- drivers/media/i2c/adv7511.c                |  21 ++++++++-----
- drivers/media/i2c/adv7604.c                |  37 +++++++++++------------
- drivers/media/i2c/adv7842.c                |  34 ++++++++++++---------
- drivers/media/pci/saa7164/saa7164-buffer.c |   4 +--
- drivers/media/pci/saa7164/saa7164-bus.c    | 101 +++++++++++++++++++++++++++++++++++--------------------------
- drivers/media/pci/saa7164/saa7164-core.c   |  13 ++++----
- drivers/media/pci/saa7164/saa7164-fw.c     |   6 ++--
- drivers/media/pci/saa7164/saa7164-types.h  |   4 +--
- drivers/media/pci/saa7164/saa7164.h        |   4 +--
- drivers/media/radio/si4713/si4713.c        | 133 ++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------
- drivers/media/radio/si4713/si4713.h        |   9 +++---
- 11 files changed, 206 insertions(+), 160 deletions(-)
+http://www.xs4all.nl/~hverkuil/spec/media.html
