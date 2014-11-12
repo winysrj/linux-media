@@ -1,111 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57364 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbaK2TL6 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:13820 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbaKLQKp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Nov 2014 14:11:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: v4l2-subdev.h: drop the guard CONFIG_VIDEO_V4L2_SUBDEV_API for v4l2_subdev_get_try_*()
-Date: Sat, 29 Nov 2014 21:12:25 +0200
-Message-ID: <3017627.SLutb67dz2@avalon>
-In-Reply-To: <CA+V-a8s-mP+Fjok2s_nDUAOb4vN3RWyRc5VHuZqPdk4pJtv03A@mail.gmail.com>
-References: <1416220913-5047-1-git-send-email-prabhakar.csengg@gmail.com> <20141118180759.GT8907@valkosipuli.retiisi.org.uk> <CA+V-a8s-mP+Fjok2s_nDUAOb4vN3RWyRc5VHuZqPdk4pJtv03A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 12 Nov 2014 11:10:45 -0500
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v7 3/3] Documentation: leds: Add description of LED Flash
+ Class extension
+Date: Wed, 12 Nov 2014 17:09:17 +0100
+Message-id: <1415808557-29557-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
+References: <1415808557-29557-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes.
 
-On Saturday 29 November 2014 18:30:09 Prabhakar Lad wrote:
-> On Tue, Nov 18, 2014 at 6:07 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Tue, Nov 18, 2014 at 10:39:24AM +0100, Hans Verkuil wrote:
-> >> On 11/17/14 11:41, Lad, Prabhakar wrote:
-> >> > this patch removes the guard CONFIG_VIDEO_V4L2_SUBDEV_API
-> >> > for v4l2_subdev_get_try_*() functions.
-> >> > In cases where a subdev using v4l2_subdev_get_try_*() calls
-> >> > internally and the bridge using subdev pad ops which is
-> >> > not MC aware forces to select MEDIA_CONTROLLER, as
-> >> > VIDEO_V4L2_SUBDEV_API is dependent on it.
-> >> > 
-> >> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> >> > ---
-> >> > 
-> >> >  include/media/v4l2-subdev.h | 2 --
-> >> >  1 file changed, 2 deletions(-)
-> >> > 
-> >> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >> > index 5860292..076ca11 100644
-> >> > --- a/include/media/v4l2-subdev.h
-> >> > +++ b/include/media/v4l2-subdev.h
-> >> > @@ -642,7 +642,6 @@ struct v4l2_subdev_fh {
-> >> >  #define to_v4l2_subdev_fh(fh)      \
-> >> >     container_of(fh, struct v4l2_subdev_fh, vfh)
-> >> > 
-> >> > -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> >> >  #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)         
-> >> >      \
-> >> >     static inline struct rtype *                                    \
-> >> >     v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,       \
-> >> > 
-> >> > @@ -656,7 +655,6 @@ struct v4l2_subdev_fh {
-> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_crop)
-> >> >  __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
-> >> > -#endif
-> >> > 
-> >> >  extern const struct v4l2_file_operations v4l2_subdev_fops;
-> >> 
-> >> The problem is that v4l2_subdev_get_try_*() needs a v4l2_subdev_fh which
-> >> you don't have if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined. So I don't
-> >> see how removing the guards help with that.
-> >> 
-> >> What can be done is that if CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
-> >> then these functions return NULL.
-> > 
-> > Sure. That's a better choice than removing the config option dependency of
-> > the fields struct v4l2_subdev.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   39 +++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-Decoupling CONFIG_VIDEO_V4L2_SUBDEV_API from the availability of the in-kernel 
-pad format and selection rectangles helpers is definitely a good idea. I was 
-thinking about decoupling the try format and rectangles from v4l2_subdev_fh by 
-creating a kind of configuration store structure to store them, and embedding 
-that structure in v4l2_subdev_fh. The pad-level operations would then take a 
-pointer to the configuration store instead of the v4l2_subdev_fh. Bridge 
-drivers that want to implement TRY_FMT based on pad-level operations would 
-create a configuration store, use the pad-level operations, and destroy the 
-configuration store. The userspace subdev API would use the configuration 
-store from the file handle.
-
-> >> BTW, one patch I will very happily accept is one where the
-> >> __V4L2_SUBDEV_MK_GET_TRY is removed and these three try functions are
-> >> just written as proper static inlines. I find it very obfuscated code.
-> > 
-> > I originally wrote them like that in order to avoid writing essentially
-> > the same code three times over. If there will be more targets, the same
-> > repeats further, should one write those functions open for all different
-> > macro arguments. That's why it was a macro to begin with.
-> > 
-> >> In addition, because it is a macro you won't find the function
-> >> definitions if you grep on the function name.
-> > 
-> > True as well. You could simply change the macro to include the full
-> > function name. This was not suggested in review back then AFAIR.
-> > 
-> >> But any functional changes here need to be Acked by Laurent first.
-> 
-> How do you want me to proceed on this ?
-
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..0164329
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,39 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. In order to enable
++support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol must be defined
++in the kernel config. A flash LED driver must register in the LED subsystem
++with led_classdev_flash_register to gain flash capabilities.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- indicator_brightness - privacy LED brightness in microamperes (RW)
++	- max_indicator_brightness - maximum privacy LED brightness in
++				     microamperes (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- flash_fault - bitmask of flash faults that may have occurred,
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
