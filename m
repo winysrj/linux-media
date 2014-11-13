@@ -1,175 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53014 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753351AbaKHXJo (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58565 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753586AbaKMDnr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Nov 2014 18:09:44 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 12 Nov 2014 22:43:47 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 00A622A008E
+	for <linux-media@vger.kernel.org>; Thu, 13 Nov 2014 04:43:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 08/10] smiapp: Obtain device information from the Device Tree if OF node exists
-Date: Sun,  9 Nov 2014 01:09:29 +0200
-Message-Id: <1415488171-27636-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
-References: <1415488171-27636-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20141113034339.00A622A008E@tschai.lan>
+Date: Thu, 13 Nov 2014 04:43:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Platform data support is retained.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/i2c/smiapp/smiapp-core.c |  100 +++++++++++++++++++++++++++++++-
- 1 file changed, 98 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index c2c9a1f..bc57e5d 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -25,11 +25,13 @@
- #include <linux/device.h>
- #include <linux/gpio.h>
- #include <linux/module.h>
-+#include <linux/of_gpio.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
- #include <linux/v4l2-mediabus.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- 
- #include "smiapp.h"
- 
-@@ -2920,19 +2922,107 @@ static int smiapp_resume(struct device *dev)
- 
- #endif /* CONFIG_PM */
- 
-+static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
-+{
-+	struct smiapp_platform_data *pdata;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *ep;
-+	uint32_t asize;
-+	int rval;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !dev->of_node)
-+		return dev->platform_data;
-+
-+	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
-+	if (!ep)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		rval = -ENOMEM;
-+		goto out_err;
-+	}
-+
-+	v4l2_of_parse_endpoint(ep, &bus_cfg);
-+
-+	switch (bus_cfg.bus_type) {
-+	case V4L2_MBUS_CSI2:
-+		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
-+		break;
-+		/* FIXME: add CCP2 support. */
-+	default:
-+		rval = -EINVAL;
-+		goto out_err;
-+	}
-+
-+	pdata->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
-+	dev_dbg(dev, "lanes %u\n", pdata->lanes);
-+
-+	/* xshutdown GPIO is optional */
-+	pdata->xshutdown = of_get_named_gpio(dev->of_node, "reset-gpios", 0);
-+
-+	/* NVM size is not mandatory */
-+	of_property_read_u32(dev->of_node, "nokia,nvm-size",
-+				    &pdata->nvm_size);
-+
-+	rval = of_property_read_u32(dev->of_node, "clock-frequency",
-+				    &pdata->ext_clk);
-+	if (rval) {
-+		dev_warn(dev, "can't get clock-frequency\n");
-+		goto out_err;
-+	}
-+
-+	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", pdata->xshutdown,
-+		pdata->nvm_size, pdata->ext_clk, pdata->csi_signalling_mode);
-+
-+	rval = of_get_property(
-+		dev->of_node, "link-frequency", &asize) ? 0 : -ENOENT;
-+	if (rval) {
-+		dev_warn(dev, "can't get link-frequency array size\n");
-+		goto out_err;
-+	}
-+
-+	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
-+	if (!pdata->op_sys_clock) {
-+		rval = -ENOMEM;
-+		goto out_err;
-+	}
-+
-+	asize /= sizeof(*pdata->op_sys_clock);
-+	rval = of_property_read_u64_array(
-+		dev->of_node, "link-frequency", pdata->op_sys_clock, asize);
-+	if (rval) {
-+		dev_warn(dev, "can't get link-frequency\n");
-+		goto out_err;
-+	}
-+
-+	for (; asize > 0; asize--)
-+		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
-+			pdata->op_sys_clock[asize - 1]);
-+
-+	of_node_put(ep);
-+	return pdata;
-+
-+out_err:
-+	of_node_put(ep);
-+	return NULL;
-+}
-+
- static int smiapp_probe(struct i2c_client *client,
- 			const struct i2c_device_id *devid)
- {
- 	struct smiapp_sensor *sensor;
-+	struct smiapp_platform_data *pdata = smiapp_get_pdata(&client->dev);
-+	int rval;
- 
--	if (client->dev.platform_data == NULL)
-+	if (pdata == NULL)
- 		return -ENODEV;
- 
- 	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
- 	if (sensor == NULL)
- 		return -ENOMEM;
- 
--	sensor->platform_data = client->dev.platform_data;
-+	sensor->platform_data = pdata;
- 	mutex_init(&sensor->mutex);
- 	mutex_init(&sensor->power_mutex);
- 	sensor->src = &sensor->ssds[sensor->ssds_used];
-@@ -2991,6 +3081,11 @@ static int smiapp_remove(struct i2c_client *client)
- 	return 0;
- }
- 
-+static const struct of_device_id smiapp_of_table[] = {
-+	{ .compatible = "nokia,smia" },
-+	{ },
-+};
-+
- static const struct i2c_device_id smiapp_id_table[] = {
- 	{ SMIAPP_NAME, 0 },
- 	{ },
-@@ -3004,6 +3099,7 @@ static const struct dev_pm_ops smiapp_pm_ops = {
- 
- static struct i2c_driver smiapp_i2c_driver = {
- 	.driver	= {
-+		.of_match_table = smiapp_of_table,
- 		.name = SMIAPP_NAME,
- 		.pm = &smiapp_pm_ops,
- 	},
--- 
-1.7.10.4
+date:		Thu Nov 13 04:00:16 CET 2014
+git branch:	test
+git hash:	dd0a6fe2bc3055cd61e369f97982c88183b1f0a0
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-35-gc1c3f96
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.17-2.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-i686: OK
+linux-3.17-i686: OK
+linux-3.18-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-x86_64: OK
+linux-3.17-x86_64: OK
+linux-3.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
