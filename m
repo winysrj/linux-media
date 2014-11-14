@@ -1,641 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55403 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676AbaKJMtl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Nov 2014 07:49:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 05/16] vb2-dma-sg: move dma_(un)map_sg here
-Date: Mon, 10 Nov 2014 13:49:20 +0100
-Message-Id: <1415623771-29634-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415623771-29634-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:42479 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965084AbaKNLU7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 06:20:59 -0500
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id sAEBKwOO021149
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:58 -0600
+Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id sAEBKwC3002918
+	for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 05:20:58 -0600
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <nikhil.nd@ti.com>
+Subject: [PATCH v2 3/4] media: ti-vpe: Do not perform job transaction atomically
+Date: Fri, 14 Nov 2014 16:50:51 +0530
+Message-ID: <1415964052-30351-4-git-send-email-nikhil.nd@ti.com>
+In-Reply-To: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
+References: <1415964052-30351-1-git-send-email-nikhil.nd@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Current VPE driver does not start the job untill all the buffers for
+a transaction are not queued. When running in multiple context, this might
+increase the processing latency.
 
-This moves dma_(un)map_sg to the get_userptr/put_userptr and alloc/put
-memops of videobuf2-dma-sg.c and adds dma_sync_sg_for_device/cpu to the
-prepare/finish memops.
+Alternate solution would be to try to continue the same context as long as
+buffers for the transaction are ready; else switch the conext. This may
+increase number of context switches but it reduces latency significantly.
 
-Now that vb2-dma-sg will sync the buffers for you in the prepare/finish
-memops we can drop that from the drivers that use dma-sg.
+In this approach, the job_ready always succeeds as long as there are buffers
+on the CAPTURE and OUTPUT stream. Processing may start immediately as the
+first 2 iterations don't need extra source buffers. Shift all the source buffers
+after each iteration and remove the oldest buffer.
 
-For the solo6x10 driver that was a bit more involved because it needs to
-copy JPEG or MPEG headers to the buffer before returning it to userspace,
-and that cannot be done in the old place since the buffer there is still
-setup for DMA access, not for CPU access. However, the buf_finish
-op is the ideal place to do this. By the time buf_finish is called
-the buffer is available for CPU access, so copying to the buffer is fine.
+Also, with this removes the constraint of pre buffering 3 buffers before call
+to STREAMON in case of deinterlacing.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
 ---
- drivers/media/pci/cx23885/cx23885-417.c         |  3 --
- drivers/media/pci/cx23885/cx23885-core.c        |  5 ---
- drivers/media/pci/cx23885/cx23885-dvb.c         |  3 --
- drivers/media/pci/cx23885/cx23885-vbi.c         |  9 -----
- drivers/media/pci/cx23885/cx23885-video.c       |  9 -----
- drivers/media/pci/saa7134/saa7134-empress.c     |  1 -
- drivers/media/pci/saa7134/saa7134-ts.c          | 16 --------
- drivers/media/pci/saa7134/saa7134-vbi.c         | 15 --------
- drivers/media/pci/saa7134/saa7134-video.c       | 15 --------
- drivers/media/pci/saa7134/saa7134.h             |  1 -
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c  | 50 +++++++++++--------------
- drivers/media/pci/tw68/tw68-video.c             |  8 ----
- drivers/media/platform/marvell-ccic/mcam-core.c | 18 +--------
- drivers/media/v4l2-core/videobuf2-dma-sg.c      | 40 ++++++++++++++++++++
- 14 files changed, 63 insertions(+), 130 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index d72a3ec..e4901a5 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1167,11 +1167,8 @@ static void buffer_finish(struct vb2_buffer *vb)
- 	struct cx23885_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx23885_buffer *buf = container_of(vb,
- 		struct cx23885_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 
- 	cx23885_free_buffer(dev, buf);
--
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- static void buffer_queue(struct vb2_buffer *vb)
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index d452b5c..d07b04a 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -1453,17 +1453,12 @@ int cx23885_buf_prepare(struct cx23885_buffer *buf, struct cx23885_tsport *port)
- 	struct cx23885_dev *dev = port->dev;
- 	int size = port->ts_packet_size * port->ts_packet_count;
- 	struct sg_table *sgt = vb2_dma_sg_plane_desc(&buf->vb, 0);
--	int rc;
- 
- 	dprintk(1, "%s: %p\n", __func__, buf);
- 	if (vb2_plane_size(&buf->vb, 0) < size)
- 		return -EINVAL;
- 	vb2_set_plane_payload(&buf->vb, 0, size);
- 
--	rc = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
--	if (!rc)
--		return -EIO;
--
- 	cx23885_risc_databuffer(dev->pci, &buf->risc,
- 				sgt->sgl,
- 				port->ts_packet_size, port->ts_packet_count, 0);
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index e63759e..79239b1 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -123,11 +123,8 @@ static void buffer_finish(struct vb2_buffer *vb)
- 	struct cx23885_dev *dev = port->dev;
- 	struct cx23885_buffer *buf = container_of(vb,
- 		struct cx23885_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 
- 	cx23885_free_buffer(dev, buf);
--
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- static void buffer_queue(struct vb2_buffer *vb)
-diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
-index 1d339a6..d362d38 100644
---- a/drivers/media/pci/cx23885/cx23885-vbi.c
-+++ b/drivers/media/pci/cx23885/cx23885-vbi.c
-@@ -143,7 +143,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		struct cx23885_buffer, vb);
- 	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	unsigned lines = VBI_PAL_LINE_COUNT;
--	int ret;
- 
- 	if (dev->tvnorm & V4L2_STD_525_60)
- 		lines = VBI_NTSC_LINE_COUNT;
-@@ -152,10 +151,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	vb2_set_plane_payload(vb, 0, lines * VBI_LINE_LENGTH * 2);
- 
--	ret = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
--	if (!ret)
--		return -EIO;
--
- 	cx23885_risc_vbibuffer(dev->pci, &buf->risc,
- 			 sgt->sgl,
- 			 0, VBI_LINE_LENGTH * lines,
-@@ -166,14 +161,10 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 
- static void buffer_finish(struct vb2_buffer *vb)
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 4d3ab43..939f083 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -906,15 +906,14 @@ static struct vpe_ctx *file2ctx(struct file *file)
+ static int job_ready(void *priv)
  {
--	struct cx23885_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx23885_buffer *buf = container_of(vb,
- 		struct cx23885_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
+ 	struct vpe_ctx *ctx = priv;
+-	int needed = ctx->bufs_per_job;
  
- 	cx23885_free_buffer(vb->vb2_queue->drv_priv, buf);
+-	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL)
+-		needed += 2;	/* need additional two most recent fields */
 -
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
- 
- /*
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 1b04ab3..6f4fcd9 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -335,7 +335,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	u32 line0_offset, line1_offset;
- 	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
- 	int field_tff;
--	int ret;
- 
- 	buf->bpl = (dev->width * dev->fmt->depth) >> 3;
- 
-@@ -343,10 +342,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	vb2_set_plane_payload(vb, 0, dev->height * buf->bpl);
- 
--	ret = dma_map_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
--	if (!ret)
--		return -EIO;
+-	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+-		return 0;
 -
- 	switch (dev->field) {
- 	case V4L2_FIELD_TOP:
- 		cx23885_risc_buffer(dev->pci, &buf->risc,
-@@ -414,14 +409,10 @@ static int buffer_prepare(struct vb2_buffer *vb)
+-	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
++	/*
++	 * This check is needed as this might be called directly from driver
++	 * When called by m2m framework, this will always satisy, but when
++	 * called from vpe_irq, this might fail. (src stream with zero buffers)
++	 */
++	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) <= 0 ||
++		v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) <= 0)
+ 		return 0;
  
- static void buffer_finish(struct vb2_buffer *vb)
- {
--	struct cx23885_dev *dev = vb->vb2_queue->drv_priv;
- 	struct cx23885_buffer *buf = container_of(vb,
- 		struct cx23885_buffer, vb);
--	struct sg_table *sgt = vb2_dma_sg_plane_desc(vb, 0);
+ 	return 1;
+@@ -1123,19 +1122,20 @@ static void device_run(void *priv)
+ 	struct sc_data *sc = ctx->dev->sc;
+ 	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
  
- 	cx23885_free_buffer(vb->vb2_queue->drv_priv, buf);
+-	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL) {
+-		ctx->src_vbs[2] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+-		WARN_ON(ctx->src_vbs[2] == NULL);
+-		ctx->src_vbs[1] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+-		WARN_ON(ctx->src_vbs[1] == NULL);
+-	}
 -
--	dma_unmap_sg(&dev->pci->dev, sgt->sgl, sgt->nents, DMA_FROM_DEVICE);
- }
+ 	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+ 	WARN_ON(ctx->src_vbs[0] == NULL);
+ 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 	WARN_ON(ctx->dst_vb == NULL);
  
- /*
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index e4ea85f..b1cfd0e 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -96,7 +96,6 @@ static struct vb2_ops saa7134_empress_qops = {
- 	.queue_setup	= saa7134_ts_queue_setup,
- 	.buf_init	= saa7134_ts_buffer_init,
- 	.buf_prepare	= saa7134_ts_buffer_prepare,
--	.buf_finish	= saa7134_ts_buffer_finish,
- 	.buf_queue	= saa7134_vb2_buffer_queue,
- 	.wait_prepare	= vb2_ops_wait_prepare,
- 	.wait_finish	= vb2_ops_wait_finish,
-diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
-index 8eff4a7..2709b83 100644
---- a/drivers/media/pci/saa7134/saa7134-ts.c
-+++ b/drivers/media/pci/saa7134/saa7134-ts.c
-@@ -94,7 +94,6 @@ int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2)
- 	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
- 	struct sg_table *dma = vb2_dma_sg_plane_desc(vb2, 0);
- 	unsigned int lines, llength, size;
--	int ret;
- 
- 	dprintk("buffer_prepare [%p]\n", buf);
- 
-@@ -108,25 +107,11 @@ int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2)
- 	vb2_set_plane_payload(vb2, 0, size);
- 	vb2->v4l2_buf.field = dev->field;
- 
--	ret = dma_map_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--	if (!ret)
--		return -EIO;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
- EXPORT_SYMBOL_GPL(saa7134_ts_buffer_prepare);
- 
--void saa7134_ts_buffer_finish(struct vb2_buffer *vb2)
--{
--	struct saa7134_dmaqueue *dmaq = vb2->vb2_queue->drv_priv;
--	struct saa7134_dev *dev = dmaq->dev;
--	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
--	struct sg_table *dma = vb2_dma_sg_plane_desc(&buf->vb2, 0);
--
--	dma_unmap_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--}
--EXPORT_SYMBOL_GPL(saa7134_ts_buffer_finish);
--
- int saa7134_ts_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
- 			   unsigned int sizes[], void *alloc_ctxs[])
-@@ -188,7 +173,6 @@ struct vb2_ops saa7134_ts_qops = {
- 	.queue_setup	= saa7134_ts_queue_setup,
- 	.buf_init	= saa7134_ts_buffer_init,
- 	.buf_prepare	= saa7134_ts_buffer_prepare,
--	.buf_finish	= saa7134_ts_buffer_finish,
- 	.buf_queue	= saa7134_vb2_buffer_queue,
- 	.wait_prepare	= vb2_ops_wait_prepare,
- 	.wait_finish	= vb2_ops_wait_finish,
-diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
-index e2cc684..5306e54 100644
---- a/drivers/media/pci/saa7134/saa7134-vbi.c
-+++ b/drivers/media/pci/saa7134/saa7134-vbi.c
-@@ -120,7 +120,6 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
- 	struct sg_table *dma = vb2_dma_sg_plane_desc(&buf->vb2, 0);
- 	unsigned int size;
--	int ret;
- 
- 	if (dma->sgl->offset) {
- 		pr_err("The buffer is not page-aligned\n");
-@@ -132,9 +131,6 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 
- 	vb2_set_plane_payload(vb2, 0, size);
- 
--	ret = dma_map_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--	if (!ret)
--		return -EIO;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
-@@ -170,21 +166,10 @@ static int buffer_init(struct vb2_buffer *vb2)
- 	return 0;
- }
- 
--static void buffer_finish(struct vb2_buffer *vb2)
--{
--	struct saa7134_dmaqueue *dmaq = vb2->vb2_queue->drv_priv;
--	struct saa7134_dev *dev = dmaq->dev;
--	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
--	struct sg_table *dma = vb2_dma_sg_plane_desc(&buf->vb2, 0);
--
--	dma_unmap_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--}
--
- struct vb2_ops saa7134_vbi_qops = {
- 	.queue_setup	= queue_setup,
- 	.buf_init	= buffer_init,
- 	.buf_prepare	= buffer_prepare,
--	.buf_finish	= buffer_finish,
- 	.buf_queue	= saa7134_vb2_buffer_queue,
- 	.wait_prepare	= vb2_ops_wait_prepare,
- 	.wait_finish	= vb2_ops_wait_finish,
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index ba02995..701b52f 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -883,7 +883,6 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
- 	struct sg_table *dma = vb2_dma_sg_plane_desc(&buf->vb2, 0);
- 	unsigned int size;
--	int ret;
- 
- 	if (dma->sgl->offset) {
- 		pr_err("The buffer is not page-aligned\n");
-@@ -896,23 +895,10 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 	vb2_set_plane_payload(vb2, 0, size);
- 	vb2->v4l2_buf.field = dev->field;
- 
--	ret = dma_map_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--	if (!ret)
--		return -EIO;
- 	return saa7134_pgtable_build(dev->pci, &dmaq->pt, dma->sgl, dma->nents,
- 				    saa7134_buffer_startpage(buf));
- }
- 
--static void buffer_finish(struct vb2_buffer *vb2)
--{
--	struct saa7134_dmaqueue *dmaq = vb2->vb2_queue->drv_priv;
--	struct saa7134_dev *dev = dmaq->dev;
--	struct saa7134_buf *buf = container_of(vb2, struct saa7134_buf, vb2);
--	struct sg_table *dma = vb2_dma_sg_plane_desc(&buf->vb2, 0);
--
--	dma_unmap_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--}
--
- static int queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
- 			   unsigned int sizes[], void *alloc_ctxs[])
-@@ -1005,7 +991,6 @@ static struct vb2_ops vb2_qops = {
- 	.queue_setup	= queue_setup,
- 	.buf_init	= buffer_init,
- 	.buf_prepare	= buffer_prepare,
--	.buf_finish	= buffer_finish,
- 	.buf_queue	= saa7134_vb2_buffer_queue,
- 	.wait_prepare	= vb2_ops_wait_prepare,
- 	.wait_finish	= vb2_ops_wait_finish,
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index c644c7d..8bf0553 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -815,7 +815,6 @@ void saa7134_video_fini(struct saa7134_dev *dev);
- 
- int saa7134_ts_buffer_init(struct vb2_buffer *vb2);
- int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2);
--void saa7134_ts_buffer_finish(struct vb2_buffer *vb2);
- int saa7134_ts_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
- 			   unsigned int sizes[], void *alloc_ctxs[]);
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 4f79b68..fb6270c 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -463,7 +463,6 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_size;
--	int ret;
- 
- 	vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
- 
-@@ -473,22 +472,10 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 	frame_size = ALIGN(vop_jpeg_size(vh) + solo_enc->jpeg_len, DMA_ALIGN);
- 	vb2_set_plane_payload(vb, 0, vop_jpeg_size(vh) + solo_enc->jpeg_len);
- 
--	/* may discard all previous data in vbuf->sgl */
--	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
--			DMA_FROM_DEVICE))
--		return -ENOMEM;
--	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
-+	return solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
- 			     vop_jpeg_offset(vh) - SOLO_JPEG_EXT_ADDR(solo_dev),
- 			     frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
- 			     SOLO_JPEG_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
--			DMA_FROM_DEVICE);
--
--	/* add the header only after dma_unmap_sg() */
--	sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
--			    solo_enc->jpeg_header, solo_enc->jpeg_len);
--
--	return ret;
- }
- 
- static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
-@@ -498,7 +485,6 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_off, frame_size;
- 	int skip = 0;
--	int ret;
- 
- 	if (vb2_plane_size(vb, 0) < vop_mpeg_size(vh))
- 		return -EIO;
-@@ -521,21 +507,9 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 		sizeof(*vh)) % SOLO_MP4E_EXT_SIZE(solo_dev);
- 	frame_size = ALIGN(vop_mpeg_size(vh) + skip, DMA_ALIGN);
- 
--	/* may discard all previous data in vbuf->sgl */
--	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
--			DMA_FROM_DEVICE))
--		return -ENOMEM;
--	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
-+	return solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
- 			SOLO_MP4E_EXT_ADDR(solo_dev),
- 			SOLO_MP4E_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
--			DMA_FROM_DEVICE);
--
--	/* add the header only after dma_unmap_sg() */
--	if (!vop_type(vh))
--		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
--				    solo_enc->vop, solo_enc->vop_len);
--	return ret;
- }
- 
- static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
-@@ -790,9 +764,29 @@ static void solo_enc_stop_streaming(struct vb2_queue *q)
- 	solo_ring_stop(solo_enc->solo_dev);
- }
- 
-+static void solo_enc_buf_finish(struct vb2_buffer *vb)
-+{
-+	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(vb->vb2_queue);
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+ 	if (ctx->deinterlacing) {
 +
-+	switch (solo_enc->fmt) {
-+	case V4L2_PIX_FMT_MPEG4:
-+	case V4L2_PIX_FMT_H264:
-+		if (vb->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME)
-+			sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
-+					solo_enc->vop, solo_enc->vop_len);
-+		break;
-+	default: /* V4L2_PIX_FMT_MJPEG */
-+		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
-+				solo_enc->jpeg_header, solo_enc->jpeg_len);
-+		break;
-+	}
-+}
++		if (ctx->src_vbs[2] == NULL) {
++			ctx->src_vbs[2] = ctx->src_vbs[0];
++			WARN_ON(ctx->src_vbs[2] == NULL);
++			ctx->src_vbs[1] = ctx->src_vbs[0];
++			WARN_ON(ctx->src_vbs[1] == NULL);
++		}
 +
- static struct vb2_ops solo_enc_video_qops = {
- 	.queue_setup	= solo_enc_queue_setup,
- 	.buf_queue	= solo_enc_buf_queue,
-+	.buf_finish	= solo_enc_buf_finish,
- 	.start_streaming = solo_enc_start_streaming,
- 	.stop_streaming = solo_enc_stop_streaming,
- 	.wait_prepare	= vb2_ops_wait_prepare,
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index 50dcce6..8355e55 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -462,17 +462,12 @@ static int tw68_buf_prepare(struct vb2_buffer *vb)
- 	struct tw68_buf *buf = container_of(vb, struct tw68_buf, vb);
- 	struct sg_table *dma = vb2_dma_sg_plane_desc(vb, 0);
- 	unsigned size, bpl;
--	int rc;
- 
- 	size = (dev->width * dev->height * dev->fmt->depth) >> 3;
- 	if (vb2_plane_size(vb, 0) < size)
- 		return -EINVAL;
- 	vb2_set_plane_payload(vb, 0, size);
- 
--	rc = dma_map_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--	if (!rc)
--		return -EIO;
--
- 	bpl = (dev->width * dev->fmt->depth) >> 3;
- 	switch (dev->field) {
- 	case V4L2_FIELD_TOP:
-@@ -506,11 +501,8 @@ static void tw68_buf_finish(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct tw68_dev *dev = vb2_get_drv_priv(vq);
--	struct sg_table *dma = vb2_dma_sg_plane_desc(vb, 0);
- 	struct tw68_buf *buf = container_of(vb, struct tw68_buf, vb);
- 
--	dma_unmap_sg(&dev->pci->dev, dma->sgl, dma->nents, DMA_FROM_DEVICE);
--
- 	pci_free_consistent(dev->pci, buf->size, buf->cpu, buf->dma);
- }
- 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 7398b3f..daaff51 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1221,17 +1221,12 @@ static int mcam_vb_sg_buf_init(struct vb2_buffer *vb)
- static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- {
- 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
--	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
- 	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
- 	struct mcam_dma_desc *desc = mvb->dma_desc;
- 	struct scatterlist *sg;
- 	int i;
- 
--	mvb->dma_desc_nent = dma_map_sg(cam->dev, sg_table->sgl,
--			sg_table->nents, DMA_FROM_DEVICE);
--	if (mvb->dma_desc_nent <= 0)
--		return -EIO;  /* Not sure what's right here */
--	for_each_sg(sg_table->sgl, sg, mvb->dma_desc_nent, i) {
-+	for_each_sg(sg_table->sgl, sg, sg_table->nents, i) {
- 		desc->dma_addr = sg_dma_address(sg);
- 		desc->segment_len = sg_dma_len(sg);
- 		desc++;
-@@ -1239,16 +1234,6 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
--{
--	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
--	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
--
--	if (sg_table)
--		dma_unmap_sg(cam->dev, sg_table->sgl,
--				sg_table->nents, DMA_FROM_DEVICE);
--}
--
- static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
-@@ -1265,7 +1250,6 @@ static const struct vb2_ops mcam_vb2_sg_ops = {
- 	.buf_init		= mcam_vb_sg_buf_init,
- 	.buf_prepare		= mcam_vb_sg_buf_prepare,
- 	.buf_queue		= mcam_vb_buf_queue,
--	.buf_finish		= mcam_vb_sg_buf_finish,
- 	.buf_cleanup		= mcam_vb_sg_buf_cleanup,
- 	.start_streaming	= mcam_vb_start_streaming,
- 	.stop_streaming		= mcam_vb_stop_streaming,
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 72c89d0..bda3293 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -96,6 +96,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
-+	struct sg_table *sgt;
- 	int ret;
- 	int num_pages;
- 
-@@ -128,6 +129,12 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(conf->dev);
-+
-+	sgt = &buf->sg_table;
-+	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-+		goto fail_map;
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
- 	buf->handler.arg = buf;
-@@ -138,6 +145,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 		__func__, buf->num_pages);
- 	return buf;
- 
-+fail_map:
-+	put_device(buf->dev);
-+	sg_free_table(buf->dma_sgt);
- fail_table_alloc:
- 	num_pages = buf->num_pages;
- 	while (num_pages--)
-@@ -152,11 +162,13 @@ fail_pages_array_alloc:
- static void vb2_dma_sg_put(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table *sgt = &buf->sg_table;
- 	int i = buf->num_pages;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
- 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
- 			buf->num_pages);
-+		dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->num_pages);
- 		sg_free_table(&buf->sg_table);
-@@ -168,6 +180,22 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		/*
+ 		 * we have output the first 2 frames through line average, we
+ 		 * now switch to EDI de-interlacer
+@@ -1359,7 +1359,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
  	}
- }
  
-+static void vb2_dma_sg_prepare(void *buf_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table *sgt = &buf->sg_table;
-+
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+}
-+
-+static void vb2_dma_sg_finish(void *buf_priv)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table *sgt = &buf->sg_table;
-+
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+}
-+
- static inline int vma_is_io(struct vm_area_struct *vma)
- {
- 	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-@@ -182,6 +210,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	unsigned long first, last;
- 	int num_pages_from_user;
- 	struct vm_area_struct *vma;
-+	struct sg_table *sgt;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -249,8 +278,15 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(conf->dev);
-+
-+	sgt = &buf->sg_table;
-+	if (dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) == 0)
-+		goto userptr_fail_map;
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 	return buf;
- 
-+userptr_fail_map:
-+	sg_free_table(&buf->sg_table);
- userptr_fail_alloc_table_from_pages:
- userptr_fail_get_user_pages:
- 	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
-@@ -273,10 +309,12 @@ userptr_fail_alloc_pages:
- static void vb2_dma_sg_put_userptr(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table *sgt = &buf->sg_table;
- 	int i = buf->num_pages;
- 
- 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
- 	       __func__, buf->num_pages);
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->num_pages);
- 	sg_free_table(&buf->sg_table);
-@@ -364,6 +402,8 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.put		= vb2_dma_sg_put,
- 	.get_userptr	= vb2_dma_sg_get_userptr,
- 	.put_userptr	= vb2_dma_sg_put_userptr,
-+	.prepare	= vb2_dma_sg_prepare,
-+	.finish		= vb2_dma_sg_finish,
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
+ 	ctx->bufs_completed++;
+-	if (ctx->bufs_completed < ctx->bufs_per_job) {
++	if (ctx->bufs_completed < ctx->bufs_per_job && job_ready(ctx)) {
+ 		device_run(ctx);
+ 		goto handled;
+ 	}
 -- 
-2.1.1
+1.7.9.5
 
