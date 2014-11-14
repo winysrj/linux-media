@@ -1,91 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40686 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751849AbaKWOYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Nov 2014 09:24:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: "Ira W. Snyder" <iws@ovro.caltech.edu>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/3] carma-fpga-program.c: fix compile errors
-Date: Sun, 23 Nov 2014 15:23:48 +0100
-Message-Id: <1416752630-47360-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl>
-References: <1416752630-47360-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:47890 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935404AbaKNXgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 18:36:53 -0500
+Message-ID: <54669210.1070101@iki.fi>
+Date: Sat, 15 Nov 2014 01:36:48 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/8] rtl2832: implement PIP mode
+References: <1415766190-24482-1-git-send-email-crope@iki.fi>	<1415766190-24482-3-git-send-email-crope@iki.fi> <20141114173440.427324a8@recife.lan>
+In-Reply-To: <20141114173440.427324a8@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Moikka!
 
-drivers/misc/carma/carma-fpga-program.c: In function 'fpga_program_dma':
-drivers/misc/carma/carma-fpga-program.c:529:2: error: expected ';' before 'if'
-  if (ret) {
-  ^
-drivers/misc/carma/carma-fpga-program.c: In function 'fpga_read':
-drivers/misc/carma/carma-fpga-program.c:752:45: error: 'ppos' undeclared (first use in this function)
-  return simple_read_from_buffer(buf, count, ppos,
-                                             ^
-drivers/misc/carma/carma-fpga-program.c:752:45: note: each undeclared identifier is reported only once for each function it appears in
-drivers/misc/carma/carma-fpga-program.c: In function 'fpga_llseek':
-drivers/misc/carma/carma-fpga-program.c:765:27: error: 'file' undeclared (first use in this function)
-  return fixed_size_llseek(file, offset, origin, priv->fw_size);
-                           ^
-drivers/misc/carma/carma-fpga-program.c:759:9: warning: unused variable 'newpos' [-Wunused-variable]
-  loff_t newpos;
-         ^
-drivers/misc/carma/carma-fpga-program.c: In function 'fpga_read':
-drivers/misc/carma/carma-fpga-program.c:754:1: warning: control reaches end of non-void function [-Wreturn-type]
- }
- ^
-drivers/misc/carma/carma-fpga-program.c: In function 'fpga_llseek':
-drivers/misc/carma/carma-fpga-program.c:766:1: warning: control reaches end of non-void function [-Wreturn-type]
- }
- ^
-scripts/Makefile.build:263: recipe for target 'drivers/misc/carma/carma-fpga-program.o' failed
+On 11/14/2014 09:34 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 12 Nov 2014 06:23:04 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Implement PIP mode to stream from slave demodulator. PIP mode is
+>> enabled when .set_frontend is called with RF frequency 0, otherwise
+>> normal demod mode is enabled.
+>
+> This would be an API change, so, a DocBook patch is required.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/misc/carma/carma-fpga-program.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+You are wrong. PIP mode is driver/device internal thing and will not be 
+revealed to userspace.
 
-diff --git a/drivers/misc/carma/carma-fpga-program.c b/drivers/misc/carma/carma-fpga-program.c
-index 339b252..eb8942b 100644
---- a/drivers/misc/carma/carma-fpga-program.c
-+++ b/drivers/misc/carma/carma-fpga-program.c
-@@ -525,7 +525,7 @@ static noinline int fpga_program_dma(struct fpga_dev *priv)
- 		goto out_dma_unmap;
- 	}
- 
--	ret = fsl_dma_external_start(chan, 1)
-+	ret = fsl_dma_external_start(chan, 1);
- 	if (ret) {
- 		dev_err(priv->dev, "DMA external control setup failed\n");
- 		goto out_dma_unmap;
-@@ -749,20 +749,19 @@ static ssize_t fpga_read(struct file *filp, char __user *buf, size_t count,
- 			 loff_t *f_pos)
- {
- 	struct fpga_dev *priv = filp->private_data;
--	return simple_read_from_buffer(buf, count, ppos,
-+	return simple_read_from_buffer(buf, count, f_pos,
- 				       priv->vb.vaddr, priv->bytes);
- }
- 
- static loff_t fpga_llseek(struct file *filp, loff_t offset, int origin)
- {
- 	struct fpga_dev *priv = filp->private_data;
--	loff_t newpos;
- 
- 	/* only read-only opens are allowed to seek */
- 	if ((filp->f_flags & O_ACCMODE) != O_RDONLY)
- 		return -EINVAL;
- 
--	return fixed_size_llseek(file, offset, origin, priv->fw_size);
-+	return fixed_size_llseek(filp, offset, origin, priv->fw_size);
- }
- 
- static const struct file_operations fpga_fops = {
+> Anyway, using frequency=0 for PIP doesn't seem to be a good idea,
+> as a read from GET_PROPERTY should override the cache with the real
+> frequency.
+
+Yes, it is a hackish solution, used to put demod#0 on certain config 
+when demod#1 is used. When PIP mode is set that demod#0 is totally 
+useless as demod#1 is in use instead. Cache is garbage and no meaning at 
+all.
+
+> Also, someone came with me with a case where auto-frequency would
+> be interesting, and proposed frequency=0. I was not convinced
+> (and patches weren't sent), but using 0 for AUTO seems more
+> appropriate, as we do the same for bandwidth (and may do the same
+> for symbol_rate).
+
+I totally agree that is is hackish solution. That is called from 
+rtl28xxu.c driver and I added already comment it is hackish solution, 
+but you didn't apply that commit.
+
+> So, the best seems to add a new property to enable PIP mode.
+
+No, no, no. It is like a PIP filter. It is actually special case of PID 
+filter, having mux, to multiplex 2 TS interfaces to one (PIP = Picture 
+in Picture).
+
+
+.............................................
+. RTL2832P integrates RTL2832 demodulator   .
+. ____________                ____________  .              ____________
+.|   USB IF   |              |   demod    | .             |   demod    |
+.|------------|              |------------| .             |------------|
+.|  RTL2832P  |              |  RTL2832   | .             |  MN88472   |
+.|            |----TS bus----|-----/ -----|-.---TS bus----|            |
+.|____________|              |____________| .             |____________|
+.............................................
+
+
+So the basically both demod PID filters are now implemented in RTL2832 
+demod. Currently PIP mode is configured just to pass all the PIDs from 
+MN88472 and reject RTL2832 PIDs. And when PIP mode is off, at pass all 
+the PIDs from RTL2832, but rejects all PIDs from MN88472.
+
+regards
+Antti
+
+
+>
+> Regards,
+> Mauro
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/dvb-frontends/rtl2832.c | 42 ++++++++++++++++++++++++++++++++---
+>>   1 file changed, 39 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+>> index eb737cf..a58b456 100644
+>> --- a/drivers/media/dvb-frontends/rtl2832.c
+>> +++ b/drivers/media/dvb-frontends/rtl2832.c
+>> @@ -258,13 +258,11 @@ static int rtl2832_rd_regs(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val,
+>>   	return rtl2832_rd(priv, reg, val, len);
+>>   }
+>>
+>> -#if 0 /* currently not used */
+>>   /* write single register */
+>>   static int rtl2832_wr_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 val)
+>>   {
+>>   	return rtl2832_wr_regs(priv, reg, page, &val, 1);
+>>   }
+>> -#endif
+>>
+>>   /* read single register */
+>>   static int rtl2832_rd_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val)
+>> @@ -595,6 +593,44 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
+>>   			"%s: frequency=%d bandwidth_hz=%d inversion=%d\n",
+>>   			__func__, c->frequency, c->bandwidth_hz, c->inversion);
+>>
+>> +	/* PIP mode */
+>> +	if (c->frequency == 0) {
+>> +		dev_dbg(&priv->i2c->dev, "%s: setting PIP mode\n", __func__);
+>> +		ret = rtl2832_wr_regs(priv, 0x0c, 1, "\x5f\xff", 2);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_demod_reg(priv, DVBT_PIP_ON, 0x1);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_reg(priv, 0xbc, 0, 0x18);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_reg(priv, 0x22, 0, 0x01);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_reg(priv, 0x26, 0, 0x1f);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_reg(priv, 0x27, 0, 0xff);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		ret = rtl2832_wr_regs(priv, 0x92, 1, "\x7f\xf7\xff", 3);
+>> +		if (ret)
+>> +			goto err;
+>> +
+>> +		goto exit_soft_reset;
+>> +	} else {
+>> +		ret = rtl2832_wr_regs(priv, 0x92, 1, "\x00\x0f\xff", 3);
+>> +		if (ret)
+>> +			goto err;
+>> +	}
+>> +
+>>   	/* program tuner */
+>>   	if (fe->ops.tuner_ops.set_params)
+>>   		fe->ops.tuner_ops.set_params(fe);
+>> @@ -661,7 +697,7 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
+>>   	if (ret)
+>>   		goto err;
+>>
+>> -
+>> +exit_soft_reset:
+>>   	/* soft reset */
+>>   	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
+>>   	if (ret)
+
 -- 
-2.1.3
-
+http://palosaari.fi/
