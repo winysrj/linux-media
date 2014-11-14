@@ -1,64 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41126 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbaKCKCo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Nov 2014 05:02:44 -0500
-Message-ID: <1415008955.3060.10.camel@pengutronix.de>
-Subject: Re: [PATCH v5 1/6] of: Decrement refcount of previous endpoint in
- of_graph_get_next_endpoint
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	kernel@pengutronix.de
-Date: Mon, 03 Nov 2014 11:02:35 +0100
-In-Reply-To: <1412064370.3692.1.camel@pengutronix.de>
-References: <1412013819-29181-1-git-send-email-p.zabel@pengutronix.de>
-	 <1412013819-29181-2-git-send-email-p.zabel@pengutronix.de>
-	 <20140929221042.GA9895@kroah.com> <1412064370.3692.1.camel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:63854 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934535AbaKNO4t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 09:56:49 -0500
+Received: by mail-pa0-f49.google.com with SMTP id lj1so17549710pab.22
+        for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 06:56:49 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <m3lhneez9h.fsf@t19.piap.pl>
+References: <m3lhneez9h.fsf@t19.piap.pl>
+Date: Fri, 14 Nov 2014 18:56:48 +0400
+Message-ID: <CANZNk82C9SmBXx4T=CxRjLGOZPuRdahwF4mXYUk8pJ427vdCPQ@mail.gmail.com>
+Subject: Re: SOLO6x10: fix a race in IRQ handler.
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: =?ISO-8859-2?Q?Krzysztof_Ha=B3asa?= <khalasa@piap.pl>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Guennadi,
+2014-11-14 16:35 GMT+04:00 Krzysztof Hałasa <khalasa@piap.pl>:
+> The IRQs have to be acknowledged before they are serviced, otherwise some events
+> may be skipped. Also, acknowledging IRQs just before returning from the handler
+> doesn't leave enough time for the device to deassert the INTx line, and for
+> bridges to propagate this change. This resulted in twice the IRQ rate on ARMv6
+> dual core CPU.
 
-Am Dienstag, den 30.09.2014, 10:06 +0200 schrieb Philipp Zabel:
-> Am Montag, den 29.09.2014, 18:10 -0400 schrieb Greg Kroah-Hartman:
-> > On Mon, Sep 29, 2014 at 08:03:34PM +0200, Philipp Zabel wrote:
-> > > Decrementing the reference count of the previous endpoint node allows to
-> > > use the of_graph_get_next_endpoint function in a for_each_... style macro.
-> > > All current users of this function that pass a non-NULL prev parameter
-> > > (that is, soc_camera and imx-drm) are changed to not decrement the passed
-> > > prev argument's refcount themselves.
-> > > 
-> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > > ---
-> > > Changes since v4:
-> > >  - Folded patches 1-3 into this one
-> > > ---
-> > >  drivers/media/platform/soc_camera/soc_camera.c |  3 ++-
-> > >  drivers/of/base.c                              |  9 +--------
-> > >  drivers/staging/imx-drm/imx-drm-core.c         | 12 ++----------
-> > >  3 files changed, 5 insertions(+), 19 deletions(-)
-> > 
-> > No objection from me for this, but Grant is in "charge" of
-> > drivers/of/base.c, so I'll leave it for him to apply.
-> > 
-> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> Thank you. Guennadi, Mauro, could I get your ack on the soc_camera part?
+Thanks!
+I'm not experienced in interaction with hardware in this regard...
+could you please point to some reading which explains this moment? Or
+you just know this from experience? The solo device specs are very
+terse about this, so I considered that it should work fine without
+regard to how fast we write back to that register.
 
-I'd really like to get this series merged through Grant's tree, but
-since it touches the soc_camera core, could you please give me an ack
-for this?
-
-regards
-Philipp
-
+-- 
+Andrey Utkin
