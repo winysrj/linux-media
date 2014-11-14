@@ -1,49 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34610 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751151AbaKEIR7 (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:35628 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934535AbaKNPEu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Nov 2014 03:17:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/8] bttv: fix sparse warning
-Date: Wed,  5 Nov 2014 09:17:45 +0100
-Message-Id: <1415175472-24203-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
-References: <1415175472-24203-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 14 Nov 2014 10:04:50 -0500
+Date: Fri, 14 Nov 2014 16:04:46 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] [media] Add RGB444_1X12 and RGB565_1X16 media bus
+ formats
+Message-ID: <20141114160446.70c1b8b9@bbrezillon>
+In-Reply-To: <20141114135831.GC8907@valkosipuli.retiisi.org.uk>
+References: <1415961360-14898-1-git-send-email-boris.brezillon@free-electrons.com>
+	<20141114135831.GC8907@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-bttv-cards.c:3874:55: warning: incorrect type in initializer (different base types)
+On Fri, 14 Nov 2014 15:58:31 +0200
+Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-Also clean up the code a little by adding spaces.
+> Hi Boris,
+> 
+> On Fri, Nov 14, 2014 at 11:36:00AM +0100, Boris Brezillon wrote:
+> > Add RGB444_1X12 and RGB565_1X16 format definitions and update the
+> > documentation.
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
+> >  include/uapi/linux/media-bus-format.h              |  4 ++-
+> >  2 files changed, 43 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > index 18730b9..8c396db 100644
+> > --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> > @@ -563,6 +563,46 @@
+> >  	      <entry>b<subscript>1</subscript></entry>
+> >  	      <entry>b<subscript>0</subscript></entry>
+> >  	    </row>
+> > +	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
+> > +	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
+> > +	      <entry>0x100d</entry>
+> > +	      <entry></entry>
+> > +	      &dash-ent-20;
+> > +	      <entry>r<subscript>3</subscript></entry>
+> > +	      <entry>r<subscript>2</subscript></entry>
+> > +	      <entry>r<subscript>1</subscript></entry>
+> > +	      <entry>r<subscript>0</subscript></entry>
+> > +	      <entry>g<subscript>3</subscript></entry>
+> > +	      <entry>g<subscript>2</subscript></entry>
+> > +	      <entry>g<subscript>1</subscript></entry>
+> > +	      <entry>g<subscript>0</subscript></entry>
+> > +	      <entry>b<subscript>3</subscript></entry>
+> > +	      <entry>b<subscript>2</subscript></entry>
+> > +	      <entry>b<subscript>1</subscript></entry>
+> > +	      <entry>b<subscript>0</subscript></entry>
+> > +	    </row>
+> > +	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
+> > +	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
+> > +	      <entry>0x100d</entry>
+> > +	      <entry></entry>
+> > +	      &dash-ent-16;
+> > +	      <entry>r<subscript>4</subscript></entry>
+> > +	      <entry>r<subscript>3</subscript></entry>
+> > +	      <entry>r<subscript>2</subscript></entry>
+> > +	      <entry>r<subscript>1</subscript></entry>
+> > +	      <entry>r<subscript>0</subscript></entry>
+> > +	      <entry>g<subscript>5</subscript></entry>
+> > +	      <entry>g<subscript>4</subscript></entry>
+> > +	      <entry>g<subscript>3</subscript></entry>
+> > +	      <entry>g<subscript>2</subscript></entry>
+> > +	      <entry>g<subscript>1</subscript></entry>
+> > +	      <entry>g<subscript>0</subscript></entry>
+> > +	      <entry>b<subscript>4</subscript></entry>
+> > +	      <entry>b<subscript>3</subscript></entry>
+> > +	      <entry>b<subscript>2</subscript></entry>
+> > +	      <entry>b<subscript>1</subscript></entry>
+> > +	      <entry>b<subscript>0</subscript></entry>
+> > +	    </row>
+> >  	  </tbody>
+> >  	</tgroup>
+> >        </table>
+> > diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+> > index 23b4090..cc7b79e 100644
+> > --- a/include/uapi/linux/media-bus-format.h
+> > +++ b/include/uapi/linux/media-bus-format.h
+> > @@ -33,7 +33,7 @@
+> >  
+> >  #define MEDIA_BUS_FMT_FIXED			0x0001
+> >  
+> > -/* RGB - next is	0x100e */
+> > +/* RGB - next is	0x1010 */
+> >  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+> >  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+> >  #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
+> > @@ -47,6 +47,8 @@
+> >  #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
+> >  #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
+> >  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+> > +#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
+> > +#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
+> 
+> I'd arrange these according to BPP and bits per sample, both in the header
+> and documentation.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-cards.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I cannot keep both macro values and BPP/bits per sample in incrementing
+order. Are you sure you prefer to order macros in BPP/bits per sample
+order ?
 
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index d8ec583..4105560 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -3870,10 +3870,10 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256])
- 	} else {
- 		unsigned short type;
- 
--		for (i = 4*16; i < 8*16; i += 16) {
--			u16 checksum = ip_compute_csum(ee + i, 16);
-+		for (i = 4 * 16; i < 8 * 16; i += 16) {
-+			u16 checksum = (__force u16)ip_compute_csum(ee + i, 16);
- 
--			if ((checksum&0xff) + (checksum>>8) == 0xff)
-+			if ((checksum & 0xff) + (checksum >> 8) == 0xff)
- 				break;
- 		}
- 		if (i >= 8*16)
 -- 
-2.1.1
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
