@@ -1,57 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53331 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbaKBOxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Nov 2014 09:53:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v2 07/13] v4l: vb2: Fix race condition in _vb2_fop_release
-Date: Sun,  2 Nov 2014 16:53:32 +0200
-Message-Id: <1414940018-3016-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1414940018-3016-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:50021 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934728AbaKNLmv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 06:42:51 -0500
+Received: by mail-pd0-f175.google.com with SMTP id w10so1494132pde.20
+        for <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 03:42:51 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <m3sihmf3mc.fsf@t19.piap.pl>
+References: <CAM_ZknVTqh0VnhuT3MdULtiqHJzxRhK-Pjyb58W=4Ldof0+jgA@mail.gmail.com>
+	<m3sihmf3mc.fsf@t19.piap.pl>
+Date: Fri, 14 Nov 2014 15:42:50 +0400
+Message-ID: <CANZNk81y8=ugk3Ds0FhoeYBzh7ATy1Uyo8gxUQFoiPcYcwD+yQ@mail.gmail.com>
+Subject: Re: [RFC] solo6x10 freeze, even with Oct 31's linux-next... any ideas
+ or help?
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: =?ISO-8859-2?Q?Krzysztof_Ha=B3asa?= <khalasa@piap.pl>
+Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	"hans.verkuil" <hans.verkuil@cisco.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function releases the queue if the file being released is the queue
-owner. The check reads the queue->owner field without taking the queue
-lock, creating a race condition with functions that set the queue owner,
-such as vb2_ioctl_reqbufs() for instance.
+2014-11-14 15:00 GMT+04:00 Krzysztof Hałasa <khalasa@piap.pl>:
+> There is a race condition in the IRQ handler, at least in 3.17.
+> I don't know if it's related, will post a patch.
 
-Fix this by moving the queue->owner check within the mutex protected
-section.
+Thank you for your interest.
+Looking forward for your patch. If you don't have time, please just
+say what races with what, I'll check by myself.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index de59465f..753e6b4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3385,14 +3385,14 @@ int _vb2_fop_release(struct file *file, struct mutex *lock)
- {
- 	struct video_device *vdev = video_devdata(file);
- 
-+	if (lock)
-+		mutex_lock(lock);
- 	if (file->private_data == vdev->queue->owner) {
--		if (lock)
--			mutex_lock(lock);
- 		vb2_queue_release(vdev->queue);
- 		vdev->queue->owner = NULL;
--		if (lock)
--			mutex_unlock(lock);
- 	}
-+	if (lock)
-+		mutex_unlock(lock);
- 	return v4l2_fh_release(file);
- }
- EXPORT_SYMBOL_GPL(_vb2_fop_release);
 -- 
-2.0.4
-
+Andrey Utkin
