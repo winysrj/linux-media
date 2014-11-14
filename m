@@ -1,58 +1,183 @@
-Return-Path: <andrey.utkin@corp.bluecherry.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: khalasa@piap.pl, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
- m.chehab@samsung.com, hverkuil@xs4all.nl
-Subject: SOLO6x10: fix a race in IRQ handler.
-Date: Sat, 15 Nov 2014 14:34:35 +0400
-Message-id: <m3lhneez9h.fsf@t19.piap.pl>
-In-reply-to: <m3lhneez9h.fsf@t19.piap.pl>
-References: <m3lhneez9h.fsf@t19.piap.pl>
-Received: from ni.piap.pl
- ([195.187.100.4]:56387 "EHLO ni.piap.pl" rhost-flags-OK-OK-OK-OK)
- by vger.kernel.org with ESMTP id S965171AbaKNMfI convert rfc822-to-8bit
- (ORCPT <rfc822;linux-media@vger.kernel.org>); Fri, 14 Nov 2014 07:35:08 -0500
-Received: from ni.piap.pl (localhost.localdomain [127.0.0.1])
- by ni.piap.pl (Postfix) with ESMTP id E64124412B3 for
- <linux-media@vger.kernel.org>; Fri, 14 Nov 2014 13:35:06 +0100 (CET)
-Content-transfer-encoding: 8BIT
-List-Id: <linux-media.vger.kernel.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53148 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754505AbaKNI3u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Nov 2014 03:29:50 -0500
+Message-ID: <5465BD6F.8030208@xs4all.nl>
+Date: Fri, 14 Nov 2014 09:29:35 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] v4l: Clean up sub-device format documentation
+References: <1415487872-27500-1-git-send-email-sakari.ailus@iki.fi> <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1415487872-27500-2-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+Two small notes...
 
-The IRQs have to be acknowledged before they are serviced, otherwise some events
-may be skipped. Also, acknowledging IRQs just before returning from the handler
-doesn't leave enough time for the device to deassert the INTx line, and for
-bridges to propagate this change. This resulted in twice the IRQ rate on ARMv6
-dual core CPU.
+On 11/09/2014 12:04 AM, Sakari Ailus wrote:
+> The sub-device format documentation documented scaling configuration through
+> formats. Instead the compose selection rectangle is elsewhere documented to
+> be used for the purpose. Remove scaling related part of the documentation.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/dev-subdev.xml |  108 ++++++++++++++----------
+>  1 file changed, 62 insertions(+), 46 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> index d15aaf8..dbf9965 100644
+> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> @@ -195,53 +195,59 @@
+>  	<title>Sample Pipeline Configuration</title>
+>  	<tgroup cols="3">
+>  	  <colspec colname="what"/>
+> -	  <colspec colname="sensor-0" />
+> -	  <colspec colname="frontend-0" />
+> -	  <colspec colname="frontend-1" />
+> -	  <colspec colname="scaler-0" />
+> -	  <colspec colname="scaler-1" />
+> +	  <colspec colname="sensor-0 format" />
+> +	  <colspec colname="frontend-0 format" />
+> +	  <colspec colname="frontend-1 format" />
+> +	  <colspec colname="scaler-0 format" />
+> +	  <colspec colname="scaler-0 compose" />
+> +	  <colspec colname="scaler-1 format" />
+>  	  <thead>
+>  	    <row>
+>  	      <entry></entry>
+> -	      <entry>Sensor/0</entry>
+> -	      <entry>Frontend/0</entry>
+> -	      <entry>Frontend/1</entry>
+> -	      <entry>Scaler/0</entry>
+> -	      <entry>Scaler/1</entry>
+> +	      <entry>Sensor/0 format</entry>
+> +	      <entry>Frontend/0 format</entry>
+> +	      <entry>Frontend/1 format</entry>
+> +	      <entry>Scaler/0 format</entry>
+> +	      <entry>Scaler/0 compose selection rectangle</entry>
+> +	      <entry>Scaler/1 format</entry>
+>  	    </row>
+>  	  </thead>
+>  	  <tbody valign="top">
+>  	    <row>
+>  	      <entry>Initial state</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry>-</entry>
+> -	      <entry>-</entry>
+> -	      <entry>-</entry>
+> -	      <entry>-</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+>  	    </row>
+>  	    <row>
+> -	      <entry>Configure frontend input</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry><emphasis>2048x1536</emphasis></entry>
+> -	      <entry><emphasis>2046x1534</emphasis></entry>
+> -	      <entry>-</entry>
+> -	      <entry>-</entry>
+> +	      <entry>Configure frontend sink format</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry><emphasis>2048x1536/SGRBG8_1X8</emphasis></entry>
+> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+> +	      <entry>(default)</entry>
+>  	    </row>
+>  	    <row>
+> -	      <entry>Configure scaler input</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry>2046x1534</entry>
+> -	      <entry><emphasis>2046x1534</emphasis></entry>
+> -	      <entry><emphasis>2046x1534</emphasis></entry>
+> +	      <entry>Configure scaler sink format</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+> +	      <entry><emphasis>0,0/2046x1534</emphasis></entry>
+> +	      <entry><emphasis>2046x1534/SGRBG8_1X8</emphasis></entry>
+>  	    </row>
+>  	    <row>
+> -	      <entry>Configure scaler output</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry>2048x1536</entry>
+> -	      <entry>2046x1534</entry>
+> -	      <entry>2046x1534</entry>
+> -	      <entry><emphasis>1280x960</emphasis></entry>
+> +	      <entry>Configure scaler sink compose selection</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry>2048x1536/SGRBG8_1X8</entry>
+> +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> +	      <entry>2046x1534/SGRBG8_1X8</entry>
+> +	      <entry><emphasis>0,0/1280x960</emphasis></entry>
+> +	      <entry><emphasis>1280x960/SGRBG8_1X8</emphasis></entry>
+>  	    </row>
+>  	  </tbody>
+>  	</tgroup>
+> @@ -249,19 +255,29 @@
+>  
+>        <para>
+>        <orderedlist>
+> -	<listitem><para>Initial state. The sensor output is set to its native 3MP
+> -	resolution. Resolutions on the host frontend and scaler input and output
+> -	pads are undefined.</para></listitem>
+> -	<listitem><para>The application configures the frontend input pad resolution to
+> -	2048x1536. The driver propagates the format to the frontend output pad.
+> -	Note that the propagated output format can be different, as in this case,
+> -	than the input format, as the hardware might need to crop pixels (for
+> -	instance when converting a Bayer filter pattern to RGB or YUV).
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
-Acked-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Tested-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Does this Bayer filter note no longer apply?
 
---- a/drivers/media/pci/solo6x10/solo6x10-core.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-core.c
-@@ -105,11 +105,8 @@ static irqreturn_t solo_isr(int irq, void *data)
- 	if (!status)
- 		return IRQ_NONE;
- 
--	if (status & ~solo_dev->irq_mask) {
--		solo_reg_write(solo_dev, SOLO_IRQ_STAT,
--			       status & ~solo_dev->irq_mask);
--		status &= solo_dev->irq_mask;
--	}
-+	/* Acknowledge all interrupts immediately */
-+	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
- 
- 	if (status & SOLO_IRQ_PCI_ERR)
- 		solo_p2m_error_isr(solo_dev);
-@@ -132,9 +129,6 @@ static irqreturn_t solo_isr(int irq, void *data)
- 	if (status & SOLO_IRQ_G723)
- 		solo_g723_isr(solo_dev);
- 
--	/* Clear all interrupts handled */
--	solo_reg_write(solo_dev, SOLO_IRQ_STAT, status);
--
- 	return IRQ_HANDLED;
- }
+> </para></listitem>
+> -	<listitem><para>The application configures the scaler input pad resolution to
+> -	2046x1534 to match the frontend output resolution. The driver propagates
+> -	the format to the scaler output pad.</para></listitem>
+> -	<listitem><para>The application configures the scaler output pad resolution to
+> -	1280x960.</para></listitem>
+> +	<listitem><para>Initial state. The sensor source pad format is
+> +	set to its native 3MP size and V4L2_MBUS_FMT_SGRBG8_1X8
+> +	media bus code. Formats on the host frontend and scaler sink
+> +	and source pads have the default values, as well as the
+> +	compose rectangle on the scaler's sind pad.</para></listitem>
+
+sind -> sink
+
+> +
+> +	<listitem><para>The application configures the frontend sink
+> +	pad format's size to 2048x1536 and its media bus code to
+> +	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the format to
+> +	the frontend source pad.</para></listitem>
+> +
+> +	<listitem><para>The application configures the scaler sink pad
+> +	format's size to 2046x1534 and the media bus code to
+> +	V4L2_MBUS_FMT_SGRBG_1X8 to match the frontend source size and
+> +	media bus code. The media bus code on the sink pad is set to
+> +	V4L2_MBUS_FMT_SGRBG_1X8. The driver propagates the size to the
+> +	compose selection rectangle on the scaler's sink pad, and the
+> +	format to the scaler source pad.</para></listitem>
+> +
+> +	<listitem><para>The application configures the compose
+> +	selection rectangle of the scaler's sink pad and scaler source
+> +	pad format's size to 1280x960.</para></listitem>
+> +
+>        </orderedlist>
+>        </para>
+>  
+> 
+
+Regards,
+
+	Hans
